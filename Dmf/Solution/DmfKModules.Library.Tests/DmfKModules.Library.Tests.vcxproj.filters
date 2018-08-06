@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{d55e4247-89a3-4e46-a5e9-6730d2b08ad9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{825649ab-dd9d-4c71-a26b-3f4d92963fa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{35f556c1-6746-433f-adec-3e8b95846f25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{170db0e0-58a3-49e2-a5c2-35559fc00189}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Public.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Trace.h">
+      <Filter>Headers</Filter>
+    </ClInclude>    
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\TestsUtility.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

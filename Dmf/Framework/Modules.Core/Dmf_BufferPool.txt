@@ -1,0 +1,646 @@
+====[DMF Module Documentation]=====================================================================================================
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the MIT license.
+
+====[Module]=======================================================================================================================
+
+DMF_BufferPool
+
+====[Module Category]==============================================================================================================
+
+Buffers
+
+====[Module Summary]===============================================================================================================
+
+Creates and stores a list of buffers in a Source list. Creates a Sink list that can store buffers. Provides methods to add and
+remove buffers to/from those lists. Retrieves buffers in the lists in FIFO order. Buffers can be added to Sink lists with a
+buffer specific timer that causes the buffer to be removed from the list automatically when the timer expires. This Module provides an 
+enumerator Method that allows access to every buffer in its list in a synchronized manner. Finally, the Methods check for buffer 
+overrun when the buffers are accessed and complex race conditions are properly handled.
+
+====[Module Configuration]=========================================================================================================
+
+typedef struct
+{
+    // Indicates the mode of DMF_BufferPool.
+    //
+    BufferPool_ModeType BufferPoolMode;
+    union
+    {
+        // Each mode has its own settings. 
+        // NOTE: Currently no custom settings are required for Sink mode.
+        //
+        BufferPool_SourceSettings SourceSettings;
+    } Mode;
+} DMF_CONFIG_BufferPool;
+
+BufferPoolMode:
+Indicates if the Module is instantiated in Source-mode or Sink-mode. If Source is selected, then Mode.SourceSettings must be 
+properly populated.
+
+Mode.SourceSettings:
+Indicates the settings for a list created in Source-mode.
+
+====[Module Enumeration Types]======================================================================================================
+
+// These definitions indicate the mode of DMF_BufferPool. Indicates how the Client will use the DMF_BufferPool.
+//
+typedef enum
+{
+    BufferPool_Mode_Invalid = 0,
+    // Initialized with list of empty buffers.
+    //
+    BufferPool_Mode_Source,
+    // Initialized with zero buffers.
+    //
+    BufferPool_Mode_Sink,
+    BufferPool_Mode_Maximum,
+} BufferPool_ModeType;
+
+BufferPool_Mode_Source:
+Indicates that a Source-mode list is created. In this case, a specific number of buffers are allocated and added to the list when
+the instance of DMF_BufferPool is created. SourceSettings must be populated.
+
+BufferPool_Mode_Sink:
+Indicates that a Sink-mode list is created. In this case, zero buffers are allocated and added to the list when the instance of 
+DMF_BufferPool is created. The Client will add buffers to this list after retrieving them from a Source-mode list.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+// These definitions indicate what the enumerator does after calling the Client's enumeration callback.
+//
+typedef enum
+{
+    BufferPool_EnumerationDisposition_Invalid = 0,
+    // Continue enumerating.
+    //
+    BufferPool_EnumerationDisposition_ContinueEnumeration,
+    // Stop enumerating.
+    //
+    BufferPool_EnumerationDisposition_StopEnumeration,
+    // Remove the enumerated buffer and stop enumerating.
+    // (Client now owns the buffer).
+    //
+    BufferPool_EnumerationDisposition_RemoveAndStopEnumeration,
+    // Stop the timer associated with the buffer and stop enumerating.
+    //
+    BufferPool_EnumerationDisposition_StopTimerAndStopEnumeration,
+    // Stop the timer associated with the buffer and continue enumerating.
+    //
+    BufferPool_EnumerationDisposition_StopTimerAndContinueEnumeration,
+    // Reset the timer associated with the buffer and continue enumerating.
+    //
+    BufferPool_EnumerationDisposition_ResetTimerAndStopEnumeration,
+    // Reset the timer associated with the buffer and continue enumerating.
+    //
+    BufferPool_EnumerationDisposition_ResetTimerAndContinueEnumeration,
+    BufferPool_EnumerationDisposition_Maximum,
+} BufferPool_EnumerationDispositionType;
+
+BufferPool_EnumerationDisposition_ContinueEnumeration:
+After the enumeration callback returns, continue enumerating buffers.
+
+BufferPool_EnumerationDisposition_StopEnumeration:
+After the enumeration callback returns, stop enumerating buffers.
+
+BufferPool_EnumerationDisposition_RemoveAndStopEnumeration:
+After the enumeration callback returns, remove the buffer from list and stop enumerating buffers.
+
+BufferPool_EnumerationDisposition_StopTimerAndStopEnumeration:
+After the enumeration callback returns, stop the timer and stop enumerating buffers. The buffer remains in the list.
+
+BufferPool_EnumerationDisposition_StopTimerAndContinueEnumeration:
+After the enumeration callback returns, stop the timer and continue enumerating buffers. The buffer remains in the list.
+
+BufferPool_EnumerationDisposition_ResetTimerAndStopEnumeration,
+After the enumeration callback returns, reset (restart) the timer and stop enumerating buffers. The buffer remains in the list.
+
+BufferPool_EnumerationDisposition_ResetTimerAndContinueEnumeration,
+After the enumeration callback returns, reset (restart) the timer and continue enumerating buffers. The buffer remains in the list.
+
+====[Module Structures]============================================================================================================
+
+// Settings for BufferPool_Mode_Source.
+//
+typedef struct
+{
+    // Maximum number of entries to store.
+    //
+    ULONG BufferCount;
+    // The size of each entry.
+    //
+    ULONG BufferSize;
+    // Size of client buffer context.
+    //
+    ULONG BufferContextSize;
+    // Indicates if a look aside list should be used.
+    //
+    ULONG EnableLookAside;
+    // Indicates if a timer is created with the buffer.
+    // Use this flag if the buffers from this list will be added to 
+    // another list using *WithTimer API.
+    //
+    ULONG CreateWithTimer;
+    // Pool Type.
+    // Note: Pool type can be passive if PassiveLevel in Module Attributes is set to TRUE.
+    //
+    POOL_TYPE PoolType;
+} BufferPool_SourceSettings;
+
+BufferCount:
+The number of buffers that should be automatically allocated when DMF_BufferPool is created. This number may be not be zero.
+The number of buffers in the list should never be greater than this number.
+
+BufferSize:
+The size of each buffer.
+
+BufferContextSize:
+In some cases, the Client may wish to store Client specific meta data for each buffer in the list. If so, this field
+indicates the size of that buffer.
+
+EnableLookAside:
+If set to TRUE, when there are no buffers left in the list and the Client requests another buffer, a buffer is allocated from
+a lookaside list automatically.
+
+CreateWithTimer:
+If it is possible that buffers will be added to a Sink list using a timer, then this field must be set to TRUE so that 
+a timer will be created and assigned to each of the allocated buffers.
+
+PoolType:
+The Pool Type attribute of the automatically allocated buffers. If Paged pool is used then this Module must be instantiated
+as a PASSIVE_LEVEL instance by setting DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
+
+====[Module Callbacks]=============================================================================================================
+
+// Callback function called by DMF_BufferPool_Enumerate.
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BufferPool_EnumerationDispositionType
+EVT_DMF_BufferPool_Enumeration(_In_ DMFMODULE DmfModule,
+                               _In_ VOID* ClientBuffer,
+                               _In_ VOID* ClientBufferContext,
+                               _In_opt_ VOID* ClientDriverCallbackContext);
+
+Returns
+-------
+BufferPool_EnumerationDispositionType
+
+Parameters
+----------
+ClientBuffer:
+The given Client buffer.
+
+ClientBufferContext:
+The Client buffer context associated with the given Client buffer.
+
+ClientDriverContext:
+The Client context set during DMF_BufferPool creation.
+
+ClientDriverCallContet:
+The context set by the Client when the timer associated with the buffer is set.
+
+Remarks
+-------
+    * The Client decides what to do with the buffer and tells DMF_BufferPool how to dispose of the buffer by setting the
+corresponding return value.
+    * Complex race conditions between this callback, the enumerator and other Methods are properly handled.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+// Callback function called when a buffer's timer expires.
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_BufferPool_TimerCallback(_In_ DMFMODULE DmfModule,
+                                 _In_ VOID* ClientBuffer,
+                                 _In_ VOID* ClientBufferContext,
+                                 _In_opt_ VOID* ClientDriverCallbackContext);
+
+Called by DMF_BufferPool when a timer associated with a DMF_BufferPool given Client buffer expires. The Client may access the
+buffer during this callback.
+
+Returns
+-------
+None
+
+Parameters
+----------
+ClientBuffer:
+The given Client buffer.
+
+ClientBufferContext:
+The Client buffer context associated with the given Client buffer.
+
+ClientDriverContext:
+The Client context set during DMF_BufferPool creation.
+
+ClientDriverCallContet:
+The context set by the Client when the timer associated with the buffer is set.
+
+Remarks
+-------
+
+    * Complex race conditions between this callback, the enumerator and other Methods are properly handled.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+====[Module Methods]===============================================================================================================
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_ContextGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _Out_ VOID** ClientBufferContext
+    );
+
+Given a DMF_BufferPool buffer, this Method returns its associated Client Buffer Context.
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+Client Buffer:
+The given DMF_BufferPool Client Buffer.
+
+ClientBufferContext:
+The given Client Buffer's associated Client Buffer Context.
+
+Remarks
+-------
+    * The Client Buffer Context can be used, for example, to store insertion specific information that is needed when the buffer
+is removed.
+    * The Client knows the size of the buffer and buffer context because the Client has specified that information when creating
+the instance of DMF_BufferPool Module.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+ULONG
+DMF_BufferPool_Count(
+    _In_ DMFMODULE DmfModule
+    );
+
+Given a DMF_BufferPool instance handle, return the number of entries in the list.
+
+Returns
+-------
+The number of entries in the list.
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+Remarks
+-------
+    * The actual number of buffers in the list may change immediately or even while this Method executes. Therefore, this Method
+is only useful in limited scenarios.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_Enumerate(
+    _In_ DMFMODULE DmfModule,
+    _In_ EVT_DMF_BufferPool_Enumeration EntryEnumerationCallback,
+    _In_opt_ VOID* ClientDriverCallbackContext,
+    _Out_opt_ VOID** ClientBuffer,
+    _Out_opt_ VOID** ClientBufferContext
+    );
+
+This Method enumerates all the buffers in a DMF_BufferPool instance and calls a given callback for each buffer.
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+EntryEnumerationCallback:
+The given callback that is called for every buffer in the DMF_BufferPool instance.
+
+ClientDriverCallbackContext:
+The Client specific context that is passed to the given callback.
+
+ClientBuffer:
+ClientBuffer is used to return a BufferList buffer to the Client after the buffer has been removed from the list.
+
+ClientBufferContext:
+ClientBufferContext is used to return a BufferList buffer's Context-buffer to the Client after the buffer has been removed from
+the list.
+
+Remarks
+-------
+    * Clients use this Method when they need to search or perform actions on all the buffers in a DMF_BufferPool.
+    * Before using this Method note carefully how DMF_BufferPool implements this Method. Pay attention to the locking and how
+certain race conditions are handled.
+    * This Method is designed to work properly to resolve race conditions with buffers that have been added to a Sink
+DMF_BufferPool using a timer. Specifically, if a buffer in the list has a timer that is about to expire, this buffer will
+not be enumerated because it may soon be removed from the list.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_BufferPool_Get(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** ClientBuffer,
+    _Out_ VOID** ClientBufferContext
+    );
+
+Remove and return the first buffer from an instance of DMF_BufferPool in FIFO order.
+
+Returns
+-------
+NTSTATUS. Fails if there is no buffer in the list.
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+ClientBuffer:
+The address of the retrieved Client Buffer. The Client may access the buffer at this address.
+
+ClientBufferContext:
+The address of the Client Buffer Context associated with the retrieved ClientBuffer.
+
+Remarks
+-------
+    * Clients use this Method when they need to retrieve a buffer from the list.
+    * The Client knows the size of the buffer and buffer context because the Client has specified that information when creating
+the instance of DMF_BufferPool Module.
+    * After a buffer has been retrieved using this Method, the Client owns the buffer. The buffer must be returned to either the
+Source DMF_BufferPool where it was created or to any Sink DMF_BufferPool prior to driver unload. Not doing so, results in a
+memory leak.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_BufferPool_GetWithMemory(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** ClientBuffer,
+    _Out_ VOID** ClientBufferContext,
+    _Out_ WDFMEMORY* ClientBufferMemory
+    );
+
+Remove and return the first buffer from an instance of DMF_BufferPool in FIFO order. Also, return the WDFMEMORY object
+associated with the Client Buffer.
+
+Returns
+-------
+NTSTATUS. Fails if there is no buffer in the list.
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+ClientBuffer:
+The address of the retrieved Client Buffer. The Client may access the buffer at this address.
+
+ClientBufferContext:
+The address of the Client Buffer Context associated with the retrieved ClientBuffer.
+
+ClientBufferMemory:
+Returns the WDFMEMORY associated with the returned buffer.
+
+Remarks
+-------
+    * Clients use this Method when they need to retrieve a buffer from the list.
+    * The Client knows the size of the buffer and buffer context because the Client has specified that information when creating
+the instance of DMF_BufferPool Module.
+    * After a buffer has been retrieved using this Method, the Client owns the buffer. The buffer must be returned to either the
+Source DMF_BufferPool where it was created or to any Sink DMF_BufferPool prior to driver unload. Not doing so, results in a
+memory leak.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_BufferPool_GetWithMemoryDescriptor(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** ClientBuffer,
+    _Out_ PWDF_MEMORY_DESCRIPTOR MemoryDescriptor,
+    _Out_ VOID** ClientBufferContext
+    );
+
+Remove and return the first buffer from an instance of DMF_BufferPool in FIFO order. Also, return the buffer's associated
+WDF_MEMORY_DESCRIPTOR and Client Buffer Context.
+
+Returns
+-------
+NTSTATUS. Fails if there is no buffer in the list.
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+ClientBuffer:
+The address of the retrieved Client Buffer. The Client may access the buffer at this address.
+
+MemoryDescriptor:
+Returns the WDF_MEMORY_DESCRIPTOR associated with the returned buffer. Some WDF APIs need this parameter when working with
+buffers.
+
+ClientBufferContext:
+The address of the Client Buffer Context associated with the retrieved ClientBuffer.
+
+Remarks
+-------
+    * Clients use this Method when they need to retrieve a buffer from the list and then call other WDF APIs that perform
+operations on the buffer using the associated WDF_MEMORY_DESCRIPTOR object. For example, use this API when the buffer will be 
+sent to a target device using a WDF_REQUEST.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_ParametersGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _Out_opt_ PWDF_MEMORY_DESCRIPTOR MemoryDescriptor,
+    _Out_opt_ WDFMEMORY* ClientBufferMemory,
+    _Out_opt_ ULONG* ClientBufferSize,
+    _Out_opt_ VOID** ClientBufferContext,
+    _Out_opt_ ULONG* ClientBufferContextSize
+    );
+
+Given a DMF_BufferPool buffer, this Method returns information associated with the buffer.
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+ClientBuffer:
+The given DMF_BufferPool buffer.
+
+MemoryDescriptor:
+Returns the WDF_MEMORY_DESCRIPTOR associated with the given buffer. Some WDF APIs need this parameter when working with buffers.
+
+ClientBufferMemory:
+Returns the WDFMEMORY associated with the given buffer.
+
+ClientBufferSize:
+The size of the buffer pointed to by ClientBuffer.
+
+ClientBufferContext:
+The address of the Client Buffer Context associated with the retrieved ClientBuffer.
+
+ClientBufferContextSize:
+The size of the buffer pointed to by ClientBufferContext.
+
+Remarks
+-------
+    * Clients use this Method when they have a DMF_BufferPool buffer and need to call other WDF APIs that perform operations on the
+buffer using the associated WDFMEMORY object. For example, use this API when the buffer will be sent to a target device using a
+WDF_REQUEST.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_Put(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
+Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the end).
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+ClientBuffer:
+The given DMF_BufferPool buffer to add to the list.
+
+Remarks
+-------
+    * ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferPool because the buffer must have the
+appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or
+WdfMemoryCreate() may not be added Module's list using this API.
+    * This Method cannot fail because the underlying data structure that stores the buffer is a LIST_ENTRY.
+    * A buffer may never be put to more than one DMF_BufferPool instance at a time. Doing so will cause corruption. This condition
+is checked in DEBUG mode.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_PutInSinkWithTimer(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ ULONGLONG TimerExpirationMilliseconds,
+    _In_ EVT_DMF_BufferPool_TimerCallback* TimerExpirationCallback,
+    _In_opt_ VOID* TimerExpirationCallbackContext
+    );
+
+Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the end). A given timer value specifies that if the buffer is still
+in the list after the timeout expires, the buffer should be removed, and a given callback called so that the Client knows that
+the given buffer is being removed.
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+An open DMF_BufferPool Module handle.
+
+ClientBuffer:
+The given DMF_BufferPool buffer to add to the list.
+
+TimerExpirationMilliseconds:
+The given timeout value which indicates how long the buffer will remain in the list before being automatically removed.
+
+TimerExpirationCallback:
+The given callback that is called when the given buffer is automatically removed from the list. Race conditions associated with
+the removal are properly handled.
+
+TimerExpirationCallbackContext:
+The context that is sent to TimerExpirationCallback so the Client can perform Client specific operations due to the automatic
+removal of the given buffer from DMF_BufferPool.
+
+Remarks
+-------
+    * ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferPool because the buffer must have the
+appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or
+WdfMemoryCreate() may not be added Module's list using this API.
+    * This Method cannot fail because the underlying data structure that stores the buffer is a LIST_ENTRY.
+    * A buffer may never be put to more than one DMF_BufferPool instance at a time. Doing so will cause corruption. This condition
+is checked in DEBUG mode.
+    * There are race conditions associated with asynchronously removing a buffer from a list when other threads may also be
+removing or enumerating the same buffer. This Module properly synchronizes accesses the buffers to properly handle these race
+conditions.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+====[Module IOCTLs]================================================================================================================
+
+====[Module Remarks]===============================================================================================================
+
+    * [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set 
+DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed.
+    * Always test the driver using DEBUG builds because many important checks for integrity are performed in DEBUG build that
+are not performed in RELEASE build.
+    * Clients may not allocate memory and add that buffer to a DMF_BufferPool because that buffer will not have the appropriate 
+metadata. Buffers added to a Sink-mode list must have been created using a Source-mode list.
+    * DMF_BufferPool has sentinels around both the Client Buffer as well as the Client Context. These sentinels are used to
+check for buffer overrun conditions that can be very hard to detect. These checks are made whenever buffers are accessed by
+DMF_BufferPool. In this way the overrun error is caught soon after it has happened. Ordinarily, such an error would only be
+caught when Verifier checks for this condition when the buffer is freed, long after the error has occurred.
+    * DMF_BufferPool is designed to deal with race conditions associated with enumeration and buffer timer expiration.
+    * DMF_BufferPool is useful in cases when dynamically allocated memory is needed at DISPATCH_LEVEL. 
+    * Many core Modules use DMF_BufferPool to build more complex Modules.
+
+====[Module Children]==============================================================================================================
+
+====[Module Implementation Details]================================================================================================
+
+    * DMF_BufferPool stores buffers in using LIST_ENTRY. Buffers are created with corresponding metadata when an instance of 
+DMF_BufferPool in Source-mode is created. An optional lookaside list may also be created. In cases where a Client requests a buffer
+and no buffer is available, and a lookaside list has been created, a buffer is automatically created using the lookaside list.
+When it is returned, it is automatically put into the lookaside list.
+    * The pointer to the buffer that a Client receives is directly usable by the Client. It is the beginning of the buffer
+that is usable by the Client. The metadata that allows the DMF_BufferPool API to function is located before the address of the 
+Client's buffer.
+
+====[Examples]=====================================================================================================================
+
+    * DMF_BufferQueue
+    * DMF_BranchTrack
+
+====[To Do]========================================================================================================================
+
+====[eof: DMF_BufferPool]==========================================================================================================
+

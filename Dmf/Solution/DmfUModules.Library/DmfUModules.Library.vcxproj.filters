@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{b19e9fbf-8c11-415f-b6f2-1f9cb2941f9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{a573aaaf-8942-43e3-9c8e-bc2ea811de4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules">
+      <UniqueIdentifier>{0dc5ce19-3943-4b85-8c34-5b8781543ef7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{88ba9862-fb79-4c1e-8e5d-5c8eac92891d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules">
+      <UniqueIdentifier>{03ed2d57-278d-45dc-be64-0d6ba4eeacf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Driver Patterns">
+      <UniqueIdentifier>{fefc36ea-e40e-4114-92fd-4f614ae16305}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Driver Patterns">
+      <UniqueIdentifier>{dca19cda-7df2-400e-8d11-9984f6bcd0f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{51ea2c82-9f57-4a74-b018-a08334a6267f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Driver Patterns">
+      <UniqueIdentifier>{07636021-e4c0-41eb-adea-8974e2220b1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Task Execution">
+      <UniqueIdentifier>{bb34a1c4-a863-4862-b5fd-2627a53608a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Targets">
+      <UniqueIdentifier>{1937b0a9-f9a9-4fc5-b274-99bb8bdad787}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Buffers">
+      <UniqueIdentifier>{d1514598-c933-4069-b62a-b7cd76b4c543}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Task Execution">
+      <UniqueIdentifier>{88154e34-d8a2-4851-aee6-a928ac86cc07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Targets">
+      <UniqueIdentifier>{0e8c50c8-51f8-42c2-b9fe-a21cacd5694d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Buffers">
+      <UniqueIdentifier>{f7d0f0b1-5219-45ab-8d4f-87be28dd774c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Task Execution">
+      <UniqueIdentifier>{1f1f33d1-c747-44e1-a0f0-6b697110dae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Targets">
+      <UniqueIdentifier>{b4833182-96e7-4e7f-aa3c-7410827597f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Buffers">
+      <UniqueIdentifier>{463d24f0-d309-4509-aef8-79fb14c805ce}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Public.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_CmApi.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
+      <Filter>Headers\Modules\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Trace.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_RequestTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.h">
+      <Filter>Headers\Modules\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ScheduledTask.h">
+      <Filter>Headers\Modules\Task Execution</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h">
+      <Filter>Headers\Modules\Task Execution</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h">
+      <Filter>Headers\Modules\Task Execution</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_RequestTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_HidTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c">
+      <Filter>Modules\Task Execution</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c">
+      <Filter>Modules\Task Execution</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c">
+      <Filter>Modules\Task Execution</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc">
+      <Filter>Resources</Filter>
+    </MessageCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.txt">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_PingPongBuffer.txt">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.txt">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.txt">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_HidTarget.txt">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.txt">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_ScheduledTask.txt">
+      <Filter>Documentation\Modules\Task Execution</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_QueuedWorkItem.txt">
+      <Filter>Documentation\Modules\Task Execution</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_Thread.txt">
+      <Filter>Documentation\Modules\Task Execution</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.txt">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_RequestTarget.txt">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_CmApi.txt" />
+  </ItemGroup>
+</Project>

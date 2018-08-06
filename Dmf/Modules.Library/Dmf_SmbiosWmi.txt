@@ -1,0 +1,98 @@
+====[DMF Module Documentation]=====================================================================================================
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the MIT license.
+
+====[Module]=======================================================================================================================
+
+DMF_SmbiosWmi
+
+====[Module Category]==============================================================================================================
+
+Driver Patterns
+
+====[Module Summary]===============================================================================================================
+
+This Module allows a Client access to the SMBIOS table that resides on the Host.
+
+====[Module Configuration]=========================================================================================================
+
+====[Module Enumeration Types]======================================================================================================
+
+====[Module Structures]============================================================================================================
+
+====[Module Callbacks]=============================================================================================================
+
+====[Module Methods]===============================================================================================================
+
+_Check_return_
+NTSTATUS
+DMF_SmbiosWmi_TableCopy(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR* TargetBuffer,
+    _In_ ULONG TargetBufferSize
+    );
+
+Copies the SMBIOS table that the Module read during initialization and has stored in its local context to a given Client
+buffer.
+
+Returns
+-------
+NTSTATUS
+
+Parameters
+----------
+DmfModule:
+An open DMF_SmbiosWmi Module handle.
+
+TargetBuffer:
+The given Client buffer where the table is copied.
+
+TargetBufferSize:
+The size of TargetBuffer.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+VOID
+DMF_SmbiosWmi_TableInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ UCHAR** TargetBuffer,
+    _Out_ ULONG* TargetBufferSize
+    );
+
+Gives the Client the address and size of the SMBIOS table stored by this Module.
+
+Returns
+-------
+NTSTATUS
+
+Parameters
+----------
+DmfModule:
+An open DMF_SmbiosWmi Module handle.
+
+TargetBuffer:
+The given Client buffer where the address of the SMBIOS table is written.
+
+TargetBufferSize:
+The size of the SMBIOS table stored by this Module.
+
+Remarks
+-------
+    * Use this Method with caution as it returns the address where the SMBIOS is stored by the Module.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+====[Module IOCTLs]================================================================================================================
+
+====[Module Remarks]===============================================================================================================
+
+====[Module Children]==============================================================================================================
+
+====[Module Implementation Details]================================================================================================
+
+====[Examples]=====================================================================================================================
+
+====[To Do]========================================================================================================================
+
+====[eof: DMF_SmbiosWmi]===========================================================================================================
+

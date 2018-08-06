@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F67112A2-88A8-4AD4-9ED5-E31090170C31}</ProjectGuid>
+    <TemplateGuid>{2177f19c-eb4c-4687-9e7f-f9eec1f12cf1}</TemplateGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <ProjectName>DmfUFramework</ProjectName>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <SigningCertPath Condition="'$(SigningCertPath)'==''">$(SigningCertificatesDir)OEMTest_OS_DRIVER.pfx</SigningCertPath>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)$(ConfigurationName)\$(PlatformName)\individual_libs\$(ProjectName)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableInf2cat>false</EnableInf2cat>
+    <DebuggerFlavor>DbgengRemoteDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">USE_ASSERT_BREAK;_UNICODE;UNICODE;DEBUG;DBG;%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">NO_USE_ASSERT_BREAK;_UNICODE;UNICODE;%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ShowIncludes>false</ShowIncludes>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</PreprocessToFile>
+      <DisableSpecificWarnings />
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</TreatWarningAsError>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MultiProcessorCompilation>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</MultiProcessorCompilation>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</MultiProcessorCompilation>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</MultiProcessorCompilation>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</MultiProcessorCompilation>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</MultiProcessorCompilation>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">OldStyle</DebugInformationFormat>
+      <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
+      <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
+      <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.c.C.cpp.CPP.h.H</WppFileExtensions>
+      <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
+      <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
+      <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.c.C.cpp.CPP.h.H</WppFileExtensions>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppRecorderEnabled>
+      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppRecorderEnabled>
+      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppRecorderEnabled>
+      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</WppRecorderEnabled>
+      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</WppRecorderEnabled>
+      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WppRecorderEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</WppEnabled>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+    </Link>
+    <Link>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+    </Link>
+    <Link>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+    </Link>
+    <Link>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Framework\DmfBranchTrack.c" />
+    <ClCompile Include="..\..\Framework\DmfCall.c" />
+    <ClCompile Include="..\..\Framework\DmfContainer.c" />
+    <ClCompile Include="..\..\Framework\DmfCore.c" />
+    <ClCompile Include="..\..\Framework\DmfFilter.c" />
+    <ClCompile Include="..\..\Framework\DmfGeneric.c" />
+    <ClCompile Include="..\..\Framework\DmfHelpers.c" />
+    <ClCompile Include="..\..\Framework\DmfInternal.c" />
+    <ClCompile Include="..\..\Framework\DmfModuleCollection.c" />
+    <ClCompile Include="..\..\Framework\DmfPortable.c" />
+    <ClCompile Include="..\..\Framework\DmfUtility.c" />
+    <ClCompile Include="..\..\Framework\DmfValidate.c" />
+    <ClCompile Include="..\..\Framework\DmfDeviceInit.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_Bridge.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferPool.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_HashTable.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Framework\DmfIncludeInternal.h" />
+    <ClInclude Include="..\..\Framework\DmfTrace.h" />
+    <ClInclude Include="..\..\Framework\DmfModule.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Public.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack_Public.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_Bridge.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferPool.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_HashTable.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.h" />
+    <ClInclude Include="..\..\Framework\DmfDefinitions.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Trace.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FilesToPackage Include="$(TargetPath)" />
+    <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferPool.txt" />
+    <Text Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.txt" />
+    <Text Include="..\..\Framework\Modules.Core\Dmf_HashTable.txt" />
+    <Text Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.txt" />
+    <Text Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.txt" />
+    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\Framework\DmfBranchTrack.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfCall.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfContainer.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfCore.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfFilter.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfGeneric.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfHelpers.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfInternal.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfModuleCollection.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfPortable.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfValidate.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfDeviceInit.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfLiveKernelDump.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfUtility.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.c">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_Bridge.c">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.c">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_HashTable.c">
+      <Filter>Modules\Data Structures</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferPool.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Framework\DmfTrace.h">
+      <Filter>Headers\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\DmfIncludeInternal.h">
+      <Filter>Headers\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\DmfModule.h">
+      <Filter>Headers\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.h">
+      <Filter>Headers\Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_Bridge.h">
+      <Filter>Headers\Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack_Public.h">
+      <Filter>Headers\Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.h">
+      <Filter>Headers\Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_HashTable.h">
+      <Filter>Headers\Modules\Data Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Public.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\DmfDefinitions.h">
+      <Filter>Headers\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Trace.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferPool.h">
+      <Filter>Headers\Modules\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.h">
+      <Filter>Headers\Modules\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.h">
+      <Filter>Headers\Modules\Buffers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{d55e4247-89a3-4e46-a5e9-6730d2b08ad9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{86afc3c4-3946-4e45-8cd5-1c5f13cb4227}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Framework">
+      <UniqueIdentifier>{f87df850-acfd-4dab-bd3c-51d547b7ee9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{35f556c1-6746-433f-adec-3e8b95846f25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules">
+      <UniqueIdentifier>{0a34529c-d42b-4ade-8a11-dd01345b3fc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Data Structures">
+      <UniqueIdentifier>{ba3f1c23-004a-424b-9f39-1fc5b67438a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Features">
+      <UniqueIdentifier>{72953d90-aa65-48ee-aa54-c90abc436129}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules">
+      <UniqueIdentifier>{b7cf4008-154b-42fa-a5d3-3eaa972d5b58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Data Structures">
+      <UniqueIdentifier>{caa1cfe0-60ae-4421-bf3d-8ae08ab5f10a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{e0f5e838-13a1-4ecb-8316-b7ac60af1386}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Data Structures">
+      <UniqueIdentifier>{3ab3d2ca-62cc-48d0-9361-83d51f2eecee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Features">
+      <UniqueIdentifier>{982f9366-c031-416b-b166-1cad9611189f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Features">
+      <UniqueIdentifier>{9f153b90-4d15-4111-b892-f5c0ee6f0fbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Driver Patterns">
+      <UniqueIdentifier>{bf2d6085-33c7-4128-a494-d920f76b2e2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Driver Patterns">
+      <UniqueIdentifier>{bb01d343-9de2-4088-be9c-41df1c9c2ad8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Driver Patterns">
+      <UniqueIdentifier>{0591cc08-af2c-4739-afe0-2cb44713b2cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Buffers">
+      <UniqueIdentifier>{8a4b4d19-b2c2-4324-98fa-dd91833db4dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Buffers">
+      <UniqueIdentifier>{375e7c51-a184-4077-85f9-29de08f894c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Buffers">
+      <UniqueIdentifier>{0efec2e3-c4b1-4425-b3b7-415b730fedea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_HashTable.txt">
+      <Filter>Documentation\Modules\Data Structures</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.txt">
+      <Filter>Documentation\Modules\Features</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.txt">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferPool.txt">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.txt">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.txt">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
