@@ -2302,12 +2302,6 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    DMF_ModuleLock(DmfModule);
-    
-    parentDmfObject->ReferenceCount = 1;
-    
-    DMF_ModuleUnlock(DmfModule);
-
     if (!DMF_IsObjectTypeOpenNotify(parentDmfObject))
     {
         // Dispatch callback to Child DMF Modules first.
@@ -2343,6 +2337,15 @@ Return Value:
     {
         goto Exit;
     }
+
+    // Allow DMF_ModuleReference to succeed only after the Module is completely open. 
+    //
+    DMF_ModuleLock(DmfModule);
+
+    ASSERT(parentDmfObject->ReferenceCount == 0);
+    parentDmfObject->ReferenceCount = 1;
+
+    DMF_ModuleUnlock(DmfModule);
 
 Exit:
 
@@ -2605,8 +2608,6 @@ Return Value:
     DMF_OBJECT* parentDmfObject;
 
     parentDmfObject = DMF_ModuleToObject(DmfModule);
-
-    DMF_ModuleWaitForReferenceCountToClear(DmfModule);
 
     // Dispatch callback to this Module first.
     //

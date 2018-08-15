@@ -1,0 +1,50 @@
+//
+// DmfKTest.rc
+//
+
+
+#include <windows.h>
+
+#include <ntverp.h>
+
+#define	VER_FILETYPE	            VFT_DRV
+#define	VER_FILESUBTYPE	            VFT2_DRV_SYSTEM
+#define VER_INTERNALNAME_STR        "DmfKTest.sys"
+#define VER_ORIGINALFILENAME_STR    VER_INTERNALNAME_STR
+
+#undef  VER_FILEDESCRIPTION_STR
+#define VER_FILEDESCRIPTION_STR "Surface DmfK Test Driver"
+ 
+#undef  VER_PRODUCTNAME_STR
+#define VER_PRODUCTNAME_STR    VER_FILEDESCRIPTION_STR
+
+#define VER_FILEVERSION        1,0,0,0
+#define VER_FILEVERSION_STR    "1.0.0.0"
+
+#undef  VER_PRODUCTVERSION
+#define VER_PRODUCTVERSION     VER_FILEVERSION
+
+#undef  VER_PRODUCTVERSION_STR
+#define VER_PRODUCTVERSION_STR VER_FILEVERSION_STR
+
+#define VER_LEGALCOPYRIGHT_STR "(C) 2018 Microsoft. All rights reserved."
+#ifdef  VER_COMPANYNAME_STR
+
+#undef  VER_COMPANYNAME_STR
+#define VER_COMPANYNAME_STR    "Microsoft Corporation"
+#endif
+
+#undef  VER_PRODUCTNAME_STR
+#define VER_PRODUCTNAME_STR    "Surface"
+
+#include "common.ver"
+
+// This is the main driver's resource file. It is numbered 1.
+// Automatically generated resource files also are numbered 1 which causes 
+// an error. So, add additinal resources manually.
+//
+#include "DmfKTestEventLog.rc"
+
+// eof: DmfKTest.rc
+//
+

@@ -797,6 +797,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 LiveKernelDump_IoctlHandler(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
     _In_ ULONG IoctlCode,
     _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -814,6 +815,7 @@ Routine Description:
 Arguments:
 
     DmfModule - The Child Module from which this callback is called.
+    Queue - The WDFQUEUE associated with Request.
     Request - Request data, not used
     IoctlCode - IOCTL to be used in the command
     InputBuffer - Input data buffer
@@ -833,9 +835,10 @@ Return Value:
     PLIVEKERNELDUMP_INPUT_BUFFER liveDumpInput;
     DMFMODULE liveKernelDumpModule;
 
+    UNREFERENCED_PARAMETER(Queue);
+    UNREFERENCED_PARAMETER(Request);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(BytesReturned);
-    UNREFERENCED_PARAMETER(Request);
 
     PAGED_CODE();
 

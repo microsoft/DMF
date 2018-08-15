@@ -1295,6 +1295,11 @@ DMF_Module_CloseOnDestroy(
     _In_ DMFMODULE DmfModule
     );
 
+VOID
+DMF_ModuleWaitForReferenceCountToClear(
+    _In_ DMFMODULE DmfModule
+    );
+
 // DmfContainer.c
 //
 

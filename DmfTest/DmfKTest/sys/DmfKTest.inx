@@ -1,0 +1,84 @@
+;
+; DmfKTest.inf
+;
+; Copyright (C) 2018 Microsoft Corporation.  All Rights Reserved.
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%VENDOR%
+CatalogFile=DmfKTest.cat
+DriverVer= ; Set in target output .inf
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+DmfKTest.sys=1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%VENDOR%=Vendor,NT$ARCH$
+
+[Vendor.NT$ARCH$]
+; To install the driver run the following command from driver's package folder:
+; devcon install DmfKTest.inf root\DmfKTest
+%DmfKTest%=DmfKTest.Inst, root\DmfKTest
+
+[DmfKTest.Inst.NT]
+CopyFiles = Drivers_Dir
+
+;-------------- Service installation
+
+[DmfKTest.Inst.NT.Services]
+AddService = DmfKTest,%SERVICE_DEMAND_START%,DmfKTest_Service_Inst, DmfKTest_EventLogInst
+
+[Drivers_Dir]
+DmfKTest.sys
+
+[DmfKTest_Service_Inst]
+DisplayName    = %DmfKTest%
+ServiceType    = %SERVICE_KERNEL_DRIVER% 
+StartType      = %SERVICE_DEMAND_START% 
+ErrorControl   = %SERVICE_ERROR_NORMAL% 
+ServiceBinary  = %12%\DmfKTest.sys 
+
+[DmfKTest_EventLogInst]
+AddReg = DmfKTest_EventLogAddReg
+
+[DmfKTest_EventLogAddReg]
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\DmfKTest.sys"
+HKR,,TypesSupported,0x00010001,7
+
+[Strings] 
+VENDOR="Surface"
+DmfKTest="Surface DmfK Test Driver"
+DiskName = "Surface DmfK Test Driver Installation Disk"
+
+SERVICE_BOOT_START     = 0x0 
+SERVICE_SYSTEM_START   = 0x1 
+SERVICE_AUTO_START     = 0x2 
+SERVICE_DEMAND_START   = 0x3 
+SERVICE_DISABLED       = 0x4 
+
+SERVICE_KERNEL_DRIVER  = 0x1 
+SERVICE_ERROR_IGNORE   = 0x0 
+SERVICE_ERROR_NORMAL   = 0x1 
+SERVICE_ERROR_SEVERE   = 0x2 
+SERVICE_ERROR_CRITICAL = 0x3 
+
+REG_EXPAND_SZ          = 0x00020000 
+REG_DWORD              = 0x00010001 
+REG_MULTI_SZ           = 0x00010000
+REG_BINARY             = 0x00000001
+REG_SZ                 = 0x00000000
