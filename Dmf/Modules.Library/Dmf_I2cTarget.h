@@ -24,6 +24,9 @@ Environment:
 //
 typedef struct
 {
+    // Module will not load if I2c Connection not found.
+    //
+    BOOLEAN I2cConnectionMandatory;
     // Indicates the index of I2C resource that the Client wants to access.
     //
     ULONG I2cResourceIndex;
@@ -88,6 +91,13 @@ DMF_I2cTarget_BufferWrite(
     _Inout_updates_(BufferLength) VOID* Buffer,
     _In_ ULONG BufferLength,
     _In_ ULONG TimeoutMs
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_I2cTarget_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_opt_ BOOLEAN* I2cConnectionAssigned
     );
 
 // eof: Dmf_I2cTarget.h

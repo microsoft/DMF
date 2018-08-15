@@ -19,6 +19,9 @@ This Module gives the Client access to an underlying I2C device connected on SPB
 
 typedef struct
 {
+    // Module will not load if Gpio Connection not found.
+    //
+    BOOLEAN I2cConnectionMandatory;
     // Indicates the index of I2C resource that the Client wants to access.
     //
     ULONG I2cResourceIndex;
@@ -198,6 +201,33 @@ Indicates that the Write transaction should fail after TimeoutMs milliseconds. S
 
 Remarks:
     *
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_I2cTarget_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_opt_ BOOLEAN* I2cConnectionAssigned
+    );
+
+Indicates if the I2c resource set by the Client has been found.
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+An open DMF_I2cTarget Module handle.
+
+I2cConnectionAssigned:
+Flag indicating if the I2c resource is found or not.
+
+Remarks:
+    * Use this Method to determine if the resources needed are found. This is for the cases where the Client driver runs
+regardless of whether or not I2C resource is available.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
