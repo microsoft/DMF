@@ -35,6 +35,13 @@ typedef struct
     // The number of records in the above table.
     //
     ULONG IoctlRecordCount;
+    // Windows Store App access settings.
+    //
+    WCHAR* CustomCapabilities;
+    DEVPROP_BOOLEAN IsRestricted;
+    // Allows Client to perform actions after the Device Interface is created.
+    //
+    EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate* PostDeviceInterfaceCreate;
 } DMF_CONFIG_IoctlHandler;
 
 DeviceInterfaceGuid:
@@ -49,26 +56,34 @@ A callback that allows the Client to filter the IOCTL with Client specific logic
 IoctlRecords:
 A table of records that specify information about each supported IOCTL.
 
+CustomCapabilities:
+Windows Store App access capabilities string.
+
+IsRestricted:
+If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.
+
+PostDeviceInterfaceCreate:
+Allows Client to perform actions after the Device Interface is created.
+
 ====[Module Enumeration Types]======================================================================================================
 
 typedef enum
 {
-    IoctlHandler_AccessModeFilterInvalid = 0,
     // Do what WDF would normally do (allow User-mode).
     //
-    IoctlHandler_AccessModeDefault = 1,
+    IoctlHandler_AccessModeDefault,
     // Call a Client Callback function that will decide.
     //
-    IoctlHandler_AccessModeFilterClientCallback = 2,
+    IoctlHandler_AccessModeFilterClientCallback,
     // NOTE: This is currently not implemented.
     //
-    IoctlHandler_AccessModeFilterDoNotAllowUserMode = 3,
+    IoctlHandler_AccessModeFilterDoNotAllowUserMode,
     // Only allows "Run as Administrator".
     //
-    IoctlHandler_AccessModeFilterAdministratorOnly = 4,
+    IoctlHandler_AccessModeFilterAdministratorOnly,
     // Allow access to Administrator on a per-IOCTL basis.
     //
-    IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl = 5,
+    IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl,
 } IoctlHandler_AccessModeFilterType;
 
 IoctlHandler_AccessModeDefault:
@@ -116,6 +131,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
 EVT_DMF_IoctlHandler_Callback(_In_ DMFMODULE DmfModule,
+                              _In_ WDFQUEUE Queue,
                               _In_ WDFREQUEST Request,
                               _In_ ULONG IoctlCode,
                               _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -129,13 +145,17 @@ specified in the IOCTL table passed in during Module instantiation.
 
 Returns
 -------
-NTSTATUS code returned by the Client.
+If STATUS_PENDING is returned, then the Request is not completed. If STATUS_SUCCESS or any other NTSTATUS is returned,
+then the Request is completed with that NTSTATUS.
 
 Parameters
 ----------
 
 DmfModule:
 An open DMF_IoctlHandler Module handle.
+
+Queue:
+The WDFQUEUE handle associated with Request.
 
 Request:
 The WDFREQUEST that contains the IOCTL parameters and buffers.

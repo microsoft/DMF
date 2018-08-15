@@ -138,6 +138,7 @@ extern "C"
 #endif // defined(DMF_USER_MODE)
 #include <hidusage.h>
 #include <hidpi.h>
+#include <devpkey.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -501,7 +502,7 @@ DmfDriverContextCleanup(                                                        
     _In_ WDFOBJECT DriverObject                                                                               \
     )                                                                                                         \
 {                                                                                                             \
-    WPP_CLEANUP(DriverObject);                                                                                \
+    WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));                                        \
 }                                                                                                             \
                                                                                                               \
 
@@ -669,8 +670,7 @@ DmfDriverContextCleanup(                                                        
     _In_ WDFOBJECT DriverObject                                                                               \
     )                                                                                                         \
 {                                                                                                             \
-    UNREFERENCED_PARAMETER(DriverObject);                                                                     \
-    WPP_CLEANUP(DriverObject);                                                                                \
+    WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));                                        \
 }                                                                                                             \
 
 #else

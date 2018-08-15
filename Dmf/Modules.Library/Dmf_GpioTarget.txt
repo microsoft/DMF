@@ -270,7 +270,7 @@ DMF_GpioTarget_IsResourceAssigned(
     _Out_opt_ BOOLEAN* InterruptAssigned
     );
 
-Returns information about how many GPIO lines and interrupts are assigned.
+Indicates if the GPIO resources set by the Client have been found.
 
 Returns
 -------

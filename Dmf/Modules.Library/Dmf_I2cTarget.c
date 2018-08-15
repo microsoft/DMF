@@ -43,6 +43,9 @@ Environment:
 
 typedef struct
 {
+    // Resources assigned.
+    //
+    BOOLEAN I2cConnectionAssigned;
     // Underlying I2C device.
     //
     WDFIOTARGET I2cTarget;
@@ -808,6 +811,7 @@ Return Value:
                 {
                     moduleContext->ResourceIndex = i2cResourceCount;
                     moduleContext->I2cConnection = *resource;
+                    moduleContext->I2cConnectionAssigned = TRUE;
                     resourceAssigned = TRUE;
                 }
                 i2cResourceCount++;
@@ -817,7 +821,8 @@ Return Value:
 
     //  Validate the configuration parameters.
     //
-    if (0 == i2cResourceCount || (! resourceAssigned))
+    if ((moduleConfig->I2cConnectionMandatory) &&
+        (0 == i2cResourceCount || (! resourceAssigned)))
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_I2cTarget, "I2C Resources not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
@@ -1109,6 +1114,51 @@ Return Value:
                                          I2CTARGET_DEVICE_BUFFER_WRITE);
 
     return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_I2cTarget_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_opt_ BOOLEAN* I2cConnectionAssigned
+    )
+/*++
+
+Routine Description:
+
+    I2c resources may or may not be present on some systems. This function returns a flag
+    indicating that the I2c resource requested was found.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    I2xConnectionAssigned - Is I2x connection assigned to this Module instance.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_I2cTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_I2cTarget);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_I2cTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (I2cConnectionAssigned != NULL)
+    {
+        *I2cConnectionAssigned = moduleContext->I2cConnectionAssigned;
+    }
+
+    FuncExitVoid(DMF_TRACE_I2cTarget);
 }
 #pragma code_seg()
 

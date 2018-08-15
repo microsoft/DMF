@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 12.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Driver_Dmf_1", "Driver_Dmf_1", "{BCB7D745-20C8-48E1-A792-F708EF65B29F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Exe", "Exe", "{4B2BB962-B51B-42F1-9EF7-06025B7A8E83}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osrusbfx2dmf1", "kmdf_fx2_dmf\driver_dmf_1\osrusbfx2dmf1.vcxproj", "{837F98CF-D3A4-472C-BACC-47950340E57B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osrusbfx2", "kmdf_fx2_dmf\exe\osrusbfx2.vcxproj", "{6EED5CDD-5526-40DC-97F9-582857E10187}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Driver_Dmf_2", "Driver_Dmf_2", "{1BD7F179-A112-4E90-8473-2E134F916713}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osrusbfx2dmf2", "kmdf_fx2_dmf\driver_dmf_2\osrusbfx2dmf2.vcxproj", "{E67FD967-2406-4673-9BDC-2A5F5176CB87}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Debug|x64.ActiveCfg = Debug|x64
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Debug|x64.Build.0 = Debug|x64
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Debug|x86.ActiveCfg = Debug|Win32
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Debug|x86.Build.0 = Debug|Win32
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Release|x64.ActiveCfg = Release|x64
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Release|x64.Build.0 = Release|x64
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Release|x86.ActiveCfg = Release|Win32
+		{837F98CF-D3A4-472C-BACC-47950340E57B}.Release|x86.Build.0 = Release|Win32
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Debug|x64.ActiveCfg = Debug|x64
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Debug|x64.Build.0 = Debug|x64
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Debug|x86.ActiveCfg = Debug|Win32
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Debug|x86.Build.0 = Debug|Win32
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Release|x64.ActiveCfg = Release|x64
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Release|x64.Build.0 = Release|x64
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Release|x86.ActiveCfg = Release|Win32
+		{6EED5CDD-5526-40DC-97F9-582857E10187}.Release|x86.Build.0 = Release|Win32
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Debug|x64.ActiveCfg = Debug|x64
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Debug|x64.Build.0 = Debug|x64
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Debug|x86.ActiveCfg = Debug|Win32
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Debug|x86.Build.0 = Debug|Win32
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Release|x64.ActiveCfg = Release|x64
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Release|x64.Build.0 = Release|x64
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Release|x86.ActiveCfg = Release|Win32
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{837F98CF-D3A4-472C-BACC-47950340E57B} = {BCB7D745-20C8-48E1-A792-F708EF65B29F}
+		{6EED5CDD-5526-40DC-97F9-582857E10187} = {4B2BB962-B51B-42F1-9EF7-06025B7A8E83}
+		{E67FD967-2406-4673-9BDC-2A5F5176CB87} = {1BD7F179-A112-4E90-8473-2E134F916713}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F165374D-3FC4-4EC6-BC80-70000B7DDA2C}
+	EndGlobalSection
+EndGlobal

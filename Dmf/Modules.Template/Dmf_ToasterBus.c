@@ -311,6 +311,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 ToasterBus_IoctlClientCallback_DevicePlug(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
     _In_ ULONG IoctlCode,
     _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -328,13 +329,14 @@ Routine Description:
 Arguments:
 
     DmfModule - The Child Module from which this callback is called.
-    Request - Request data, not used
-    IoctlCode - IOCTL to be used in the command
-    InputBuffer - Input data buffer
-    InputBufferSize - Input data buffer size, not used
-    OutputBuffer - Output data buffer
-    OutputBufferSize - Output data buffer size, not used
-    BytesReturned - Amount of data to be sent back
+    Queue - The WDFQUEUE associated with Request.
+    Request - Request data, not used.
+    IoctlCode - IOCTL to be used in the command.
+    InputBuffer - Input data buffer.
+    InputBufferSize - Input data buffer size, not used.
+    OutputBuffer - Output data buffer.
+    OutputBufferSize - Output data buffer size, not used.
+    BytesReturned - Amount of data to be sent back.
 
 Return Value:
 
@@ -350,11 +352,12 @@ Return Value:
     size_t length;
     BUSENUM_PLUGIN_HARDWARE* plugIn;
 
-    UNREFERENCED_PARAMETER(BytesReturned);
-    UNREFERENCED_PARAMETER(OutputBufferSize);
-    UNREFERENCED_PARAMETER(OutputBuffer);
-    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
+    UNREFERENCED_PARAMETER(BytesReturned);
 
     FuncEntry(DMF_TRACE_ToasterBus);
 
@@ -422,6 +425,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 ToasterBus_IoctlClientCallback_DeviceUnplug(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
     _In_ ULONG IoctlCode,
     _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -439,13 +443,14 @@ Routine Description:
 Arguments:
 
     DmfModule - The Child Module from which this callback is called.
-    Request - Request data, not used
-    IoctlCode - IOCTL to be used in the command
-    InputBuffer - Input data buffer
-    InputBufferSize - Input data buffer size, not used
-    OutputBuffer - Output data buffer
-    OutputBufferSize - Output data buffer size, not used
-    BytesReturned - Amount of data to be sent back
+    Queue - The WDFQUEUE associated with Request.
+    Request - Request data, not used.
+    IoctlCode - IOCTL to be used in the command.
+    InputBuffer - Input data buffer.
+    InputBufferSize - Input data buffer size, not used.
+    OutputBuffer - Output data buffer.
+    OutputBufferSize - Output data buffer size, not used.
+    BytesReturned - Amount of data to be sent back.
 
 Return Value:
 
@@ -459,11 +464,13 @@ Return Value:
     DMFMODULE dmfModule;
     BUSENUM_UNPLUG_HARDWARE* unPlug;
 
-    UNREFERENCED_PARAMETER(BytesReturned);
-    UNREFERENCED_PARAMETER(OutputBufferSize);
-    UNREFERENCED_PARAMETER(OutputBuffer);
-    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
+    UNREFERENCED_PARAMETER(BytesReturned);
 
     FuncEntry(DMF_TRACE_ToasterBus);
 
@@ -507,6 +514,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 ToasterBus_IoctlClientCallback_DeviceEject(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
     _In_ ULONG IoctlCode,
     _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -524,13 +532,14 @@ Routine Description:
 Arguments:
 
     DmfModule - The Child Module from which this callback is called.
-    Request - Request data, not used
-    IoctlCode - IOCTL to be used in the command
-    InputBuffer - Input data buffer
-    InputBufferSize - Input data buffer size, not used
-    OutputBuffer - Output data buffer
-    OutputBufferSize - Output data buffer size, not used
-    BytesReturned - Amount of data to be sent back
+    Queue - The WDFQUEUE associated with Request.
+    Request - Request data, not used.
+    IoctlCode - IOCTL to be used in the command.
+    InputBuffer - Input data buffer.
+    InputBufferSize - Input data buffer size, not used.
+    OutputBuffer - Output data buffer.
+    OutputBufferSize - Output data buffer size, not used.
+    BytesReturned - Amount of data to be sent back.
 
 Return Value:
 
@@ -545,12 +554,13 @@ Return Value:
     BUSENUM_EJECT_HARDWARE* eject;
     size_t length;
 
-    UNREFERENCED_PARAMETER(BytesReturned);
-    UNREFERENCED_PARAMETER(OutputBufferSize);
-    UNREFERENCED_PARAMETER(OutputBuffer);
-    UNREFERENCED_PARAMETER(InputBufferSize);
-    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(IoctlCode);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
+    UNREFERENCED_PARAMETER(BytesReturned);
 
     FuncEntry(DMF_TRACE_ToasterBus);
 

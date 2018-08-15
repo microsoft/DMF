@@ -29,6 +29,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
 EVT_DMF_IoctlHandler_Callback(_In_ DMFMODULE DmfModule,
+                              _In_ WDFQUEUE Queue,
                               _In_ WDFREQUEST Request,
                               _In_ ULONG IoctlCode,
                               _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -53,6 +54,29 @@ EVT_DMF_IoctlHandler_AccessModeFilter(_In_ DMFMODULE DmfModule,
                                       _In_ WDFDEVICE Device,
                                       _In_ WDFREQUEST Request,
                                       _In_ WDFFILEOBJECT FileObject);
+
+typedef
+_Function_class_(IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA(_In_ PUNICODE_STRING SymbolicLinkName,
+                                                   _In_ CONST DEVPROPKEY* PropertyKey,
+                                                   _In_ LCID Lcid,
+                                                   _In_ ULONG Flags,
+                                                   _In_ DEVPROPTYPE Type,
+                                                   _In_ ULONG Size,
+                                                   _In_opt_ PVOID Data);
+
+typedef
+_Function_class_(EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate(_In_ DMFMODULE DmfModule,
+                                               _In_ GUID DeviceInterfaceGuid,
+                                               _In_ WDFSTRING SymbolicLinkNameString,
+                                               _In_ IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfaceProperty);
 
 // The descriptor for each supported IOCTL.
 //
@@ -79,22 +103,21 @@ typedef struct
 
 typedef enum
 {
-    IoctlHandler_AccessModeFilterInvalid = 0,
     // Do what WDF would normally do (allow User-mode).
     //
-    IoctlHandler_AccessModeDefault = 1,
+    IoctlHandler_AccessModeDefault,
     // Call the a Client Callback function that will decide.
     //
-    IoctlHandler_AccessModeFilterClientCallback = 2,
+    IoctlHandler_AccessModeFilterClientCallback,
     // NOTE: This is currently not implemented.
     //
-    IoctlHandler_AccessModeFilterDoNotAllowUserMode = 3,
+    IoctlHandler_AccessModeFilterDoNotAllowUserMode,
     // Only allows "Run as Administrator".
     //
-    IoctlHandler_AccessModeFilterAdministratorOnly = 4,
+    IoctlHandler_AccessModeFilterAdministratorOnly,
     // Allow access to Administrator on a per-IOCTL basis.
     //
-    IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl = 5,
+    IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl,
 } IoctlHandler_AccessModeFilterType;
 
 // Client uses this structure to configure the Module specific parameters.
@@ -116,6 +139,13 @@ typedef struct
     // The number of records in the above table.
     //
     ULONG IoctlRecordCount;
+    // Windows Store App access settings.
+    //
+    WCHAR* CustomCapabilities;
+    DEVPROP_BOOLEAN IsRestricted;
+    // Allows Client to perform actions after the Device Interface is created.
+    //
+    EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate* PostDeviceInterfaceCreate;
 } DMF_CONFIG_IoctlHandler;
 
 // This macro declares the following functions:

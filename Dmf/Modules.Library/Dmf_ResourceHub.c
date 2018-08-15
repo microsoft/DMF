@@ -806,6 +806,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 ResourceHub_IoctlClientCallback_SpbExecuteSequence(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
     _In_ ULONG IoctlCode,
     _In_reads_(InputBufferSize) VOID* InputBuffer,
@@ -818,18 +819,19 @@ ResourceHub_IoctlClientCallback_SpbExecuteSequence(
 
 Routine Description:
 
-   This routine reads static data of the GPU.
+    Performs SPB transactions based on IOCTL requests.
 
 Arguments:
 
     DmfModule - The Child Module from which this callback is called.
-    Request - Request data
-    IoctlCode - IOCTL to be used in the command
-    InputBuffer - Input data buffer
-    InputBufferSize - Input data buffer size
-    OutputBuffer - Output data buffer
-    OutputBufferSize - Output data buffer size
-    BytesReturned - Amount of data to be sent back
+    Queue - The WDFQUEUE associated with Request.
+    Request - Request data.
+    IoctlCode - IOCTL to be used in the command.
+    InputBuffer - Input data buffer.
+    InputBufferSize - Input data buffer size.
+    OutputBuffer - Output data buffer.
+    OutputBufferSize - Output data buffer size.
+    BytesReturned - Amount of data to be sent back.
 
 Return Value:
 
@@ -845,6 +847,7 @@ Return Value:
     WDFFILEOBJECT fileObject;
     PSPB_TRANSFER_LIST spbTransferList;
 
+    UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(IoctlCode);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferSize);

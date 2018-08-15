@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{4753b553-8305-44a8-aa1a-e7ac7233bdd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{b93b1cd7-fef0-4770-8794-d81e63c73a6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{8bba2704-dbec-4763-82b7-71f5fb2889ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inx">
+      <UniqueIdentifier>{4a6e4458-cdba-450b-86cc-5d29999f6dca}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DmfInterface.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Trace.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DmfKTest.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="DmfKTest.inx">
+      <Filter>Inx</Filter>
+    </Inf>
+  </ItemGroup>
+  <ItemGroup>
+    <MessageCompile Include="DmfKTestEventLog.mc">
+      <Filter>Resources</Filter>
+    </MessageCompile>
+  </ItemGroup>
+</Project>

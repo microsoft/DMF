@@ -1640,6 +1640,11 @@ Return Value:
         dmfObject->NeedToCallPreClose = FALSE;
     }
 
+    // Now that PreClose is done, wait for reference count to clear and close the Module.
+    // This allows PreClose to access Module Methods if needed.
+    //
+    DMF_ModuleWaitForReferenceCountToClear(DmfModule);
+
     dmfObject->ModuleState = ModuleState_Closing;
 
     ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
