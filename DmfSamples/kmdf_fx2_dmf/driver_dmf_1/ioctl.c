@@ -13,7 +13,7 @@ Module Name:
 
 Abstract:
 
-    USB device driver for OSR USB-FX2 Learning Kit
+    USB device driver for OSR USB-FX2 Learning Kit (DMF Version)
 
 Environment:
 

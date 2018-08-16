@@ -24,6 +24,7 @@ Environment:
         DMF_TraceGuid_Template, (0,0,0,0,0),                                                           \
         WPP_DEFINE_BIT(DMF_TRACE_Template)                                                             \
         WPP_DEFINE_BIT(DMF_TRACE_ToasterBus)                                                           \
+        WPP_DEFINE_BIT(DMF_TRACE_OsrFx2)                                                               \
         )
 
 // eof: DmfModule.Template.Trace.h

@@ -483,6 +483,132 @@ Return Value:
     return returnValue;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Template_SelfManagedIoCleanup(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoCleanup for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Template_SelfManagedIoFlush(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoFlush for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_Template_SelfManagedIoInit(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoInit for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    return STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_Template_SelfManagedIoSuspend(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoSuspend for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    return STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_Template_SelfManagedIoRestart(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoRestart for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    return STATUS_SUCCESS;
+}
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Template_SurpriseRemoval(
@@ -492,7 +618,7 @@ DMF_Template_SurpriseRemoval(
 
 Routine Description:
 
-    Template callback for ModuleInSurpriseRemoval for a given DMF Module.
+    Template callback for ModuleSurpriseRemoval for a given DMF Module.
 
 Arguments:
 
@@ -882,9 +1008,15 @@ Return Value:
 
 --*/
 {
+    DMFMODULE dmfModule;
     NTSTATUS ntStatus;
+    DMF_CONTEXT_Template* moduleContext;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDFDEVICE device;
 
     PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_Template);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Template);
     DmfCallbacksDmf_Template.ModuleInstanceDestroy = DMF_Template_Destroy;
@@ -919,14 +1051,31 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_Template,
-                                DmfModule);
+                                &dmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Template, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
     // TODO: Create DMF Child Modules if necessary.
+    // --------------------------------------------
     //
+
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    device = DMF_AttachedDeviceGet(dmfModule);
+
+    // dmfModule will be set as ParentObject for all child modules.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = dmfModule;
+
+    // ...
+    //
+
+Exit:
+
+    *DmfModule = dmfModule;
 
     return(ntStatus);
 }

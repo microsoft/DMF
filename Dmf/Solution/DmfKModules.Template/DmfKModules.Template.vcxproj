@@ -272,6 +272,7 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.txt" />
     <Text Include="..\..\Modules.Template\Dmf_Template.txt" />
     <Text Include="..\..\Modules.Template\Dmf_ToasterBus.txt" />
   </ItemGroup>
@@ -282,10 +283,13 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_ToasterBus.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_ToasterBus_Public.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Trace.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_OsrFx2.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_OsrFx2_Public.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_ToasterBus.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_OsrFx2.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

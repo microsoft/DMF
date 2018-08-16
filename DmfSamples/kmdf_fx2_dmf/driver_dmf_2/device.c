@@ -13,7 +13,7 @@ Module Name:
 
 Abstract:
 
-    USB device driver for OSR USB-FX2 Learning Kit
+    USB device driver for OSR USB-FX2 Learning Kit (DMF Version)
 
 Environment:
 
@@ -289,17 +289,9 @@ Return Value:
     }
 
     //
-    // Register a device interface so that app can find our device and talk to it.
+    // DMF: In this sammple, the Device Interace is created by the Dmf_IoctlHandler 
+    //      Module so it should not be created here..
     //
-    status = WdfDeviceCreateDeviceInterface(device,
-                                            (LPGUID) &GUID_DEVINTERFACE_OSRUSBFX2,
-                                            NULL); // Reference String
-
-    if (!NT_SUCCESS(status)) {
-        TraceEvents(TRACE_LEVEL_ERROR, DBG_PNP,
-                 "WdfDeviceCreateDeviceInterface failed  %!STATUS!\n", status);
-        goto Error;
-    }
 
     //
     // Create the lock that we use to serialize calls to ResetDevice(). As an
