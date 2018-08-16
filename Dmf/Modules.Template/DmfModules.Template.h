@@ -40,6 +40,7 @@ extern "C"
 
 #include "Dmf_Template.h"
 #include "Dmf_ToasterBus.h"
+#include "Dmf_OsrFx2.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.

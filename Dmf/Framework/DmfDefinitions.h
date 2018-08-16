@@ -113,6 +113,8 @@ extern "C"
     #include <cfgmgr32.h>
     #include <ndisguid.h>
     #include <Strsafe.h>
+    // TODO: Add support for USB in User Mode drivers.
+    //
 #else
     #include <ntifs.h>
     #include <wdm.h>
@@ -131,6 +133,9 @@ extern "C"
     #include <ntddvdeo.h>
     #include <spb.h>
     #include <hidport.h>
+    #include "usbdi.h"
+    #include "usbdlib.h"
+    #include <wdfusb.h>
 #if IS_WIN10_RS3_OR_LATER
     #include <lkmdtel.h>
 #endif // IS_WIN10_RS3_OR_LATER
