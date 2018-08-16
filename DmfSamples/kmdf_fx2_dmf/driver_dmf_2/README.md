@@ -3,15 +3,15 @@
     platform: KMDF
     language: cpp
     category: USB
-    description: Demonstrates how to instantiate a DMF Module in a WDF driver that uses DMF. This driver is based on the the first DMF Sample driver.
+    description: Demonstrates how to instantiate a DMF Module in a WDF driver that uses DMF. This driver is based on the first DMF Sample driver.
     samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620313
 --->
 
 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 2)
 ==============================================================
 
-This sammple is an incremental change from the first DMF Sample driver. It shows how to instantiate a DMF Module. This sample instantiates the 
-Dmf_IoctlHandler Module which simplyfies IOCTL handling in a driver.
+This sample is an incremental change from the first DMF Sample driver. It shows how to instantiate a DMF Module. This sample instantiates the 
+Dmf_IoctlHandler Module which simplifies IOCTL handling in a driver.
 
 IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the original (non-DMF) sample. This sample is designed to do everything
            the original sample does but also perform the minimum steps necessary to initialize DMF.
@@ -22,7 +22,7 @@ Overview
 --------
 
 In this sample, as a demonstration of how to use a Module, the Dmf_IoctlHandler Module is selected. The purpose of this Module
-is to simplyfy IOCTL handling. The Client driver supplies a table of the IOCTLs the driver supports as well as the minimum sizes
+is to simplify IOCTL handling. The Client driver supplies a table of the IOCTLs the driver supports as well as the minimum sizes
 of the input/output buffers and a callback for each IOCTL. 
 
 As IOCTLs are sent to the Client driver, DMF intercepts them and sends them to the Dmf_IoctlHandler Module that is instantiated.
@@ -63,8 +63,8 @@ supported IOCTLs.
                      WDF_NO_OBJECT_ATTRIBUTES, 
                      &pDevContext->DmfModuleIoctlHandler);
 
-7. To instantiate more Modules, simply declare the Module's Config structure (if any), initialize it if necesssary and
-call DMF_DmfModuleAdd() again using hte same moduleAttributes and the new Module Config.
+7. To instantiate more Modules, simply declare the Module's Config structure (if any), initialize it if necessary and
+call DMF_DmfModuleAdd() again using the same moduleAttributes and the new Module Config.
 
 Code tour
 ---------
