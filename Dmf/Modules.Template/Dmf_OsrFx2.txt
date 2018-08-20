@@ -39,6 +39,25 @@ of D0.
 
 ====[Module Enumeration Types]=====================================================================================================
 
+// Bit-mask that allows Client to determine how the device operates.
+//
+typedef enum
+{
+    OsrFx2_Settings_NoDeviceInterface = 0x01,
+    OsrFx2_Settings_NoEnterIdle = 0x02,
+    OsrFx2_Settings_IdleIndication = 0x04,
+} OsrFx2_Settings;
+
+OsrFx2_Settings_NoDeviceInterface:
+Prevents applications or drivers from sending IOCTLs.
+
+OsrFx2_Settings_NoEnterIdle:
+Prevents the device from entering idle state after 10 seconds of idle time.
+
+OsrFx2_Settings_IdleIndication:
+Does turn on/off light bar when device is not idle/idle.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ====[Module Structures]============================================================================================================
 
 ====[Module Callbacks]=============================================================================================================

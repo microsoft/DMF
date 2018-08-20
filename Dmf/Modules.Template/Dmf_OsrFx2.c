@@ -112,7 +112,7 @@ VOID
 OsrFx2_EvtRequestReadCompletionRoutine(
     _In_ WDFREQUEST Request,
     _In_ WDFIOTARGET Target,
-    _In_ PWDF_REQUEST_COMPLETION_PARAMS CompletionParams,
+    _In_ WDF_REQUEST_COMPLETION_PARAMS* CompletionParams,
     _In_ WDFCONTEXT Context
     )
 /*++
@@ -280,7 +280,7 @@ VOID
 OsrFx2_EvtRequestWriteCompletionRoutine(
     _In_ WDFREQUEST Request,
     _In_ WDFIOTARGET Target,
-    _In_ PWDF_REQUEST_COMPLETION_PARAMS CompletionParams,
+    _In_ WDF_REQUEST_COMPLETION_PARAMS* CompletionParams,
     _In_ WDFCONTEXT Context
     )
 /*++
@@ -750,7 +750,7 @@ static
 NTSTATUS
 OsrFx2_SetBarGraphState(
     _In_ DMFMODULE DmfModule,
-    _In_ PBAR_GRAPH_STATE BarGraphState
+    _In_ BAR_GRAPH_STATE* BarGraphState
     )
 /*++
 
@@ -992,7 +992,7 @@ static
 NTSTATUS
 OsrFx2_GetSwitchState(
     _In_ DMFMODULE DmfModule,
-    _In_ SWITCH_STATE* SwitchState
+    _Out_ SWITCH_STATE* SwitchState
     )
 /*++
 
@@ -1066,7 +1066,6 @@ Returns:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 OsrFx2_StopAllPipes(
@@ -1090,6 +1089,8 @@ Returns:
 {
     DMF_CONTEXT_OsrFx2* moduleContext;
     WDFIOTARGET ioTarget;
+
+    PAGED_CODE();
 
     FuncEntry(DMF_TRACE_OsrFx2);
 
@@ -1139,6 +1140,10 @@ Returns:
     DMF_CONTEXT_OsrFx2* moduleContext;
     WDFIOTARGET ioTarget;
 
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_OsrFx2);
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ioTarget = WdfUsbTargetPipeGetIoTarget(moduleContext->InterruptPipe);
@@ -1163,6 +1168,8 @@ Returns:
     }
 
 Exit:
+
+    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1292,7 +1299,6 @@ Returns:
 #pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 OsrFx2_EvtUsbInterruptPipeReadComplete(
@@ -1361,9 +1367,6 @@ Returns:
     //
     moduleContext->CurrentSwitchState = *switchState;
 
-    // TODO: Filter out messages that come during D0Entry/D0Exit.
-    //
-
     // Allow the Client to perform a Client specific action given the updated
     // switch data.
     //
@@ -1430,6 +1433,8 @@ Returns:
     WDF_USB_CONTINUOUS_READER_CONFIG continuousReaderConfig;
     NTSTATUS ntStatus;
     DMF_CONTEXT_OsrFx2* moduleContext;
+
+    PAGED_CODE();
 
     FuncEntry(DMF_TRACE_OsrFx2);
 
@@ -1509,8 +1514,8 @@ Returns:
     DMFMODULE dmfModuleOsrFx2;
     DMF_CONTEXT_OsrFx2* moduleContext;
     size_t bytesReturned;
-    PBAR_GRAPH_STATE barGraphState;
-    PSWITCH_STATE switchState;
+    BAR_GRAPH_STATE* barGraphState;
+    SWITCH_STATE* switchState;
     UCHAR* sevenSegment;
     NTSTATUS ntStatus;
 
@@ -1545,9 +1550,9 @@ Returns:
             //
 
             USB_CONFIGURATION_DESCRIPTOR* configurationDescriptor;
-            USHORT requiredSize;
+            USHORT requiredSize = 0;
 
-            // First get the size of the config descriptor.
+            // First, get the size of the config descriptor.
             //
             ntStatus = WdfUsbTargetDeviceRetrieveConfigDescriptor(moduleContext->UsbDevice,
                                                                   NULL,
@@ -1558,7 +1563,7 @@ Returns:
                 break;
             }
 
-            // Get the buffer - make sure the buffer is big enough
+            // Get the buffer. Make sure the buffer is big enough
             //
             ntStatus = WdfRequestRetrieveOutputBuffer(Request,
                                                       (size_t)requiredSize,
@@ -1772,6 +1777,19 @@ Exit:
                             WdfIoTargetCancelSentIo);
         }
     }
+    else
+    {
+        DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+        if (moduleConfig->Settings & OsrFx2_Settings_IdleIndication)
+        {
+            BAR_GRAPH_STATE barGraphState;
+        
+            barGraphState.BarsAsUChar = 0xFF;
+            OsrFx2_SetBarGraphState(DmfModule,
+                                    &barGraphState);
+        }
+    }
 
     FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1810,6 +1828,17 @@ Returns:
     FuncEntry(DMF_TRACE_OsrFx2);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (moduleConfig->Settings & OsrFx2_Settings_IdleIndication)
+    {
+        BAR_GRAPH_STATE barGraphState;
+        
+        barGraphState.BarsAsUChar = 0x00;
+        OsrFx2_SetBarGraphState(DmfModule,
+                                &barGraphState);
+    }
 
     WDFIOTARGET pipeIoTarget = WdfUsbTargetPipeGetIoTarget(moduleContext->InterruptPipe);
 
@@ -1893,6 +1922,7 @@ Returns:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_OsrFx2* moduleContext;
+    DMF_CONFIG_OsrFx2* moduleConfig;
     WDF_USB_DEVICE_INFORMATION deviceInfo;
     ULONG waitWakeEnable;
     WDFDEVICE device;
@@ -1904,6 +1934,7 @@ Returns:
     waitWakeEnable = FALSE;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
     device = DMF_ParentDeviceGet(DmfModule);
 
     // Create a USB device handle so that we can communicate with the
@@ -1974,7 +2005,8 @@ Returns:
 
     // Enable wait-wake and idle timeout if the device supports it
     //
-    if (waitWakeEnable) 
+    if (waitWakeEnable &&
+        (! (moduleConfig->Settings & OsrFx2_Settings_NoEnterIdle)) )
     {
         ntStatus = OsrFx2_SetPowerPolicy(device);
         if (!NT_SUCCESS (ntStatus)) 
@@ -2053,6 +2085,7 @@ Returns:
 {
     DMFMODULE dmfModule;
     DMF_CONTEXT_OsrFx2* moduleContext;
+    DMF_CONFIG_OsrFx2* moduleConfig;
     WDFDEVICE device;
     WDF_OBJECT_ATTRIBUTES attributes;
     NTSTATUS ntStatus;
@@ -2091,6 +2124,7 @@ Returns:
     }
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModule);
     device = DMF_AttachedDeviceGet(dmfModule);
 
     // dmfModule will be set as ParentObject for all child modules.
@@ -2098,124 +2132,130 @@ Returns:
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = dmfModule;
 
-    // IoctlHandler
-    // ------------
+    // Client has option of allowing Device Interface to be created to allow drivers or applications to 
+    // send IOCTLS.
     //
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
-    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
-                                                &moduleAttributes);
-    moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-    moduleConfigIoctlHandler.IoctlRecordCount = _countof(OsrFx2_IoctlHandlerTable);
-    moduleConfigIoctlHandler.IoctlRecords = OsrFx2_IoctlHandlerTable;
-    moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
-    moduleConfigIoctlHandler.CustomCapabilities = L"microsoft.hsaTestCustomCapability_q536wpkpf5cy2\0";
-    moduleConfigIoctlHandler.IsRestricted = DEVPROP_TRUE;
-    ntStatus = DMF_IoctlHandler_Create(device,
-                                       &moduleAttributes,
-                                       &attributes,
-                                       &moduleContext->DmfModuleIoctlHandler);
-    if (! NT_SUCCESS(ntStatus))
+    if (!(moduleConfig->Settings & OsrFx2_Settings_NoDeviceInterface))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
+        // IoctlHandler
+        // ------------
+        //
+        DMF_MODULE_ATTRIBUTES moduleAttributes;
+        DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
+        DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
+                                                    &moduleAttributes);
+        moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_OSRUSBFX2;
+        moduleConfigIoctlHandler.IoctlRecordCount = _countof(OsrFx2_IoctlHandlerTable);
+        moduleConfigIoctlHandler.IoctlRecords = OsrFx2_IoctlHandlerTable;
+        moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
+        moduleConfigIoctlHandler.CustomCapabilities = L"microsoft.hsaTestCustomCapability_q536wpkpf5cy2\0";
+        moduleConfigIoctlHandler.IsRestricted = DEVPROP_TRUE;
+        ntStatus = DMF_IoctlHandler_Create(device,
+                                           &moduleAttributes,
+                                           &attributes,
+                                           &moduleContext->DmfModuleIoctlHandler);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
-    // NOTE: Currently DMF has no AddDevice() callback. Operations that are done in AddDevice() should go here as this call is 
-    //       performed in AddDevice(). 
-    //
-    WDF_IO_QUEUE_CONFIG ioQueueConfig;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
-    WDFQUEUE queue;
+        // NOTE: Currently DMF has no AddDevice() callback. Operations that are done in AddDevice() should go here as this call is 
+        //       performed in AddDevice(). 
+        //
+        WDF_IO_QUEUE_CONFIG ioQueueConfig;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+        WDFQUEUE queue;
 
-    // We will create a separate sequential queue and configure it
-    // to receive read requests.  We also need to register a EvtIoStop
-    // handler so that we can acknowledge requests that are pending
-    // at the target driver.
-    //
-    WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig, 
-                             WdfIoQueueDispatchSequential);
+        // We will create a separate sequential queue and configure it
+        // to receive read requests.  We also need to register a EvtIoStop
+        // handler so that we can acknowledge requests that are pending
+        // at the target driver.
+        //
+        WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig, 
+                                 WdfIoQueueDispatchSequential);
     
-    // NOTE: It is not possible to get the parent of a WDFQUEUE.
-    // Therefore, it is necessary to save the DmfModule in its context area.
-    // This call allocates space for the context which needs to be large enough to
-    // hold a DMFMODULE.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
-                                            DMFMODULE);
+        // NOTE: It is not possible to get the parent of a WDFQUEUE.
+        // Therefore, it is necessary to save the DmfModule in its context area.
+        // This call allocates space for the context which needs to be large enough to
+        // hold a DMFMODULE.
+        //
+        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
+                                                DMFMODULE);
 
-    ioQueueConfig.EvtIoRead = OsrFx2_EvtIoRead;
-    ioQueueConfig.EvtIoStop = OsrFx2_EvtIoStop;
+        ioQueueConfig.EvtIoRead = OsrFx2_EvtIoRead;
+        ioQueueConfig.EvtIoStop = OsrFx2_EvtIoStop;
 
-    ntStatus = WdfIoQueueCreate(device,
-                                &ioQueueConfig,
-                                &objectAttributes,
-                                &queue);
-    if (!NT_SUCCESS (ntStatus)) 
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
+        ntStatus = WdfIoQueueCreate(device,
+                                    &ioQueueConfig,
+                                    &objectAttributes,
+                                    &queue);
+        if (!NT_SUCCESS (ntStatus)) 
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
-    // NOTE: It is not possible to get the parent of a WDFQUEUE.
-    // Therefore, it is necessary to save the DmfModule in its context area.
-    //
-    DMF_ModuleInContextSave(queue,
-                            dmfModule);
+        // NOTE: It is not possible to get the parent of a WDFQUEUE.
+        // Therefore, it is necessary to save the DmfModule in its context area.
+        //
+        DMF_ModuleInContextSave(queue,
+                                dmfModule);
 
-    ntStatus = WdfDeviceConfigureRequestDispatching(device,
-                                                    queue,
-                                                    WdfRequestTypeRead);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        ASSERT(NT_SUCCESS(ntStatus));
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
+        ntStatus = WdfDeviceConfigureRequestDispatching(device,
+                                                        queue,
+                                                        WdfRequestTypeRead);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            ASSERT(NT_SUCCESS(ntStatus));
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
-    //
-    // We will create another sequential queue and configure it
-    // to receive write requests.
-    //
-    WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig, 
-                             WdfIoQueueDispatchSequential);
+        //
+        // We will create another sequential queue and configure it
+        // to receive write requests.
+        //
+        WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig, 
+                                 WdfIoQueueDispatchSequential);
 
-    // NOTE: It is not possible to get the parent of a WDFQUEUE.
-    // Therefore, it is necessary to save the DmfModule in its context area.
-    // This call allocates space for the context which needs to be large enough to
-    // hold a DMFMODULE.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
-                                            DMFMODULE);
+        // NOTE: It is not possible to get the parent of a WDFQUEUE.
+        // Therefore, it is necessary to save the DmfModule in its context area.
+        // This call allocates space for the context which needs to be large enough to
+        // hold a DMFMODULE.
+        //
+        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
+                                                DMFMODULE);
 
-    ioQueueConfig.EvtIoWrite = OsrFx2_EvtIoWrite;
-    ioQueueConfig.EvtIoStop  = OsrFx2_EvtIoStop;
+        ioQueueConfig.EvtIoWrite = OsrFx2_EvtIoWrite;
+        ioQueueConfig.EvtIoStop  = OsrFx2_EvtIoStop;
 
-    ntStatus = WdfIoQueueCreate(device,
-                                &ioQueueConfig,
-                                &objectAttributes,
-                                &queue);
+        ntStatus = WdfIoQueueCreate(device,
+                                    &ioQueueConfig,
+                                    &objectAttributes,
+                                    &queue);
 
-    if (!NT_SUCCESS (ntStatus)) 
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
+        if (!NT_SUCCESS (ntStatus)) 
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
-    // NOTE: It is not possible to get the parent of a WDFQUEUE.
-    // Therefore, it is necessary to save the DmfModule in its context area.
-    //
-    DMF_ModuleInContextSave(queue,
-                            dmfModule);
+        // NOTE: It is not possible to get the parent of a WDFQUEUE.
+        // Therefore, it is necessary to save the DmfModule in its context area.
+        //
+        DMF_ModuleInContextSave(queue,
+                                dmfModule);
 
-    ntStatus = WdfDeviceConfigureRequestDispatching(device,
-                                                    queue,
-                                                    WdfRequestTypeWrite);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        ASSERT(NT_SUCCESS(ntStatus));
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
+        ntStatus = WdfDeviceConfigureRequestDispatching(device,
+                                                        queue,
+                                                        WdfRequestTypeWrite);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            ASSERT(NT_SUCCESS(ntStatus));
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
 
 Exit:
