@@ -30,6 +30,15 @@ EVT_DMF_OsrFx2_InterruptPipeCallback(_In_ DMFMODULE DmfModule,
                                      _In_ UCHAR SwitchState,
                                      _In_ NTSTATUS NtStatus);
 
+// Bit-mask that allows Client to determine how the device operates.
+//
+typedef enum
+{
+    OsrFx2_Settings_NoDeviceInterface = 0x01,
+    OsrFx2_Settings_NoEnterIdle = 0x02,
+    OsrFx2_Settings_IdleIndication = 0x04,
+} OsrFx2_Settings;
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -37,6 +46,9 @@ typedef struct
     // When interrupt pipe returns data, this callback is called.
     //
     EVT_DMF_OsrFx2_InterruptPipeCallback* InterruptPipeCallback;
+    // Allows Client to turn off default settings related to how the device will function.
+    //
+    OsrFx2_Settings Settings;
 } DMF_CONFIG_OsrFx2;
 
 // This macro declares the following functions:

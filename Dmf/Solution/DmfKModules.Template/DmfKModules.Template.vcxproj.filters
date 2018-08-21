@@ -21,6 +21,9 @@
     <Text Include="..\..\Modules.Template\Dmf_ToasterBus.txt">
       <Filter>Documentation</Filter>
     </Text>
+    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.txt">
+      <Filter>Documentation</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.h">
@@ -41,12 +44,21 @@
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Trace.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_OsrFx2.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_OsrFx2_Public.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Template\Dmf_ToasterBus.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Template\Dmf_OsrFx2.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
