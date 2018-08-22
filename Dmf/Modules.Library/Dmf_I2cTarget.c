@@ -637,6 +637,17 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    if (! moduleContext->I2cConnectionAssigned)
+    {
+        // In some cases, the minimum number of resources is zero because the same driver
+        // is used on different platforms. In that case, this Module still loads and opens
+        // but it does nothing.
+        //
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_I2cTarget, "No I2C Resources Found");
+        ntStatus = STATUS_SUCCESS;
+        goto Exit;
+    }
+
     device = DMF_AttachedDeviceGet(DmfModule);
 
     RtlInitEmptyUnicodeString(&resourcePathString,

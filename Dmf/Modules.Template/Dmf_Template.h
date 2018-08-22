@@ -21,6 +21,16 @@ Environment:
 
 #pragma once
 
+// TEMPLATE: Template Transport Messages.
+// NOTE: These types of messages are only used if the Module is a "Transport Module".
+//
+#define Template_TransportMessage_Foo       0
+#define Template_TransportMessage_Bar       1
+
+//// TEMPLATE: If the Module has a CONFIG structure, delcare it here as well as 
+////           the corresponding Module definition macro.
+////
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -31,17 +41,22 @@ typedef struct
     ULONG Dummy;
 } DMF_CONFIG_Template;
 
-// TEMPLATE: Template Transport Messages
-// 
-#define Template_TransportMessage_Foo       0
-#define Template_TransportMessage_Bar       1
-
 // This macro declares the following functions:
 // DMF_Template_ATTRIBUTES_INIT()
 // DMF_CONFIG_Template_AND_ATTRIBUTES_INIT()
 // DMF_Template_Create()
 //
 DECLARE_DMF_MODULE(Template)
+
+//// TEMPLATE: If the Module has no CONFIG structure, use these lines instead of the 
+////           the above structure and defintion:
+////
+
+//// This macro declares the following functions:
+//// DMF_Template_ATTRIBUTES_INIT()
+//// DMF_Template_Create()
+////
+//DECLARE_DMF_MODULE_NO_CONFIG(Template)
 
 // Module Methods
 //

@@ -112,7 +112,7 @@ Return Value:
     WPP_INIT_TRACING( DriverObject, RegistryPath );
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DBG_INIT,
-                       "OSRUSBFX2 Driver Sample - Driver Framework Edition.\n");
+                       "OSRUSBFX2 Driver Sample (DMF) - Driver Framework Edition.\n");
 
     //
     // IRP activity ID functions are available on some versions, save them into

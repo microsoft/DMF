@@ -58,13 +58,52 @@ OsrFx2_Settings_IdleIndication:
 Does turn on/off light bar when device is not idle/idle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
+// These messages allow the Client to perform logging when specific events happen 
+// inside the Module. The logging mechanism is Client specific. It may just be tracing or
+// it may write to event log.
+//
+typedef enum
+{
+    OsrFx2_EventWriteMessage_Invalid,
+    OsrFx2_EventWriteMessage_ReadStart,
+    OsrFx2_EventWriteMessage_ReadFail,
+    OsrFx2_EventWriteMessage_ReadStop,
+    OsrFx2_EventWriteMessage_WriteStart,
+    OsrFx2_EventWriteMessage_WriteFail,
+    OsrFx2_EventWriteMessage_WriteStop,
+    OsrFx2_EventWriteMessage_SelectConfigFailure,
+    OsrFx2_EventWriteMessage_DeviceReenumerated,
+} OsrFx2_EventWriteMessage;
+
+OsrFx2_EventWriteMessage_ReadStart:
+Read from OSR FX2 board starts.
+
+OsrFx2_EventWriteMessage_ReadFail:
+Read from OSR FX2 board fails.
+
+OsrFx2_EventWriteMessage_ReadStop:
+Read from OSR FX2 board stops.
+
+OsrFx2_EventWriteMessage_WriteStart:
+Write from OSR FX2 board starts.
+
+OsrFx2_EventWriteMessage_WriteFail:
+Write from OSR FX2 board fails.
+
+OsrFx2_EventWriteMessage_WriteStop:
+Write from OSR FX2 board stops.
+
+OsrFx2_EventWriteMessage_SelectConfigFailure:
+USB Select configuration fails.
+
+OsrFx2_EventWriteMessage_DeviceReenumerated:
+The device is reenumerated per User.
+
 ====[Module Structures]============================================================================================================
 
 ====[Module Callbacks]=============================================================================================================
 
-// This callback is called when data is available from the OSR FX2 Interrupt Pipe.
-//
-typedef
 _Function_class_(EVT_DMF_OsrFx2_InterruptPipeCallback)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
@@ -72,6 +111,8 @@ VOID
 EVT_DMF_OsrFx2_InterruptPipeCallback(_In_ DMFMODULE DmfModule,
                                      _In_ UCHAR SwitchState,
                                      _In_ NTSTATUS NtStatus);
+
+This callback is called when data is available from the OSR FX2 Interrupt Pipe.
 
 Returns
 -------
@@ -93,6 +134,52 @@ Remarks
     * This callback is also called when the device goes in and out of D0.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
+_Function_class_(EVT_DMF_OsrFx2_EventWriteCallback)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_OsrFx2_EventWriteCallback(_In_ DMFMODULE DmfModule,
+                                  _In_ OsrFx2_EventWriteMessage EventWriteMessage,
+                                  _In_ ULONG_PTR Parameter1,
+                                  _In_ ULONG_PTR Parameter2,
+                                  _In_ ULONG_PTR Parameter3,
+                                  _In_ ULONG_PTR Parameter4,
+                                  _In_ ULONG_PTR Parameter5);
+
+This callback is called when the Module determines a code path has occurrec that the Client may want to write to a logging output
+device.
+
+Returns
+-------
+None
+
+Parameters
+----------
+DmfModule:
+The Dmf_OsrFx2 Module handle.
+
+EventWriteMessage:
+Indicates the code path where logging occurs.
+
+Parameter1:
+Code path specific logging parameter.
+
+Parameter2:
+Code path specific logging parameter.
+
+Parameter3:
+Code path specific logging parameter.
+
+Parameter4:
+Code path specific logging parameter.
+
+Parameter5:
+Code path specific logging parameter.
+
+Remarks
+-------
+    * See the Module for meanings of the code paths specific parameters.
 
 ====[Module Methods]===============================================================================================================
 
