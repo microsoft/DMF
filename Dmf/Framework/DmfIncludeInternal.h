@@ -1295,6 +1295,7 @@ DMF_Module_CloseOnDestroy(
     _In_ DMFMODULE DmfModule
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ModuleWaitForReferenceCountToClear(
     _In_ DMFMODULE DmfModule
