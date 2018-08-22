@@ -63,8 +63,6 @@ ULONG DebugLevel = TRACE_LEVEL_INFORMATION;
 ULONG DebugFlag = 0xff;
 #endif
 
-PFN_IO_GET_ACTIVITY_ID_IRP g_pIoGetActivityIdIrp;
-
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, OsrFxEvtDriverContextCleanup)
@@ -103,7 +101,6 @@ Return Value:
     WDF_DRIVER_CONFIG       config;
     NTSTATUS                status;
     WDF_OBJECT_ATTRIBUTES   attributes;
-    UNICODE_STRING          funcName;
 
     //
     // Initialize WPP Tracing
@@ -111,15 +108,7 @@ Return Value:
     WPP_INIT_TRACING( DriverObject, RegistryPath );
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DBG_INIT,
-                       "OSRUSBFX2 Driver Sample - Driver Framework Edition.\n");
-
-    //
-    // IRP activity ID functions are available on some versions, save them into
-    // globals (or NULL if not available)
-    //
-    RtlInitUnicodeString(&funcName, L"IoGetActivityIdIrp");
-    g_pIoGetActivityIdIrp = (PFN_IO_GET_ACTIVITY_ID_IRP) (ULONG_PTR)
-        MmGetSystemRoutineAddress(&funcName);
+                       "OSRUSBFX2 Driver Sample (DMF) - Driver Framework Edition.\n");
 
     //
     // Register with ETW (unified tracing)

@@ -30,7 +30,6 @@ Environment:
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, OsrFxEvtDeviceAdd)
-#pragma alloc_text(PAGE, GetDeviceEventLoggingNames)
 #pragma alloc_text(PAGE, OsrDmfModulesAdd)
 #endif
 
@@ -101,10 +100,10 @@ Return Value:
     }
 
     //
+    // DMF: DMF has Utility functions for common tasks. These do not require Modules.
     // Setup the activity ID so that we can log events using it.
     //
-
-    activity = DeviceToActivityId(device);
+    activity = DMF_Utility_DeviceToActivityId(device);
 
     //
     // Get the DeviceObject context by using accessor function specified in
@@ -113,11 +112,13 @@ Return Value:
     pDevContext = GetDeviceContext(device);
 
     //
+    // DMF: DMF has Utility functions for common tasks. These do not require Modules.
     // Get the device's friendly name and location so that we can use it in
     // error logging.  If this fails then it will setup dummy strings.
     //
-
-    GetDeviceEventLoggingNames(device);
+    DMF_Utility_EventLoggingNamesGet(device,
+                                     &pDevContext->DeviceName,
+                                     &pDevContext->Location);
 
     //
     // Tell the framework to set the SurpriseRemovalOK in the DeviceCaps so
@@ -213,6 +214,7 @@ Return Value:
     DMF_CONFIG_OsrFx2_AND_ATTRIBUTES_INIT(&moduleConfigOsrFx2,
                                           &moduleAttributes);
     moduleConfigOsrFx2.InterruptPipeCallback = OsrFx2InterruptPipeCallback;
+    moduleConfigOsrFx2.EventWriteCallback = OsrFx2_EventWriteCallback;
     moduleConfigOsrFx2.Settings = (OsrFx2_Settings_NoEnterIdle | 
                                    OsrFx2_Settings_NoDeviceInterface);
     DMF_DmfModuleAdd(DmfModuleInit, 
@@ -246,19 +248,30 @@ Return Value:
                      &pDevContext->DmfModuleQueuedWorkitem);
 }
 
-_IRQL_requires_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
 VOID
-GetDeviceEventLoggingNames(
-    _In_ WDFDEVICE Device
-    )
+OsrFx2_EventWriteCallback(_In_ DMFMODULE DmfModule,
+                          _In_ OsrFx2_EventWriteMessage EventWriteMessage,
+                          _In_ ULONG_PTR Parameter1,
+                          _In_ ULONG_PTR Parameter2,
+                          _In_ ULONG_PTR Parameter3,
+                          _In_ ULONG_PTR Parameter4,
+                          _In_ ULONG_PTR Parameter5)
 /*++
-
 Routine Description:
 
-    Retrieve the friendly name and the location string into WDFMEMORY objects
-    and store them in the device context.
+    Logging callback function from Dmf_OsrFx Module.
 
 Arguments:
+
+    DmfModule - OsrFx2 Module handle.
+    EventWriteMessage - Indicates what code path to log.
+    Parameter1 - Code path specific parameter.
+    Parameter2 - Code path specific parameter.
+    Parameter3 - Code path specific parameter.
+    Parameter4 - Code path specific parameter.
+    Parameter5 - Code path specific parameter.
 
 Return Value:
 
@@ -266,77 +279,114 @@ Return Value:
 
 --*/
 {
-    PDEVICE_CONTEXT pDevContext = GetDeviceContext(Device);
+    WDFDEVICE device;
+    DEVICE_CONTEXT* pDevContext;
+    GUID activityId;
 
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    UNREFERENCED_PARAMETER(Parameter1);
 
-    WDFMEMORY deviceNameMemory = NULL;
-    WDFMEMORY locationMemory = NULL;
+    device = DMF_ParentDeviceGet(DmfModule);
+    pDevContext = GetDeviceContext(device);
 
-    NTSTATUS status;
-
-    PAGED_CODE();
-
-    //
-    // We want both memory objects to be children of the device so they will
-    // be deleted automatically when the device is removed.
-    //
-
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = Device;
-
-    //
-    // First get the length of the string. If the FriendlyName
-    // is not there then get the lenght of device description.
-    //
-
-    status = WdfDeviceAllocAndQueryProperty(Device,
-                                            DevicePropertyFriendlyName,
-                                            NonPagedPoolNx,
-                                            &objectAttributes,
-                                            &deviceNameMemory);
-
-    if (!NT_SUCCESS(status))
+    switch (EventWriteMessage)
     {
-        status = WdfDeviceAllocAndQueryProperty(Device,
-                                                DevicePropertyDeviceDescription,
-                                                NonPagedPoolNx,
-                                                &objectAttributes,
-                                                &deviceNameMemory);
-    }
+        case OsrFx2_EventWriteMessage_ReadStart:
+        {
+            WDFREQUEST request = (WDFREQUEST)Parameter2;
+            ULONG length = (ULONG)Parameter3;
 
-    if (NT_SUCCESS(status))
-    {
-        pDevContext->DeviceNameMemory = deviceNameMemory;
-        pDevContext->DeviceName = WdfMemoryGetBuffer(deviceNameMemory, NULL);
-    }
-    else
-    {
-        pDevContext->DeviceNameMemory = NULL;
-        pDevContext->DeviceName = L"(error retrieving name)";
-    }
+            activityId = DMF_Utility_RequestToActivityId(request);
+            // 
+            // Log read start event, using IRP activity ID if available or request
+            // handle otherwise.
+            //
+            EventWriteReadStart(&activityId, device, length);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_ReadFail:
+        {
+            WDFREQUEST request = (WDFREQUEST)Parameter2;
+            NTSTATUS status = (ULONG)Parameter3;
 
-    //
-    // Retrieve the device location string.
-    //
+            activityId = DMF_Utility_RequestToActivityId(request);
+            EventWriteReadFail(&activityId, device, status);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_ReadStop:
+        {
+            WDFREQUEST request = (WDFREQUEST)Parameter2;
+            NTSTATUS status = (ULONG)Parameter3;
+            USBD_STATUS usbdStatus = (USBD_STATUS)Parameter4;
+            ULONG bytesRead = (ULONG)Parameter5;
 
-    status = WdfDeviceAllocAndQueryProperty(Device,
-                                            DevicePropertyLocationInformation,
-                                            NonPagedPoolNx,
-                                            WDF_NO_OBJECT_ATTRIBUTES,
-                                            &locationMemory);
+            activityId = DMF_Utility_RequestToActivityId(request);
+            EventWriteReadStop(&activityId, 
+                               device,
+                               bytesRead, 
+                               status, 
+                               usbdStatus);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_WriteStart:
+        {
+            WDFREQUEST request = (WDFREQUEST)Parameter2;
+            ULONG length = (ULONG)Parameter3;
 
-    if (NT_SUCCESS(status))
-    {
-        pDevContext->LocationMemory = locationMemory;
-        pDevContext->Location = WdfMemoryGetBuffer(locationMemory, NULL);
+            activityId = DMF_Utility_RequestToActivityId(request);
+            EventWriteWriteStart(&activityId, device, (ULONG)length);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_WriteFail:
+        {
+            WDFREQUEST request = (WDFREQUEST)Parameter2;
+            NTSTATUS status = (ULONG)Parameter3;
+
+            activityId = DMF_Utility_RequestToActivityId(request);
+            EventWriteWriteFail(&activityId, device, status);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_WriteStop:
+        {
+            WDFREQUEST request = (WDFREQUEST)Parameter2;
+            NTSTATUS status = (ULONG)Parameter3;
+            USBD_STATUS usbdStatus = (USBD_STATUS)Parameter4;
+            ULONG bytesRead = (ULONG)Parameter5;
+
+            activityId = DMF_Utility_RequestToActivityId(request);
+            EventWriteWriteStop(&activityId, 
+                               device,
+                               bytesRead, 
+                               status, 
+                               usbdStatus);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_SelectConfigFailure:
+        {
+            NTSTATUS status = (ULONG)Parameter3;
+
+            activityId = DMF_Utility_DeviceToActivityId(device);
+            EventWriteSelectConfigFailure(&activityId,
+                                          pDevContext->DeviceName,
+                                          pDevContext->Location,
+                                          status);
+            break;
+        }
+        case OsrFx2_EventWriteMessage_DeviceReenumerated:
+        {
+            NTSTATUS status = (ULONG)Parameter3;
+
+            activityId = DMF_Utility_DeviceToActivityId(WdfObjectContextGetObject(pDevContext));
+            EventWriteDeviceReenumerated(&activityId,
+                                         pDevContext->DeviceName,
+                                         pDevContext->Location,
+                                         status);
+            break;
+        }
+        default:
+        {
+            ASSERT(FALSE);
+            break;
+        }
     }
-    else
-    {
-        pDevContext->LocationMemory = NULL;
-        pDevContext->Location = L"(error retrieving location)";
-    }
-
-    return;
 }
 

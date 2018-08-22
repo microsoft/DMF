@@ -121,6 +121,7 @@ extern "C"
     #include <ntddk.h>
     #include <ntstatus.h>
     #include <ntintsafe.h>
+    #define NTSTRSAFE_LIB
     #include <ntstrsafe.h>
     #include <wdf.h>
     #include <acpiioct.h>
@@ -1072,6 +1073,23 @@ _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Utility_AclPropagateInDeviceStack(
+    _In_ WDFDEVICE Device
+    );
+
+VOID
+DMF_Utility_EventLoggingNamesGet(
+    _In_ WDFDEVICE Device,
+    _Out_ PCWSTR* DeviceName,
+    _Out_ PCWSTR* Location
+    );
+
+GUID
+DMF_Utility_RequestToActivityId(
+    _In_ WDFREQUEST Request
+    );
+
+GUID
+DMF_Utility_DeviceToActivityId(
     _In_ WDFDEVICE Device
     );
 
