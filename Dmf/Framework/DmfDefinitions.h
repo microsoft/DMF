@@ -121,7 +121,9 @@ extern "C"
     #include <ntddk.h>
     #include <ntstatus.h>
     #include <ntintsafe.h>
-    #define NTSTRSAFE_LIB
+    // TODO: Add this after Dmf_Registry supports this definition properly.
+    // #define NTSTRSAFE_LIB
+    //
     #include <ntstrsafe.h>
     #include <wdf.h>
     #include <acpiioct.h>
