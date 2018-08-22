@@ -160,6 +160,21 @@ Returns:
                     usbCompletionParams->UsbdStatus);
     }
 
+    WDFQUEUE queue = WdfRequestGetIoQueue(Request);
+    DMFMODULE* dmfModuleAddress = WdfObjectGet_DMFMODULE(queue);
+    DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
+
+    if (moduleConfig->EventWriteCallback != NULL)
+    {
+        moduleConfig->EventWriteCallback(*dmfModuleAddress,
+                                         OsrFx2_EventWriteMessage_ReadStop,
+                                         NULL,
+                                         (ULONG_PTR)Request,
+                                         ntStatus,
+                                         usbCompletionParams->UsbdStatus,
+                                         bytesRead);
+    }
+
     WdfRequestCompleteWithInformation(Request, 
                                       ntStatus, 
                                       bytesRead);
@@ -201,6 +216,7 @@ Returns:
     WDFMEMORY requestMemory;
     DMFMODULE* dmfModuleAddress;
     DMF_CONTEXT_OsrFx2* moduleContext;
+    DMF_CONFIG_OsrFx2* moduleConfig;
 
     UNREFERENCED_PARAMETER(Queue);
 
@@ -210,6 +226,18 @@ Returns:
     //
     dmfModuleAddress = WdfObjectGet_DMFMODULE(Queue);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
+    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
+
+    if (moduleConfig->EventWriteCallback != NULL)
+    {
+        moduleConfig->EventWriteCallback(*dmfModuleAddress,
+                                            OsrFx2_EventWriteMessage_ReadStart,
+                                            NULL,
+                                            (ULONG_PTR)Request,
+                                            Length,
+                                            NULL,
+                                            NULL);
+    }
 
     // First validate input parameters.
     //
@@ -267,6 +295,17 @@ Exit:
 
     if (!NT_SUCCESS(ntStatus))
     {
+        if (moduleConfig->EventWriteCallback != NULL)
+        {
+            moduleConfig->EventWriteCallback(*dmfModuleAddress,
+                                             OsrFx2_EventWriteMessage_ReadFail,
+                                             NULL,
+                                             (ULONG_PTR)Request,
+                                             ntStatus,
+                                             NULL,
+                                             NULL);
+        }
+
         WdfRequestCompleteWithInformation(Request, 
                                           ntStatus, 
                                           0);
@@ -330,6 +369,21 @@ Returns:
                     usbCompletionParams->UsbdStatus);
     }
 
+    WDFQUEUE queue = WdfRequestGetIoQueue(Request);
+    DMFMODULE* dmfModuleAddress = WdfObjectGet_DMFMODULE(queue);
+    DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
+
+    if (moduleConfig->EventWriteCallback != NULL)
+    {
+        moduleConfig->EventWriteCallback(*dmfModuleAddress,
+                                         OsrFx2_EventWriteMessage_WriteStop,
+                                         NULL,
+                                         (ULONG_PTR)Request,
+                                         ntStatus,
+                                         usbCompletionParams->UsbdStatus,
+                                         bytesWritten);
+    }
+
     WdfRequestCompleteWithInformation(Request, 
                                       ntStatus, 
                                       bytesWritten);
@@ -369,6 +423,7 @@ Returns:
     WDFMEMORY requestMemory;
     DMFMODULE* dmfModuleAddress;
     DMF_CONTEXT_OsrFx2* moduleContext;
+    DMF_CONFIG_OsrFx2* moduleConfig;
 
     UNREFERENCED_PARAMETER(Queue);
 
@@ -378,8 +433,18 @@ Returns:
     //
     dmfModuleAddress = WdfObjectGet_DMFMODULE(Queue);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
+    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    if (moduleConfig->EventWriteCallback != NULL)
+    {
+        moduleConfig->EventWriteCallback(*dmfModuleAddress,
+                                            OsrFx2_EventWriteMessage_WriteStart,
+                                            NULL,
+                                            (ULONG_PTR)Request,
+                                            Length,
+                                            NULL,
+                                            NULL);
+    }
 
     // First validate input parameters.
     //
@@ -429,6 +494,17 @@ Exit:
 
     if (!NT_SUCCESS(ntStatus)) 
     {
+        if (moduleConfig->EventWriteCallback != NULL)
+        {
+            moduleConfig->EventWriteCallback(*dmfModuleAddress,
+                                             OsrFx2_EventWriteMessage_WriteFail,
+                                             NULL,
+                                             (ULONG_PTR)Request,
+                                             ntStatus,
+                                             NULL,
+                                             NULL);
+        }
+
         WdfRequestCompleteWithInformation(Request, 
                                           ntStatus, 
                                           0);
@@ -598,6 +674,19 @@ Returns:
                         " this is expected as the OSR USB Fx2 board's Interrupt EndPoint descriptor"
                         " doesn't conform to the USB specification. Windows Vista detects this and"
                         " returns an error.");
+        }
+
+        DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+        if (moduleConfig->EventWriteCallback != NULL)
+        {
+            moduleConfig->EventWriteCallback(DmfModule,
+                                             OsrFx2_EventWriteMessage_SelectConfigFailure,
+                                             NULL,
+                                             NULL,
+                                             ntStatus,
+                                             NULL,
+                                             NULL);
         }
 
         goto Exit;
@@ -1290,6 +1379,19 @@ Returns:
     if(!NT_SUCCESS(ntStatus)) 
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "ReenumerateDevice: Failed to Reenumerate - 0x%x \n", ntStatus);
+    }
+
+    DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (moduleConfig->EventWriteCallback != NULL)
+    {
+        moduleConfig->EventWriteCallback(DmfModule,
+                                         OsrFx2_EventWriteMessage_DeviceReenumerated,
+                                         NULL,
+                                         NULL,
+                                         ntStatus,
+                                         NULL,
+                                         NULL);
     }
 
     FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
