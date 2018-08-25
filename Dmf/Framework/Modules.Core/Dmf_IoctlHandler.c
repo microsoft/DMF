@@ -79,6 +79,10 @@ IoctlHandler_PostDeviceInterfaceCreate(
     DEVPROP_BOOLEAN isRestricted;
     UNICODE_STRING functionName;
 
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_IoctlHandler);
+
     ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -165,6 +169,9 @@ IoctlHandler_PostDeviceInterfaceCreate(
     //
     if (moduleConfig->PostDeviceInterfaceCreate != NULL)
     {
+        // ''symbolicLinkNameString' could be '0''
+        //
+        #pragma warning(suppress:6387)
         ntStatus = moduleConfig->PostDeviceInterfaceCreate(DmfModule,
                                                            moduleConfig->DeviceInterfaceGuid,
                                                            symbolicLinkNameString,
@@ -178,10 +185,13 @@ Exit:
         WdfObjectDelete(symbolicLinkNameString);
     }
 
+    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+
     // NOTE: Module will not open if this function returns an error.
     //
     return ntStatus;
 }
+#pragma code_seg()
 
 #endif
 
@@ -190,10 +200,9 @@ Exit:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#pragma code_seg("PAGE")
 static
 _Must_inspect_result_
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_IoctlHandler_ModuleDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -243,8 +252,6 @@ Return Value:
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(InputBufferLength);
     UNREFERENCED_PARAMETER(OutputBufferLength);
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE_IoctlHandler);
 
@@ -406,7 +413,6 @@ Return Value:
 
     return handled;
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _Must_inspect_result_

@@ -105,6 +105,7 @@ typedef struct
     // Underlying Device Target.
     //
     WDFIOTARGET IoTarget;
+    UNICODE_STRING SymbolicLinkName;
     // Redirect Input buffer callback from ContinuousRequestTarget to this callback.
     //
     EVT_DMF_ContinuousRequestTarget_BufferInput* EvtContinuousRequestTargetBufferInput;
@@ -140,6 +141,8 @@ DMF_MODULE_DECLARE_CONTEXT(DeviceInterfaceTarget)
 // DMF_CONFIG_GET()
 //
 DMF_MODULE_DECLARE_CONFIG(DeviceInterfaceTarget)
+
+#define MemoryTag 'MTID'
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code
@@ -1027,6 +1030,8 @@ Return Value:
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
     BOOLEAN ioTargetOpen;
+    SIZE_T matchLength;
+    USHORT symbolicLinkStringLength;
 
     PAGED_CODE();
 
@@ -1078,6 +1083,42 @@ Return Value:
 
         if (ioTargetOpen)
         {
+            // Iotarget will be opened. Save symbolic link name to make sure removal is referenced to correct interface.
+            //
+            if (NULL == moduleContext->SymbolicLinkName.Buffer)
+            {
+                symbolicLinkStringLength = deviceInterfaceChangeNotification->SymbolicLinkName->Length;
+                if (0 == symbolicLinkStringLength)
+                {
+                    ASSERT(FALSE);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "ERROR, symbolic link length is 0");
+                    goto Exit;
+                }
+
+                moduleContext->SymbolicLinkName.Buffer = (PWSTR)ExAllocatePoolWithTag(NonPagedPoolNx,
+                                                                                      symbolicLinkStringLength + sizeof(UNICODE_NULL),
+                                                                                      MemoryTag);
+                if (NULL == moduleContext->SymbolicLinkName.Buffer)
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE_DeviceInterfaceTarget, "ERROR, could not allocate memory for symbolic link");
+                    goto Exit;
+                }
+
+                moduleContext->SymbolicLinkName.Length = symbolicLinkStringLength;
+                moduleContext->SymbolicLinkName.MaximumLength = symbolicLinkStringLength + sizeof(UNICODE_NULL);
+
+                ntStatus = RtlUnicodeStringCopy(&(moduleContext->SymbolicLinkName),
+                                                deviceInterfaceChangeNotification->SymbolicLinkName);
+                if (! NT_SUCCESS(ntStatus))
+                {
+                    ExFreePoolWithTag(moduleContext->SymbolicLinkName.Buffer,
+                                      MemoryTag);
+                    moduleContext->SymbolicLinkName.Buffer = NULL;
+                    moduleContext->SymbolicLinkName.Length = 0;
+                    moduleContext->SymbolicLinkName.MaximumLength = 0;
+                    goto Exit;
+                }
+            }
             // Create and open the underlying target.
             //
             ntStatus = DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(dmfModule,
@@ -1105,6 +1146,46 @@ Return Value:
                                      (LPGUID)&GUID_DEVICE_INTERFACE_REMOVAL))
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "Removal Interface Notification.");
+
+        // Strings should be same length.
+        //
+        if (moduleContext->SymbolicLinkName.Length != deviceInterfaceChangeNotification->SymbolicLinkName->Length)
+        {
+            // This code path is valid on unplug as several devices not associated with this instance
+            // may disappear.
+            //
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "Length test fails");
+            goto Exit;
+        }
+
+        // Potentially removal is arriving before arrival. It is also possible to get NULL string if Iotarget open failed.
+        // In that case removal may still come, but no action is needed.
+        //
+        if ((moduleContext->SymbolicLinkName.Length == 0) ||
+            (moduleContext->SymbolicLinkName.Buffer == NULL) ||
+            (deviceInterfaceChangeNotification->SymbolicLinkName->Buffer == NULL))
+        {
+            ASSERT(FALSE);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "Null pointer in removal");
+            goto Exit;
+        }
+
+        matchLength = RtlCompareMemory((VOID*)moduleContext->SymbolicLinkName.Buffer,
+                                       deviceInterfaceChangeNotification->SymbolicLinkName->Buffer,
+                                       moduleContext->SymbolicLinkName.Length);
+        if (moduleContext->SymbolicLinkName.Length != matchLength)
+        {
+            // This code path is valid on unplug as several devices not associated with this instance
+            // may disappear.
+            //
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "matchLength test fails");
+            goto Exit;
+        }
+
+        // Even if a step fails continue to remove device.
+        // Notification_Close must be called in unlocked state. Set a flag and call it
+        // after the lock is released.
+        //
 
         DeviceInterfaceTarget_ModuleCloseAndTargetDestroyAsNeeded(dmfModule);
     }
@@ -2032,13 +2113,18 @@ Return Value:
     ASSERT(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
 
+    // Flush all requests from target. Do not wait until all pending requests have returned.
+    // TODO: It would be nice to change this to be called at PASSIVE_LEVEL and wait.
+    //
+    WdfIoTargetPurge(moduleContext->IoTarget,
+                     WdfIoTargetPurgeIo);
+
     DMF_ModuleDereference(DmfModule);
 
 Exit:
 
     FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
 }
-
 
 // eof: Dmf_DeviceInterfaceTarget.c
 //

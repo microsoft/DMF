@@ -64,6 +64,10 @@ typedef struct
     // IO Target to Send Requests to.
     //
     WDFIOTARGET IoTarget;
+    // Indicates that the Client has stopped streaming. This flag prevents new requests from 
+    // being sent to the underlying target.
+    //
+    BOOLEAN Flushing;
 } DMF_CONTEXT_ContinuousRequestTarget;
 
 // This macro declares the following function:
@@ -124,7 +128,7 @@ Return Value:
     UNREFERENCED_PARAMETER(Buffer);
     UNREFERENCED_PARAMETER(Length);
 
-#if defined(DEBUG) || defined(SELFHOST)
+#if defined(DEBUG)
     ULONG bufferIndex;
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "BufferStart");
     for (bufferIndex = 0; bufferIndex < Length; bufferIndex++)
@@ -132,7 +136,7 @@ Return Value:
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "%02X", *(Buffer + bufferIndex));
     }
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "BufferEnd");
-#endif // defined(DEBUG) || defined(SELFHOST)
+#endif // defined(DEBUG)
 }
 
 static
@@ -539,6 +543,14 @@ Return Value:
 
     ASSERT(bufferDisposition > ContinuousRequestTarget_BufferDisposition_Invalid);
     ASSERT(bufferDisposition < ContinuousRequestTarget_BufferDisposition_Maximum);
+
+    // If Cilent has stoped streaming, then regardless of what the Client returns from the callback, return buffers
+    // back to the original state and delete corresponding requests.
+    //
+    if (moduleContext->Flushing)
+    {
+        bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+    }
 
     if (((bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming) ||
         (bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming)) &&
@@ -1030,11 +1042,9 @@ Exit:
     return ntStatus;
 }
 
-#pragma code_seg("PAGE")
-#pragma warning(suppress:6101)
-// Prevent SAL "returning uninitialized memory" error.
-// Buffer is associated with request object.
+// 'Returning uninitialized memory'
 //
+#pragma warning(suppress:6101)
 static
 NTSTATUS
 ContinuousRequestTarget_RequestCreateAndSend(
@@ -1089,8 +1099,6 @@ Return Value:
     WDFDEVICE device;
     ContinuousRequestTarget_SingleAsynchronousRequestContext* singleAsynchronousRequestContext;
     VOID* singleBufferContext;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE_ContinuousRequestTarget);
 
@@ -1525,7 +1533,7 @@ Return Value:
                                             ContinuousRequestTarget,
                                             DMF_CONTEXT_ContinuousRequestTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_ContinuousRequestTarget.CallbacksWdf = &DmfCallbacksWdf_ContinuousRequestTarget;
     DmfModuleDescriptor_ContinuousRequestTarget.ModuleConfigSize = sizeof(DMF_CONFIG_ContinuousRequestTarget);
@@ -1976,7 +1984,7 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    NTSTATUS ntStatus;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
@@ -1989,11 +1997,11 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfIoTargetStart fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
+    ntStatus = STATUS_SUCCESS;
+
+    // Clear the Flushing flag as it may have been set by a previous call to stop streaming.
+    //
+    moduleContext->Flushing = FALSE;
 
     for (UINT requestIndex = 0; requestIndex < moduleConfig->ContinuousRequestCount; requestIndex++)
     {
@@ -2040,6 +2048,10 @@ Return Value:
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Tell the rest of the Module that Client has stopped streaming.
+    //
+    moduleContext->Flushing = TRUE;
 
     ASSERT(moduleContext->IoTarget != NULL);
 }

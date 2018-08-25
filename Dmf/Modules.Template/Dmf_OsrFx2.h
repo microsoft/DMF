@@ -79,6 +79,9 @@ typedef struct
     // When interrupt pipe returns data, this callback is called.
     //
     EVT_DMF_OsrFx2_InterruptPipeCallback* InterruptPipeCallback;
+    // When interrupt pipe returns data, this callback is called at PASSIVE_LEVEL.
+    //
+    EVT_DMF_OsrFx2_InterruptPipeCallback* InterruptPipeCallbackPassive;
     // Allows Client to turn off default settings related to how the device will function.
     //
     OsrFx2_Settings Settings;

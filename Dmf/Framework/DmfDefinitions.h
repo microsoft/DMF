@@ -106,7 +106,6 @@ extern "C"
     #include <hidclass.h>
     #include <powrprof.h>
     #include <stdio.h>
-    #include <devpkey.h>
     #include <Usbiodef.h>
     #include <Guiddef.h>
     #include <wdmguid.h>

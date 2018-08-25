@@ -2338,15 +2338,6 @@ Return Value:
         goto Exit;
     }
 
-    // Allow DMF_ModuleReference to succeed only after the Module is completely open. 
-    //
-    DMF_ModuleLock(DmfModule);
-
-    ASSERT(parentDmfObject->ReferenceCount == 0);
-    parentDmfObject->ReferenceCount = 1;
-
-    DMF_ModuleUnlock(DmfModule);
-
 Exit:
 
     return ntStatus;
