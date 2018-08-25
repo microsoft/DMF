@@ -39,6 +39,9 @@ typedef struct
     // Handles IOCTLs for FX2.
     //
     DMFMODULE DmfModuleIoctlHandler;
+    // Allows callbacks to Client at PASSIVE_LEVEL if Client reqeusts that.
+    //
+    DMFMODULE DmfModuleQueuedWorkitem;
     // WDF USB Device handle.
     //
     WDFUSBDEVICE UsbDevice;
@@ -106,6 +109,34 @@ const LONGLONG DEFAULT_CONTROL_TRANSFER_TIMEOUT = 5 * -1 * WDF_TIMEOUT_TO_SEC;
 
 #define TEST_BOARD_TRANSFER_BUFFER_SIZE     (64*1024)
 #define DEVICE_DESCRIPTOR_LENGTH            256
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+ScheduledTask_Result_Type 
+OsrFx2_QueuedWorkitemFunction(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ VOID* ClientBufferContext
+    )
+{
+    UNREFERENCED_PARAMETER(ClientBufferContext);
+
+    DMFMODULE parentDmfModule;
+    DMF_CONTEXT_OsrFx2* moduleContext;
+    DMF_CONFIG_OsrFx2* moduleConfig;
+    UCHAR* switchState;
+
+    switchState = (UCHAR*)ClientBuffer;
+    parentDmfModule = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(parentDmfModule);
+    moduleConfig = DMF_CONFIG_GET(parentDmfModule);
+
+    moduleConfig->InterruptPipeCallbackPassive(parentDmfModule,
+                                               *switchState,
+                                               STATUS_SUCCESS);
+
+    return ScheduledTask_WorkResult_Success;
+}
 
 static
 VOID
@@ -1447,6 +1478,11 @@ Returns:
     moduleConfig = DMF_CONFIG_GET(dmfModule);
     device = DMF_ParentDeviceGet(dmfModule);
 
+    // Switches have changed so user is using it. Reset the idle timer.
+    //
+    WdfDeviceStopIdle(device,
+                      FALSE);
+
     // Make sure that there is data in the read packet.  Depending on the device
     // specification, it is possible for it to return a 0 length read in
     // certain conditions.
@@ -1474,12 +1510,26 @@ Returns:
     //
     if (moduleConfig->InterruptPipeCallback != NULL)
     {
+        // This call happens at DISPATCH_LEVEL.
+        //
         moduleConfig->InterruptPipeCallback(dmfModule,
                                             *switchState,
                                             STATUS_SUCCESS);
     }
+    if (moduleConfig->InterruptPipeCallbackPassive != NULL)
+    {
+        // This call happens at PASSIVE_LEVEL.
+        //
+        DMF_QueuedWorkItem_Enqueue(moduleContext->DmfModuleQueuedWorkitem,
+                                   switchState,
+                                   sizeof(UCHAR));
+    }
 
 Exit:
+
+    // Allow device to sleep again.
+    //
+    WdfDeviceResumeIdle(device);
 
     FuncExitVoid(DMF_TRACE_OsrFx2);
 }
@@ -2191,6 +2241,7 @@ Returns:
     WDFDEVICE device;
     WDF_OBJECT_ATTRIBUTES attributes;
     NTSTATUS ntStatus;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -2242,7 +2293,6 @@ Returns:
         // IoctlHandler
         // ------------
         //
-        DMF_MODULE_ATTRIBUTES moduleAttributes;
         DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
         DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
                                                     &moduleAttributes);
@@ -2358,6 +2408,23 @@ Returns:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
+    }
+
+    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkitem;
+    DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkitem,
+                                                  &moduleAttributes);
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferCount = 4;
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(SWITCH_STATE);
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigQueuedWorkitem.EvtQueuedWorkitemFunction = OsrFx2_QueuedWorkitemFunction;
+    ntStatus = DMF_QueuedWorkItem_Create(device,
+                                         &moduleAttributes,
+                                         &attributes,
+                                         &moduleContext->DmfModuleQueuedWorkitem);
+    if (! NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
 Exit:

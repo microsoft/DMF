@@ -30,11 +30,11 @@ Environment:
 // Selfhost Build: 100MB
 // Retail Build: 1MB
 //
-#if (defined(SELFHOST) || defined(DEBUG))
+#if defined(DEBUG)
 #define DMF_LIVEKERNELDUMP_MAXIMUM_SECONDARY_DATA           (100 * 1024 * 1024) 
 #else
 #define DMF_LIVEKERNELDUMP_MAXIMUM_SECONDARY_DATA           (1 * 1024 * 1024) 
-#endif // (defined(SELFHOST) || defined(DEBUG))
+#endif // defined(DEBUG)
 
 // Maximum size of Report Type.
 //

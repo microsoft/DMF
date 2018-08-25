@@ -31,14 +31,23 @@ typedef enum
     ContinuousRequestTarget_RequestType_Write
 } ContinuousRequestTarget_RequestType;
 
-// Enum to specify who own's the buffer and whether to continue streaming the request or stop
+// Enum to specify who owns the buffer and whether to continue streaming the request or stop
+// The streaming callback function returns this value.
 //
 typedef enum
 {
     ContinuousRequestTarget_BufferDisposition_Invalid,
+    // Module owns the buffer and continue streaming.
+    //
     ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming,
+    // Module owns the buffer and stop streaming.
+    //
     ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming,
+    // Client owns the buffer and continue streaming.
+    //
     ContinuousRequestTarget_BufferDisposition_ClientAndContinueStreaming,
+    // Client owns the buffer and stop streaming.
+    //
     ContinuousRequestTarget_BufferDisposition_ClientAndStopStreaming,
     ContinuousRequestTarget_BufferDisposition_Maximum
 } ContinuousRequestTarget_BufferDisposition;

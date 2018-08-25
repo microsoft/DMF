@@ -93,6 +93,12 @@ Return Value:
     //
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes, DEVICE_CONTEXT);
 
+    //
+    // DMF: This code is not necessary for DMF. It is only necessary for the SwitchBar example to work
+    //      (so that another driver can send IOCTLs).
+    //
+    attributes.ExecutionLevel = WdfExecutionLevelPassive;
+
     status = WdfDeviceCreate(&DeviceInit, &attributes, &device);
     if (!NT_SUCCESS(status)) {
         TraceEvents(TRACE_LEVEL_ERROR, DBG_PNP,
