@@ -343,7 +343,7 @@ Return Value:
     return ntStatus;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleQueueIoRead(
     _In_ DMFMODULE DmfModule,
@@ -393,7 +393,7 @@ Return Value:
     return handled;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleQueueIoWrite(
     _In_ DMFMODULE DmfModule,
@@ -443,7 +443,7 @@ Return Value:
     return handled;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -500,7 +500,7 @@ Return Value:
     return handled;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleInternalDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -1563,6 +1563,11 @@ Return Value:
         // The Module is open.
         //
         dmfObject->ModuleState = ModuleState_Opened;
+
+        // Allow DMF_ModuleReference to succeed only after the Module is completely open. 
+        //
+        ASSERT(dmfObject->ReferenceCount == 0);
+        dmfObject->ReferenceCount = 1;
 
         // This may be overwritten by DMF if the Module is automatically opened.
         // Otherwise, it means the Client opened the Module.

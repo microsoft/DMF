@@ -596,7 +596,7 @@ DMF_Internal_ModuleD0Exit(
     _In_ WDF_POWER_DEVICE_STATE TargetState
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleQueueIoRead(
     _In_ DMFMODULE DmfModule,
@@ -605,7 +605,7 @@ DMF_Internal_ModuleQueueIoRead(
     _In_ size_t Length
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleQueueIoWrite(
     _In_ DMFMODULE DmfModule,
@@ -614,7 +614,7 @@ DMF_Internal_ModuleQueueIoWrite(
     _In_ size_t Length
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -625,7 +625,7 @@ DMF_Internal_ModuleDeviceIoControl(
     _In_ ULONG IoControlCode
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Internal_ModuleInternalDeviceIoControl(
     _In_ DMFMODULE DmfModule,
