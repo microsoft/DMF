@@ -56,6 +56,20 @@ EVT_DMF_IoctlHandler_AccessModeFilter(_In_ DMFMODULE DmfModule,
                                       _In_ WDFFILEOBJECT FileObject);
 
 typedef
+_Function_class_(IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS 
+IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA(PUNICODE_STRING SymbolicLinkName,
+                                                   CONST DEVPROPKEY *PropertyKey,
+                                                   LCID Lcid,
+                                                   ULONG Flags,
+                                                   ULONG Size,
+                                                   PVOID Data,
+                                                   PULONG RequiredSize,
+                                                   PDEVPROPTYPE Type);
+
+typedef
 _Function_class_(IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
@@ -75,7 +89,8 @@ _IRQL_requires_same_
 NTSTATUS
 EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate(_In_ DMFMODULE DmfModule,
                                                _In_ GUID DeviceInterfaceGuid,
-                                               _In_ WDFSTRING SymbolicLinkNameString,
+                                               _In_ UNICODE_STRING* SymbolicLinkName,
+                                               _In_ IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA* IoGetDeviceInterfaceProperty,
                                                _In_ IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfaceProperty);
 
 // The descriptor for each supported IOCTL.
@@ -139,6 +154,10 @@ typedef struct
     // The number of records in the above table.
     //
     ULONG IoctlRecordCount;
+    // FALSE (Default) means that the corresponding device interface is created when this Module opens.
+    // TRUE requires that the Client call DMF_IoctlHandler_IoctlsEnable() to enable the corresponding device interface.
+    //
+    BOOLEAN ManualMode;
     // Windows Store App access settings.
     //
     WCHAR* CustomCapabilities;
@@ -157,6 +176,13 @@ DECLARE_DMF_MODULE(IoctlHandler)
 
 // Module Methods
 //
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_IoctlHandler_IoctlsEnable(
+    _In_ DMFMODULE DmfModule
+    );
 
 // eof: Dmf_IoctlHandler.h
 //

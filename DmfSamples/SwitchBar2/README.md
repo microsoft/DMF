@@ -1,5 +1,5 @@
 <!---
-    name: SwitchBar Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 5)
+    name: SwitchBar2 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 6)
     platform: KMDF/DMF
     language: c
     category: USB
@@ -7,10 +7,15 @@
     samplefwlink: 
 --->
 
-SwitchBar Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 5)
+SwitchBar2 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 6)
 ========================================================================
 This sample shows how to perform a common task in device drivers: Wait for a device interface to appear. When it appears, send/receive synchronous/asynchronous IOCTLs from that device interface.
-Gracefully deal with arrival/removal of the device interface. This sample is a function driver that does the following:
+Gracefully deal with arrival/removal of the device interface. 
+
+This sample does the same as the previous sample except that streaming of IOCTLs happens automatically. Thus, it is not necessary to explicitly start and stop the continuous
+target.
+
+This sample is a function driver that does the following:
 
 1. Register for a PnP Notification that the OSR FX2 driver is running.
 2. When the OSR FX2 driver's device interface appears, this sample then sends the OSR FX2 driver four IOCTLS (`IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE`). (Every time one of the switches is pressed
@@ -350,42 +355,14 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus;
+    // Dmf_ContinousRequestTarget has been set to start automatically, so it is not started here.
+    // Also, the PreClose callback is not necessary.
+    //
 
-    ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
-    if (NT_SUCCESS(ntStatus))
-    {
-        // Do an initial read and write for the current state of the board before
-        // any switches have been changed.
-        //
-        SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
-    }
-    ASSERT(NT_SUCCESS(ntStatus));
-}
-
-static
-VOID
-SwitchBar_OnDeviceRemovalNotification(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Callback function for Device Removal Notification.
-    In this case, this driver stops the continuous reader.
-
-Arguments:
-
-    DmfModule - The Child Module from which this callback is called.
-
-Return Value:
-
-    VOID
-
---*/
-{
-    DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    // Do an initial read and write for the current state of the board before
+    // any switches have been changed.
+    //
+    SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
 }
 
 #pragma code_seg("PAGED")
@@ -433,15 +410,14 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    
-    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started.
-    // When it is not available, the continuous reader is stopped.
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
+
+    // These callbacks tell us when the underlying target is available. When it is available, the lightbar on the board is initialized
+    // to the current state of the switches.
     //
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = SwitchBar_OnDeviceArrivalNotification;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = SwitchBar_OnDeviceRemovalNotification;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -778,9 +754,13 @@ Exit:
 ```
 
 This callback is called when the `Dmf_DeviceInterfaceTarget` Module has opened the underlying device interface requested by the Client. It means the User has plugged in
-the OSR FX2 board and its driver has started. In this case, this callback simply starts the stream of IOCTLs to the device. 
+the OSR FX2 board and its driver has started. In this sample, it is not necessary to start streaming because the Dmf_ContinuousRequestTarget (Child Module of 
+Dmf_DeviceInterfaceTarget) has been set to start automatically using this line: 
+`moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;`
+Note further that this eliminates the need for the PreClose callback.
 
 ```
+
 static
 VOID
 SwitchBar_OnDeviceArrivalNotification(
@@ -803,49 +783,16 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus;
+    // Dmf_ContinousRequestTarget has been set to start automatically, so it is not started here.
+    // Also, the PreClose callback is not necessary.
+    //
 
-    ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
-    if (NT_SUCCESS(ntStatus))
-    {
-        // Do an initial read and write for the current state of the board before
-        // any switches have been changed.
-        //
-        SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
-    }
-    ASSERT(NT_SUCCESS(ntStatus));
+    // Do an initial read and write for the current state of the board before
+    // any switches have been changed.
+    //
+    SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
 }
-```
 
-This callback is called when the `Dmf_DeviceInterfaceTarget` Module will close the underlying device interface requested by the Client. It means the User has unplugged
-the OSR FX2 board and its driver will stop. in this case, this callback simply stops the stream of IOCTLs to the device. 
-
-```
-
-static
-VOID
-SwitchBar_OnDeviceRemovalNotification(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Callback function for Device Removal Notification.
-    In this case, this driver stops the continuous reader.
-
-Arguments:
-
-    DmfModule - The Child Module from which this callback is called.
-
-Return Value:
-
-    VOID
-
---*/
-{
-    DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
-}
 ```
 
 This is the last function in the driver and the first Client function that is called. This is the Modules Add function. In this case, a single Module, `Dmf_DeviceInterfaceTarget`
@@ -859,8 +806,7 @@ is instantiated. It receives the following information:
 of size `sizeof(SWTICH_STATE)` of pool type `NonPagedPoolNx`. `Dmf_DeviceInterfaceTarget` will create all the buffers as needed. (As an aside, bounds checking is automatically performed on the
 buffers when they are used. If buffer overrun occurs is detected, an assert will happen.)
 6. The callback function that is called by the Module when the `WDFREQUEST` with IOCTL has completed. In this case, the function is: `SwitchBarSwitchChangedCallback`.
-7. Finally, the names of callback functions that are called when the `WDFIOTARGET` (`GUID_DEVINTERFACE_OSRUSBFX2`) appears or disappears: `SwitchBar_OnDeviceArrivalNotification` 
-and `SwitchBar_OnDeviceRemovalNotification`.
+7. Finally, the names of callback functions that are called when the `WDFIOTARGET` (`GUID_DEVINTERFACE_OSRUSBFX2`) appears: `SwitchBar_OnDeviceArrivalNotification`.
 
 ```
 #pragma code_seg("PAGED")
@@ -909,14 +855,14 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    
-    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started.
-    // When it is not available, the continuous reader is stopped.
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
+
+    // These callbacks tell us when the underlying target is available. When it is available, the lightbar on the board is initialized
+    // to the current state of the switches.
     //
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = SwitchBar_OnDeviceArrivalNotification;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = SwitchBar_OnDeviceRemovalNotification;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
