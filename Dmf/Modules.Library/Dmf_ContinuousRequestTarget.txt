@@ -68,6 +68,9 @@ typedef struct
     // before entering low power.
     //
     BOOLEAN PurgeAndStartTargetInD0Callbacks;
+    // Indicates the mode of ContinuousRequestTarget.
+    //
+    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
 } DMF_CONFIG_ContinuousRequestTarget;
 
 ContinuousRequestCount:
@@ -117,6 +120,9 @@ The IOCTL that is set in the Requests that are sent to the underlying target.
 
 PurgeAndStartTargetInD0Callbacks:
 Indicates that streaming should be stopped in D3 and started in D0.
+
+ContinuousRequestTargetMode:
+Indicates the mode of ContinuousRequestTarget.
 
 ====[Module Enumeration Types]======================================================================================================
 
@@ -172,6 +178,26 @@ eventually return the buffer to DMF_ContinuousRequestTarget.
 ContinuousRequestTarget_BufferDisposition_ClientAndStopStreaming:
 Client will own the buffer and streaming will stop. Client may access the buffer after the callback returns. Client must 
 eventually return the buffer to DMF_ContinuousRequestTarget.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+// These definitions indicate the mode of ContinuousRequestTarget.
+// Indicates how and when the Requests start and stop streaming.
+//
+typedef enum
+{
+    ContinuousRequestTarget_Mode_Invalid = 0,
+    ContinuousRequestTarget_Mode_Automatic,
+    ContinuousRequestTarget_Mode_Manual,
+    ContinuousRequestTarget_Mode_Maximum,
+} ContinuousRequestTarget_ModeType;
+
+ContinuousRequestTarget_Mode_Automatic:
+DMF_ContinuousRequestTarget_Start invoked automatically on DMF_ContinuousRequestTarget_IoTargetSet and
+DMF_ContinuousRequestTarget_Stop invoked automatically on DMF_ContinuousRequestTarget_IoTargetClear.
+
+ContinuousRequestTarget_Mode_Manual
+DMF_ContinuousRequestTarget_Start and DMF_ContinuousRequestTarget_Stop must be called explicitly by the Client when needed.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -330,17 +356,19 @@ Remarks
 -----------------------------------------------------------------------------------------------------------------------------------
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_ContinuousRequestTarget_IoTargetSet(
     _In_ DMFMODULE DmfModule,
     _In_ WDFIOTARGET IoTarget
     );
 
 Sets the internal WDFIOTARGET to a given WDFIOTARGET that receives Requests from an instance of this Module.
+If ContinuousRequestTargetMode is set to ContinuousRequestTarget_Mode_Automatic then DMF_ContinuousRequestTarget_Start
+will be invoked.
 
 Returns
 -------
-None
+NTSTATUS. Fails if Requests cannot be sent in ContinuousRequestTarget_Mode_Automatic mode.
 
 Parameters
 ----------

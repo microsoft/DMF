@@ -24,9 +24,6 @@ typedef struct
     // Target Device Interface GUID.
     //
     GUID DeviceInterfaceTargetGuid;
-    // The Vendor Id of the Device to open.
-    //
-    UINT16 VendorId;
     // Open in Read or Write mode.
     //
     ULONG OpenMode;
@@ -46,9 +43,6 @@ typedef struct
 
 DeviceInterfaceTargetGuid:
 The Device Interface GUID of the underlying WDFIOTARGET to open.
-
-VendorId:
-Used to help identify the WDFIOTARGET to open.
 
 OpenMode:
 The Open Mode used when opening the underlying WDFIOTARGET.

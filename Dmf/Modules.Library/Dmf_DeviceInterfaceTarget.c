@@ -105,6 +105,10 @@ typedef struct
     // Underlying Device Target.
     //
     WDFIOTARGET IoTarget;
+    // Save Symbolic Link Name to be able to deal with multiple instances of the same
+    // device interface.
+    //
+    WDFMEMORY MemorySymbolicLink;
     UNICODE_STRING SymbolicLinkName;
     // Redirect Input buffer callback from ContinuousRequestTarget to this callback.
     //
@@ -202,6 +206,121 @@ Return Value:
 }
 #pragma code_seg()
 
+VOID
+DeviceInterfaceTarget_SymbolicLinkNameClear(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Delete the stored symbolic link from the context. This is needed to deal with multiple instances of 
+    the same device interface.
+
+Arguments:
+
+    DmfModule - This Module's DMF Module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (moduleContext->MemorySymbolicLink != NULL)
+    {
+        WdfObjectDelete(moduleContext->MemorySymbolicLink);
+        moduleContext->MemorySymbolicLink = NULL;
+        moduleContext->SymbolicLinkName.Buffer = NULL;
+        moduleContext->SymbolicLinkName.Length = 0;
+        moduleContext->SymbolicLinkName.MaximumLength = 0;
+    }
+}
+
+#if ! defined(DMF_USER_MODE)
+
+NTSTATUS
+DeviceInterfaceTarget_SymbolicLinkNameStore(
+    _In_ DMFMODULE DmfModule,
+    _In_ UNICODE_STRING* SymbolicLinkName
+    )
+/*++
+
+Routine Description:
+
+    Create a copy of symbolic link name and store it in the given Module's context. This is needed to deal with
+    multiple instances of the same device interface.
+
+Arguments:
+
+    DmfModule - This Module's DMF Module handle.
+    SymbolicLinkName - The given symbolic link name.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    USHORT symbolicLinkStringLength;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    NTSTATUS ntStatus;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    symbolicLinkStringLength = SymbolicLinkName->Length;
+    if (0 == symbolicLinkStringLength)
+    {
+        ASSERT(FALSE);
+        ntStatus = STATUS_UNSUCCESSFUL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "Symbolic link name length is 0");
+        goto Exit;
+    }
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DMF_ParentDeviceGet(DmfModule);
+
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                                NonPagedPoolNx,
+                                MemoryTag,
+                                symbolicLinkStringLength + sizeof(UNICODE_NULL),
+                                &moduleContext->MemorySymbolicLink,
+                                (VOID**)&moduleContext->SymbolicLinkName.Buffer);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE_DeviceInterfaceTarget, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+    ASSERT(NULL != moduleContext->SymbolicLinkName.Buffer);
+
+    moduleContext->SymbolicLinkName.Length = symbolicLinkStringLength;
+    moduleContext->SymbolicLinkName.MaximumLength = symbolicLinkStringLength + sizeof(UNICODE_NULL);
+
+    ntStatus = RtlUnicodeStringCopy(&(moduleContext->SymbolicLinkName),
+                                    SymbolicLinkName);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DeviceInterfaceTarget_SymbolicLinkNameClear(DmfModule);
+        goto Exit;
+    }
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE_DeviceInterfaceTarget, "RtlUnicodeStringCopy fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+    
+    return ntStatus;
+}
+
+#endif // defined(DMF_USER_MODE)
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -248,6 +367,10 @@ Return Value:
         DeviceInterfaceTarget_IoTargetDestroy(DmfModule);
         ASSERT(moduleContext->IoTarget == NULL);
     }
+
+    // Delete stored symbolic link if set. (This will never be set in User-mode.)
+    //
+    DeviceInterfaceTarget_SymbolicLinkNameClear(DmfModule);
 }
 #pragma code_seg()
 
@@ -1025,13 +1148,12 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    PDEVICE_INTERFACE_CHANGE_NOTIFICATION deviceInterfaceChangeNotification;
+    DEVICE_INTERFACE_CHANGE_NOTIFICATION* deviceInterfaceChangeNotification;
     DMFMODULE dmfModule;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
     BOOLEAN ioTargetOpen;
     SIZE_T matchLength;
-    USHORT symbolicLinkStringLength;
 
     PAGED_CODE();
 
@@ -1044,7 +1166,6 @@ Return Value:
     ASSERT(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
-
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
     // Open the IoTarget by default.
@@ -1087,38 +1208,14 @@ Return Value:
             //
             if (NULL == moduleContext->SymbolicLinkName.Buffer)
             {
-                symbolicLinkStringLength = deviceInterfaceChangeNotification->SymbolicLinkName->Length;
-                if (0 == symbolicLinkStringLength)
-                {
-                    ASSERT(FALSE);
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "ERROR, symbolic link length is 0");
-                    goto Exit;
-                }
-
-                moduleContext->SymbolicLinkName.Buffer = (PWSTR)ExAllocatePoolWithTag(NonPagedPoolNx,
-                                                                                      symbolicLinkStringLength + sizeof(UNICODE_NULL),
-                                                                                      MemoryTag);
-                if (NULL == moduleContext->SymbolicLinkName.Buffer)
-                {
-                    TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE_DeviceInterfaceTarget, "ERROR, could not allocate memory for symbolic link");
-                    goto Exit;
-                }
-
-                moduleContext->SymbolicLinkName.Length = symbolicLinkStringLength;
-                moduleContext->SymbolicLinkName.MaximumLength = symbolicLinkStringLength + sizeof(UNICODE_NULL);
-
-                ntStatus = RtlUnicodeStringCopy(&(moduleContext->SymbolicLinkName),
-                                                deviceInterfaceChangeNotification->SymbolicLinkName);
+                ntStatus = DeviceInterfaceTarget_SymbolicLinkNameStore(dmfModule,
+                                                                       deviceInterfaceChangeNotification->SymbolicLinkName);
                 if (! NT_SUCCESS(ntStatus))
                 {
-                    ExFreePoolWithTag(moduleContext->SymbolicLinkName.Buffer,
-                                      MemoryTag);
-                    moduleContext->SymbolicLinkName.Buffer = NULL;
-                    moduleContext->SymbolicLinkName.Length = 0;
-                    moduleContext->SymbolicLinkName.MaximumLength = 0;
                     goto Exit;
                 }
             }
+
             // Create and open the underlying target.
             //
             ntStatus = DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(dmfModule,
