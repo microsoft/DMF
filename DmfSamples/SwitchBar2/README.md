@@ -757,7 +757,7 @@ This callback is called when the `Dmf_DeviceInterfaceTarget` Module has opened t
 the OSR FX2 board and its driver has started. In this sample, it is not necessary to start streaming because the Dmf_ContinuousRequestTarget (Child Module of 
 Dmf_DeviceInterfaceTarget) has been set to start automatically using this line: 
 `moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;`
-Note further, that this eliminates the need for the PreClose callback.
+Note further that this eliminates the need for the PreClose callback.
 
 ```
 
@@ -806,8 +806,7 @@ is instantiated. It receives the following information:
 of size `sizeof(SWTICH_STATE)` of pool type `NonPagedPoolNx`. `Dmf_DeviceInterfaceTarget` will create all the buffers as needed. (As an aside, bounds checking is automatically performed on the
 buffers when they are used. If buffer overrun occurs is detected, an assert will happen.)
 6. The callback function that is called by the Module when the `WDFREQUEST` with IOCTL has completed. In this case, the function is: `SwitchBarSwitchChangedCallback`.
-7. Finally, the names of callback functions that are called when the `WDFIOTARGET` (`GUID_DEVINTERFACE_OSRUSBFX2`) appears or disappears: `SwitchBar_OnDeviceArrivalNotification` 
-and `SwitchBar_OnDeviceRemovalNotification`.
+7. Finally, the names of callback functions that are called when the `WDFIOTARGET` (`GUID_DEVINTERFACE_OSRUSBFX2`) appears: `SwitchBar_OnDeviceArrivalNotification`.
 
 ```
 #pragma code_seg("PAGED")
