@@ -32,13 +32,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="SwitchBar.inx">
-      <Filter>Driver Files</Filter>
-    </Inf>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="SwitchBar.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="SwitchBar2.inx">
+      <Filter>Driver Files</Filter>
+    </Inf>
   </ItemGroup>
 </Project>

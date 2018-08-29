@@ -67,7 +67,10 @@ typedef struct
     // Indicates that the Client has stopped streaming. This flag prevents new requests from 
     // being sent to the underlying target.
     //
-    BOOLEAN Flushing;
+    BOOLEAN Stopped;
+    // Indicates the mode of ContinuousRequestTarget.
+    //
+    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
 } DMF_CONTEXT_ContinuousRequestTarget;
 
 // This macro declares the following function:
@@ -547,7 +550,7 @@ Return Value:
     // If Cilent has stoped streaming, then regardless of what the Client returns from the callback, return buffers
     // back to the original state and delete corresponding requests.
     //
-    if (moduleContext->Flushing)
+    if (moduleContext->Stopped)
     {
         bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
     }
@@ -1553,6 +1556,12 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
+    // Streaming is not started yet.
+    // 
+    moduleContext->Stopped = TRUE;
+
+    moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetMode;
+
     // dmfModule will be set as ParentObject for all child modules.
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
@@ -1780,13 +1789,18 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(moduleContext->IoTarget != NULL);
 
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        DMF_ContinuousRequestTarget_Stop(DmfModule);
+    }
+
     moduleContext->IoTarget = NULL;
 
     FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_ContinuousRequestTarget_IoTargetSet(
     _In_ DMFMODULE DmfModule,
     _In_ WDFIOTARGET IoTarget
@@ -1808,6 +1822,7 @@ Return Value:
 
 --*/
 {
+    NTSTATUS ntStatus;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
     FuncEntry(DMF_TRACE_ContinuousRequestTarget);
@@ -1815,13 +1830,26 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
 
+    ntStatus = STATUS_SUCCESS;
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(IoTarget != NULL);
     ASSERT(moduleContext->IoTarget == NULL);
 
     moduleContext->IoTarget = IoTarget;
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        ntStatus = DMF_ContinuousRequestTarget_Start(DmfModule);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+        }
+    }
+
+    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1999,10 +2027,13 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    // Clear the Flushing flag as it may have been set by a previous call to stop streaming.
-    //
-    moduleContext->Flushing = FALSE;
+    ASSERT(moduleContext->Stopped);
 
+    // Clear the Stopped flag as streaming will now start.
+    //
+    moduleContext->Stopped = FALSE;
+
+    ASSERT(moduleConfig->ContinuousRequestCount > 0);
     for (UINT requestIndex = 0; requestIndex < moduleConfig->ContinuousRequestCount; requestIndex++)
     {
         ntStatus = ContinuousRequestTarget_StreamRequestCreateAndSend(DmfModule,
@@ -2050,8 +2081,10 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     // Tell the rest of the Module that Client has stopped streaming.
+    // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
+    // automatically.
     //
-    moduleContext->Flushing = TRUE;
+    moduleContext->Stopped = TRUE;
 
     ASSERT(moduleContext->IoTarget != NULL);
 }

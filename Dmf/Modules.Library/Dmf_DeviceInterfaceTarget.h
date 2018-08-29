@@ -61,9 +61,6 @@ typedef struct
     // Target Device Interface GUID.
     //
     GUID DeviceInterfaceTargetGuid;
-    // The Vendor Id of the Device to open.
-    //
-    UINT16 VendorId;
     // Open in Read or Write mode.
     //
     ULONG OpenMode;

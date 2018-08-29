@@ -41,6 +41,11 @@ typedef struct
     // It is a collection of all the Open File Objects that are running "As Administrator".
     //
     WDFCOLLECTION AdministratorFileObjectsCollection;
+    // Access to IoGetDeviceInterfacePropertyData().
+    //
+    IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA* IoGetDeviceInterfacePropertyData;
+    // Access to IoSetDeviceInterfacePropertyData().
+    //
     IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfacePropertyData;
 } DMF_CONTEXT_IoctlHandler;
 
@@ -59,8 +64,6 @@ DMF_MODULE_DECLARE_CONFIG(IoctlHandler)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#if !defined(DMF_USER_MODE)
-
 #pragma code_seg("PAGE")
 static
 _Must_inspect_result_
@@ -76,8 +79,6 @@ IoctlHandler_PostDeviceInterfaceCreate(
     WDFDEVICE device;
     UNICODE_STRING symbolicLinkName;
     WDFSTRING symbolicLinkNameString;
-    DEVPROP_BOOLEAN isRestricted;
-    UNICODE_STRING functionName;
 
     PAGED_CODE();
 
@@ -89,10 +90,44 @@ IoctlHandler_PostDeviceInterfaceCreate(
     device = DMF_ParentDeviceGet(DmfModule);
     symbolicLinkNameString = NULL;
 
+    ntStatus = WdfStringCreate(NULL,
+                               WDF_NO_OBJECT_ATTRIBUTES,
+                               &symbolicLinkNameString);
+    if (!NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = WdfDeviceRetrieveDeviceInterfaceString(device,
+                                                      &moduleConfig->DeviceInterfaceGuid,
+                                                      NULL,
+                                                      symbolicLinkNameString);
+    if (!NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfDeviceRetrieveDeviceInterfaceString fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    WdfStringGetUnicodeString(symbolicLinkNameString, 
+                              &symbolicLinkName);
+
+#if !defined(DMF_USER_MODE)
+
+    DEVPROP_BOOLEAN isRestricted;
+    UNICODE_STRING functionName;
+
     // If possible, get the IoSetDeviceInterfacePropertyData.
     //
-    RtlInitUnicodeString(&functionName, L"IoSetDeviceInterfacePropertyData");
+    RtlInitUnicodeString(&functionName, 
+                         L"IoSetDeviceInterfacePropertyData");
     moduleContext->IoSetDeviceInterfacePropertyData = (IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA*)(ULONG_PTR)MmGetSystemRoutineAddress(&functionName);
+
+    // If possible, get the IoGetDeviceInterfacePropertyData.
+    //
+    RtlInitUnicodeString(&functionName, 
+                         L"IoGetDeviceInterfacePropertyData");
+    moduleContext->IoGetDeviceInterfacePropertyData = (IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA*)(ULONG_PTR)MmGetSystemRoutineAddress(&functionName);
 
     // If the Client has set the IsRestricted or CustomProperty fields, try to set those properties.
     //
@@ -100,37 +135,15 @@ IoctlHandler_PostDeviceInterfaceCreate(
         ((moduleConfig->IsRestricted) || 
          (moduleConfig->CustomCapabilities != NULL)))
     {
-        ntStatus = WdfStringCreate(NULL,
-                                   WDF_NO_OBJECT_ATTRIBUTES,
-                                   &symbolicLinkNameString);
-        if (!NT_SUCCESS(ntStatus)) 
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-
-        ntStatus = WdfDeviceRetrieveDeviceInterfaceString(device,
-                                                          &moduleConfig->DeviceInterfaceGuid,
-                                                          NULL,
-                                                          symbolicLinkNameString);
-        if (!NT_SUCCESS(ntStatus)) 
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfDeviceRetrieveDeviceInterfaceString fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-
-        WdfStringGetUnicodeString(symbolicLinkNameString, 
-                                  &symbolicLinkName);
-
         isRestricted = moduleConfig->IsRestricted;
 
         ntStatus = moduleContext->IoSetDeviceInterfacePropertyData(&symbolicLinkName,
-                                                                    &DEVPKEY_DeviceInterface_Restricted,
-                                                                    0,
-                                                                    0,
-                                                                    DEVPROP_TYPE_BOOLEAN,
-                                                                    sizeof(isRestricted),
-                                                                    &isRestricted );
+                                                                   &DEVPKEY_DeviceInterface_Restricted,
+                                                                   0,
+                                                                   0,
+                                                                   DEVPROP_TYPE_BOOLEAN,
+                                                                   sizeof(isRestricted),
+                                                                   &isRestricted );
         if (!NT_SUCCESS(ntStatus)) 
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
@@ -164,8 +177,10 @@ IoctlHandler_PostDeviceInterfaceCreate(
 #endif // defined(NTDDI_WIN10_RS2) && (NTDDI_VERSION >= NTDDI_WIN10_RS2)
     }
 
-    // Optionaly, allow Client to perform other operations. Give Client access to the IoSetDeviceInterfacePropertyData function, 
-    // but Client is responsible for checking if it is NULL and dealing with that.
+#endif // defined(DMF_USER_MODE)
+
+    // Optionaly, allow Client to perform other operations. Give Client access to functions that allow query/set of
+    // device interface properties. However, Client is responsible for checking if they are NULL.
     //
     if (moduleConfig->PostDeviceInterfaceCreate != NULL)
     {
@@ -174,7 +189,8 @@ IoctlHandler_PostDeviceInterfaceCreate(
         #pragma warning(suppress:6387)
         ntStatus = moduleConfig->PostDeviceInterfaceCreate(DmfModule,
                                                            moduleConfig->DeviceInterfaceGuid,
-                                                           symbolicLinkNameString,
+                                                           &symbolicLinkName,
+                                                           moduleContext->IoGetDeviceInterfacePropertyData,
                                                            moduleContext->IoSetDeviceInterfacePropertyData);
     }
 
@@ -193,7 +209,71 @@ Exit:
 }
 #pragma code_seg()
 
-#endif
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+IoctlHandler_DeviceInterfaceCreate(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Create the device interface specified by the Client. Then, perform optional predefined tasks specified by the Client.
+    Then, call a callback into the Client so that Client can perform additional tasks after the device interface has been created.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_IoctlHandler* moduleContext;
+    DMF_CONFIG_IoctlHandler* moduleConfig;
+    WDFDEVICE device;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_IoctlHandler);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    device = DMF_AttachedDeviceGet(DmfModule);
+
+    // Register a device interface so applications/drivers can find and open this device.
+    //   
+    ntStatus = WdfDeviceCreateDeviceInterface(device,
+                                              (LPGUID)&moduleConfig->DeviceInterfaceGuid,
+                                              NULL);
+    if (! NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Perform some optional tasks for Client. Also, let Client know when device interface is created.
+    //
+    ntStatus = IoctlHandler_PostDeviceInterfaceCreate(DmfModule);
+    if (! NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoctlHandler_PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Wdf Module Callbacks
@@ -253,10 +333,10 @@ Return Value:
     UNREFERENCED_PARAMETER(InputBufferLength);
     UNREFERENCED_PARAMETER(OutputBufferLength);
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    // NOTE: No entry/exit logging to eliminate spurious logging.
+    //
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     handled = FALSE;
@@ -407,9 +487,15 @@ Return Value:
                                               ntStatus,
                                               bytesReturned);
         }
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "Handled: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "Not Handled: Request=0x%p", Request);
     }
 
-    FuncExitVoid(DMF_TRACE_IoctlHandler);
+    // NOTE: No entry/exit logging to eliminate spurious logging.
+    //
 
     return handled;
 }
@@ -756,24 +842,18 @@ Return Value:
     if (! DMF_Utility_IsEqualGUID(&nullGuid,
                                   &moduleConfig->DeviceInterfaceGuid))
     {
-        // Register a device interface so applications/drivers can find and open this device.
-        //   
-        ntStatus = WdfDeviceCreateDeviceInterface(device,
-                                                  (LPGUID)&moduleConfig->DeviceInterfaceGuid,
-                                                  NULL);
-        if (! NT_SUCCESS(ntStatus)) 
+        if (! moduleConfig->ManualMode)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
+            // Register a device interface so applications/drivers can find and open this device.
+            //
+            ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
         }
-#if !defined(DMF_USER_MODE)
-        ntStatus = IoctlHandler_PostDeviceInterfaceCreate(DmfModule);
-        if (! NT_SUCCESS(ntStatus)) 
+        else
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoctlHandler_PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
+            // Client will call DMF_IoctlHandler_IoctlsEnable() to enable the device interface.
+            //
+            ntStatus = STATUS_SUCCESS;
         }
-#endif
     }
     else
     {
@@ -932,6 +1012,61 @@ Return Value:
     FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
+}
+#pragma code_seg()
+
+// Module Methods
+//
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_IoctlHandler_IoctlsEnable(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Allows Client to enable the device interface set in the Module's Config. Usually, it is done when this
+    Module opens, but since the Module can open prior its parent, this Method allows Parent full control.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_IoctlHandler* moduleConfig;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_IoctlHandler);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_IoctlHandler);
+
+    FuncEntry(DMF_TRACE_IoctlHandler);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ASSERT(moduleConfig->ManualMode);
+
+    // Register a device interface so applications/drivers can find and open this device.
+    // Perform additional optional tasks per the Client. Allow Client to also perform
+    // additional Client specific tasks.
+    //
+    ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
+
+    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 #pragma code_seg()
 
