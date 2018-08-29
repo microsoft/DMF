@@ -90,6 +90,22 @@ EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput(_In_ DMFMODULE Dm
                                                                _In_ size_t OutputBufferSize,
                                                                _In_ NTSTATUS CompletionStatus);
 
+// These definitions indicate the mode of ContinuousRequestTarget.
+// Indicates how and when the Requests start and stop streaming.
+//
+typedef enum
+{
+    // DMF_ContinuousRequestTarget_Start and DMF_ContinuousRequestTarget_Stop must be called explicitly
+    // by the Client when needed.
+    //
+    ContinuousRequestTarget_Mode_Manual = 0,
+    // DMF_ContinuousRequestTarget_Start invoked automatically on DMF_ContinuousRequestTarget_IoTargetSet and
+    // DMF_ContinuousRequestTarget_Stop invoked automatically on DMF_ContinuousRequestTarget_IoTargetClear.
+    //
+    ContinuousRequestTarget_Mode_Automatic,
+    ContinuousRequestTarget_Mode_Maximum,
+} ContinuousRequestTarget_ModeType;
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -142,6 +158,9 @@ typedef struct
     // before entering low power.
     //
     BOOLEAN PurgeAndStartTargetInD0Callbacks;
+    // Indicates the mode of ContinuousRequestTarget.
+    //
+    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
 } DMF_CONFIG_ContinuousRequestTarget;
 
 // This macro declares the following functions:
@@ -168,7 +187,7 @@ DMF_ContinuousRequestTarget_IoTargetClear(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_ContinuousRequestTarget_IoTargetSet(
     _In_ DMFMODULE DmfModule,
     _In_ WDFIOTARGET IoTarget

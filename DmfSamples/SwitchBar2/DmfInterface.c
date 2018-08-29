@@ -301,42 +301,14 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus;
+    // Dmf_ContinousRequestTarget has been set to start automatically, so it is not started here.
+    // Also, the PreClose callback is not necessary.
+    //
 
-    ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
-    if (NT_SUCCESS(ntStatus))
-    {
-        // Do an initial read and write for the current state of the board before
-        // any switches have been changed.
-        //
-        SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
-    }
-    ASSERT(NT_SUCCESS(ntStatus));
-}
-
-static
-VOID
-SwitchBar_OnDeviceRemovalNotification(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Callback function for Device Removal Notification.
-    In this case, this driver stops the continuous reader.
-
-Arguments:
-
-    DmfModule - The Child Module from which this callback is called.
-
-Return Value:
-
-    VOID
-
---*/
-{
-    DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    // Do an initial read and write for the current state of the board before
+    // any switches have been changed.
+    //
+    SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
 }
 
 #pragma code_seg("PAGED")
@@ -385,15 +357,14 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    
-    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started
-    // and the lightbar on the board is initialized to the current state of the switches.
-    // When it is not available, the continuous reader is stopped. 
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
+
+    // These callbacks tell us when the underlying target is available. When it is available, the lightbar on the board is initialized
+    // to the current state of the switches.
     //
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = SwitchBar_OnDeviceArrivalNotification;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = SwitchBar_OnDeviceRemovalNotification;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
