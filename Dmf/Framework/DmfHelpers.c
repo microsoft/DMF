@@ -291,6 +291,51 @@ Return Value:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+BOOLEAN
+DMF_IsTopParentDynamicModule(
+    _In_ DMF_OBJECT* DmfObject
+    )
+/*++
+
+Routine Description:
+
+    Given a DMF_OBJECT determine if its root parent DMF_OBJECT refers to a Dynamic Module.
+    (Determines if the given Module a child, either immediate or not, of a Dynamic Module.)
+
+Arguments:
+
+    DmfObject - The given DMF_OBJECT.
+
+Return Value:
+
+    TRUE - The given Module is a child of a Dynamic Module, immediate or not.
+    FALSE - The given Module is not a child of a Dynamic Module, immediate or not.
+
+--*/
+{
+    BOOLEAN returnValue;
+
+    // Find the root Parent Module. (Its DmfObjectParent is NULL.)
+    //
+    while (DmfObject->DmfObjectParent != NULL)
+    {
+        DmfObject = DmfObject->DmfObjectParent;
+    }
+
+    // Determine if this root Parent Module is a Dynamic Module.
+    //
+    if (DmfObject->DynamicModule)
+    {
+        returnValue = TRUE;
+    }
+    else
+    {
+        returnValue = FALSE;
+    }
+
+    return returnValue;
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS

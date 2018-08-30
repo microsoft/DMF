@@ -442,8 +442,11 @@ DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(
 // DmfHelpers.h
 //
 
-// TODO: This should not be here.
-//
+BOOLEAN
+DMF_IsTopParentDynamicModule(
+    _In_ DMF_OBJECT* DmfObject
+    );
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_SynchronizationCreate(
