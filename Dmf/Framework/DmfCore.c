@@ -1042,7 +1042,11 @@ Exit:
     else if (dmfObject != NULL)
     {
         ASSERT(! dmfObject->DynamicModule);
-        if (DmfModuleAttributes->DynamicModule)
+        // If this Module is a Dynamic Module or it is an immediate or non-immediate Child
+        // of a Dynamic Module, open it now if it it should be opened during Create.
+        //
+        if ((DmfModuleAttributes->DynamicModule) ||
+            (DMF_IsTopParentDynamicModule(dmfObject)))
         {
             // Remember it is Dynamic Module so it can be automatically closed prior to destruction.
             // (Client no longer has access to Open/Close API.)
