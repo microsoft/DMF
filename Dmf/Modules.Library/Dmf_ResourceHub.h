@@ -29,10 +29,10 @@ _Function_class_(EVT_DMF_ResourceHub_DispatchTransferList)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
-EVT_DMF_ResourceHub_DispatchTransferList(_In_  DMFMODULE DmfModule,
-                                         _In_  PSPB_TRANSFER_LIST SpbTransferListBuffer,
+EVT_DMF_ResourceHub_DispatchTransferList(_In_ DMFMODULE DmfModule,
+                                         _In_ SPB_TRANSFER_LIST* SpbTransferListBuffer,
                                          _In_ size_t SpbTransferListBufferSize,
-                                         _In_  USHORT I2CSecondaryDeviceAddress,
+                                         _In_ USHORT I2CSecondaryDeviceAddress,
                                          _Out_ size_t *TotalTransferLength);
 
 typedef enum

@@ -1664,6 +1664,109 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_DeviceInterfaceTarget_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // If Client has set ContinousRequestCount > 0, then it means streaming is capable.
+    // Otherwise, streaming is not capable.
+    //
+    if (moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestCount > 0)
+    {
+        // ContinuousRequestTarget
+        // -----------------------
+        //
+
+        // Store ContinuousRequestTarget callbacks from config into DeviceInterfaceTarget context for redirection.
+        //
+        moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
+        moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
+
+        // Replace ContinuousRequestTarget callbacks in config with DeviceInterfaceTarget callbacks.
+        //
+        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = DeviceInterfaceTarget_Stream_BufferInput;
+        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceTarget_Stream_BufferOutput;
+
+        DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
+        moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
+        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleContinuousRequestTarget);
+
+        // Set the transport methods.
+        //
+        moduleContext->RequestSink_IoTargetClear = DeviceInterfaceTarget_Stream_IoTargetClear;
+        moduleContext->RequestSink_IoTargetSet = DeviceInterfaceTarget_Stream_IoTargetSet;
+        moduleContext->RequestSink_Send = DeviceInterfaceTarget_Stream_Send;
+        moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Stream_SendSynchronously;
+        moduleContext->OpenedInStreamMode = TRUE;
+    }
+    else
+    {
+        // RequestTarget
+        // -------------
+        //
+
+        // Streaming functionality is not required. 
+        // Create DMF_RequestTarget instead of DMF_ContinuousRequestTarget.
+        //
+
+        DMF_RequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleRequestTarget);
+
+        // Set the transport methods.
+        //
+        moduleContext->RequestSink_IoTargetClear = DeviceInterfaceTarget_Target_IoTargetClear;
+        moduleContext->RequestSink_IoTargetSet = DeviceInterfaceTarget_Target_IoTargetSet;
+        moduleContext->RequestSink_Send = DeviceInterfaceTarget_Target_Send;
+        moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Target_SendSynchronously;
+        moduleContext->OpenedInStreamMode = FALSE;
+    }
+
+    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1707,11 +1810,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
-    DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -1720,6 +1818,7 @@ Return Value:
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_DeviceInterfaceTarget);
     DmfCallbacksDmf_DeviceInterfaceTarget.DeviceOpen = DMF_DeviceInterfaceTarget_Open;
     DmfCallbacksDmf_DeviceInterfaceTarget.DeviceClose = DMF_DeviceInterfaceTarget_Close;
+    DmfCallbacksDmf_DeviceInterfaceTarget.ChildModulesAdd = DMF_DeviceInterfaceTarget_ChildModulesAdd;
 #if defined(DMF_USER_MODE)
     DmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationRegister = DMF_DeviceInterfaceTarget_NotificationRegisterUser;
     DmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationUnregister = DMF_DeviceInterfaceTarget_NotificationUnregisterUser;
@@ -1741,101 +1840,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_DeviceInterfaceTarget,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // If Client has set ContinousRequestCount > 0, then it means streaming is capable.
-    // Otherwise, streaming is not capable.
-    //
-    if (moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestCount > 0)
-    {
-        // ContinuousRequestTarget
-        // -----------------------
-        //
-
-        // Store ContinuousRequestTarget callbacks from config into DeviceInterfaceTarget context for redirection.
-        //
-        moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
-        moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
-
-        // Replace ContinuousRequestTarget callbacks in config with DeviceInterfaceTarget callbacks.
-        //
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = DeviceInterfaceTarget_Stream_BufferInput;
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceTarget_Stream_BufferOutput;
-
-        DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
-        moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
-        moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-        ntStatus = DMF_ContinuousRequestTarget_Create(Device,
-                                                      &moduleAttributes,
-                                                      &attributes,
-                                                      &moduleContext->DmfModuleContinuousRequestTarget);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ContinuousRequestTarget_Create fails: ntStatus=%!STATUS!", ntStatus);
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-            goto Exit;
-        }
-
-        // Set the transport methods.
-        //
-        moduleContext->RequestSink_IoTargetClear = DeviceInterfaceTarget_Stream_IoTargetClear;
-        moduleContext->RequestSink_IoTargetSet = DeviceInterfaceTarget_Stream_IoTargetSet;
-        moduleContext->RequestSink_Send = DeviceInterfaceTarget_Stream_Send;
-        moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Stream_SendSynchronously;
-        moduleContext->OpenedInStreamMode = TRUE;
-    }
-    else
-    {
-        // RequestTarget
-        // -------------
-        //
-
-        // Streaming functionality is not required. 
-        // Create DMF_RequestTarget instead of DMF_ContinuousRequestTarget.
-        //
-
-        DMF_RequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-        ntStatus = DMF_RequestTarget_Create(Device,
-                                            &moduleAttributes,
-                                            &attributes,
-                                            &moduleContext->DmfModuleRequestTarget);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_RequestTarget_Create fails: ntStatus=%!STATUS!", ntStatus);
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-            goto Exit;
-        }
-
-        // Set the transport methods.
-        //
-        moduleContext->RequestSink_IoTargetClear = DeviceInterfaceTarget_Target_IoTargetClear;
-        moduleContext->RequestSink_IoTargetSet = DeviceInterfaceTarget_Target_IoTargetSet;
-        moduleContext->RequestSink_Send = DeviceInterfaceTarget_Target_Send;
-        moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Target_SendSynchronously;
-        moduleContext->OpenedInStreamMode = FALSE;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
 

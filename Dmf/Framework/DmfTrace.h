@@ -59,6 +59,7 @@ Environment:
 // begin_wpp config
 // FUNC Trace{FLAG=MYDRIVER_ALL_INFO}(LEVEL, MSG, ...);
 // FUNC TraceEvents(LEVEL, FLAGS, MSG, ...);
+// FUNC LogEvents(IFRLOG, LEVEL, FLAGS, MSG, ...);
 // FUNC FuncEntry{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
 // FUNC FuncEntryArguments{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
 // FUNC FuncExit{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);

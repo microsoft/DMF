@@ -48,7 +48,7 @@ Environment:
         WPP_DEFINE_BIT(DMF_TRACE_VirtualHidDeviceVhf)                                                  \
         WPP_DEFINE_BIT(DMF_TRACE_GpioTarget)                                                           \
         WPP_DEFINE_BIT(DMF_TRACE_HidPortableDeviceButtons)                                             \
-        WPP_DEFINE_BIT(DMF_TRACE_Hid)                                                                  \
+        WPP_DEFINE_BIT(DMF_TRACE_HidTarget)                                                            \
         WPP_DEFINE_BIT(DMF_TRACE_I2cTarget)                                                            \
         WPP_DEFINE_BIT(DMF_TRACE_SerialTarget)                                                         \
         WPP_DEFINE_BIT(DMF_TRACE_SmbiosWmi)                                                            \

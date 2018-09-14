@@ -869,6 +869,70 @@ Exit:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_SerialTarget_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_SerialTarget* moduleConfig;
+    DMF_CONTEXT_SerialTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_SerialTarget);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // ContinuousRequestTarget
+    // -----------------------
+    //
+
+    // Store ContinuousRequestTarget callbacks from config into SerialTarget context for redirection.
+    //
+    moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
+    moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
+
+    // Replace ContinuousRequestTarget callbacks in config with SerialTarget callbacks.
+    //
+    moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = SerialTarget_StreamAsynchronousBufferInput;
+    moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SerialTarget_StreamAsynchronousBufferOutput;
+
+    DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
+    moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
+    moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleContinuousRequestTarget);
+
+    FuncExitVoid(DMF_TRACE_SerialTarget);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -911,12 +975,7 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModule;
     NTSTATUS ntStatus;
-    DMF_CONTEXT_SerialTarget* moduleContext;
-    DMF_CONFIG_SerialTarget* moduleConfig;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -926,6 +985,7 @@ Return Value:
     DmfCallbacksDmf_SerialTarget.DeviceOpen = DMF_SerialTarget_Open;
     DmfCallbacksDmf_SerialTarget.DeviceClose = DMF_SerialTarget_Close;
     DmfCallbacksDmf_SerialTarget.DeviceResourcesAssign = DMF_SerialTarget_ResourcesAssign;
+    DmfCallbacksDmf_SerialTarget.ChildModulesAdd = DMF_SerialTarget_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SerialTarget,
                                             SerialTarget,
@@ -940,55 +1000,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_SerialTarget,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // ContinuousRequestTarget
-    // -----------------------
-    //
-
-    // Store ContinuousRequestTarget callbacks from config into SerialTarget context for redirection.
-    //
-    moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
-    moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
-
-    // Replace ContinuousRequestTarget callbacks in config with SerialTarget callbacks.
-    //
-    moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = SerialTarget_StreamAsynchronousBufferInput;
-    moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SerialTarget_StreamAsynchronousBufferOutput;
-
-    DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-    moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
-    moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
-    moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-    ntStatus = DMF_ContinuousRequestTarget_Create(Device,
-                                                  &moduleAttributes,
-                                                  &attributes,
-                                                  &moduleContext->DmfModuleContinuousRequestTarget);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "DMF_ContinuousRequestTarget_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
 

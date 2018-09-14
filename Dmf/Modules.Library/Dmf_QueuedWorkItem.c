@@ -252,12 +252,85 @@ Exit:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_QueuedWorkItem_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_QueuedWorkItem* moduleConfig;
+    DMF_CONTEXT_QueuedWorkItem* moduleContext;
+    DMF_CONFIG_ScheduledTask scheduledTaskConfig;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_QueuedWorkItem);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // ScheduledTask
+    // -------------
+    //
+    DMF_CONFIG_ScheduledTask_AND_ATTRIBUTES_INIT(&scheduledTaskConfig,
+                                                 &moduleAttributes);
+    scheduledTaskConfig.EvtScheduledTaskCallback = QueuedWorkItem_CallbackScheduledTask;
+    scheduledTaskConfig.CallbackContext = DmfModule;
+    scheduledTaskConfig.ExecuteWhen = ScheduledTask_ExecuteWhen_Other;
+    scheduledTaskConfig.ExecutionMode = ScheduledTask_ExecutionMode_Deferred;
+    scheduledTaskConfig.PersistenceType = ScheduledTask_Persistence_NotPersistentAcrossReboots;
+    scheduledTaskConfig.TimerPeriodMsOnFail = 0;
+    scheduledTaskConfig.TimerPeriodMsOnSuccess = 0;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleScheduledTask);
+
+    // BufferQueue
+    // -----------
+    //
+    DMF_BufferQueue_ATTRIBUTES_INIT(&moduleAttributes);
+    moduleAttributes.ModuleConfigPointer = &moduleConfig->BufferQueueConfig;
+    moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->BufferQueueConfig);
+    moduleConfig->BufferQueueConfig.SourceSettings.BufferSize += sizeof(QUEUEDWORKITEM_WAIT_BLOCK);
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferQueue);
+
+    FuncExitVoid(DMF_TRACE_QueuedWorkItem);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_QueuedWorkItem;
+static DMF_CALLBACKS_DMF DmfCallbacksDmf_QueuedWorkItem;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -293,17 +366,14 @@ Return Value:
 
 --*/
 {
-    DMF_CONTEXT_QueuedWorkItem* moduleContext;
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    DMF_CONFIG_ScheduledTask scheduledTaskConfig;
-    DMF_CONFIG_QueuedWorkItem* moduleConfig;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_QueuedWorkItem);
+
+    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_QueuedWorkItem);
+    DmfCallbacksDmf_QueuedWorkItem.ChildModulesAdd = DMF_QueuedWorkItem_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_QueuedWorkItem,
                                             QueuedWorkItem,
@@ -311,79 +381,18 @@ Return Value:
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
+    DmfModuleDescriptor_QueuedWorkItem.CallbacksDmf = &DmfCallbacksDmf_QueuedWorkItem;
     DmfModuleDescriptor_QueuedWorkItem.ModuleConfigSize = sizeof(DMF_CONFIG_QueuedWorkItem);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_QueuedWorkItem,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_QueuedWorkItem, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    RtlZeroMemory(moduleContext,
-                  sizeof(DMF_CONTEXT_QueuedWorkItem));
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // ScheduledTask
-    // -------------
-    //
-    DMF_CONFIG_ScheduledTask_AND_ATTRIBUTES_INIT(&scheduledTaskConfig,
-                                                 &moduleAttributes);
-    scheduledTaskConfig.EvtScheduledTaskCallback = QueuedWorkItem_CallbackScheduledTask;
-    scheduledTaskConfig.CallbackContext = dmfModule;
-    scheduledTaskConfig.ExecuteWhen = ScheduledTask_ExecuteWhen_Other;
-    scheduledTaskConfig.ExecutionMode = ScheduledTask_ExecutionMode_Deferred;
-    scheduledTaskConfig.PersistenceType = ScheduledTask_Persistence_NotPersistentAcrossReboots;
-    scheduledTaskConfig.TimerPeriodMsOnFail = 0;
-    scheduledTaskConfig.TimerPeriodMsOnSuccess = 0;
-
-    ntStatus = DMF_ScheduledTask_Create(Device,
-                                        &moduleAttributes,
-                                        &attributes,
-                                        &moduleContext->DmfModuleScheduledTask);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_QueuedWorkItem, "DMF_ScheduledTask_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // BufferQueue
-    // -----------
-    //
-    DMF_BufferQueue_ATTRIBUTES_INIT(&moduleAttributes);
-    moduleAttributes.ModuleConfigPointer = &moduleConfig->BufferQueueConfig;
-    moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->BufferQueueConfig);
-    moduleConfig->BufferQueueConfig.SourceSettings.BufferSize += sizeof(QUEUEDWORKITEM_WAIT_BLOCK);
-    moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-    ntStatus = DMF_BufferQueue_Create(Device,
-                                      &moduleAttributes,
-                                      &attributes,
-                                      &moduleContext->DmfModuleBufferQueue);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_QueuedWorkItem, "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_QueuedWorkItem, "ntStatus=%!STATUS!", ntStatus);
 

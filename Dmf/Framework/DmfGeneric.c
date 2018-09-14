@@ -1816,9 +1816,9 @@ DMF_Generic_NotificationRegister(
 
 Routine Description:
 
-    Generic callback for NotificationRegister for a given DMF Module. If this call is made
-    it is an invalid code path because it does not make sense for the Client Driver to make
-    this call to the given DMF Module if this call is not supported.
+    Generic callback for NotificationRegister for a given DMF Module. This call can happen if the
+    Client has not set the NotificationRegister callback. (Client may decide to open the Module
+    for any reason, possibly unrelated to PnP, and may not need to support that call.)
 
 Arguments:
 
@@ -1840,8 +1840,6 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->DmfObjectParent != NULL);
-
     FuncExit(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName, STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
@@ -1858,9 +1856,9 @@ DMF_Generic_NotificationUnregister(
 
 Routine Description:
 
-    Generic callback for NotificationUnregisger for a given DMF Module. If this call is made
-    it is an invalid code path because it does not make sense for the Client Driver to make
-    this call to the given DMF Module if this call is not supported.
+    Generic callback for NotificationUnregister for a given DMF Module. This call can happen if the
+    Client has not set the NotificationUnregister callback. (Client may decide to close the Module
+    for any reason, possibly unrelated to PnP, and may not need to support this call.)
 
 Arguments:
 
@@ -1881,8 +1879,6 @@ Return Value:
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
-
-    ASSERT(dmfObject->DmfObjectParent != NULL);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1980,6 +1976,49 @@ Return Value:
 
     // Some modules that have no Module Context do not need to handle Close.
     //
+
+    FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, STATUS_SUCCESS);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_Generic_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Generic callback for adding Child Modules to a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_OBJECT* dmfObject;
+
+    PAGED_CODE();
+
+    dmfObject = DMF_ModuleToObject(DmfModule);
+
+    FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
+
+    UNREFERENCED_PARAMETER(DmfModuleInit);
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    DMF_HandleValidate_IsCreated(dmfObject);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, STATUS_SUCCESS);
 }

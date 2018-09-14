@@ -571,6 +571,85 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_HidPortableDeviceButtons_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_HidPortableDeviceButtons* moduleConfig;
+    DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
+    DMF_CONFIG_VirtualHidDeviceVhf virtualHidDeviceMsModuleConfig;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // VirtualHidDeviceVhf
+    // -------------------
+    //
+    DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&virtualHidDeviceMsModuleConfig,
+                                                       &moduleAttributes);
+
+    virtualHidDeviceMsModuleConfig.VendorId = moduleConfig->VendorId;
+    virtualHidDeviceMsModuleConfig.ProductId = moduleConfig->ProductId;
+    virtualHidDeviceMsModuleConfig.VersionNumber = 0x0001;
+
+    virtualHidDeviceMsModuleConfig.HidDescriptor = &g_HidPortableDeviceButtons_HidDescriptor;
+    virtualHidDeviceMsModuleConfig.HidDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidDescriptor);
+    virtualHidDeviceMsModuleConfig.HidReportDescriptor = g_HidPortableDeviceButtons_HidReportDescriptor;
+    virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptor);
+
+    // Set virtual device attributes.
+    //
+    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.VendorID = moduleConfig->VendorId;
+    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.ProductID = moduleConfig->ProductId;
+    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.VersionNumber = moduleConfig->VersionNumber;
+    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.Size = sizeof(virtualHidDeviceMsModuleConfig.HidDeviceAttributes);
+
+    virtualHidDeviceMsModuleConfig.StartOnOpen = TRUE;
+    virtualHidDeviceMsModuleConfig.VhfClientContext = DmfModule;
+
+    // Set callbacks from upper layer.
+    //
+    virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_GET_FEATURE = HidPortableDeviceButtons_GetFeature;
+    virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_SET_FEATURE = HidPortableDeviceButtons_SetFeature;
+
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleVirtualHidDeviceVhf);
+
+    FuncExitVoid(DMF_TRACE_HidPortableDeviceButtons);
+}
+#pragma code_seg()
+
 VOID
 DMF_HidPortableDeviceButtons_BranchTrackInitialize(
     _In_ DMFMODULE DmfModule
@@ -664,13 +743,7 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModule;
     NTSTATUS ntStatus;
-    DMF_CONFIG_HidPortableDeviceButtons* hidPortableDeviceButtonsModuleConfig;
-    DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
-    DMF_CONFIG_VirtualHidDeviceVhf virtualHidDeviceMsModuleConfig;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -679,6 +752,7 @@ Return Value:
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HidPortableDeviceButtons);
     DmfCallbacksDmf_HidPortableDeviceButtons.DeviceOpen = DMF_HidPortableDeviceButtons_Open;
     DmfCallbacksDmf_HidPortableDeviceButtons.DeviceClose = DMF_HidPortableDeviceButtons_Close;
+    DmfCallbacksDmf_HidPortableDeviceButtons.ChildModulesAdd = DMF_HidPortableDeviceButtons_ChildModulesAdd;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_HidPortableDeviceButtons);
     DmfCallbacksWdf_HidPortableDeviceButtons.ModuleD0Entry = DMF_HidPortableDeviceButtons_ModuleD0Entry;
@@ -698,67 +772,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_HidPortableDeviceButtons,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidPortableDeviceButtons, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    hidPortableDeviceButtonsModuleConfig = DMF_CONFIG_GET(dmfModule);
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // VirtualHidDeviceVhf
-    // -------------------
-    //
-    DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&virtualHidDeviceMsModuleConfig,
-                                                       &moduleAttributes);
-
-    virtualHidDeviceMsModuleConfig.VendorId = hidPortableDeviceButtonsModuleConfig->VendorId;
-    virtualHidDeviceMsModuleConfig.ProductId = hidPortableDeviceButtonsModuleConfig->ProductId;
-    virtualHidDeviceMsModuleConfig.VersionNumber = 0x0001;
-
-    virtualHidDeviceMsModuleConfig.HidDescriptor = &g_HidPortableDeviceButtons_HidDescriptor;
-    virtualHidDeviceMsModuleConfig.HidDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidDescriptor);
-    virtualHidDeviceMsModuleConfig.HidReportDescriptor = g_HidPortableDeviceButtons_HidReportDescriptor;
-    virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptor);
-
-    // Set virtual device attributes.
-    //
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.VendorID = hidPortableDeviceButtonsModuleConfig->VendorId;
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.ProductID = hidPortableDeviceButtonsModuleConfig->ProductId;
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.VersionNumber = hidPortableDeviceButtonsModuleConfig->VersionNumber;
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.Size = sizeof(virtualHidDeviceMsModuleConfig.HidDeviceAttributes);
-
-    virtualHidDeviceMsModuleConfig.StartOnOpen = TRUE;
-    virtualHidDeviceMsModuleConfig.VhfClientContext = dmfModule;
-
-    // Set callbacks from upper layer.
-    //
-    virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_GET_FEATURE = HidPortableDeviceButtons_GetFeature;
-    virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_SET_FEATURE = HidPortableDeviceButtons_SetFeature;
-
-    ntStatus = DMF_VirtualHidDeviceVhf_Create(Device,
-                                              &moduleAttributes,
-                                              &attributes,
-                                              &moduleContext->DmfModuleVirtualHidDeviceVhf);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidPortableDeviceButtons, "DMF_VirtualHidDeviceVhf_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_HidPortableDeviceButtons, "ntStatus=%!STATUS!", ntStatus);
 

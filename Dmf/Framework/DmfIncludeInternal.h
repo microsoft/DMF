@@ -230,6 +230,9 @@ struct _DMF_OBJECT_
     // This includes one default lock and a number of auxiliary locks as specified by Client.
     //
     DMF_SYNCHRONIZATION Synchronizations[DMF_MAXIMUM_AUXILIARY_LOCKS + DMF_NUMBER_OF_DEFAULT_LOCKS];
+    // Stores the Module's In Flight Recorder handle.
+    //
+    RECORDER_LOG InFlightRecorder;
 };
 
 // DMF Object Signature.
@@ -338,9 +341,12 @@ typedef struct
         // Has the Client driver initialized a LiveKernelDump Module?
         //
         BOOLEAN LiveKernelDumpEnabled;
-        // Parent WDFDEViCE (The Client Driver's WDFDEVICE.)
+        // Parent WDFDEVICE (The Client Driver's WDFDEVICE.)
         // 
         WDFDEVICE ClientDriverWdfDevice;
+        // Parent DMFMODULE.
+        //
+        DMFMODULE ParentDmfModule;
     } DmfPrivate;
 
     // These can be set by Client.
@@ -415,6 +421,23 @@ VOID
 DMF_ModuleCollectionHandlePropagate(
     _Inout_ DMF_MODULE_COLLECTION* ModuleCollectionHandle,
     _In_ LONG NumberOfEntries
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleCollectionCreate(
+    _In_opt_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ DMF_MODULE_COLLECTION_CONFIG* ModuleCollectionConfig,
+    _Out_ DMFCOLLECTION* DmfCollection
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleCollectionPostCreate(
+    _In_ DMF_MODULE_COLLECTION_CONFIG* ModuleCollectionConfig,
+    _In_ DMFCOLLECTION DmfCollection
     );
 
 // Support functions for feature modules.
@@ -1115,6 +1138,14 @@ DMF_Generic_Close(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
+DMF_Generic_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
 DMF_Generic_AuxiliaryLock_Passive(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG AuxiliaryLockIndex
@@ -1289,12 +1320,12 @@ Routine Description:
 }
 
 NTSTATUS
-DMF_Module_OpenDuringCreate(
+DMF_Module_OpenOrRegisterNotificationOnCreate(
     _In_ DMFMODULE DmfModule
     );
 
 VOID
-DMF_Module_CloseOnDestroy(
+DMF_Module_CloseOrUnregisterNotificationOnDestroy(
     _In_ DMFMODULE DmfModule
     );
 

@@ -196,6 +196,7 @@ Return Value:
     DmfCallbacksDmf->DeviceNotificationUnregister = DMF_Generic_NotificationUnregister;
     DmfCallbacksDmf->DeviceOpen = DMF_Generic_Open;
     DmfCallbacksDmf->DeviceClose = DMF_Generic_Close;
+    DmfCallbacksDmf->ChildModulesAdd = DMF_Generic_ChildModulesAdd;
 }
 
 VOID
@@ -319,9 +320,9 @@ Routine Description:
 
 Arguments:
 
+    Device - The given WDFDEVICE object.
     DmfModuleAttributes - Pointer to the initialized DMF_MODULE_ATTRIBUTES structure.
     DmfModuleObjectAttributes - Pointer to caller initialized WDF_OBJECT_ATTRIBUTES structure.
-    DmfModuleContextAttributes - Pointer to WDF_OBJECT_ATTRIBUTES structure to set the Module context.
     ModuleDescriptor - Pointer to the DMF_MODULE_DESCRIPTOR structure providing information about the Module.
     DmfModule - (Output) Pointer to memory where this function will return the created DMF Module.
 
@@ -342,6 +343,8 @@ Return Value:
     DMFMODULE dmfModuleParent;
     BOOLEAN childModuleCreate;
     DMFMODULE dmfModule;
+    DMF_MODULE_COLLECTION_CONFIG moduleCollectionConfig;
+    DMFCOLLECTION childModuleCollection;
 
     PAGED_CODE();
 
@@ -361,6 +364,7 @@ Return Value:
     memoryDmfObject = NULL;
     dmfModule = NULL;
     dmfObject = NULL;
+    childModuleCollection = NULL;
 
     // DmfModuleObjectAttributes should always be set, since ParentObject is a must.
     //
@@ -395,11 +399,6 @@ Return Value:
         dmfObjectParent = DMF_ModuleToObject(dmfModuleParent);
 
         ASSERT(Device == DMF_AttachedDeviceGet(dmfModuleParent));
-
-        // Child Modules are never Dynamic Modules. It is important to clear it
-        // so that Dynamic Module paths are not executed.
-        //
-        DmfModuleAttributes->DynamicModule = FALSE;
     }
     else
     {
@@ -416,11 +415,28 @@ Return Value:
             goto Exit;
         }
 
-        // Don't create non-Child Dynamic Module if the Module supports WDF callbacks since those
-        // callbacks will never happen and the Module will not execute as originally planned.
+        // Don't create Dynamic Module if the Module supports WDF callbacks since those
+        // callbacks might not happen and the Module will not execute as originally planned.
         //
-        ASSERT((! DmfModuleAttributes->DynamicModule) ||
-               (NULL == ModuleDescriptor->CallbacksWdf));
+        if (DmfModuleAttributes->DynamicModule &&
+            NULL != ModuleDescriptor->CallbacksWdf)
+        {
+            ASSERT(FALSE);
+            ntStatus = STATUS_UNSUCCESSFUL;
+            goto Exit;
+        }
+
+        // Don't create Dynamic Module if the Module's Open Option depends on WDF callbacks since
+        // those callbacks might not happen and the Module will not execute as originally planned.
+        //
+        if (DmfModuleAttributes->DynamicModule &&
+            (ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_OPEN_Create &&
+             ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_NOTIFY_Create))
+        {
+            ASSERT(FALSE);
+            ntStatus = STATUS_UNSUCCESSFUL;
+            goto Exit;
+        }
     }
 
     ntStatus = WdfMemoryCreate(DmfModuleObjectAttributes,
@@ -629,6 +645,10 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to create locks");
         goto Exit;
     }
+
+    // Copy the In Flight Recorder size.
+    //
+    dmfObject->ModuleDescriptor.InFlightRecorderSize = ModuleDescriptor->InFlightRecorderSize;
 
     // Set the optional callbacks.
     //
@@ -856,6 +876,10 @@ Return Value:
         {
             dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose = ModuleDescriptor->CallbacksDmf->DeviceClose;
         }
+        if (ModuleDescriptor->CallbacksDmf->ChildModulesAdd != USE_GENERIC_ENTRYPOINT)
+        {
+            dmfObject->ModuleDescriptor.CallbacksDmf->ChildModulesAdd = ModuleDescriptor->CallbacksDmf->ChildModulesAdd;
+        }
         // NOTE: Lock and Unlock callbacks may not be overridden.
         //
     }
@@ -950,10 +974,13 @@ Return Value:
     ASSERT(ModuleState_Invalid == dmfObject->ModuleState);
     dmfObject->ModuleState = ModuleState_Created;
 
-    if (childModuleCreate)
+    // Add the Child Module to the list of the Parent Module's children
+    // if its not a Dynamic Module. The lifetime of the Dynamic Module is
+    // managed by the Client. 
+    //
+    if ((childModuleCreate) &&
+        (! DmfModuleAttributes->DynamicModule))
     {
-        // Add the Child Module to the list of the Parent Module's children.
-        //
         ASSERT(dmfObjectParent != NULL);
         ASSERT(dmfModuleParent != NULL);
         InsertTailList(&dmfObjectParent->ChildObjectList,
@@ -1006,6 +1033,89 @@ Return Value:
         }
     }
 
+#if !defined(DMF_USER_MODE)
+
+    RECORDER_LOG recorder;
+
+    if (dmfObject->ModuleDescriptor.InFlightRecorderSize > 0)
+    {
+        RECORDER_LOG_CREATE_PARAMS recorderCreateParams;
+        NTSTATUS recorderStatus;
+        
+        RECORDER_LOG_CREATE_PARAMS_INIT(&recorderCreateParams,
+                                        NULL);
+
+        recorderCreateParams.TotalBufferSize = dmfObject->ModuleDescriptor.InFlightRecorderSize;
+
+        RtlStringCbPrintfA(recorderCreateParams.LogIdentifier,
+                           RECORDER_LOG_IDENTIFIER_MAX_CHARS,
+                           dmfObject->ClientModuleInstanceName);
+        
+        recorderStatus = WppRecorderLogCreate(&recorderCreateParams,
+                                              &recorder);
+        if (!NT_SUCCESS(recorderStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WppRecorderLogCreate fails: ntStatus=%!STATUS!", recorderStatus);
+
+            // A new buffer could not be created. Check if the default log is available and set the Module's recorder handle to it 
+            // to not miss capturing logs from this Module.
+            //
+            recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
+        }
+    }
+    else
+    {
+        // The Module's logs will be part of the default log if the Module chose to not have a separate custom buffer.
+        //
+        recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
+    }
+
+    dmfObject->InFlightRecorder = recorder;
+
+#endif
+
+    // Create child Modules
+    // Prepare to create a Module Collection.
+    //
+    DMF_MODULE_COLLECTION_CONFIG_INIT(&moduleCollectionConfig,
+                                      NULL,
+                                      NULL,
+                                      Device);
+    moduleCollectionConfig.DmfPrivate.ParentDmfModule = dmfModule;
+    dmfObject->ModuleDescriptor.CallbacksDmf->ChildModulesAdd(dmfModule,
+                                                              DmfModuleAttributes,
+                                                              (PDMFMODULE_INIT)&moduleCollectionConfig);
+    if (moduleCollectionConfig.DmfPrivate.ListOfConfigs != NULL)
+    {
+        // 'local variable is initialized but not referenced'
+        // Lets keep this assert. Also, do not call functions in ASSERTs in case it causes a 
+        // difference between Debug/Release builds.
+        //
+        #pragma warning(suppress:4189)
+        ULONG numberOfClientModulesToCreate = WdfCollectionGetCount(moduleCollectionConfig.DmfPrivate.ListOfConfigs);
+        ASSERT(numberOfClientModulesToCreate > 0);
+        // The attributes for all the Modules have been set. Create the Modules.
+        //
+        ntStatus = DMF_ModuleCollectionCreate(NULL,
+                                              &moduleCollectionConfig,
+                                              &childModuleCollection);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionCreateEx fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        // The childModuleCollection is transient just for the creation of the Child Modules
+        // to use the existing Collection APIs. It is not required to store the collection since
+        // the list of children is already maintained as part of Parent Module's DMF_OBJECT.
+        //
+        if (childModuleCollection != NULL)
+        {
+            WdfObjectDelete(childModuleCollection);
+            childModuleCollection = NULL;
+        }
+    }
+
 Exit:
 
     if (!NT_SUCCESS(ntStatus))
@@ -1043,18 +1153,23 @@ Exit:
     {
         ASSERT(! dmfObject->DynamicModule);
         // If this Module is a Dynamic Module or it is an immediate or non-immediate Child
-        // of a Dynamic Module, open it now if it it should be opened during Create.
+        // of a Dynamic Module, open it now if it should be opened during Create.
         //
-        if ((DmfModuleAttributes->DynamicModule) ||
-            (DMF_IsTopParentDynamicModule(dmfObject)))
+        if (DmfModuleAttributes->DynamicModule)
         {
             // Remember it is Dynamic Module so it can be automatically closed prior to destruction.
             // (Client no longer has access to Open/Close API.)
             //
             dmfObject->DynamicModule = TRUE;
-            // Since it is a Dynamic Module, Open the Module if it should be opened on Create.
+            // Since it is a Dynamic Module, Open or register for Notification as specified by the Module's
+            // Open Option.
             //
-            ntStatus = DMF_Module_OpenDuringCreate(dmfModule);
+            ntStatus = DMF_Module_OpenOrRegisterNotificationOnCreate(dmfModule);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionPostCreate fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
         }
         if (DmfModule != NULL)
         {
@@ -1106,6 +1221,14 @@ Return Value:
     ASSERT(dmfObject->ClientModuleInstanceNameMemory != NULL);
     WdfObjectDelete(dmfObject->ClientModuleInstanceNameMemory);
 
+#if !defined(DMF_USER_MODE)
+    if (dmfObject->InFlightRecorder != NULL)
+    {
+        WppRecorderLogDelete(dmfObject->InFlightRecorder);
+        dmfObject->InFlightRecorder = NULL;
+    }
+#endif
+
     if (dmfObject->ModuleConfigMemory != NULL)
     {
         ASSERT(dmfObject->ModuleConfig != NULL);
@@ -1156,6 +1279,18 @@ DMF_ModuleTransportGet(
 
     return transportModule;
 }
+
+#if !defined(DMF_USER_MODE)
+RECORDER_LOG
+DMF_InFlightRecorderGet(
+    _In_ DMFMODULE DmfModule
+    )
+{
+    DMF_OBJECT* dmfObject = DMF_ModuleToObject(DmfModule);
+
+    return dmfObject->InFlightRecorder;
+}
+#endif
 
 // eof: DmfCore.c
 //

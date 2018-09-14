@@ -75,12 +75,83 @@ DMF_MODULE_DECLARE_CONFIG(BufferQueue)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_BufferQueue_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONFIG_BufferPool moduleConfigProducer;
+    DMF_CONFIG_BufferPool moduleConfigConsumer;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_BufferQueue* moduleConfig;
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_BufferQueue);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // BufferPoolProducer
+    // ------------------
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigProducer,
+                                              &moduleAttributes);
+    moduleConfigProducer.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigProducer.Mode.SourceSettings = moduleConfig->SourceSettings;
+    moduleAttributes.ClientModuleInstanceName = "BufferPoolProducer";
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferPoolProducer);
+
+    // BufferPoolConsumer
+    // ------------------
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigConsumer,
+                                              &moduleAttributes);
+    moduleConfigConsumer.BufferPoolMode = BufferPool_Mode_Sink;
+    moduleAttributes.ClientModuleInstanceName = "BufferPoolConsumer";
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferPoolConsumer);
+
+    FuncExitVoid(DMF_TRACE_BufferQueue);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_BufferQueue;
+static DMF_CALLBACKS_DMF DmfCallbacksDmf_BufferQueue;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -117,17 +188,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_BufferQueue* moduleContext;
-    DMF_CONFIG_BufferQueue* moduleConfig;
-    DMF_CONFIG_BufferPool moduleConfigProducer;
-    DMF_CONFIG_BufferPool moduleConfigConsumer;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_BufferQueue);
+
+    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_BufferQueue);
+    DmfCallbacksDmf_BufferQueue.ChildModulesAdd = DMF_BufferQueue_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_BufferQueue,
                                             BufferQueue,
@@ -135,73 +202,18 @@ Return Value:
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
+    DmfModuleDescriptor_BufferQueue.CallbacksDmf = &DmfCallbacksDmf_BufferQueue;
     DmfModuleDescriptor_BufferQueue.ModuleConfigSize = sizeof(DMF_CONFIG_BufferQueue);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_BufferQueue,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferQueue, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-    ASSERT(moduleConfig != NULL);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // BufferPoolProducer
-    // ------------------
-    //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigProducer,
-                                              &moduleAttributes);
-    moduleConfigProducer.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigProducer.Mode.SourceSettings = moduleConfig->SourceSettings;
-    moduleAttributes.ClientModuleInstanceName = "BufferPoolProducer";
-    moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-    ntStatus = DMF_BufferPool_Create(Device,
-                                     &moduleAttributes,
-                                     &attributes,
-                                     &moduleContext->DmfModuleBufferPoolProducer);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferQueue, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // BufferPoolConsumer
-    // ------------------
-    //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigConsumer,
-                                              &moduleAttributes);
-    moduleConfigConsumer.BufferPoolMode = BufferPool_Mode_Sink;
-    moduleAttributes.ClientModuleInstanceName = "BufferPoolConsumer";
-    moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-    ntStatus = DMF_BufferPool_Create(Device,
-                                     &moduleAttributes,
-                                     &attributes,
-                                     &moduleContext->DmfModuleBufferPoolConsumer);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferQueue, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_BufferQueue, "ntStatus=%!STATUS!", ntStatus);
 

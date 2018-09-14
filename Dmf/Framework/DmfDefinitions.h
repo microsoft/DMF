@@ -138,6 +138,7 @@ extern "C"
     #include "usbdi.h"
     #include "usbdlib.h"
     #include <wdfusb.h>
+    #include <wpprecorder.h>
 #if IS_WIN10_RS3_OR_LATER
     #include <lkmdtel.h>
 #endif // IS_WIN10_RS3_OR_LATER
@@ -677,6 +678,7 @@ DmfDriverContextCleanup(                                                        
     _In_ WDFOBJECT DriverObject                                                                               \
     )                                                                                                         \
 {                                                                                                             \
+    UNREFERENCED_PARAMETER(DriverObject);                                                                     \
     WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));                                        \
 }                                                                                                             \
 
@@ -1044,6 +1046,19 @@ DMF_Invoke_DeviceCallbacksDestroy(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Definitions used in In Flight Recording.
+//
+#define DMF_IN_FLIGHT_RECORDER_SIZE_DEFAULT                 (1024)
+
+// These definitions are required to ensure UMDF drivers compile with Modules that use custom in flight recorder.
+// Since in flight recording is not supported in UMDF, these defines are used to ignore the ifr field in the trace.
+//
+#if defined(DMF_USER_MODE)
+#define RECORDER_LOG                                                HANDLE
+#define WPP_RECORDER_IFRLOG_LEVEL_FLAGS_FILTER(ifr, lvl, flags)     (lvl < TRACE_LEVEL_VERBOSE || WPP_CONTROL(WPP_BIT_ ## flags).AutoLogVerboseEnabled)
+#define WPP_RECORDER_IFRLOG_LEVEL_FLAGS_ARGS(ifr, lvl, flags)       WPP_RECORDER_LEVEL_FLAGS_ARGS(lvl, flags)
+#endif
+
 // Definitions used in event logging.
 //
 #define DMF_EVENTLOG_UNIQUE_ID_ZERO                         (0)
@@ -1085,12 +1100,12 @@ DMF_Utility_EventLoggingNamesGet(
     );
 
 GUID
-DMF_Utility_RequestToActivityId(
+DMF_Utility_ActivityIdFromRequest(
     _In_ WDFREQUEST Request
     );
 
 GUID
-DMF_Utility_DeviceToActivityId(
+DMF_Utility_ActivityIdFromDevice(
     _In_ WDFDEVICE Device
     );
 

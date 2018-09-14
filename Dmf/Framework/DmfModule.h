@@ -90,6 +90,15 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Close(_In_ DMFMODULE DmfModule);
 
+typedef
+_Function_class_(DMF_ChildModulesAdd)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ChildModulesAdd(_In_ DMFMODULE DmfModule,
+                    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+                    _In_ PDMFMODULE_INIT DmfModuleInit);
+
 // Internally used callbacks that cannot be overridden by Modules.
 //
 typedef
@@ -424,6 +433,7 @@ typedef struct
     DMF_NotificationUnregister* DeviceNotificationUnregister;
     DMF_Open* DeviceOpen;
     DMF_Close* DeviceClose;
+    DMF_ChildModulesAdd* ChildModulesAdd;
 } DMF_CALLBACKS_DMF;
 
 __forceinline
@@ -600,6 +610,10 @@ typedef struct
     // Wdf Object attributes specifying Module Context details.
     //
     PWDF_OBJECT_ATTRIBUTES ModuleContextAttributes;
+    // In Flight Recorder Size.
+    // If the Module sets this to 0, its logs will be part of the default recorder buffer.
+    //
+    ULONG InFlightRecorderSize;
 } DMF_MODULE_DESCRIPTOR;
 
 #define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)      \
@@ -782,6 +796,13 @@ WDFDEVICE
 DMF_AttachedDeviceGet(
     _In_ DMFMODULE DmfModule
     );
+
+#if !defined(DMF_USER_MODE)
+RECORDER_LOG
+DMF_InFlightRecorderGet(
+    _In_ DMFMODULE DmfModule
+);
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Features

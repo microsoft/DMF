@@ -427,7 +427,7 @@ NTSTATUS
 PFN_IO_GET_ACTIVITY_ID_IRP g_DMF_IoGetActivityIdIrp;
 
 GUID
-DMF_Utility_RequestToActivityId(
+DMF_Utility_ActivityIdFromRequest(
     _In_ WDFREQUEST Request
     )
 /*++
@@ -494,7 +494,7 @@ Return Value:
 #endif // !defined(DMF_USER_MODE)
 
 GUID
-DMF_Utility_DeviceToActivityId(
+DMF_Utility_ActivityIdFromDevice(
     _In_ WDFDEVICE Device
     )
 /*++

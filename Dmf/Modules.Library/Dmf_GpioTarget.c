@@ -737,6 +737,8 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
+        WdfObjectDelete(moduleContext->GpioTarget);
+        moduleContext->GpioTarget = NULL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }

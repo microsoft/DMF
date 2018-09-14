@@ -517,7 +517,7 @@ Return Value:
         ASSERT(dmfObject != NULL);
         DMFMODULE dmfModule = DMF_ObjectToModule(dmfObject);
 
-        DMF_Module_CloseOnDestroy(dmfModule);
+        DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
     }
 
     // Destroy every Module in the collection.
@@ -2908,12 +2908,19 @@ Return Value:
 
     PAGED_CODE();
 
-    // Client Driver's FDO's WDFDEVICE is the parent of the ListOfConfigs.
+    // Client Driver's FDO's WDFDEVICE or Parent Module is the parent of the ListOfConfigs.
     // ListOfConfigs is the parent of all the memory allocated and added to ListOfConfigs.
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     ASSERT(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice != NULL);
-    objectAttributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
+    if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
+    {
+        objectAttributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ParentDmfModule;
+    }
+    else
+    {
+        objectAttributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
+    }
     ntStatus = WdfCollectionCreate(&objectAttributes,
                                    &ModuleCollectionConfig->DmfPrivate.ListOfConfigs);
     if (! NT_SUCCESS(ntStatus))
@@ -3129,7 +3136,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionCreate(
-    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_opt_ PDMFDEVICE_INIT DmfDeviceInit,
     _In_ DMF_MODULE_COLLECTION_CONFIG* ModuleCollectionConfig,
     _Out_ DMFCOLLECTION* DmfCollection
     )
@@ -3163,6 +3170,7 @@ Return Value:
     BOOLEAN dmfBridgeEnabled;
     DMF_CONFIG_Bridge* bridgeModuleConfig;
     DMF_MODULE_ATTRIBUTES moduleAttributes;
+    BOOLEAN createChildModuleCollection;
 
     PAGED_CODE();
 
@@ -3174,10 +3182,22 @@ Return Value:
     ntStatus = STATUS_UNSUCCESSFUL;
     moduleCollectionHandle = NULL;
 
-    ASSERT(DmfDeviceInit != NULL);
-    dmfBridgeEnabled = DMF_DmfDeviceInitIsBridgeEnabled(DmfDeviceInit);
-
-    ASSERT(dmfBridgeEnabled == TRUE);
+    // Module Collection can be top level Collection (created by Client Driver for top level Modules)
+    // or child Module Collection (created by Module for its child Modules).
+    // Modules do not pass in DmfDeviceInit.
+    // Dmf Bridge is only created for top level Collection. 
+    //
+    if (DmfDeviceInit != NULL)
+    {
+        createChildModuleCollection = FALSE;
+        dmfBridgeEnabled = DMF_DmfDeviceInitIsBridgeEnabled(DmfDeviceInit);
+        ASSERT(dmfBridgeEnabled == TRUE);
+    }
+    else
+    {
+        createChildModuleCollection = TRUE;
+        dmfBridgeEnabled = FALSE;
+    }
 
     // If any error occurred during table (list) creation, do not proceed and report
     // the error.
@@ -3271,19 +3291,23 @@ Return Value:
 #else
     ASSERT(! ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled);
 #endif // !defined(DMF_USER_MODE)
-    // Add Bridge Module to the end of ModuleCollection's Config List.
-    //
-    bridgeModuleConfig = (DMF_CONFIG_Bridge*)DMF_DmfDeviceInitBridgeModuleConfigGet(DmfDeviceInit);
-    ASSERT(bridgeModuleConfig != NULL);
 
-    DMF_Bridge_ATTRIBUTES_INIT(&moduleAttributes);
-    moduleAttributes.ModuleConfigPointer = bridgeModuleConfig;
-    DMF_ModuleCollectionConfigAddAttributes(ModuleCollectionConfig,
-                                            &moduleAttributes,
-                                            WDF_NO_OBJECT_ATTRIBUTES,
-                                            NULL);
+    if (! createChildModuleCollection)
+    {
+        // Add Bridge Module to the end of ModuleCollection's Config List.
+        //
+        bridgeModuleConfig = (DMF_CONFIG_Bridge*)DMF_DmfDeviceInitBridgeModuleConfigGet(DmfDeviceInit);
+        ASSERT(bridgeModuleConfig != NULL);
 
-    numberOfClientModulesToCreate++;
+        DMF_Bridge_ATTRIBUTES_INIT(&moduleAttributes);
+        moduleAttributes.ModuleConfigPointer = bridgeModuleConfig;
+        DMF_ModuleCollectionConfigAddAttributes(ModuleCollectionConfig,
+                                                &moduleAttributes,
+                                                WDF_NO_OBJECT_ATTRIBUTES,
+                                                NULL);
+
+        numberOfClientModulesToCreate++;
+    }
 
     // NOTE: Zero Modules are allowed for the case where Client only instantiates BranchTrack but, BranchTrack
     //       is not enabled.
@@ -3303,10 +3327,21 @@ Return Value:
     // Create the Module Collection Handle memory.
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
-    // NOTE: It must be Cleanup, not Destroy because Destroy is too late.
-    //
-    attributes.EvtCleanupCallback = DMF_ModuleCollectionDestroy;
+    if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
+    {
+        attributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ParentDmfModule;
+        // NOTE: Child Module Collection will be deleted after Child Modules are created. 
+        // Child Modules will be destroyed when top level Collection is destroyed, or 
+        // when Client destroys dynamically created Module. 
+        //
+    }
+    else
+    {
+        attributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
+        // NOTE: It must be Cleanup, not Destroy because Destroy is too late.
+        //
+        attributes.EvtCleanupCallback = DMF_ModuleCollectionDestroy;
+    }
     ntStatus = WdfMemoryCreate(&attributes,
                                NonPagedPoolNx,
                                DMF_TAG,
@@ -3401,9 +3436,14 @@ Return Value:
         ASSERT(moduleAttributesPointer->InstanceCreator != NULL);
         ASSERT(moduleAttributesPointer->ClientModuleInstanceName != NULL);
 
-        // This will be the new implementation.
-        //
-        moduleObjectAttributesPointer->ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
+        if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
+        {
+            moduleObjectAttributesPointer->ParentObject = ModuleCollectionConfig->DmfPrivate.ParentDmfModule;
+        }
+        else
+        {
+            moduleObjectAttributesPointer->ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
+        }
         ntStatus = moduleAttributesPointer->InstanceCreator(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice,
                                                             moduleAttributesPointer,
                                                             moduleObjectAttributesPointer,
@@ -3442,33 +3482,41 @@ Return Value:
         #pragma warning(suppress:6386)
         moduleCollectionHandle->ClientDriverDmfModules[moduleCollectionHandle->NumberOfClientDriverDmfModules] = dmfObject;
 
-        // Save the Parent Module Collection handle in the DMF Object.
+        // Do not store the Module Collection handle for child Modules. 
+        // Top level Collection will be propagated to all Modules after Collection is created.
         //
-        ASSERT(NULL == dmfObject->ModuleCollection);
-        dmfObject->ModuleCollection = moduleCollectionHandle;
-        ASSERT(dmfObject->ModuleCollection != NULL);
+        if (! createChildModuleCollection)
+        {
+            // Save the Parent Module Collection handle in the DMF Object.
+            //
+            ASSERT(NULL == dmfObject->ModuleCollection);
+            dmfObject->ModuleCollection = moduleCollectionHandle;
+            ASSERT(dmfObject->ModuleCollection != NULL);
+            // Check if the Module just added to the Collection follows all the 
+            // rules of DMFCOLLECTION object.
+            //
+            if (! DMF_ModuleCollection_ModuleValidate(dmfObject))
+            {
+                ntStatus = STATUS_UNSUCCESSFUL;
+                goto Exit;
+            }
+        }
 
         // Count the number of modules successfully instantiated.
         //
         moduleCollectionHandle->NumberOfClientDriverDmfModules++;
-
-        // Check if the Module just added to the Collection follows all the 
-        // rules of DMFCOLLECTION object.
-        //
-        if (! DMF_ModuleCollection_ModuleValidate(dmfObject))
-        {
-            ntStatus = STATUS_UNSUCCESSFUL;
-            goto Exit;
-        }
     }
 
     ntStatus = STATUS_SUCCESS;
 
-    // Set the Module Collection Handle into all the DMF Modules in the
-    // instantiated Module tree.
-    //
-    DMF_ModuleCollectionHandlePropagate(moduleCollectionHandle,
-                                        moduleCollectionHandle->NumberOfClientDriverDmfModules);
+    if (! createChildModuleCollection)
+    {
+        // Set the Module Collection Handle into all the DMF Modules in the
+        // instantiated Module tree.
+        //
+        DMF_ModuleCollectionHandlePropagate(moduleCollectionHandle,
+                                            moduleCollectionHandle->NumberOfClientDriverDmfModules);
+    }
 
     if (ModuleCollectionConfig->DmfPrivate.BranchTrackEnabled)
     {
@@ -3493,70 +3541,6 @@ Return Value:
     }
 
     ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules == numberOfClientModulesToCreate);
-
-    // Go through the Modules in the Module Collection and open any that should be
-    // opened after they have been created.
-    //
-    for (driverModuleIndex = 0;
-         driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules;
-         driverModuleIndex++)
-    {
-        DMF_OBJECT* dmfObject;
-
-        ASSERT(moduleCollectionHandle != NULL);
-        // 'warning C6385: Reading invalid data from 'moduleCollectionHandle->ClientDriverDmfModules''
-        //
-        #pragma warning(suppress:6385)
-        dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
-        DMFMODULE dmfModule = DMF_ObjectToModule(dmfObject);
-
-        ntStatus = DMF_Module_OpenDuringCreate(dmfModule);
-#if defined(USE_DMF_INJECT_FAULT_PARTIAL_OPEN)
-#if !defined(DEBUG)
-#error You cannot inject faults in non-Debug builds.
-#endif // !defined(DEBUG)
-    // Inject fault. Open only half the modules, then return error.
-    //
-        if (driverModuleIndex >= (moduleCollectionHandle->NumberOfClientDriverDmfModules / 2))
-        {
-            ntStatus = STATUS_UNSUCCESSFUL;
-        }
-#endif // defined(USE_DMF_INJECT_FAULT_PARTIAL_OPEN)
-        if (! NT_SUCCESS(ntStatus))
-        {
-            // Client Module has failed to open. Need to clean up Module Collection and fail this
-            // entire call.
-            //
-            goto Exit;
-        }
-    }
-
-    // Initialize all BranchTrack tables for all Modules and Child Modules in the 
-    // Module Collection. Do this before any Modules are opened because some
-    // Modules may execute BranchTrack in Open or Notification callbacks.
-    // NOTE: This must be done regardless of whether BranchTrack is enabled or not
-    //       so that the ModuleCollectionHandle is written to all the Child Modules.
-    //
-    if (ModuleCollectionConfig->DmfPrivate.BranchTrackEnabled)
-    {
-        DMF_ModuleBranchTrack_ModuleCollectionInitialize(moduleCollectionHandle);
-    }
-
-#if !defined(DMF_USER_MODE)
-    if (ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled)
-    {
-        // This feature is available only for Kernel-mode Drivers.
-        //
-        // Initialize all LiveKernelDump settings for all Modules and Child Modules in the 
-        // Module Collection. Do this before any Modules are opened because some
-        // Modules may use LiveKernelDump in Open or Notification callbacks.
-        // NOTE: This must be done regardless of whether LiveKernelDump is enabled or not
-        //       so that the ModuleCollectionHandle is written to all the Child Modules.
-        //
-        DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(moduleCollectionHandle);
-    }
-#endif // !defined(DMF_USER_MODE)
 
 Exit:
 
@@ -3616,6 +3600,114 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_ModuleCollectionPostCreate(
+    _In_ DMF_MODULE_COLLECTION_CONFIG* ModuleCollectionConfig,
+    _In_ DMFCOLLECTION DmfCollection
+    )
+/*++
+
+Routine Description:
+
+    Open or register for notification for OPEN_Create or NOTIFY_Create Modules.
+    Initialize Feature Modules as necessary.
+
+Arguments:
+
+    ModuleCollectionConfig - Contains Module Collection creation parameters.
+    DmfCollecton - The given DMFCOLLECTION.
+
+Return Value:
+
+    The Module Collection Handle is returned. This handle is used by the DMF Dispatcher
+    to send messages to all instantiated Modules. The Client Driver must store this handle
+    if the Client Driver uses the DMF Dispatcher.
+
+--*/
+{
+    LONG driverModuleIndex;
+    DMF_MODULE_COLLECTION* moduleCollectionHandle;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+    TraceInformation(DMF_TRACE, "%!FUNC!");
+
+    ntStatus = STATUS_UNSUCCESSFUL;
+    moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
+
+    // Go through the Modules in the Module Collection and open any that should be
+    // opened after they have been created.
+    //
+    for (driverModuleIndex = 0;
+         driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules;
+         driverModuleIndex++)
+    {
+        DMF_OBJECT* dmfObject;
+
+        ASSERT(moduleCollectionHandle != NULL);
+        // 'warning C6385: Reading invalid data from 'moduleCollectionHandle->ClientDriverDmfModules''
+        //
+        #pragma warning(suppress:6385)
+        dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
+        ASSERT(dmfObject != NULL);
+        DMFMODULE dmfModule = DMF_ObjectToModule(dmfObject);
+
+        ntStatus = DMF_Module_OpenOrRegisterNotificationOnCreate(dmfModule);
+#if defined(USE_DMF_INJECT_FAULT_PARTIAL_OPEN)
+#if !defined(DEBUG)
+#error You cannot inject faults in non-Debug builds.
+#endif // !defined(DEBUG)
+    // Inject fault. Open only half the modules, then return error.
+    //
+        if (driverModuleIndex >= (moduleCollectionHandle->NumberOfClientDriverDmfModules / 2))
+        {
+            ntStatus = STATUS_UNSUCCESSFUL;
+        }
+#endif // defined(USE_DMF_INJECT_FAULT_PARTIAL_OPEN)
+        if (! NT_SUCCESS(ntStatus))
+        {
+            // Client Module has failed to open. Need to clean up Module Collection and fail this
+            // entire call.
+            //
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Module_OpenOrRegisterNotificationOnCreate fails: ntStatus=%!STATUS!", ntStatus);
+        }
+    }
+
+    // Initialize all BranchTrack tables for all Modules and Child Modules in the 
+    // Module Collection. Do this before any Modules are opened because some
+    // Modules may execute BranchTrack in Open or Notification callbacks.
+    // NOTE: This must be done regardless of whether BranchTrack is enabled or not
+    //       so that the ModuleCollectionHandle is written to all the Child Modules.
+    //
+    if (ModuleCollectionConfig->DmfPrivate.BranchTrackEnabled)
+    {
+        DMF_ModuleBranchTrack_ModuleCollectionInitialize(moduleCollectionHandle);
+    }
+
+#if !defined(DMF_USER_MODE)
+    if (ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled)
+    {
+        // This feature is available only for Kernel-mode Drivers.
+        //
+        // Initialize all LiveKernelDump settings for all Modules and Child Modules in the 
+        // Module Collection. Do this before any Modules are opened because some
+        // Modules may use LiveKernelDump in Open or Notification callbacks.
+        // NOTE: This must be done regardless of whether LiveKernelDump is enabled or not
+        //       so that the ModuleCollectionHandle is written to all the Child Modules.
+        //
+        DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(moduleCollectionHandle);
+    }
+#endif // !defined(DMF_USER_MODE)
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_ModulesCreate(
     _In_ WDFDEVICE Device,
     _In_ PDMFDEVICE_INIT* DmfDeviceInitPointer
@@ -3649,7 +3741,7 @@ Return Value:
     BOOLEAN isDefaultQueueCreated;
     DMF_CONFIG_BranchTrack* branchTrackModuleConfig;
     DMF_CONFIG_LiveKernelDump* liveKernelDumpModuleConfig;
-    DMFCOLLECTION DmfCollection;
+    DMFCOLLECTION dmfCollection;
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     WDF_OBJECT_ATTRIBUTES deviceAttributes;
     PDMFDEVICE_INIT dmfDeviceInit;
@@ -3671,7 +3763,7 @@ Return Value:
     if (! DMF_DmfDeviceInitValidate(dmfDeviceInit))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
-          TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfDeviceInit invalid: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfDeviceInit invalid: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3754,18 +3846,28 @@ Return Value:
     //
     ntStatus = DMF_ModuleCollectionCreate(dmfDeviceInit,
                                           &moduleCollectionConfig,
-                                          &DmfCollection);
+                                          &dmfCollection);
     if (! NT_SUCCESS(ntStatus))
     {
         // TODO: Do we need to call DMF_DmfDeviceInitFree()?
         //
-          TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionCreateEx fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Open or register for notification for OPEN_Create or NOTIFY_Create Modules.
+    //
+    ntStatus = DMF_ModuleCollectionPostCreate(&moduleCollectionConfig,
+                                              dmfCollection);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionPostCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     // Store the collection in Container Context.
     //
-    dmfDeviceContext->DmfCollection = DmfCollection;
+    dmfDeviceContext->DmfCollection = dmfCollection;
     dmfDeviceContext->ClientImplementsEvtWdfDriverDeviceAdd = DMF_DmfDeviceInitClientImplementsDeviceAdd(dmfDeviceInit);
 
 Exit:
