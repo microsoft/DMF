@@ -103,7 +103,7 @@ Return Value:
     // DMF: DMF has Utility functions for common tasks. These do not require Modules.
     // Setup the activity ID so that we can log events using it.
     //
-    activity = DMF_Utility_DeviceToActivityId(device);
+    activity = DMF_Utility_ActivityIdFromDevice(device);
 
     //
     // Get the DeviceObject context by using accessor function specified in
@@ -295,7 +295,7 @@ Return Value:
             WDFREQUEST request = (WDFREQUEST)Parameter2;
             ULONG length = (ULONG)Parameter3;
 
-            activityId = DMF_Utility_RequestToActivityId(request);
+            activityId = DMF_Utility_ActivityIdFromRequest(request);
             // 
             // Log read start event, using IRP activity ID if available or request
             // handle otherwise.
@@ -308,7 +308,7 @@ Return Value:
             WDFREQUEST request = (WDFREQUEST)Parameter2;
             NTSTATUS status = (ULONG)Parameter3;
 
-            activityId = DMF_Utility_RequestToActivityId(request);
+            activityId = DMF_Utility_ActivityIdFromRequest(request);
             EventWriteReadFail(&activityId, device, status);
             break;
         }
@@ -319,7 +319,7 @@ Return Value:
             USBD_STATUS usbdStatus = (USBD_STATUS)Parameter4;
             ULONG bytesRead = (ULONG)Parameter5;
 
-            activityId = DMF_Utility_RequestToActivityId(request);
+            activityId = DMF_Utility_ActivityIdFromRequest(request);
             EventWriteReadStop(&activityId, 
                                device,
                                bytesRead, 
@@ -332,7 +332,7 @@ Return Value:
             WDFREQUEST request = (WDFREQUEST)Parameter2;
             ULONG length = (ULONG)Parameter3;
 
-            activityId = DMF_Utility_RequestToActivityId(request);
+            activityId = DMF_Utility_ActivityIdFromRequest(request);
             EventWriteWriteStart(&activityId, device, (ULONG)length);
             break;
         }
@@ -341,7 +341,7 @@ Return Value:
             WDFREQUEST request = (WDFREQUEST)Parameter2;
             NTSTATUS status = (ULONG)Parameter3;
 
-            activityId = DMF_Utility_RequestToActivityId(request);
+            activityId = DMF_Utility_ActivityIdFromRequest(request);
             EventWriteWriteFail(&activityId, device, status);
             break;
         }
@@ -352,7 +352,7 @@ Return Value:
             USBD_STATUS usbdStatus = (USBD_STATUS)Parameter4;
             ULONG bytesRead = (ULONG)Parameter5;
 
-            activityId = DMF_Utility_RequestToActivityId(request);
+            activityId = DMF_Utility_ActivityIdFromRequest(request);
             EventWriteWriteStop(&activityId, 
                                device,
                                bytesRead, 
@@ -364,7 +364,7 @@ Return Value:
         {
             NTSTATUS status = (ULONG)Parameter3;
 
-            activityId = DMF_Utility_DeviceToActivityId(device);
+            activityId = DMF_Utility_ActivityIdFromDevice(device);
             EventWriteSelectConfigFailure(&activityId,
                                           pDevContext->DeviceName,
                                           pDevContext->Location,
@@ -375,7 +375,7 @@ Return Value:
         {
             NTSTATUS status = (ULONG)Parameter3;
 
-            activityId = DMF_Utility_DeviceToActivityId(WdfObjectContextGetObject(pDevContext));
+            activityId = DMF_Utility_ActivityIdFromDevice(WdfObjectContextGetObject(pDevContext));
             EventWriteDeviceReenumerated(&activityId,
                                          pDevContext->DeviceName,
                                          pDevContext->Location,

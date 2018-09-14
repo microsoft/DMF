@@ -386,7 +386,7 @@ Return Value:
     //
     if (dmfObject->DynamicModule)
     {
-        DMF_Module_CloseOnDestroy(DmfModule);
+        DMF_Module_CloseOrUnregisterNotificationOnDestroy(DmfModule);
     }
 
     // Dispatch callback to Child DMF Modules first.
@@ -2344,14 +2344,14 @@ Exit:
 }
 
 NTSTATUS
-DMF_Module_OpenDuringCreate(
+DMF_Module_OpenOrRegisterNotificationOnCreate(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Invoke the Open Callback for a Parent and all recursive children during Module Create.
+    Invoke the Open or Notify Callback for a Parent and all recursive children during Module Create.
 
 Arguments:
 
@@ -2376,7 +2376,7 @@ Return Value:
     // Dispatch callback to Child DMF Modules first.
     //
     ntStatus = DMF_ChildDispatchSingleParameterNtStatus(DmfModule,
-                                                        DMF_Module_OpenDuringCreate);
+                                                        DMF_Module_OpenOrRegisterNotificationOnCreate);
     if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -2384,7 +2384,7 @@ Return Value:
 
     if (dmfObject->ModuleDescriptor.OpenOption == DMF_MODULE_OPEN_OPTION_OPEN_Create)
     {
-        // Dispatch callback to the given Parent DMF Module next.
+        // Dispatch Open callback to the given Parent DMF Module next.
         //
         ASSERT(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
         ntStatus = (dmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
@@ -2398,6 +2398,17 @@ Return Value:
         //
         ASSERT(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
         dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_Create;
+    }
+    else if (dmfObject->ModuleDescriptor.OpenOption == DMF_MODULE_OPEN_OPTION_NOTIFY_Create)
+    {
+        // Dispatch NotificationRegister callback to the given Parent DMF Module next.
+        //
+        ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
+        ntStatus = (dmfObject->InternalCallbacksDmf.DeviceNotificationRegister)(DmfModule);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            goto Exit;
+        }
     }
 
 Exit:
@@ -2621,14 +2632,14 @@ Return Value:
 }
 
 VOID
-DMF_Module_CloseOnDestroy(
+DMF_Module_CloseOrUnregisterNotificationOnDestroy(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Invoke the Close Callback for a given DMF Module.
+    Invoke the Close or NotificationUnregister Callback for a given DMF Module.
     First, the given DMF Module's corresponding callback is called.
     Next, each of the Child DMF Modules' corresponding callbacks are called.
 
@@ -2663,11 +2674,16 @@ Return Value:
             //
         }
     }
+    else if (dmfObject->ModuleDescriptor.OpenOption == DMF_MODULE_OPEN_OPTION_NOTIFY_Create)
+    {
+        ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
+        (dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister)(DmfModule);
+    }
 
     // Dispatch callback to Child DMF Modules next.
     //
     DMF_ChildDispatchSingleParameterVoid(DmfModule,
-                                         DMF_Module_CloseOnDestroy);
+                                         DMF_Module_CloseOrUnregisterNotificationOnDestroy);
 }
 
 // Sometimes the Thread ID of the current thread is zero. In that case, use DMF_INVALID_HANDLE_VALUE.

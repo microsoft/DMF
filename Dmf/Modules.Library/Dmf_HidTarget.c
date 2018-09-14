@@ -87,11 +87,11 @@ DMF_MODULE_DECLARE_CONFIG(HidTarget)
 // {55F3D844-8F9E-4EBD-AE33-EB778524CEEF}
 DEFINE_GUID(GUID_CUSTOM_DEVINTERFACE, 0x55f3d844, 0x8f9e, 0x4ebd, 0xae, 0x33, 0xeb, 0x77, 0x85, 0x24, 0xce, 0xef);
 
-EVT_WDF_REQUEST_COMPLETION_ROUTINE Hid_ReadCompletionRoutine;
+EVT_WDF_REQUEST_COMPLETION_ROUTINE HidTarget_ReadCompletionRoutine;
 
 _Use_decl_annotations_
 VOID
-Hid_ReadCompletionRoutine(
+HidTarget_ReadCompletionRoutine(
     _In_ WDFREQUEST Request,
     _In_ WDFIOTARGET Target,
     _In_ PWDF_REQUEST_COMPLETION_PARAMS Params,
@@ -133,7 +133,7 @@ Return Value:
     if (! NT_SUCCESS(Params->IoStatus.Status))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "ReadCompletionRoutine fails: ntStatus=%!STATUS!",
                     Params->IoStatus.Status);
     }
@@ -160,7 +160,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Hid_IoTargetCreateByName(
+HidTarget_IoTargetCreateByName(
     _In_ WDFDEVICE Device,
     _In_ PUNICODE_STRING SymbolicLinkName,
     _In_ ULONG OpenMode,
@@ -194,7 +194,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     // Ensure the target is only set on success.
     //
@@ -213,7 +213,8 @@ Return Value:
                                  &resultIoTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid,
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE_HidTarget,
                     "WdfIoTargetCreate fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -226,7 +227,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfIoTargetOpen fails: ntStatus=%!STATUS!",
                     ntStatus);
         WdfObjectDelete(resultIoTarget);
@@ -237,7 +238,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -248,7 +249,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Hid_DeviceProperyGet(
+HidTarget_DeviceProperyGet(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -297,7 +298,7 @@ Return Value:
                                                  NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget,
                     "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -314,7 +315,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfMemoryCreate for preparsed data fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -334,7 +335,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -349,7 +350,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "HidP_GetCaps() fails: %!STATUS!",
                     ntStatus);
         goto Exit;
@@ -371,17 +372,18 @@ Exit:
         WdfObjectDelete(preparsedDataMemory);
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 
+#if !defined(DMF_USER_MODE)
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Hid_InterfaceCreateForDevice(
+HidTarget_InterfaceCreateForLocal(
     _In_ DMFMODULE DmfModule,
     _In_ const GUID* InterfaceGuid,
     _In_ WDFDEVICE Device
@@ -415,7 +417,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -436,7 +438,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfDeviceAllocAndQueryProperty fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -458,7 +460,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfMemoryCreate fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -480,7 +482,7 @@ Return Value:
     USHORT readIndex = 0;
     while (readIndex < ((sizeToAllocate / sizeof(WCHAR)) - 1))
     {
-        if ((nameBuffer[readIndex] != L'\\') || 
+        if ((nameBuffer[readIndex] != L'\\') && 
             (nameBuffer[readIndex] != L'/'))
         {
             nameBuffer[writeIndex] = nameBuffer[readIndex];
@@ -502,7 +504,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -516,7 +518,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfStringCreate fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -529,7 +531,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -555,7 +557,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Could not allocate memory for symbolic link to search");
         goto Exit;
     }
@@ -585,17 +587,18 @@ Exit:
         WdfObjectDelete(deviceReferenceNameHandle);
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
-Hid_IoTargetDestroy(
+HidTarget_IoTargetDestroy(
     _Inout_ DMF_CONTEXT_HidTarget* ModuleContext
     )
 /*++
@@ -617,7 +620,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     if (ModuleContext->IoTarget != NULL)
     {
@@ -644,7 +647,7 @@ Return Value:
         ModuleContext->PreparsedDataMemory = WDF_NO_HANDLE;
     }
 
-    FuncExitVoid(DMF_TRACE_Hid);
+    FuncExitVoid(DMF_TRACE_HidTarget);
 }
 #pragma code_seg()
 
@@ -653,7 +656,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 BOOLEAN
-Hid_IsPidInList(
+HidTarget_IsPidInList(
     _In_ UINT16 LookForPid,
     _In_ UINT16* PidList,
     _In_ ULONG PidListArraySize
@@ -681,7 +684,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     isFound = FALSE;
 
@@ -691,14 +694,14 @@ Return Value:
         {
             isFound = TRUE;
             TraceEvents(TRACE_LEVEL_INFORMATION,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "found supported PID: 0x%x",
                         LookForPid);
             break;
         }
     }
 
-    FuncExit(DMF_TRACE_Hid, "isFound=%d", isFound);
+    FuncExit(DMF_TRACE_HidTarget, "isFound=%d", isFound);
 
     return isFound;
 }
@@ -709,22 +712,21 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Hid_IsAccessoryTopLevelCollection(
+HidTarget_MatchCheckForRemote(
     _In_ DMFMODULE DmfModule,
     _In_ PUNICODE_STRING DevicePath,
-    _Out_ BOOLEAN* IsTopLevelCollection)
+    _Out_ BOOLEAN* IsDeviceMatched)
 /*++
 
 Routine Description:
 
-    Determine if the given device handle is a device type that the Client wants
-    to open.
+    Checks the Hid attributes to determin the match for device.
 
 Arguments:
 
     DmfModule - This Module's handle.
     DevicePath - The file name that allows this driver to access the device.
-    IsTopLevelCollection - The result of the query.
+    IsDeviceMatched - The result of the query.
 
 Return Value:
 
@@ -746,10 +748,8 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DevicePath != NULL);
-    ASSERT(IsTopLevelCollection != NULL);
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -758,220 +758,171 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ioTarget = NULL;
-    *IsTopLevelCollection = FALSE;
+    *IsDeviceMatched = FALSE;
     preparsedHidData = NULL;
     memoryPreparsedHidData = NULL;
     RtlZeroMemory(&hidCollectionInformation,
                   sizeof(hidCollectionInformation));
 
-    if (! moduleConfig->SkipHidDeviceEnumerationSearch)
+    // Open the device to be queried.
+    // NOTE: Per OSG (Austin Hodges), when opening HID device for enumeration purposes (to see if 
+    // it is the required device, the Open Mode should be zero and share should be Read/Write.
+    //
+    ntStatus = HidTarget_IoTargetCreateByName(device,
+                                              DevicePath,
+                                              0,
+                                              FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                              &ioTarget);
+    if (! NT_SUCCESS(ntStatus))
     {
-        // Open the device to be queried.
-        // NOTE: Per OSG (Austin Hodges), when opening HID device for enumeration purposes (to see if 
-        // it is the required device, the Open Mode should be zero and share should be Read/Write.
-        //
-        ntStatus = Hid_IoTargetCreateByName(device,
-                                            DevicePath,
-                                            0,
-                                            FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                            &ioTarget);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "CreateNewIoTargetByName fails: ntStatus=%!STATUS!",
-                        ntStatus);
-            ioTarget = NULL;
-            goto Exit;
-        }
-
-        // Get the collection information.
-        //
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
-                                          (VOID*)&hidCollectionInformation,
-                                          sizeof(HID_COLLECTION_INFORMATION));
-        ntStatus = WdfIoTargetSendIoctlSynchronously(ioTarget,
-                                                     NULL,
-                                                     IOCTL_HID_GET_COLLECTION_INFORMATION,
-                                                     NULL,
-                                                     &outputDescriptor,
-                                                     NULL,
-                                                     NULL);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "IOCTL_Hid_GET_COLLECTION_INFORMATION fails: ntStatus=%!STATUS!",
-                        ntStatus);
-            goto Exit;
-        }
-
-        if (0 == hidCollectionInformation.DescriptorSize)
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "hidCollectionInformation.DescriptorSize==0, ntStatus=%!STATUS!",
-                        ntStatus);
-            ntStatus = STATUS_INVALID_PARAMETER;
-            goto Exit;
-        }
-
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "IOCTL_Hid_GET_COLLECTION_INFORMATION returned VID = 0x%x",
-                    hidCollectionInformation.VendorID);
-
-        // Check VID/PID 
-        //
-        if (hidCollectionInformation.VendorID != moduleConfig->VendorId)
-        {
-            TraceEvents(TRACE_LEVEL_WARNING,
-                        DMF_TRACE_Hid,
-                        "IOCTL_Hid_GET_COLLECTION_INFORMATION unsupported VID");
-            goto Exit;
-        }
-
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "IOCTL_Hid_GET_COLLECTION_INFORMATION returned PID = 0x%x",
-                    hidCollectionInformation.ProductID);
-
-        // See if it is one of the PIDs that the Client wants.
-        //
-        if ((moduleConfig->PidCount > 0) &&
-            (! Hid_IsPidInList(hidCollectionInformation.ProductID,
-                               moduleConfig->PidsOfDevicesToOpen,
-                               moduleConfig->PidCount)))
-        {
-            TraceEvents(TRACE_LEVEL_WARNING,
-                        DMF_TRACE_Hid,
-                        "IOCTL_Hid_GET_COLLECTION_INFORMATION unsupported PID");
-            goto Exit;
-        }
-
-        WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-        attributes.ParentObject = device;
-        ntStatus = WdfMemoryCreate(&attributes,
-                                   NonPagedPoolNx,
-                                   MemoryTag,
-                                   hidCollectionInformation.DescriptorSize,
-                                   &memoryPreparsedHidData,
-                                   (VOID* *)&preparsedHidData);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "ntStatus=%!STATUS!",
-                        ntStatus);
-            memoryPreparsedHidData = NULL;
-            preparsedHidData = NULL;
-            goto Exit;
-        }
-
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
-                                          (VOID*)preparsedHidData,
-                                          hidCollectionInformation.DescriptorSize);
-
-        ntStatus = WdfIoTargetSendIoctlSynchronously(ioTarget,
-                                                     NULL,
-                                                     IOCTL_HID_GET_COLLECTION_DESCRIPTOR,
-                                                     NULL,
-                                                     &outputDescriptor,
-                                                     NULL,
-                                                     NULL);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "IOCTL_Hid_GET_COLLECTION_DESCRIPTOR fails: %!STATUS!",
-                        ntStatus);
-            goto Exit;
-        }
-
-        ntStatus = HidP_GetCaps(preparsedHidData,
-                                &hidCaps);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "HidP_GetCaps() fails: %!STATUS!",
-                        ntStatus);
-            goto Exit;
-        }
-
-        // Check the usage and usage page.
-        //
-        if ((hidCaps.Usage != moduleConfig->VendorUsage) ||
-            (hidCaps.UsagePage != moduleConfig->VendorUsagePage))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "incorrect usage or usage page failed");
-            ntStatus = STATUS_INVALID_PARAMETER;
-            goto Exit;
-        }
-
-        // At this point a matching device is found.
-        //
-        *IsTopLevelCollection = TRUE;
-
-        // Let the client decide whether this is the device it needs or not.
-        //
-        if (moduleConfig->EvtHidTargetDeviceSelectionCallback)
-        {
-            *IsTopLevelCollection = moduleConfig->EvtHidTargetDeviceSelectionCallback(DmfModule,
-                                                                                      DevicePath,
-                                                                                      ioTarget,
-                                                                                      preparsedHidData,
-                                                                                      &hidCollectionInformation);
-        }
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "CreateNewIoTargetByName fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        ioTarget = NULL;
+        goto Exit;
     }
-    else
+
+    // Get the collection information.
+    //
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
+                                      (VOID*)&hidCollectionInformation,
+                                      sizeof(HID_COLLECTION_INFORMATION));
+    ntStatus = WdfIoTargetSendIoctlSynchronously(ioTarget,
+                                                 NULL,
+                                                 IOCTL_HID_GET_COLLECTION_INFORMATION,
+                                                 NULL,
+                                                 &outputDescriptor,
+                                                 NULL,
+                                                 NULL);
+    if (! NT_SUCCESS(ntStatus))
     {
-        // Look for the custom symbolic link that was created for the device specified by client.
-        // Match up reported symbolic link against the saved 'SymbolicLinkToSearch'.
-        //
-        SIZE_T matchLength;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "IOCTL_Hid_GET_COLLECTION_INFORMATION fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
 
-        ntStatus = STATUS_SUCCESS;
+    if (0 == hidCollectionInformation.DescriptorSize)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "hidCollectionInformation.DescriptorSize==0, ntStatus=%!STATUS!",
+                    ntStatus);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
 
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "Interface Arrival %S",
-                    DevicePath->Buffer);
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE_HidTarget,
+                "IOCTL_Hid_GET_COLLECTION_INFORMATION returned VID = 0x%x",
+                hidCollectionInformation.VendorID);
 
-        size_t symbolicLinkNameToSearchSavedBufferLength = 0;
-        PWCHAR symbolicLinkNameToSearchSavedBuffer = (PWCHAR)WdfMemoryGetBuffer(moduleContext->SymbolicLinkToSearchMemory,
-                                                                                &symbolicLinkNameToSearchSavedBufferLength);
+    // Check VID/PID 
+    //
+    if (hidCollectionInformation.VendorID != moduleConfig->VendorId)
+    {
+        TraceEvents(TRACE_LEVEL_WARNING,
+                    DMF_TRACE_HidTarget,
+                    "IOCTL_Hid_GET_COLLECTION_INFORMATION unsupported VID");
+        goto Exit;
+    }
 
-       // Strings should be same length.
-       //
-        if (symbolicLinkNameToSearchSavedBufferLength != DevicePath->Length)
-        {
-            // This code path is valid on unplug as several devices not associated with this instance
-            // may disappear.
-            //
-            goto Exit;
-        }
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE_HidTarget,
+                "IOCTL_Hid_GET_COLLECTION_INFORMATION returned PID = 0x%x",
+                hidCollectionInformation.ProductID);
 
-        ASSERT(symbolicLinkNameToSearchSavedBuffer != NULL);
-        matchLength = RtlCompareMemory((VOID*)symbolicLinkNameToSearchSavedBuffer,
-                                       DevicePath->Buffer,
-                                       DevicePath->Length);
+    // See if it is one of the PIDs that the Client wants.
+    //
+    if ((moduleConfig->PidCount > 0) &&
+        (! HidTarget_IsPidInList(hidCollectionInformation.ProductID,
+                           moduleConfig->PidsOfDevicesToOpen,
+                           moduleConfig->PidCount)))
+    {
+        TraceEvents(TRACE_LEVEL_WARNING,
+                    DMF_TRACE_HidTarget,
+                    "IOCTL_Hid_GET_COLLECTION_INFORMATION unsupported PID");
+        goto Exit;
+    }
 
-        if (symbolicLinkNameToSearchSavedBufferLength != matchLength)
-        {
-            // This code path is valid on unplug as several devices not associated with this instance
-            // may disappear.
-            //
-            goto Exit;
-        }
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = device;
+    ntStatus = WdfMemoryCreate(&attributes,
+                               NonPagedPoolNx,
+                               MemoryTag,
+                               hidCollectionInformation.DescriptorSize,
+                               &memoryPreparsedHidData,
+                               (VOID* *)&preparsedHidData);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "ntStatus=%!STATUS!",
+                    ntStatus);
+        memoryPreparsedHidData = NULL;
+        preparsedHidData = NULL;
+        goto Exit;
+    }
 
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "Found a top level collection (found the Client Driver's requested device)");
-        *IsTopLevelCollection = TRUE;
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
+                                      (VOID*)preparsedHidData,
+                                      hidCollectionInformation.DescriptorSize);
+
+    ntStatus = WdfIoTargetSendIoctlSynchronously(ioTarget,
+                                                 NULL,
+                                                 IOCTL_HID_GET_COLLECTION_DESCRIPTOR,
+                                                 NULL,
+                                                 &outputDescriptor,
+                                                 NULL,
+                                                 NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "IOCTL_Hid_GET_COLLECTION_DESCRIPTOR fails: %!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = HidP_GetCaps(preparsedHidData,
+                            &hidCaps);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "HidP_GetCaps() fails: %!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    // Check the usage and usage page.
+    //
+    if ((hidCaps.Usage != moduleConfig->VendorUsage) ||
+        (hidCaps.UsagePage != moduleConfig->VendorUsagePage))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "incorrect usage or usage page failed");
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
+    // At this point a matching device is found.
+    //
+    *IsDeviceMatched = TRUE;
+
+    // Let the client decide whether this is the device it needs or not.
+    //
+    if (moduleConfig->EvtHidTargetDeviceSelectionCallback)
+    {
+        *IsDeviceMatched = moduleConfig->EvtHidTargetDeviceSelectionCallback(DmfModule,
+                                                                             DevicePath,
+                                                                             ioTarget,
+                                                                             preparsedHidData,
+                                                                             &hidCollectionInformation);
     }
 
 Exit:
@@ -992,7 +943,179 @@ Exit:
         preparsedHidData = NULL;
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+HidTarget_MatchCheckForLocal(
+    _In_ DMFMODULE DmfModule,
+    _In_ PUNICODE_STRING DevicePath,
+    _Out_ BOOLEAN* IsDeviceMatched)
+/*++
+
+Routine Description:
+
+    Checks the custom device specific interface to determin the match for device.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DevicePath - The file name that allows this driver to access the device.
+    IsDeviceMatched - The result of the query.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_HidTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Look for the custom symbolic link that was created for the device specified by client.
+    // Match up reported symbolic link against the saved 'SymbolicLinkToSearch'.
+    //
+    SIZE_T matchLength;
+
+    ntStatus = STATUS_SUCCESS;
+    *IsDeviceMatched = FALSE;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE_HidTarget,
+                "Interface Arrival %S",
+                DevicePath->Buffer);
+
+    size_t symbolicLinkNameToSearchSavedBufferLength = 0;
+    PWCHAR symbolicLinkNameToSearchSavedBuffer = (PWCHAR)WdfMemoryGetBuffer(moduleContext->SymbolicLinkToSearchMemory,
+                                                                            &symbolicLinkNameToSearchSavedBufferLength);
+
+    // Strings should be same length.
+    //
+    if (symbolicLinkNameToSearchSavedBufferLength != DevicePath->Length)
+    {
+        // This code path is valid on unplug as several devices not associated with this instance
+        // may disappear.
+        //
+        goto Exit;
+    }
+
+    ASSERT(symbolicLinkNameToSearchSavedBuffer != NULL);
+    matchLength = RtlCompareMemory((VOID*)symbolicLinkNameToSearchSavedBuffer,
+                                    DevicePath->Buffer,
+                                    DevicePath->Length);
+
+    if (symbolicLinkNameToSearchSavedBufferLength != matchLength)
+    {
+        // This code path is valid on unplug as several devices not associated with this instance
+        // may disappear.
+        //
+        goto Exit;
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE_HidTarget,
+                "Found a matching local device");
+
+    *IsDeviceMatched = TRUE;
+
+Exit:
+
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+HidTarget_IsAccessoryTopLevelCollection(
+    _In_ DMFMODULE DmfModule,
+    _In_ PUNICODE_STRING DevicePath,
+    _Out_ BOOLEAN* IsTopLevelCollection
+    )
+/*++
+
+Routine Description:
+
+    Determine if the given device handle is a device type that the Client wants
+    to open.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DevicePath - The file name that allows this driver to access the device.
+    IsTopLevelCollection - The result of the query.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_HidTarget* moduleConfig;
+    BOOLEAN matchedDeviceFound;
+
+    PAGED_CODE();
+
+    ASSERT(DevicePath != NULL);
+    ASSERT(IsTopLevelCollection != NULL);
+
+    FuncEntry(DMF_TRACE_HidTarget);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    *IsTopLevelCollection = FALSE;
+
+    // Check to see if there is a match for the device that is being looked for.
+    // Based on the configuration it is either a remote hid target or a local hid target.
+    // Here, Remote means a device which may or may not be on the same devstack and 
+    // local means a device which is on the same stack (which is the case when user 
+    // has configured to skip enumerating all the hid devices).
+    //
+    if (!moduleConfig->SkipHidDeviceEnumerationSearch)
+    {
+        ntStatus = HidTarget_MatchCheckForRemote(DmfModule,
+                                                 DevicePath,
+                                                 &matchedDeviceFound);
+    }
+    else
+    {
+        ntStatus = HidTarget_MatchCheckForLocal(DmfModule,
+                                                DevicePath,
+                                                &matchedDeviceFound);
+    }
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "HidTarget_MatchCheck fails: %!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    *IsTopLevelCollection = matchedDeviceFound;
+
+Exit:
+
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1002,7 +1125,7 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
-Hid_MatchedTargetGet(
+HidTarget_MatchedTargetGet(
     _In_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* SymbolicLinkName
     )
@@ -1040,14 +1163,14 @@ Return Value:
     DMF_ModuleLock(DmfModule);
 
     isTopLevelCollection = FALSE;
-    ntStatus = Hid_IsAccessoryTopLevelCollection(DmfModule,
-                                                 SymbolicLinkName,
-                                                 &isTopLevelCollection);
+    ntStatus = HidTarget_IsAccessoryTopLevelCollection(DmfModule,
+                                                       SymbolicLinkName,
+                                                       &isTopLevelCollection);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
-                    "Hid_IsAccessoryTopLevelCollection fails: ntStatus=%!STATUS!",
+                    DMF_TRACE_HidTarget,
+                    "HidTarget_IsAccessoryTopLevelCollection fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -1057,7 +1180,7 @@ Return Value:
         // It is not the device the Client Driver is looking for.
         //
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "isTopLevelCollection=%d",
                     isTopLevelCollection);
 
@@ -1079,7 +1202,7 @@ Return Value:
         {
             ASSERT(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "Symbolic link length is 0");
             ntStatus = STATUS_INVALID_PARAMETER;
             goto Exit;
@@ -1099,7 +1222,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "Could not allocate memory for symbolic link");
             goto Exit;
         }
@@ -1117,7 +1240,7 @@ Return Value:
         // Received a duplicate callback.
         //
         TraceEvents(TRACE_LEVEL_WARNING,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Symbolic link was already initialized");
         ASSERT(FALSE);
     }
@@ -1126,7 +1249,7 @@ Return Value:
     //
     if (NULL == moduleContext->IoTarget)
     {
-        ntStatus = Hid_IoTargetCreateByName(device,
+        ntStatus = HidTarget_IoTargetCreateByName(device,
                                             SymbolicLinkName,
                                             moduleConfig->OpenMode,
                                             moduleConfig->ShareAccess,
@@ -1134,31 +1257,31 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "WdfIoTargetCreate fails: ntStatus=%!STATUS!",
                         ntStatus);
             goto Exit;
         }
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Created IOTarget for target HID device");
 
         // Cache the Hid Properties for this target.
         //
-        ntStatus = Hid_DeviceProperyGet(DmfModule);
+        ntStatus = HidTarget_DeviceProperyGet(DmfModule);
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "Hid_DeviceProperyGet fails: ntStatus=%!STATUS!",
+                        DMF_TRACE_HidTarget,
+                        "HidTarget_DeviceProperyGet fails: ntStatus=%!STATUS!",
                         ntStatus);
 
             TraceEvents(TRACE_LEVEL_INFORMATION,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "Destroying IOTarget for target HID device");
 
-            Hid_IoTargetDestroy(moduleContext);
+            HidTarget_IoTargetDestroy(moduleContext);
             goto Exit;
         }
 
@@ -1169,11 +1292,11 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_INFORMATION,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "Module Open Fails; Destroying IOTarget for target HID device,ntStatus=%!STATUS!",
                         ntStatus);
 
-            Hid_IoTargetDestroy(moduleContext);
+            HidTarget_IoTargetDestroy(moduleContext);
         }
     }
     else
@@ -1199,7 +1322,7 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
-Hid_MatchedTargetDestroy(
+HidTarget_MatchedTargetDestroy(
     _In_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* SymbolicLinkName
     )
@@ -1242,7 +1365,7 @@ Return Value:
     if (WDF_NO_HANDLE == moduleContext->SymbolicLinkNameMemory)
     {
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Matching device was not detected");
         goto Exit;
     }
@@ -1258,7 +1381,7 @@ Return Value:
         // may disappear.
         //
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Length test fails");
         goto Exit;
     }
@@ -1274,7 +1397,7 @@ Return Value:
         // may disappear.
         //
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "matchLength test fails");
         goto Exit;
     }
@@ -1291,7 +1414,7 @@ Exit:
     if (targetMatched)
     {
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Removing HID device from notification function");
 
         // Call the DMF Module Client specific code.
@@ -1302,7 +1425,7 @@ Exit:
         }
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     // Return SUCCESS here always.
     //
@@ -1317,7 +1440,7 @@ _Function_class_(DRIVER_NOTIFICATION_CALLBACK_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
-Hid_InterfaceArrivalCallbackKernel(
+HidTarget_InterfaceArrivalCallbackForLocalOrRemoteKernel(
     _In_ VOID* NotificationStructure,
     _Inout_opt_ VOID* Context
     )
@@ -1325,7 +1448,7 @@ Hid_InterfaceArrivalCallbackKernel(
 
 Routine Description:
 
-    PnP notification function that is called when a HID device is available.
+    PnP notification function that is called when a HID device is available. 
 
 Arguments:
 
@@ -1344,7 +1467,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     // warning C6387: 'Context' could be '0'.
     //
@@ -1361,24 +1484,24 @@ Return Value:
         ASSERT(info->SymbolicLinkName);
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "GUID_DEVICE_INTERFACE_ARRIVAL Found HID Device...Query state collection");
 
-        ntStatus = Hid_MatchedTargetGet(dmfModule,
-                                        info->SymbolicLinkName);
+        ntStatus = HidTarget_MatchedTargetGet(dmfModule,
+                                              info->SymbolicLinkName);
     }
     else if (DMF_Utility_IsEqualGUID((LPGUID)&(info->Event),
                                      (LPGUID)&GUID_DEVICE_INTERFACE_REMOVAL))
     {
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "GUID_DEVICE_INTERFACE_REMOVAL");
 
-        ntStatus = Hid_MatchedTargetDestroy(dmfModule,
-                                            info->SymbolicLinkName);
+        ntStatus = HidTarget_MatchedTargetDestroy(dmfModule,
+                                                  info->SymbolicLinkName);
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return STATUS_SUCCESS;
 }
@@ -1387,7 +1510,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-Hid_RegisterForNotificationKernel(
+HidTarget_NotificationRegisterForLocalOrRemoteKernel(
     _In_ DMFMODULE DmfModule,
     _In_ const GUID* InterfaceGuid
     )
@@ -1417,7 +1540,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1433,26 +1556,204 @@ Return Value:
                                               PNPNOTIFY_DEVICE_INTERFACE_INCLUDE_EXISTING_INTERFACES,
                                               (void*)InterfaceGuid,
                                               driverObject,
-                                              (PDRIVER_NOTIFICATION_CALLBACK_ROUTINE)Hid_InterfaceArrivalCallbackKernel,
+                                              (PDRIVER_NOTIFICATION_CALLBACK_ROUTINE)HidTarget_InterfaceArrivalCallbackForLocalOrRemoteKernel,
                                               (VOID*)DmfModule,
                                               &(moduleContext->HidInterfaceNotification));
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
-                DMF_TRACE_Hid,
+                DMF_TRACE_HidTarget,
                 "IoRegisterPlugPlayNotification: Notification Entry 0x%p ntStatus = %!STATUS!",
                 moduleContext->HidInterfaceNotification, ntStatus);
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+HidTarget_NotificationRegisterForLocalKernel(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Register for a notification for the specified device. This helper function creates a device
+    specific interface and setups listening for it.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_HidTarget* moduleConfig;
+    const GUID *interfaceGuid;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_HidTarget);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // Create a custom interface and symbolic link for the device specified by client.
+    // Newly created symbolic link is saved for lookup at arrival callback.
+    //
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE_HidTarget,
+                "Creating Custom Interface for target HID device 0x%p",
+                moduleConfig->HidTargetToConnect);
+
+    interfaceGuid = &GUID_CUSTOM_DEVINTERFACE;
+    ntStatus = HidTarget_InterfaceCreateForLocal(DmfModule,
+                                                 interfaceGuid,
+                                                 moduleConfig->HidTargetToConnect);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "HidTarget_CreateInterfaceForDevice fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = HidTarget_NotificationRegisterForLocalOrRemoteKernel(DmfModule,
+                                                                    interfaceGuid);
+
+Exit:
+
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+inline
+NTSTATUS
+HidTarget_NotificationRegisterForRemoteKernel(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Register for notification for all hid devices. 
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    PAGED_CODE();
+
+    return HidTarget_NotificationRegisterForLocalOrRemoteKernel(DmfModule,
+                                                                &GUID_DEVINTERFACE_HID);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+HidTarget_NotificationUnregisterKernel(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Unregister a notification. DMF calls this callback instead of the Close callback
+    when the Open Notification option is selected. This function does the work of properly unregistering
+    a notification of the arrival or existence of the another target that this Module needs to open.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    // The notification routine could be called after the IoUnregisterPlugPlayNotification method 
+    // has returned which was undesirable. UnRegisterNotify prevents the 
+    // notification routine from being called after IoUnregisterPlugPlayNotificationEx/CM_Unregister_Notification returns.
+    //
+    if (moduleContext->HidInterfaceNotification != NULL)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION,
+                    DMF_TRACE_HidTarget,
+                    "Destroy Notification Entry 0x%p",
+                    moduleContext->HidInterfaceNotification);
+
+        ntStatus = IoUnregisterPlugPlayNotificationEx(moduleContext->HidInterfaceNotification);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION,
+                        DMF_TRACE_HidTarget,
+                        "IoUnregisterPlugPlayNotificationEx() fails: ntStatus=%!STATUS!",
+                        ntStatus);
+            ASSERT(FALSE);
+            goto Exit;
+        }
+
+        moduleContext->HidInterfaceNotification = NULL;
+
+        // The device may or may not have been opened. Close it now
+        // because the Close handler will not be called.
+        //
+        if (moduleContext->IoTarget != NULL)
+        {
+            DMF_ModuleClose(DmfModule);
+        }
+    }
+    else
+    {
+        // Allow caller to unregister notification even if it has not been registered.
+        //
+        TraceEvents(TRACE_LEVEL_INFORMATION,
+                    DMF_TRACE_HidTarget,
+                    "IoUnregisterPlugPlayNotificationEx() skipped.");
+    }
+
+Exit:
+
+    FuncExitVoid(DMF_TRACE_HidTarget);
+}
+#pragma code_seg()
+
+
 #else
 
 #pragma code_seg("PAGE")
 DWORD
-Hid_InterfaceArrivalCallbackUser(
+HidTarget_InterfaceArrivalCallbackForRemoteUser(
     _In_ HCMNOTIFICATION Notify,
     _In_opt_ VOID* Context,
     _In_ CM_NOTIFY_ACTION Action,
@@ -1464,7 +1765,7 @@ Hid_InterfaceArrivalCallbackUser(
 Routine Description:
 
     Callback called when the notification that is registered detects an arrival or
-    removal of an device interface of a registered device. This function determines
+    removal of an device interface of any Hid device. This function determines
     if the instance of the device is the proper device to open, and if so, opens it.
 
 Arguments:
@@ -1497,14 +1798,14 @@ Return Value:
         UNICODE_STRING symbolicLinkName;
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Processing interface arrival %ws",
                     EventData->u.DeviceInterface.SymbolicLink);
         RtlInitUnicodeString(&symbolicLinkName,
                              EventData->u.DeviceInterface.SymbolicLink);
 
-        ntStatus = Hid_MatchedTargetGet(dmfModule,
-                                        &symbolicLinkName);
+        ntStatus = HidTarget_MatchedTargetGet(dmfModule,
+                                              &symbolicLinkName);
     }
     else if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
     {
@@ -1512,17 +1813,17 @@ Return Value:
         UNICODE_STRING symbolicLinkName;
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Processing interface removal %ws",
                     EventData->u.DeviceInterface.SymbolicLink);
         RtlInitUnicodeString(&symbolicLinkName,
                              EventData->u.DeviceInterface.SymbolicLink);
 
-        ntStatus = Hid_MatchedTargetDestroy(dmfModule,
-                                            &symbolicLinkName);
+        ntStatus = HidTarget_MatchedTargetDestroy(dmfModule,
+                                                  &symbolicLinkName);
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     // Return SUCCESS here always.
     //
@@ -1534,7 +1835,7 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
-Hid_MatchedTargetForExistingInterfacesGet(
+HidTarget_MatchedTargetForExistingInterfacesGet(
     _In_ DMFMODULE DmfModule,
     _In_ const GUID* InterfaceGuid
     )
@@ -1584,7 +1885,7 @@ Return Value:
         {
             lastError = GetLastError();
             TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "CM_Get_Device_Interface_List_Size failed with Result %d and lastError %!WINERROR!",
                         cr,
                         lastError);
@@ -1600,7 +1901,7 @@ Return Value:
             {
                 lastError = GetLastError();
                 TraceEvents(TRACE_LEVEL_ERROR,
-                            DMF_TRACE_Hid,
+                            DMF_TRACE_HidTarget,
                             "HeapFree failed with lastError %!WINERROR!",
                             lastError);
                 ntStatus = NTSTATUS_FROM_WIN32(lastError);
@@ -1616,7 +1917,7 @@ Return Value:
         {
             lastError = GetLastError();
             TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
+                        DMF_TRACE_HidTarget,
                         "HeapAlloc failed with lastError %!WINERROR!",
                         lastError);
             ntStatus = NTSTATUS_FROM_WIN32(lastError);
@@ -1635,7 +1936,7 @@ Return Value:
     {
         lastError = GetLastError();
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "CM_Get_Device_Interface_List failed with Result %d and lastError %!WINERROR!",
                     cr,
                     lastError);
@@ -1654,7 +1955,7 @@ Return Value:
          currentInterface += wcslen(currentInterface) + 1)
     {
         TraceEvents(TRACE_LEVEL_VERBOSE,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "[index %d] Processing interface %ws",
                     index,
                     currentInterface);
@@ -1662,7 +1963,7 @@ Return Value:
         RtlInitUnicodeString(&symbolicLinkName,
                              currentInterface);
 
-        ntStatus = Hid_MatchedTargetGet(DmfModule,
+        ntStatus = HidTarget_MatchedTargetGet(DmfModule,
                                         &symbolicLinkName);
 
         // Break if a matching target was found.
@@ -1677,7 +1978,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1685,22 +1986,21 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+static
 NTSTATUS
-Hid_RegisterForNotificationUser(
-    _In_ DMFMODULE DmfModule,
-    _In_ const GUID* InterfaceGuid
+HidTarget_NotificationRegisterForRemoteUser(
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Register for a notification. This function does the work of properly registering
+    Register for a notification for all Hid device interfaces. This function does the work of properly registering
     for a notification of the arrival or existence of the another target that this Module needs to open.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    InterfaceGuid - The InterfaceGuid for which notifications are registered.
 
 Return Value:
 
@@ -1709,44 +2009,41 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDFDEVICE parentDevice;
     DMF_CONTEXT_HidTarget* moduleContext;
     DMF_CONFIG_HidTarget* moduleConfig;
     CM_NOTIFY_FILTER cmNotifyFilter = { 0 };
     CONFIGRET configRet;
+    const GUID* interfaceGuid;
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    parentDevice = DMF_AttachedDeviceGet(DmfModule);
-    ASSERT(parentDevice != NULL);
-
+    interfaceGuid = &GUID_DEVINTERFACE_HID;
     cmNotifyFilter.cbSize = sizeof(CM_NOTIFY_FILTER);
     cmNotifyFilter.FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE;
-    cmNotifyFilter.u.DeviceInterface.ClassGuid = *InterfaceGuid;
+    cmNotifyFilter.u.DeviceInterface.ClassGuid = *interfaceGuid;
 
     configRet = CM_Register_Notification(&cmNotifyFilter,
                                          (VOID*)DmfModule,
-                                         (PCM_NOTIFY_CALLBACK)Hid_InterfaceArrivalCallbackUser,
+                                         (PCM_NOTIFY_CALLBACK)HidTarget_InterfaceArrivalCallbackForRemoteUser,
                                          &(moduleContext->HidInterfaceNotification));
     // Target device might already be there. So try now.
     // 
     if (configRet == CR_SUCCESS)
     {
         TraceEvents(TRACE_LEVEL_VERBOSE,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Processing existing interfaces- START");
 
-        ntStatus = Hid_MatchedTargetForExistingInterfacesGet(DmfModule,
-                                                             InterfaceGuid);
+        ntStatus = HidTarget_MatchedTargetForExistingInterfacesGet(DmfModule,
+                                                             interfaceGuid);
 
         TraceEvents(TRACE_LEVEL_VERBOSE,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Processing existing interfaces- END");
 
         // Should always return success here, since notification might be called back later for the desired device.
@@ -1756,7 +2053,7 @@ Return Value:
     else
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "CM_Register_Notification fails: configRet=0x%x",
                     configRet);
 
@@ -1765,15 +2062,232 @@ Return Value:
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
-                DMF_TRACE_Hid,
+                DMF_TRACE_HidTarget,
                 "Created Notification Entry 0x%p",
                 moduleContext->HidInterfaceNotification);
 
 Exit:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+HidTarget_NotificationRegisterForLocalUser(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    This function opens the lower level stack as target, and then opens the module.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    DMF_CONFIG_HidTarget* moduleConfig;
+    WDFIOTARGET target;
+    WDF_OBJECT_ATTRIBUTES attributes;
+    BOOLEAN lockHeld;
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_HidTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    lockHeld = FALSE;
+
+    // Get the next lower driver in the stack. Use the special local
+    // IO target flag since HID requires a file handle for IO requests.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = moduleConfig->HidTargetToConnect;
+
+    ntStatus = WdfIoTargetCreate(moduleConfig->HidTargetToConnect,
+                                 &attributes,
+                                 &target);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "WdfIoTargetCreate fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    WDF_IO_TARGET_OPEN_PARAMS openParams;
+    WDF_IO_TARGET_OPEN_PARAMS_INIT_OPEN_BY_FILE(&openParams,
+                                                NULL);
+    ntStatus = WdfIoTargetOpen(target,
+                               &openParams);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "WdfIoTargetOpen fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    DMF_ModuleLock(DmfModule);
+    lockHeld = TRUE;
+
+    ASSERT(moduleContext->IoTarget == NULL);
+
+    moduleContext->IoTarget = target;
+    moduleContext->EvtHidInputReport = moduleConfig->EvtHidInputReport;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE_HidTarget,
+                "Created IOTarget for downlevel stack");
+
+    // Cache the Hid Properties for this target.
+    //
+    ntStatus = HidTarget_DeviceProperyGet(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE_HidTarget,
+                    "HidTarget_DeviceProperyGet fails: ntStatus=%!STATUS!",
+                    ntStatus);
+
+        TraceEvents(TRACE_LEVEL_INFORMATION,
+                    DMF_TRACE_HidTarget,
+                    "Destroying IOTarget for target HID device");
+
+        HidTarget_IoTargetDestroy(moduleContext);
+        goto Exit;
+    }
+
+    DMF_ModuleUnlock(DmfModule);
+    ntStatus = DMF_ModuleOpen(DmfModule);
+    DMF_ModuleLock(DmfModule);
+
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION,
+                    DMF_TRACE_HidTarget,
+                    "Module Open Fails; Destroying IOTarget for target HID device,ntStatus=%!STATUS!",
+                    ntStatus);
+
+        HidTarget_IoTargetDestroy(moduleContext);
+    }
+
+Exit:
+
+    if (lockHeld)
+    {
+        DMF_ModuleUnlock(DmfModule);
+    }
+
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+HidTarget_NotificationUnregisterUser(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Unregister a notification. DMF calls this callback instead of the Close callback
+    when the Open Notification option is selected. This function does the work of properly unregistering
+    a notification of the arrival or existence of the another target that this Module needs to open.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_HidTarget* moduleContext;
+    DMF_CONFIG_HidTarget* moduleConfig;
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // For local, close the target.
+    //
+    if (moduleConfig->SkipHidDeviceEnumerationSearch)
+    {
+        if (moduleContext->IoTarget != NULL)
+        {
+            DMF_ModuleClose(DmfModule);
+        }
+    }
+    else
+    {
+        // The notification routine could be called after the CM_Unregister_Notification method 
+        // has returned which was undesirable. CM_Unregister_Notification prevents the 
+        // notification routine from being called after CM_Unregister_Notification returns.
+        //
+        if (moduleContext->HidInterfaceNotification != NULL)
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION,
+                        DMF_TRACE_HidTarget,
+                        "Destroy Notification Entry 0x%p",
+                        moduleContext->HidInterfaceNotification);
+
+            CONFIGRET cr;
+            cr = CM_Unregister_Notification(moduleContext->HidInterfaceNotification);
+            if (cr != CR_SUCCESS)
+            {
+                NTSTATUS ntStatus;
+                ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE_HidTarget,
+                            "CM_Unregister_Notification fails: ntStatus=%!STATUS!", 
+                            ntStatus);
+                goto Exit;
+            }
+
+            moduleContext->HidInterfaceNotification = NULL;
+
+            // The device may or may not have been opened. Close it now
+            // because the Close handler will not be called.
+            //
+            if (moduleContext->IoTarget != NULL)
+            {
+                DMF_ModuleClose(DmfModule);
+            }
+        }
+        else
+        {
+            // Allow caller to unregister notification even if it has not been registered.
+            //
+            TraceEvents(TRACE_LEVEL_INFORMATION,
+                        DMF_TRACE_HidTarget,
+                        "CM_Unregister_Notification skipped.");
+        }
+    }
+
+Exit:
+
+    FuncExitVoid(DMF_TRACE_HidTarget);
 }
 #pragma code_seg()
 
@@ -1819,7 +2333,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1829,7 +2343,7 @@ Return Value:
     DMF_ModuleDestroy(DmfModule);
     DmfModule = NULL;
 
-    FuncExitVoid(DMF_TRACE_Hid);
+    FuncExitVoid(DMF_TRACE_HidTarget);
 }
 #pragma code_seg()
 
@@ -1860,14 +2374,12 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDFDEVICE parentDevice;
     DMF_CONTEXT_HidTarget* moduleContext;
     DMF_CONFIG_HidTarget* moduleConfig;
-    const GUID *interfaceGuid;
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1877,50 +2389,26 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    parentDevice = DMF_AttachedDeviceGet(DmfModule);
-    ASSERT(parentDevice != NULL);
-
-    // Skip Search for Device if the caller configured explicitly.
+    // Skip Search for all Hid Devices if the caller configured explicitly.
     //
-    if (! moduleConfig->SkipHidDeviceEnumerationSearch)
+    if (!moduleConfig->SkipHidDeviceEnumerationSearch)
     {
-        interfaceGuid = &GUID_DEVINTERFACE_HID;
+#if defined DMF_USER_MODE
+        ntStatus = HidTarget_NotificationRegisterForRemoteUser(DmfModule);
+#else
+        ntStatus = HidTarget_NotificationRegisterForRemoteKernel(DmfModule);
+#endif
     }
     else
     {
-        // Create a custom interface and symbolic link for the device specified by client.
-        // Newly created symbolic link is saved for lookup at arrival callback.
-        //
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "Creating Custom Interface for target HID device 0x%p",
-                    moduleConfig->HidTargetToConnect);
-        interfaceGuid = &GUID_CUSTOM_DEVINTERFACE;
-
-        ntStatus = Hid_InterfaceCreateForDevice(DmfModule,
-                                                interfaceGuid,
-                                                moduleConfig->HidTargetToConnect);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE_Hid,
-                        "Hid_CreateInterfaceForDevice fails: ntStatus=%!STATUS!",
-                        ntStatus);
-            goto Exit;
-        }
+#if defined DMF_USER_MODE
+        ntStatus = HidTarget_NotificationRegisterForLocalUser(DmfModule);
+#else
+        ntStatus = HidTarget_NotificationRegisterForLocalKernel(DmfModule);
+#endif
     }
 
-#if !defined(DMF_USER_MODE)
-    ntStatus = Hid_RegisterForNotificationKernel(DmfModule,
-                                                 interfaceGuid);
-#else
-    ntStatus = Hid_RegisterForNotificationUser(DmfModule,
-                                               interfaceGuid);
-#endif // !defined(DMF_USER_MODE)
-
-Exit:
-
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1951,79 +2439,15 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus;
-    WDFDEVICE parentDevice;
-    DMF_CONTEXT_HidTarget* moduleContext;
-
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
-
-    ntStatus = STATUS_SUCCESS;
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    parentDevice = DMF_AttachedDeviceGet(DmfModule);
-    ASSERT(parentDevice != NULL);
-
-    // The notification routine could be called after the IoUnregisterPlugPlayNotification method 
-    // has returned which was undesirable. UnRegisterNotify prevents the 
-    // notification routine from being called after IoUnregisterPlugPlayNotificationEx/CM_Unregister_Notification returns.
-    //
-    if (moduleContext->HidInterfaceNotification != NULL)
-    {
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "Destroy Notification Entry 0x%p",
-                    moduleContext->HidInterfaceNotification);
-#if !defined(DMF_USER_MODE)
-        ntStatus = IoUnregisterPlugPlayNotificationEx(moduleContext->HidInterfaceNotification);
+#if defined DMF_USER_MODE
+    HidTarget_NotificationUnregisterUser(DmfModule);
 #else
-        CONFIGRET cr;
-        cr = CM_Unregister_Notification(moduleContext->HidInterfaceNotification);
-        if (cr != CR_SUCCESS)
-        {
-            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-        }
-        else
-        {
-            ntStatus = STATUS_SUCCESS;
-        }
-#endif // !defined(DMF_USER_MODE)
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_INFORMATION,
-                        DMF_TRACE_Hid,
-                        "IoUnregisterPlugPlayNotificationEx() fails: ntStatus=%!STATUS!",
-                        ntStatus);
-            ASSERT(FALSE);
-            goto Exit;
-        }
+    HidTarget_NotificationUnregisterKernel(DmfModule);
+#endif
 
-        moduleContext->HidInterfaceNotification = NULL;
-
-        // The device may or may not have been opened. Close it now
-        // because the Close handler will not be called.
-        //
-        if (moduleContext->IoTarget != NULL)
-        {
-            DMF_ModuleClose(DmfModule);
-        }
-    }
-    else
-    {
-        // Allow caller to unregister notification even if it has not been registered.
-        //
-        TraceEvents(TRACE_LEVEL_INFORMATION,
-                    DMF_TRACE_Hid,
-                    "IoUnregisterPlugPlayNotificationEx() skipped.");
-    }
-
-Exit:
-
-    FuncExitVoid(DMF_TRACE_Hid);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -2054,13 +2478,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = DMF_ClientCallbackOpen(DmfModule);
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2093,7 +2517,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_ClientCallbackClose(DmfModule);
 
@@ -2101,9 +2525,9 @@ Return Value:
 
     // Close the associated target.
     //
-    Hid_IoTargetDestroy(moduleContext);
+    HidTarget_IoTargetDestroy(moduleContext);
 
-    FuncExitVoid(DMF_TRACE_Hid);
+    FuncExitVoid(DMF_TRACE_HidTarget);
 }
 #pragma code_seg()
 
@@ -2177,7 +2601,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "DMF_ModuleCreate fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -2228,7 +2652,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2236,7 +2660,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -2265,7 +2689,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2307,7 +2731,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2315,7 +2739,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -2343,7 +2767,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2392,7 +2816,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2405,7 +2829,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "DMF_ModuleReference");
         goto ExitNoRelease;
     }
@@ -2419,7 +2843,7 @@ Return Value:
         ASSERT(FALSE);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "Insufficient buffer length: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -2435,7 +2859,7 @@ Return Value:
                                (VOID**)&report);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2456,7 +2880,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "HidP_InitializeReportForID fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -2475,7 +2899,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -2506,7 +2930,7 @@ ExitNoRelease:
         reportMemory = WDF_NO_HANDLE;
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2556,7 +2980,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2568,7 +2992,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "DMF_ModuleReference");
         goto ExitNoRelease;
     }
 
@@ -2580,7 +3004,7 @@ Return Value:
     {
         ASSERT(FALSE);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "Insufficient Buffer Length ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "Insufficient Buffer Length ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2604,7 +3028,7 @@ Return Value:
                                (VOID**)&report);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2620,7 +3044,7 @@ Return Value:
                                           moduleContext->HidCaps.FeatureReportByteLength);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "HidP_InitializeReportForID ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "HidP_InitializeReportForID ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2644,7 +3068,7 @@ Return Value:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfIoTargetSendIoctlSynchronously ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfIoTargetSendIoctlSynchronously ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -2664,7 +3088,7 @@ Return Value:
                                                  NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfIoTargetSendIoctlSynchronously ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfIoTargetSendIoctlSynchronously ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2680,7 +3104,7 @@ ExitNoRelease:
         reportMemory = WDF_NO_HANDLE;
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2719,7 +3143,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2727,7 +3151,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "DMF_ModuleReference");
         goto ExitNoRelease;
     }
 
@@ -2739,7 +3163,7 @@ Return Value:
                                 &request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfRequestCreate ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfRequestCreate ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2753,7 +3177,7 @@ Return Value:
                                NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2766,12 +3190,12 @@ Return Value:
                                                NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfIoTargetFormatRequestForRead ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfIoTargetFormatRequestForRead ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     WdfRequestSetCompletionRoutine(request,
-                                   Hid_ReadCompletionRoutine,
+                                   HidTarget_ReadCompletionRoutine,
                                    DmfModule);
 
     if (! WdfRequestSend(request,
@@ -2784,7 +3208,7 @@ Return Value:
             ntStatus = STATUS_INVALID_DEVICE_STATE;
         }
 
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2794,7 +3218,7 @@ Exit:
 
 ExitNoRelease:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2836,7 +3260,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2845,7 +3269,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "DMF_ModuleReference");
         goto ExitNoRelease;
     }
@@ -2874,7 +3298,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
@@ -2886,7 +3310,7 @@ Exit:
 
 ExitNoRelease:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2923,7 +3347,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -2932,7 +3356,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE_Hid,
+                    DMF_TRACE_HidTarget,
                     "DMF_ModuleReference");
         goto ExitNoRelease;
     }
@@ -2970,7 +3394,7 @@ Exit:
 
 ExitNoRelease:
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3018,7 +3442,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Hid);
+    FuncEntry(DMF_TRACE_HidTarget);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Hid);
@@ -3031,7 +3455,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "DMF_ModuleReference");
         goto ExitNoRelease;
     }
 
@@ -3055,7 +3479,7 @@ Return Value:
         break;
     default:
         ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "Invalid report type: %d", ReportType);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "Invalid report type: %d", ReportType);
         goto Exit;
     }
 
@@ -3071,7 +3495,7 @@ Return Value:
                                (VOID**)&report);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3088,7 +3512,7 @@ Return Value:
                                           reportLength);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Hid, "HidP_InitializeReportForID ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidTarget, "HidP_InitializeReportForID ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3112,7 +3536,7 @@ ExitNoRelease:
         reportMemoryLocal = WDF_NO_HANDLE;
     }
 
-    FuncExit(DMF_TRACE_Hid, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE_HidTarget, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

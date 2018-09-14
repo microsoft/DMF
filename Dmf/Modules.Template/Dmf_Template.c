@@ -20,9 +20,12 @@ Abstract:
     6. Update DmfModuleId.h to add DMF_ModuleId_NewModule.
     7. Delete all callbacks that the new Module does not need. (Most will probably not be needed.)
 
-    NOTE: This file contains all the function headers for all the DMF Callbacks. You should use these as a basis
-          for your own code to save time. They should be copied and then updated to add specific details about the
-          purpose of the function.
+    NOTE: This file contains all the function headers for the most commonly needed DMF Callbacks. You should use 
+          these as a basis for your own code to save time. They should be copied and then updated to add specific 
+          details about the purpose of the function.
+
+          EvtDevicePrepareHardware/EvtDeviceReleaseHardare/EvtDeviceIoControl/EvtDeviceIoInternalControl are not 
+          included here because they are rarely used.
 
 Environment:
 
@@ -32,6 +35,9 @@ Environment:
 --*/
 
 // DMF and this Module's Library specific definitions.
+// NOTE: If you are using a super set of the DMF Library, then use that Library's include file instead.
+//       That include file will also include the Library include files of all Libraries the superset
+//       depends on.
 //
 #include "DmfModules.Template.h"
 #include "DmfModules.Template.Trace.h"
@@ -136,100 +142,6 @@ Return Value:
 // Wdf Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-DMF_Template_ModulePrepareHardware(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFCMRESLIST ResourcesRaw,
-    _In_ WDFCMRESLIST ResourcesTranslated
-    )
-/*++
-
-Routine Description:
-
-    Template callback for ModulePrepareHardware for a given DMF Module.
-    In cases, where the Open Callback must be explicitly called by the Client Driver, this callback
-    maybe overridden. Use this callback when the device's assigned resources must be accessed.
-
-    NOTE: This function is the inverse of DMF_Template_ModuleReleaseHardware.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    ResourcesRaw - WDF Resource Raw parameter that is passed to the given
-                   DMF Module callback.
-    ResourcesTranslated - WDF Resources Translated parameter that is passed to the given
-                          DMF Module callback.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-
-    UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(ResourcesRaw);
-    UNREFERENCED_PARAMETER(ResourcesTranslated);
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE_Template);
-
-    ntStatus = STATUS_SUCCESS;
-
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
-NTSTATUS
-DMF_Template_ModuleReleaseHardware(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFCMRESLIST ResourcesTranslated
-    )
-/*++
-
-Routine Description:
-
-    Template callback for ModuleReleaseHardware for a given DMF Module. (In this case the given Dmf
-    Module's Close Callback should be called in a symmetrical manner to how it was opened.)
-    In cases, where the Close Callback must be explicitly called by the Client Driver, this callback
-    maybe overridden.
-
-    NOTE: This function is the inverse of DMF_Template_ModulePrepareHardware.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    None
-
---*/
-{
-    PAGED_CODE();
-
-    UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(ResourcesTranslated);
-
-    FuncEntry(DMF_TRACE_Template);
-
-    FuncExitVoid(DMF_TRACE_Template);
-
-    return STATUS_SUCCESS;
-}
-#pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -383,104 +295,6 @@ Return Value:
     FuncExitVoid(DMF_TRACE_Template);
 
     return ntStatus;
-}
-
-BOOLEAN
-DMF_Template_ModuleDeviceIoControl(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFQUEUE Queue,
-    _In_ WDFREQUEST Request,
-    _In_ size_t OutputBufferLength,
-    _In_ size_t InputBufferLength,
-    _In_ ULONG IoControlCode
-    )
-/*++
-
-Routine Description:
-
-    Template callback for ModuleDeviceIoControl for a given DMF Module.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    Queue - Target WDF Queue for the IOCTL call.
-    Request - WDF Request with IOCTL parameters.
-    OutputBufferLength - For fast access to the Request's Output Buffer Length.
-    InputBufferLength - For fast access to the Request's Input Buffer Length.
-    IoControlCode - The given IOCTL code.
-
-Return Value:
-
-    NOTE: Return FALSE if this Module does not support (know) the IOCTL.
-
---*/
-{
-    BOOLEAN returnValue;
-
-    FuncEntry(DMF_TRACE_Template);
-
-    UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(Queue);
-    UNREFERENCED_PARAMETER(Request);
-    UNREFERENCED_PARAMETER(OutputBufferLength);
-    UNREFERENCED_PARAMETER(InputBufferLength);
-    UNREFERENCED_PARAMETER(IoControlCode);
-
-    FuncEntry(DMF_TRACE_Template);
-
-    returnValue = FALSE;
-
-    FuncExit(DMF_TRACE_Template, "returnValue=%d", returnValue);
-
-    return returnValue;
-}
-
-BOOLEAN
-DMF_Template_ModuleInternalDeviceIoControl(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFQUEUE Queue,
-    _In_ WDFREQUEST Request,
-    _In_ size_t OutputBufferLength,
-    _In_ size_t InputBufferLength,
-    _In_ ULONG IoControlCode
-    )
-/*++
-
-Routine Description:
-
-    Template callback for ModuleInternalDeviceIoControl for a given DMF Module.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    Queue - Target WDF Queue for the IOCTL call.
-    Request - WDF Request with IOCTL parameters.
-    OutputBufferLength - For fast access to the Request's Output Buffer Length.
-    InputBufferLength - For fast access to the Request's Input Buffer Length.
-    IoControlCode - The given IOCTL code.
-
-Return Value:
-
-    NOTE: Return FALSE if this Module does not support (know) the IOCTL.
-
---*/
-{
-    BOOLEAN returnValue;
-
-    FuncEntry(DMF_TRACE_Template);
-
-    UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(Queue);
-    UNREFERENCED_PARAMETER(Request);
-    UNREFERENCED_PARAMETER(OutputBufferLength);
-    UNREFERENCED_PARAMETER(InputBufferLength);
-    UNREFERENCED_PARAMETER(IoControlCode);
-
-    returnValue = FALSE;
-
-    FuncExit(DMF_TRACE_Template, "returnValue=%d", returnValue);
-
-    return returnValue;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -776,34 +590,132 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-static
 VOID
-DMF_Template_Destroy(
-    _In_ DMFMODULE DmfModule
+DMF_Template_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
     )
 /*++
 
 Routine Description:
 
-    Destroy an instance of a Module of type Template. This code can be deleted
-    because DMF performs this function automatically. In some cases
-    you may need this if special code executed during Create that needs inverse code
-    to run here, or if it is necessary to validate conditions when this call is made.
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONFIG_Template* moduleConfig;
+    DMF_CONTEXT_Template* moduleContext;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+    UNREFERENCED_PARAMETER(DmfModuleInit);
+
+    FuncEntry(DMF_TRACE_OsrFx2);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // TODO: Add Child Module here as needed. See other Module for examples.
+    //
+
+    FuncExitVoid(DMF_TRACE_OsrFx2);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_Template_ResourcesAssign(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFCMRESLIST ResourcesRaw,
+    _In_ WDFCMRESLIST ResourcesTranslated
+    )
+/*++
+
+Routine Description:
+
+    Tells this Module instance what Resources are available. This Module then extracts
+    the needed Resources and uses them as needed.
 
 Arguments:
 
     DmfModule - This Module's handle.
+    ResourcesRaw - WDF Resource Raw parameter that is passed to the given
+                   DMF Module callback.
+    ResourcesTranslated - WDF Resources Translated parameter that is passed to the given
+                          DMF Module callback.
 
 Return Value:
 
-    NTSTATUS
+    STATUS_SUCCESS.
 
 --*/
 {
+    DMF_CONTEXT_Template* moduleContext;
+    ULONG resourceCount;
+    ULONG resourceIndex;
+    NTSTATUS ntStatus;
+    DMF_CONFIG_Template* moduleConfig;
+
     PAGED_CODE();
 
-    DMF_ModuleDestroy(DmfModule);
-    DmfModule = NULL;
+    UNREFERENCED_PARAMETER(ResourcesRaw);
+
+    FuncEntry(DMF_TRACE_Template);
+
+    ASSERT(ResourcesRaw != NULL);
+    ASSERT(ResourcesTranslated != NULL);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // Check the number of resources for the button device.
+    //
+    resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
+
+    // Parse the resources. This Module cares about GPIO and Interrupt resources.
+    //
+    for (resourceIndex = 0; resourceIndex < resourceCount; resourceIndex++)
+    {
+        PCM_PARTIAL_RESOURCE_DESCRIPTOR resource;
+
+        resource = WdfCmResourceListGetDescriptor(ResourcesTranslated,
+                                                  resourceIndex);
+        if (NULL == resource)
+        {
+            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Template, "No resources assigned");
+            goto Exit;
+        }
+
+        // TODO: Write code to find needed resources.
+        //
+    }
+
+    // TODO: Validate and initialize resources.
+    //
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 #pragma code_seg()
 
@@ -1008,30 +920,31 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModule;
     NTSTATUS ntStatus;
-    DMF_CONTEXT_Template* moduleContext;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
-    WDFDEVICE device;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_Template);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Template);
-    DmfCallbacksDmf_Template.ModuleInstanceDestroy = DMF_Template_Destroy;
+    DmfCallbacksDmf_Template.ChildModulesAdd = DMF_Template_ChildModulesAdd;
+    DmfCallbacksDmf_Template.DeviceResourcesAssign = DMF_Template_ResourcesAssign;
     DmfCallbacksDmf_Template.DeviceOpen = DMF_Template_Open;
     DmfCallbacksDmf_Template.DeviceClose = DMF_Template_Close;
     DmfCallbacksDmf_Template.DeviceNotificationRegister = DMF_Template_NotificationRegister;
     DmfCallbacksDmf_Template.DeviceNotificationUnregister = DMF_Template_NotificationUnregister;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Template);
-    DmfCallbacksWdf_Template.ModulePrepareHardware = DMF_Template_ModulePrepareHardware;
-    DmfCallbacksWdf_Template.ModuleReleaseHardware = DMF_Template_ModuleReleaseHardware;
+    DmfCallbacksWdf_Template.ModuleSelfManagedIoInit = DMF_Template_SelfManagedIoInit;
+    DmfCallbacksWdf_Template.ModuleSelfManagedIoSuspend = DMF_Template_SelfManagedIoSuspend;
+    DmfCallbacksWdf_Template.ModuleSelfManagedIoRestart = DMF_Template_SelfManagedIoRestart;
+    DmfCallbacksWdf_Template.ModuleSelfManagedIoFlush = DMF_Template_SelfManagedIoFlush;
+    DmfCallbacksWdf_Template.ModuleSelfManagedIoCleanup = DMF_Template_SelfManagedIoCleanup;
+    DmfCallbacksWdf_Template.ModuleSurpriseRemoval = DMF_Template_SurpriseRemoval;
     DmfCallbacksWdf_Template.ModuleD0Entry = DMF_Template_ModuleD0Entry;
+    DmfCallbacksWdf_Template.ModuleD0EntryPostInterruptsEnabled = DMF_Template_ModuleD0EntryPostInterruptsEnabled;
+    DmfCallbacksWdf_Template.ModuleD0ExitPreInterruptsDisabled = DMF_Template_ModuleD0ExitPreInterruptsDisabled;
     DmfCallbacksWdf_Template.ModuleD0Exit = DMF_Template_ModuleD0Exit;
-    DmfCallbacksWdf_Template.ModuleDeviceIoControl = DMF_Template_ModuleDeviceIoControl;
-    DmfCallbacksWdf_Template.ModuleInternalDeviceIoControl = DMF_Template_ModuleInternalDeviceIoControl;
     DmfCallbacksWdf_Template.ModuleFileCreate = DMF_Template_ModuleFileCreate;
     DmfCallbacksWdf_Template.ModuleFileCleanup = DMF_Template_ModuleFileCleanup;
     DmfCallbacksWdf_Template.ModuleFileClose = DMF_Template_ModuleFileClose;
@@ -1045,37 +958,21 @@ Return Value:
     DmfModuleDescriptor_Template.CallbacksDmf = &DmfCallbacksDmf_Template;
     DmfModuleDescriptor_Template.CallbacksWdf = &DmfCallbacksWdf_Template;
     DmfModuleDescriptor_Template.ModuleConfigSize = sizeof(DMF_CONFIG_Template);
+    // NOTE: This is only used for Transport Modules.
+    //
     DmfModuleDescriptor_Template.ModuleTransportMethod = DMF_Template_TransportMethod;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_Template,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Template, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
 
-    // TODO: Create DMF Child Modules if necessary.
-    // --------------------------------------------
-    //
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-    device = DMF_AttachedDeviceGet(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = dmfModule;
-
-    // ...
-    //
-
-Exit:
-
-    *DmfModule = dmfModule;
+    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

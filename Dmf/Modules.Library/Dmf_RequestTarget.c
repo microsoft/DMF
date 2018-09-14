@@ -784,12 +784,104 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_RequestTarget_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONTEXT_RequestTarget* moduleContext;
+    DMF_CONFIG_BufferPool moduleConfigBufferPool;
+    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkItem;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_RequestTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // BufferPoolContext
+    // -----------------
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                              &moduleAttributes);
+    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = 1;
+    if (DmfParentModuleAttributes->PassiveLevel)
+    {
+        moduleConfigBufferPool.Mode.SourceSettings.PoolType = PagedPool;
+    }
+    else
+    {
+        moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+    }
+    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(RequestTarget_SingleAsynchronousRequestContext);
+    moduleAttributes.ClientModuleInstanceName = "BufferPoolContext";
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferPoolContext);
+
+    if (DmfParentModuleAttributes->PassiveLevel)
+    {
+        moduleContext->CompletionRoutineSingle = RequestTarget_CompletionRoutinePassive;
+
+        // QueuedWorkItemSingle
+        // --------------------
+        //
+        DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItem,
+                                                      &moduleAttributes);
+        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES;
+        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(RequestTarget_QueuedWorkitemContext);
+        // This has to be NonPagedPoolNx because completion routine runs at dispatch level.
+        //
+        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
+        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
+        moduleConfigQueuedWorkItem.EvtQueuedWorkitemFunction = RequestTarget_QueuedWorkitemCallbackSingle;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleQueuedWorkitemSingle);
+    }
+    else
+    {
+        moduleContext->CompletionRoutineSingle = RequestTarget_CompletionRoutine;
+    }
+
+    FuncExitVoid(DMF_TRACE_RequestTarget);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_RequestTarget;
+static DMF_CALLBACKS_DMF DmfCallbacksDmf_RequestTarget;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -826,16 +918,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_RequestTarget* moduleContext;
-    DMF_CONFIG_BufferPool moduleConfigBufferPool;
-    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkItem;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_RequestTarget);
+
+    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_RequestTarget);
+    DmfCallbacksDmf_RequestTarget.ChildModulesAdd = DMF_RequestTarget_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_RequestTarget,
                                             RequestTarget,
@@ -843,91 +932,17 @@ Return Value:
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
+    DmfModuleDescriptor_RequestTarget.CallbacksDmf = &DmfCallbacksDmf_RequestTarget;
+
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_RequestTarget,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_RequestTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // BufferPoolContext
-    // -----------------
-    //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
-                                              &moduleAttributes);
-    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = 1;
-    if (DmfModuleAttributes->PassiveLevel)
-    {
-        moduleConfigBufferPool.Mode.SourceSettings.PoolType = PagedPool;
-    }
-    else
-    {
-        moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
-    }
-    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(RequestTarget_SingleAsynchronousRequestContext);
-    moduleAttributes.ClientModuleInstanceName = "BufferPoolContext";
-    moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-    ntStatus = DMF_BufferPool_Create(Device,
-                                     &moduleAttributes,
-                                     &attributes,
-                                     &moduleContext->DmfModuleBufferPoolContext);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_RequestTarget, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    if (DmfModuleAttributes->PassiveLevel)
-    {
-        moduleContext->CompletionRoutineSingle = RequestTarget_CompletionRoutinePassive;
-
-        // QueuedWorkItemSingle
-        // --------------------
-        //
-        DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItem,
-                                                      &moduleAttributes);
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES;
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(RequestTarget_QueuedWorkitemContext);
-        // This has to be NonPagedPoolNx because completion routine runs at dispatch level.
-        //
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
-        moduleConfigQueuedWorkItem.EvtQueuedWorkitemFunction = RequestTarget_QueuedWorkitemCallbackSingle;
-        ntStatus = DMF_QueuedWorkItem_Create(Device,
-                                             &moduleAttributes,
-                                             &attributes,
-                                             &moduleContext->DmfModuleQueuedWorkitemSingle);
-        if (!NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_RequestTarget, "DMF_QueuedWorkItem_Create fails: ntStatus=%!STATUS!", ntStatus);
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-            goto Exit;
-        }
-    }
-    else
-    {
-        moduleContext->CompletionRoutineSingle = RequestTarget_CompletionRoutine;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_RequestTarget, "ntStatus=%!STATUS!", ntStatus);
 

@@ -1101,6 +1101,88 @@ Exit:
 //
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_BranchTrack_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BranchTrack* moduleContext;
+    DMF_CONFIG_BranchTrack* moduleConfig;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_HashTable moduleConfigHashTable;
+    DMF_CONFIG_BufferPool moduleConfigBufferPool;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_BranchTrack);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // HashTable
+    // ---------
+    //
+    DMF_CONFIG_HashTable_AND_ATTRIBUTES_INIT(&moduleConfigHashTable,
+                                             &moduleAttributes);
+    // Calculate the size of HASH_TABLE_KEY structure and make sure it's properly aligned.
+    // Increase every string parameter length by one, to allocate space for zero-endings.
+    //
+    moduleConfigHashTable.MaximumKeyLength = FIELD_OFFSET(HASH_TABLE_KEY,
+                                                          RawData[moduleConfig->MaximumFileNameLength +
+                                                                  moduleConfig->MaximumBranchNameLength +
+                                                                  BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH +
+                                                                  (BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA * sizeof(CHAR))]);
+    moduleConfigHashTable.MaximumKeyLength = (moduleConfigHashTable.MaximumKeyLength + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);
+    moduleConfigHashTable.MaximumValueLength = sizeof(ULONGLONG);
+    moduleConfigHashTable.MaximumTableSize = moduleConfig->MaximumBranches;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfObjectHashTable);
+
+    // BufferPool
+    // ----------
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                              &moduleAttributes);
+    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = BRANCHTRACK_NUMBER_OF_BUFFERS;
+    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfigHashTable.MaximumKeyLength;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfObjectBufferPool);
+
+    FuncExitVoid(DMF_TRACE_BranchTrack);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
 static
 _Check_return_
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1443,14 +1525,7 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModule;
     NTSTATUS ntStatus;
-    DMF_CONFIG_BranchTrack* moduleConfig;
-    DMF_CONTEXT_BranchTrack* moduleContext;
-    DMF_CONFIG_HashTable moduleConfigHashTable;
-    DMF_CONFIG_BufferPool moduleConfigBufferPool;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -1461,6 +1536,7 @@ Return Value:
     DmfCallbacksDmf_BranchTrack.DeviceClose = DMF_BranchTrack_Close;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_BranchTrack);
+    DmfCallbacksDmf_BranchTrack.ChildModulesAdd = DMF_BranchTrack_ChildModulesAdd;
     DmfCallbacksWdf_BranchTrack.ModuleDeviceIoControl = DMF_BranchTrack_ModuleDeviceIoControl;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_BranchTrack,
@@ -1477,80 +1553,14 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_BranchTrack,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // HashTable
-    // ---------
-    //
-    DMF_CONFIG_HashTable_AND_ATTRIBUTES_INIT(&moduleConfigHashTable,
-                                             &moduleAttributes);
-    // Calculate the size of HASH_TABLE_KEY structure and make sure it's properly aligned.
-    // Increase every string parameter length by one, to allocate space for zero-endings.
-    //
-    moduleConfigHashTable.MaximumKeyLength = FIELD_OFFSET(HASH_TABLE_KEY,
-                                                          RawData[moduleConfig->MaximumFileNameLength +
-                                                                  moduleConfig->MaximumBranchNameLength +
-                                                                  BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH +
-                                                                  (BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA * sizeof(CHAR))]);
-    moduleConfigHashTable.MaximumKeyLength = (moduleConfigHashTable.MaximumKeyLength + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);
-
-    moduleConfigHashTable.MaximumValueLength = sizeof(ULONGLONG);
-    moduleConfigHashTable.MaximumTableSize = moduleConfig->MaximumBranches;
-
-    ntStatus = DMF_HashTable_Create(Device,
-                                    &moduleAttributes,
-                                    &attributes,
-                                    &moduleContext->DmfObjectHashTable);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "DMF_HashTable_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // BufferPool
-    // ----------
-    //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
-                                              &moduleAttributes);
-    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = BRANCHTRACK_NUMBER_OF_BUFFERS;
-    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfigHashTable.MaximumKeyLength;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
-    ntStatus = DMF_BufferPool_Create(Device,
-                                     &moduleAttributes,
-                                     &attributes,
-                                     &moduleContext->DmfObjectBufferPool);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
-        // (All children are destroyed also.)
-        //
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
 Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
 

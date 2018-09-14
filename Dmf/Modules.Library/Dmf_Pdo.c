@@ -602,9 +602,64 @@ Exit:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// This Module does not need any DMF Callbacks.
-// This Module spawns a ScheduledTask object that will automatically create the PDOs.
-//
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_Pdo_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_Pdo* moduleConfig;
+    DMF_CONFIG_ScheduledTask scheduledTaskModuleConfigPdo;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_Pdo);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (moduleConfig->PdoRecordCount > 0)
+    {
+        // ScheduledTask
+        // -------------
+        //
+        DMF_CONFIG_ScheduledTask_AND_ATTRIBUTES_INIT(&scheduledTaskModuleConfigPdo,
+                                                     &moduleAttributes);
+        scheduledTaskModuleConfigPdo.EvtScheduledTaskCallback = Pdo_ScheduledTask;
+        scheduledTaskModuleConfigPdo.ExecutionMode = ScheduledTask_ExecutionMode_Immediate;
+        scheduledTaskModuleConfigPdo.PersistenceType = ScheduledTask_Persistence_NotPersistentAcrossReboots;
+        scheduledTaskModuleConfigPdo.ExecuteWhen = ScheduledTask_ExecuteWhen_D0Entry;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+    }
+
+    FuncExitVoid(DMF_TRACE_Pdo);
+}
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
@@ -612,6 +667,7 @@ Exit:
 //
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Pdo;
+static DMF_CALLBACKS_DMF DmfCallbacksDmf_Pdo;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -647,69 +703,30 @@ Return Value:
 
 --*/
 {
-    DMF_CONFIG_Pdo* moduleConfig;
-    DMF_CONFIG_ScheduledTask scheduledTaskModuleConfigPdo;
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMFMODULE dmfModuleScheduledTask;
 
     PAGED_CODE();
+
+    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Pdo);
+    DmfCallbacksDmf_Pdo.ChildModulesAdd = DMF_Pdo_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_Pdo,
                                Pdo,
                                DMF_MODULE_OPTIONS_PASSIVE,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
+    DmfModuleDescriptor_Pdo.CallbacksDmf = &DmfCallbacksDmf_Pdo;
     DmfModuleDescriptor_Pdo.ModuleConfigSize = sizeof(DMF_CONFIG_Pdo);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_Pdo,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    if (moduleConfig->PdoRecordCount > 0)
-    {
-        // ScheduledTask
-        // -------------
-        //
-        DMF_CONFIG_ScheduledTask_AND_ATTRIBUTES_INIT(&scheduledTaskModuleConfigPdo,
-                                                     &moduleAttributes);
-        scheduledTaskModuleConfigPdo.EvtScheduledTaskCallback = Pdo_ScheduledTask;
-        scheduledTaskModuleConfigPdo.ExecutionMode = ScheduledTask_ExecutionMode_Immediate;
-        scheduledTaskModuleConfigPdo.PersistenceType = ScheduledTask_Persistence_NotPersistentAcrossReboots;
-        scheduledTaskModuleConfigPdo.ExecuteWhen = ScheduledTask_ExecuteWhen_D0Entry;
-
-        ntStatus = DMF_ScheduledTask_Create(Device,
-                                            &moduleAttributes,
-                                            &attributes,
-                                            &dmfModuleScheduledTask);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "DMF_ScheduledTask_Create fails: ntStatus=%!STATUS!", ntStatus);
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-            goto Exit;
-        }
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     return(ntStatus);
 }

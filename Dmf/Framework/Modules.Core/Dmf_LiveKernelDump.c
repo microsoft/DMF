@@ -705,93 +705,7 @@ Exit:
 #pragma code_seg()
 #endif  // IS_WIN10_RS3_OR_LATER
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Callbacks
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
-VOID
-DMF_LiveKernelDump_Destroy(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Destroy an instance of this Module.
-    This callback is used to clear the global pointer.
-
-Arguments:
-
-    DmfModule - The given DMF Module.
-
-Return Value:
-
-    None
-
---*/
-{
-    PAGED_CODE();
-
-    DMF_ModuleDestroy(DmfModule);
-    DmfModule = NULL;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-DMF_LiveKernelDump_Open(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Initialize an instance of a DMF Module of type LiveKernelDump.
-
-    NOTE: This function is called during initialization. It initializes the Client Driver's Ring Buffer.
-          Since that Ring Buffer will only be used after this function executes, it is not necessary
-          to acquire the lock. The lock is only used for accessing the User-mode Crash Dump Data
-          Source data structures since they are created dynamically.
-
-Arguments:
-
-    DmfModule - The given DMF Module.
-
-Return Value:
-
-    STATUS_SUCCESS
-
---*/
-{
-    NTSTATUS ntStatus;
-    DMF_CONFIG_LiveKernelDump* moduleConfig;
-
-    PAGED_CODE();
-
-    ntStatus = STATUS_SUCCESS;
-
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    // Callback function to allow Client to store the DmfModule.
-    //
-    if (moduleConfig->LiveKernelDumpFeatureInitialize != NULL)
-    {
-        moduleConfig->LiveKernelDumpFeatureInitialize(DmfModule);
-    }
-
-    return ntStatus;
-}
-#pragma code_seg()
-
 #if IS_WIN10_RS3_OR_LATER
-
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -889,8 +803,174 @@ Return Value:
     return ntStatus;
 }
 #pragma code_seg()
-
 #endif // IS_WIN10_RS3_OR_LATER
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// DMF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+#if IS_WIN10_RS3_OR_LATER
+IoctlHandler_IoctlRecord LiveKernelDump_IoctlSpecification[] =
+{
+    { IOCTL_LIVEKERNELDUMP_CREATE, sizeof(LIVEKERNELDUMP_INPUT_BUFFER), 0, LiveKernelDump_IoctlHandler, TRUE },
+};
+#endif // IS_WIN10_RS3_OR_LATER
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_LiveKernelDump_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_LiveKernelDump* moduleContext;
+    DMF_CONFIG_LiveKernelDump* moduleConfig;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_RingBuffer ringBufferModuleConfig;
+    DATA_BUFFER_SOURCE* dataBufferSource;
+#if IS_WIN10_RS3_OR_LATER
+    DMF_CONFIG_IoctlHandler ioctlHandlerModuleConfig;
+    DMF_CONFIG_BufferQueue bufferQueueModuleConfig;
+#endif // IS_WIN10_RS3_OR_LATER
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_LiveKernelDump);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // Ring Buffer for the data buffer source.
+    //
+
+    // RingBuffer
+    // ----------
+    //
+    dataBufferSource = &(moduleContext->DataBufferSource);
+
+    // Zero out the Framework Data Source.
+    //
+    RtlZeroMemory(dataBufferSource,
+                  sizeof(DATA_BUFFER_SOURCE));
+
+    DMF_CONFIG_RingBuffer_AND_ATTRIBUTES_INIT(&ringBufferModuleConfig,
+                                              &moduleAttributes);
+
+    ringBufferModuleConfig.ItemCount = LiveKernelDump_DATA_BUFFER_RingBuffer_SIZE;
+    ringBufferModuleConfig.ItemSize = sizeof(DATA_BUFFER);
+    ringBufferModuleConfig.Mode = RingBuffer_Mode_DeleteOldestIfFullOnWrite;
+    moduleAttributes.ClientModuleInstanceName = "DataBufferSource";
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &dataBufferSource->DmfModuleRingBuffer);
+
+#if IS_WIN10_RS3_OR_LATER
+    // IoctlHandler
+    // ------------
+    //
+    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&ioctlHandlerModuleConfig,
+                                                &moduleAttributes);
+
+    ioctlHandlerModuleConfig.DeviceInterfaceGuid = moduleConfig->GuidDeviceInterface;
+    ioctlHandlerModuleConfig.AccessModeFilter = IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl;
+    ioctlHandlerModuleConfig.EvtIoctlHandlerAccessModeFilter = NULL;
+    ioctlHandlerModuleConfig.IoctlRecordCount = ARRAYSIZE(LiveKernelDump_IoctlSpecification);
+    ioctlHandlerModuleConfig.IoctlRecords = LiveKernelDump_IoctlSpecification;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->LiveKernelDumpIoctlHandler);
+
+    // BufferQueue
+    // -----------
+    //
+    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&bufferQueueModuleConfig,
+                                               &moduleAttributes);
+    bufferQueueModuleConfig.SourceSettings.EnableLookAside = TRUE;
+    bufferQueueModuleConfig.SourceSettings.BufferCount = LiveKernelDump_DATA_BUFFER_RingBuffer_SIZE;
+    bufferQueueModuleConfig.SourceSettings.BufferSize = sizeof(DATA_BUFFER);
+    moduleAttributes.ClientModuleInstanceName = "LiveKernelDumpBufferQueue";
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->BufferQueue);
+#endif // IS_WIN10_RS3_OR_LATER
+
+    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+DMF_LiveKernelDump_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type LiveKernelDump.
+
+    NOTE: This function is called during initialization. It initializes the Client Driver's Ring Buffer.
+          Since that Ring Buffer will only be used after this function executes, it is not necessary
+          to acquire the lock. The lock is only used for accessing the User-mode Crash Dump Data
+          Source data structures since they are created dynamically.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_LiveKernelDump* moduleConfig;
+
+    PAGED_CODE();
+
+    ntStatus = STATUS_SUCCESS;
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // Callback function to allow Client to store the DmfModule.
+    //
+    if (moduleConfig->LiveKernelDumpFeatureInitialize != NULL)
+    {
+        moduleConfig->LiveKernelDumpFeatureInitialize(DmfModule);
+    }
+
+    return ntStatus;
+}
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
@@ -904,13 +984,6 @@ static DMF_CALLBACKS_DMF DmfCallbacksDmf_LiveKernelDump;
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#if IS_WIN10_RS3_OR_LATER
-IoctlHandler_IoctlRecord LiveKernelDump_IoctlSpecification[] =
-{
-    { IOCTL_LIVEKERNELDUMP_CREATE, sizeof(LIVEKERNELDUMP_INPUT_BUFFER), 0, LiveKernelDump_IoctlHandler, TRUE },
-};
-#endif // IS_WIN10_RS3_OR_LATER
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -942,23 +1015,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_LiveKernelDump* moduleContext;
-    DMF_CONFIG_LiveKernelDump* moduleConfig;
-    DMF_CONFIG_RingBuffer ringBufferModuleConfig;
-    DATA_BUFFER_SOURCE* dataBufferSource;
-#if IS_WIN10_RS3_OR_LATER
-    DMF_CONFIG_IoctlHandler ioctlHandlerModuleConfig;
-    DMF_CONFIG_BufferQueue bufferQueueModuleConfig;
-#endif // IS_WIN10_RS3_OR_LATER
+
     PAGED_CODE();
 
     ntStatus = STATUS_SUCCESS;
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_LiveKernelDump);
-    DmfCallbacksDmf_LiveKernelDump.ModuleInstanceDestroy = DMF_LiveKernelDump_Destroy;
+    DmfCallbacksDmf_LiveKernelDump.ChildModulesAdd = DMF_LiveKernelDump_ChildModulesAdd;
     DmfCallbacksDmf_LiveKernelDump.DeviceOpen = DMF_LiveKernelDump_Open;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_LiveKernelDump,
@@ -974,103 +1037,14 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_LiveKernelDump,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // Ring Buffer for the data buffer source.
-    //
-    // RingBuffer
-    // ----------
-    //
-    dataBufferSource = &(moduleContext->DataBufferSource);
-
-    // Zero out the Framework Data Source.
-    //
-    RtlZeroMemory(dataBufferSource,
-                  sizeof(DATA_BUFFER_SOURCE));
-
-    DMF_CONFIG_RingBuffer_AND_ATTRIBUTES_INIT(&ringBufferModuleConfig,
-                                              &moduleAttributes);
-
-    ringBufferModuleConfig.ItemCount = LiveKernelDump_DATA_BUFFER_RingBuffer_SIZE;
-    ringBufferModuleConfig.ItemSize = sizeof(DATA_BUFFER);
-    ringBufferModuleConfig.Mode = RingBuffer_Mode_DeleteOldestIfFullOnWrite;
-    moduleAttributes.ClientModuleInstanceName = "DataBufferSource";
-    ntStatus = DMF_RingBuffer_Create(Device,
-                                     &moduleAttributes,
-                                     &attributes,
-                                     &dataBufferSource->DmfModuleRingBuffer);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "DMF_RingBuffer_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    ASSERT(NULL != dataBufferSource->DmfModuleRingBuffer);
-
-#if IS_WIN10_RS3_OR_LATER
-    // IoctlHandler
-    // ------------
-    //
-    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&ioctlHandlerModuleConfig,
-                                                &moduleAttributes);
-
-    ioctlHandlerModuleConfig.DeviceInterfaceGuid = moduleConfig->GuidDeviceInterface;
-    ioctlHandlerModuleConfig.AccessModeFilter = IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl;
-    ioctlHandlerModuleConfig.EvtIoctlHandlerAccessModeFilter = NULL;
-    ioctlHandlerModuleConfig.IoctlRecordCount = ARRAYSIZE(LiveKernelDump_IoctlSpecification);
-    ioctlHandlerModuleConfig.IoctlRecords = LiveKernelDump_IoctlSpecification;
-    ntStatus = DMF_IoctlHandler_Create(Device,
-                                       &moduleAttributes,
-                                       &attributes,
-                                       &moduleContext->LiveKernelDumpIoctlHandler);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // BufferQueue
-    // -----------
-    //
-    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&bufferQueueModuleConfig,
-                                               &moduleAttributes);
-    bufferQueueModuleConfig.SourceSettings.EnableLookAside = TRUE;
-    bufferQueueModuleConfig.SourceSettings.BufferCount = LiveKernelDump_DATA_BUFFER_RingBuffer_SIZE;
-    bufferQueueModuleConfig.SourceSettings.BufferSize = sizeof(DATA_BUFFER);
-    moduleAttributes.ClientModuleInstanceName = "LiveKernelDumpBufferQueue";
-    ntStatus = DMF_BufferQueue_Create(Device,
-                                      &moduleAttributes,
-                                      &attributes,
-                                      &moduleContext->BufferQueue);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-#endif // IS_WIN10_RS3_OR_LATER
-
 Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_LiveKernelDump, "ntStatus=%!STATUS!", ntStatus);
 

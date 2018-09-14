@@ -2048,6 +2048,103 @@ Returns:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// The table of IOCTLS that this Module supports.
+//
+IoctlHandler_IoctlRecord OsrFx2_IoctlHandlerTable[] =
+{
+    { (LONG)IOCTL_OSRUSBFX2_GET_CONFIG_DESCRIPTOR,       0,                      0,                               OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_RESET_DEVICE,                0,                      0,                               OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_REENUMERATE_DEVICE,          0,                      0,                               OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_GET_BAR_GRAPH_DISPLAY,       0,                      sizeof(BAR_GRAPH_STATE),         OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,       sizeof(BAR_GRAPH_STATE),0,                               OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_GET_7_SEGMENT_DISPLAY,       0,                      sizeof(UCHAR),                   OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_SET_7_SEGMENT_DISPLAY,       sizeof(UCHAR),          0,                               OsrFx2_IoctlHandler, FALSE },
+    { (LONG)IOCTL_OSRUSBFX2_READ_SWITCHES,               0,                      sizeof(SWITCH_STATE),            OsrFx2_IoctlHandler, FALSE },
+};
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_OsrFx2_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_OsrFx2* moduleConfig;
+    DMF_CONTEXT_OsrFx2* moduleContext;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    FuncEntry(DMF_TRACE_OsrFx2);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Client has option of allowing Device Interface to be created to allow drivers or applications to 
+    // send IOCTLS.
+    //
+    if (!(moduleConfig->Settings & OsrFx2_Settings_NoDeviceInterface))
+    {
+        // IoctlHandler
+        // ------------
+        //
+        DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
+        DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
+                                                    &moduleAttributes);
+        moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_OSRUSBFX2;
+        moduleConfigIoctlHandler.IoctlRecordCount = _countof(OsrFx2_IoctlHandlerTable);
+        moduleConfigIoctlHandler.IoctlRecords = OsrFx2_IoctlHandlerTable;
+        moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
+        moduleConfigIoctlHandler.CustomCapabilities = L"microsoft.hsaTestCustomCapability_q536wpkpf5cy2\0";
+        moduleConfigIoctlHandler.IsRestricted = DEVPROP_TRUE;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleIoctlHandler);
+    }
+
+    // Dmf_QueuedWorkitem
+    // ------------------
+    // (This Module is used to allow this Module to callback to the Client at PASSIVE_LEVEL from the
+    // interrupt pipe completion routine. Original sample does not have this feature.)
+    //
+    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkitem;
+    DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkitem,
+                                                  &moduleAttributes);
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferCount = 4;
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(SWITCH_STATE);
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigQueuedWorkitem.EvtQueuedWorkitemFunction = OsrFx2_QueuedWorkitemFunction;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleQueuedWorkitem);
+
+    FuncExitVoid(DMF_TRACE_OsrFx2);
+}
+#pragma code_seg()
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -2192,20 +2289,6 @@ static DMF_CALLBACKS_WDF DmfCallbacksWdf_OsrFx2;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// The table of IOCTLS that this Module supports.
-//
-IoctlHandler_IoctlRecord OsrFx2_IoctlHandlerTable[] =
-{
-    { (LONG)IOCTL_OSRUSBFX2_GET_CONFIG_DESCRIPTOR,       0,                      0,                               OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_RESET_DEVICE,                0,                      0,                               OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_REENUMERATE_DEVICE,          0,                      0,                               OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_GET_BAR_GRAPH_DISPLAY,       0,                      sizeof(BAR_GRAPH_STATE),         OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,       sizeof(BAR_GRAPH_STATE),0,                               OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_GET_7_SEGMENT_DISPLAY,       0,                      sizeof(UCHAR),                   OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_SET_7_SEGMENT_DISPLAY,       sizeof(UCHAR),          0,                               OsrFx2_IoctlHandler, FALSE },
-    { (LONG)IOCTL_OSRUSBFX2_READ_SWITCHES,               0,                      sizeof(SWITCH_STATE),            OsrFx2_IoctlHandler, FALSE },
-};
-
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -2235,19 +2318,16 @@ Returns:
 
 --*/
 {
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_OsrFx2* moduleContext;
     DMF_CONFIG_OsrFx2* moduleConfig;
     WDFDEVICE device;
-    WDF_OBJECT_ATTRIBUTES attributes;
     NTSTATUS ntStatus;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_OsrFx2);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_OsrFx2);
+    DmfCallbacksDmf_OsrFx2.ChildModulesAdd = DMF_OsrFx2_ChildModulesAdd;
     DmfCallbacksDmf_OsrFx2.DeviceOpen = DMF_OsrFx2_Open;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_OsrFx2);
@@ -2269,49 +2349,21 @@ Returns:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_OsrFx2,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-    device = DMF_AttachedDeviceGet(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
+    moduleConfig = DMF_CONFIG_GET(*DmfModule);
+    device = DMF_AttachedDeviceGet(*DmfModule);
 
     // Client has option of allowing Device Interface to be created to allow drivers or applications to 
     // send IOCTLS.
     //
     if (!(moduleConfig->Settings & OsrFx2_Settings_NoDeviceInterface))
     {
-        // IoctlHandler
-        // ------------
-        //
-        DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
-        DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
-                                                    &moduleAttributes);
-        moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-        moduleConfigIoctlHandler.IoctlRecordCount = _countof(OsrFx2_IoctlHandlerTable);
-        moduleConfigIoctlHandler.IoctlRecords = OsrFx2_IoctlHandlerTable;
-        moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
-        moduleConfigIoctlHandler.CustomCapabilities = L"microsoft.hsaTestCustomCapability_q536wpkpf5cy2\0";
-        moduleConfigIoctlHandler.IsRestricted = DEVPROP_TRUE;
-        ntStatus = DMF_IoctlHandler_Create(device,
-                                           &moduleAttributes,
-                                           &attributes,
-                                           &moduleContext->DmfModuleIoctlHandler);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-
         // NOTE: Currently DMF has no AddDevice() callback. Operations that are done in AddDevice() should go here as this call is 
         //       performed in AddDevice(). 
         //
@@ -2352,7 +2404,7 @@ Returns:
         // Therefore, it is necessary to save the DmfModule in its context area.
         //
         DMF_ModuleInContextSave(queue,
-                                dmfModule);
+                                *DmfModule);
 
         ntStatus = WdfDeviceConfigureRequestDispatching(device,
                                                         queue,
@@ -2397,7 +2449,7 @@ Returns:
         // Therefore, it is necessary to save the DmfModule in its context area.
         //
         DMF_ModuleInContextSave(queue,
-                                dmfModule);
+                                *DmfModule);
 
         ntStatus = WdfDeviceConfigureRequestDispatching(device,
                                                         queue,
@@ -2410,26 +2462,7 @@ Returns:
         }
     }
 
-    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkitem;
-    DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkitem,
-                                                  &moduleAttributes);
-    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferCount = 4;
-    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(SWITCH_STATE);
-    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
-    moduleConfigQueuedWorkitem.EvtQueuedWorkitemFunction = OsrFx2_QueuedWorkitemFunction;
-    ntStatus = DMF_QueuedWorkItem_Create(device,
-                                         &moduleAttributes,
-                                         &attributes,
-                                         &moduleContext->DmfModuleQueuedWorkitem);
-    if (! NT_SUCCESS(ntStatus)) 
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
 Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
 

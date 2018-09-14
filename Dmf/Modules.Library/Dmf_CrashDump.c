@@ -3462,20 +3462,6 @@ Return Value:
 
 #endif // !defined(DMF_USER_MODE)
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_CrashDump;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_CrashDump;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_CrashDump;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Public Calls by Client
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
 #if !defined(DMF_USER_MODE)
 
 // NOTE: To reuse previous legacy code, let that code validate input/output buffer sizes.
@@ -3493,7 +3479,87 @@ IoctlHandler_IoctlRecord CrashDump_IoctlSpecification[] =
 #endif // defined(DEBUG)
 };
 
-#endif // !defined(DMF_USER_MODE)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_CrashDump_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_CrashDump* moduleConfig;
+    DMF_CONFIG_IoctlHandler ioctlHandlerModuleConfig;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_CrashDump);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (moduleConfig->DataSourceCount > 0)
+    {
+        // IoctlHandler
+        // ------------
+        //
+        DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&ioctlHandlerModuleConfig,
+                                                    &moduleAttributes);
+        ioctlHandlerModuleConfig.DeviceInterfaceGuid = GUID_DEVINTERFACE_CrashDump;
+        ioctlHandlerModuleConfig.AccessModeFilter = IoctlHandler_AccessModeFilterAdministratorOnly;
+        ioctlHandlerModuleConfig.EvtIoctlHandlerAccessModeFilter = NULL;
+        ioctlHandlerModuleConfig.IoctlRecordCount = ARRAYSIZE(CrashDump_IoctlSpecification);
+        ioctlHandlerModuleConfig.IoctlRecords = CrashDump_IoctlSpecification;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+    }
+    else
+    {
+        // There should only be a single driver that hosts Auxiliary Data Sources.
+        // Thus, only a single driver should set DataSourceCount to non-zero.
+        //
+    }
+
+    FuncExitVoid(DMF_TRACE_CrashDump);
+}
+#pragma code_seg()
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// DMF Module Descriptor
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_CrashDump;
+static DMF_CALLBACKS_DMF DmfCallbacksDmf_CrashDump;
+static DMF_CALLBACKS_WDF DmfCallbacksWdf_CrashDump;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Public Calls by Client
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -3525,16 +3591,7 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
-#if !defined(DMF_USER_MODE)
-    DMF_CONFIG_IoctlHandler ioctlHandlerModuleConfig;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
     DMFMODULE dmfModule;
-    DMF_CONTEXT_CrashDump* moduleContext;
-    // For SAL.
-    //
-    DMFMODULE dmfModuleIoctlHandler;
-#endif // !defined(DMF_USER_MODE)
 
     PAGED_CODE();
 
@@ -3556,6 +3613,9 @@ Return Value:
     DmfCallbacksDmf_CrashDump.ModuleInstanceDestroy = DMF_CrashDump_Destroy;
     DmfCallbacksDmf_CrashDump.DeviceOpen = DMF_CrashDump_Open;
     DmfCallbacksDmf_CrashDump.DeviceClose = DMF_CrashDump_Close;
+#if !defined(DMF_USER_MODE)
+    DmfCallbacksDmf_CrashDump.ChildModulesAdd = DMF_CrashDump_ChildModulesAdd;
+#endif // !defined(DMF_USER_MODE)
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_CrashDump);
 #if !defined(DMF_USER_MODE)
@@ -3581,54 +3641,9 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
 
 #if !defined(DMF_USER_MODE)
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    DMF_CONFIG_CrashDump* moduleConfig;
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    if (moduleConfig->DataSourceCount > 0)
-    {
-        // IoctlHandler
-        // ------------
-        //
-        DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&ioctlHandlerModuleConfig,
-                                                    &moduleAttributes);
-        ioctlHandlerModuleConfig.DeviceInterfaceGuid = GUID_DEVINTERFACE_CrashDump;
-        ioctlHandlerModuleConfig.AccessModeFilter = IoctlHandler_AccessModeFilterAdministratorOnly;
-        ioctlHandlerModuleConfig.EvtIoctlHandlerAccessModeFilter = NULL;
-        ioctlHandlerModuleConfig.IoctlRecordCount = ARRAYSIZE(CrashDump_IoctlSpecification);
-        ioctlHandlerModuleConfig.IoctlRecords = CrashDump_IoctlSpecification;
-        ntStatus = DMF_IoctlHandler_Create(Device,
-                                           &moduleAttributes,
-                                           &attributes,
-                                           &dmfModuleIoctlHandler);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-            goto Exit;
-        }
-    }
-    else
-    {
-        // There should only be a single driver that hosts Auxiliary Data Sources.
-        // Thus, only a single driver should set DataSourceCount to non-zero.
-        //
-    }
-
-    // Ring Buffers are dynamically created. Dependent Modules are usually created here, but in this case they are created dynamically.
-    //
 
     // Save global context. The Crash Dump callbacks do not have a context passed into them.
     //

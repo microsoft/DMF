@@ -316,12 +316,84 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_ThreadedBufferQueue* moduleConfig;
+    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
+    DMF_CONFIG_Thread moduleConfigThread;
+    DMF_CONFIG_BufferQueue moduleBufferQueueConfigList;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // DmfModuleBufferQueue
+    // --------------------
+    //
+    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&moduleBufferQueueConfigList,
+                                               &moduleAttributes);
+    moduleBufferQueueConfigList = moduleConfig->BufferQueueConfig;
+    moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(ThreadedBufferQueue_WorkBufferInternal) +
+                                                            moduleBufferQueueConfigList.SourceSettings.BufferSize;
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferQueue);
+
+    // DmfModuleThread
+    // ---------------
+    //
+    DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                          &moduleAttributes);
+    moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+    moduleConfigThread.ThreadControl.DmfControl.EvtThreadPre = moduleConfig->EvtThreadedBufferQueuePre;
+    moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = ThreadedBufferQueueThreadCallback;
+    moduleConfigThread.ThreadControl.DmfControl.EvtThreadPost = moduleConfig->EvtThreadedBufferQueuePost;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleThread);
+
+    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ThreadedBufferQueue;
+static DMF_CALLBACKS_DMF DmfCallbacksDmf_ThreadedBufferQueue;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -358,12 +430,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMFMODULE dmfModule;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+
+    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ThreadedBufferQueue);
+    DmfCallbacksDmf_ThreadedBufferQueue.ChildModulesAdd = DMF_ThreadedBufferQueue_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ThreadedBufferQueue,
                                             ThreadedBufferQueue,
@@ -371,81 +444,18 @@ Return Value:
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
+    DmfModuleDescriptor_ThreadedBufferQueue.CallbacksDmf = &DmfCallbacksDmf_ThreadedBufferQueue;
     DmfModuleDescriptor_ThreadedBufferQueue.ModuleConfigSize = sizeof(DMF_CONFIG_ThreadedBufferQueue);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_ThreadedBufferQueue,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThreadedBufferQueue, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
-
-    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
-    DMF_CONFIG_ThreadedBufferQueue* moduleConfig;
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    ASSERT(moduleConfig->EvtThreadedBufferQueueWork != NULL);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-
-    // DmfModuleBufferQueue
-    // --------------------
-    //
-    DMF_CONFIG_BufferQueue moduleBufferQueueConfigList;
-    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&moduleBufferQueueConfigList,
-                                               &moduleAttributes);
-    moduleBufferQueueConfigList = moduleConfig->BufferQueueConfig;
-    moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(ThreadedBufferQueue_WorkBufferInternal) +
-                                                            moduleBufferQueueConfigList.SourceSettings.BufferSize;
-    moduleAttributes.PassiveLevel = DmfModuleAttributes->PassiveLevel;
-    ntStatus = DMF_BufferQueue_Create(Device,
-                                      &moduleAttributes,
-                                      &attributes,
-                                      &moduleContext->DmfModuleBufferQueue);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThreadedBufferQueue, "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // DmfModuleThread
-    // ---------------
-    //
-    DMF_CONFIG_Thread moduleConfigThread;
-    DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
-                                          &moduleAttributes);
-    moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
-    moduleConfigThread.ThreadControl.DmfControl.EvtThreadPre = moduleConfig->EvtThreadedBufferQueuePre;
-    moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = ThreadedBufferQueueThreadCallback;
-    moduleConfigThread.ThreadControl.DmfControl.EvtThreadPost = moduleConfig->EvtThreadedBufferQueuePost;
-    ntStatus = DMF_Thread_Create(Device,
-                                 &moduleAttributes,
-                                 &attributes,
-                                 &moduleContext->DmfModuleThread);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThreadedBufferQueue, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_ThreadedBufferQueue, "ntStatus=%!STATUS!", ntStatus);
 

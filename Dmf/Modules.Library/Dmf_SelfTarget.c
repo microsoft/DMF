@@ -189,6 +189,58 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_SelfTarget_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONTEXT_SelfTarget* moduleContext;
+    DMF_CONFIG_ContinuousRequestTarget continuousRequestTargetModuleConfig;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_SelfTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // ContinuousRequestTarget
+    // -----------------------
+    //
+    DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&continuousRequestTargetModuleConfig,
+                                                           &moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleContinuousRequestTarget);
+
+    FuncExitVoid(DMF_TRACE_SelfTarget);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,11 +284,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_SelfTarget* moduleContext;
-    DMF_CONFIG_ContinuousRequestTarget continuousRequestTargetModuleConfig;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -245,6 +292,7 @@ Return Value:
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SelfTarget);
     DmfCallbacksDmf_SelfTarget.DeviceOpen = DMF_SelfTarget_Open;
     DmfCallbacksDmf_SelfTarget.DeviceClose = DMF_SelfTarget_Close;
+    DmfCallbacksDmf_SelfTarget.ChildModulesAdd = DMF_SelfTarget_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SelfTarget,
                                             SelfTarget,
@@ -258,40 +306,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_SelfTarget,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SelfTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // ContinuousRequestTarget
-    // -----------------------
-    //
-    DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&continuousRequestTargetModuleConfig,
-                                                           &moduleAttributes);
-    ntStatus = DMF_ContinuousRequestTarget_Create(Device,
-                                                  &moduleAttributes,
-                                                  &attributes,
-                                                  &moduleContext->DmfModuleContinuousRequestTarget);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SelfTarget, "DMF_ContinuousRequestTarget_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_SelfTarget, "ntStatus=%!STATUS!", ntStatus);
 

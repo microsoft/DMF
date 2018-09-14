@@ -1110,6 +1110,67 @@ Exit:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+IoctlHandler_IoctlRecord ResourceHub_IoctlSpecification[] =
+{
+    { IOCTL_SPB_EXECUTE_SEQUENCE, sizeof(SPB_TRANSFER_LIST), 0, ResourceHub_IoctlClientCallback_SpbExecuteSequence }
+};
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ResourceHub_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_IoctlHandler ioctlHandlerModuleConfig;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE_ResourceHub);
+
+    // IoctlHandler
+    // ------------
+    //
+    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&ioctlHandlerModuleConfig,
+                                                &moduleAttributes);
+    // NOTE: No GUID is necessary because device interface is not created.
+    //
+    ioctlHandlerModuleConfig.AccessModeFilter = IoctlHandler_AccessModeDefault;
+    ioctlHandlerModuleConfig.EvtIoctlHandlerAccessModeFilter = NULL;
+    ioctlHandlerModuleConfig.IoctlRecordCount = ARRAYSIZE(ResourceHub_IoctlSpecification);
+    ioctlHandlerModuleConfig.IoctlRecords = ResourceHub_IoctlSpecification;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+
+    FuncExitVoid(DMF_TRACE_ResourceHub);
+}
+#pragma code_seg()
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -1208,11 +1269,6 @@ static DMF_CALLBACKS_WDF DmfCallbacksWdf_ResourceHub;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-IoctlHandler_IoctlRecord ResourceHub_IoctlSpecification[] =
-{
-    { IOCTL_SPB_EXECUTE_SEQUENCE, sizeof(SPB_TRANSFER_LIST), 0, ResourceHub_IoctlClientCallback_SpbExecuteSequence }
-};
-
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -1243,12 +1299,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_CONTEXT_ResourceHub* moduleContext;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMF_CONFIG_IoctlHandler ioctlHandlerModuleConfig;
-    DMFMODULE dmfModule;
-    DMFMODULE dmfModuleIoctlHandler;
 
     PAGED_CODE();
 
@@ -1257,6 +1307,7 @@ Return Value:
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ResourceHub);
     DmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
     DmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
+    DmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ResourceHub);
     DmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
@@ -1275,45 +1326,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_ResourceHub,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // IoctlHandler
-    // ------------
-    //
-    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&ioctlHandlerModuleConfig,
-                                                &moduleAttributes);
-    // NOTE: No GUID is necessary because device interface is not created.
-    //
-    ioctlHandlerModuleConfig.AccessModeFilter = IoctlHandler_AccessModeDefault;
-    ioctlHandlerModuleConfig.EvtIoctlHandlerAccessModeFilter = NULL;
-    ioctlHandlerModuleConfig.IoctlRecordCount = ARRAYSIZE(ResourceHub_IoctlSpecification);
-    ioctlHandlerModuleConfig.IoctlRecords = ResourceHub_IoctlSpecification;
-    ntStatus = DMF_IoctlHandler_Create(Device,
-                                       &moduleAttributes,
-                                       &attributes,
-                                       &dmfModuleIoctlHandler);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
 
