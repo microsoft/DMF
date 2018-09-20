@@ -141,7 +141,7 @@ Return Value:
                                  RootHubIoTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfIoTargetCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetCreate fails: ntStatus=%!STATUS!", ntStatus);
         *RootHubIoTarget = NULL;
         goto Exit;
     }
@@ -170,7 +170,7 @@ Return Value:
                                &openParameters);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -183,7 +183,7 @@ Exit:
         *RootHubIoTarget = NULL;
     }
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -215,7 +215,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -228,13 +228,13 @@ Return Value:
                                                       &moduleContext->ResourceHubTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "ResourceHub_ConnectResourceHubIoTarget fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResourceHub_ConnectResourceHubIoTarget fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -295,7 +295,7 @@ Return Value:
     if (BiosDescriptor == NULL ||
         BiosDescriptorLength < sizeof(PNP_SERIAL_BUS_DESCRIPTOR))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "BiosDescriptorLength=%d sizeof(PNP_SERIAL_BUS_DESCRIPTOR)=%d",
                     (int)BiosDescriptorLength,
                     (int)sizeof(PNP_SERIAL_BUS_DESCRIPTOR));
@@ -309,7 +309,7 @@ Return Value:
     type = *(UCHAR*)BiosDescriptor;
     if (type != SERIAL_BUS_DESCRIPTOR)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "type=%d SERIAL_BUS_DESCRIPTOR=%d",
                     type,
                     SERIAL_BUS_DESCRIPTOR);
@@ -332,7 +332,7 @@ Return Value:
           (serialBusDescriptor->TypeDataLength >
         (BiosDescriptorLength - sizeof(PNP_SERIAL_BUS_DESCRIPTOR))))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "Invalid Code Path");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
         ASSERT(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
@@ -359,7 +359,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -395,7 +395,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -403,7 +403,7 @@ Return Value:
         RTL_SIZEOF_THROUGH_FIELD(DIRECTFW_I2C_CONNECTION_DESCRIPTOR_SUBTYPE,
                                  SecondaryDeviceAddress))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "TypeSpecificDataLength=%d [%d]",
                     TypeSpecificDataLength,
                     RTL_SIZEOF_THROUGH_FIELD(DIRECTFW_I2C_CONNECTION_DESCRIPTOR_SUBTYPE, SecondaryDeviceAddress));
@@ -419,7 +419,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -477,7 +477,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -507,7 +507,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus) ||
         registrationMemory == NULL)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         registrationMemory = NULL;
         goto Exit;
     }
@@ -533,7 +533,7 @@ Return Value:
                                (VOID* *)&resultsQuery);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         resultsQueryMemory = NULL;
         goto Exit;
     }
@@ -552,7 +552,7 @@ Return Value:
                                                  &ioctlBytesReturned);
     if (ntStatus != STATUS_BUFFER_TOO_SMALL)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -572,7 +572,7 @@ Return Value:
                                (VOID* *)&resultsBuffer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         resultsBufferMemory = NULL;
         goto Exit;
     }
@@ -593,7 +593,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus) ||
         (resultsBuffer->PropertiesLength == 0))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -605,7 +605,7 @@ Return Value:
                                &connectionPropertiesPointer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         *ConnectionProperties = NULL;
         goto Exit;
     }
@@ -632,7 +632,7 @@ Exit:
         resultsBufferMemory = NULL;
     }
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -688,7 +688,7 @@ Return Value:
     //
     if (TransferBufferLength < sizeof(SPB_TRANSFER_LIST))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "TransferBufferLength=%d sizeof(SPB_TRANSFER_LIST)=%d",
                     (int)TransferBufferLength,
                     (int)sizeof(SPB_TRANSFER_LIST));
@@ -701,7 +701,7 @@ Return Value:
 
     if (list->Size != sizeof(SPB_TRANSFER_LIST))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "list->Size=%d sizeof(SPB_TRANSFER_LIST)=%d",
                     list->Size,
                     sizeof(SPB_TRANSFER_LIST));
@@ -718,7 +718,7 @@ Return Value:
     //
     if (list->TransferCount != 1 && list->TransferCount != 2)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "list->TransferCount=%d", list->TransferCount);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "list->TransferCount=%d", list->TransferCount);
         ASSERT(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
@@ -734,7 +734,7 @@ Return Value:
 
         if (buffer->Format != SpbTransferBufferFormatSimple)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                         "buffer->Format=%d SpbTransferBufferFormatSimple=%d",
                         buffer->Format,
                         SpbTransferBufferFormatSimple);
@@ -753,7 +753,7 @@ Return Value:
                 //
                 if (listEntry->Direction != SpbTransferDirectionToDevice)
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                                 "listEntry->Direction=%d SpbTransferDirectionToDevice=%d",
                                 listEntry->Direction,
                                 SpbTransferDirectionToDevice);
@@ -771,7 +771,7 @@ Return Value:
                 if (listEntry->Direction != SpbTransferDirectionToDevice &&
                     listEntry->Direction != SpbTransferDirectionFromDevice)
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub,
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                                 "listEntry->Direction=%d SpbTransferDirectionToDevice=%d SpbTransferDirectionFromDevice=%d",
                                 listEntry->Direction, SpbTransferDirectionToDevice,
                                 SpbTransferDirectionFromDevice);
@@ -782,7 +782,7 @@ Return Value:
 
                 if (listEntry->Direction == previousDataListEntryDirection)
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "listEntry->Direction=%d previousDataListEntryDirection=%d", listEntry->Direction, previousDataListEntryDirection);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "listEntry->Direction=%d previousDataListEntryDirection=%d", listEntry->Direction, previousDataListEntryDirection);
                     ASSERT(FALSE);
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit;
@@ -796,7 +796,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -854,7 +854,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -879,7 +879,7 @@ Return Value:
                                                 InputBufferSize);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "ResourceHub_ValidateTransferList for IOCTL_SPB_EXECUTE_SEQUENCE fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResourceHub_ValidateTransferList for IOCTL_SPB_EXECUTE_SEQUENCE fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -896,14 +896,14 @@ Return Value:
                                                                     BytesReturned);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "EvtResourceHubDispatchTransferList fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtResourceHubDispatchTransferList fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -964,7 +964,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(Device == DMF_AttachedDeviceGet(DmfModule));
     ASSERT(Request != NULL);
@@ -1010,7 +1010,7 @@ Return Value:
 
         if (filePart.Length < sizeof(WCHAR))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "Invalid fileName parameter");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid fileName parameter");
             ntStatus = STATUS_INVALID_PARAMETER;
             goto Exit;
         }
@@ -1022,7 +1022,7 @@ Return Value:
                                        &filenameLength);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "Invalid fileName parameter");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid fileName parameter");
             goto Exit;
         }
 
@@ -1036,7 +1036,7 @@ Return Value:
                                                          &connectionProperties);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "ResourceHub_QueryConnectionProperties fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResourceHub_QueryConnectionProperties fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1047,7 +1047,7 @@ Return Value:
         if (connectionPropertiesBuffer == NULL)
         {
             ntStatus = STATUS_UNSUCCESSFUL;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "No resources returned from RH query");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No resources returned from RH query");
             goto Exit;
         }
 
@@ -1060,14 +1060,14 @@ Return Value:
                                                                NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "ResourceHub_ParseGenericSerialBusDescriptor fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResourceHub_ParseGenericSerialBusDescriptor fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
         if (serialBusType != I2C)
         {
             ntStatus = STATUS_UNSUCCESSFUL;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "GenericSerialBus descriptor subtype not I2C: 0x%x ntStatus=%!STATUS!", serialBusType, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GenericSerialBus descriptor subtype not I2C: 0x%x ntStatus=%!STATUS!", serialBusType, ntStatus);
             goto Exit;
         }
 
@@ -1077,13 +1077,13 @@ Return Value:
                                                                   &secondaryDeviceAddress);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "ResourceHub_ParseI2CSerialBusDescriptorSubtype fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResourceHub_ParseI2CSerialBusDescriptorSubtype fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
         // Success.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ResourceHub, "secondaryDeviceAddress=0x%X request=0x%p", secondaryDeviceAddress, Request);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "secondaryDeviceAddress=0x%X request=0x%p", secondaryDeviceAddress, Request);
 
         fileContext->SecondaryDeviceAddress = secondaryDeviceAddress;
 
@@ -1099,7 +1099,7 @@ Exit:
         WdfObjectDelete(connectionProperties);
     }
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return handled;
 }
@@ -1149,7 +1149,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     // IoctlHandler
     // ------------
@@ -1167,7 +1167,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 
-    FuncExitVoid(DMF_TRACE_ResourceHub);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1200,7 +1200,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1211,10 +1211,10 @@ Return Value:
     ntStatus = ResourceHub_RegisterForAcpiNotifications(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "ResourceHub_RegisterForAcpiNotifications fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResourceHub_RegisterForAcpiNotifications fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1247,11 +1247,11 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_ResourceHub);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1302,7 +1302,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ResourceHub);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ResourceHub);
     DmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
@@ -1329,10 +1329,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ResourceHub, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_ResourceHub, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

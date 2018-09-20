@@ -114,9 +114,9 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_Thread, "Thread START");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread START");
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -161,7 +161,7 @@ Return Value:
         }
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_Thread, "Thread END");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread END");
 }
 
 #if !defined(DMF_USER_MODE)
@@ -211,7 +211,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
 
@@ -235,7 +235,7 @@ Return Value:
             //
             if (moduleConfig->ThreadControl.DmfControl.EvtThreadPre != NULL)
             {
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_Thread, "Thread PRE");
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread PRE");
                 moduleConfig->ThreadControl.DmfControl.EvtThreadPre(dmfModule);
             }
 
@@ -247,7 +247,7 @@ Return Value:
             //
             if (moduleConfig->ThreadControl.DmfControl.EvtThreadPost != NULL)
             {
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_Thread, "Thread POST");
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread POST");
                 moduleConfig->ThreadControl.DmfControl.EvtThreadPost(dmfModule);
             }
             break;
@@ -260,10 +260,10 @@ Return Value:
     }
 
 #if defined(DMF_USER_MODE)
-    FuncExit(DMF_TRACE_Thread, "return=0");
+    FuncExit(DMF_TRACE, "return=0");
     return 0;
 #else
-    FuncExitVoid(DMF_TRACE_Thread);
+    FuncExitVoid(DMF_TRACE);
 #endif // defined(DMF_USER_MODE)
 }
 #pragma code_seg()
@@ -297,7 +297,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -350,7 +350,7 @@ Return Value:
                                     DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Thread, "PsCreateSystemThread ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "PsCreateSystemThread ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -364,7 +364,7 @@ Return Value:
                                          NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Thread, "ObReferenceObjectByHandle ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ObReferenceObjectByHandle ntStatus=%!STATUS!", ntStatus);
 
         // Unable to object a thread object.
         //
@@ -387,7 +387,7 @@ Return Value:
     if (NULL == threadHandle)
     {
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Thread, "CreateThread ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CreateThread ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -396,7 +396,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Thread, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -424,14 +424,14 @@ Return Value:
 {
     DMF_CONTEXT_Thread* moduleContext;
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ASSERT(moduleContext->EventStop != NULL);
     DMF_Portable_EventSet(moduleContext->EventStop);
 
-    FuncExitVoid(DMF_TRACE_Thread);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -461,7 +461,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -469,7 +469,7 @@ Return Value:
 
     if (moduleContext->ThreadHandle != NULL)
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_Thread, "Wait for ThreadHandle=0x%p to End...", moduleContext->ThreadHandle);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wait for ThreadHandle=0x%p to End...", moduleContext->ThreadHandle);
         // In order to prevent other Client Driver threads from stopping,
         // Set the StopEvent only if it was created by the object.
         //
@@ -490,7 +490,7 @@ Return Value:
                               KernelMode,
                               FALSE,
                               NULL);
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_Thread, "Wait Satisfied: ThreadHandle=0x%p to End...", moduleContext->ThreadHandle);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wait Satisfied: ThreadHandle=0x%p to End...", moduleContext->ThreadHandle);
         ZwClose(moduleContext->ThreadHandle);
         ObDereferenceObject(moduleContext->ThreadObject);
 #else
@@ -511,7 +511,7 @@ Return Value:
 
     moduleContext->EventStop = NULL;
 
-    FuncExitVoid(DMF_TRACE_Thread);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -612,7 +612,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Thread,
                                             Thread,
@@ -629,10 +629,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Thread, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_Thread, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -667,14 +667,14 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Thread);
 
     threadStopPending = Thread_IsThreadStopPending(DmfModule);
 
-    FuncExit(DMF_TRACE_Thread, "threadStopPending=%d", threadStopPending);
+    FuncExit(DMF_TRACE, "threadStopPending=%d", threadStopPending);
 
     return threadStopPending;
 }
@@ -707,14 +707,14 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Thread);
 
     ntStatus = Thread_ThreadCreate(DmfModule);
 
-    FuncExit(DMF_TRACE_Thread, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -744,14 +744,14 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Thread);
 
     Thread_ThreadDestroy(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_Thread);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -778,7 +778,7 @@ Return Value:
 {
     DMF_CONTEXT_Thread* moduleContext;
 
-    FuncEntry(DMF_TRACE_Thread);
+    FuncEntry(DMF_TRACE);
 
     // By design this Method can be called by Close callback.
     //
@@ -789,7 +789,7 @@ Return Value:
 
     DMF_Portable_EventSet(&moduleContext->EventWorkReady);
 
-    FuncExitVoid(DMF_TRACE_Thread);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_Thread.c

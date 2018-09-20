@@ -615,7 +615,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -626,7 +626,7 @@ Return Value:
         ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[index]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_BufferPool, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -638,7 +638,7 @@ Return Value:
 
 Exit:
     
-    FuncExit(DMF_TRACE_Tests_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -672,7 +672,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -681,7 +681,7 @@ Return Value:
         DMF_Thread_Stop(moduleContext->DmfModuleThread[index]);
     }
 
-    FuncExitVoid(DMF_TRACE_Tests_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -759,7 +759,7 @@ Return Value:
                                 &dmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_BufferPool, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -791,7 +791,7 @@ Return Value:
                                      &moduleContext->DmfModuleBufferPoolSource);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_BufferPool, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -807,7 +807,7 @@ Return Value:
                                      &moduleContext->DmfModuleBufferPoolSink);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_BufferPool, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -826,7 +826,7 @@ Return Value:
                                      &moduleContext->DmfModuleThread[index]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_BufferPool, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 

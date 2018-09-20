@@ -278,7 +278,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HashTable);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(NULL != ModuleContext);
 
@@ -294,7 +294,7 @@ Return Value:
         ModuleContext->DataTable = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_HashTable);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -329,7 +329,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HashTable);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(NULL != ModuleConfig);
     ASSERT(NULL != ModuleContext);
@@ -349,7 +349,7 @@ Return Value:
 
     ModuleContext->DataEntriesAllocated = 0;
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_HashTable,
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "Create hash table: MaximumKeyLength=%u, MaximumValueLength=%u, DataEntrySize=%u, MaximumTableSize=%u",
                 ModuleContext->MaximumKeyLength,
                 ModuleContext->MaximumValueLength,
@@ -385,7 +385,7 @@ Return Value:
                                (VOID**)&ModuleContext->HashMap);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HashTable, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -408,7 +408,7 @@ Return Value:
                                (VOID**)&ModuleContext->DataTable);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HashTable, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -424,7 +424,7 @@ Exit:
         HashTable_ContextCleanup(ModuleContext);
     }
 
-    FuncExit(DMF_TRACE_HashTable, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -474,7 +474,7 @@ Return Value:
     if (ModuleContext->DataEntriesAllocated >= ModuleContext->DataTableSize)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HashTable, "No more free slots available");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No more free slots available");
         ASSERT(FALSE);
         goto Exit;
     }
@@ -751,7 +751,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HashTable);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -766,7 +766,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_HashTable, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -799,13 +799,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HashTable);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     HashTable_ContextCleanup(moduleContext);
 
-    FuncExitVoid(DMF_TRACE_HashTable);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -855,7 +855,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HashTable);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HashTable);
     DmfCallbacksDmf_HashTable.DeviceOpen = DMF_HashTable_Open;
@@ -877,10 +877,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HashTable, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_HashTable, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -917,7 +917,7 @@ Return Value:
     DMF_CONTEXT_HashTable* moduleContext;
     ULONG entryIndex;
 
-    FuncEntry(DMF_TRACE_HashTable);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_HashTable);
@@ -945,7 +945,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_HashTable);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

@@ -90,7 +90,7 @@ Return Value:
     NTSTATUS ntStatus;
     CONFIGRET configRet;
 
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -109,7 +109,7 @@ Return Value:
                                                       Flags);
         if (configRet != CR_SUCCESS)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Get_Device_Interface_List_Size fails: configRet=0x%x", configRet);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_Interface_List_Size fails: configRet=0x%x", configRet);
             ntStatus = ERROR_NOT_FOUND;
             goto Exit;
         }
@@ -152,11 +152,11 @@ Return Value:
 
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Get_Device_Interface_List fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_Interface_List fails: configRet=0x%x", configRet);
         ntStatus = ERROR_NOT_FOUND;
     }
 
-    FuncExit(DMF_TRACE_CmApi, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
 Exit:
 
@@ -195,7 +195,7 @@ Return Value:
     UNREFERENCED_PARAMETER(EventData);
     UNREFERENCED_PARAMETER(EventDataSize);
 
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
@@ -210,11 +210,11 @@ Return Value:
 
         if (ntStatus != STATUS_SUCCESS)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "Error querying the device interfaces.");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Error querying the device interfaces.");
         }
     }
 
-    FuncExit(DMF_TRACE_CmApi, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return (DWORD)ntStatus;
 }
@@ -260,7 +260,7 @@ Return Value:
     CONFIGRET configRet;
 
     PAGED_CODE();
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -287,12 +287,12 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Register_Notification fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Register_Notification fails: configRet=0x%x", configRet);
         ntStatus = ERROR_NOT_FOUND;
         goto Exit;
     }
 
-    FuncExit(DMF_TRACE_CmApi, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
 Exit:
     return ntStatus;
@@ -326,14 +326,14 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     CM_Unregister_Notification(moduleContext->DeviceInterfaceNotification);
     moduleContext->DeviceInterfaceNotification = NULL;
 
-    FuncExitVoid(DMF_TRACE_CmApi);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -383,7 +383,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_CmApi);
     DmfCallbacksDmf_CmApi.DeviceOpen = DMF_CmApi_Open;
@@ -408,13 +408,13 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_CmApi, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -458,7 +458,7 @@ Return Value:
     CONFIGRET configRet;
     BOOLEAN returnValue;
 
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_CmApi);
@@ -478,7 +478,7 @@ Return Value:
 
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Locate_DevNode() fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Locate_DevNode() fails: configRet=0x%x", configRet);
         goto Exit;
     }
 
@@ -493,13 +493,13 @@ Return Value:
                                         0);
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Get_DevNode_Property() fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_DevNode_Property() fails: configRet=0x%x", configRet);
         goto Exit;
     }
 
     if ((propertyType & DEVPROP_MASK_TYPE) != DEVPROP_TYPE_UINT32)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "Device Node Status property was not of the correct type");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device Node Status property was not of the correct type");
         goto Exit;
     }
 
@@ -514,19 +514,19 @@ Return Value:
                                         0);
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Get_DevNode_Property() fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_DevNode_Property() fails: configRet=0x%x", configRet);
         goto Exit;
     }
 
     if ((propertyType & DEVPROP_MASK_TYPE) != DEVPROP_TYPE_UINT32)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "Device Node Status property was not of the correct type");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device Node Status property was not of the correct type");
         goto Exit;
     }
 
     returnValue = TRUE;
 
-    FuncExit(DMF_TRACE_CmApi, "ReturnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "ReturnValue=%d", returnValue);
 
 Exit:
 
@@ -574,7 +574,7 @@ Return Value:
     CONFIGRET configRet;
     NTSTATUS ntStatus;
 
-    FuncEntry(DMF_TRACE_CmApi);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -595,14 +595,14 @@ Return Value:
                                                  0);
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Get_Device_Interface_Property() fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_Interface_Property() fails: configRet=0x%x", configRet);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
 
     if ((propertyType & DEVPROP_MASK_TYPE) != DEVPROP_TYPE_STRING)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "Device instance id is not of the correct type.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device instance id is not of the correct type.");
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -613,7 +613,7 @@ Return Value:
 
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Locate_DevNode() fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Locate_DevNode() fails: configRet=0x%x", configRet);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -630,19 +630,19 @@ Return Value:
 
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "CM_Get_DevNode_Property() fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_DevNode_Property() fails: configRet=0x%x", configRet);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
 
     if ((propertyType & DEVPROP_MASK_TYPE) != DEVPROP_TYPE_STRING)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CmApi, "Device hardware IDs property was not of the correct type");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device hardware IDs property was not of the correct type");
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
 
-    FuncExit(DMF_TRACE_CmApi, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
 Exit:
 

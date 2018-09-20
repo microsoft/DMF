@@ -93,7 +93,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -114,13 +114,13 @@ Return Value:
                            &objectAttributes);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithEvent, "ZwOpenEvent ntStatus=%!STATUS! EventIndex=%u", ntStatus, EventIndex);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ZwOpenEvent ntStatus=%!STATUS! EventIndex=%u", ntStatus, EventIndex);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithEvent, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -153,7 +153,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -169,7 +169,7 @@ Return Value:
         }
     }
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithEvent);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -205,7 +205,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -228,7 +228,7 @@ Return Value:
         {
             // TODO: Test the case where the event is closed by user.
             //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithEvent, "ObReferenceObjectByHandle EventIndex=%u", EventIndex);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ObReferenceObjectByHandle EventIndex=%u", EventIndex);
             goto Exit;
         }
 
@@ -240,19 +240,19 @@ Return Value:
 
         ObDereferenceObject(eventObject);
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithEvent, "Event Set EventIndex=%u", EventIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event Set EventIndex=%u", EventIndex);
     }
     else
     {
         // Tell caller that the event was not set.
         //
         ntStatus = STATUS_UNSUCCESSFUL;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithEvent, "Event NOT set because it does not exist EventIndex=%u", EventIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event NOT set because it does not exist EventIndex=%u", EventIndex);
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithEvent, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -298,7 +298,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -320,7 +320,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithEvent, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -353,13 +353,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     NotifyUserWithEvent_EventsDestroy(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithEvent);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -409,7 +409,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_NotifyUserWithEvent);
     DmfCallbacksDmf_NotifyUserWithEvent.DeviceOpen = DMF_NotifyUserWithEvent_Open;
@@ -431,10 +431,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithEvent, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_NotifyUserWithEvent, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -471,7 +471,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_NotifyUserWithEvent);
@@ -479,7 +479,7 @@ Return Value:
     ntStatus = Dmf_NotifyUserWithEvent_NotifyByIndex(DmfModule,
                                                      NotifyUserWithEvent_DefaultIndex);
 
-    FuncExit(DMF_TRACE_NotifyUserWithEvent, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -517,7 +517,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithEvent);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_NotifyUserWithEvent);
@@ -548,7 +548,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_NotifyUserWithEvent, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

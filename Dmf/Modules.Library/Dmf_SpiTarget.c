@@ -115,7 +115,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(TimeoutMilliseconds);
 
-    FuncEntry(DMF_TRACE_SpiTarget);
+    FuncEntry(DMF_TRACE);
 
     memorySequence = NULL;
     memoryInData = NULL;
@@ -134,7 +134,7 @@ Return Value:
                                (VOID**)&inData);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfMemoryCreate(memoryInData) fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate(memoryInData) fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -149,7 +149,7 @@ Return Value:
                                (VOID**)&outData);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfMemoryCreate(memoryOutData) fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate(memoryOutData) fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -192,7 +192,7 @@ Return Value:
                                            &memorySequence);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -202,7 +202,7 @@ Return Value:
 
     ULONG_PTR bytesReturned = 0;
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SpiTarget, "WdfIoTargetSendIoctlSynchronously to SPI Controller BufferLength=%ld", BufferLength);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously to SPI Controller BufferLength=%ld", BufferLength);
 
     // Send IOCTL to SPB SPI Driver.
     //
@@ -213,13 +213,13 @@ Return Value:
                                                  NULL,
                                                  NULL,
                                                  &bytesReturned);
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SpiTarget,
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "WdfIoTargetSendIoctlSynchronously bytesReturned=%llu ntStatus=%!STATUS!",
                 bytesReturned,
                 ntStatus);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "WdfIoTargetSendIoctlSynchronously fails: bytesReturned=%llu ntStatus=%!STATUS!",
                     bytesReturned,
                     ntStatus);
@@ -229,7 +229,7 @@ Return Value:
     if (bytesReturned < BufferLength)
     {
         ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "SpbSequence fails: bytesReturned=%llu BufferLength=%lu ntStatus=%!STATUS!",
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SpbSequence fails: bytesReturned=%llu BufferLength=%lu ntStatus=%!STATUS!",
                     bytesReturned,
                     BufferLength,
                     ntStatus);
@@ -256,7 +256,7 @@ Exit:
         memoryOutData = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_SpiTarget);
+    FuncExitVoid(DMF_TRACE);
 
     return ntStatus;
 }
@@ -308,7 +308,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Timeout);
 
-    FuncEntry(DMF_TRACE_SpiTarget);
+    FuncEntry(DMF_TRACE);
 
     memorySequence = NULL;
     memoryInData = NULL;
@@ -333,7 +333,7 @@ Return Value:
                                (VOID**)&inData);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfMemoryCreate(inData) fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate(inData) fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -348,7 +348,7 @@ Return Value:
                                (VOID**)&outData);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfMemoryCreate(outData) fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate(outData) fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -387,7 +387,7 @@ Return Value:
                                            &memorySequence);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfMemoryCreatePreallocated(memorySequence) fails ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated(memorySequence) fails ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -405,7 +405,7 @@ Return Value:
                                                  OutDataLength);
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SpiTarget, "WdfIoTargetSendIoctlSynchronously OutDataLength=%ld InDataLength=%ld",
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously OutDataLength=%ld InDataLength=%ld",
                 OutDataLength, InDataLength);
 
     // Send IOCTL to SPB SPI Driver.
@@ -417,7 +417,7 @@ Return Value:
                                                  NULL,
                                                  NULL,
                                                  &bytesReturned);
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SpiTarget, "WdfIoTargetSendIoctlSynchronously bytesReturned=%llu ntStatus=%!STATUS!)",
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously bytesReturned=%llu ntStatus=%!STATUS!)",
                 bytesReturned, ntStatus);
 
     // Perform optional latency calculations in the Client.
@@ -432,7 +432,7 @@ Return Value:
 
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfIoTargetSendIoctlSynchronously fails: bytes:%llu ntStatus=%!STATUS!",
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: bytes:%llu ntStatus=%!STATUS!",
                     bytesReturned,
                     ntStatus);
         goto Exit;
@@ -441,7 +441,7 @@ Return Value:
     if (bytesReturned < transferLength)
     {
         ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "SpbSequence fails: bytesReturned=%llu transferLength=%lu ntStatus=%!STATUS!",
                     bytesReturned,
                     transferLength,
@@ -473,7 +473,7 @@ Exit:
         memoryOutData = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_SpiTarget);
+    FuncExitVoid(DMF_TRACE);
 
     return ntStatus;
 }
@@ -538,7 +538,7 @@ Return Value:
                                                 moduleContext->Connection.u.Connection.IdHighPart);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -550,7 +550,7 @@ Return Value:
                                  &moduleContext->Target);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -574,7 +574,7 @@ Return Value:
     {
         ASSERT(NT_SUCCESS(ntStatus));
         WdfObjectDelete(moduleContext->Target);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -681,7 +681,7 @@ Return Value:
     resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
     if (resourceCount == 0)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_SpiTarget, "No resources found");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No resources found");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
@@ -698,7 +698,7 @@ Return Value:
         if (NULL == resource)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "WdfCmResourceListGetDescriptor fails");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCmResourceListGetDescriptor fails");
             goto Exit;
         }
 
@@ -722,7 +722,7 @@ Return Value:
     //
     if (0 == spiResourceCount || (! resourceAssigned))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_SpiTarget, "No SPI Resources assigned");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No SPI Resources assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
@@ -805,7 +805,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SpiTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -835,7 +835,7 @@ DMF_SpiTarget_Write(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SpiTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -846,7 +846,7 @@ DMF_SpiTarget_Write(
                                   BufferLength,
                                   TimeoutMilliseconds);
 
-    FuncExit(DMF_TRACE_SpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -871,7 +871,7 @@ DMF_SpiTarget_WriteRead(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SpiTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -884,7 +884,7 @@ DMF_SpiTarget_WriteRead(
                                       InDataLength,
                                       TimeoutMilliseconds);
 
-    FuncExit(DMF_TRACE_SpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

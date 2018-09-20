@@ -339,7 +339,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_RingBuffer);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -349,7 +349,7 @@ Return Value:
                               ITEM_COUNT_MAX);
 
     
-    FuncExit(DMF_TRACE_Tests_RingBuffer, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -421,7 +421,7 @@ Return Value:
                                 &dmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_RingBuffer, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

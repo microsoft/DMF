@@ -123,11 +123,11 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -173,11 +173,11 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -212,11 +212,11 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -250,11 +250,11 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(TargetState);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExitVoid(DMF_TRACE_Template);
+    FuncExitVoid(DMF_TRACE);
 
     return ntStatus;
 }
@@ -288,11 +288,11 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(TargetState);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExitVoid(DMF_TRACE_Template);
+    FuncExitVoid(DMF_TRACE);
 
     return ntStatus;
 }
@@ -444,11 +444,11 @@ Return Value:
 
 --*/
 {
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_Template);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -489,11 +489,11 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
-    FuncExit(DMF_TRACE_Template, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -531,11 +531,11 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
-    FuncExit(DMF_TRACE_Template, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -573,11 +573,11 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
-    FuncExit(DMF_TRACE_Template, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -622,7 +622,7 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
     UNREFERENCED_PARAMETER(DmfModuleInit);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -630,7 +630,7 @@ Return Value:
     // TODO: Add Child Module here as needed. See other Module for examples.
     //
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -674,7 +674,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(ResourcesRaw);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(ResourcesRaw != NULL);
     ASSERT(ResourcesTranslated != NULL);
@@ -698,7 +698,7 @@ Return Value:
         if (NULL == resource)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Template, "No resources assigned");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No resources assigned");
             goto Exit;
         }
 
@@ -713,7 +713,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -752,11 +752,11 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return STATUS_SUCCESS;
 }
@@ -792,9 +792,9 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
-    FuncExitVoid(DMF_TRACE_Template);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -828,11 +828,11 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -865,9 +865,9 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
-    FuncExitVoid(DMF_TRACE_Template);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -924,7 +924,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Template);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Template);
     DmfCallbacksDmf_Template.ChildModulesAdd = DMF_Template_ChildModulesAdd;
@@ -969,10 +969,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Template, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_Template, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

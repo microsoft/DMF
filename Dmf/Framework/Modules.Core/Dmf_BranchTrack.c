@@ -497,7 +497,7 @@ Return Value:
     {
         // This should never happen, unless there is an error in this Module.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "Insufficient output buffer size");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Insufficient output buffer size");
         ASSERT(FALSE);
         goto Exit;
     }
@@ -597,7 +597,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(NULL != DmfModule);
     ASSERT(NULL != ModuleContext);
@@ -609,7 +609,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -681,7 +681,7 @@ Return Value:
     SIZE_T bufferLengthRequired;
     DMF_CONFIG_BranchTrack* moduleConfig;
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -705,7 +705,7 @@ Return Value:
                                               NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -736,7 +736,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -778,7 +778,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -814,7 +814,7 @@ Return Value:
                                               NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -840,7 +840,7 @@ Exit:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -878,7 +878,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(NULL != BytesReturned);
 
@@ -894,11 +894,11 @@ Return Value:
                                              NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "WdfRequestRetrieveInputBuffer fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveInputBuffer fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BranchTrack, "Request type: %d", inputData->Type);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request type: %d", inputData->Type);
 
     switch (inputData->Type)
     {
@@ -909,7 +909,7 @@ Return Value:
                                                            BytesReturned);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "BranchTrack_QueryInformation_Status fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BranchTrack_QueryInformation_Status fails: ntStatus=%!STATUS!", ntStatus);
             }
 
             break;
@@ -922,14 +922,14 @@ Return Value:
                                                             BytesReturned);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "BranchTrack_QueryInformation_Details fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BranchTrack_QueryInformation_Details fails: ntStatus=%!STATUS!", ntStatus);
             }
 
             break;
         }
 
         default:
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BranchTrack, "Unsupported type: %d", inputData->Type);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Unsupported type: %d", inputData->Type);
             ntStatus = STATUS_NOT_SUPPORTED;
             ASSERT(FALSE);
             break;
@@ -937,7 +937,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1000,7 +1000,7 @@ Return Value:
     //
     UNREFERENCED_PARAMETER(CallbackFind);
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1042,7 +1042,7 @@ Return Value:
                                   &tableKeyBufferContext);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "DMF_BufferPool_Get fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Get fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1092,7 +1092,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_BranchTrack);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1136,7 +1136,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -1178,7 +1178,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfObjectBufferPool);
 
-    FuncExitVoid(DMF_TRACE_BranchTrack);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1233,7 +1233,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1246,7 +1246,7 @@ Return Value:
     {
         case IOCTL_BRANCHTRACK_QUERY_INFORMATION:
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BranchTrack, "IOCTL_BRANCHTRACK_QUERY_INFORMATION received.");
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "IOCTL_BRANCHTRACK_QUERY_INFORMATION received.");
 
             // Always indicate handled, regardless of error.
             //
@@ -1257,7 +1257,7 @@ Return Value:
                                                     &bytesReturned);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack,  "BranchTrack_QueryInformation fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,  "BranchTrack_QueryInformation fails: ntStatus=%!STATUS!", ntStatus);
                 break;
             }
             
@@ -1283,7 +1283,7 @@ Return Value:
                                           bytesReturned);
     }
 
-    FuncExitVoid(DMF_TRACE_BranchTrack);
+    FuncExitVoid(DMF_TRACE);
 
     return handled;
 }
@@ -1325,7 +1325,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1354,13 +1354,13 @@ Return Value:
     {
         // Register a device interface so applications can find and open this device.
         //   
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BranchTrack, "Create Device Interface");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Create Device Interface");
         ntStatus = WdfDeviceCreateDeviceInterface(device,
                                                   (LPGUID)&GUID_DEVINTERFACE_BranchTrack,
                                                   NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "WdfDeviceCreateDeviceInterface fails, ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreateDeviceInterface fails, ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -1368,7 +1368,7 @@ Return Value:
     {
         UNICODE_STRING symbolicLinkName;
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BranchTrack, "Create Symbolic Link");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Create Symbolic Link");
 
         RtlInitUnicodeString(&symbolicLinkName,
                              moduleConfig->SymbolicLinkName);
@@ -1407,26 +1407,26 @@ Return Value:
             {
                 // Try again...
                 //
-                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_BranchTrack, "WdfDeviceCreateSymbolicLink ntStatus=%!STATUS! attempts=%d", ntStatus, attempts);
+                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfDeviceCreateSymbolicLink ntStatus=%!STATUS! attempts=%d", ntStatus, attempts);
                 if (attempts == maximumAttempts)
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "Give up on WdfDeviceCreateSymbolicLink. ntStatus=%!STATUS!", ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Give up on WdfDeviceCreateSymbolicLink. ntStatus=%!STATUS!", ntStatus);
                     goto Exit;
                 }
 
                 // Wait one second between each attempt.
                 //
-                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_BranchTrack, "Waiting %d ms...", waitPeriodMs);
+                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Waiting %d ms...", waitPeriodMs);
                 DMF_Utility_DelayMilliseconds(waitPeriodMs);
 
                 attempts++;
 
-                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_BranchTrack, "Try WdfDeviceCreateSymbolicLink again...");
+                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Try WdfDeviceCreateSymbolicLink again...");
                 goto TryAgain;
             }
             else
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "WdfDeviceCreateSymbolicLink ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreateSymbolicLink ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -1439,7 +1439,7 @@ Exit:
         BranchTrack_ConfigCleanup(moduleContext);
     }
 
-    FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1472,13 +1472,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     BranchTrack_ConfigCleanup(moduleContext);
 
-    FuncExitVoid(DMF_TRACE_BranchTrack);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1529,7 +1529,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_BranchTrack);
     DmfCallbacksDmf_BranchTrack.DeviceOpen = DMF_BranchTrack_Open;
@@ -1556,13 +1556,13 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BranchTrack, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_BranchTrack, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1620,7 +1620,7 @@ Return Value:
         goto Exit;
     }
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     // NOTE: If the Client Driver tries to use a Module that uses BranchTrack but does not use 
     // DMF_ModuleBranchTrack_DmfModuleInitializationTableCreate() the code will fail. There are currently
@@ -1643,7 +1643,7 @@ Return Value:
                                       BranchTrack_EVT_DMF_HashTable_Find);
     }
 
-    FuncExitVoid(DMF_TRACE_BranchTrack);
+    FuncExitVoid(DMF_TRACE);
 
 Exit:
     ;
@@ -1698,7 +1698,7 @@ Return Value:
         goto Exit;
     }
 
-    FuncEntry(DMF_TRACE_BranchTrack);
+    FuncEntry(DMF_TRACE);
 
     // Open handler will call a callback in the Client that will call this function.
     // It is expected and correct.
@@ -1718,7 +1718,7 @@ Return Value:
                                       BranchTrack_HashTable_CallbackEntryCreate);
     }
 
-    FuncExitVoid(DMF_TRACE_BranchTrack);
+    FuncExitVoid(DMF_TRACE);
 
 Exit:
     ;

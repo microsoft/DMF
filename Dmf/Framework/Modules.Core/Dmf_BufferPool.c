@@ -479,7 +479,7 @@ Return Value:
 {
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(ClientBuffer != NULL);
 
@@ -525,7 +525,7 @@ Return Value:
     DMF_CONTEXT_BufferPool* moduleContext;
     WDFMEMORY bufferPoolEntryMemory;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -537,7 +537,7 @@ Return Value:
     {
         if (moduleContext->NumberOfAdditionalBuffersAllocated > 0)
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "Delete Additional Buffer BufferPoolEntryMemory=0x%p", bufferPoolEntryMemory);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Delete Additional Buffer BufferPoolEntryMemory=0x%p", bufferPoolEntryMemory);
             // Just delete the buffer. It returns to the lookaside list.
             //
             WdfObjectDelete(bufferPoolEntryMemory);
@@ -545,14 +545,14 @@ Return Value:
             // There is one less additional buffer now.
             //
             moduleContext->NumberOfAdditionalBuffersAllocated--;
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "NumberOfAdditionalBuffersAllocated=%d", moduleContext->NumberOfAdditionalBuffersAllocated);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NumberOfAdditionalBuffersAllocated=%d", moduleContext->NumberOfAdditionalBuffersAllocated);
             // Do not add the entry back into the list.
             //
             goto Exit;
         }
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "Add Buffer BufferPoolEntryMemory=0x%p NumberOfAdditionalBuffersAllocated=%d", bufferPoolEntryMemory, moduleContext->NumberOfAdditionalBuffersAllocated);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Add Buffer BufferPoolEntryMemory=0x%p NumberOfAdditionalBuffersAllocated=%d", bufferPoolEntryMemory, moduleContext->NumberOfAdditionalBuffersAllocated);
 
     // Add the buffer to the list. (This function validates that the buffer has
     // not already been added to another list in DEBUG mode.)
@@ -563,7 +563,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 typedef struct
@@ -638,9 +638,9 @@ Return:
     EVT_DMF_BufferPool_TimerCallback* timerExpirationCallback;
     LIST_ENTRY* listEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "BufferPool Entry timer expires");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "BufferPool Entry timer expires");
 
     // Get the BUFFERPOOL_TIMER_CONTEXT from the WDF Object.
     //
@@ -715,7 +715,7 @@ Return:
                             bufferPoolEntryTimer->ClientBufferContext,
                             bufferPoolEntryTimer->TimerExpirationCallbackContext);
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #if defined(DMF_USER_MODE)
@@ -755,7 +755,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES timerAttributes;
     BUFFERPOOL_TIMER_CONTEXT* bufferPoolTimerContext;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -771,7 +771,7 @@ Return Value:
                                                       &memory);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferPool, "WdfMemoryCreateFromLookaside ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreateFromLookaside ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -826,7 +826,7 @@ Return Value:
                                   &bufferPoolEntry->Timer);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferPool, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -868,7 +868,7 @@ Return Value:
                                            &bufferPoolEntry->ClientBufferMemory);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferPool, "WdfMemoryCreatePreallocated ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -876,7 +876,7 @@ Return Value:
                                       bufferPoolEntry->ClientBufferMemory,
                                       NULL);
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "Create Buffer: BufferPoolMemory=0x%p SizeOfClientBuffer=%d ClientBufferMemory=0x%p", bufferPoolEntry->BufferPoolEntryMemory, bufferPoolEntry->SizeOfClientBuffer, bufferPoolEntry->ClientBufferMemory);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Create Buffer: BufferPoolMemory=0x%p SizeOfClientBuffer=%d ClientBufferMemory=0x%p", bufferPoolEntry->BufferPoolEntryMemory, bufferPoolEntry->SizeOfClientBuffer, bufferPoolEntry->ClientBufferMemory);
 
     // Add the buffer to the list. (This function validates that the buffer has
     // not already been added to another list in DEBUG mode.)
@@ -893,7 +893,7 @@ Exit:
             (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
            (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -930,7 +930,7 @@ Return Value:
     WDFMEMORY returnValue;
     BUFFERPOOL_ENTRY* bufferPoolEntryLocal;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -964,7 +964,7 @@ Return Value:
             //
             moduleContext->NumberOfAdditionalBuffersAllocated++;
 
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "Add Additional Buffer NumberOfAdditionalBuffersAllocated=%d", moduleContext->NumberOfAdditionalBuffersAllocated);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Add Additional Buffer NumberOfAdditionalBuffersAllocated=%d", moduleContext->NumberOfAdditionalBuffersAllocated);
 
             ASSERT(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
                     (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
@@ -1004,11 +1004,11 @@ Exit:
             (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
            (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "Remove Entry: MemoryHandle=0x%p", returnValue);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Remove Entry: MemoryHandle=0x%p", returnValue);
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_BufferPool, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -1043,7 +1043,7 @@ Return Value:
     BUFFERPOOL_ENTRY* bufferPoolEntry;
     VOID* returnValue;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     returnValue = NULL;
 
@@ -1066,7 +1066,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BufferPool, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -1100,7 +1100,7 @@ Return Value:
     ULONG bufferIndex;
     ULONG sizeOfEachAllocation;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1126,7 +1126,7 @@ Return Value:
     InitializeListHead(&moduleContext->BufferList);
     moduleContext->NumberOfBuffersInList = 0;
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_BufferPool, "Create Buffer List: BufferCount=%d BufferSize=%d",
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Create Buffer List: BufferCount=%d BufferSize=%d",
                 moduleConfig->Mode.SourceSettings.BufferCount,
                 moduleConfig->Mode.SourceSettings.BufferSize);
 
@@ -1155,7 +1155,7 @@ Return Value:
                                                     &moduleContext->LookasideList);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferPool, "DMF_Portable_LookasideListCreate ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_LookasideListCreate ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1174,7 +1174,7 @@ Return Value:
 
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferPool, "BufferPool_BufferPoolEntryCreateAndAddToList ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BufferPool_BufferPoolEntryCreateAndAddToList ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -1187,7 +1187,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1220,7 +1220,7 @@ Return:
     WDFTIMER timer;
     LIST_ENTRY* listEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1290,7 +1290,7 @@ Return:
     ASSERT(moduleContext->BufferList.Blink == &moduleContext->BufferList);
     ASSERT(moduleContext->BufferList.Flink == &moduleContext->BufferList);
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -1320,7 +1320,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1336,7 +1336,7 @@ Return Value:
     }
 #endif // !defined(DMF_USER_MODE)
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1378,13 +1378,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
     ntStatus = BufferPool_BufferPoolCreate(DmfModule);
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1415,13 +1415,13 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
     BufferPool_BufferPoolDestroy(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1471,7 +1471,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_BufferPool);
     DmfCallbacksDmf_BufferPool.DeviceOpen = DMF_BufferPool_Open;
@@ -1493,7 +1493,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferPool, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
 #if defined(DEBUG)
@@ -1509,7 +1509,7 @@ Return Value:
     }
 #endif
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1545,7 +1545,7 @@ Return Value:
 {
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -1561,7 +1561,7 @@ Return Value:
     ASSERT(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1588,7 +1588,7 @@ Return Value:
     DMF_CONTEXT_BufferPool* moduleContext;
     ULONG numberOfBuffersInList;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -1601,7 +1601,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_BufferPool, "numberOfBuffersInList=%d", numberOfBuffersInList);
+    FuncExit(DMF_TRACE, "numberOfBuffersInList=%d", numberOfBuffersInList);
 
     return numberOfBuffersInList;
 }
@@ -1644,7 +1644,7 @@ Return Value:
     ULARGE_INTEGER currentSystemTime;
     LONG64 differenceInTime100ns;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -1816,7 +1816,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1851,7 +1851,7 @@ Return Value:
     VOID* clientBuffer;
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -1876,7 +1876,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1915,7 +1915,7 @@ Return Value:
     VOID* clientBuffer;
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -1943,7 +1943,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1982,7 +1982,7 @@ Return Value:
     VOID* clientBuffer;
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -2010,7 +2010,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_BufferPool, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2049,7 +2049,7 @@ Return Value:
 {
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -2087,7 +2087,7 @@ Return Value:
         *ClientBufferContextSize = bufferPoolEntry->BufferContextSize;
     }
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 
 }
 
@@ -2118,7 +2118,7 @@ Return Value:
     DMF_CONTEXT_BufferPool* moduleContext;
     BUFFERPOOL_ENTRY* bufferPoolEntry;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -2164,7 +2164,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -2208,7 +2208,7 @@ Return Value:
 #endif
     ULARGE_INTEGER currentSystemTime;
 
-    FuncEntry(DMF_TRACE_BufferPool);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferPool);
@@ -2266,7 +2266,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_BufferPool);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_BufferPool.c

@@ -253,7 +253,7 @@ Routine Description:
     DMF_CONFIG_ToasterBus* moduleConfig;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_ToasterBus);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -359,7 +359,7 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(BytesReturned);
 
-    FuncEntry(DMF_TRACE_ToasterBus);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -404,14 +404,14 @@ Return Value:
             {
                 // Complete the request even though an error happened.
                 //
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus,
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                             "DMF_Pdo_PlugInDevice fails: ntStatus=%!STATUS!",
                             ntStatus);
             }
         }
     }
 
-    FuncExit(DMF_TRACE_ToasterBus, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -472,7 +472,7 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(BytesReturned);
 
-    FuncEntry(DMF_TRACE_ToasterBus);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -494,13 +494,13 @@ Return Value:
         {
             // Complete the request even though an error happened.
             //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus,
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                         "DMF_Pdo_DeviceUnplugUsingSerialNumber fails: ntStatus=%!STATUS!",
                         ntStatus);
         }
     }
 
-    FuncExit(DMF_TRACE_ToasterBus, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -562,7 +562,7 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(BytesReturned);
 
-    FuncEntry(DMF_TRACE_ToasterBus);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -585,14 +585,14 @@ Return Value:
         {
             // Complete the request even though an error happened.
             //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus,
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                         "DMF_Pdo_DeviceEjectUsingSerialNumber fails: ntStatus=%!STATUS!",
                         ntStatus);
         }
 
     }
 
-    FuncExit(DMF_TRACE_ToasterBus, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -639,7 +639,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ToasterBus);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -657,7 +657,7 @@ Return Value:
 
     ntStatus = ToasterBus_DoStaticEnumeration(DmfModule);
 
-    FuncExit(DMF_TRACE_ToasterBus, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -723,7 +723,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ToasterBus);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ToasterBus);
     DmfCallbacksDmf_ToasterBus.DeviceOpen = DMF_ToasterBus_Open;
@@ -744,7 +744,7 @@ Return Value:
                                 &dmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -778,7 +778,7 @@ Return Value:
                               &moduleContext->DmfModulePdo);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus, "DMF_Pdo_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Pdo_Create fails: ntStatus=%!STATUS!", ntStatus);
         DMF_Module_Destroy(dmfModule);
         dmfModule = NULL;
         goto Exit;
@@ -800,7 +800,7 @@ Return Value:
                                        &moduleContext->DmfModuleIoctlHandler);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
         // (All children are destroyed also.)
         //
         DMF_Module_Destroy(dmfModule);
@@ -818,7 +818,7 @@ Return Value:
                                    &moduleContext->DmfModuleRegistry);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ToasterBus, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
         // (All children are destroyed also.)
         //
         DMF_Module_Destroy(dmfModule);
@@ -830,7 +830,7 @@ Exit:
 
     *DmfModule = dmfModule;
 
-    FuncExit(DMF_TRACE_ToasterBus, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

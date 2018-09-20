@@ -92,7 +92,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -104,7 +104,7 @@ Return Value:
         moduleContext->Started = TRUE;
     }
 
-    FuncExit(DMF_TRACE_VirtualHidDeviceVhf, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -136,7 +136,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -147,7 +147,7 @@ Return Value:
         moduleContext->VhfHandle = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -192,7 +192,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -230,7 +230,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_VirtualHidDeviceVhf, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -261,11 +261,11 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     VirtualHidDeviceVhf_Stop(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -315,7 +315,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_VirtualHidDeviceVhf);
     DmfCallbacksDmf_VirtualHidDeviceVhf.DeviceOpen = DMF_VirtualHidDeviceVhf_Open;
@@ -337,13 +337,13 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_VirtualHidDeviceVhf, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_VirtualHidDeviceVhf, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -379,7 +379,7 @@ Return Value:
 {
     DMF_CONTEXT_VirtualHidDeviceVhf* moduleContext;
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_VirtualHidDeviceVhf);
@@ -392,7 +392,7 @@ Return Value:
     VhfAsyncOperationComplete(VhfOperationHandle,
                               NtStatus);
 
-    FuncExitVoid(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -421,7 +421,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_VirtualHidDeviceVhf* moduleContext;
 
-    FuncEntry(DMF_TRACE_VirtualHidDeviceVhf);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_VirtualHidDeviceVhf);
@@ -434,10 +434,10 @@ Return Value:
                                    HidTransferPacket);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_VirtualHidDeviceVhf, "VhfReadReportSubmit fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VhfReadReportSubmit fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_VirtualHidDeviceVhf, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

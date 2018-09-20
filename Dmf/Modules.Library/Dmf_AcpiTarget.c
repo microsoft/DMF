@@ -109,7 +109,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     parametersBufferSize = sizeof(ACPI_EVAL_INPUT_BUFFER_COMPLEX) +
                            (sizeof(GUID) - sizeof(ULONG)) +
@@ -130,7 +130,7 @@ Return Value:
     if (NULL == parametersBuffer)
     {
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "ExAllocatePoolWithTag ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -184,7 +184,7 @@ Return Value:
         if (error)
         {
             ntStatus = STATUS_UNSUCCESSFUL;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "memcpy_s fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "memcpy_s fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -199,7 +199,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -254,7 +254,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     outputBuffer = NULL;
 
@@ -311,7 +311,7 @@ Return Value:
             {
                 ASSERT(FALSE);
                 ntStatus = STATUS_INVALID_PARAMETER_2;
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "Signature ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Signature ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -382,7 +382,7 @@ Return Value:
 
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -425,7 +425,7 @@ Exit:
         outputBuffer = NULL;
     }
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -478,7 +478,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     outputBuffer = NULL;
     parametersBuffer = NULL;
@@ -500,7 +500,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         parametersBuffer = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "AcpiTarget_PrepareInputParametersForDsmMethod ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiTarget_PrepareInputParametersForDsmMethod ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -520,7 +520,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         outputBuffer = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "AcpiTarget_EvaluateAcpiMethod ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiTarget_EvaluateAcpiMethod ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -541,7 +541,7 @@ Return Value:
         (outputBuffer->Argument[0].DataLength == 0)))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "ACPI_EVAL_OUTPUT_BUFFER ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ACPI_EVAL_OUTPUT_BUFFER ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -572,7 +572,7 @@ Exit:
         outputBuffer = NULL;
     }
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -622,7 +622,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -648,14 +648,14 @@ Return Value:
                                                  &supported);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "Failed to check if _DSM method is supported.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to check if _DSM method is supported.");
         goto Exit;
     }
 
     if (supported == FALSE)
     {
         ntStatus = STATUS_NOT_SUPPORTED;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "_DSM method is not supported for Revision: %d.", moduleConfig->DsmRevision);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "_DSM method is not supported for Revision: %d.", moduleConfig->DsmRevision);
         goto Exit;
     }
 
@@ -671,7 +671,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         parametersBuffer = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "Failed to prepare input parameters for _DSM call.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to prepare input parameters for _DSM call.");
         goto Exit;
     }
 
@@ -687,7 +687,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         outputBuffer = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "Failed to evaluate _DSM method.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to evaluate _DSM method.");
         goto Exit;
     }
 
@@ -726,7 +726,7 @@ Exit:
         outputBuffer = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_AcpiTarget);
+    FuncExitVoid(DMF_TRACE);
 
     return ntStatus;
 }
@@ -785,7 +785,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_AcpiTarget,
                                AcpiTarget,
@@ -801,10 +801,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -852,7 +852,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = AcpiTarget_EvaluateAcpiMethod(DMF_ParentDeviceGet(DmfModule),
                                              MethodName,
@@ -861,7 +861,7 @@ Return Value:
                                              ReturnBufferSize,
                                              Tag);
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -902,7 +902,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_AcpiTarget);
@@ -939,7 +939,7 @@ Return Value:
                 ((argument->Type != ACPI_METHOD_ARGUMENT_INTEGER) && (argument->Type != ACPI_METHOD_ARGUMENT_BUFFER)))
             {
                 ntStatus = STATUS_UNSUCCESSFUL;
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "_DSM returned data type invalid!"
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "_DSM returned data type invalid!"
                             "Count = %u, Type = 0x%x",
                             outputBuffer->Count,
                             outputBuffer->Argument[0].Type);
@@ -947,7 +947,7 @@ Return Value:
             else if (*ReturnBufferSize < argument->DataLength)
             {
                 ntStatus = STATUS_BUFFER_TOO_SMALL;
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "Output buffer size is too small, "
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Output buffer size is too small, "
                             "Size = %u, Required = %u",
                             *ReturnBufferSize,
                             argument->DataLength);
@@ -966,7 +966,7 @@ Return Value:
             //
             ntStatus = STATUS_UNSUCCESSFUL;
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiTarget, "_DSM returned data type invalid!"
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "_DSM returned data type invalid!"
                         "outputBuffer=0x%p, outputBufferSize=%d",
                         outputBuffer,
                         outputBufferSize);
@@ -997,7 +997,7 @@ Exit:
         outputBuffer = NULL;
     }
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1037,7 +1037,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     if (ARGUMENT_PRESENT(ReturnBufferSize))
     {
@@ -1062,7 +1062,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1098,7 +1098,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_AcpiTarget);
@@ -1111,7 +1111,7 @@ Return Value:
                                     NULL,
                                     MemoryTag);
 
-    FuncExit(DMF_TRACE_AcpiTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

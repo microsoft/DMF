@@ -119,7 +119,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -135,7 +135,7 @@ Return Value:
         }
     }
 
-    FuncExitVoid(DMF_TRACE_PingPongBuffer);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -171,7 +171,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -197,14 +197,14 @@ Return Value:
                                    (VOID* *)&moduleContext->Buffer[bufferIndex]);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_PingPongBuffer, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
         RtlZeroMemory(moduleContext->Buffer[bufferIndex],
                       moduleContext->BufferSize);
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_PingPongBuffer, "Buffer[%d]=0x%p BufferMemory[%d]=0x%p", bufferIndex, moduleContext->Buffer[bufferIndex], bufferIndex, moduleContext->BufferMemory[bufferIndex]);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Buffer[%d]=0x%p BufferMemory[%d]=0x%p", bufferIndex, moduleContext->Buffer[bufferIndex], bufferIndex, moduleContext->BufferMemory[bufferIndex]);
     }
 
 Exit:
@@ -217,7 +217,7 @@ Exit:
         PingPongBuffer_PingPongBufferDestroy(DmfModule);
     }
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -249,7 +249,7 @@ Return Value:
     ULONG inactivePacketBufferIndex;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -259,7 +259,7 @@ Return Value:
 
     returnValue = moduleContext->Buffer[inactivePacketBufferIndex];
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -290,7 +290,7 @@ Return Value:
     UCHAR* returnValue;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -307,7 +307,7 @@ Return Value:
     //
     ASSERT(*Size <= moduleContext->BufferSize);
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -340,7 +340,7 @@ Return Value:
     UCHAR* returnValue;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -361,7 +361,7 @@ Return Value:
     //
     returnValue = &moduleContext->Buffer[moduleContext->PingBufferIndex][*WriteOffset];
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -395,7 +395,7 @@ Return Value:
     UCHAR* returnValue;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -413,7 +413,7 @@ Return Value:
     ASSERT(*ReadOffset <= moduleContext->BufferSize);
     returnValue = &moduleContext->Buffer[moduleContext->PingBufferIndex][*ReadOffset];
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -458,7 +458,7 @@ Return Value:
     ULONG numberOfBytesToWrite;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DMF_ModuleIsLocked(DmfModule));
 
@@ -477,7 +477,7 @@ Return Value:
     //
     if (StartOffset + PacketLength < WriteOffset)
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_PingPongBuffer, "Switch: StartOffset=%d WriteOffset=%d PacketLength=%d", StartOffset, WriteOffset, PacketLength);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Switch: StartOffset=%d WriteOffset=%d PacketLength=%d", StartOffset, WriteOffset, PacketLength);
 
         activePacket = moduleContext->Buffer[moduleContext->PingBufferIndex];
         inactivePacket = PingPongBuffer_PongGet(DmfModule);
@@ -517,7 +517,7 @@ Return Value:
     //
     moduleContext->BufferOffsetRead[moduleContext->PingBufferIndex] = 0;
 
-    FuncExitVoid(DMF_TRACE_PingPongBuffer);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -558,11 +558,11 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = PingPongBuffer_PingPongBufferCreate(DmfModule);
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -593,11 +593,11 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     PingPongBuffer_PingPongBufferDestroy(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_PingPongBuffer);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -647,7 +647,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_PingPongBuffer);
     DmfCallbacksDmf_PingPongBuffer.DeviceOpen = DMF_PingPongBuffer_Open;
@@ -669,7 +669,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_PingPongBuffer, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
 #if defined(DEBUG)
@@ -682,7 +682,7 @@ Return Value:
     }
 #endif
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -726,7 +726,7 @@ Return Value:
     ULONG readOffset;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_PingPongBuffer);
@@ -768,7 +768,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "packetBufferRead=0x%p", packetBufferRead);
+    FuncExit(DMF_TRACE, "packetBufferRead=0x%p", packetBufferRead);
 
     // This is the new valid buffer the caller will read from.
     //
@@ -801,7 +801,7 @@ Return Value:
 {
     UCHAR* returnValue;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_PingPongBuffer);
@@ -813,7 +813,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "returnValue=0x%p", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
     return returnValue;
 }
@@ -841,7 +841,7 @@ Return Value:
 {
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_PingPongBuffer);
@@ -856,7 +856,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_PingPongBuffer);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -892,7 +892,7 @@ Return Value:
     ULONG* readOffsetAddress;
     DMF_CONTEXT_PingPongBuffer* moduleContext;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_PingPongBuffer);
@@ -938,7 +938,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "PingBufferIndex=%d, PingBuffer=0x%p, BytesToProcess:%d",
+    FuncExit(DMF_TRACE, "PingBufferIndex=%d, PingBuffer=0x%p, BytesToProcess:%d",
              moduleContext->PingBufferIndex,
              activePacket,
              numberOfBytes);
@@ -979,7 +979,7 @@ Return Value:
     ULONG writeOffsetAddress;
     NTSTATUS ntStatus;
 
-    FuncEntry(DMF_TRACE_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     // It should always succeed if Client is not doing invalid operations.
     //
@@ -1003,7 +1003,7 @@ Return Value:
     //
     if (writeOffsetAddress + NumberOfBytesToWrite > moduleContext->BufferSize)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_PingPongBuffer,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "New data is too large for Ping Buffer BufferSize=%d NumberOfBytesToWrite=%d WriteOffset=%d",
                     moduleContext->BufferSize,
                     NumberOfBytesToWrite,
@@ -1027,7 +1027,7 @@ Return Value:
     activeBuffer = PingPongBuffer_PingWriteOffsetGet(DmfModule,
                                                      &writeOffsetAddress);
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_PingPongBuffer, "Write %d bytes to activeBuffer=0x%p from SourceBuffer=0x%p WriteOffset=%d", NumberOfBytesToWrite, activeBuffer, SourceBuffer, writeOffsetAddress);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Write %d bytes to activeBuffer=0x%p from SourceBuffer=0x%p WriteOffset=%d", NumberOfBytesToWrite, activeBuffer, SourceBuffer, writeOffsetAddress);
 
 Exit:
 
@@ -1037,7 +1037,7 @@ Exit:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_PingPongBuffer, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

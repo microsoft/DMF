@@ -241,7 +241,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -340,7 +340,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -373,7 +373,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(FullPathName != NULL);
     ASSERT(Entry != NULL);
@@ -391,7 +391,7 @@ Return Value:
                                      &valueSize);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path Registry_ValueSizeGet");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path Registry_ValueSizeGet");
         ASSERT(FALSE);
         goto Exit;
     }
@@ -444,7 +444,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -477,7 +477,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = RtlCheckRegistryKey(RTL_REGISTRY_ABSOLUTE,
                                    RegistryPath);
@@ -534,7 +534,7 @@ Return Value:
         }
     }
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -570,7 +570,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_UNSUCCESSFUL;
     fullPathName = NULL;
@@ -583,7 +583,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         ASSERT(FALSE);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path RtlStringCchLengthW ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchLengthW ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -607,7 +607,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path RtlStringCchLengthW ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchLengthW ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -628,7 +628,7 @@ Return Value:
                                                      MemoryTag);
         if (NULL == fullPathName)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Out of Memory");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Out of Memory");
             goto Exit;
         }
 
@@ -640,7 +640,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path RtlStringCchCopyW ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchCopyW ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -655,7 +655,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path RtlStringCchCatW ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchCatW ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -665,7 +665,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Unable to create RegistryPath=%S ntStatus=%!STATUS!", fullPathName, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to create RegistryPath=%S ntStatus=%!STATUS!", fullPathName, ntStatus);
             goto Exit;
         }
 
@@ -681,7 +681,7 @@ Return Value:
                                            entry);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path Registry_EntryWrite ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path Registry_EntryWrite ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -702,7 +702,7 @@ Exit:
         fullPathName = NULL;
     }
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -738,7 +738,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -754,14 +754,14 @@ Return Value:
                                         tree->NumberOfBranches);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Invalid code path Registry_BranchWrite ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path Registry_BranchWrite ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -798,7 +798,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = RtlUnicodeStringInit(&nameString,
                                     Name);
@@ -824,7 +824,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return handle;
 }
@@ -858,7 +858,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     deviceObject = WdfDeviceWdmGetPhysicalDevice(Device);
 
@@ -876,7 +876,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -913,7 +913,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = RtlUnicodeStringInit(&nameString,
                                     Name);
@@ -958,7 +958,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -994,7 +994,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = RtlUnicodeStringInit(&nameString,
                                     Name);
@@ -1038,7 +1038,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "handle=0x%p", handle);
+    FuncExit(DMF_TRACE, "handle=0x%p", handle);
 
     return handle;
 }
@@ -1065,12 +1065,12 @@ Return Value:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ZwClose(Handle);
     Handle = NULL;
 
-    FuncExitVoid(DMF_TRACE_Registry);
+    FuncExitVoid(DMF_TRACE);
 }
 
 BOOLEAN
@@ -1105,7 +1105,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
     done = FALSE;
@@ -1147,7 +1147,7 @@ Return Value:
                 if (NULL == keyInformationBuffer)
                 {
                     returnValue = FALSE;
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Out of memory");
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Out of memory");
                     goto Exit;
                 }
 
@@ -1206,7 +1206,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1227,7 +1227,7 @@ Registry_KeyEnumerationFilterAllSubkeys(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     subKeyHandle = Registry_HandleOpenByHandle(Handle,
                                                KeyName,
@@ -1238,7 +1238,7 @@ Registry_KeyEnumerationFilterAllSubkeys(
         // be here.
         //
         returnValue = FALSE;
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_Registry, "Registry_HandleOpenByHandle NULL");
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Registry_HandleOpenByHandle NULL");
         goto Exit;
     }
 
@@ -1252,7 +1252,7 @@ Registry_KeyEnumerationFilterAllSubkeys(
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1271,7 +1271,7 @@ Registry_KeyEnumerationFilterStrstr(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     returnValue = TRUE;
     context = (RegistryKeyEnumerationContextType*)ClientContext;
@@ -1288,7 +1288,7 @@ Registry_KeyEnumerationFilterStrstr(
             // be here.
             //
             returnValue = FALSE;
-            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_Registry, "Registry_HandleOpenByHandle NULL");
+            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Registry_HandleOpenByHandle NULL");
             goto Exit;
         }
 
@@ -1302,7 +1302,7 @@ Registry_KeyEnumerationFilterStrstr(
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1356,9 +1356,9 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Check if action needed [%ws]...", ValueName);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Check if action needed [%ws]...", ValueName);
 
     ASSERT(ActionType != Registry_ActionTypeInvalid);
 
@@ -1384,11 +1384,11 @@ Return Value:
         if (WriteIfNotFound)
         {
             needsAction = TRUE;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "%ws not found (action will happen)", ValueName);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws not found (action will happen)", ValueName);
         }
         else
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "%ws not found (no action will happen)", ValueName);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws not found (no action will happen)", ValueName);
         }
     }
     else if (STATUS_BUFFER_TOO_SMALL == ntStatus)
@@ -1405,7 +1405,7 @@ Return Value:
         if (NULL == keyValuePartialInformation)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "ExAllocatePoolWithTag ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1429,7 +1429,7 @@ Return Value:
             // Fall through to free memory. Let the caller decide what to do.
             // Generally, this code path should not happen.
             //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "ZwQueryValueKey ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ZwQueryValueKey ntStatus=%!STATUS!", ntStatus);
         }
         else
         {
@@ -1442,12 +1442,12 @@ Return Value:
                                    ValueDataToWrite,
                                    ValueDataToWriteSize))
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "%ws found needs action", ValueName);
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws found needs action", ValueName);
                 needsAction = TRUE;
             }
             else
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "%ws found but needs no action", ValueName);
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws found but needs no action", ValueName);
             }
         }
 
@@ -1459,7 +1459,7 @@ Return Value:
     {
         // Any other status means something is wrong.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "ZwQueryValueKey ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ZwQueryValueKey ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1484,7 +1484,7 @@ Return Value:
                                                  ValueDataToWriteSize);
                 if (! NT_SUCCESS(ntStatus))
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "RtlWriteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlWriteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
                 }
                 break;
             }
@@ -1495,7 +1495,7 @@ Return Value:
                                                   ValueName);
                 if (! NT_SUCCESS(ntStatus))
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "RtlDeleteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlDeleteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
                 }
                 break;
             }
@@ -1527,12 +1527,12 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "%ws: no action taken", ValueName);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws: no action taken", ValueName);
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1579,9 +1579,9 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Action always [%ws]...", ValueName);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Action always [%ws]...", ValueName);
 
     ASSERT(ActionType != Registry_ActionTypeInvalid);
 
@@ -1605,7 +1605,7 @@ Return Value:
                                              ValueDataBufferSize);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "RtlWriteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlWriteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
             }
             break;
         }
@@ -1619,7 +1619,7 @@ Return Value:
                                               ValueName);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "RtlDeleteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlDeleteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
             }
             break;
         }
@@ -1679,7 +1679,7 @@ Return Value:
         }
     }
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1713,14 +1713,14 @@ Return:
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Start timer");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Start timer");
 
     WdfTimerStart(Timer,
                   WDF_REL_TIMEOUT_IN_MS(Registry_DeferredRegistryWritePollingIntervalMs));
 
-    FuncExitVoid(DMF_TRACE_Registry);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1759,7 +1759,7 @@ Return:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1774,13 +1774,13 @@ Return:
         // Out of memory.
         //
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "Out of memory %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Out of memory %!STATUS!", ntStatus);
         goto Exit;
     }
 
     ntStatus = STATUS_SUCCESS;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Create deferred operation context");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Create deferred operation context");
 
     // Populate the deferred operation context.
     //
@@ -1793,7 +1793,7 @@ Return:
     // Add the operation to the list of operations.
     //
     DMF_ModuleLock(DmfModule);
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Insert deferred operation context into list listEntry=0x%p", &deferredContext->ListEntry);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Insert deferred operation context into list listEntry=0x%p", &deferredContext->ListEntry);
     InsertTailList(&moduleContext->ListDeferredOperations,
                    &deferredContext->ListEntry);
     // Since there is a least one entry in the list, start the timer.
@@ -1803,7 +1803,7 @@ Return:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1841,9 +1841,9 @@ Return:
     #pragma warning(suppress:28118)
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Polling timer expires");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Polling timer expires");
 
     dmfModule = (DMFMODULE)WdfTimerGetParentObject(WdfTimer);
     ASSERT(dmfModule != NULL);
@@ -1857,7 +1857,7 @@ Return:
     listEntry = moduleContext->ListDeferredOperations.Flink;
     needToRestartTimer = FALSE;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Begin list iteration");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Begin list iteration");
     // The loop ends when the current list entry points to the list header.
     //
     while (listEntry != &moduleContext->ListDeferredOperations)
@@ -1883,22 +1883,22 @@ Return:
                 {
                     // Leave it in the list because driver needs to try again.
                     //
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "STATUS_OBJECT_NAME_NOT_FOUND...try again");
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "STATUS_OBJECT_NAME_NOT_FOUND...try again");
                     needToRestartTimer = TRUE;
                 }
                 else
                 {
                     if (NT_SUCCESS(ntStatus))
                     {
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Registry_TreeWriteEx returns ntStatus=%!STATUS!", ntStatus);
+                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Registry_TreeWriteEx returns ntStatus=%!STATUS!", ntStatus);
                     }
                     else
                     {
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Registry_TreeWrite returns ntStatus=%!STATUS! (no retry)", ntStatus);
+                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Registry_TreeWrite returns ntStatus=%!STATUS! (no retry)", ntStatus);
                     }
                     // Remove it from the list.
                     //
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Remove deferredContext=0x%p", deferredContext);
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Remove deferredContext=0x%p", deferredContext);
                     RemoveEntryList(listEntry);
                     ExFreePoolWithTag(deferredContext,
                                       MemoryTag);
@@ -1917,7 +1917,7 @@ Return:
         //
         listEntry = nextListEntry;
     }
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "End list iteration needToRestartTimer=%d", needToRestartTimer);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "End list iteration needToRestartTimer=%d", needToRestartTimer);
 
     if (needToRestartTimer)
     {
@@ -1928,7 +1928,7 @@ Return:
 
     DMF_ModuleUnlock(dmfModule);
 
-    FuncExitVoid(DMF_TRACE_Registry);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1971,7 +1971,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1994,13 +1994,13 @@ Return Value:
                               &moduleContext->Timer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2034,7 +2034,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2065,7 +2065,7 @@ Return Value:
         goto SkipListIteration;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Begin list iteration");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Begin list iteration");
     // Loop ends when the current entry points to the list header.
     //
     while (listEntry != &moduleContext->ListDeferredOperations)
@@ -2079,7 +2079,7 @@ Return Value:
                                             ListEntry);
         // Remove from list.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "Remove deferredContext=0x%p", deferredContext);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Remove deferredContext=0x%p", deferredContext);
         RemoveEntryList(listEntry);
         // Free its allocated memory.
         //
@@ -2091,13 +2091,13 @@ Return Value:
         //
         listEntry = nextListEntry;
     }
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "End list iteration");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "End list iteration");
 
 SkipListIteration:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_Registry);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2145,7 +2145,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Registry);
     DmfCallbacksDmf_Registry.DeviceOpen = DMF_Registry_Open;
@@ -2166,10 +2166,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -2209,7 +2209,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2226,7 +2226,7 @@ Return Value:
                                                       Registry_KeyEnumerationFilterAllSubkeys,
                                                       &context);
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -2261,7 +2261,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_UNSUCCESSFUL;
     dmfModuleRegistry = NULL;
@@ -2278,7 +2278,7 @@ Return Value:
                                    &dmfModuleRegistry);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
     ASSERT(NULL != dmfModuleRegistry);
@@ -2296,7 +2296,7 @@ Exit:
         DMF_Module_Destroy(dmfModuleRegistry);
     }
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", ntStatus);
+    FuncExit(DMF_TRACE, "returnValue=%d", ntStatus);
 
     return ntStatus;
 }
@@ -2338,7 +2338,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2357,7 +2357,7 @@ Return Value:
                                             ComparisonCallbackContext,
                                             FALSE);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2397,7 +2397,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2419,7 +2419,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -2451,7 +2451,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2489,7 +2489,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2498,7 +2498,7 @@ Return Value:
    //
     ntStatus = ZwDeleteKey(Handle);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2537,7 +2537,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2546,7 +2546,7 @@ Return Value:
                                          Name,
                                          TryToCreate);
 
-    FuncExit(DMF_TRACE_Registry, "handle=0x%p", handle);
+    FuncExit(DMF_TRACE, "handle=0x%p", handle);
 
     return handle;
 }
@@ -2581,14 +2581,14 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
 
     handle = Registry_HandleOpenByName(Name);
 
-    FuncExit(DMF_TRACE_Registry, "handle=0x%p", handle);
+    FuncExit(DMF_TRACE, "handle=0x%p", handle);
 
     return handle;
 }
@@ -2630,7 +2630,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2651,7 +2651,7 @@ Return Value:
                                                RegistryHandle);
     }
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2696,7 +2696,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -2729,7 +2729,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2774,7 +2774,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -2821,7 +2821,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2862,7 +2862,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -2882,7 +2882,7 @@ Return Value:
                                              BufferSize,
                                              BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2920,7 +2920,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -2938,7 +2938,7 @@ Return Value:
     ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONG) == bytesRead)) || 
            (0 == bytesRead));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2980,7 +2980,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3012,7 +3012,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3054,7 +3054,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -3075,7 +3075,7 @@ Return Value:
                                              bufferSizeBytes,
                                              BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3113,7 +3113,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3131,7 +3131,7 @@ Return Value:
     ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
            (0 == bytesRead));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3173,7 +3173,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3205,7 +3205,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3247,7 +3247,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -3268,7 +3268,7 @@ Return Value:
                                              bufferSizeBytes,
                                              BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3311,7 +3311,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -3348,7 +3348,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3387,7 +3387,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -3405,7 +3405,7 @@ Return Value:
                                               Buffer,
                                               BufferSize);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3442,7 +3442,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3454,7 +3454,7 @@ Return Value:
                                               (UCHAR*)&ValueData,
                                               sizeof(ULONG));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3494,7 +3494,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -3513,7 +3513,7 @@ Return Value:
                                               (UCHAR*)Buffer,
                                               bufferSizeBytes);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3550,7 +3550,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3562,7 +3562,7 @@ Return Value:
                                               (UCHAR*)&ValueData,
                                               sizeof(ULONGLONG));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3602,7 +3602,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
 
@@ -3621,7 +3621,7 @@ Return Value:
                                               (UCHAR*)Buffer,
                                               bufferSizeBytes);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3656,7 +3656,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3683,7 +3683,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3724,9 +3724,9 @@ Return Value:
 
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Registry, "DMF_Registry_ScheduledTaskCallbackContainer");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_Registry_ScheduledTaskCallbackContainer");
 
     returnValue = ScheduledTask_WorkResult_FailButTryAgain;
 
@@ -3743,7 +3743,7 @@ Return Value:
                                              scheduledTaskCallbackContext->Callbacks[callbackIndex]);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Registry,
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                         "DMF_Registry_CallbackWork callbackIndex=%d ntStatus=%!STATUS!",
                         callbackIndex,
                         ntStatus);
@@ -3757,7 +3757,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -3796,7 +3796,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3805,7 +3805,7 @@ Return Value:
                                                       ClientCallback,
                                                       ClientCallbackContext);
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -3847,7 +3847,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3870,7 +3870,7 @@ Return Value:
                                                      Registry_KeyEnumerationFilterStrstr,
                                                      &context);
 
-    FuncExit(DMF_TRACE_Registry, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -3906,7 +3906,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3916,7 +3916,7 @@ Return Value:
                                              ItemCount,
                                              Registry_DeferredOperationWrite);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3951,7 +3951,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -3960,7 +3960,7 @@ Return Value:
                                   RegistryTree,
                                   ItemCount);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -3995,7 +3995,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4013,7 +4013,7 @@ Return Value:
                                           0,
                                           NULL);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4054,7 +4054,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -4073,7 +4073,7 @@ Return Value:
                                             ComparisonCallbackContext,
                                             FALSE);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4116,7 +4116,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4146,7 +4146,7 @@ Return Value:
                                           BufferSize,
                                           BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4187,7 +4187,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4206,7 +4206,7 @@ Return Value:
                                       BufferSize,
                                       BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4245,7 +4245,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4268,7 +4268,7 @@ Return Value:
     ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONG) == bytesRead)) || 
            (0 == bytesRead));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4310,7 +4310,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4347,7 +4347,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4389,7 +4389,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4409,7 +4409,7 @@ Return Value:
                                       bufferSizeBytes,
                                       BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4448,7 +4448,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4471,7 +4471,7 @@ Return Value:
     ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
            (0 == bytesRead));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4513,7 +4513,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4550,7 +4550,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4592,7 +4592,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4612,7 +4612,7 @@ Return Value:
                                       bufferSizeBytes,
                                       BytesRead);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4653,7 +4653,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4672,7 +4672,7 @@ Return Value:
                                           BufferSize,
                                           NULL);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4712,7 +4712,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4729,7 +4729,7 @@ Return Value:
                                        (UCHAR*)Buffer,
                                        BufferSize);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4766,7 +4766,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4782,7 +4782,7 @@ Return Value:
                                        (UCHAR*)&ValueData,
                                        sizeof(ULONG));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4829,7 +4829,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
@@ -4845,7 +4845,7 @@ Return Value:
                                             ComparisonCallbackContext,
                                             WriteIfNotFound);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4885,7 +4885,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4903,7 +4903,7 @@ Return Value:
                                        (UCHAR*)Buffer,
                                        bufferSizeBytes);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4940,7 +4940,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -4956,7 +4956,7 @@ Return Value:
                                        (UCHAR*)&ValueData,
                                        sizeof(ULONGLONG));
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -4996,7 +4996,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Registry);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ASSERT(ValueName != NULL);
@@ -5014,7 +5014,7 @@ Return Value:
                                        (UCHAR*)Buffer,
                                        bufferSizeBytes);
 
-    FuncExit(DMF_TRACE_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

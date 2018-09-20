@@ -181,7 +181,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -202,7 +202,7 @@ Return Value:
         moduleContext->IoTarget = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -278,7 +278,7 @@ Return Value:
     {
         ASSERT(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "Symbolic link name length is 0");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Symbolic link name length is 0");
         goto Exit;
     }
 
@@ -293,7 +293,7 @@ Return Value:
                                 (VOID**)&moduleContext->SymbolicLinkName.Buffer);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE_DeviceInterfaceTarget, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
     ASSERT(NULL != moduleContext->SymbolicLinkName.Buffer);
@@ -310,7 +310,7 @@ Return Value:
     }
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE_DeviceInterfaceTarget, "RtlUnicodeStringCopy fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE, "RtlUnicodeStringCopy fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -597,7 +597,7 @@ Return Value:
     DMFMODULE dmfModule;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
     ASSERT(dmfModule != NULL);
@@ -621,7 +621,7 @@ Return Value:
         *InputBufferSize = 0;
     }
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ContinuousRequestTarget_BufferDisposition
@@ -656,7 +656,7 @@ Return Value:
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
     ContinuousRequestTarget_BufferDisposition bufferDisposition;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
     ASSERT(dmfModule != NULL);
@@ -676,7 +676,7 @@ Return Value:
         bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
     }
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "bufferDisposition=%d", bufferDisposition);
+    FuncExit(DMF_TRACE, "bufferDisposition=%d", bufferDisposition);
 
     return bufferDisposition;
 }
@@ -710,7 +710,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     // The IoTarget's Module Context area has the DMF Module.
     //
@@ -732,7 +732,7 @@ Return Value:
 
     WdfIoTargetCloseForQueryRemove(IoTarget);
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -765,7 +765,7 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
     WDF_IO_TARGET_OPEN_PARAMS openParams;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     // The IoTarget's Module Context area has the DMF Module.
     //
@@ -786,7 +786,7 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "Failed to re-open serial target - %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open serial target - %!STATUS!", ntStatus);
         WdfObjectDelete(IoTarget);
         goto Exit;
     }
@@ -796,13 +796,13 @@ Return Value:
         ntStatus = DMF_DeviceInterfaceTarget_StreamStart(*dmfModuleAddress);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
         }
     }
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 EVT_WDF_IO_TARGET_REMOVE_COMPLETE DeviceInterfaceTarget_EvtIoTargetRemoveComplete;
@@ -832,7 +832,7 @@ Return Value:
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     // The IoTarget's Module Context area has the DMF Module.
     //
@@ -852,7 +852,7 @@ Return Value:
     //
     DeviceInterfaceTarget_ModuleCloseAndTargetDestroyAsNeeded(*dmfModuleAddress);
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -891,7 +891,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     device = DMF_AttachedDeviceGet(DmfModule);
 
@@ -920,7 +920,7 @@ Return Value:
                                  &moduleContext->IoTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "WdfIoTargetCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -934,7 +934,7 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         WdfObjectDelete(moduleContext->IoTarget);
         moduleContext->IoTarget = NULL;
         goto Exit;
@@ -952,7 +952,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1017,7 +1017,7 @@ Return Value:
                                                   CM_GET_DEVICE_INTERFACE_LIST_PRESENT);
     if (configRet != CR_SUCCESS)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "CM_Get_Device_Interface_List_Size fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_Interface_List_Size fails: configRet=0x%x", configRet);
         ntStatus = ERROR_NOT_FOUND;
         goto Exit;
     }
@@ -1033,7 +1033,7 @@ Return Value:
         if (configRet != CR_SUCCESS)
         {
             free(bufferPointer);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "CM_Get_Device_Interface_List fails: configRet=0x%x", configRet);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_Interface_List fails: configRet=0x%x", configRet);
             ntStatus = ERROR_NOT_FOUND;
             goto Exit;
         }
@@ -1157,7 +1157,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     // warning C6387: 'Context' could be '0'.
     //
@@ -1173,12 +1173,12 @@ Return Value:
     ioTargetOpen = TRUE;
     deviceInterfaceChangeNotification = (PDEVICE_INTERFACE_CHANGE_NOTIFICATION)NotificationStructure;
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_DeviceInterfaceTarget, "Found device: %S", deviceInterfaceChangeNotification->SymbolicLinkName->Buffer);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Found device: %S", deviceInterfaceChangeNotification->SymbolicLinkName->Buffer);
 
     if (DMF_Utility_IsEqualGUID((LPGUID)&(deviceInterfaceChangeNotification->Event),
                                 (LPGUID)&GUID_DEVICE_INTERFACE_ARRIVAL))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "Arrival Interface Notification.");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Arrival Interface Notification.");
 
         // WARNING: If the caller specifies PNPNOTIFY_DEVICE_INTERFACE_INCLUDE_EXISTING_INTERFACES,
         // the operating system might call the PnP notification callback routine twice for a single
@@ -1189,7 +1189,7 @@ Return Value:
         //
         if (moduleContext->IoTarget != NULL)
         {
-            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_DeviceInterfaceTarget, "Duplicate Arrival Interface Notification. Do Nothing");
+            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Duplicate Arrival Interface Notification. Do Nothing");
             goto Exit;
         }
 
@@ -1224,7 +1224,7 @@ Return Value:
             {
                 // TODO: Display SymbolicLinkName.
                 //
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DeviceInterfaceTarget_DeviceCreateNewIoTargetByName() fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceTarget_DeviceCreateNewIoTargetByName() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
 
@@ -1234,7 +1234,7 @@ Return Value:
             ntStatus = DMF_ModuleOpen(dmfModule);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -1242,7 +1242,7 @@ Return Value:
     else if (DMF_Utility_IsEqualGUID((LPGUID)&(deviceInterfaceChangeNotification->Event),
                                      (LPGUID)&GUID_DEVICE_INTERFACE_REMOVAL))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "Removal Interface Notification.");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Removal Interface Notification.");
 
         // Strings should be same length.
         //
@@ -1251,7 +1251,7 @@ Return Value:
             // This code path is valid on unplug as several devices not associated with this instance
             // may disappear.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "Length test fails");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Length test fails");
             goto Exit;
         }
 
@@ -1263,7 +1263,7 @@ Return Value:
             (deviceInterfaceChangeNotification->SymbolicLinkName->Buffer == NULL))
         {
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "Null pointer in removal");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Null pointer in removal");
             goto Exit;
         }
 
@@ -1275,7 +1275,7 @@ Return Value:
             // This code path is valid on unplug as several devices not associated with this instance
             // may disappear.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_DeviceInterfaceTarget, "matchLength test fails");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "matchLength test fails");
             goto Exit;
         }
 
@@ -1288,13 +1288,13 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "Invalid Notification. GUID=%!GUID!", &deviceInterfaceChangeNotification->Event);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Notification. GUID=%!GUID!", &deviceInterfaceChangeNotification->Event);
         ASSERT(FALSE);
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
     return STATUS_SUCCESS;
 }
 #pragma code_seg()
@@ -1347,7 +1347,7 @@ Return Value:
     CONFIGRET configRet;
 
     PAGED_CODE();
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1381,14 +1381,14 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "CM_Register_Notification fails: configRet=0x%x", configRet);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Register_Notification fails: configRet=0x%x", configRet);
 
         // Just a catchall error. Trace event configret should point to what went wrong.
         //
         ntStatus = STATUS_NOT_FOUND;
     }
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1421,7 +1421,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1472,7 +1472,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1496,7 +1496,7 @@ Return Value:
                                               (VOID*)DmfModule,
                                               &(moduleContext->DeviceInterfaceNotification));
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1536,7 +1536,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
 
     ntStatus = STATUS_SUCCESS;
@@ -1554,7 +1554,7 @@ Return Value:
         {
             ASSERT(FALSE);
             TraceEvents(TRACE_LEVEL_VERBOSE,
-                        DMF_TRACE_DeviceInterfaceTarget,
+                        DMF_TRACE,
                         "IoUnregisterPlugPlayNotificationEx fails: ntStatus=%!STATUS!",
                         ntStatus);
             goto Exit;
@@ -1572,7 +1572,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 }
 #pragma code_seg()
 
@@ -1607,7 +1607,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1619,7 +1619,7 @@ Return Value:
     //
     ntStatus = DMF_ClientCallbackOpen(DmfModule);
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1652,7 +1652,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_ClientCallbackClose(DmfModule);
 
@@ -1660,7 +1660,7 @@ Return Value:
 
     moduleContext->RequestSink_IoTargetClear(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1696,7 +1696,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1763,7 +1763,7 @@ Return Value:
         moduleContext->OpenedInStreamMode = FALSE;
     }
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1813,7 +1813,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_DeviceInterfaceTarget);
     DmfCallbacksDmf_DeviceInterfaceTarget.DeviceOpen = DMF_DeviceInterfaceTarget_Open;
@@ -1843,10 +1843,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1883,7 +1883,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_DeviceInterfaceTarget);
@@ -1891,7 +1891,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -1905,7 +1905,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1936,7 +1936,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(IoTarget != NULL);
     *IoTarget = NULL;
@@ -1947,7 +1947,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -1960,7 +1960,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -2006,7 +2006,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     // This Module Method can be called when SSH is removed or being removed. The code in this function is 
     // protected due to call to ModuleAcquire.
@@ -2017,7 +2017,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -2039,7 +2039,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2085,7 +2085,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     // This Module Method can be called when SSH is removed or being removed. The code in this function is 
     // protected due to call to ModuleAcquire.
@@ -2096,7 +2096,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -2118,7 +2118,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2148,7 +2148,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_DeviceInterfaceTarget);
@@ -2156,7 +2156,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -2171,7 +2171,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2200,7 +2200,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_DeviceInterfaceTarget);
@@ -2208,7 +2208,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_DeviceInterfaceTarget, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
         goto Exit;
     }
 
@@ -2229,7 +2229,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_DeviceInterfaceTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_DeviceInterfaceTarget.c

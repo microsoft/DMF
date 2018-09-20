@@ -91,7 +91,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThermalCoolingInterface);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)Context;
     ASSERT(dmfModule != NULL);
@@ -104,7 +104,7 @@ Return Value:
                                             Engaged);
     }
 
-    FuncExitVoid(DMF_TRACE_ThermalCoolingInterface);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -148,7 +148,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThermalCoolingInterface);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)Context;
     ASSERT(dmfModule != NULL);
@@ -161,7 +161,7 @@ Return Value:
                                              Percentage);
     }
 
-    FuncExitVoid(DMF_TRACE_ThermalCoolingInterface);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -207,7 +207,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThermalCoolingInterface);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(DmfModule != NULL);
     ntStatus = STATUS_SUCCESS;
@@ -244,7 +244,7 @@ Return Value:
                                           &queryInterfaceConfig);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThermalCoolingInterface, "WdfDeviceAddQueryInterface() fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceAddQueryInterface() fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -253,12 +253,12 @@ Return Value:
                                               &moduleConfig->ReferenceString);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThermalCoolingInterface, "WdfDeviceCreateDeviceInterface() fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreateDeviceInterface() fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_ThermalCoolingInterface, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -311,7 +311,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThermalCoolingInterface);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ThermalCoolingInterface);
     DmfCallbacksDmf_ThermalCoolingInterface.DeviceOpen = DMF_ThermalCoolingInterface_Open;
@@ -331,10 +331,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThermalCoolingInterface, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_ThermalCoolingInterface, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

@@ -1989,7 +1989,7 @@ Return Value:
     
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_Registry);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1998,7 +1998,7 @@ Return Value:
     ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_Registry, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2006,7 +2006,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Tests_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2039,7 +2039,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_Registry);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2047,7 +2047,7 @@ Return Value:
     DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleep, 0);
     DMF_Thread_Stop(moduleContext->DmfModuleThread);
 
-    FuncExitVoid(DMF_TRACE_Tests_Registry);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2103,7 +2103,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_Registry);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = NULL;
 
@@ -2126,7 +2126,7 @@ Return Value:
                                 &dmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_Registry, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2152,7 +2152,7 @@ Return Value:
                                          &moduleContext->DmfModuleAlertableSleep);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_Registry, "DMF_AlertableSleep_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_AlertableSleep_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2169,7 +2169,7 @@ Return Value:
                                  &moduleContext->DmfModuleThread);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_Registry, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2183,7 +2183,7 @@ Return Value:
                                    &moduleContext->DmfModuleRegistry);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_Registry, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
     
@@ -2200,7 +2200,7 @@ Exit:
         }
     }
 
-    FuncExit(DMF_TRACE_Tests_Registry, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

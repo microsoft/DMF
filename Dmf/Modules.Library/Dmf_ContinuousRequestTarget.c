@@ -133,12 +133,12 @@ Return Value:
 
 #if defined(DEBUG)
     ULONG bufferIndex;
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "BufferStart");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "BufferStart");
     for (bufferIndex = 0; bufferIndex < Length; bufferIndex++)
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "%02X", *(Buffer + bufferIndex));
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%02X", *(Buffer + bufferIndex));
     }
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "BufferEnd");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "BufferEnd");
 #endif // defined(DEBUG)
 }
 
@@ -181,7 +181,7 @@ Return Value:
     WDFMEMORY inputMemory;
     WDFMEMORY outputMemory;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -292,7 +292,7 @@ Return Value:
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     inputBuffer = NULL;
     outputBuffer = NULL;
@@ -302,7 +302,7 @@ Return Value:
     ntStatus = WdfRequestGetStatus(Request);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestGetStatus Request=0x%p fails: ntStatus=%!STATUS!", Request, ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestGetStatus Request=0x%p fails: ntStatus=%!STATUS!", Request, ntStatus);
     }
 
     // Get information about the request completion.
@@ -340,7 +340,7 @@ Return Value:
 
     WdfObjectDelete(Request);
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 EVT_WDF_REQUEST_COMPLETION_ROUTINE ContinuousRequestTarget_CompletionRoutine;
@@ -379,7 +379,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Target);
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     singleAsynchronousRequestContext = (ContinuousRequestTarget_SingleAsynchronousRequestContext*)Context;
     ASSERT(singleAsynchronousRequestContext != NULL);
@@ -392,7 +392,7 @@ Return Value:
                                                              CompletionParams,
                                                              singleAsynchronousRequestContext);
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 EVT_WDF_REQUEST_COMPLETION_ROUTINE ContinuousRequestTarget_CompletionRoutinePassive;
@@ -434,7 +434,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Target);
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     singleAsynchronousRequestContext = (ContinuousRequestTarget_SingleAsynchronousRequestContext*)Context;
     ASSERT(singleAsynchronousRequestContext != NULL);
@@ -452,7 +452,7 @@ Return Value:
                                (VOID*)&workitemContext,
                                sizeof(ContinuousRequestTarget_QueuedWorkitemContext));
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // The completion routine calls this function so it needs to be declared here.
@@ -499,7 +499,7 @@ Return Value:
     ContinuousRequestTarget_BufferDisposition bufferDisposition;
     VOID* clientBufferContextOutput;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     inputBuffer = NULL;
     outputBuffer = NULL;
@@ -508,7 +508,7 @@ Return Value:
 
     ntStatus = WdfRequestGetStatus(Request);
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget,
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "WdfRequestGetStatus Request=0x%p completes: ntStatus=%!STATUS!",
                 Request, ntStatus);
 
@@ -532,27 +532,29 @@ Return Value:
                               outputBuffer,
                               &clientBufferContextOutput);
 
-    // Call the Client's callback function to give the Client Buffer a chance to use the output buffer.
-    // The Client returns TRUE if Client expects this Module to return the buffer to its own list.
-    // Otherwise, the Client will take ownership of the buffer and return it later using a Module Methods.
-    //
-    ContinuousRequestTarget_PrintDataReceived((BYTE*)outputBuffer,
-                                              (ULONG)outputBufferSize);
-    bufferDisposition = moduleConfig->EvtContinuousRequestTargetBufferOutput(DmfModule,
-                                                                             outputBuffer,
-                                                                             outputBufferSize,
-                                                                             clientBufferContextOutput,
-                                                                             ntStatus);
-
-    ASSERT(bufferDisposition > ContinuousRequestTarget_BufferDisposition_Invalid);
-    ASSERT(bufferDisposition < ContinuousRequestTarget_BufferDisposition_Maximum);
-
-    // If Cilent has stoped streaming, then regardless of what the Client returns from the callback, return buffers
+    // If Client has stopped streaming, then regardless of what the Client returns from the callback, return buffers
     // back to the original state and delete corresponding requests.
     //
     if (moduleContext->Stopped)
     {
         bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+    }
+    else
+    {
+        // Call the Client's callback function to give the Client Buffer a chance to use the output buffer.
+        // The Client returns TRUE if Client expects this Module to return the buffer to its own list.
+        // Otherwise, the Client will take ownership of the buffer and return it later using a Module Methods.
+        //
+        ContinuousRequestTarget_PrintDataReceived((BYTE*)outputBuffer,
+                                                  (ULONG)outputBufferSize);
+        bufferDisposition = moduleConfig->EvtContinuousRequestTargetBufferOutput(DmfModule,
+                                                                                 outputBuffer,
+                                                                                 outputBufferSize,
+                                                                                 clientBufferContextOutput,
+                                                                                 ntStatus);
+
+        ASSERT(bufferDisposition > ContinuousRequestTarget_BufferDisposition_Invalid);
+        ASSERT(bufferDisposition < ContinuousRequestTarget_BufferDisposition_Maximum);
     }
 
     if (((bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming) ||
@@ -586,7 +588,7 @@ Return Value:
                                                                       Request);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_StreamRequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_StreamRequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
         }
     }
     else
@@ -603,7 +605,7 @@ Return Value:
         WdfObjectDelete(Request);
     }
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 EVT_WDF_REQUEST_COMPLETION_ROUTINE ContinuousRequestTarget_StreamCompletionRoutine;
@@ -642,7 +644,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Target);
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
 
@@ -650,7 +652,7 @@ Return Value:
                                                              Request,
                                                              CompletionParams);
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 EVT_WDF_REQUEST_COMPLETION_ROUTINE ContinuousRequestTarget_StreamCompletionRoutinePassive;
@@ -691,7 +693,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Target);
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
 
@@ -738,7 +740,7 @@ Return Value:
     NTSTATUS ntStatus = STATUS_SUCCESS;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -756,7 +758,7 @@ Return Value:
                                                         NULL);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfIoTargetFormatRequestForWrite fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForWrite fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
             break;
@@ -770,7 +772,7 @@ Return Value:
                                                        NULL);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfIoTargetFormatRequestForRead fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForRead fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
             break;
@@ -787,7 +789,7 @@ Return Value:
                                                         NULL);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
             break;
@@ -804,7 +806,7 @@ Return Value:
                                                                 NULL);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfIoTargetFormatRequestForInternalIoctl fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForInternalIoctl fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
             break;
@@ -813,14 +815,14 @@ Return Value:
         default:
         {
             ntStatus = STATUS_INVALID_PARAMETER;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "Invalid RequestType:%d fails: ntStatus=%!STATUS!", RequestType, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid RequestType:%d fails: ntStatus=%!STATUS!", RequestType, ntStatus);
             goto Exit;
         }
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -860,7 +862,7 @@ Return Value:
     VOID* inputBufferContext;
     VOID* outputBufferContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -881,7 +883,7 @@ Return Value:
                                                 &requestInputMemory);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "DMF_BufferPool_GetWithMemory fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_GetWithMemory fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -908,7 +910,7 @@ Return Value:
                                                 &requestOutputMemory);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "DMF_BufferPool_GetWithMemory fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_GetWithMemory fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -921,13 +923,13 @@ Return Value:
                                                                    requestOutputMemory);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_FormatRequestForRequestType fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_FormatRequestForRequestType fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -962,7 +964,7 @@ Return Value:
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -981,7 +983,7 @@ Return Value:
                                     &Request);
         if (! NT_SUCCESS(ntStatus))
         {
-             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
+             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -995,7 +997,7 @@ Return Value:
                                    &requestParams);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestReuse fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestReuse fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -1004,7 +1006,7 @@ Return Value:
                                                                                    Request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_CreateBuffersAndFormatRequestForRequestType fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_CreateBuffersAndFormatRequestForRequestType fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1025,7 +1027,7 @@ Return Value:
     {
         ntStatus = WdfRequestGetStatus(Request);
         ASSERT(! NT_SUCCESS(ntStatus));
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1040,7 +1042,7 @@ Exit:
         }
     }
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1103,7 +1105,7 @@ Return Value:
     ContinuousRequestTarget_SingleAsynchronousRequestContext* singleAsynchronousRequestContext;
     VOID* singleBufferContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     outputBufferSize = 0;
     requestSendResult = FALSE;
@@ -1128,7 +1130,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         request = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
         return ntStatus;
     }
 
@@ -1146,7 +1148,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             memoryForRequest = NULL;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -1162,7 +1164,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             memoryForResponse = NULL;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfMemoryCreate for position fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate for position fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -1175,7 +1177,7 @@ Return Value:
                                                                    memoryForResponse);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_FormatRequestForRequestType fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_FormatRequestForRequestType fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1198,7 +1200,7 @@ Return Value:
                                       &singleBufferContext);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "DMF_BufferPool_GetWithMemory fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_GetWithMemory fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1220,7 +1222,7 @@ Return Value:
     ntStatus = WdfRequestAllocateTimer(request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestAllocateTimer fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestAllocateTimer fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1233,12 +1235,12 @@ Return Value:
         ntStatus = WdfRequestGetStatus(request);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "WdfRequestGetStatus returned ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestGetStatus returned ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
         else
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_ContinuousRequestTarget, "WdfRequestSend completed with ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfRequestSend completed with ntStatus=%!STATUS!", ntStatus);
             outputBufferSize = WdfRequestGetInformation(request);
         }
     }
@@ -1267,7 +1269,7 @@ Exit:
         request = NULL;
     }
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1390,7 +1392,7 @@ Return Value:
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1412,7 +1414,7 @@ Return Value:
         }
     }
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1448,7 +1450,7 @@ Return Value:
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(TargetState);
 
@@ -1463,7 +1465,7 @@ Return Value:
                          WdfIoTargetPurgeIoAndWait);
     }
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1507,7 +1509,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1616,7 +1618,7 @@ Return Value:
         moduleContext->CompletionRoutineStream = ContinuousRequestTarget_StreamCompletionRoutine;
     }
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1650,7 +1652,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -1665,7 +1667,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1718,7 +1720,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ContinuousRequestTarget);
     DmfCallbacksDmf_ContinuousRequestTarget.ChildModulesAdd = DMF_ContinuousRequestTarget_ChildModulesAdd;
@@ -1745,10 +1747,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1783,7 +1785,7 @@ Return Value:
 {
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
@@ -1793,7 +1795,7 @@ Return Value:
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolOutput,
                        ClientBuffer);
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1819,7 +1821,7 @@ Return Value:
 {
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
@@ -1834,7 +1836,7 @@ Return Value:
 
     moduleContext->IoTarget = NULL;
 
-    FuncExitVoid(DMF_TRACE_ContinuousRequestTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1863,7 +1865,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
@@ -1881,11 +1883,11 @@ Return Value:
         ntStatus = DMF_ContinuousRequestTarget_Start(DmfModule);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
         }
     }
 
-    FuncExit(DMF_TRACE_ContinuousRequestTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1932,7 +1934,7 @@ Return Value:
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
@@ -1951,7 +1953,7 @@ Return Value:
                                                             SingleAsynchronousRequestClientContext);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2000,7 +2002,7 @@ Return Value:
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
@@ -2019,7 +2021,7 @@ Return Value:
                                                             NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2054,7 +2056,7 @@ Return Value:
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
@@ -2078,7 +2080,7 @@ Return Value:
                                                                       NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ContinuousRequestTarget, "ContinuousRequestTarget_StreamRequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_StreamRequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -2111,7 +2113,7 @@ Return Value:
 {
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_ContinuousRequestTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);

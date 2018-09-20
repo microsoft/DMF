@@ -102,7 +102,7 @@ Return Value:
     DMFMODULE dmfModule;
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
     ASSERT(dmfModule != NULL);
@@ -118,7 +118,7 @@ Return Value:
                                                          InputBufferSize,
                                                          ClientBuferContextInput);
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ContinuousRequestTarget_BufferDisposition
@@ -153,7 +153,7 @@ Return Value:
     DMF_CONTEXT_SerialTarget* moduleContext;
     ContinuousRequestTarget_BufferDisposition bufferDisposition;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
     ASSERT(dmfModule != NULL);
@@ -173,7 +173,7 @@ Return Value:
         bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
     }
 
-    FuncExit(DMF_TRACE_SerialTarget, "bufferDisposition=%d", bufferDisposition);
+    FuncExit(DMF_TRACE, "bufferDisposition=%d", bufferDisposition);
 
     return bufferDisposition;
 }
@@ -192,7 +192,7 @@ SerialTarget_EvtIoTargetQueryRemove(
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
@@ -202,7 +202,7 @@ SerialTarget_EvtIoTargetQueryRemove(
 
     WdfIoTargetCloseForQueryRemove(IoTarget);
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -234,7 +234,7 @@ Return Value:
     DMF_CONTEXT_SerialTarget* moduleContext;
     WDF_IO_TARGET_OPEN_PARAMS openParams;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
@@ -247,7 +247,7 @@ Return Value:
 
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to re-open serial target - %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open serial target - %!STATUS!", ntStatus);
         WdfObjectDelete(IoTarget);
         goto Exit;
     }
@@ -255,11 +255,11 @@ Return Value:
     ntStatus = DMF_SerialTarget_StreamStart(*dmfModuleAddress);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
     }
 
 Exit:
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -300,13 +300,13 @@ Environment:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     // Create the device path using the connection ID.
     //
@@ -326,7 +326,7 @@ Environment:
                                  &moduleContext->IoTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to create IO target - %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to create IO target - %!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -340,7 +340,7 @@ Environment:
                                      moduleContext->PeripheralId.LowPart,
                                      moduleContext->PeripheralId.HighPart);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_SerialTarget, "Opening handle to serial target via %wZ", &DevicePath);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Opening handle to serial target via %wZ", &DevicePath);
 
     // Open a handle to the serial controller.
     //
@@ -359,7 +359,7 @@ Environment:
 
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to open serial target - %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to open serial target - %!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -375,20 +375,20 @@ Environment:
                                                  NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to apply default configuration ");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to apply default configuration ");
         goto Exit;
     }
 
     if (moduleConfig->EvtSerialTargetCustomConfiguration == NULL)
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "EvtSerialTargetCustomConfiguration not set");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EvtSerialTargetCustomConfiguration not set");
         goto Exit;
     }
 
     if (! moduleConfig->EvtSerialTargetCustomConfiguration(DmfModule,
                                                            &serialIoConfigurationParameters))
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "No override of configuration parameters required.");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No override of configuration parameters required.");
         goto Exit;
     }
 
@@ -397,7 +397,7 @@ Environment:
     if ((serialIoConfigurationParameters.Flags & ~ConfigurationParametersValidFlags) != 0)
     {
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Wrong serialIoConfigurationParameters.Flags = 0x%x", serialIoConfigurationParameters.Flags);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Wrong serialIoConfigurationParameters.Flags = 0x%x", serialIoConfigurationParameters.Flags);
         goto Exit;
     }
 
@@ -416,11 +416,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to set baudrate ");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to set baudrate ");
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully set baudrate");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully set baudrate");
     }
 
     if (serialIoConfigurationParameters.Flags & SerialClearRtsFlag)
@@ -434,11 +434,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to CLR_RTS");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to CLR_RTS");
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully CLR_RTS");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully CLR_RTS");
     }
 
     if (serialIoConfigurationParameters.Flags & SerialClearDtrFlag)
@@ -452,11 +452,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to CLR_DTR");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to CLR_DTR");
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully CLR_DTR");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully CLR_DTR");
     }
 
     if (serialIoConfigurationParameters.Flags & SerialHandflowFlag)
@@ -474,11 +474,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to SET_HANDFLOW - %!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to SET_HANDFLOW - %!STATUS!", ntStatus);
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully SET_HANDFLOW");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_HANDFLOW");
 
         WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialHandflow,
@@ -495,10 +495,10 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to GET_HANDFLOW - %!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to GET_HANDFLOW - %!STATUS!", ntStatus);
             goto Exit;
         }
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully GET_HANDFLOW ControlHandShake=0x%x FlowReplace=0x%x XonLimit=0x%x XoffLimit=0x%x",
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully GET_HANDFLOW ControlHandShake=0x%x FlowReplace=0x%x XonLimit=0x%x XoffLimit=0x%x",
                     serialIoConfigurationParameters.SerialHandflow.ControlHandShake,
                     serialIoConfigurationParameters.SerialHandflow.FlowReplace,
                     serialIoConfigurationParameters.SerialHandflow.XonLimit,
@@ -520,12 +520,12 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to SET_WAIT_MASK ");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to SET_WAIT_MASK ");
             goto Exit;
         }
         else
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully SET_WAIT_MASK to 0x%X", serialIoConfigurationParameters.SerialWaitMask);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_WAIT_MASK to 0x%X", serialIoConfigurationParameters.SerialWaitMask);
         }
 
         WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
@@ -543,11 +543,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to GET_WAIT_MASK ");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to GET_WAIT_MASK ");
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully GET_WAIT_MASK: 0x%X", serialIoConfigurationParameters.SerialWaitMask);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully GET_WAIT_MASK: 0x%X", serialIoConfigurationParameters.SerialWaitMask);
     }
 
     if (serialIoConfigurationParameters.Flags & SerialLineControlFlag)
@@ -566,11 +566,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to set SERIAL_LINE_CONTROL - %!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to set SERIAL_LINE_CONTROL - %!STATUS!", ntStatus);
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully set SERIAL_LINE_CONTROL");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully set SERIAL_LINE_CONTROL");
     }
 
     if (serialIoConfigurationParameters.Flags & SerialCharsFlag)
@@ -588,11 +588,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to SET_CHARS - %!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to SET_CHARS - %!STATUS!", ntStatus);
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully SET_CHARS");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_CHARS");
 
         WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialChars,
@@ -609,11 +609,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to GET_CHARS - %!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to GET_CHARS - %!STATUS!", ntStatus);
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully GET_CHARS: EofChar=0x%x ErrorChar=0x%x BreakChar = 0x%x EventChar=0x%x XonChar=0x%x XoffChar=0x%x ",
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully GET_CHARS: EofChar=0x%x ErrorChar=0x%x BreakChar = 0x%x EventChar=0x%x XonChar=0x%x XoffChar=0x%x ",
                     serialIoConfigurationParameters.SerialChars.EofChar,
                     serialIoConfigurationParameters.SerialChars.ErrorChar,
                     serialIoConfigurationParameters.SerialChars.BreakChar,
@@ -637,11 +637,11 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to SET_TIMEOUTS ");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to SET_TIMEOUTS ");
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully SET_TIMEOUTS");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_TIMEOUTS");
     }
 
     if (serialIoConfigurationParameters.Flags & SerialQueueSizeFlag)
@@ -659,16 +659,16 @@ Environment:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "Failed to SET_QUEUE_SIZE ");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to SET_QUEUE_SIZE ");
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "successfully SET_QUEUE_SIZE");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_QUEUE_SIZE");
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -686,7 +686,7 @@ SerialTarget_IoTargetDestroy(
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     if (ModuleContext->IoTarget != NULL)
     {
@@ -695,7 +695,7 @@ SerialTarget_IoTargetDestroy(
         ModuleContext->IoTarget = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -723,7 +723,7 @@ DMF_SerialTarget_Open(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -731,7 +731,7 @@ DMF_SerialTarget_Open(
 
     ntStatus = SerialTarget_InitializeSerialPort(DmfModule);
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -749,7 +749,7 @@ DMF_SerialTarget_Close(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -757,7 +757,7 @@ DMF_SerialTarget_Close(
     //
     SerialTarget_IoTargetDestroy(moduleContext);
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -782,7 +782,7 @@ DMF_SerialTarget_ResourcesAssign(
 
     UNREFERENCED_PARAMETER(ResourcesRaw);
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(ResourcesRaw != NULL);
     ASSERT(ResourcesTranslated != NULL);
@@ -808,13 +808,13 @@ DMF_SerialTarget_ResourcesAssign(
         if (NULL == resource)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "No resources found");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No resources found");
             goto Exit;
         }
 
         if (CmResourceTypeConnection == resource->Type)
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "CmResourceTypeConnection %08X %08X %08X %08X\r\n",
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "CmResourceTypeConnection %08X %08X %08X %08X\r\n",
                         resource->u.Connection.Class,
                         resource->u.Connection.IdHighPart,
                         resource->u.Connection.IdLowPart,
@@ -823,7 +823,7 @@ DMF_SerialTarget_ResourcesAssign(
             switch (resource->u.Connection.Class)
             {
             case CM_RESOURCE_CONNECTION_CLASS_SERIAL:
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_SerialTarget, "Connection Class Serial (SPB)\r\n");
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Connection Class Serial (SPB)\r\n");
                 switch (resource->u.Connection.Type)
                 {
                 case CM_RESOURCE_CONNECTION_TYPE_SERIAL_UART:
@@ -831,18 +831,18 @@ DMF_SerialTarget_ResourcesAssign(
                     moduleContext->PeripheralId.LowPart = resource->u.Connection.IdLowPart;
                     moduleContext->PeripheralId.HighPart = resource->u.Connection.IdHighPart;
 
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_SerialTarget, "Connection Class SPB Type UART = 0x%llx\r\n", moduleContext->PeripheralId.QuadPart);
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Connection Class SPB Type UART = 0x%llx\r\n", moduleContext->PeripheralId.QuadPart);
 
                     serialResourceFound = TRUE;
                     break;
                 }
                 default:
-                    TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_SerialTarget, "Unexpected Connection Class SPB Type %08X\r\n", resource->u.Connection.Type);
+                    TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Unexpected Connection Class SPB Type %08X\r\n", resource->u.Connection.Type);
                     break;
                 }
                 break;
             default:
-                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_SerialTarget, "Unexpected Connection Class %08X\r\n", resource->u.Connection.Class);
+                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Unexpected Connection Class %08X\r\n", resource->u.Connection.Class);
                 break;
             }
             break;
@@ -853,7 +853,7 @@ DMF_SerialTarget_ResourcesAssign(
     //
     if (! serialResourceFound)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "No Serial IO resources found");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Serial IO resources found");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
@@ -863,7 +863,7 @@ DMF_SerialTarget_ResourcesAssign(
 
 Exit:
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -901,7 +901,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -929,7 +929,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleContinuousRequestTarget);
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -979,7 +979,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SerialTarget);
     DmfCallbacksDmf_SerialTarget.DeviceOpen = DMF_SerialTarget_Open;
@@ -1003,10 +1003,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SerialTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1041,7 +1041,7 @@ Return Value:
 {
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SerialTarget);
@@ -1051,7 +1051,7 @@ Return Value:
     DMF_ContinuousRequestTarget_BufferPut(moduleContext->DmfModuleContinuousRequestTarget,
                                           ClientBuffer);
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1079,7 +1079,7 @@ Return Value:
 {
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SerialTarget);
@@ -1091,7 +1091,7 @@ Return Value:
 
     *IoTarget = moduleContext->IoTarget;
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1137,7 +1137,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SerialTarget);
@@ -1157,7 +1157,7 @@ Return Value:
                                                 EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                 SingleAsynchronousRequestClientContext);
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1203,7 +1203,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SerialTarget);
@@ -1222,7 +1222,7 @@ Return Value:
                                                              RequestTimeoutMilliseconds,
                                                              BytesWritten);
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1252,7 +1252,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SerialTarget);
@@ -1263,7 +1263,7 @@ Return Value:
 
     ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
 
-    FuncExit(DMF_TRACE_SerialTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1291,7 +1291,7 @@ Return Value:
 {
     DMF_CONTEXT_SerialTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SerialTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SerialTarget);
@@ -1302,7 +1302,7 @@ Return Value:
 
     DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
 
-    FuncExitVoid(DMF_TRACE_SerialTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_SerialTarget.c

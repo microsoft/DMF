@@ -1173,13 +1173,13 @@ Return Value:
     //
     if (0 == ItemCount)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "Invalid ItemCount=0");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid ItemCount=0");
         goto Exit;
     }
 
     if (0 == ItemSize)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "Invalid ItemSize=0");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid ItemSize=0");
         goto Exit;
     }
 
@@ -1196,7 +1196,7 @@ Return Value:
         ASSERT(moduleConfig->RingBufferMaximumSize > 0);
         if (ringBufferSize > moduleConfig->RingBufferMaximumSize)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "ringBufferSize=%d RingBufferMaximumSize=%d", ringBufferSize, moduleConfig->RingBufferMaximumSize);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ringBufferSize=%d RingBufferMaximumSize=%d", ringBufferSize, moduleConfig->RingBufferMaximumSize);
             goto Exit;
         }
     }
@@ -1230,7 +1230,7 @@ Return Value:
                                      &dataSource->DmfModuleDataSourceRingBuffer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "DMF_RingBuffer_Create DataSourceIndex=%d fails: ntStatus=%!STATUS!", DataSourceIndex, ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_RingBuffer_Create DataSourceIndex=%d fails: ntStatus=%!STATUS!", DataSourceIndex, ntStatus);
         goto Exit;
     }
 
@@ -1358,7 +1358,7 @@ Return Value:
         //
         ASSERT(DataSourceIndex != RINGBUFFER_INDEX_SELF);
         ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "DataSourceIndex=%d Handle already open", DataSourceIndex);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DataSourceIndex=%d Handle already open", DataSourceIndex);
         goto Exit;
     }
 
@@ -1370,7 +1370,7 @@ Return Value:
                                               SizeOfEachEntry);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_DmfCreate_RingBuffer DataSourceIndex=%d", DataSourceIndex);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_DmfCreate_RingBuffer DataSourceIndex=%d", DataSourceIndex);
         goto Exit;
     }
 
@@ -1416,7 +1416,7 @@ Return Value:
         //
         CrashDump_DmfDestroy_RingBuffer(DmfModule,
                                         DataSourceIndex);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "KeRegisterBugCheckReasonCallback DataSourceIndex=%d", DataSourceIndex);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeRegisterBugCheckReasonCallback DataSourceIndex=%d", DataSourceIndex);
         ntStatus = STATUS_INVALID_PARAMETER;
         // It should not happen.
         //
@@ -1475,7 +1475,7 @@ Return Value:
     {
         // It can fail here if the call back could not be allocated due to resource allocation failure.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "KeDeregisterBugCheckReasonCallback DataSourceIndex=%d", DataSourceIndex);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback DataSourceIndex=%d", DataSourceIndex);
     }
 
     // Close and Destroy the Ring Buffer.
@@ -1534,7 +1534,7 @@ Return Value:
     if (RINGBUFFER_INDEX_INVALID == dataSourceIndex)
     {
         ntStatus = STATUS_INVALID_HANDLE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_FileHandleSlotFree FileObject=%p", FileObject);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_FileHandleSlotFree FileObject=%p", FileObject);
         goto Exit;
     }
 
@@ -1613,7 +1613,7 @@ Return Value:
     if (RINGBUFFER_INDEX_INVALID == dataSourceIndex)
     {
         ntStatus = STATUS_NO_MORE_FILES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "No more space for additional Ring Buffers.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No more space for additional Ring Buffers.");
         goto Exit;
     }
 
@@ -1629,7 +1629,7 @@ Return Value:
         dataSourceIndex = CrashDump_FileHandleSlotFree(DmfModule,
                                                        FileObject);
         ASSERT(dataSourceIndex != RINGBUFFER_INDEX_INVALID);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_DataSourceCreateInternal ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_DataSourceCreateInternal ntStatus=%!STATUS!", ntStatus);
     }
 
 Exit:
@@ -1693,7 +1693,7 @@ Return Value:
                                                           Guid);
     if (RINGBUFFER_INDEX_INVALID != dataSourceIndex)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_CrashDump, "CrashDump_FileHandlerSlotFindByGuid Existing dataSource =0x%08X", dataSourceIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "CrashDump_FileHandlerSlotFindByGuid Existing dataSource =0x%08X", dataSourceIndex);
         *DataSourceIndex = dataSourceIndex;
         ntStatus = STATUS_SUCCESS;
         goto Exit;
@@ -1858,7 +1858,7 @@ Return Value:
     if (RINGBUFFER_INDEX_INVALID == dataSourceIndex)
     {
         ntStatus = STATUS_INVALID_HANDLE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_FileHandleSlotFind FileObject=%p", FileObject);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_FileHandleSlotFind FileObject=%p", FileObject);
         goto Exit;
     }
 
@@ -1944,7 +1944,7 @@ Return Value:
     if (RINGBUFFER_INDEX_INVALID == dataSourceIndex)
     {
         ntStatus = STATUS_INVALID_HANDLE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_FileHandleSlotFind FileObject=%p", FileObject);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_FileHandleSlotFind FileObject=%p", FileObject);
         goto Exit;
     }
 
@@ -2033,7 +2033,7 @@ Return Value:
     if (RINGBUFFER_INDEX_INVALID == dataSourceIndex)
     {
         ntStatus = STATUS_INVALID_HANDLE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_FileHandleSlotFind FileObject=%p", FileObject);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_FileHandleSlotFind FileObject=%p", FileObject);
         goto Exit;
     }
 
@@ -2350,7 +2350,7 @@ Return Value:
                                                  &dataSourceCreate->Guid);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_DataSourceOpenAuxiliary fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_DataSourceOpenAuxiliary fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2733,7 +2733,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_CrashDump);
+    FuncEntry(DMF_TRACE);
 
     // This Module is the parent of the Child Module that is passed in.
     // (Module callbacks always receive the Child Module's handle.)
@@ -2744,7 +2744,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
-                DMF_TRACE_CrashDump,
+                DMF_TRACE,
                 "Request=0x%p OutputBufferLength=%d InputBufferLength=%d IoControlCode=%d",
                 Request, (int)OutputBufferSize, (int)InputBufferSize, IoctlCode);
 
@@ -2842,7 +2842,7 @@ Return Value:
         }
     }
 
-    FuncExit(DMF_TRACE_CrashDump, "%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2928,13 +2928,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_CrashDump);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleContext->SurpriseRemoved = TRUE;
 
-    FuncExitVoid(DMF_TRACE_CrashDump);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -3026,7 +3026,7 @@ Return Value:
     //
     if (moduleConfig->DataSourceCount > CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "moduleConfig->DataSourceCount=%d > %d", moduleConfig->DataSourceCount, CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "moduleConfig->DataSourceCount=%d > %d", moduleConfig->DataSourceCount, CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES);
         ASSERT(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
@@ -3038,7 +3038,7 @@ Return Value:
         (NULL == moduleConfig->EvtCrashDumpQuery))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
         ASSERT(FALSE);
         goto Exit;
     }
@@ -3051,7 +3051,7 @@ Return Value:
         ((0 == moduleConfig->BufferCount) || (0 == moduleConfig->BufferSize)))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
         ASSERT(FALSE);
         goto Exit;
     }
@@ -3065,7 +3065,7 @@ Return Value:
             (NULL == moduleConfig->EvtCrashDumpWrite))
         {
             ntStatus = STATUS_INVALID_PARAMETER;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "Either both or no Callbacks must be specified ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Either both or no Callbacks must be specified ntStatus=%!STATUS!", ntStatus);
             ASSERT(FALSE);
             goto Exit;
         }
@@ -3078,7 +3078,7 @@ Return Value:
             //       execute the same code, the optimizer will combine them into the same function
             //       in Release Build, but not Debug Build.
             //
-            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_CrashDump, "Both Callbacks point to same function.");
+            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Both Callbacks point to same function.");
         }
     }
 
@@ -3095,7 +3095,7 @@ Return Value:
     if (NULL == moduleContext->DataSource)
     {
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "DataSource ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DataSource ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3110,7 +3110,7 @@ Return Value:
     if (NULL == moduleContext->BugCheckCallbackRecordRingBuffer)
     {
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "BugCheckCallbackRecordRingBuffer ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BugCheckCallbackRecordRingBuffer ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3129,7 +3129,7 @@ Return Value:
                                                   &moduleConfig->RingBufferDataGuid);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "CrashDump_DataSourceCreateSelf ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_DataSourceCreateSelf ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -3157,7 +3157,7 @@ Return Value:
         {
             // It can fail due to resource allocation failure.
             //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "KeRegisterBugCheckReasonCallback");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeRegisterBugCheckReasonCallback");
             ntStatus = STATUS_INVALID_PARAMETER;
             goto Exit;
         }
@@ -3296,7 +3296,7 @@ Return Value:
         ASSERT(moduleConfig->EvtCrashDumpQuery != NULL);
         if (! KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbacRecordAdditional))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "KeDeregisterBugCheckReasonCallback");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback");
             // This can happen with resource failure injection, so do not assert.
             //
         }
@@ -3513,7 +3513,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_CrashDump);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -3541,7 +3541,7 @@ Return Value:
         //
     }
 
-    FuncExitVoid(DMF_TRACE_CrashDump);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -3604,7 +3604,7 @@ Return Value:
         // Only one instance of this Module can exist at a time. This handle is used to pass context into the crash
         // dump callbacks called by the OS.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "Only one instance of this Module can exist at time");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Only one instance of this Module can exist at time");
         goto Exit;
     }
 #endif // !defined(DMF_USER_MODE)
@@ -3640,7 +3640,7 @@ Return Value:
                                 &dmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_CrashDump, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
 #if !defined(DMF_USER_MODE)
@@ -3655,7 +3655,7 @@ Exit:
 
     *DmfModule = dmfModule;
 
-    FuncExit(DMF_TRACE_CrashDump, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }

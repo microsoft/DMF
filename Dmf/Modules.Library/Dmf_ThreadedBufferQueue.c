@@ -152,7 +152,7 @@ Return Value:
 {
     DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -175,7 +175,7 @@ Return Value:
     DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
                           ThreadedBufferQueueBufferInternal);
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -211,7 +211,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     dmfModuleThreadedBufferQueue = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleThreadedBufferQueue);
@@ -271,7 +271,7 @@ Start:
 Exit:
     ;
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -297,13 +297,13 @@ Return Value:
 {
     DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_Thread_WorkReady(moduleContext->DmfModuleThread);
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,7 +350,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -383,7 +383,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleThread);
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -433,7 +433,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ThreadedBufferQueue);
     DmfCallbacksDmf_ThreadedBufferQueue.ChildModulesAdd = DMF_ThreadedBufferQueue_ChildModulesAdd;
@@ -454,10 +454,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ThreadedBufferQueue, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_ThreadedBufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -490,7 +490,7 @@ Return Value:
     DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
     ULONG numberOfEntriesInList;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -499,7 +499,7 @@ Return Value:
 
     numberOfEntriesInList = DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue);
 
-    FuncExit(DMF_TRACE_ThreadedBufferQueue, "numberOfEntriesInList=%d", numberOfEntriesInList);
+    FuncExit(DMF_TRACE, "numberOfEntriesInList=%d", numberOfEntriesInList);
 
     return numberOfEntriesInList;
 }
@@ -531,7 +531,7 @@ Return Value:
     DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
     ThreadedBufferQueue_WorkBufferInternal* workBuffer;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -548,7 +548,7 @@ Return Value:
 
     ThreadedBufferQueue_WorkReady(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -585,7 +585,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -612,7 +612,7 @@ Return Value:
                                           FALSE,
                                           NULL);
 
-    FuncExit(DMF_TRACE_ThreadedBufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -650,7 +650,7 @@ Return Value:
     DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
     ThreadedBufferQueue_WorkBufferInternal* workBuffer;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -671,7 +671,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ThreadedBufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -702,7 +702,7 @@ Return Value:
     VOID* bufferContext;
     ThreadedBufferQueue_WorkBufferInternal* workBuffer;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -728,7 +728,7 @@ Return Value:
         }
     }
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -758,7 +758,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -767,7 +767,7 @@ Return Value:
 
     ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread);
 
-    FuncExit(DMF_TRACE_ThreadedBufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -799,7 +799,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -808,7 +808,7 @@ Return Value:
 
     DMF_Thread_Stop(moduleContext->DmfModuleThread);
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -839,7 +839,7 @@ Return Value:
 {
     ThreadedBufferQueue_WorkBufferInternal* workBuffer;
 
-    FuncEntry(DMF_TRACE_ThreadedBufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ThreadedBufferQueue);
@@ -850,7 +850,7 @@ Return Value:
                                       workBuffer,
                                       NtStatus);
 
-    FuncExitVoid(DMF_TRACE_ThreadedBufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_ThreadedBufferQueue.c

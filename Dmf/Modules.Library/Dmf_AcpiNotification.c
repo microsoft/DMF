@@ -93,7 +93,7 @@ Return Value:
     DMF_CONFIG_AcpiNotification* moduleConfig;
     BOOLEAN callPassiveLevelCallback;
 
-    FuncEntry(DMF_TRACE_AcpiNotification);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
 
@@ -195,7 +195,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiNotification);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -209,7 +209,7 @@ Return Value:
                                        NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiNotification, "WdfFdoQueryForInterface ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfFdoQueryForInterface ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -218,7 +218,7 @@ Return Value:
                                                                            DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiNotification, "AcpiInterfaces->RegisterForDeviceNotifications() ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiInterfaces->RegisterForDeviceNotifications() ntStatus=%!STATUS!", ntStatus);
 
         if (moduleContext->AcpiInterface.InterfaceDereference != NULL)
         {
@@ -259,7 +259,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AcpiNotification);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -339,7 +339,7 @@ Return Value:
                                  &moduleContext->Workitem);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiNotification, "WdfWorkItemCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfWorkItemCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -348,7 +348,7 @@ Return Value:
     ntStatus = AcpiNotification_AcpiInterfacesAcquire(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiNotification, "AcpiInterfacesAcquire fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiInterfacesAcquire fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -473,7 +473,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AcpiNotification, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     return(ntStatus);

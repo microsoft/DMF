@@ -112,7 +112,7 @@ Return Value:
     DMF_CONTEXT_NotifyUserWithRequest* moduleContext;
     DMF_CONFIG_NotifyUserWithRequest* moduleConfig;
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     // The Queue's Module Context area has the DMF Module.
     //
@@ -130,7 +130,7 @@ Return Value:
     //
     ASSERT(moduleContext->EventCountHeld > 0);
     InterlockedDecrement(&moduleContext->EventCountHeld);
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "CANCEL 0x%p PendingEvents=%d", Request, moduleContext->EventCountHeld);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "CANCEL 0x%p PendingEvents=%d", Request, moduleContext->EventCountHeld);
 
     if (moduleConfig->EvtPendingRequestsCancel != NULL)
     {
@@ -150,7 +150,7 @@ Return Value:
                            STATUS_CANCELLED);
     }
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithRequest);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ULONG
@@ -186,7 +186,7 @@ Return Value:
     ULONG numberOfRequestsCompleted;
     WDFREQUEST request;
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -203,7 +203,7 @@ Return Value:
             // Complete the request on behalf of Client Driver.
             // NOTE: NtStatus can be STATUS_CANCELLED or any other NTSTATUS.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "Complete request=0x%p", request);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Complete request=0x%p", request);
             WdfRequestComplete(request,
                                NtStatus);
         }
@@ -211,7 +211,7 @@ Return Value:
         {
             // Allow Client Driver to complete this request.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "Pass request=0x%p to Client Driver", request);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Pass request=0x%p to Client Driver", request);
             EventCallbackFunction(DmfModule,
                                   request,
                                   EventCallbackContext,
@@ -220,14 +220,14 @@ Return Value:
         ASSERT(moduleContext->EventCountHeld > 0);
         InterlockedDecrement(&moduleContext->EventCountHeld);
         numberOfRequestsCompleted++;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "Cannot find request ntStatus:%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Cannot find request ntStatus:%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "numberOfRequestsCompleted=%d", numberOfRequestsCompleted);
+    FuncExit(DMF_TRACE, "numberOfRequestsCompleted=%d", numberOfRequestsCompleted);
 
     return numberOfRequestsCompleted;
 }
@@ -274,7 +274,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -297,7 +297,7 @@ Return Value:
                                 &moduleContext->EventRequestQueue);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                     "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -310,7 +310,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -341,7 +341,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -354,7 +354,7 @@ Return Value:
 
     WdfObjectDelete(moduleContext->EventRequestQueue);
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithRequest);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,7 +398,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_INVALID_PARAMETER;
 
@@ -431,7 +431,7 @@ Return Value:
                                       &moduleContextNotifyUserWithRequest->DmfModuleBufferQueue);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -439,7 +439,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -478,7 +478,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     numberOfRequestsCompleted = 0;
     ntStatus = STATUS_SUCCESS;
@@ -503,7 +503,7 @@ Return Value:
                                      &request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_NotifyUserWithRequest, "WdfIoQueueFindRequest failed: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoQueueFindRequest failed: ntStatus=%!STATUS!", ntStatus);
         // Correct the error status.
         //
         ntStatus = STATUS_SUCCESS;
@@ -524,7 +524,7 @@ Return Value:
     {
         // Failed to get a buffer from the consumer buffer list, so haven't retrieved the request yet, so log the error and exit.
         //
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_NotifyUserWithRequest, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
         // Correct the error status.
         //
         ntStatus = STATUS_SUCCESS;
@@ -545,7 +545,7 @@ Return Value:
         // Failed to complete the request.
         //
         ntStatus = STATUS_INTERNAL_ERROR;
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_NotifyUserWithRequest, "NotifyUserWithRequest_EventRequestReturn failed to complete request.");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn failed to complete request.");
         moduleConfig = DMF_CONFIG_GET(DmfModule);
 #if defined(DMF_USER_MODE)
         DMF_Utility_EventLogEntryWriteUserMode(moduleConfig->ClientDriverProviderName,
@@ -564,7 +564,7 @@ Exit:
     {
         DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
                               clientBuffer);
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_NotifyUserWithRequest, "DMF_BufferQueue_Reuse");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_BufferQueue_Reuse");
     }
 
     if (TRUE == lockAcquired)
@@ -572,7 +572,7 @@ Exit:
         DMF_ModuleUnlock(DmfModule);
     }
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 
@@ -616,7 +616,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_NotifyUserWithRequest);
     DmfCallbacksDmf_NotifyUserWithRequest.DeviceOpen = DMF_NotifyUserWithRequest_Open;
@@ -638,7 +638,7 @@ Return Value:
                                 &dmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -654,7 +654,7 @@ Exit:
 
     *DmfModule = dmfModule;
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -702,7 +702,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
     isLocked = FALSE;
@@ -733,7 +733,7 @@ Return Value:
     {
         // Failed to get buffer from producer list.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
 
         // Get the buffer from consumer list. This will overwrite stale data.
         //
@@ -745,7 +745,7 @@ Return Value:
             // This should never happen.
             //
             ASSERT(FALSE);
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -778,7 +778,7 @@ Return Value:
     ntStatus = NotifyUserWithRequest_CompleteRequestWithEventData(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "NotifyUserWithRequest_CompleteRequestWithEventData fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NotifyUserWithRequest_CompleteRequestWithEventData fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -789,7 +789,7 @@ Exit:
         DMF_ModuleUnlock(DmfModule);
     }
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithRequest);
+    FuncExitVoid(DMF_TRACE);
 
 }
 
@@ -823,7 +823,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_NotifyUserWithRequest);
@@ -838,7 +838,7 @@ Return Value:
         //
         InterlockedDecrement(&moduleContext->EventCountHeld);
         ntStatus = STATUS_INVALID_DEVICE_STATE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "Too many events (%d): Request=%p", moduleConfig->MaximumNumberOfPendingRequests, Request);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Too many events (%d): Request=%p", moduleConfig->MaximumNumberOfPendingRequests, Request);
         goto Exit;
     }
 
@@ -848,16 +848,16 @@ Return Value:
                                           moduleContext->EventRequestQueue);
     if (NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "ENQUEUE Request=0x%p EventsHeld=%d", Request, moduleContext->EventCountHeld);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ENQUEUE Request=0x%p EventsHeld=%d", Request, moduleContext->EventCountHeld);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "Unable to enqueue Request=%p ntStatus=%!STATUS!", Request, ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to enqueue Request=%p ntStatus=%!STATUS!", Request, ntStatus);
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -891,7 +891,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_NotifyUserWithRequest);
@@ -902,7 +902,7 @@ Return Value:
                                                          Request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "DMF_NotifyUserWithRequest_EventRequestAdd failed with ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_NotifyUserWithRequest_EventRequestAdd failed with ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -911,13 +911,13 @@ Return Value:
     ntStatus = NotifyUserWithRequest_CompleteRequestWithEventData(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_NotifyUserWithRequest, "NotifyUserWithRequest_CompleteRequestWithEventData failed with ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NotifyUserWithRequest_CompleteRequestWithEventData failed with ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_NotifyUserWithRequest, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -956,7 +956,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_NotifyUserWithRequest);
@@ -967,14 +967,14 @@ Return Value:
                                                                          NtStatus);
     if (0 == numberOfRequestsCompleted)
     {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_NotifyUserWithRequest, "Event lost because there are no pending requests!");
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Event lost because there are no pending requests!");
     }
     else
     {
         ASSERT(1 == numberOfRequestsCompleted);
     }
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithRequest);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1012,7 +1012,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_NotifyUserWithRequest);
+    FuncEntry(DMF_TRACE);
 
     // By design this Method can be called by Close callback.
     // (This Method is called to flush any remaining requests when Module is closed.)
@@ -1043,12 +1043,12 @@ Return Value:
 
     if (0 == numberOfRequestsCompleted)
     {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_NotifyUserWithRequest, "Event lost because there are no pending requests!");
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Event lost because there are no pending requests!");
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_NotifyUserWithRequest, "Number of requests completed = %u", numberOfRequestsCompleted);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of requests completed = %u", numberOfRequestsCompleted);
 
-    FuncExitVoid(DMF_TRACE_NotifyUserWithRequest);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_NotifyUserWithRequest.c
