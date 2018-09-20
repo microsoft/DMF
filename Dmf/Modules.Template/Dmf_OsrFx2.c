@@ -172,7 +172,7 @@ Returns:
     UNREFERENCED_PARAMETER(Target);
     UNREFERENCED_PARAMETER(Context);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = CompletionParams->IoStatus.Status;
 
@@ -182,11 +182,11 @@ Returns:
 
     if (NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "Number of bytes read: %I64d", (INT64)bytesRead);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of bytes read: %I64d", (INT64)bytesRead);
     } 
     else 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "Read fails: ntStatus=%!STATUS! UsbdStatus 0x%x", 
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Read fails: ntStatus=%!STATUS! UsbdStatus 0x%x", 
                     ntStatus, 
                     usbCompletionParams->UsbdStatus);
     }
@@ -210,7 +210,7 @@ Returns:
                                       ntStatus, 
                                       bytesRead);
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 static
@@ -251,7 +251,7 @@ Returns:
 
     UNREFERENCED_PARAMETER(Queue);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     // The Queue's Module context area has the DMF Module.
     //
@@ -274,7 +274,7 @@ Returns:
     //
     if (Length > TEST_BOARD_TRANSFER_BUFFER_SIZE) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "Transfer exceeds %d\n", TEST_BOARD_TRANSFER_BUFFER_SIZE);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Transfer exceeds %d\n", TEST_BOARD_TRANSFER_BUFFER_SIZE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -285,7 +285,7 @@ Returns:
                                               &requestMemory);
     if(!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfRequestRetrieveOutputMemory fails: ntStatus=%!STATUS!\n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputMemory fails: ntStatus=%!STATUS!\n", ntStatus);
         goto Exit;
     }
 
@@ -299,7 +299,7 @@ Returns:
                                                     NULL);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfUsbTargetPipeFormatRequestForRead fails: ntStatus=%!STATUS!\n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeFormatRequestForRead fails: ntStatus=%!STATUS!\n", ntStatus);
         goto Exit;
     }
 
@@ -317,7 +317,7 @@ Returns:
         //
         // Framework couldn't send the request for some reason.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfRequestSend fails");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails");
         ntStatus = WdfRequestGetStatus(Request);
         goto Exit;
     }
@@ -342,7 +342,7 @@ Exit:
                                           0);
     }
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 static
@@ -379,7 +379,7 @@ Returns:
     UNREFERENCED_PARAMETER(Target);
     UNREFERENCED_PARAMETER(Context);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = CompletionParams->IoStatus.Status;
 
@@ -391,11 +391,11 @@ Returns:
 
     if (NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "Number of bytes written: %I64d\n", (INT64)bytesWritten);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of bytes written: %I64d\n", (INT64)bytesWritten);
     } 
     else 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "Write fails: ntStatus=%!STATUS! UsbdStatus 0x%x",
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Write fails: ntStatus=%!STATUS! UsbdStatus 0x%x",
                     ntStatus, 
                     usbCompletionParams->UsbdStatus);
     }
@@ -419,7 +419,7 @@ Returns:
                                       ntStatus, 
                                       bytesWritten);
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 static
@@ -458,7 +458,7 @@ Returns:
 
     UNREFERENCED_PARAMETER(Queue);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     // The Queue's Module context area has the DMF Module.
     //
@@ -481,7 +481,7 @@ Returns:
     //
     if (Length > TEST_BOARD_TRANSFER_BUFFER_SIZE) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "Transfer exceeds %d\n", TEST_BOARD_TRANSFER_BUFFER_SIZE);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Transfer exceeds %d\n", TEST_BOARD_TRANSFER_BUFFER_SIZE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -492,7 +492,7 @@ Returns:
                                              &requestMemory);
     if(!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfRequestRetrieveInputBuffer failed\n");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveInputBuffer failed\n");
         goto Exit;
     }
 
@@ -502,7 +502,7 @@ Returns:
                                                      NULL);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfUsbTargetPipeFormatRequestForWrite failed 0x%x\n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeFormatRequestForWrite failed 0x%x\n", ntStatus);
         goto Exit;
     }
 
@@ -516,7 +516,7 @@ Returns:
     {
         // Framework couldn't send the request for some reason.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfRequestSend failed\n");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend failed\n");
         ntStatus = WdfRequestGetStatus(Request);
         goto Exit;
     }
@@ -541,7 +541,7 @@ Exit:
                                           0);
     }
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 static
@@ -578,7 +578,7 @@ Returns:
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(ActionFlags);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     if (ActionFlags &  WdfRequestStopActionSuspend ) 
     {
@@ -590,7 +590,7 @@ Returns:
         WdfRequestCancelSentRequest(Request);
     }
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -608,7 +608,7 @@ OsrFx2_SetPowerPolicy(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     // Initialize the idle policy structure. Wait 10 seconds.
     //
@@ -620,7 +620,7 @@ OsrFx2_SetPowerPolicy(
                                              &idleSettings);
     if ( !NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceSetPowerPolicyS0IdlePolicy fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceSetPowerPolicyS0IdlePolicy fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -632,13 +632,13 @@ OsrFx2_SetPowerPolicy(
                                              &wakeSettings);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceAssignSxWakeSettings fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceAssignSxWakeSettings fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -680,7 +680,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     device = DMF_ParentDeviceGet(DmfModule);
@@ -692,7 +692,7 @@ Returns:
                                               &configParams);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfUsbTargetDeviceSelectConfig fails ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSelectConfig fails ntStatus=%!STATUS!", ntStatus);
 
         // Since the Osr USB fx2 device is capable of working at high speed, the only reason
         // the device would not be working at high speed is if the port doesn't
@@ -700,7 +700,7 @@ Returns:
         //
         if ((moduleContext->UsbDeviceTraits & WDF_USB_DEVICE_TRAIT_AT_HIGH_SPEED) == 0) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2,
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                         " On a 1.1 USB port on Windows Vista"
                         " this is expected as the OSR USB Fx2 board's Interrupt EndPoint descriptor"
                         " doesn't conform to the USB specification. Windows Vista detects this and"
@@ -743,21 +743,21 @@ Returns:
 
         if (WdfUsbPipeTypeInterrupt == pipeInformation.PipeType) 
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "Interrupt Pipe is 0x%p", pipe);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interrupt Pipe is 0x%p", pipe);
             moduleContext->InterruptPipe = pipe;
         }
 
         if (WdfUsbPipeTypeBulk == pipeInformation.PipeType &&
             WdfUsbTargetPipeIsInEndpoint(pipe)) 
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "BulkInput Pipe is 0x%p", pipe);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BulkInput Pipe is 0x%p", pipe);
             moduleContext->BulkReadPipe = pipe;
         }
 
         if (WdfUsbPipeTypeBulk == pipeInformation.PipeType &&
             WdfUsbTargetPipeIsOutEndpoint(pipe)) 
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "BulkOutput Pipe is 0x%p\n", pipe);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BulkOutput Pipe is 0x%p\n", pipe);
             moduleContext->BulkWritePipe = pipe;
         }
     }
@@ -769,13 +769,13 @@ Returns:
            moduleContext->InterruptPipe)) 
     {
         ntStatus = STATUS_INVALID_DEVICE_STATE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "Device is not configured properly ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device is not configured properly ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -816,7 +816,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -849,15 +849,15 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                         "GetBarGraphState: Failed to GetBarGraphState - 0x%x \n", ntStatus);
     } else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_OsrFx2,
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
             "GetBarGraphState: LED mask is 0x%x\n", BarGraphState->BarsAsUChar);
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -898,7 +898,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -927,13 +927,13 @@ Returns:
                                                                 &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "SetBarGraphState: Failed - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SetBarGraphState: Failed - 0x%x \n", ntStatus);
     } else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_OsrFx2, "SetBarGraphState: LED mask is 0x%x\n", BarGraphState->BarsAsUChar);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SetBarGraphState: LED mask is 0x%x\n", BarGraphState->BarsAsUChar);
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -982,7 +982,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1015,14 +1015,14 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "GetSevenSegmentState: Failed to get 7 Segment state - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GetSevenSegmentState: Failed to get 7 Segment state - 0x%x \n", ntStatus);
     } 
     else
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_OsrFx2, "GetSevenSegmentState: 7 Segment mask is 0x%x\n", *SevenSegment);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GetSevenSegmentState: 7 Segment mask is 0x%x\n", *SevenSegment);
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1063,7 +1063,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1092,14 +1092,14 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "SetSevenSegmentState: Failed to set 7 Segment state - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SetSevenSegmentState: Failed to set 7 Segment state - 0x%x \n", ntStatus);
     } 
     else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_OsrFx2, "SetSevenSegmentState: 7 Segment mask is 0x%x\n", *SevenSegment);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SetSevenSegmentState: 7 Segment mask is 0x%x\n", *SevenSegment);
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1140,7 +1140,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1171,14 +1171,14 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "GetSwitchState: Failed to Get switches - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GetSwitchState: Failed to Get switches - 0x%x \n", ntStatus);
     } 
     else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_OsrFx2, "GetSwitchState: Switch mask is 0x%x\n", SwitchState->SwitchesAsUChar);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GetSwitchState: Switch mask is 0x%x\n", SwitchState->SwitchesAsUChar);
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1212,7 +1212,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1228,7 +1228,7 @@ Returns:
     WdfIoTargetStop(ioTarget,
                     WdfIoTargetCancelSentIo);
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1262,7 +1262,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1289,7 +1289,7 @@ Returns:
 
 Exit:
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1325,7 +1325,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1336,18 +1336,18 @@ Returns:
     ntStatus = WdfUsbTargetDeviceResetPortSynchronously(moduleContext->UsbDevice);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "ResetDevice fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResetDevice fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     ntStatus = OsrFx2_StartAllPipes(DmfModule);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "OsrFx2_StartAllPipes fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "OsrFx2_StartAllPipes fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1384,7 +1384,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1409,7 +1409,7 @@ Returns:
                                                                   NULL);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "ReenumerateDevice: Failed to Reenumerate - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ReenumerateDevice: Failed to Reenumerate - 0x%x \n", ntStatus);
     }
 
     DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -1425,7 +1425,7 @@ Returns:
                                          NULL);
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1471,7 +1471,7 @@ Returns:
 
     UNREFERENCED_PARAMETER(Pipe);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)Context;
     moduleContext = DMF_CONTEXT_GET(dmfModule);
@@ -1490,7 +1490,7 @@ Returns:
 
     if (NumberOfBytesTransferred == 0) 
     {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_OsrFx2, "OsrFxEvtUsbInterruptPipeReadComplete Zero length read occured on the Interrupt Pipe's Continuous Reader");
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "OsrFxEvtUsbInterruptPipeReadComplete Zero length read occured on the Interrupt Pipe's Continuous Reader");
         goto Exit;
     }
 
@@ -1499,7 +1499,7 @@ Returns:
     switchState = (UCHAR*)WdfMemoryGetBuffer(Buffer,
                                              NULL);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "OsrFxEvtUsbInterruptPipeReadComplete SwitchState %x", *switchState);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "OsrFxEvtUsbInterruptPipeReadComplete SwitchState %x", *switchState);
 
     // Save of the current state.
     //
@@ -1531,7 +1531,7 @@ Exit:
     //
     WdfDeviceResumeIdle(device);
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _Must_inspect_result_
@@ -1547,13 +1547,13 @@ OsrFx2_EvtUsbInterruptReadersFailed(
     UNREFERENCED_PARAMETER(Status);
     UNREFERENCED_PARAMETER(UsbdStatus);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     // NOTE: This is different than the original OSR Sample. There seems to be no way to retrieve the DMFMODULE from
     //       WDFUSBPIPE. 
     //
 
-    FuncExit(DMF_TRACE_OsrFx2, "returnValue=%d", TRUE);
+    FuncExit(DMF_TRACE, "returnValue=%d", TRUE);
 
     return TRUE;
 }
@@ -1588,7 +1588,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1612,7 +1612,7 @@ Returns:
                                                       &continuousReaderConfig);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "OsrFxConfigContReaderForInterruptEndPoint fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "OsrFxConfigContReaderForInterruptEndPoint fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1677,7 +1677,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     //
     // DMF: A frequent programming DMF programming pattern is that callbacks made by DMF Modules
@@ -1711,7 +1711,7 @@ Returns:
                                                                   &requiredSize);
             if (ntStatus != STATUS_BUFFER_TOO_SMALL) 
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfUsbTargetDeviceRetrieveConfigDescriptor fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceRetrieveConfigDescriptor fails: ntStatus=%!STATUS!", ntStatus);
                 break;
             }
 
@@ -1723,7 +1723,7 @@ Returns:
                                                       NULL);
             if(!NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
                 break;
             }
 
@@ -1732,7 +1732,7 @@ Returns:
                                                                   &requiredSize);
             if (!NT_SUCCESS(ntStatus)) 
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfUsbTargetDeviceRetrieveConfigDescriptor fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceRetrieveConfigDescriptor fails: ntStatus=%!STATUS!", ntStatus);
                 break;
             }
 
@@ -1854,7 +1854,7 @@ Returns:
     //
     *BytesReturned = bytesReturned;
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1896,7 +1896,7 @@ Returns:
 
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1910,7 +1910,7 @@ Returns:
     ntStatus = WdfIoTargetStart(pipeIoTarget);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoTargetStart fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetStart fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1943,7 +1943,7 @@ Exit:
         }
     }
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1977,7 +1977,7 @@ Returns:
 
     UNREFERENCED_PARAMETER(TargetState);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1999,7 +1999,7 @@ Returns:
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2029,7 +2029,7 @@ Returns:
 {
     DMF_CONFIG_OsrFx2* moduleConfig;
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -2040,7 +2040,7 @@ Returns:
                                             STATUS_DEVICE_REMOVED);
     }
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2096,7 +2096,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -2141,7 +2141,7 @@ Return Value:
                         WDF_NO_OBJECT_ATTRIBUTES,
                         &moduleContext->DmfModuleQueuedWorkitem);
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2178,7 +2178,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     waitWakeEnable = FALSE;
 
@@ -2209,7 +2209,7 @@ Returns:
                                                           &moduleContext->UsbDevice);
         if (!NT_SUCCESS(ntStatus)) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2,
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
                  "WdfUsbTargetDeviceCreateWithParameters failed with Status code %!STATUS!\n", ntStatus);
             goto Exit;
         }
@@ -2229,12 +2229,12 @@ Returns:
                                                      &deviceInfo);
     if (NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "IsDeviceHighSpeed: %s\n", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_AT_HIGH_SPEED) ? "TRUE" : "FALSE");
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "IsDeviceSelfPowered: %s\n", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_SELF_POWERED) ? "TRUE" : "FALSE");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceHighSpeed: %s\n", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_AT_HIGH_SPEED) ? "TRUE" : "FALSE");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceSelfPowered: %s\n", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_SELF_POWERED) ? "TRUE" : "FALSE");
 
         waitWakeEnable = deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_REMOTE_WAKE_CAPABLE;
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_OsrFx2, "IsDeviceRemoteWakeable: %s\n", waitWakeEnable ? "TRUE" : "FALSE");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceRemoteWakeable: %s\n", waitWakeEnable ? "TRUE" : "FALSE");
 
         // Save these for use later.
         //
@@ -2248,7 +2248,7 @@ Returns:
     ntStatus = OsrFx2_SelectInterfaces(DmfModule);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "OsrFx2_SelectInterfaces fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "OsrFx2_SelectInterfaces fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2260,7 +2260,7 @@ Returns:
         ntStatus = OsrFx2_SetPowerPolicy(device);
         if (!NT_SUCCESS (ntStatus)) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "OsrFx2_SetPowerPolicy fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "OsrFx2_SetPowerPolicy fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -2269,7 +2269,7 @@ Returns:
 
 Exit:
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2324,7 +2324,7 @@ Returns:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_OsrFx2);
     DmfCallbacksDmf_OsrFx2.ChildModulesAdd = DMF_OsrFx2_ChildModulesAdd;
@@ -2352,7 +2352,7 @@ Returns:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -2396,7 +2396,7 @@ Returns:
                                     &queue);
         if (!NT_SUCCESS (ntStatus)) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -2412,7 +2412,7 @@ Returns:
         if (!NT_SUCCESS(ntStatus))
         {
             ASSERT(NT_SUCCESS(ntStatus));
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -2441,7 +2441,7 @@ Returns:
 
         if (!NT_SUCCESS (ntStatus)) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -2457,14 +2457,14 @@ Returns:
         if (!NT_SUCCESS(ntStatus))
         {
             ASSERT(NT_SUCCESS(ntStatus));
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_OsrFx2, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_OsrFx2, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -2498,7 +2498,7 @@ Returns:
 {
     DMF_CONTEXT_OsrFx2* moduleContext;
 
-    FuncEntry(DMF_TRACE_OsrFx2);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_OsrFx2);
@@ -2507,7 +2507,7 @@ Returns:
 
     *SwitchState = moduleContext->CurrentSwitchState;
 
-    FuncExitVoid(DMF_TRACE_OsrFx2);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_OsrFx2.c

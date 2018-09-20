@@ -362,7 +362,7 @@ Tests_PingPongBuffer_WriteThreadWork(
     if (!NT_SUCCESS(ntStatus))
     {
         ASSERT(FALSE);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_PingPongBuffer_PingWrite fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_PingPongBuffer_PingWrite fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -424,7 +424,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -441,14 +441,14 @@ Return Value:
     ntStatus = DMF_Thread_Start(moduleContext->DmfModuleReadThread);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     ntStatus = DMF_Thread_Start(moduleContext->DmfModuleWriteThread);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -457,7 +457,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Tests_PingPongBuffer, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -490,14 +490,14 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_PingPongBuffer);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_Thread_Stop(moduleContext->DmfModuleReadThread);
     DMF_Thread_Stop(moduleContext->DmfModuleWriteThread);
 
-    FuncExitVoid(DMF_TRACE_Tests_PingPongBuffer);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -574,7 +574,7 @@ Return Value:
                                 &dmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -602,7 +602,7 @@ Return Value:
                                          &moduleContext->DmfModulePingPongBuffer);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_PingPongBuffer_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_PingPongBuffer_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -619,7 +619,7 @@ Return Value:
                                  &moduleContext->DmfModuleReadThread);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -636,7 +636,7 @@ Return Value:
                                  &moduleContext->DmfModuleWriteThread);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_PingPongBuffer, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

@@ -109,7 +109,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -141,7 +141,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleBufferPoolConsumer);
 
-    FuncExitVoid(DMF_TRACE_BufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -191,7 +191,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_BufferQueue);
     DmfCallbacksDmf_BufferQueue.ChildModulesAdd = DMF_BufferQueue_ChildModulesAdd;
@@ -212,10 +212,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_BufferQueue, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_BufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -248,7 +248,7 @@ Return Value:
     DMF_CONTEXT_BufferQueue* moduleContext;
     ULONG numberOfEntriesInList;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -257,7 +257,7 @@ Return Value:
 
     numberOfEntriesInList = DMF_BufferPool_Count(moduleContext->DmfModuleBufferPoolConsumer);
 
-    FuncExit(DMF_TRACE_BufferQueue, "numberOfEntriesInList=%d", numberOfEntriesInList);
+    FuncExit(DMF_TRACE, "numberOfEntriesInList=%d", numberOfEntriesInList);
 
     return numberOfEntriesInList;
 }
@@ -293,7 +293,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_BufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -304,7 +304,7 @@ Return Value:
                                   ClientBuffer,
                                   ClientBufferContext);
 
-    FuncExit(DMF_TRACE_BufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -342,7 +342,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_BufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -354,7 +354,7 @@ Return Value:
                                                       MemoryDescriptor,
                                                       ClientBufferContext);
 
-    FuncExit(DMF_TRACE_BufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -385,7 +385,7 @@ Return Value:
 {
     DMF_CONTEXT_BufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -395,7 +395,7 @@ Return Value:
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolConsumer,
                        ClientBuffer);
 
-    FuncExitVoid(DMF_TRACE_BufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -429,7 +429,7 @@ Return Value:
 {
     DMF_CONTEXT_BufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -442,7 +442,7 @@ Return Value:
                              ClientBuffer,
                              ClientBufferContext);
 
-    FuncExitVoid(DMF_TRACE_BufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -476,7 +476,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_BufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -487,7 +487,7 @@ Return Value:
                                   ClientBuffer,
                                   ClientBufferContext);
 
-    FuncExit(DMF_TRACE_BufferQueue, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -518,7 +518,7 @@ Return Value:
     VOID* bufferContext;
     NTSTATUS ntStatus;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -538,7 +538,7 @@ Return Value:
         }
     }
 
-    FuncExitVoid(DMF_TRACE_BufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -567,7 +567,7 @@ Return Value:
 {
     DMF_CONTEXT_BufferQueue* moduleContext;
 
-    FuncEntry(DMF_TRACE_BufferQueue);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_BufferQueue);
@@ -577,7 +577,7 @@ Return Value:
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolProducer,
                        ClientBuffer);
 
-    FuncExitVoid(DMF_TRACE_BufferQueue);
+    FuncExitVoid(DMF_TRACE);
 }
 
 // eof: Dmf_BufferQueue.c

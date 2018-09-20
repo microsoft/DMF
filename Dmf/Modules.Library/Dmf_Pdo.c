@@ -114,7 +114,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
     ASSERT(PdoRecord != NULL);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -195,7 +195,7 @@ Return Value:
                                                             PdoRecord->HardwareIds[hardwareIdIndex]);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "EvtPdoHardwareIdFormat fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtPdoHardwareIdFormat fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
 
@@ -210,7 +210,7 @@ Return Value:
                                         idString);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "RtlUnicodeStringInit fails at Index %d: ntStatus=%!STATUS!", hardwareIdIndex, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlUnicodeStringInit fails at Index %d: ntStatus=%!STATUS!", hardwareIdIndex, ntStatus);
             goto Exit;
         }
 
@@ -218,7 +218,7 @@ Return Value:
                                            &hardwareId);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoInitAddHardwareID fails at Index %d: ntStatus=%!STATUS!", hardwareIdIndex, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAddHardwareID fails at Index %d: ntStatus=%!STATUS!", hardwareIdIndex, ntStatus);
             goto Exit;
         }
 
@@ -230,7 +230,7 @@ Return Value:
                                                 &hardwareId);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoInitAssignDeviceID fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAssignDeviceID fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -255,7 +255,7 @@ Return Value:
                                                               PdoRecord->CompatibleIds[compatibleIdIndex]);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "EvtPdoCompatibleIdFormat fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtPdoCompatibleIdFormat fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
 
@@ -270,7 +270,7 @@ Return Value:
                                         idString);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "RtlUnicodeStringInit fails at Index %d: ntStatus=%!STATUS!", compatibleIdIndex, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlUnicodeStringInit fails at Index %d: ntStatus=%!STATUS!", compatibleIdIndex, ntStatus);
             goto Exit;
         }
 
@@ -278,7 +278,7 @@ Return Value:
                                              &compatibleId);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoInitAddCompatibleID fails at Index %d: ntStatus=%!STATUS!", compatibleIdIndex, ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAddCompatibleID fails at Index %d: ntStatus=%!STATUS!", compatibleIdIndex, ntStatus);
             goto Exit;
         }
     }
@@ -290,7 +290,7 @@ Return Value:
                                       PdoRecord->SerialNumber);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "RtlIntegerToUnicodeString fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlIntegerToUnicodeString fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -298,7 +298,7 @@ Return Value:
                                           &instanceId);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoInitAssignInstanceID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAssignInstanceID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -315,7 +315,7 @@ Return Value:
                                       PdoRecord->SerialNumber);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "RtlUnicodeStringInit fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlUnicodeStringInit fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -323,7 +323,7 @@ Return Value:
                                     moduleConfig->DeviceLocation);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "RtlUnicodeStringPrintf fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlUnicodeStringPrintf fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -341,7 +341,7 @@ Return Value:
                                        SORT_DEFAULT));
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoInitAddDeviceText fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAddDeviceText fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -365,7 +365,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         child = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfDeviceCreate failed %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreate failed %!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -380,7 +380,7 @@ Return Value:
                                      &dmfDeviceInit);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "DMF_ModulesCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModulesCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -438,7 +438,7 @@ Return Value:
                                                          child);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "EvtPdoQueryInterfaceAdd fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtPdoQueryInterfaceAdd fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -451,7 +451,7 @@ Return Value:
                                         child);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfFdoAddStaticChild fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfFdoAddStaticChild fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -489,7 +489,7 @@ Exit:
         WdfObjectDelete(child);
     }
 
-    FuncExit(DMF_TRACE_Pdo, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -528,9 +528,9 @@ Return Value:
 
     UNREFERENCED_PARAMETER(ModuleContext);
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_Pdo, "ScheduledTask Handler");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask Handler");
 
     // This Module is the parent of the Child Module that is passed in.
     // (Module callbacks always receive the Child Module's handle.)
@@ -576,7 +576,7 @@ Return Value:
         {
             // Driver tried to create the PDO, but was unable to. This is a an error that should be reported.
             //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "Pdo_PdoEx fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Pdo_PdoEx fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -585,7 +585,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Pdo, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -636,7 +636,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -657,7 +657,7 @@ Return Value:
                          NULL);
     }
 
-    FuncExitVoid(DMF_TRACE_Pdo);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -725,7 +725,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     return(ntStatus);
@@ -763,7 +763,7 @@ Return Value:
     NTSTATUS ntStatus;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
@@ -775,7 +775,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_Pdo, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -812,7 +812,7 @@ Return Value:
     WDFDEVICE childDevice;
     PDO_DEVICE_DATA* pdoData;
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
@@ -840,7 +840,7 @@ Return Value:
 
     WdfFdoUnlockStaticChildListFromIteration(device);
 
-    FuncExit(DMF_TRACE_Pdo, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -887,7 +887,7 @@ Return Value:
     PDO_DEVICE_DATA* pdoData;
     BOOLEAN unique;
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
@@ -962,7 +962,7 @@ Return Value:
     }
 
 
-    FuncExit(DMF_TRACE_Pdo, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -995,7 +995,7 @@ Return Value:
     NTSTATUS ntStatus;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
@@ -1007,7 +1007,7 @@ Return Value:
     ntStatus = WdfPdoMarkMissing(Device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoMarkMissing fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoMarkMissing fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1015,7 +1015,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_Pdo, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1051,7 +1051,7 @@ Return Value:
     WDFDEVICE childDevice;
     PDO_DEVICE_DATA* pdoData;
 
-    FuncEntry(DMF_TRACE_Pdo);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
@@ -1074,7 +1074,7 @@ Return Value:
             ntStatus = WdfPdoMarkMissing(childDevice);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Pdo, "WdfPdoMarkMissing fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoMarkMissing fails: ntStatus=%!STATUS!", ntStatus);
                 break;
             }
 
@@ -1085,7 +1085,7 @@ Return Value:
 
     WdfFdoUnlockStaticChildListFromIteration(device);
 
-    FuncExit(DMF_TRACE_Pdo, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

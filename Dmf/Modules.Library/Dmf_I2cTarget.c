@@ -125,7 +125,7 @@ Return Value:
     {
         ASSERT(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "Invalid Sequence Length ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Sequence Length ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -138,7 +138,7 @@ Return Value:
                                            &memorySequence);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
         memorySequence = NULL;
         goto Exit;
     }
@@ -167,7 +167,7 @@ Return Value:
                                                  &bytes);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -369,7 +369,7 @@ Return Value:
                                (VOID**)&buffer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfMemoryCreate failed allocating memory buffer for SpbWrite ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate failed allocating memory buffer for SpbWrite ntStatus=%!STATUS!", ntStatus);
         memory = NULL;
         goto Exit;
     }
@@ -411,7 +411,7 @@ Return Value:
                                                  &bytesWritten);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfIoTargetSendWriteSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendWriteSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -423,7 +423,7 @@ Return Value:
     if (bytesWritten != expectedLength)
     {
         ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfIoTargetSendWriteSynchronously returned with 0x%lu bytes expected:0x%lu bytes ntStatus=%!STATUS!", (ULONG)bytesWritten, expectedLength, ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendWriteSynchronously returned with 0x%lu bytes expected:0x%lu bytes ntStatus=%!STATUS!", (ULONG)bytesWritten, expectedLength, ntStatus);
         goto Exit;
     }
 
@@ -509,7 +509,7 @@ Return Value:
                                 &request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
         request = NULL;
         goto Exit;
     }
@@ -523,7 +523,7 @@ Return Value:
                                            &memory);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
         memory = NULL;
         goto Exit;
     }
@@ -552,7 +552,7 @@ Return Value:
 
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -566,7 +566,7 @@ Return Value:
                          &requestOptions))
     {
         ntStatus = WdfRequestGetStatus(request);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -643,7 +643,7 @@ Return Value:
         // is used on different platforms. In that case, this Module still loads and opens
         // but it does nothing.
         //
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_I2cTarget, "No I2C Resources Found");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No I2C Resources Found");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -659,7 +659,7 @@ Return Value:
                                                 moduleContext->I2cConnection.u.Connection.IdHighPart);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -671,7 +671,7 @@ Return Value:
                                  &moduleContext->I2cTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -686,7 +686,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         ASSERT(NT_SUCCESS(ntStatus));
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -793,7 +793,7 @@ Return Value:
     resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
     if (resourceCount == 0)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_I2cTarget, "I2C resources not found");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "I2C resources not found");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
@@ -809,7 +809,7 @@ Return Value:
         if (NULL == resource)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "No resources found");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No resources found");
             goto Exit;
         }
 
@@ -835,7 +835,7 @@ Return Value:
     if ((moduleConfig->I2cConnectionMandatory) &&
         (0 == i2cResourceCount || (! resourceAssigned)))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_I2cTarget, "I2C Resources not assigned");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "I2C Resources not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
@@ -918,7 +918,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1157,7 +1157,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_I2cTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_I2cTarget);
@@ -1169,7 +1169,7 @@ Return Value:
         *I2cConnectionAssigned = moduleContext->I2cConnectionAssigned;
     }
 
-    FuncExitVoid(DMF_TRACE_I2cTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 

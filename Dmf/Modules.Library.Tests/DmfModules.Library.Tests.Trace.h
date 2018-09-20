@@ -19,17 +19,7 @@ Environment:
 
 #pragma once
 
-#define WPP_CONTROL_GUIDS                                                                              \
-    WPP_DEFINE_CONTROL_GUID(                                                                           \
-        DMF_TraceGuid_Library_Test, (0,0,0,0,0),                                                       \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_BufferPool)                                                     \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_BufferQueue)                                                    \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_PingPongBuffer)                                                 \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_Registry)                                                       \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_RingBuffer)                                                     \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_ScheduledTask)                                                  \
-        WPP_DEFINE_BIT(DMF_TRACE_TestsUtility)                                                         \
-        )
+#include "..\Modules.Library\DmfModules.Library.Trace.h"
 
 // eof: DmfModule.Library.Tests.Trace.h
 //

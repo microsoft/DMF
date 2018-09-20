@@ -82,7 +82,7 @@ IoctlHandler_PostDeviceInterfaceCreate(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -95,7 +95,7 @@ IoctlHandler_PostDeviceInterfaceCreate(
                                &symbolicLinkNameString);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -105,7 +105,7 @@ IoctlHandler_PostDeviceInterfaceCreate(
                                                       symbolicLinkNameString);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfDeviceRetrieveDeviceInterfaceString fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceRetrieveDeviceInterfaceString fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -146,7 +146,7 @@ IoctlHandler_PostDeviceInterfaceCreate(
                                                                    &isRestricted );
         if (!NT_SUCCESS(ntStatus)) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -170,7 +170,7 @@ IoctlHandler_PostDeviceInterfaceCreate(
                                                                        (PVOID)moduleConfig->CustomCapabilities);
             if (!NT_SUCCESS(ntStatus)) 
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -201,7 +201,7 @@ Exit:
         WdfObjectDelete(symbolicLinkNameString);
     }
 
-    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     // NOTE: Module will not open if this function returns an error.
     //
@@ -240,7 +240,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -254,7 +254,7 @@ Return Value:
                                               NULL);
     if (! NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -263,13 +263,13 @@ Return Value:
     ntStatus = IoctlHandler_PostDeviceInterfaceCreate(DmfModule);
     if (! NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoctlHandler_PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -350,7 +350,7 @@ Return Value:
         ioctlRecord = &moduleConfig->IoctlRecords[tableIndex];
         if ((ULONG)(ioctlRecord->IoctlCode) == IoControlCode)
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler,
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
                         "Matching IOCTL Found: 0x%08X tableIndex=%d",
                         IoControlCode,
                         tableIndex);
@@ -394,7 +394,7 @@ Return Value:
 
                 if (! isAdministrator)
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "Access denied because caller is not Administrator tableIndex=%d", tableIndex);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Access denied because caller is not Administrator tableIndex=%d", tableIndex);
                     ntStatus = STATUS_ACCESS_DENIED;
                     break;
                 }
@@ -423,7 +423,7 @@ Return Value:
                 }
                 else
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfRequestRetrieveInputBuffer fails: ntStatus=%!STATUS!", ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveInputBuffer fails: ntStatus=%!STATUS!", ntStatus);
                     break;
                 }
             }
@@ -446,12 +446,12 @@ Return Value:
                 }
                 else
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputBuffer fails: ntStatus=%!STATUS!", ntStatus);
                     break;
                 }
             }
 
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler,
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
                         "InputBufferSize=%d OutputBufferSize=%d tableIndex=%d",
                         (ULONG)inputBufferSize,
                         (ULONG)outputBufferSize,
@@ -487,11 +487,11 @@ Return Value:
                                               ntStatus,
                                               bytesReturned);
         }
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "Handled: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Handled: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "Not Handled: Request=0x%p", Request);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Not Handled: Request=0x%p", Request);
     }
 
     // NOTE: No entry/exit logging to eliminate spurious logging.
@@ -542,7 +542,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(FileObject);
@@ -561,7 +561,7 @@ Return Value:
     {
         // Callback does nothing...just do what WDF would normally do.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "IoctlHandler_AccessModeDefault");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IoctlHandler_AccessModeDefault");
         WdfRequestComplete(Request,
                            STATUS_SUCCESS);
         handled = TRUE;
@@ -641,7 +641,7 @@ RequestComplete:
 
 #endif // !defined(DMF_USER_MODE)
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "EVT_DMF_IoctlHandler_AccessModeFilterAdministratorOnly ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministratorOnly ntStatus=%!STATUS!", ntStatus);
         WdfRequestComplete(Request,
                            ntStatus);
         handled = TRUE;
@@ -650,7 +650,7 @@ RequestComplete:
     {
         // Allow the Client to determine if the connection to User-mode should be allowed.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_IoctlHandler, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         ASSERT(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
         handled = moduleConfig->EvtIoctlHandlerAccessModeFilter(DmfModule,
                                                                 Device,
@@ -662,13 +662,13 @@ RequestComplete:
         // There are no other valid cases.
         //
         ASSERT(FALSE);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "IoctlHandler_AccessModeInvalid");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_AccessModeInvalid");
         // WARNING: Request is not completed.
         // This code should not run,
         //
     }
 
-    FuncExit(DMF_TRACE_IoctlHandler, "handled=%d", handled);
+    FuncExit(DMF_TRACE, "handled=%d", handled);
 
     return handled;
 }
@@ -706,7 +706,7 @@ Return Value:
     DMF_CONTEXT_IoctlHandler* moduleContext;
     DMF_CONFIG_IoctlHandler* moduleConfig;
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -745,7 +745,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_IoctlHandler, "handled=%d", handled);
+    FuncExit(DMF_TRACE, "handled=%d", handled);
 
     return handled;
 }
@@ -779,14 +779,14 @@ Return Value:
 {
     BOOLEAN handled;
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
     handled = DMF_IoctlHandler_FileCleanup(DmfModule,
                                            FileObject);
 
-    FuncExit(DMF_TRACE_IoctlHandler, "handled=%d", handled);
+    FuncExit(DMF_TRACE, "handled=%d", handled);
 
     return handled;
 }
@@ -829,7 +829,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -876,14 +876,14 @@ Return Value:
             // For safety and SAL.
             //
             moduleContext->AdministratorFileObjectsCollection = NULL;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "WdfCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -916,7 +916,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -926,7 +926,7 @@ Return Value:
         moduleContext->AdministratorFileObjectsCollection = NULL;
     }
 
-    FuncExitNoReturn(DMF_TRACE_IoctlHandler);
+    FuncExitNoReturn(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -977,7 +977,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_IoctlHandler);
     DmfCallbacksDmf_IoctlHandler.DeviceOpen = DMF_IoctlHandler_Open;
@@ -1006,10 +1006,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_IoctlHandler, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1047,12 +1047,12 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_IoctlHandler);
 
-    FuncEntry(DMF_TRACE_IoctlHandler);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1064,7 +1064,7 @@ Return Value:
     //
     ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
 
-    FuncExit(DMF_TRACE_IoctlHandler, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

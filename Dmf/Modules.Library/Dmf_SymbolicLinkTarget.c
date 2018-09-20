@@ -69,7 +69,7 @@ SymbolicLinkTarget_IoTargetDestroy(
 {
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SymbolicLinkTarget);
+    FuncEntry(DMF_TRACE);
 
     if (ModuleContext->IoTarget != NULL)
     {
@@ -77,7 +77,7 @@ SymbolicLinkTarget_IoTargetDestroy(
         ModuleContext->IoTarget = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_SymbolicLinkTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -105,7 +105,7 @@ DMF_SymbolicLinkTarget_Open(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SymbolicLinkTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -113,7 +113,7 @@ DMF_SymbolicLinkTarget_Open(
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_SymbolicLinkTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -131,7 +131,7 @@ DMF_SymbolicLinkTarget_Close(
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SymbolicLinkTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -139,7 +139,7 @@ DMF_SymbolicLinkTarget_Close(
     //
     SymbolicLinkTarget_IoTargetDestroy(moduleContext);
 
-    FuncExitVoid(DMF_TRACE_SymbolicLinkTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -189,7 +189,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SymbolicLinkTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SymbolicLinkTarget);
     DmfCallbacksDmf_SymbolicLinkTarget.DeviceOpen = DMF_SymbolicLinkTarget_Open;
@@ -214,13 +214,13 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SymbolicLinkTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_SymbolicLinkTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -270,7 +270,7 @@ Return Value:
     BOOL success;
     DMF_CONTEXT_SymbolicLinkTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SymbolicLinkTarget);
+    FuncEntry(DMF_TRACE);
 
     success = FALSE;
 
@@ -286,7 +286,7 @@ Return Value:
     DMF_CONFIG_SymbolicLinkTarget* moduleConfig;
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SymbolicLinkTarget, "moduleConfig->SymbolikcLinkName %S", moduleConfig->SymbolicLinkName);
+    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "moduleConfig->SymbolikcLinkName %S", moduleConfig->SymbolicLinkName);
 
     HANDLE myIoTarget;
     myIoTarget = CreateFile(moduleConfig->SymbolicLinkName,
@@ -311,7 +311,7 @@ Return Value:
                       0,
                       NULL);
 
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SymbolicLinkTarget, "%S", messageBuffer);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "%S", messageBuffer);
 
         LocalFree(messageBuffer);
 
@@ -331,7 +331,7 @@ Exit:
     CloseHandle(myIoTarget);
 
     ntStatus = (TRUE == success) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
-    FuncExit(DMF_TRACE_SymbolicLinkTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

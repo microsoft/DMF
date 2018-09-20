@@ -108,9 +108,9 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -145,11 +145,11 @@ Return Value:
     UNREFERENCED_PARAMETER(ResourcesRaw);
     UNREFERENCED_PARAMETER(ResourcesTranslated);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -185,9 +185,9 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -218,9 +218,9 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -250,9 +250,9 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -282,9 +282,9 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(TargetState);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -314,9 +314,9 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(TargetState);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -345,11 +345,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -377,11 +377,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -409,11 +409,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -443,11 +443,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -477,11 +477,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -511,11 +511,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -543,11 +543,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -577,11 +577,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -614,11 +614,11 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(RelationType);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -650,11 +650,11 @@ Return Value:
     UNREFERENCED_PARAMETER(NotificationType);
     UNREFERENCED_PARAMETER(IsInNotificationPath);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -684,11 +684,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -718,11 +718,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -750,11 +750,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -788,11 +788,11 @@ Return Value:
     UNREFERENCED_PARAMETER(DeviceWakeEnabled);
     UNREFERENCED_PARAMETER(ChildrenArmedForWake);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", STATUS_SUCCESS);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
@@ -822,11 +822,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -854,11 +854,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(Device);
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -903,7 +903,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -919,12 +919,12 @@ Return Value:
                                                        ResourcesTranslated);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDevicePrepareHardware fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDevicePrepareHardware fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -962,7 +962,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -977,12 +977,12 @@ Return Value:
                                                        ResourcesTranslated);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceReleaseHardware fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceReleaseHardware fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1018,7 +1018,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1031,13 +1031,13 @@ Return Value:
                                                PreviousState);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceD0Entry fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceD0Entry fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1072,7 +1072,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1085,13 +1085,13 @@ Return Value:
                                                                     PreviousState);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceD0EntryPostInterruptsEnabled fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceD0EntryPostInterruptsEnabled fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1125,7 +1125,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1138,13 +1138,13 @@ Return Value:
                                                                    TargetState);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceD0ExitPreInterruptsDiabled fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceD0ExitPreInterruptsDiabled fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1178,7 +1178,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1191,12 +1191,12 @@ Return Value:
                                               TargetState);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceD0Exit fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceD0Exit fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1235,7 +1235,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
@@ -1256,7 +1256,7 @@ Return Value:
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1294,7 +1294,7 @@ Return FALSE if this Module does not support (know) the IOCTL.
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
@@ -1315,7 +1315,7 @@ Return FALSE if this Module does not support (know) the IOCTL.
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1358,7 +1358,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
@@ -1381,7 +1381,7 @@ Return Value:
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1425,7 +1425,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     returnValue = FALSE;
 
@@ -1448,7 +1448,7 @@ Return Value:
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1481,7 +1481,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1492,7 +1492,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceSelfManagedIoCleanup != NULL);
     moduleContext->EvtDeviceSelfManagedIoCleanup(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1522,7 +1522,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1533,7 +1533,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceSelfManagedIoFlush != NULL);
     moduleContext->EvtDeviceSelfManagedIoFlush(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1564,7 +1564,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1578,12 +1578,12 @@ Return Value:
     ntStatus = moduleContext->EvtDeviceSelfManagedIoInit(device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceSelfManagedIoInit fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceSelfManagedIoInit fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1616,7 +1616,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1630,12 +1630,12 @@ Return Value:
     ntStatus = moduleContext->EvtDeviceSelfManagedIoSuspend(device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceSelfManagedIoSuspend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceSelfManagedIoSuspend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1668,7 +1668,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1682,12 +1682,12 @@ Return Value:
     ntStatus = moduleContext->EvtDeviceSelfManagedIoRestart(device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceSelfManagedIoRestart fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceSelfManagedIoRestart fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1719,7 +1719,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1730,7 +1730,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceSurpriseRemoval != NULL);
     moduleContext->EvtDeviceSurpriseRemoval(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1761,7 +1761,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1775,12 +1775,12 @@ Return Value:
     ntStatus = moduleContext->EvtDeviceQueryRemove(device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceQueryRemove fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceQueryRemove fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1813,7 +1813,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1827,12 +1827,12 @@ Return Value:
     ntStatus = moduleContext->EvtDeviceQueryStop(device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceQueryStop fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceQueryStop fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1867,7 +1867,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1879,7 +1879,7 @@ Return Value:
     moduleContext->EvtDeviceRelationsQuery(device,
                                            RelationType);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1915,7 +1915,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1931,12 +1931,12 @@ Return Value:
                                                            IsInNotificationPath);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceUsageNotificationEx fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceUsageNotificationEx fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1969,7 +1969,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -1983,12 +1983,12 @@ Return Value:
     ntStatus = moduleContext->EvtDeviceArmWakeFromS0(device);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceArmWakeFromS0 fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceArmWakeFromS0 fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2020,7 +2020,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2031,7 +2031,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceDisarmWakeFromS0 != NULL);
     moduleContext->EvtDeviceDisarmWakeFromS0(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2061,7 +2061,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2072,7 +2072,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceWakeFromS0Triggered != NULL);
     moduleContext->EvtDeviceWakeFromS0Triggered(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2107,7 +2107,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2123,12 +2123,12 @@ Return Value:
                                                                ChildrenArmedForWake);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "EvtDeviceArmWakeFromSxWithReason fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtDeviceArmWakeFromSxWithReason fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2160,7 +2160,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2171,7 +2171,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceDisarmWakeFromSx != NULL);
     moduleContext->EvtDeviceDisarmWakeFromSx(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2201,7 +2201,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2212,7 +2212,7 @@ Return Value:
     ASSERT(moduleContext->EvtDeviceWakeFromSxTriggered != NULL);
     moduleContext->EvtDeviceWakeFromSxTriggered(device);
 
-    FuncExitVoid(DMF_TRACE_Bridge);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2251,7 +2251,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2275,7 +2275,7 @@ Return Value:
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -2309,7 +2309,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2331,7 +2331,7 @@ Return Value:
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -2365,7 +2365,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_Bridge* moduleContext;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2387,7 +2387,7 @@ Return Value:
         returnValue = TRUE;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -2425,7 +2425,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     WDFDEVICE device;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2476,7 +2476,7 @@ Return Value:
     DMF_CONTEXT_Bridge* moduleContext;
     DMF_CONFIG_Bridge* moduleConfig;
 
-    FuncEntry(DMF_TRACE_Bridge);
+    FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
 
@@ -2646,7 +2646,7 @@ Return Value:
         moduleContext->EvtFileClose = moduleConfig->EvtFileClose;
     }
 
-    FuncExit(DMF_TRACE_Bridge, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -2754,7 +2754,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Bridge, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     return(ntStatus);

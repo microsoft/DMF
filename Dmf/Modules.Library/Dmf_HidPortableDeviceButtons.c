@@ -278,7 +278,7 @@ Return Value:
     DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
     NTSTATUS ntStatus;
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(VhfOperationContext);
     UNREFERENCED_PARAMETER(HidTransferPacket);
@@ -320,7 +320,7 @@ Exit:
                                                           VhfOperationHandle,
                                                           ntStatus);
 
-    FuncExitVoid(DMF_TRACE_HidPortableDeviceButtons);
+    FuncExitVoid(DMF_TRACE);
 }
 
 VOID
@@ -357,7 +357,7 @@ Return Value:
     DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
     NTSTATUS ntStatus;
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(VhfOperationContext);
     UNREFERENCED_PARAMETER(HidTransferPacket);
@@ -404,7 +404,7 @@ Exit:
                                                           VhfOperationHandle,
                                                           ntStatus);
 
-    FuncExitVoid(DMF_TRACE_HidPortableDeviceButtons);
+    FuncExitVoid(DMF_TRACE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,7 +442,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(PreviousState);
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -460,7 +460,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    FuncExit(DMF_TRACE_HidPortableDeviceButtons, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -500,7 +500,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -527,7 +527,7 @@ Return Value:
     moduleContext->InputReportEnabledState.u.Buttons.VolumeDown = 1;
     moduleContext->InputReportEnabledState.u.Buttons.VolumeUp = 1;
 
-    FuncExit(DMF_TRACE_HidPortableDeviceButtons, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -561,13 +561,13 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_HidPortableDeviceButtons);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -606,7 +606,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -646,7 +646,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleVirtualHidDeviceVhf);
 
-    FuncExitVoid(DMF_TRACE_HidPortableDeviceButtons);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -747,7 +747,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HidPortableDeviceButtons);
     DmfCallbacksDmf_HidPortableDeviceButtons.DeviceOpen = DMF_HidPortableDeviceButtons_Open;
@@ -775,10 +775,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_HidPortableDeviceButtons, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_HidPortableDeviceButtons, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -814,7 +814,7 @@ Return Value:
     BOOLEAN returnValue;
     DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_HidPortableDeviceButtons);
@@ -879,7 +879,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_HidPortableDeviceButtons, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -913,7 +913,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
 
-    FuncEntry(DMF_TRACE_HidPortableDeviceButtons);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_HidPortableDeviceButtons);
@@ -1017,7 +1017,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_HidPortableDeviceButtons, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

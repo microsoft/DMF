@@ -576,7 +576,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -595,7 +595,7 @@ Return Value:
                               &moduleContext->ValidationTimer);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_ScheduledTask, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -609,7 +609,7 @@ Return Value:
 
 Exit:
     
-    FuncExit(DMF_TRACE_Tests_ScheduledTask, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -642,14 +642,14 @@ Return Value:
  
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_Tests_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     WdfObjectDelete(moduleContext->ValidationTimer);
     moduleContext->ValidationTimer = NULL;
 
-    FuncExitVoid(DMF_TRACE_Tests_ScheduledTask);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -734,7 +734,7 @@ Return Value:
                                 &dmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_ScheduledTask, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -770,7 +770,7 @@ Return Value:
                                          &moduleContext->DmfModuleScheduledTask[index]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_Tests_ScheduledTask, "DMF_ScheduledTask_Create fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ScheduledTask_Create fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }

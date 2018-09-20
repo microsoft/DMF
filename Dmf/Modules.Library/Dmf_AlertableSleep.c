@@ -110,7 +110,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AlertableSleep);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -140,7 +140,7 @@ Return Value:
         moduleContext->DoNotWait[eventIndex] = FALSE;
     }
 
-    FuncExit(DMF_TRACE_AlertableSleep, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -173,7 +173,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AlertableSleep);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -197,7 +197,7 @@ Return Value:
         DMF_Portable_EventClose(&moduleContext->Event[eventIndex]);
     }
 
-    FuncExitVoid(DMF_TRACE_AlertableSleep);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -247,7 +247,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_AlertableSleep);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_AlertableSleep);
     DmfCallbacksDmf_AlertableSleep.DeviceOpen = DMF_AlertableSleep_Open;
@@ -269,10 +269,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_AlertableSleep, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_AlertableSleep, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -308,7 +308,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_AlertableSleep* moduleContext;
 
-    FuncEntry(DMF_TRACE_AlertableSleep);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -342,7 +342,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_AlertableSleep);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -375,7 +375,7 @@ Return Value:
 {
     DMF_CONTEXT_AlertableSleep* moduleContext;
 
-    FuncEntry(DMF_TRACE_AlertableSleep);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -406,7 +406,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_AlertableSleep);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _Must_inspect_result_
@@ -440,7 +440,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_AlertableSleep* moduleContext;
 
-    FuncEntry(DMF_TRACE_AlertableSleep);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_AlertableSleep);
@@ -462,7 +462,7 @@ Return Value:
     //
     DMF_ModuleReferenceAdd(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_AlertableSleep, "Wait EventIndex=%d: Milliseconds%d-ms DoNotWait=%d",
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait EventIndex=%d: Milliseconds%d-ms DoNotWait=%d",
                 EventIndex,
                 Milliseconds,
                 moduleContext->DoNotWait[EventIndex]);
@@ -471,13 +471,13 @@ Return Value:
     {
         // The event has already been set. Do not wait and return unsuccessful.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_AlertableSleep, "Event[%d] already interrupted. Do not wait.", EventIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%d] already interrupted. Do not wait.", EventIndex);
     }
     else
     {
         LARGE_INTEGER timeout;
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_AlertableSleep, "Wait[%d] for %d-ms...", EventIndex, Milliseconds);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] for %d-ms...", EventIndex, Milliseconds);
 
         ASSERT(! moduleContext->CurrentlyWaiting[EventIndex]);
         moduleContext->CurrentlyWaiting[EventIndex] = TRUE;
@@ -502,7 +502,7 @@ Return Value:
             // The thread delayed for the time specified by the caller. It is considered success.
             //
             ntStatus = STATUS_SUCCESS;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_AlertableSleep, "Wait[%d] Satisfied", EventIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] Satisfied", EventIndex);
         }
         else
         {
@@ -510,7 +510,7 @@ Return Value:
             // did not happen. It is considered unsuccessful.
             //
             ntStatus = STATUS_UNSUCCESSFUL;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_AlertableSleep, "Wait[%d] Interrupted", EventIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] Interrupted", EventIndex);
         }
 
         moduleContext->CurrentlyWaiting[EventIndex] = FALSE;
@@ -525,7 +525,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_AlertableSleep, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

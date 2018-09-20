@@ -103,7 +103,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SelfTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -117,7 +117,7 @@ Return Value:
                                  &moduleContext->IoTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SelfTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -132,7 +132,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         ASSERT(NT_SUCCESS(ntStatus));
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SelfTarget, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -141,7 +141,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_SelfTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -174,7 +174,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SelfTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -185,7 +185,7 @@ Return Value:
         moduleContext->IoTarget = NULL;
     }
 
-    FuncExitVoid(DMF_TRACE_SelfTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -223,7 +223,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SelfTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -237,7 +237,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleContinuousRequestTarget);
 
-    FuncExitVoid(DMF_TRACE_SelfTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -287,7 +287,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SelfTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SelfTarget);
     DmfCallbacksDmf_SelfTarget.DeviceOpen = DMF_SelfTarget_Open;
@@ -309,10 +309,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SelfTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_SelfTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -389,7 +389,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SelfTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SelfTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SelfTarget);
@@ -409,7 +409,7 @@ Return Value:
                                                 EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                 SingleAsynchronousRequestClientContext);
 
-    FuncExit(DMF_TRACE_SelfTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -455,7 +455,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SelfTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_SelfTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_SelfTarget);
@@ -474,7 +474,7 @@ Return Value:
                                                              RequestTimeoutMilliseconds,
                                                              BytesWritten);
 
-    FuncExit(DMF_TRACE_SelfTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

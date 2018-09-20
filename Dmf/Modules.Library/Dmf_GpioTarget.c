@@ -128,7 +128,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     size = sizeof(data);
     if (Value)
@@ -148,7 +148,7 @@ Return Value:
                                 &request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
         request = NULL;
         goto Exit;
     }
@@ -161,7 +161,7 @@ Return Value:
                                            &memory);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
         memory = NULL;
         goto Exit;
     }
@@ -175,7 +175,7 @@ Return Value:
                                                 0);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -187,7 +187,7 @@ Return Value:
                          &requestOptions))
     {
         ntStatus = WdfRequestGetStatus(request);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -207,7 +207,7 @@ Exit:
         request = NULL;
     }
 
-    FuncExit(DMF_TRACE_GpioTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -249,7 +249,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     size = sizeof(data);
     data = 0;
@@ -262,7 +262,7 @@ Return Value:
                                 &request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
         request = NULL;
         goto Exit;
     }
@@ -275,7 +275,7 @@ Return Value:
                                            &memory);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreatePreallocated fails: ntStatus=%!STATUS!", ntStatus);
         memory = NULL;
         goto Exit;
     }
@@ -289,7 +289,7 @@ Return Value:
                                                 0);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForIoctl fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -301,7 +301,7 @@ Return Value:
                          &requestOptions))
     {
         ntStatus = WdfRequestGetStatus(request);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -325,15 +325,15 @@ Exit:
         (data != 0))
     {
         *PinValue = TRUE;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_GpioTarget, "GPIO value read = 0x%x", data);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "GPIO value read = 0x%x", data);
     }
     else
     {
         *PinValue = FALSE;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_GpioTarget, "GPIO value read = 0x%x, ntStatus=%!STATUS!", data, ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "GPIO value read = 0x%x, ntStatus=%!STATUS!", data, ntStatus);
     }
 
-    FuncExit(DMF_TRACE_GpioTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -370,7 +370,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)WdfWorkItemGetParentObject(Workitem);
 
@@ -393,7 +393,7 @@ Return Value:
         numberOfTimesWorkitemMustExecute--;
     }
 
-    FuncExitNoReturn(DMF_TRACE_GpioTarget);
+    FuncExitNoReturn(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -429,7 +429,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(Interrupt);
 
@@ -445,7 +445,7 @@ Return Value:
 
     moduleConfig->EvtGpioTargetInterruptPassive(*dmfModuleAddress);
 
-    FuncExitNoReturn(DMF_TRACE_GpioTarget);
+    FuncExitNoReturn(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -481,7 +481,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(WdfDevice);
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     // The Interrupt's Module Context area has the DMF Module.
     //
@@ -525,7 +525,7 @@ Return Value:
         numberOfTimesDpcMustExecute--;
     }
 
-    FuncExitNoReturn(DMF_TRACE_GpioTarget);
+    FuncExitNoReturn(DMF_TRACE);
 }
 
 EVT_WDF_INTERRUPT_ISR GpioTarget_Isr;
@@ -563,7 +563,7 @@ GpioTarget_Isr(
 
     UNREFERENCED_PARAMETER(MessageId);
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     // The Interrupt's Module context area has the DMF Module.
     //
@@ -633,7 +633,7 @@ GpioTarget_Isr(
         interruptHandled = TRUE;
     }
 
-    FuncExitNoReturn(DMF_TRACE_GpioTarget);
+    FuncExitNoReturn(DMF_TRACE);
 
     return interruptHandled;
 }
@@ -683,7 +683,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -695,7 +695,7 @@ Return Value:
         // is used on different platforms. In that case, this Module still loads and opens
         // but it does nothing.
         //
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "No GPIO Resources Found");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No GPIO Resources Found");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -711,7 +711,7 @@ Return Value:
                                                 moduleContext->GpioTargetConnection.u.Connection.IdHighPart);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -723,7 +723,7 @@ Return Value:
                                  &moduleContext->GpioTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RESOURCE_HUB_CREATE_PATH_FROM_ID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -739,13 +739,13 @@ Return Value:
     {
         WdfObjectDelete(moduleContext->GpioTarget);
         moduleContext->GpioTarget = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_GpioTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -778,7 +778,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -796,7 +796,7 @@ Return Value:
         moduleContext->GpioTarget = NULL;
     }
 
-    FuncExitNoReturn(DMF_TRACE_GpioTarget);
+    FuncExitNoReturn(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -846,7 +846,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(ResourcesRaw != NULL);
     ASSERT(ResourcesTranslated != NULL);
@@ -883,7 +883,7 @@ Return Value:
         if (NULL == resource)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "No resources assigned");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No resources assigned");
             goto Exit;
         }
 
@@ -904,13 +904,13 @@ Return Value:
 
                     moduleContext->GpioConnectionAssigned = TRUE;
 
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_GpioTarget, "Assign: GpioTargetLineIndex=%d",
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Assign: GpioTargetLineIndex=%d",
                                 moduleContext->GpioTargetLineIndex);
                 }
 
                 gpioConnectionIndex++;
 
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "CmResourceTypeConnection 0x%08X:%08X",
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "CmResourceTypeConnection 0x%08X:%08X",
                             resource->u.Connection.IdHighPart,
                             resource->u.Connection.IdLowPart);
             }
@@ -930,14 +930,14 @@ Return Value:
 
                 moduleContext->InterruptAssigned = TRUE;
 
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_GpioTarget, "Assign: GpioTargetInterruptIndex=%d interruptResourceIndex=%d",
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Assign: GpioTargetInterruptIndex=%d interruptResourceIndex=%d",
                             moduleContext->GpioTargetInterruptIndex,
                             interruptResourceIndex);
             }
 
             interruptIndex++;
 
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "CmResourceTypeInterrupt 0x%08X 0x%IX 0x%08X",
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "CmResourceTypeInterrupt 0x%08X 0x%IX 0x%08X",
                         resource->u.Interrupt.Vector,
                         resource->u.Interrupt.Affinity,
                         resource->u.Interrupt.Level);
@@ -949,27 +949,27 @@ Return Value:
         }
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "GpioConnectionAssigned=%d GpioConnectionMandatory=%d", moduleContext->GpioConnectionAssigned, moduleConfig->GpioConnectionMandatory);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GpioConnectionAssigned=%d GpioConnectionMandatory=%d", moduleContext->GpioConnectionAssigned, moduleConfig->GpioConnectionMandatory);
 
     //  Validate gpio connection with the Client Driver's requirements.
     //
     if (moduleConfig->GpioConnectionMandatory && 
         (! moduleContext->GpioConnectionAssigned))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "Gpio Connection not assigned");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Gpio Connection not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "InterruptAssigned=%d InterruptMandatory=%d", moduleContext->InterruptAssigned, moduleConfig->InterruptMandatory);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "InterruptAssigned=%d InterruptMandatory=%d", moduleContext->InterruptAssigned, moduleConfig->InterruptMandatory);
 
     //  Validate interrupt with the Client Driver's requirements.
     //
     if (moduleConfig->InterruptMandatory && 
         (! moduleContext->InterruptAssigned))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "Interrupt resource not assigned");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Interrupt resource not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
@@ -1015,11 +1015,11 @@ Return Value:
                                       &moduleContext->Interrupt);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfInterruptCreate ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfInterruptCreate ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "GPIO Interrupt Created");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GPIO Interrupt Created");
 
         // NOTE: It is not possible to get the parent of a WDFINTERRUPT.
         // Therefore, it is necessary to save the DmfModule in its context area.
@@ -1048,11 +1048,11 @@ Return Value:
             if (! NT_SUCCESS(ntStatus))
             {
                 moduleContext->Workitem = NULL;
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "WdfWorkItemCreate fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfWorkItemCreate fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
 
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_GpioTarget, "Workitem Created");
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Workitem Created");
         }
         else
         {
@@ -1064,7 +1064,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_GpioTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1137,7 +1137,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     return(ntStatus);
@@ -1170,7 +1170,7 @@ Return Value:
 {
     DMF_CONTEXT_GpioTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_GpioTarget);
@@ -1179,7 +1179,7 @@ Return Value:
 
     WdfInterruptAcquireLock(moduleContext->Interrupt);
 
-    FuncExitVoid(DMF_TRACE_GpioTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1205,7 +1205,7 @@ Return Value:
 {
     DMF_CONTEXT_GpioTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_GpioTarget);
@@ -1214,7 +1214,7 @@ Return Value:
 
     WdfInterruptReleaseLock(moduleContext->Interrupt);
 
-    FuncExitVoid(DMF_TRACE_GpioTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #pragma code_seg("PAGE")
@@ -1247,7 +1247,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_GpioTarget);
@@ -1256,7 +1256,7 @@ Return Value:
 
     returnValue = WdfInterruptTryToAcquireLock(moduleContext->Interrupt);
 
-    FuncExit(DMF_TRACE_GpioTarget, "returnValue=%d", returnValue);
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
 }
@@ -1293,7 +1293,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_GpioTarget);
@@ -1310,7 +1310,7 @@ Return Value:
         *InterruptAssigned = moduleContext->InterruptAssigned;
     }
 
-    FuncExitVoid(DMF_TRACE_GpioTarget);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1340,7 +1340,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_GpioTarget* moduleContext;
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_GpioTarget);
@@ -1358,10 +1358,10 @@ Return Value:
     else
     {
         ntStatus = STATUS_INVALID_DEVICE_REQUEST;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "GPIO Target is invalid. Please make sure GpioTargetIO is configured to read ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GPIO Target is invalid. Please make sure GpioTargetIO is configured to read ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_GpioTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1395,7 +1395,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_GpioTarget);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_GpioTarget);
@@ -1410,10 +1410,10 @@ Return Value:
     else
     {
         ntStatus = STATUS_INVALID_DEVICE_REQUEST;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_GpioTarget, "GPIO Target is invalid. Please make sure GpioTargetIO is configured. ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GPIO Target is invalid. Please make sure GpioTargetIO is configured. ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_GpioTarget, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

@@ -127,7 +127,7 @@ Return:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -141,11 +141,11 @@ Return:
         {
             ULONG timesRun;
 
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_Persistence_PersistentAcrossReboots");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_PersistentAcrossReboots");
 
             DMF_ScheduledTask_TimesRunGet(DmfModule,
                                           &timesRun);
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "timesRun=%u", timesRun);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "timesRun=%u", timesRun);
             if (timesRun >= 1)
             {
                 moduleContext->WorkIsCompleted = TRUE;
@@ -154,7 +154,7 @@ Return:
         }
         case ScheduledTask_Persistence_NotPersistentAcrossReboots:
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_Persistence_NotPersistentAcrossReboots");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_NotPersistentAcrossReboots");
             break;
         }
         default:
@@ -166,12 +166,12 @@ Return:
 
     if (moduleContext->WorkIsCompleted)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Work has already been completed...action not taken.");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Work has already been completed...action not taken.");
         workResult = ScheduledTask_WorkResult_Success;
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
     workResult = moduleConfig->EvtScheduledTaskCallback(DmfModule,
                                                         moduleConfig->CallbackContext,
                                                         PreviousState);
@@ -187,7 +187,7 @@ Return:
             {
                 // Remember across reboots by writing to registry.
                 //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_Persistence_PersistentAcrossReboots Set WorkIsCompleted");
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_PersistentAcrossReboots Set WorkIsCompleted");
                 DMF_ScheduledTask_TimesRunSet(DmfModule,
                                               1);
                 moduleContext->WorkIsCompleted = TRUE;
@@ -197,7 +197,7 @@ Return:
             {
                 // Remember for duration of driver load by writing to memory.
                 //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_Persistence_NotPersistentAcrossReboots Set WorkIsCompleted");
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_NotPersistentAcrossReboots Set WorkIsCompleted");
                 ASSERT(! moduleContext->WorkIsCompleted);
                 moduleContext->WorkIsCompleted = TRUE;
                 break;
@@ -215,17 +215,17 @@ Return:
             // This is not ScheduledTask but allows Client to do the operation again.
             // It is basically a timer that allows us to switch easily from timer to Run Once.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_WorkResult_SuccessButTryAgain");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_SuccessButTryAgain");
             if (! moduleContext->ModuleClosing)
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Timer RESTART");
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer RESTART");
                 moduleContext->TimerIsStarted = TRUE;
                 WdfTimerStart(moduleContext->Timer,
                               WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnSuccess));
             }
             else
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Abort Timer RESTART");
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Timer RESTART");
             }
             break;
         }
@@ -233,14 +233,14 @@ Return:
         {
             // Client's work failed.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_WorkResult_Fail");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_Fail");
             break;
         }
         case ScheduledTask_WorkResult_FailButTryAgain:
         {
             // Client's work fails: but Client wants to retry.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_WorkResult_FailButTryAgain");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_FailButTryAgain");
 
             // In immediate mode, retry is not possible because the caller will unload the client because an error status is returned.
             //
@@ -248,14 +248,14 @@ Return:
 
             if (! moduleContext->ModuleClosing)
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Timer RESTART");
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer RESTART");
                 moduleContext->TimerIsStarted = TRUE;
                 WdfTimerStart(moduleContext->Timer,
                               WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnFail));
             }
             else
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Abort Timer RESTART");
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Timer RESTART");
             }
             break;
         }
@@ -270,7 +270,7 @@ Return:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ScheduledTask, "workResult=%d", workResult);
+    FuncExit(DMF_TRACE, "workResult=%d", workResult);
 
     return workResult;
 }
@@ -303,9 +303,9 @@ Return:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask timer expires");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask timer expires");
 
     dmfModule = (DMFMODULE)WdfTimerGetParentObject(WdfTimer);
     ASSERT(dmfModule != NULL);
@@ -326,7 +326,7 @@ Return:
     ScheduledTask_ClientWorkDo(dmfModule,
                                WdfPowerDeviceInvalid);
 
-    FuncExitVoid(DMF_TRACE_ScheduledTask);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -357,7 +357,7 @@ Return:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)WdfWorkItemGetParentObject(WdfWorkitem);
     ASSERT(dmfModule != NULL);
@@ -388,7 +388,7 @@ Return:
         pendingCalls = InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
     } while (pendingCalls > 0);
 
-    FuncExitVoid(DMF_TRACE_ScheduledTask);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -438,7 +438,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -450,12 +450,12 @@ Return Value:
     {
         case ScheduledTask_ExecuteWhen_PrepareHardware:
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_ExecuteWhen_PrepareHardware");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecuteWhen_PrepareHardware");
             switch (moduleConfig->ExecutionMode)
             {
                 case ScheduledTask_ExecutionMode_Deferred:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_ExecutionMode_Deferred");
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecutionMode_Deferred");
                     // Only start the timer if the timer has not started.
                     // This allows the SuccessButTryAgain mode to function without
                     // extra initial timer launches.
@@ -466,7 +466,7 @@ Return Value:
                         // (The first iteration happens immediately. After that, the 
                         // retry interval is used.)
                         //
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Timer START");
+                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START");
                         moduleContext->TimerIsStarted = TRUE;
                         WdfTimerStart(moduleContext->Timer,
                                       WDF_REL_TIMEOUT_IN_MS(0));
@@ -475,7 +475,7 @@ Return Value:
                 }
                 case ScheduledTask_ExecutionMode_Immediate:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_ExecutionMode_Immediate");
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecutionMode_Immediate");
 
                     ScheduledTask_Result_Type workResult;
 
@@ -500,7 +500,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ScheduledTask, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -539,16 +539,16 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Set ModuleClosing");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set ModuleClosing");
     moduleContext->ModuleClosing = TRUE;
 
-    FuncExitVoid(DMF_TRACE_ScheduledTask);
+    FuncExitVoid(DMF_TRACE);
 
     return STATUS_SUCCESS;
 }
@@ -590,7 +590,7 @@ Return Value:
     DMF_CONTEXT_ScheduledTask* moduleContext;
     DMF_CONFIG_ScheduledTask* moduleConfig;
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(PreviousState);
 
@@ -604,12 +604,12 @@ Return Value:
     {
         case ScheduledTask_ExecuteWhen_D0Entry:
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_ExecuteWhen_D0Entry");
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecuteWhen_D0Entry");
             switch (moduleConfig->ExecutionMode)
             {
                 case ScheduledTask_ExecutionMode_Deferred:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_ExecutionMode_Deferred");
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecutionMode_Deferred");
                     // Only start the timer if the timer has not started.
                     // This allows the SuccessButTryAgain mode to function without
                     // extra initial timer launches.
@@ -620,7 +620,7 @@ Return Value:
                         // (The first iteration happens immediately. After that, the 
                         // retry interval is used.)
                         //
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Timer START");
+                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START");
                         moduleContext->TimerIsStarted = TRUE;
                         WdfTimerStart(moduleContext->Timer,
                                       WDF_REL_TIMEOUT_IN_MS(0));
@@ -629,7 +629,7 @@ Return Value:
                 }
                 case ScheduledTask_ExecutionMode_Immediate:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "ScheduledTask_ExecutionMode_Immediate");
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecutionMode_Immediate");
 
                     ScheduledTask_Result_Type workResult;
 
@@ -656,7 +656,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE_ScheduledTask, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -699,7 +699,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -728,7 +728,7 @@ Return Value:
                               &moduleContext->Timer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -745,13 +745,13 @@ Return Value:
                                  &moduleContext->DeferredOnDemand);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_ScheduledTask, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -785,7 +785,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -819,7 +819,7 @@ Return Value:
     moduleContext->Timer = NULL;
     moduleContext->TimerIsStarted = FALSE;
 
-    FuncExitNoReturn(DMF_TRACE_ScheduledTask);
+    FuncExitNoReturn(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -870,7 +870,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_ScheduledTask);
+    FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ScheduledTask);
     DmfCallbacksDmf_ScheduledTask.DeviceOpen = DMF_ScheduledTask_Open;
@@ -898,10 +898,10 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    FuncExit(DMF_TRACE_ScheduledTask, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1070,7 +1070,7 @@ Return Value:
                                                   &wdfKey);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "WdfDriverOpenParametersRegistryKey ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDriverOpenParametersRegistryKey ntStatus=%!STATUS!", ntStatus);
         wdfKey = NULL;
         goto Exit;
     }
@@ -1085,12 +1085,12 @@ Return Value:
                                      NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "WdfRegistryQueryValue ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryQueryValue ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     *TimesRun = value;
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Read TimesRun=%u", *TimesRun);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Read TimesRun=%u", *TimesRun);
 
 Exit:
 
@@ -1148,7 +1148,7 @@ Return Value:
         // Fall through. Assume this is the first time.
         //
         *TimesRun = 0;
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE_ScheduledTask, "Unable to read ScheduledTask value. ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Unable to read ScheduledTask value. ntStatus=%!STATUS!", ntStatus);
     }
 
     // Increment.
@@ -1161,7 +1161,7 @@ Return Value:
                                              incrementedValue);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "Unable to write ScheduledTask value. ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to write ScheduledTask value. ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1225,12 +1225,12 @@ Return Value:
                                                   &wdfKey);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "WdfDriverOpenParametersRegistryKey ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDriverOpenParametersRegistryKey ntStatus=%!STATUS!", ntStatus);
         wdfKey = NULL;
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_ScheduledTask, "Write TimesRun=%d", TimesRun);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Write TimesRun=%d", TimesRun);
 
     RtlInitUnicodeString(&valueNameString,
                          DEFAULT_NAME_DEVICE);
@@ -1239,7 +1239,7 @@ Return Value:
                                       TimesRun);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_ScheduledTask, "WdfRegistryAssignULong ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryAssignULong ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

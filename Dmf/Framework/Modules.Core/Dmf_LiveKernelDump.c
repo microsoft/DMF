@@ -153,7 +153,7 @@ Return Value:
     DATA_BUFFER dataBuffer;
     NTSTATUS ntStatus;
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -177,7 +177,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExit(DMF_TRACE_LiveKernelDump, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -263,7 +263,7 @@ Return Value:
     DATA_BUFFER_SOURCE* dataBufferSource;
     DATA_BUFFER dataBuffer;
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -287,7 +287,7 @@ Return Value:
 
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 }
 
 #if IS_WIN10_RS3_OR_LATER
@@ -334,7 +334,7 @@ Return Value:
     UNREFERENCED_PARAMETER(BufferSize);
     UNREFERENCED_PARAMETER(CallbackContext);
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     ASSERT(BufferSize == sizeof(DATA_BUFFER));
 
@@ -353,7 +353,7 @@ Return Value:
     {
         // Cannot insert the data buffer into the telemetry handle.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_LiveKernelDump, "Invalid parameters: dataBuffer->Valid=%d", dataBuffer->Valid);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Invalid parameters: dataBuffer->Valid=%d", dataBuffer->Valid);
         goto Exit;
     }
 
@@ -366,7 +366,7 @@ Return Value:
     {
         // Failed to get buffer from producer list.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_LiveKernelDump, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -387,11 +387,11 @@ Return Value:
     //
     telemetryDataSize += dataBuffer->Size + TRIAGE_DATA_OVERHEAD_PER_BLOCK;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_LiveKernelDump, "numberOfDataBuffers=%d, telemetryDataSize so far=%d", numberOfDataBuffers, telemetryDataSize);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "numberOfDataBuffers=%d, telemetryDataSize so far=%d", numberOfDataBuffers, telemetryDataSize);
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 
     // Continue enumeration.
     //
@@ -436,7 +436,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -466,7 +466,7 @@ Return Value:
                                            &dataBufferContext);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE_LiveKernelDump, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -475,7 +475,7 @@ Return Value:
                                                 dataBuffer->Size);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LkmdTelInsertTriageDataBlock fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LkmdTelInsertTriageDataBlock fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -485,7 +485,7 @@ Return Value:
                               dataBuffer);
     }
 
-    FuncExit(DMF_TRACE_LiveKernelDump, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
 Exit:
 
@@ -528,7 +528,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -540,12 +540,12 @@ Return Value:
                                                 clientStructure.Size);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LkmdTelInsertTriageDataBlock fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LkmdTelInsertTriageDataBlock fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
 
-    FuncExit(DMF_TRACE_LiveKernelDump, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
 Exit:
 
@@ -601,7 +601,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
     telemetryHandle = NULL;
@@ -613,7 +613,7 @@ Return Value:
     if (((NumberOfClientStructures > 0) && (ArrayOfClientStructures == NULL)) ||
         ((SizeOfSecondaryData > 0) && (SecondaryDataBuffer == NULL)))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LiveKernelDump_LiveKernelMemoryDumpCreate fails due to invalid parameters.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LiveKernelDump_LiveKernelMemoryDumpCreate fails due to invalid parameters.");
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -640,7 +640,7 @@ Return Value:
                                           0);
     if (telemetryHandle == NULL)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LkmdTelCreateReport fails.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LkmdTelCreateReport fails.");
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -651,7 +651,7 @@ Return Value:
                                                                 telemetryHandle);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LiveKernelDump_InsertDmfDataToLiveDump fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LiveKernelDump_InsertDmfDataToLiveDump fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -663,7 +663,7 @@ Return Value:
                                                                    ArrayOfClientStructures);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LiveKernelDump_InsertClientTriageDataToLiveDump fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LiveKernelDump_InsertClientTriageDataToLiveDump fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -681,7 +681,7 @@ Return Value:
                                            SecondaryDataBuffer);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "LkmdTelSetSecondaryData fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "LkmdTelSetSecondaryData fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -689,7 +689,7 @@ Return Value:
     // Submit the telemetry report.
     //
     ntStatus = LkmdTelSubmitReport(telemetryHandle);
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_LiveKernelDump, "LkmdTelSubmitReport completed status = %!STATUS!", ntStatus);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "LkmdTelSubmitReport completed status = %!STATUS!", ntStatus);
 
 Exit:
 
@@ -698,7 +698,7 @@ Exit:
         LkmdTelCloseHandle(telemetryHandle);
     }
 
-    FuncExit(DMF_TRACE_LiveKernelDump, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -756,7 +756,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     // This Module is the parent of the Child Module that is passed in.
     // (Module callbacks always receive the Child Module's handle.)
@@ -768,7 +768,7 @@ Return Value:
     *BytesReturned = 0;
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
-                DMF_TRACE_LiveKernelDump,
+                DMF_TRACE,
                 "Request=0x%p OutputBufferLength=%d InputBufferLength=%d IoControlCode=0x%X",
                 Request, (int)OutputBufferSize, (int)InputBufferSize, IoctlCode);
 
@@ -798,7 +798,7 @@ Return Value:
         }
     }
 
-    FuncExit(DMF_TRACE_LiveKernelDump, "%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -857,7 +857,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -919,7 +919,7 @@ Return Value:
                      &moduleContext->BufferQueue);
 #endif // IS_WIN10_RS3_OR_LATER
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1040,13 +1040,13 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_LiveKernelDump, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
 
-    FuncExit(DMF_TRACE_LiveKernelDump, "ntStatus=%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
 }
@@ -1093,7 +1093,7 @@ Return Value:
         goto Exit;
     }
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_LiveKernelDump);
@@ -1102,7 +1102,7 @@ Return Value:
                                                   Buffer,
                                                   BufferLength);
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 
 Exit:
 
@@ -1145,7 +1145,7 @@ Return Value:
         goto Exit;
     }
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_LiveKernelDump);
@@ -1156,7 +1156,7 @@ Return Value:
 
 Exit:
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 
     return;
 }
@@ -1223,7 +1223,7 @@ Return Value:
         goto Exit;
     }
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_LiveKernelDump);
@@ -1241,7 +1241,7 @@ Return Value:
 
 #endif // IS_WIN10_RS3_OR_LATER
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 
 Exit:
 
@@ -1277,7 +1277,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_LiveKernelDump);
+    FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1287,7 +1287,7 @@ Return Value:
     moduleContext->BugCheckParameterDmfCollection = DmfCollection;
     DMF_ModuleUnlock(DmfModule);
 
-    FuncExitVoid(DMF_TRACE_LiveKernelDump);
+    FuncExitVoid(DMF_TRACE);
 
 }
 #pragma code_seg()

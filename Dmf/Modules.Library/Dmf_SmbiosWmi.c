@@ -129,7 +129,7 @@ Return Value:
 
     PAGED_CODE();
 
-    FuncEntry(DMF_TRACE_SmbiosWmi);
+    FuncEntry(DMF_TRACE);
 
     // Use WMI to get access to SMBIOS Table.
     //
@@ -139,7 +139,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         dataBlockObject = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SmbiosWmi, "IoWMIOpenBlock ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoWMIOpenBlock ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -152,7 +152,7 @@ Return Value:
                                  NULL);
     if (ntStatus != STATUS_BUFFER_TOO_SMALL)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SmbiosWmi, "IoWMIQueryAllData ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoWMIQueryAllData ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -160,7 +160,7 @@ Return Value:
     //
     if (NULL == TargetBuffer)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_SmbiosWmi, "Size=%d", bufferSize);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Size=%d", bufferSize);
         *TargetBufferSize = bufferSize;
         ntStatus = STATUS_SUCCESS;
         goto Exit;
@@ -173,7 +173,7 @@ Return Value:
         ASSERT(FALSE);
         *TargetBufferSize = bufferSize;
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SmbiosWmi, "Buffer Too Small (%d,%d) ntStatus=%!STATUS!", bufferSize, *TargetBufferSize, ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Buffer Too Small (%d,%d) ntStatus=%!STATUS!", bufferSize, *TargetBufferSize, ntStatus);
         goto Exit;
     }
 
@@ -184,11 +184,11 @@ Return Value:
                                  TargetBuffer);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SmbiosWmi, "IoWMIQueryAllData failed %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoWMIQueryAllData failed %!STATUS!", ntStatus);
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE_SmbiosWmi, "SMBIOS Tables Read successfully.");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SMBIOS Tables Read successfully.");
     ntStatus = STATUS_SUCCESS;
 
 Exit:
@@ -199,7 +199,7 @@ Exit:
         dataBlockObject = NULL;
     }
 
-    FuncExit(DMF_TRACE_SmbiosWmi, "%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -378,7 +378,7 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_SmbiosWmi, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     return(ntStatus);
