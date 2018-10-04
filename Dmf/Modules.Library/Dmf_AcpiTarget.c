@@ -422,7 +422,6 @@ Exit:
     {
         ExFreePoolWithTag(outputBuffer,
                           Tag);
-        outputBuffer = NULL;
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
