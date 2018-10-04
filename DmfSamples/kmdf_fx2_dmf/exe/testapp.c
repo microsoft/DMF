@@ -986,14 +986,9 @@ Error:
     if (hCompletionPort) {
         CloseHandle(hCompletionPort);
     }
-
-    if (pOvList) {
-        free(pOvList);
-    }
-    if (buf) {
-        free(buf);
-    }
-
+    
+    free(pOvList);
+    free(buf);
     return 1;
 
 }
