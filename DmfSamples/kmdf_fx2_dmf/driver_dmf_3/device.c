@@ -206,7 +206,7 @@ Error:
 // This Module requires a table of the IOCTLs that the Client driver handles. Each record contains the
 // minimum sizes of the IOCTLs input/output buffers, as well as a callback that handles that IOCTL when
 // it is received. Using that information Dmf_IoctlHandler will validate the input/output buffers sizes
-// for each IOCTL in the table. If the sizes are correct, the correspdonding callbck is called.
+// for each IOCTL in the table. If the sizes are correct, the corresponding callback is called.
 //
 IoctlHandler_IoctlRecord OsrFx2_IoctlHandlerTable[] =
 {

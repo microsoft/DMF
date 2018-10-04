@@ -4,9 +4,9 @@
 
 #define VER_FILETYPE                VFT_DRV
 #define VER_FILESUBTYPE             VFT2_DRV_SYSTEM
-#define VER_FILEDESCRIPTION_STR     "WDF-DMF Sample Driver for OSR USB-FX2 Learning Kit (SwitchBar)"
-#define VER_INTERNALNAME_STR        "SwitchBar.sys"
-#define VER_ORIGINALFILENAME_STR    "SwitchBar.sys"
+#define VER_FILEDESCRIPTION_STR     "WDF-DMF Sample Driver for OSR USB-FX2 Learning Kit (SwitchBar2)"
+#define VER_INTERNALNAME_STR        "SwitchBar2.sys"
+#define VER_ORIGINALFILENAME_STR    "SwitchBar2.sys"
 
 #include "common.ver"
 

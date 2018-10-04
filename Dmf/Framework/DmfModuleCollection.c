@@ -3746,6 +3746,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES deviceAttributes;
     PDMFDEVICE_INIT dmfDeviceInit;
     BOOLEAN isControlDevice;
+    BOOLEAN isFilterDriver;
 
     PAGED_CODE();
 
@@ -3774,6 +3775,7 @@ Return Value:
 #endif // !defined(DMF_USER_MODE)
     dmfEventCallbacks = DMF_DmfDeviceInitDmfEventCallbacksGet(dmfDeviceInit);
     isControlDevice = DMF_DmfDeviceInitIsControlDevice(dmfDeviceInit);
+    isFilterDriver = DMF_DmfDeviceInitIsFilterDriver(dmfDeviceInit);
 
     // If Default queue is not created by the client, then create one here.
     // Module which implement IoQueue callbacks will need a default queue.
@@ -3825,6 +3827,8 @@ Return Value:
         dmfDeviceContext->WdfControlDevice = Device;
         dmfDeviceContext->WdfClientDriverDevice = DMF_DmfControlDeviceInitClientDriverDeviceGet(dmfDeviceInit);
     }
+
+    dmfDeviceContext->IsFilterDevice = isFilterDriver;
 
     // Prepare to create a Module Collection.
     //

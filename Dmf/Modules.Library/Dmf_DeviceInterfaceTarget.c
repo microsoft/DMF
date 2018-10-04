@@ -1609,15 +1609,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleContext->RequestSink_IoTargetSet(DmfModule,
                                            moduleContext->IoTarget);
-
-    // This function is passed this Module's handle. Call this Module's Client callback with 
-    // this Module's Client Context. (It is a changed notification.)
-    //
-    ntStatus = DMF_ClientCallbackOpen(DmfModule);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1653,8 +1649,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-
-    DMF_ClientCallbackClose(DmfModule);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

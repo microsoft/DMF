@@ -655,31 +655,13 @@ Return Value:
     callbacks = DmfModuleAttributes->ClientCallbacks;
     if (callbacks != NULL)
     {
-        // If the Module is opened during D0Entry, do not allow the client driver to
-        // specify a OpenNotifiationCallback.
-        // 1. There is no reason to do so since Open is a synchronous operation and
-        //    the client can do additional work after the Module is opened.
-        // 2. The client may make the callback or call code that is in a paged
-        //    segment which is a violation that can cause BSOD.
-        //
-        if ((DMF_MODULE_OPEN_OPTION_OPEN_D0Entry == ModuleDescriptor->OpenOption) &&
-            ((callbacks->EvtModuleOnDeviceNotificationOpen != NULL) || 
-             (callbacks->EvtModuleOnDeviceNotificationPostOpen != NULL)))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Module Configuration");
-            ASSERT(FALSE);
-            ntStatus = STATUS_INVALID_PARAMETER;
-            goto Exit;
-        }
         // Copy the Client Driver's Asynchronous callbacks.
         //
         dmfObject->Callbacks = *callbacks;
     }
     else
     {
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationClose = USE_GENERIC_CALLBACK;
         dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose = USE_GENERIC_CALLBACK;
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationOpen = USE_GENERIC_CALLBACK;
         dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen = USE_GENERIC_CALLBACK;
     }
 
@@ -711,10 +693,6 @@ Return Value:
 
     // Set default callbacks.
     //
-    if (USE_GENERIC_CALLBACK == dmfObject->Callbacks.EvtModuleOnDeviceNotificationOpen)
-    {
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationOpen = EVT_DMF_MODULE_Generic_OnDeviceNotificationOpen;
-    }
     if (USE_GENERIC_CALLBACK == dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen)
     {
         dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen = EVT_DMF_MODULE_Generic_OnDeviceNotificationPostOpen;
@@ -722,10 +700,6 @@ Return Value:
     if (USE_GENERIC_CALLBACK == dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose)
     {
         dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose = EVT_DMF_MODULE_Generic_OnDeviceNotificationPreClose;
-    }
-    if (USE_GENERIC_CALLBACK == dmfObject->Callbacks.EvtModuleOnDeviceNotificationClose)
-    {
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationClose = EVT_DMF_MODULE_Generic_OnDeviceNotificationClose;
     }
 
     // Allow client to override default behavior of each handler.
@@ -886,10 +860,8 @@ Return Value:
 
     // Handlers are always set. We don't need to check pointers everywhere.
     //
-    ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationOpen != NULL);
     ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
     ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
-    ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationClose != NULL);
 
     ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
     ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
@@ -1278,6 +1250,63 @@ DMF_ModuleTransportGet(
     transportModule = DMF_ObjectToModule(dmfObject->TransportModule);
 
     return transportModule;
+}
+
+BOOLEAN
+DMF_ModuleRequestCompleteOrForward(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request,
+    _In_ NTSTATUS NtStatus
+    )
+/*++
+
+Routine Description:
+
+    Completes a given File Create WDFREQUEST:
+    If the caller wants to return STATUS_SUCCESS:
+        If the Client Driver is a filter driver, tell DMF to pass the request down the stack.
+        If the Client Driver is not a filter drier, then complete the request (by falling through).
+    If the caller wants does not want to return STATUS_SUCCESS, then the request is just completed.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Request - The given File Create request.
+    NtStatus - The NTSTATUS the caller wants to return.
+
+Return Value:
+
+    TRUE if the given request is completed.
+
+--*/
+{
+    BOOLEAN completed;
+
+    if (NT_SUCCESS(NtStatus))
+    {
+        // If this Module wants to return STATUS_SUCCESS, then:
+        // If the Client Driver is a filter driver, tell DMF to pass the request down the stack.
+        // If the Client Driver is not a filter drier, then complete the request (by falling through).
+        //
+        if (DMF_ModuleIsInFilterDriver(DmfModule))
+        {
+            // Tell DMF to pass the request down the stack.
+            //
+            completed = FALSE;
+            goto Exit;
+        }
+    }
+    // Either one of two cases are true:
+    // 1. This Module wants to fail the request so it gets completed immediately.
+    // 2. This Module wants to succeed the request and the Client Driver is not a filter driver.
+    //
+    WdfRequestComplete(Request,
+                       NtStatus);
+    completed = TRUE;
+
+Exit:
+
+    return completed;
 }
 
 #if !defined(DMF_USER_MODE)

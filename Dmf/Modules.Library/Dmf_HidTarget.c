@@ -2451,47 +2451,6 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-DMF_HidTarget_Open(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Initialize an instance of a DMF Module of type Hid.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-    DMF_CONTEXT_HidTarget* moduleContext;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    ntStatus = DMF_ClientCallbackOpen(DmfModule);
-
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
 DMF_HidTarget_Close(
@@ -2518,8 +2477,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-
-    DMF_ClientCallbackClose(DmfModule);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2579,7 +2536,6 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HidTarget);
     DmfCallbacksDmf_HidTarget.ModuleInstanceDestroy = DMF_HidTarget_Destroy;
-    DmfCallbacksDmf_HidTarget.DeviceOpen = DMF_HidTarget_Open;
     DmfCallbacksDmf_HidTarget.DeviceClose = DMF_HidTarget_Close;
     DmfCallbacksDmf_HidTarget.DeviceNotificationRegister = DMF_HidTarget_NotificationRegister;
     DmfCallbacksDmf_HidTarget.DeviceNotificationUnregister = DMF_HidTarget_NotificationUnregister;
@@ -3115,19 +3071,18 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_InputRead(
-    _In_ DMFMODULE DmfModule,
-    _In_ USHORT ReportLength
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Submits an input report read request
+    Submits an input report read request. This function allocate a buffer and sends it to the target. 
+    The size of this buffer matches with the input report size the hid expects.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    ReportLength - Expected length of input report
 
 Return Value:
 
@@ -3167,12 +3122,16 @@ Return Value:
         goto Exit;
     }
 
+    // Create a buffer of size retrieved from the HID capability.
+    // NOTE: Hid class would not complete the pended input read if there is mismatch in buffer size with
+    // HidCaps.InputReportByteLength.
+    //
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = request;
     ntStatus = WdfMemoryCreate(&attributes,
                                NonPagedPoolNx,
                                MemoryTag,
-                               ReportLength,
+                               moduleContext->HidCaps.InputReportByteLength,
                                &memory,
                                NULL);
     if (! NT_SUCCESS(ntStatus))

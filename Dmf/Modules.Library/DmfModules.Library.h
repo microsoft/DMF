@@ -70,6 +70,7 @@ extern "C"
 #include "Dmf_ThreadedBufferQueue.h"
 #include "Dmf_CmApi.h"
 #include "Dmf_SymbolicLinkTarget.h"
+#include "Dmf_DefaultTarget.h"
 
 #if defined(__cplusplus)
 }

@@ -320,12 +320,6 @@ Return Value:
 
     device = DMF_AttachedDeviceGet(DmfModule);
 
-    ntStatus = DMF_ClientCallbackOpen(DmfModule);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        goto Exit;
-    }
-
     // Create the Passive Level Workitem if necessary.
     //
     WDF_WORKITEM_CONFIG_INIT(&workItemConfiguration, AcpiNotificationWorkitemHandler);
@@ -402,8 +396,6 @@ Return Value:
         WdfObjectDelete(moduleContext->Workitem);
         moduleContext->Workitem = NULL;
     }
-
-    DMF_ClientCallbackClose(DmfModule);
 }
 #pragma code_seg()
 

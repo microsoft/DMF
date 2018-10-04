@@ -694,6 +694,12 @@ DMF_ModuleReferenceDelete(
     _In_ DMFMODULE DmfModule
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_ModuleIsInFilterDriver(
+    _In_ DMFMODULE DmfModule
+    );
+
 VOID
 DMF_ModuleLock(
     _In_ DMFMODULE DmfModule
@@ -747,16 +753,6 @@ DMF_ModuleConfigGet(
     _In_ DMFMODULE DmfModule
     );
 
-NTSTATUS
-DMF_ClientCallbackOpen(
-    _In_ DMFMODULE DmfModule
-    );
-
-VOID
-DMF_ClientCallbackClose(
-    _In_ DMFMODULE DmfModule
-    );
-
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -789,6 +785,13 @@ DMF_ModuleTransportCall(
 DMFMODULE
 DMF_ModuleTransportGet(
     _In_ DMFMODULE DmfModule
+    );
+
+BOOLEAN
+DMF_ModuleRequestCompleteOrForward(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request,
+    _In_ NTSTATUS NtStatus
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

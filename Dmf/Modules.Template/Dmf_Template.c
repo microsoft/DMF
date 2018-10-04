@@ -583,6 +583,108 @@ Return Value:
 }
 #pragma code_seg()
 
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_Template_ModuleDeviceIoControl(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ size_t OutputBufferLength,
+    _In_ size_t InputBufferLength,
+    _In_ ULONG IoControlCode
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleDeviceIoControl for a given DMF Module.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Queue - WDF file object to where the Request is sent.
+    Request - The Request that contains the IOCTL parameters.
+    OutputBufferLength - Output buffer length in the Request.
+    InputBufferLength - Input buffer length in the Request.
+    IoControlCode - IOCTL of the Request.
+
+Return Value:
+
+    If this Module handles the IOCTL (it recognizes it), returns TRUE.
+    If this Module does not recognize the IOCTL, returns FALSE.
+
+--*/
+{
+    BOOLEAN handled;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(Queue);
+    UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(OutputBufferLength);
+    UNREFERENCED_PARAMETER(InputBufferLength);
+    UNREFERENCED_PARAMETER(IoControlCode);
+
+    FuncEntry(DMF_TRACE);
+
+    handled = FALSE;
+
+    FuncExit(DMF_TRACE, "returnValue=%d", handled);
+
+    return handled;
+}
+
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_Template_ModuleInternalDeviceIoControl(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ size_t OutputBufferLength,
+    _In_ size_t InputBufferLength,
+    _In_ ULONG IoControlCode
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleInternalDeviceIoControl for a given DMF Module.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Queue - WDF file object to where the Request is sent.
+    Request - The Request that contains the IOCTL parameters.
+    OutputBufferLength - Output buffer length in the Request.
+    InputBufferLength - Input buffer length in the Request.
+    IoControlCode - IOCTL of the Request.
+
+Return Value:
+
+    If this Module handles the IOCTL (it recognizes it), returns TRUE.
+    If this Module does not recognize the IOCTL, returns FALSE.
+
+--*/
+{
+    BOOLEAN handled;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(Queue);
+    UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(OutputBufferLength);
+    UNREFERENCED_PARAMETER(InputBufferLength);
+    UNREFERENCED_PARAMETER(IoControlCode);
+
+    FuncEntry(DMF_TRACE);
+
+    handled = FALSE;
+
+    FuncExit(DMF_TRACE, "returnValue=%d", handled);
+
+    return handled;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -948,6 +1050,8 @@ Return Value:
     DmfCallbacksWdf_Template.ModuleFileCreate = DMF_Template_ModuleFileCreate;
     DmfCallbacksWdf_Template.ModuleFileCleanup = DMF_Template_ModuleFileCleanup;
     DmfCallbacksWdf_Template.ModuleFileClose = DMF_Template_ModuleFileClose;
+    DmfCallbacksWdf_Template.ModuleDeviceIoControl = DMF_Template_ModuleDeviceIoControl;
+    DmfCallbacksWdf_Template.ModuleInternalDeviceIoControl = DMF_Template_ModuleInternalDeviceIoControl;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Template,
                                             Template,
