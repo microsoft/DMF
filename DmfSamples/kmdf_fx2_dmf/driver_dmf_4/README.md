@@ -1,12 +1,3 @@
-<!---
-    name: Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 4)
-    platform: KMDF/DMF
-    language: cpp
-    category: USB
-    description: Demonstrates how to use Modules and modify Modules to support new behavior.
-    samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620313
---->
-
 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 4)
 ==============================================================
 
@@ -43,7 +34,7 @@ Device.c changes:
 
 1. OsrDmfModulesAdd(), the Dmf_OsrFx2 Module is instantiated. Note that its Config supports two new parameters.
 2. Also, Dmf_Pdo is instantiated. This is the Module that will do all the work of actually creating PDOs.
-3. Dmf_QueuedWorkitem is instatiated. This Module allows us to easily execute code in PASSIVE_LEVEL. PDOs must be created in
+3. Dmf_QueuedWorkitem is instantiated. This Module allows us to easily execute code in PASSIVE_LEVEL. PDOs must be created in
 PASSIVE_LEVEL. 
 
 Interrupt.c changes:

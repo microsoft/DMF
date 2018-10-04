@@ -1,12 +1,3 @@
-<!---
-    name: Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 3)
-    platform: KMDF/DMF
-    language: cpp
-    category: USB
-    description: Demonstrates how to create a DMF Module.
-    samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620313
---->
-
 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 3)
 ==============================================================
 
@@ -69,13 +60,13 @@ Device.c changes:
 
 1. These callbacks are completely removed as their code has been moved to Dmf_OsrFx2.c:
 ```
-		OsrFxEvtDevicePrepareHardware()
-		OsrFxEvtDeviceD0Exit
-		SelectInterfaces()
-		OsrFxSetPowerPolicy()
-		OsrFxReadFdoRegistryKeyValue()
+OsrFxEvtDevicePrepareHardware()
+OsrFxEvtDeviceD0Exit
+SelectInterfaces()
+OsrFxSetPowerPolicy()
+OsrFxReadFdoRegistryKeyValue()
 ```
-2. Because of #1 just above, the AddDevice function has become smaller:
+2. Because of #1 just above, the DeviceAdd function has become smaller:
 a. It is not necessary to register for PnP Power callbacks. Instead, DMF is hooked into those callbacks using this line:
 DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit, NULL);
 b. The Read and Write queues are no longer created by the driver because they are created by the Dmf_OsrFx2 Module.
@@ -98,8 +89,9 @@ Module Code
 
 1. Dmf_OsrFx2.c:
 
-* DMF_OsrFx2_Create() - Called by DMF to create the Module and its Child Modules. This function executes in AddDevice(). Any code that should execute 
-in AddDevice() should be called here for now. 
+* DMF_OsrFx2_Create() - Creates the Dmf_OsrFx2 Module and its Child Modules. This function executes in DeviceAdd(). Any code that should execute 
+in DeviceAdd() should be called here for now.
+* DMF_OsrFx2_ChildModulesAdd() - Called by DMF to instantiate the Child Modules the Dmf_OsrFx2 Module will create as Child Modules. After this function returns, DMF will create the Modules specified and attach them as Child Modules of Dmf_OsrFx2.
 * DMF_OsrFx2_ModuleD0Entry() - Called by DMF when WDF calls into the driver's EvtDeviceD0Entry() callback. This callback performs the same functions 
 as the original sample, but it uses its private Module Context instead. 
 * DMF_OsrFx2_ModuleD0Exit() - Called by DMF when WDF calls into the driver's EvtDeviceD0Exit() callback. This callback performs the same functions 

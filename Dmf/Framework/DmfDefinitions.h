@@ -196,20 +196,12 @@ typedef VOID EVT_DMF_MODULE_OnDeviceNotificationClose(_In_ DMFMODULE DmfModule);
 
 typedef struct
 {
-    // When a Module specifies open during Notification, this function calls the Client
-    // Driver while the Module is opening.
-    //
-    EVT_DMF_MODULE_OnDeviceNotificationOpen* EvtModuleOnDeviceNotificationOpen;
     // After a Module is open this callback is called.
     //
     EVT_DMF_MODULE_OnDeviceNotificationPostOpen* EvtModuleOnDeviceNotificationPostOpen;
     // Before a Module is closed this callback is called.
     //
     EVT_DMF_MODULE_OnDeviceNotificationPreClose* EvtModuleOnDeviceNotificationPreClose;
-    // When a Module specifies close during Notification, this function calls the Client
-    // Driver after the Module is closed.
-    //
-    EVT_DMF_MODULE_OnDeviceNotificationClose* EvtModuleOnDeviceNotificationClose;
 } DMF_MODULE_EVENT_CALLBACKS;
 
 #define DECLARE_DMF_MODULE(ModuleName)                                                          \
@@ -876,6 +868,12 @@ VOID
 DMF_DmfDeviceInitHookQueueConfig(
     _In_ PDMFDEVICE_INIT DmfDeviceInit,
     _Inout_ PWDF_IO_QUEUE_CONFIG QueueConfig
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_DmfFdoSetFilter(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

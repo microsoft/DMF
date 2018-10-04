@@ -421,14 +421,23 @@ Return Value:
                                               Length);
     if (! handled)
     {
-        // It means that none of the Modules in the Module Collection handled the request.
-        // (Possibly stress testing or application made a mistake.)
+        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
+        // complete the Request indicating that the Client driver does not support the Request.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: Request=%p", Request);
-
-        WdfRequestComplete(Request,
-                           STATUS_NOT_SUPPORTED);
-
+        if (dmfDeviceContext->IsFilterDevice)
+        {
+            // Completes this Request with error if it cannot passthru.
+            //
+            DMF_RequestPassthru(device,
+                                Request);
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Request not supported: Request=%p", Request);
+            WdfRequestComplete(Request,
+                               STATUS_NOT_SUPPORTED);
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -478,14 +487,23 @@ Return Value:
                                                Length);
     if (! handled)
     {
-        // It means that none of the Modules in the Module Collection handled the request.
-        // (Possibly stress testing or application made a mistake.)
+        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
+        // complete the Request indicating that the Client driver does not support the Request.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: Request=%p", Request);
-
-        WdfRequestComplete(Request,
-                           STATUS_NOT_SUPPORTED);
-
+        if (dmfDeviceContext->IsFilterDevice)
+        {
+            // Completes this Request with error if it cannot passthru.
+            //
+            DMF_RequestPassthru(device,
+                                Request);
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Request not supported: Request=%p", Request);
+            WdfRequestComplete(Request,
+                               STATUS_NOT_SUPPORTED);
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -544,14 +562,23 @@ Return Value:
                                                   IoControlCode);
     if (! handled)
     {
-        // It means that none of the Modules in the Module Collection handled the request.
-        // (Possibly stress testing or application made a mistake.)
+        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
+        // complete the Request indicating that the Client driver does not support the Request.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: Request=%p", Request);
-
-        WdfRequestComplete(Request,
-                           STATUS_NOT_SUPPORTED);
-
+        if (dmfDeviceContext->IsFilterDevice)
+        {
+            // Completes this Request with error if it cannot passthru.
+            //
+            DMF_RequestPassthru(device,
+                                Request);
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Request not supported: Request=%p", Request);
+            WdfRequestComplete(Request,
+                               STATUS_NOT_SUPPORTED);
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -611,14 +638,23 @@ Return Value:
                                                           IoControlCode);
     if (! handled)
     {
-        // It means that none of the Modules in the Module Collection handled the request.
-        // (Possibly stress testing or application made a mistake.)
+        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
+        // complete the Request indicating that the Client driver does not support the Request.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: Request=%p", Request);
-
-        WdfRequestComplete(Request,
-                           STATUS_NOT_SUPPORTED);
-
+        if (dmfDeviceContext->IsFilterDevice)
+        {
+            // Completes this Request with error if it cannot passthru.
+            //
+            DMF_RequestPassthru(device,
+                                Request);
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Request not supported: Request=%p", Request);
+            WdfRequestComplete(Request,
+                               STATUS_NOT_SUPPORTED);
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -1043,6 +1079,50 @@ DmfContainerEvtDeviceWakeFromSxTriggered(
 }
 #pragma code_seg()
 
+EVT_WDF_REQUEST_COMPLETION_ROUTINE DmfContainerEvtWdfRequestCompletionRoutine_FileCreate;
+
+VOID
+DmfContainerEvtWdfRequestCompletionRoutine_FileCreate(
+    _In_ WDFREQUEST Request,
+    _In_ WDFIOTARGET Target,
+    _In_ PWDF_REQUEST_COMPLETION_PARAMS Params,
+    _In_ WDFCONTEXT Context
+    )
+/*++
+
+Routine Description:
+
+    File Create WDFREQUEST must have a completion routine before being passed down the
+    stack, per WDF Verifier. This completion routine satisfies that requirement.
+
+    TODO: Use this completion routine later to allow Modules/Client to perform 
+          post processing for filtering purposes.
+
+Arguments:
+
+    Request - A handle to a framework request object that represents the completed I/O request.
+    Target - A handle to an I/O target object that represents the I/O target that completed the request.
+    Params - A pointer to a WDF_REQUEST_COMPLETION_PARAMS structure that contains
+             information about the completed request.
+    Context - Driver supplied context information (DMF_DEVICE_CONTEXT*).
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(Target);
+    UNREFERENCED_PARAMETER(Params);
+    UNREFERENCED_PARAMETER(Context);
+
+    // Simply complete the request using its current NTSTATUS.
+    // TODO: Allow Modules and Client driver to post-process the request.
+    //
+    WdfRequestComplete(Request,
+                       Params->IoStatus.Status);
+}
+
 #pragma code_seg("PAGE")
 _Use_decl_annotations_
 VOID
@@ -1093,16 +1173,29 @@ Return Value:
                                              FileObject);
     if (! handled)
     {
-        // It means that none of the Modules in the Module Collection handled the request.
-        // (Possibly stress testing or application made a mistake.)
+        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
+        // complete the Request indicating the file can be opened (see below).
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: Request=0x%p", Request);
-
-        // NOTE: Always return STATUS_SUCCESS for "unsupported" requests otherwise, the
-        //       requests are just sent again. (This is different than with IOCTLs.)
-        //
-        WdfRequestComplete(Request,
-                           STATUS_SUCCESS);
+        if (dmfDeviceContext->IsFilterDevice)
+        {
+            // Completes this Request with error if it cannot passthru.
+            // File Create must have a completion routine passed to avoid Verifier issue.
+            //
+            DMF_RequestPassthruWithCompletion(Device,
+                                              Request,
+                                              DmfContainerEvtWdfRequestCompletionRoutine_FileCreate,
+                                              dmfDeviceContext);
+        }
+        else
+        {
+            // Do what WDF would have done had this driver not supported the File Create callback.
+            // This is necessary so that a driver or application can open a device interface to 
+            // send IOCTLs without explicitly supporting this callback.
+            //
+            WdfRequestComplete(Request,
+                               STATUS_SUCCESS);
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -1160,7 +1253,12 @@ Return Value:
     ASSERT(dmfDeviceContext->DmfCollection != NULL);
     handled = DMF_ModuleCollectionFileCleanup(dmfDeviceContext->DmfCollection,
                                               FileObject);
-    if (! handled)
+
+    // If this is a filter driver, the framework will automatically forward the request to
+    // the next lower driver.
+    //
+    if ((! handled) && 
+        (! dmfDeviceContext->IsFilterDevice))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: FileObject=0x%p", FileObject);
     }
@@ -1211,7 +1309,12 @@ Return Value:
     ASSERT(dmfDeviceContext->DmfCollection != NULL);
     handled = DMF_ModuleCollectionFileClose(dmfDeviceContext->DmfCollection,
                                             FileObject);
-    if (! handled)
+
+    // If this is a filter driver, the framework will automatically forward the request to
+    // the next lower driver.
+    //
+    if ((!handled) &&
+        (!dmfDeviceContext->IsFilterDevice))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: FileObject=0x%p", FileObject);
     }
@@ -1265,6 +1368,7 @@ DMF_ContainerFileObjectConfigInit(
                                DmfContainerEvtFileCreate,
                                DmfContainerEvtFileClose,
                                DmfContainerEvtFileCleanup);
+
     // For filter/miniport drivers we don't know the policy on FileObject usage.
     // Make sure we don't use FsContexts by default, and allow FileObject to be optional.
     //

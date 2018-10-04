@@ -547,24 +547,24 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(FileObject);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     // Assume this handler does nothing.
     // If the request is returned, handled must be set to TRUE to 
     // prevent other DMF Modules from seeing the request.
     //
     handled = FALSE;
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
     if (IoctlHandler_AccessModeDefault == moduleConfig->AccessModeFilter)
     {
         // Callback does nothing...just do what WDF would normally do.
+        // This call supports both filter and non-filter drivers correctly.
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IoctlHandler_AccessModeDefault");
-        WdfRequestComplete(Request,
-                           STATUS_SUCCESS);
-        handled = TRUE;
+        handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
+                                                     Request,
+                                                     STATUS_SUCCESS);
     }
     else if ((IoctlHandler_AccessModeFilterAdministratorOnly == moduleConfig->AccessModeFilter) ||
              (IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl == moduleConfig->AccessModeFilter))
@@ -642,9 +642,11 @@ RequestComplete:
 #endif // !defined(DMF_USER_MODE)
 
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministratorOnly ntStatus=%!STATUS!", ntStatus);
-        WdfRequestComplete(Request,
-                           ntStatus);
-        handled = TRUE;
+        // This call completes the request correctly for both filter and non-filter drivers.
+        //
+        handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
+                                                     Request,
+                                                     ntStatus);
     }
     else if (IoctlHandler_AccessModeFilterClientCallback == moduleConfig->AccessModeFilter)
     {
@@ -652,6 +654,9 @@ RequestComplete:
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         ASSERT(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
+        // NOTE: This callback must use DMF_ModuleRequestCompleteOrForward() to complete the request
+        //       or return FALSE.
+        //
         handled = moduleConfig->EvtIoctlHandlerAccessModeFilter(DmfModule,
                                                                 Device,
                                                                 Request,

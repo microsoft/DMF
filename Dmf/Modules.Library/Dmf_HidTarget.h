@@ -145,8 +145,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_InputRead(
-    _In_ DMFMODULE DmfModule,
-    _In_ USHORT ReportLength
+    _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

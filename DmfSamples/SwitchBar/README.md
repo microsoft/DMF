@@ -1,12 +1,3 @@
-<!---
-    name: SwitchBar Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 5)
-    platform: KMDF/DMF
-    language: c
-    category: USB
-    description: Demonstrates a DMF Container driver and use of <Dmf_DeviceInterfaceTarget>.
-    samplefwlink: 
---->
-
 SwitchBar Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 5)
 ========================================================================
 This sample shows how to perform a common task in device drivers: Wait for a device interface to appear. When it appears, send/receive synchronous/asynchronous IOCTLs from that device interface.
@@ -25,17 +16,17 @@ settings of the switches.
 
 This sample shows several ideas:
 
-1. Dmf Container Driver: A Dmf Container driver is a driver that only instantiates one or more Modules. Such a driver does not have a device context. In this case,
+1. DMF Container Driver: A DMF Container driver is a driver that only instantiates one or more Modules. Such a driver does not have a device context. In this case,
 the driver has instantiated a single Module, `Dmf_DeviceInterfaceTarget`. That Module, along with it is callback function into the Client driver, does all the work 
 listed above. Note how the sample has only the "business logic" in the callback function. The rest of the code, probably 90% of the driver, is contained in side of the DMF Library.
 
-2. Macros that define default implementations `DriverEntry()`, `AddDevice()` and `DriverContextCleanup()`: It is not mandatory to use any or all of these macros. In most cases,
-the DriverEntry macro is suitable. The AddDevice macro is suitable for drivers that do not need a device context (because they use Modules to do all their work).
+2. Macros that define default implementations `DriverEntry()`, `DeviceAdd()` and `DriverContextCleanup()`: It is not mandatory to use any or all of these macros. In most cases,
+the DriverEntry macro is suitable. The DeviceAdd macro is suitable for drivers that do not need a device context (because they use Modules to do all their work).
 
-2. `Dmf_DeviceInterfaceTarget`: This Module is does most of the work of the driver and is frequenly used in DMF drivers. This Module waits for a specific device interface specified by the Client to appear.
+2. `Dmf_DeviceInterfaceTarget`: This Module is does most of the work of the driver and is frequently used in DMF drivers. This Module waits for a specific device interface specified by the Client to appear.
 When the target appears, a sequence of `WDFREQUEST`s are sent to the target. These `WDFREQUEST`S contains an IOCTL and associated input/output buffers. When the `WDFREQUEST`s are completed by the underlying target a 
-callback function in the Client is called. That callback function receives the data returned by the underlying target. It is here that the Client can perform the "busines logic" of the driver. Essentially, 
-this Module is a "continuous reader" for any type of `WDFIOTARGET`. This sample shows how to do both synchronous and asynchronous calls to `WDFIOTARGET`s. Note that frequenly `Dmf_DeviceInterfaceTarget` is a Child
+callback function in the Client is called. That callback function receives the data returned by the underlying target. It is here that the Client can perform the "business logic" of the driver. Essentially, 
+this Module is a "continuous reader" for any type of `WDFIOTARGET`. This sample shows how to do both synchronous and asynchronous calls to `WDFIOTARGET`s. Note that frequently `Dmf_DeviceInterfaceTarget` is a Child
 Module of a Module that performs specific actions onto a specific `WDFIOTARGET`.
 
 3. How to use WDF primitives with DMF: In this case, a work item created and its context has an instance of `Dmf_DeviceInterfaceTarget`. This technique is often used to
@@ -71,7 +62,7 @@ Environment:
 
 --*/
 
-// The Dmf Library and the Dmf Library Modules this driver uses.
+// The DMF Library and the DMF Library Modules this driver uses.
 // In this sample, the driver uses the default library, unlike the earlier sample drivers that
 // use the Template library.
 //
@@ -85,7 +76,7 @@ Environment:
 #include "Trace.h"
 #include "DmfInterface.tmh"
 
-// DMF: These lines provide default DriverEntry/AddDevice/DriverCleanup functions.
+// DMF: These lines provide default DriverEntry/DeviceAdd/DriverCleanup functions.
 //
 DRIVER_INITIALIZE DriverEntry;
 EVT_WDF_DRIVER_DEVICE_ADD SwitchBarEvtDeviceAdd;
@@ -260,8 +251,8 @@ SwitchBarSwitchChangedCallback(
 
 Routine Description:
 
-    Continous reader has received a buffer from the udnerlying target (OSR FX2) driver.
-    This runs in DISPATCH_LEVEL. Since this driver must syncrhonously read the state
+    Continuous reader has received a buffer from the underlying target (OSR FX2) driver.
+    This runs in DISPATCH_LEVEL. Since this driver must synchronously read the state
     of the switches, this function just spawns a workitem that runs a PASSIVE_LEVEL.
 
 Arguments:
@@ -274,7 +265,8 @@ Arguments:
 
 Return Value:
 
-    None
+    Indicates the owner of the OutputBuffer after this function completes and whether or
+    not streaming should stop.
 
 --*/
 {
@@ -291,8 +283,8 @@ Return Value:
 
     if (!NT_SUCCESS(CompletionStatus))
     {
-        // This will happen when OSR FX2 board is unplugged.
-        //
+        // This will happen when OSR FX2 board is unplugged: Stop streaming.
+        // 
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
         goto Exit;
     }
@@ -399,7 +391,7 @@ DmfDeviceModulesAdd(
 
 Routine Description:
 
-    Add all the Dmf Modules used by this driver.
+    Add all the DMF Modules used by this driver.
 
 Arguments:
 
@@ -461,7 +453,7 @@ however, this driver is able to use the Library that is publicly distributed wit
 file.
 
 ```
-// The Dmf Library and the Dmf Library Modules this driver uses.
+// The DMF Library and the DMF Library Modules this driver uses.
 // In this sample, the driver uses the default library, unlike the earlier sample drivers that
 // use the Template library.
 //
@@ -484,7 +476,7 @@ These lines are for trace logging:
 #include "DmfInterface.tmh"
 ```
 
-These are the forward declarations of the functions for DriverEntry, AddDevice, DriverContextCleanup and DmfDeviceModulesAdd:
+These are the forward declarations of the functions for DriverEntry, DeviceAdd, DriverContextCleanup and DmfDeviceModulesAdd:
 
 ```
 DRIVER_INITIALIZE DriverEntry;
@@ -493,7 +485,7 @@ EVT_WDF_OBJECT_CONTEXT_CLEANUP SwitchBarEvtDriverContextCleanup;
 EVT_DMF_DEVICE_MODULES_ADD DmfDeviceModulesAdd;
 ```
 
-Next, this driver uses the DMF's version of `DriverEntry()`, `AddDevice()` and `DriverContextCleanup()`. Note the use of #pragma to set the code in the "INIT" and "PAGED" segments. 
+Next, this driver uses the DMF's version of `DriverEntry()`, `DeviceAdd()` and `DriverContextCleanup()`. Note the use of #pragma to set the code in the "INIT" and "PAGED" segments. 
 When these macros are used, the first place where Client specific code executes is in the function `DmfDeviceModulesAdd()`.
 ```
 /*WPP_INIT_TRACING(); (This comment is necessary for WPP Scanner.)*/
@@ -510,7 +502,7 @@ DMF_DEFAULT_DEVICEADD(SwitchBarEvtDeviceAdd,
 #pragma code_seg()
 ```
 
-This is a helper function that rotates bits. It is necesary to light the lightbar's LEDs to match the switches in an intuitive manner:
+This is a helper function that rotates bits. It is necessary to light the lightbar's LEDs to match the switches in an intuitive manner:
 
 ```
 // Rotates an 8-bit mask a given number of bits.
@@ -681,7 +673,7 @@ Return Value:
 This function is a callback received from the `Dmf_DeviceInterfaceTarget` Module. It is received whenever the `IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE` has returned
 from the OSR FX2 driver indicating that the switches on the board have changed. The Module has already extracted the buffers from the underlying `WDFREQUEST` it sent.
 In this case, the data returned by the IOCTL is in OutputBuffer. However, this function runs at DISPATCH_LEVEL. In order to perform the above function, it is 
-necessary to execute at PASSIVE_LEVEL because it needs to perform a synchrnonous read. Thus, this function does not actually use OutputBuffer. Instead, it simply
+necessary to execute at PASSIVE_LEVEL because it needs to perform a synchronous read. Thus, this function does not actually use OutputBuffer. Instead, it simply
 creates and spawns a WDFWORKITEM. 
 
 The WDFWORKITEM callback function needs the `Dmf_DeviceInterface Module` handle. Although the WDFWORKITEM's parent is the `DMFMODULE`, it is not possible to 
@@ -708,8 +700,8 @@ SwitchBarSwitchChangedCallback(
 
 Routine Description:
 
-    Continous reader has received a buffer from the udnerlying target (OSR FX2) driver.
-    This runs in DISPATCH_LEVEL. Since this driver must syncrhonously read the state
+    Continuous reader has received a buffer from the underlying target (OSR FX2) driver.
+    This runs in DISPATCH_LEVEL. Since this driver must synchronously read the state
     of the switches, this function just spawns a workitem that runs a PASSIVE_LEVEL.
 
 Arguments:
@@ -722,7 +714,8 @@ Arguments:
 
 Return Value:
 
-    None
+    Indicates the owner of the OutputBuffer after this function completes and whether or
+    not streaming should stop.
 
 --*/
 {
@@ -739,7 +732,7 @@ Return Value:
 
     if (!NT_SUCCESS(CompletionStatus))
     {
-        // This will happen when OSR FX2 board is unplugged.
+        // This will happen when OSR FX2 board is unplugged: Stop streaming.
         //
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
         goto Exit;
@@ -874,7 +867,7 @@ DmfDeviceModulesAdd(
 
 Routine Description:
 
-    Add all the Dmf Modules used by this driver.
+    Add all the DMF Modules used by this driver.
 
 Arguments:
 

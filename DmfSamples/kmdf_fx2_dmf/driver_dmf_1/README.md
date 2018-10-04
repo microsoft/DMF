@@ -1,12 +1,3 @@
-<!---
-    name: Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 1)
-    platform: KMDF
-    language: cpp
-    category: USB
-    description: Demonstrates the minimum steps necessary to use DMF with an existing DMF driver. This driver is based on the original OSR USB-FX2 sample. See that sample for more information.
-    samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620313
---->
-
 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 1)
 ==============================================================
 
@@ -124,7 +115,7 @@ function does nothing. See Sample 2 to see how to use this function.
     Routine Description:
 
         EvtDmfDeviceModulesAdd is called by DMF during the Client driver's 
-        AddDevice call from the PnP manager. Here the Client driver declares a
+        DeviceAdd call from the PnP manager. Here the Client driver declares a
         CONFIG structure for every instance of every Module the Client driver 
         uses. Each CONFIG structure is properly initialized for its specific
         use. Then, each CONFIG structure is added to the list of Modules that

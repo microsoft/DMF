@@ -281,7 +281,6 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(VhfOperationContext);
-    UNREFERENCED_PARAMETER(HidTransferPacket);
 
     ntStatus = STATUS_INVALID_DEVICE_REQUEST;
     dmfModule = DMFMODULEVOID_TO_MODULE(VhfClientContext);
@@ -360,7 +359,6 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(VhfOperationContext);
-    UNREFERENCED_PARAMETER(HidTransferPacket);
 
     ntStatus = STATUS_INVALID_DEVICE_REQUEST;
     dmfModule = DMFMODULEVOID_TO_MODULE(VhfClientContext);
@@ -395,6 +393,81 @@ Return Value:
         ntStatus = STATUS_SUCCESS;
         DMF_BRANCHTRACK_MODULE_AT_LEAST(dmfModule, "HidPortableDeviceButtons_SetFeature{Enter connected standby without audio playing}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
     }
+
+    DMF_ModuleUnlock(dmfModule);
+
+Exit:
+
+    DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                          VhfOperationHandle,
+                                                          ntStatus);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+VOID
+HidPortableDeviceButtons_GetInputReport(
+    _In_ VOID* VhfClientContext,
+    _In_ VHFOPERATIONHANDLE VhfOperationHandle,
+    _In_ VOID* VhfOperationContext,
+    _In_ PHID_XFER_PACKET HidTransferPacket
+    )
+/*++
+
+Routine Description:
+
+    Handle's GET_INPUT_REPORT for buttons which allows Client to inquire about
+    the current pressed/unpressed status of buttons.
+    This function receives the request from upper layer and returns the pressed/unpressed
+    status of each button which has been stored in the Module Context.
+
+Arguments:
+
+    VhfClientContext - This Module's handle.
+    VhfOperationHandle - Vhf context for this transaction.
+    VhfOperationContext - Client context for this transaction.
+    HidTransferPacket - Contains GET_INPUT_REPORT report data.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
+    NTSTATUS ntStatus;
+
+    FuncEntry(DMF_TRACE);
+
+    UNREFERENCED_PARAMETER(VhfOperationContext);
+
+    ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+    dmfModule = DMFMODULEVOID_TO_MODULE(VhfClientContext);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    if (HidTransferPacket->reportBufferLen < REPORT_SIZE)
+    {
+        DMF_BRANCHTRACK_MODULE_NEVER(dmfModule, "HidPortableDeviceButtons_GetInputReport.BadReportBufferSize");
+        goto Exit;
+    }
+
+    if (HidTransferPacket->reportId != REPORTID_BUTTONS)
+    {
+        DMF_BRANCHTRACK_MODULE_NEVER(dmfModule, "HidPortableDeviceButtons_GetInputReport.BadReportId");
+        goto Exit;
+    }
+
+    ntStatus = STATUS_SUCCESS;
+
+    BUTTONS_INPUT_REPORT* inputReport = (BUTTONS_INPUT_REPORT*)HidTransferPacket->reportBuffer;
+
+    DMF_ModuleLock(dmfModule);
+
+    ASSERT(sizeof(moduleContext->InputReportEnabledState) <= HidTransferPacket->reportBufferLen);
+    ASSERT(HidTransferPacket->reportBufferLen >= REPORT_SIZE);
+
+    *inputReport = moduleContext->InputReportButtonState;
 
     DMF_ModuleUnlock(dmfModule);
 
@@ -640,6 +713,7 @@ Return Value:
     //
     virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_GET_FEATURE = HidPortableDeviceButtons_GetFeature;
     virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_SET_FEATURE = HidPortableDeviceButtons_SetFeature;
+    virtualHidDeviceMsModuleConfig.IoctlCallback_IOCTL_HID_GET_INPUT_REPORT = HidPortableDeviceButtons_GetInputReport;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -682,6 +756,8 @@ Return Value:
     DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HidPortableDeviceButtons_SetFeature.BadReportId");
     DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HidPortableDeviceButtons_SetFeature.DisablePowerButton");
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "HidPortableDeviceButtons_SetFeature{Enter connected standby without audio playing}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HidPortableDeviceButtons_GetInputReport.BadReportBufferSize");
+    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HidPortableDeviceButtons_GetInputReport.BadReportId");
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Down{Power press}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Up{Power release}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumePlus.Down{Vol+ press}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
@@ -830,51 +906,51 @@ Return Value:
     //
     switch (ButtonId)
     {
-	    case HidPortableDeviceButtons_ButtonId_Power:
-	    {
-	        if (moduleContext->InputReportEnabledState.u.Buttons.Power)
-	        {
-	            returnValue = TRUE;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.True{Press or release power}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        else
-	        {
-	            DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.False");
-	        }
-	        break;
-	    }
-	    case HidPortableDeviceButtons_ButtonId_VolumePlus:
-	    {
-	        if (moduleContext->InputReportEnabledState.u.Buttons.VolumeUp)
-	        {
-	            returnValue = TRUE;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.True{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        else
-	        {
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        break;
-	    }
-	    case HidPortableDeviceButtons_ButtonId_VolumeMinus:
-	    {
-	        if (moduleContext->InputReportEnabledState.u.Buttons.VolumeDown)
-	        {
-	            returnValue = TRUE;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        else
-	        {
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        break;
-	    }
-	    default:
-	    {
-	        ASSERT(FALSE);
-	        DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonIsEnabled.BadButton");
-	        break;
-	    }
+        case HidPortableDeviceButtons_ButtonId_Power:
+        {
+            if (moduleContext->InputReportEnabledState.u.Buttons.Power)
+            {
+                returnValue = TRUE;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.True{Press or release power}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            else
+            {
+                DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.False");
+            }
+            break;
+        }
+        case HidPortableDeviceButtons_ButtonId_VolumePlus:
+        {
+            if (moduleContext->InputReportEnabledState.u.Buttons.VolumeUp)
+            {
+                returnValue = TRUE;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.True{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            else
+            {
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+        }
+        case HidPortableDeviceButtons_ButtonId_VolumeMinus:
+        {
+            if (moduleContext->InputReportEnabledState.u.Buttons.VolumeDown)
+            {
+                returnValue = TRUE;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            else
+            {
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+        }
+        default:
+        {
+            ASSERT(FALSE);
+            DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonIsEnabled.BadButton");
+            break;
+        }
     }
 
     DMF_ModuleUnlock(DmfModule);
@@ -933,68 +1009,68 @@ Return Value:
     //
     switch (ButtonId)
     {
-	    case HidPortableDeviceButtons_ButtonId_Power:
-	    {
-	        if (ButtonStateDown)
-	        {
-	            moduleContext->InputReportButtonState.u.Buttons.Power = 1;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Down{Power press}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        else
-	        {
-	            moduleContext->InputReportButtonState.u.Buttons.Power = 0;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Up{Power release}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        break;
-	    }
-	    case HidPortableDeviceButtons_ButtonId_VolumePlus:
-	    {
-	        if (ButtonStateDown)
-	        {
-	            moduleContext->InputReportButtonState.u.Buttons.VolumeUp = 1;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumePlus.Down{Vol+ press}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	            if (moduleContext->InputReportButtonState.u.Buttons.Power)
-	            {
-	                // Verify Screen Capture runs.
-	                //
-	                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.ScreenCapture{Press Power and Vol+}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	            }
-	        }
-	        else
-	        {
-	            moduleContext->InputReportButtonState.u.Buttons.VolumeUp = 0;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumePlus.Up{Vol+ release}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        break;
-	    }
-	    case HidPortableDeviceButtons_ButtonId_VolumeMinus:
-	    {
-	        if (ButtonStateDown)
-	        {
-	            moduleContext->InputReportButtonState.u.Buttons.VolumeDown = 1;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumeMinus.Down{Vol- press}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	            if (moduleContext->InputReportButtonState.u.Buttons.Power)
-	            {
-	                // Verify SAS runs.
-	                //
-	                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.SAS{Press Power and Vol-}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	            }
-	        }
-	        else
-	        {
-	            moduleContext->InputReportButtonState.u.Buttons.VolumeDown = 0;
-	            DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumeMinus.Up{Vol- release}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-	        }
-	        break;
-	    }
-	    default:
-	    {
-	        ASSERT(FALSE);
-	        ntStatus = STATUS_NOT_SUPPORTED;
-	        DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power");
-	        DMF_ModuleUnlock(DmfModule);
-	        goto Exit;
-	    }
+        case HidPortableDeviceButtons_ButtonId_Power:
+        {
+            if (ButtonStateDown)
+            {
+                moduleContext->InputReportButtonState.u.Buttons.Power = 1;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Down{Power press}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            else
+            {
+                moduleContext->InputReportButtonState.u.Buttons.Power = 0;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Up{Power release}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+        }
+        case HidPortableDeviceButtons_ButtonId_VolumePlus:
+        {
+            if (ButtonStateDown)
+            {
+                moduleContext->InputReportButtonState.u.Buttons.VolumeUp = 1;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumePlus.Down{Vol+ press}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+                if (moduleContext->InputReportButtonState.u.Buttons.Power)
+                {
+                    // Verify Screen Capture runs.
+                    //
+                    DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.ScreenCapture{Press Power and Vol+}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+                }
+            }
+            else
+            {
+                moduleContext->InputReportButtonState.u.Buttons.VolumeUp = 0;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumePlus.Up{Vol+ release}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+        }
+        case HidPortableDeviceButtons_ButtonId_VolumeMinus:
+        {
+            if (ButtonStateDown)
+            {
+                moduleContext->InputReportButtonState.u.Buttons.VolumeDown = 1;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumeMinus.Down{Vol- press}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+                if (moduleContext->InputReportButtonState.u.Buttons.Power)
+                {
+                    // Verify SAS runs.
+                    //
+                    DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.SAS{Press Power and Vol-}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+                }
+            }
+            else
+            {
+                moduleContext->InputReportButtonState.u.Buttons.VolumeDown = 0;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumeMinus.Up{Vol- release}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+        }
+        default:
+        {
+            ASSERT(FALSE);
+            ntStatus = STATUS_NOT_SUPPORTED;
+            DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power");
+            DMF_ModuleUnlock(DmfModule);
+            goto Exit;
+        }
     }
 
     // Don't send requests with lock held. Copy the data to send to local variable,

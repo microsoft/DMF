@@ -83,6 +83,10 @@ typedef struct DMFDEVICE_INIT
     // NULL if IsControlDevice is FALSE.
     //
     WDFDEVICE ClientDriverDevice;
+
+    // Indicates that the Client driver is a Filter driver.
+    //
+    BOOLEAN IsFilterDevice;
 } *PDMFDEVICE_INIT;
 
 // This is a sentinel for failed allocations. In this way, callers call to allocate always succeeds. It
@@ -207,6 +211,36 @@ Return Value:
 
     ASSERT(DmfDeviceInit != NULL);
     return DmfDeviceInit->IsControlDevice;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+DMF_DmfDeviceInitIsFilterDriver(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    )
+/*++
+
+Routine Description:
+
+    Let the caller know if DmfDeviceInit is allocated for a Filter driver.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    TRUE if DmfDeviceInit is allocated for a Control device.
+    FALSE otherwise.
+
+--*/
+{
+    PAGED_CODE();
+
+    ASSERT(DmfDeviceInit != NULL);
+    return DmfDeviceInit->IsFilterDevice;
 }
 #pragma code_seg()
 
@@ -563,6 +597,7 @@ Return Value:
     dmfDeviceInit->DmfDeviceInitMemory = dmfDeviceInitMemory;
     dmfDeviceInit->BridgeEnabled = TRUE;
     dmfDeviceInit->IsControlDevice = TRUE;
+    dmfDeviceInit->IsFilterDevice = FALSE;
     dmfDeviceInit->ClientDriverDevice = NULL;
 
     if (DeviceInit != NULL)
@@ -1035,6 +1070,39 @@ Return Value:
 
             DmfDeviceInit->QueueConfigHooked = TRUE;
         }
+    }
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_DmfFdoSetFilter(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    )
+/*++
+
+Routine Description:
+
+    Tells DMF that the Client driver is a Filter driver. This is necessary to enable passthru
+    of requests to lower stack.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    ASSERT(! DmfDeviceInit->IsFilterDevice);
+    if (DmfDeviceInit != &g_DmfDefaultDeviceInit)
+    {
+        DmfDeviceInit->IsFilterDevice = TRUE;
     }
 }
 #pragma code_seg()

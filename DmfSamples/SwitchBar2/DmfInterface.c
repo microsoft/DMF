@@ -13,8 +13,9 @@ Module Name:
 
 Abstract:
 
-    Waits for the OSR FX2 driver to load. When it does, reads changes to switch state and sets
-    lightbar on the board to match switch settings.
+    SwitchBar2 Sample: Waits for the OSR FX2 driver to load. When it does, reads changes to switch state and sets
+                       lightbar on the board to match switch settings. This driver opens the underlying function
+                       driver as a remote target using DMF_DeviceInterface Module.
 
 Environment:
 
@@ -22,7 +23,7 @@ Environment:
 
 --*/
 
-// The Dmf Library and the Dmf Library Modules this driver uses.
+// The DMF Library and the DMF Library Modules this driver uses.
 // In this sample, the driver uses the default library, unlike the earlier sample drivers that
 // use the Template library.
 //
@@ -67,7 +68,7 @@ RotateUCHAR(
 
 Routine Description:
 
-    Shifts a given bit mask by a given number of bits.
+    Rotates (left) a given bit UCHAR mask by a given number of bits.
 
 Arguments:
 
@@ -211,8 +212,8 @@ SwitchBarSwitchChangedCallback(
 
 Routine Description:
 
-    Continous reader has received a buffer from the udnerlying target (OSR FX2) driver.
-    This runs in DISPATCH_LEVEL. Since this driver must syncrhonously read the state
+    Continuous reader has received a buffer from the underlying target (OSR FX2) driver.
+    This runs in DISPATCH_LEVEL. Since this driver must synchronously read the state
     of the switches, this function just spawns a workitem that runs a PASSIVE_LEVEL.
 
 Arguments:
@@ -225,7 +226,8 @@ Arguments:
 
 Return Value:
 
-    None
+    Indicates the owner of the OutputBuffer after this function completes and whether or
+    not streaming should stop.
 
 --*/
 {
@@ -289,7 +291,6 @@ SwitchBar_OnDeviceArrivalNotification(
 Routine Description:
 
     Callback function for Device Arrival Notification.
-    In this case, this driver starts the continuous reader.
 
 Arguments:
 

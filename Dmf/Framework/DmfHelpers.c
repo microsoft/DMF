@@ -284,6 +284,39 @@ Return Value:
     return returnValue;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_ModuleIsInFilterDriver(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Indicates if the given Module is executing in a filter driver.
+
+Arguments:
+
+    DmfModule - The given Module.
+
+Return Value:
+
+    TRUE indicates the Client Driver is a filter driver.
+    FALSE indicates the Client Driver is not filter driver.
+
+--*/
+{
+    DMF_DEVICE_CONTEXT* deviceContext;
+    WDFDEVICE device;
+
+    DMF_ObjectValidate(DmfModule);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+    deviceContext = DmfDeviceContextGet(device);
+
+    return deviceContext->IsFilterDevice;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // These are used by only by DMF.
@@ -580,6 +613,117 @@ Return Value:
     }
 
     return dmfModuleFeature;
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_RequestPassthru(
+    _In_ WDFDEVICE Device,
+    _In_ WDFREQUEST Request
+    )
+/*++
+
+Routine Description:
+
+    Forward the given request to next lower driver.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+    Request - The given request.
+
+Return Value:
+
+    None. If the given request cannot be forwarded, the request is completed with error.
+
+--*/
+{
+    WDFIOTARGET ioTarget;
+    WDF_REQUEST_SEND_OPTIONS sendOptions; 
+
+    ioTarget = WdfDeviceGetIoTarget(Device);
+
+    WdfRequestFormatRequestUsingCurrentType(Request);
+    WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions,
+                                  WDF_REQUEST_SEND_OPTION_SEND_AND_FORGET);
+    if (! WdfRequestSend(Request,
+                         ioTarget,
+                         &sendOptions))
+    {
+        // This is an error that generally should not happen.
+        //
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to Passthru Request: Request=%p", Request);
+
+        // It could not be passed down, so just complete it with an error.
+        //
+        WdfRequestComplete(Request,
+                           STATUS_INVALID_DEVICE_STATE);
+    }
+    else
+    {
+        // Request will be completed by the target.
+        //
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Passthru Request: Request=%p", Request);
+    }
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_RequestPassthruWithCompletion(
+    _In_ WDFDEVICE Device,
+    _In_ WDFREQUEST Request,
+    _In_ PFN_WDF_REQUEST_COMPLETION_ROUTINE CompletionRoutine,
+    __drv_aliasesMem WDFCONTEXT CompletionContext
+    )
+/*++
+
+Routine Description:
+
+    Forward the given request to next lower driver. Sets a completion routine so that the WDFREQUEST can
+    be post-processed.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+    Request - The given request.
+
+Return Value:
+
+    None. If the given request cannot be forwarded, the request is completed with error.
+
+--*/
+{
+    WDFIOTARGET ioTarget;
+
+    ioTarget = WdfDeviceGetIoTarget(Device);
+
+    WdfRequestFormatRequestUsingCurrentType(Request);
+    WdfRequestSetCompletionRoutine(Request,
+                                   CompletionRoutine,
+                                   CompletionContext);
+    if (! WdfRequestSend(Request,
+                         ioTarget,
+                         NULL))
+    {
+        // This is an error that generally should not happen.
+        //
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to Passthru Request: Request=%p", Request);
+
+        // It could not be passed down, so just complete it with an error.
+        //
+        WdfRequestComplete(Request,
+                           STATUS_INVALID_DEVICE_STATE);
+    }
+    else
+    {
+        // Request will be completed by the target.
+        //
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Passthru Request: Request=%p", Request);
+    }
 }
 
 // eof: DmfHelpers.c

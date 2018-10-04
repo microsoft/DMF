@@ -314,6 +314,10 @@ typedef struct _DMF_DEVICE_CONTEXT
     // Same as WdfDevice for non-Control device.
     //
     WDFDEVICE WdfClientDriverDevice;
+
+    // Indicates that the Client driver is a Filter driver.
+    //
+    BOOLEAN IsFilterDevice;
 } DMF_DEVICE_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_DEVICE_CONTEXT, DmfDeviceContextGet)
@@ -566,6 +570,23 @@ DMF_OBJECT*
 DMF_FeatureHandleGetFromModuleCollection(
     _In_ DMFCOLLECTION DmfCollection,
     _In_ DmfFeatureType DmfFeature
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_RequestPassthru(
+    _In_ WDFDEVICE Device,
+    _In_ WDFREQUEST Request
+    );
+
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_RequestPassthruWithCompletion(
+    _In_ WDFDEVICE Device,
+    _In_ WDFREQUEST Request,
+    _In_ PFN_WDF_REQUEST_COMPLETION_ROUTINE CompletionRoutine,
+    __drv_aliasesMem WDFCONTEXT CompletionContext
     );
 
 // DmfInternal.h
@@ -1404,6 +1425,12 @@ DMF_DmfDeviceInitIsDefaultQueueCreated(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 DMF_CONFIG_BranchTrack*
 DMF_DmfDeviceInitBranchTrackModuleConfigGet(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+DMF_DmfDeviceInitIsFilterDriver(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     );
 

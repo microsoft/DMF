@@ -1,12 +1,3 @@
-<!---
-    name: Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 2)
-    platform: KMDF
-    language: cpp
-    category: USB
-    description: Demonstrates how to instantiate a DMF Module in a WDF driver that uses DMF. This driver is based on the first DMF Sample driver.
-    samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620313
---->
-
 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 2)
 ==============================================================
 
