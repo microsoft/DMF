@@ -272,9 +272,9 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.txt" />
-    <Text Include="..\..\Modules.Template\Dmf_Template.txt" />
-    <Text Include="..\..\Modules.Template\Dmf_ToasterBus.txt" />
+    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.md" />
+    <Text Include="..\..\Modules.Template\Dmf_Template.md" />
+    <Text Include="..\..\Modules.Template\Dmf_ToasterBus.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.h" />

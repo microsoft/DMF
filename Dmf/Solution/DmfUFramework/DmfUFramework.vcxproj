@@ -202,12 +202,12 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferPool.txt" />
-    <Text Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.txt" />
-    <Text Include="..\..\Framework\Modules.Core\Dmf_HashTable.txt" />
-    <Text Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.txt" />
-    <Text Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.txt" />
-    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.txt" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_BufferPool.md" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.md" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_HashTable.md" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

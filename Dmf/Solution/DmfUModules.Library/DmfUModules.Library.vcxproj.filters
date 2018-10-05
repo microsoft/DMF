@@ -102,6 +102,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -140,6 +143,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c">
       <Filter>Modules\Task Execution</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc">
@@ -147,39 +153,43 @@
     </MessageCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.txt">
+    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_PingPongBuffer.txt">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_HidTarget.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_HidTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.txt">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ScheduledTask.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Registry.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_QueuedWorkItem.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Thread.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_Thread.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ScheduledTask.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_RequestTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_CmApi.txt" />
+    </None>
   </ItemGroup>
 </Project>

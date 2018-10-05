@@ -71,6 +71,11 @@ extern "C"
 #include "Dmf_CmApi.h"
 #include "Dmf_SymbolicLinkTarget.h"
 #include "Dmf_DefaultTarget.h"
+#include "Dmf_VirtualHidKeyboard.h"
+
+// Transport Related Definitions.
+//
+#include "Dmf_Transport_ComponentFirmwareUpdate.h"
 
 #if defined(__cplusplus)
 }

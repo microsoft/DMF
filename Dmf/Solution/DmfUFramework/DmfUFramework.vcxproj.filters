@@ -169,23 +169,23 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.txt">
-      <Filter>Documentation\Modules\Features</Filter>
-    </Text>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_HashTable.txt">
+    <None Include="..\..\Framework\Modules.Core\Dmf_BufferPool.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </None>
+    <None Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </None>
+    <None Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </None>
+    <None Include="..\..\Framework\Modules.Core\Dmf_HashTable.md">
       <Filter>Documentation\Modules\Data Structures</Filter>
-    </Text>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferPool.txt">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </Text>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.txt">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </Text>
-    <Text Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.txt">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </Text>
+    </None>
+    <None Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md">
+      <Filter>Documentation\Modules\Features</Filter>
+    </None>
   </ItemGroup>
 </Project>

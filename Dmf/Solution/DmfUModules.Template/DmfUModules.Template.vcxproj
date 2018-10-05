@@ -172,7 +172,7 @@
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Trace.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Template\Dmf_Template.txt" />
+    <None Include="..\..\Modules.Template\Dmf_Template.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
