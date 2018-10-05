@@ -85,6 +85,12 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -183,6 +189,12 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h">
+      <Filter>Headers\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h">
+      <Filter>Headers\Targets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -243,86 +255,94 @@
     </MessageCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_Registry.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_Pdo.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_CrashDump.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_AlertableSleep.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithEvent.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_PingPongBuffer.txt">
+    <Text Include="..\..\Modules.Library\Dmf_PingPongBuffer.md">
       <Filter>Documentation\Modules\Buffers</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ResourceHub.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.txt">
+    <Text Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md">
       <Filter>Documentation\Modules\Buffers</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_Thread.txt">
+    <Text Include="..\..\Modules.Library\Dmf_AcpiNotification.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_AlertableSleep.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_CrashDump.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithEvent.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_Pdo.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_Registry.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_ResourceHub.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_SmbiosWmi.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_AcpiTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_GpioTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_HidTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_I2cTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_RequestTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_SelfTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_SerialTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_SpiTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ScheduledTask.txt">
+    <Text Include="..\..\Modules.Library\Dmf_ScheduledTask.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_QueuedWorkItem.txt">
+    <Text Include="..\..\Modules.Library\Dmf_Thread.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_SelfTarget.txt">
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_AcpiTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_GpioTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_HidTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_I2cTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_SerialTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_SpiTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_RequestTarget.txt">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_AcpiNotification.txt">
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_SmbiosWmi.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.txt">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
+    </None>
   </ItemGroup>
 </Project>

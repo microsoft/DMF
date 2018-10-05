@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Template\Dmf_Template.txt">
+    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.md">
       <Filter>Documentation</Filter>
     </Text>
-    <Text Include="..\..\Modules.Template\Dmf_ToasterBus.txt">
+    <Text Include="..\..\Modules.Template\Dmf_Template.md">
       <Filter>Documentation</Filter>
     </Text>
-    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.txt">
+    <Text Include="..\..\Modules.Template\Dmf_ToasterBus.md">
       <Filter>Documentation</Filter>
     </Text>
   </ItemGroup>

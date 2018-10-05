@@ -34,8 +34,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Template\Dmf_Template.txt">
+    <None Include="..\..\Modules.Template\Dmf_Template.md">
       <Filter>Documentation</Filter>
-    </Text>
+    </None>
   </ItemGroup>
 </Project>
