@@ -13,7 +13,7 @@ https://blogs.windows.com/buildingapps/2018/08/15/introducing-driver-module-fram
 
 The Documentation\ folder has detailed information about the framework and how to use it.
 Furthermore, each DMF Module has an associated .txt file accessible directly from the Visual Studio project that explains the Module.
-Also, there are three sample drivers that show in incremental steps how to use DMF in a driver. We are working to add more samples as well as a Powerpoint presentation that will sumarize how to use and create DMF Modules.
+Also, there are three sample drivers that show in incremental steps how to use DMF in a driver. We are working to add more samples as well as a Powerpoint presentation that will summarize how to use and create DMF Modules.
 
 # Contributing
 
