@@ -119,7 +119,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(PdoRecord->HardwareIds != NULL);
     ASSERT(PdoRecord->HardwareIdsCount != 0);
@@ -768,7 +768,7 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
 
     WdfPdoRequestEject(Device);
@@ -817,7 +817,7 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = STATUS_NOT_FOUND;
     childDevice = NULL;
@@ -892,7 +892,7 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     unique = TRUE;
     childDevice = NULL;
@@ -1000,7 +1000,7 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = STATUS_INVALID_PARAMETER;
 
@@ -1056,7 +1056,7 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Pdo);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = STATUS_NOT_FOUND;
     childDevice = NULL;

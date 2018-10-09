@@ -1059,7 +1059,7 @@ Return Value:
                                     &DmfModuleDescriptor_ScheduledTask);
 
     wdfKey = NULL;
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
     driver = WdfDeviceGetDriver(device);
 
     // KEY_READ is OK for both Kernel-mode and User-mode.
@@ -1210,7 +1210,7 @@ Return Value:
                                     &DmfModuleDescriptor_ScheduledTask);
 
     wdfKey = NULL;
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
     driver = WdfDeviceGetDriver(device);
 
 #if !defined(DMF_USER_MODE)

@@ -753,7 +753,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1156,7 +1156,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1353,7 +1353,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1544,7 +1544,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    parentDevice = DMF_AttachedDeviceGet(DmfModule);
+    parentDevice = DMF_ParentDeviceGet(DmfModule);
     ASSERT(parentDevice != NULL);
 
     deviceObject = WdfDeviceWdmGetDeviceObject(parentDevice);
@@ -2792,7 +2792,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     if (NumberOfBytesToCopy > BufferSize)
     {
@@ -2954,7 +2954,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     if (NumberOfBytesToCopy > BufferSize)
     {
@@ -3420,7 +3420,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     preparsedData = (PHIDP_PREPARSED_DATA)WdfMemoryGetBuffer(moduleContext->PreparsedDataMemory,
                                                              NULL);

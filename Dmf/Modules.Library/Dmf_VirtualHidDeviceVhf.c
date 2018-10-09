@@ -198,7 +198,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     VHF_CONFIG vhfConfig;
 

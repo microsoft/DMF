@@ -648,7 +648,7 @@ Return Value:
         goto Exit;
     }
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     RtlInitEmptyUnicodeString(&resourcePathString,
                               resourcePathBuffer,

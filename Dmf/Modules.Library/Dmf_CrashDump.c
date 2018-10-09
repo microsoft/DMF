@@ -1206,7 +1206,7 @@ Return Value:
         //
     }
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];

@@ -2357,7 +2357,7 @@ Returns:
     }
 
     moduleConfig = DMF_CONFIG_GET(*DmfModule);
-    device = DMF_AttachedDeviceGet(*DmfModule);
+    device = DMF_ParentDeviceGet(*DmfModule);
 
     // Client has option of allowing Device Interface to be created to allow drivers or applications to 
     // send IOCTLS.

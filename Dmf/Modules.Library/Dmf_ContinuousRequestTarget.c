@@ -968,7 +968,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // If Request is NULL, it means that a request should be created. Otherwise, it means
     // that Request should be reused.
@@ -1117,7 +1117,7 @@ Return Value:
 
     ASSERT(moduleContext->IoTarget != NULL);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 

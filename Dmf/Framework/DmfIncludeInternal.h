@@ -579,7 +579,6 @@ DMF_RequestPassthru(
     _In_ WDFREQUEST Request
     );
 
-_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_RequestPassthruWithCompletion(

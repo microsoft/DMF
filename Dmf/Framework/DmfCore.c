@@ -398,7 +398,7 @@ Return Value:
         dmfModuleParent = (DMFMODULE)DmfModuleObjectAttributes->ParentObject;
         dmfObjectParent = DMF_ModuleToObject(dmfModuleParent);
 
-        ASSERT(Device == DMF_AttachedDeviceGet(dmfModuleParent));
+        ASSERT(Device == DMF_ParentDeviceGet(dmfModuleParent));
     }
     else
     {

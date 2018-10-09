@@ -486,11 +486,21 @@ Return Value:
     device = DMF_ParentDeviceGet(DmfModule);
 
     moduleContext->IoTarget = WdfDeviceGetIoTarget(device);
+    if (NULL == moduleContext->IoTarget)
+    {
+        // This Module should only open if there is a lower target otherwise there is no
+        // purpose to use it.
+        //
+        ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+        goto Exit;
+    }
 
     moduleContext->RequestSink_IoTargetSet(DmfModule,
                                            moduleContext->IoTarget);
 
     ntStatus = STATUS_SUCCESS;
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

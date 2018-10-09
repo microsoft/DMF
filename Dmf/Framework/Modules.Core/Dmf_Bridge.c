@@ -911,7 +911,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDevicePrepareHardware != NULL);
     ntStatus = moduleContext->EvtDevicePrepareHardware(device,
@@ -970,7 +970,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceReleaseHardware != NULL);
     ntStatus = moduleContext->EvtDeviceReleaseHardware(device,
@@ -1025,7 +1025,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceD0Entry != NULL);
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = moduleContext->EvtDeviceD0Entry(device,
                                                PreviousState);
@@ -1079,7 +1079,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceD0Entry != NULL);
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = moduleContext->EvtDeviceD0EntryPostInterruptsEnabled(device,
                                                                     PreviousState);
@@ -1131,7 +1131,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceD0Exit != NULL);
     ntStatus = moduleContext->EvtDeviceD0ExitPreInterruptsDisabled(device,
@@ -1184,7 +1184,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceD0Exit != NULL);
     ntStatus = moduleContext->EvtDeviceD0Exit(device,
@@ -1487,7 +1487,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceSelfManagedIoCleanup != NULL);
     moduleContext->EvtDeviceSelfManagedIoCleanup(device);
@@ -1528,7 +1528,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceSelfManagedIoFlush != NULL);
     moduleContext->EvtDeviceSelfManagedIoFlush(device);
@@ -1572,7 +1572,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceSelfManagedIoInit != NULL);
     ntStatus = moduleContext->EvtDeviceSelfManagedIoInit(device);
@@ -1624,7 +1624,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceSelfManagedIoSuspend != NULL);
     ntStatus = moduleContext->EvtDeviceSelfManagedIoSuspend(device);
@@ -1676,7 +1676,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceSelfManagedIoRestart != NULL);
     ntStatus = moduleContext->EvtDeviceSelfManagedIoRestart(device);
@@ -1725,7 +1725,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceSurpriseRemoval != NULL);
     moduleContext->EvtDeviceSurpriseRemoval(device);
@@ -1769,7 +1769,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceQueryRemove != NULL);
     ntStatus = moduleContext->EvtDeviceQueryRemove(device);
@@ -1821,7 +1821,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceQueryStop != NULL);
     ntStatus = moduleContext->EvtDeviceQueryStop(device);
@@ -1873,7 +1873,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceRelationsQuery != NULL);
     moduleContext->EvtDeviceRelationsQuery(device,
@@ -1923,7 +1923,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceUsageNotificationEx != NULL);
     ntStatus = moduleContext->EvtDeviceUsageNotificationEx(device,
@@ -1977,7 +1977,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceArmWakeFromS0 != NULL);
     ntStatus = moduleContext->EvtDeviceArmWakeFromS0(device);
@@ -2026,7 +2026,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceDisarmWakeFromS0 != NULL);
     moduleContext->EvtDeviceDisarmWakeFromS0(device);
@@ -2067,7 +2067,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceWakeFromS0Triggered != NULL);
     moduleContext->EvtDeviceWakeFromS0Triggered(device);
@@ -2115,7 +2115,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceArmWakeFromSxWithReason != NULL);
     ntStatus = moduleContext->EvtDeviceArmWakeFromSxWithReason(device,
@@ -2166,7 +2166,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceDisarmWakeFromSx != NULL);
     moduleContext->EvtDeviceDisarmWakeFromSx(device);
@@ -2207,7 +2207,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ASSERT(moduleContext->EvtDeviceWakeFromSxTriggered != NULL);
     moduleContext->EvtDeviceWakeFromSxTriggered(device);
@@ -2431,7 +2431,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // If Client implements DeviceContextCleanup callback,
     // it will be called here before the Module is destroyed. 

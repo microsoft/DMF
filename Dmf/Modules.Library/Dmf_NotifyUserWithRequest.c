@@ -278,7 +278,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // This queue will hold requests that are asynchronously completed.
     // 
@@ -408,7 +408,7 @@ Return Value:
     moduleConfigNotifyUserWithRequest = DMF_CONFIG_GET(DmfModule);
     ASSERT(moduleConfigNotifyUserWithRequest != NULL);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // dmfModule will be set as ParentObject for all child modules.
     //
