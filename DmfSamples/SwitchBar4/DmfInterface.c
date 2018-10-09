@@ -97,10 +97,14 @@ SwitchBarEvtDeviceAdd(
     //
     DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit,
                                                 &pnpPowerCallbacks);
+    WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit,
+                                           &pnpPowerCallbacks);
+
     // All DMF drivers must call this function even if they do not support File Object callbacks.
     //
     DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit,
                                           NULL);
+
     // All DMF drivers must call this function even if they do not support Power Policy callbacks.
     //
     DMF_DmfDeviceInitHookPowerPolicyEventCallbacks(dmfDeviceInit,
