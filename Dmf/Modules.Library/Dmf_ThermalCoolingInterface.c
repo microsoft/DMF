@@ -212,7 +212,7 @@ Return Value:
     ASSERT(DmfModule != NULL);
     ntStatus = STATUS_SUCCESS;
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 

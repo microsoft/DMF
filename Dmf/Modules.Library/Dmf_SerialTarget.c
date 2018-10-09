@@ -321,7 +321,7 @@ Environment:
                                            DMFMODULE);
     targetAttributes.ParentObject = DmfModule;
 
-    ntStatus = WdfIoTargetCreate(DMF_AttachedDeviceGet(DmfModule),
+    ntStatus = WdfIoTargetCreate(DMF_ParentDeviceGet(DmfModule),
                                  &targetAttributes,
                                  &moduleContext->IoTarget);
     if (! NT_SUCCESS(ntStatus))
@@ -789,7 +789,7 @@ DMF_SerialTarget_ResourcesAssign(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     serialResourceFound = FALSE;
 

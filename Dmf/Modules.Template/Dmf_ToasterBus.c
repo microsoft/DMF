@@ -259,7 +259,7 @@ Routine Description:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = DMF_Registry_PathAndValueReadDwordAndValidate(moduleContext->DmfModuleRegistry,
                                                              NULL,
@@ -643,7 +643,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // This value is used in responding to the IRP_MN_QUERY_BUS_INFORMATION
     // for the child devices. This is an optional information provided to

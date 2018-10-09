@@ -794,12 +794,6 @@ DMF_ModuleRequestCompleteOrForward(
     _In_ NTSTATUS NtStatus
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-WDFDEVICE
-DMF_AttachedDeviceGet(
-    _In_ DMFMODULE DmfModule
-    );
-
 #if !defined(DMF_USER_MODE)
 RECORDER_LOG
 DMF_InFlightRecorderGet(

@@ -1140,7 +1140,7 @@ Return Value:
                                BufferPool_SentinelSize;
 
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-        objectAttributes.ParentObject = DMF_AttachedDeviceGet(DmfModule);
+        objectAttributes.ParentObject = DMF_ParentDeviceGet(DmfModule);
 
         // 'Error annotation: __formal(3,BufferSize) cannot be zero.'
         // '_Param_(1)' could be '0':  this does not adhere to the specification for the function 'DMF_Portable_LookasideListCreate'. 

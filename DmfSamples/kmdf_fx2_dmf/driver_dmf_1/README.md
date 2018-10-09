@@ -44,6 +44,7 @@ only registers for PnP Power callbacks.
     //      forgetting this step if the driver adds support for Pnp Power Callbacks later.
     //
     DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit, &pnpPowerCallbacks);
+    WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit, &pnpPowerCallbacks);
 
     //
     // DMF: Hook Power Policy Callbacks. This allows DMF to receive callbacks first so it can dispatch them

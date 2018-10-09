@@ -33,7 +33,7 @@ Environment:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 WDFDEVICE
-DMF_AttachedDeviceGet(
+DMF_ParentDeviceGet(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -70,14 +70,15 @@ Return Value:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 WDFDEVICE
-DMF_ParentDeviceGet(
+DMF_FilterDeviceGet(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Returns the WDFDEVICE Object that corresponds to the Client Driver's FDO.
+    Returns the WDFDEVICE Object that corresponds to the Client (Filter) Driver's FDO.
+    This function should only be used by Filter drivers.
 
 Arguments:
 
@@ -669,7 +670,6 @@ Return Value:
     }
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_RequestPassthruWithCompletion(

@@ -579,7 +579,7 @@ Return Value:
 
     ASSERT(moduleContext->IoTarget != NULL);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&requestAttributes);
     requestAttributes.ParentObject = DmfModule;

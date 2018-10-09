@@ -136,7 +136,7 @@ Return Value:
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = DmfModule;
-    ntStatus = WdfIoTargetCreate(DMF_AttachedDeviceGet(DmfModule),
+    ntStatus = WdfIoTargetCreate(DMF_ParentDeviceGet(DmfModule),
                                  &attributes,
                                  RootHubIoTarget);
     if (! NT_SUCCESS(ntStatus))
@@ -966,7 +966,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(Device == DMF_AttachedDeviceGet(DmfModule));
+    ASSERT(Device == DMF_ParentDeviceGet(DmfModule));
     ASSERT(Request != NULL);
     ASSERT(FileObject != NULL);
 

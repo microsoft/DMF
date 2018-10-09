@@ -435,7 +435,7 @@ Return Value:
 
     // This is just a sanity check.
     //
-    ASSERT(WdfDevice == DMF_AttachedDeviceGet(*dmfModuleAddress));
+    ASSERT(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
 
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
@@ -489,7 +489,7 @@ Return Value:
 
     // This is just a sanity check.
     //
-    ASSERT(WdfDevice == DMF_AttachedDeviceGet(*dmfModuleAddress));
+    ASSERT(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
 
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
@@ -700,7 +700,7 @@ Return Value:
         goto Exit;
     }
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     RtlInitEmptyUnicodeString(&resourcePathString,
                               resourcePathBuffer,
@@ -860,7 +860,7 @@ Return Value:
            (moduleConfig->EvtGpioTargetInterruptPassive != NULL) ||
            (moduleConfig->EvtGpioTargetInterruptIsr != NULL));
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleContext->GpioConnectionAssigned = FALSE;
     moduleContext->InterruptAssigned = FALSE;

@@ -199,7 +199,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = WdfFdoQueryForInterface(device,
                                        &GUID_ACPI_INTERFACE_STANDARD2,
@@ -318,7 +318,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // Create the Passive Level Workitem if necessary.
     //

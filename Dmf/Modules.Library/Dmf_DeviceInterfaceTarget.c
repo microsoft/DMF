@@ -893,7 +893,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(moduleContext->IoTarget == NULL);
@@ -1482,7 +1482,7 @@ Return Value:
     //
     ASSERT(NULL == moduleContext->DeviceInterfaceNotification);
 
-    parentDevice = DMF_AttachedDeviceGet(DmfModule);
+    parentDevice = DMF_ParentDeviceGet(DmfModule);
     ASSERT(parentDevice != NULL);
     deviceObject = WdfDeviceWdmGetDeviceObject(parentDevice);
     ASSERT(deviceObject != NULL);

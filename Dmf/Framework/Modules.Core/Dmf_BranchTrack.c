@@ -1336,7 +1336,7 @@ Return Value:
         goto Exit;
     }
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // Initialize the Client's table.
     //

@@ -2655,7 +2655,7 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_Registry);
 
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     if (Name != NULL)
     {
@@ -3750,7 +3750,7 @@ Return Value:
 
     returnValue = ScheduledTask_WorkResult_FailButTryAgain;
 
-    device = DMF_AttachedDeviceGet(DmfScheduledTask);
+    device = DMF_ParentDeviceGet(DmfScheduledTask);
 
     scheduledTaskCallbackContext = (Registry_ContextScheduledTaskCallback*)ClientCallbackContext;
     ASSERT(scheduledTaskCallbackContext != NULL);

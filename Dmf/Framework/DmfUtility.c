@@ -1413,7 +1413,7 @@ Return Value:
 
     // Get the associated WDM Device.
     //
-    device = DMF_AttachedDeviceGet(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
     // Get the associated WDM Driver.
     //
     driver = WdfDeviceGetDriver(device);

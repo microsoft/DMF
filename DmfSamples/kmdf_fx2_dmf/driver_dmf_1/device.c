@@ -116,8 +116,6 @@ Return Value:
     pnpPowerCallbacks.EvtDeviceD0Exit  = OsrFxEvtDeviceD0Exit;
     pnpPowerCallbacks.EvtDeviceSelfManagedIoFlush = OsrFxEvtDeviceSelfManagedIoFlush;
 
-    WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit, &pnpPowerCallbacks);
-
     //
     // DMF: Hook Pnp Power Callbacks. This allows DMF to receive callbacks first so it can dispatch them
     //      to the tree of instantiated Modules. If the driver does not use Pnp Power Callbacks, you must
@@ -125,6 +123,7 @@ Return Value:
     //      forgetting this step if the driver adds support for Pnp Power Callbacks later.
     //
     DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit, &pnpPowerCallbacks);
+    WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit, &pnpPowerCallbacks);
 
     //
     // DMF: Hook Power Policy Callbacks. This allows DMF to receive callbacks first so it can dispatch them
