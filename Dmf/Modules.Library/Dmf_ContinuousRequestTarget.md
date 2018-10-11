@@ -475,6 +475,32 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_ContinuousRequestTarget_StopAndWait
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ContinuousRequestTarget_StopAndWait(
+  _In_ DMFMODULE DmfModule
+  );
+````
+
+Stops streaming. The pending requests are canceled and no new Requests will be sent to the underlying WDFIOTARGET.
+This Method will block until all the pending requests have been returned.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ContinuousRequestTarget Module handle.
+
+##### Remarks
+* Clients should use this Method prior to the Close of a Parent Module or when the Client Driver will be disabled.
+-----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module IOCTLs
 
 * None
@@ -483,7 +509,7 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 
 #### Module Remarks
 
-* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed.
+* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed. Also, it causes the completion routine executed during streaming to run at PASSIVE_LEVEL.
 * This Module does all the work of allocating the buffers and Requests as specified by the Client.
 * This Module stops and start streaming automatically during power transition.
 * This Module is similar to the USB Continuous Reader in WDF but for any WDFIOTARGET.
