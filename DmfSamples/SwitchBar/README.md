@@ -121,9 +121,10 @@ Return Value:
 --*/
 {
     UCHAR returnValue;
+    const ULONG bitsPerByte = 8;
 
-    ASSERT(RotateByBits <= 8);
-    returnValue = (BitMask << RotateByBits) | ( BitMask >> (8 - RotateByBits));
+    RotateByBits %= bitsPerByte;
+    returnValue = (BitMask << RotateByBits) | ( BitMask >> (bitsPerByte - RotateByBits));
     return returnValue;
 }
 
@@ -426,7 +427,13 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    
+    // OSR driver needs to be called at PASSIVE_LEVEL because its IOCTL handling code path is all paged.
+    // Modules look at this attribute they need to execute code in PASSIVE_LEVEL. It is up to Modules to 
+    // determine how to use this flag. (In this case DMF_ContinuousRequestTarget will resend requests back to
+    // OSR driver at PASSIVE_LEVEL.
+    //
+    moduleAttributes.PassiveLevel = TRUE;
+
     // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started.
     // When it is not available, the continuous reader is stopped.
     //
@@ -530,9 +537,10 @@ Return Value:
 --*/
 {
     UCHAR returnValue;
+    const ULONG bitsPerByte = 8;
 
-    ASSERT(RotateByBits <= 8);
-    returnValue = (BitMask << RotateByBits) | ( BitMask >> (8 - RotateByBits));
+    RotateByBits %= bitsPerByte;
+    returnValue = (BitMask << RotateByBits) | ( BitMask >> (bitsPerByte - RotateByBits));
     return returnValue;
 }
 ```
@@ -902,7 +910,13 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    
+    // OSR driver needs to be called at PASSIVE_LEVEL because its IOCTL handling code path is all paged.
+    // Modules look at this attribute they need to execute code in PASSIVE_LEVEL. It is up to Modules to 
+    // determine how to use this flag. (In this case DMF_ContinuousRequestTarget will resend requests back to
+    // OSR driver at PASSIVE_LEVEL.
+    //
+    moduleAttributes.PassiveLevel = TRUE;
+
     // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started.
     // When it is not available, the continuous reader is stopped.
     //
@@ -923,10 +937,9 @@ Testing the driver
 ==================
 
 1. Plug in the OSR FX2 board.
-2. **IMPORTANT: Install the Sample3 (Sample DMF driver 3)** as the driver that controls the OSR FX2 board. *This is necessary so that the OSR FX2 function driver can accept
-IOCTLs at PASSIVE_LEVEL. (The original driver is unable to do so due to the fact that IOCTL handling path is all paged.)*
+2. Install any version of the OSR USB FX-2 sample driver.
 3. Install this sample.
 4. When you run the sample, the light bar should match with the switches. As you change the switches, the light bar should change accordingly.
 5. IMPORTANT: If the display on the board shows 5 or S, it means the board is in Idle state (sleep). Press the button to wake it up.
-
+6. You can try disabling/enabling either of the two drivers to see how this sample gracefully deals with the appearing/disappearing remote target.
 

@@ -983,6 +983,7 @@ Return Value:
     DMF_CONTEXT_ScheduledTask* moduleContext;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    ASSERT(!moduleContext->ModuleClosing);
 
     // If the workitem has already been enqueued, just increment the number of times the
     // ScheduledTask routine must be called.

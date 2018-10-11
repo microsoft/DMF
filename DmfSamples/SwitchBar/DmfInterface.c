@@ -83,9 +83,10 @@ Return Value:
 --*/
 {
     UCHAR returnValue;
+    const ULONG bitsPerByte = 8;
 
-    ASSERT(RotateByBits <= 8);
-    returnValue = (BitMask << RotateByBits) | ( BitMask >> (8 - RotateByBits));
+    RotateByBits %= bitsPerByte;
+    returnValue = (BitMask << RotateByBits) | ( BitMask >> (bitsPerByte - RotateByBits));
     return returnValue;
 }
 
@@ -388,6 +389,12 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
+    // OSR driver needs to be called at PASSIVE_LEVEL because its IOCTL handling code path is all paged.
+    // Modules look at this attribute they need to execute code in PASSIVE_LEVEL. It is up to Modules to 
+    // determine how to use this flag. (In this case DMF_ContinuousRequestTarget will resend requests back to
+    // OSR driver at PASSIVE_LEVEL.
+    //
+    moduleAttributes.PassiveLevel = TRUE;
     
     // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started
     // and the lightbar on the board is initialized to the current state of the switches.

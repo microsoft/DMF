@@ -68,9 +68,9 @@ typedef struct
     // being sent to the underlying target.
     //
     BOOLEAN Stopped;
-    // Indicates the mode of ContinuousRequestTarget.
+    // Count of requests in lower driver so that Module can shutdown gracefully.
     //
-    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
+    LONG PendingStreamingRequests;
 } DMF_CONTEXT_ContinuousRequestTarget;
 
 // This macro declares the following function:
@@ -605,6 +605,10 @@ Return Value:
         WdfObjectDelete(Request);
     }
 
+    // Request has returned. Decrement.
+    //
+    InterlockedDecrement(&moduleContext->PendingStreamingRequests);
+
     FuncExitVoid(DMF_TRACE);
 }
 
@@ -968,6 +972,11 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // A new request will be sent down the stack. Count it so we can verify when
+    // it returns.
+    //
+    InterlockedIncrement(&moduleContext->PendingStreamingRequests);
+
     device = DMF_ParentDeviceGet(DmfModule);
 
     // If Request is NULL, it means that a request should be created. Otherwise, it means
@@ -1035,6 +1044,10 @@ Exit:
 
     if (! NT_SUCCESS(ntStatus))
     {
+        // Unable to send the request. Decrement to account for the increment above.
+        //
+        InterlockedDecrement(&moduleContext->PendingStreamingRequests);
+
         if (Request != NULL)
         {
             WdfObjectDelete(Request);
@@ -1661,15 +1674,50 @@ Return Value:
     // 
     moduleContext->Stopped = TRUE;
 
-    // Copy for faster access.
-    //
-    moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetMode;
-
     ntStatus = STATUS_SUCCESS;
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+DMF_ContinuousRequestTarget_Close(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Uninitialize an instance of a DMF Module of type ContinuousRequestTarget.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ASSERT(moduleContext->Stopped);
+    ASSERT(0 == moduleContext->PendingStreamingRequests);
+    ASSERT(moduleContext->IoTarget == NULL);
+
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -1727,6 +1775,7 @@ Return Value:
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ContinuousRequestTarget);
     DmfCallbacksDmf_ContinuousRequestTarget.DeviceOpen = DMF_ContinuousRequestTarget_Open;
+    DmfCallbacksDmf_ContinuousRequestTarget.DeviceClose = DMF_ContinuousRequestTarget_Close;
     DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
     DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
 
@@ -1828,11 +1877,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(moduleContext->IoTarget != NULL);
-
-    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
-    {
-        DMF_ContinuousRequestTarget_Stop(DmfModule);
-    }
+    ASSERT(moduleContext->Stopped);
 
     moduleContext->IoTarget = NULL;
 
@@ -1877,15 +1922,6 @@ Return Value:
     ASSERT(moduleContext->IoTarget == NULL);
 
     moduleContext->IoTarget = IoTarget;
-
-    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
-    {
-        ntStatus = DMF_ContinuousRequestTarget_Start(DmfModule);
-        if (!NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
-        }
-    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -2072,6 +2108,9 @@ Return Value:
     // Clear the Stopped flag as streaming will now start.
     //
     moduleContext->Stopped = FALSE;
+    // In case it was previous stopped/purged.
+    //
+    WdfIoTargetStart(moduleContext->IoTarget);
 
     ASSERT(moduleConfig->ContinuousRequestCount > 0);
     for (UINT requestIndex = 0; requestIndex < moduleConfig->ContinuousRequestCount; requestIndex++)
@@ -2125,6 +2164,59 @@ Return Value:
     // automatically.
     //
     moduleContext->Stopped = TRUE;
+
+    // Flush all requests from target. Do not wait until all pending requests have returned.
+    //
+    WdfIoTargetPurge(moduleContext->IoTarget,
+                     WdfIoTargetPurgeIo);
+
+    ASSERT(moduleContext->IoTarget != NULL);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ContinuousRequestTarget_StopAndWait(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Stops streaming Asynchronous requests to the IoTarget and waits for all pending requests to return.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    VOID.
+
+--*/
+{
+    DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Tell the rest of the Module that Client has stopped streaming.
+    // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
+    // automatically.
+    //
+    moduleContext->Stopped = TRUE;
+
+    // Make sure all requests are forced to return.
+    //
+    WdfIoTargetPurge(moduleContext->IoTarget,
+                     WdfIoTargetPurgeIoAndWait);
+    while (moduleContext->PendingStreamingRequests > 0)
+    {
+        DMF_Utility_DelayMilliseconds(50);
+    }
 
     ASSERT(moduleContext->IoTarget != NULL);
 }

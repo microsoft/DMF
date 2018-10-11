@@ -126,6 +126,10 @@ typedef struct
     //
     BOOLEAN OpenedInStreamMode;
 
+    // Indicates the mode of ContinuousRequestTarget.
+    //
+    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
+
     // Underlying Transport Methods.
     //
     DMFMODULE DmfModuleContinuousRequestTarget;
@@ -359,6 +363,14 @@ Return Value:
     //
     if (moduleContext->IoTarget != NULL)
     {
+        if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+        {
+            // By calling this function here, callbacks at the Client will happen only before the Module is closed.
+            //
+            ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+            DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+        }
+
         // Close the Module.
         //
         DMF_ModuleClose(DmfModule);
@@ -1048,6 +1060,21 @@ Return Value:
         }
 
         free(bufferPointer);
+
+        if (NT_SUCCESS(ntStatus))
+        {
+            if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+            {
+                // By calling this function here, callbacks at the Client will happen only after the Module is open.
+                //
+                ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+                ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+                if (!NT_SUCCESS(ntStatus))
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+                }
+            }
+        }
     }
     else
     {
@@ -1236,6 +1263,18 @@ Return Value:
             {
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
+            }
+
+            if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+            {
+                // By calling this function here, callbacks at the Client will happen only after the Module is open.
+                //
+                ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+                ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+                if (!NT_SUCCESS(ntStatus))
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+                }
             }
         }
     }
@@ -1609,11 +1648,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleContext->RequestSink_IoTargetSet(DmfModule,
                                            moduleContext->IoTarget);
+
+    ntStatus = STATUS_SUCCESS;
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1730,6 +1770,9 @@ Return Value:
         moduleContext->RequestSink_Send = DeviceInterfaceTarget_Stream_Send;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Stream_SendSynchronously;
         moduleContext->OpenedInStreamMode = TRUE;
+        // Remember Client's choice so this Module can start/stop streaming appropriately.
+        //
+        moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode;
     }
     else
     {
@@ -2212,12 +2255,6 @@ Return Value:
 
     ASSERT(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
-
-    // Flush all requests from target. Do not wait until all pending requests have returned.
-    // TODO: It would be nice to change this to be called at PASSIVE_LEVEL and wait.
-    //
-    WdfIoTargetPurge(moduleContext->IoTarget,
-                     WdfIoTargetPurgeIo);
 
     DMF_ModuleDereference(DmfModule);
 

@@ -105,6 +105,10 @@ typedef struct
     //
     BOOLEAN OpenedInStreamMode;
 
+    // Indicates the mode of ContinuousRequestTarget.
+    //
+    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
+
     // Underlying Transport Methods.
     //
     DMFMODULE DmfModuleContinuousRequestTarget;
@@ -454,6 +458,127 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
+DMF_DefaultTarget_NotificationRegister(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    This callback is called when the Module Open Flags indicate that the this Module
+    is opened after an asynchronous notification has happened.
+    (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware or DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry)
+    This callback registers the notification.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Instead of registering for an asynchronous notification, just open the target now because
+    // it is present (by default). This allows the call to IoTargetSet to happen after the
+    // Module is open.
+    //
+    ntStatus = DMF_ModuleOpen(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        // By calling this function here, callbacks at the Client will happen only after the Module is open.
+        //
+        ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+        ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+        }
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+DMF_DefaultTarget_NotificationUnregister(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    This callback is called when the Module Open Flags indicate that the this Module
+    is opened after an asynchronous notification has happened.
+    (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware or DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry)
+    This callback unregisters the notification that was previously registered.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    ntStatus = STATUS_SUCCESS;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        // By calling this function here, callbacks at the Client will happen only before the Module is closed.
+        //
+        ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+        DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+    }
+
+    // Call these functions in symmetry with NotificationRegister.
+    // Call this function here to ensure its continuous streaming option does not assert
+    // indicating that this Module is not open.
+    //
+    DMF_ModuleClose(DmfModule);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+}
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
 DMF_DefaultTarget_Open(
     _In_ DMFMODULE DmfModule
     )
@@ -617,6 +742,9 @@ Return Value:
         moduleContext->RequestSink_Send = DefaultTarget_Stream_Send;
         moduleContext->RequestSink_SendSynchronously = DefaultTarget_Stream_SendSynchronously;
         moduleContext->OpenedInStreamMode = TRUE;
+        // Remember Client's choice so this Module can start/stop streaming appropriately.
+        //
+        moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode;
     }
     else
     {
@@ -697,6 +825,8 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_DefaultTarget);
+    DmfCallbacksDmf_DefaultTarget.DeviceNotificationRegister = DMF_DefaultTarget_NotificationRegister;
+    DmfCallbacksDmf_DefaultTarget.DeviceNotificationUnregister = DMF_DefaultTarget_NotificationUnregister;
     DmfCallbacksDmf_DefaultTarget.DeviceOpen = DMF_DefaultTarget_Open;
     DmfCallbacksDmf_DefaultTarget.DeviceClose = DMF_DefaultTarget_Close;
     DmfCallbacksDmf_DefaultTarget.ChildModulesAdd = DMF_DefaultTarget_ChildModulesAdd;
@@ -705,7 +835,7 @@ Return Value:
                                             DefaultTarget,
                                             DMF_CONTEXT_DefaultTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
     DmfModuleDescriptor_DefaultTarget.CallbacksDmf = &DmfCallbacksDmf_DefaultTarget;
     DmfModuleDescriptor_DefaultTarget.ModuleConfigSize = sizeof(DMF_CONFIG_DefaultTarget);
@@ -1092,12 +1222,6 @@ Return Value:
 
     ASSERT(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
-
-    // Flush all requests from target. Do not wait until all pending requests have returned.
-    // TODO: It would be nice to change this to be called at PASSIVE_LEVEL and wait.
-    //
-    WdfIoTargetPurge(moduleContext->IoTarget,
-                     WdfIoTargetPurgeIo);
 
     DMF_ModuleDereference(DmfModule);
 

@@ -231,6 +231,12 @@ Return Value:
     // explicitly start/stop streaming.
     //
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
+    // OSR driver needs to be called at PASSIVE_LEVEL because its IOCTL handling code path is all paged.
+    // Modules look at this attribute they need to execute code in PASSIVE_LEVEL. It is up to Modules to 
+    // determine how to use this flag. (In this case DMF_ContinuousRequestTarget will resend requests back to
+    // OSR driver at PASSIVE_LEVEL.
+    //
+    moduleAttributes.PassiveLevel = TRUE;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
@@ -275,9 +281,10 @@ Return Value:
 --*/
 {
     UCHAR returnValue;
+    const ULONG bitsPerByte = 8;
 
-    ASSERT(RotateByBits <= 8);
-    returnValue = (BitMask << RotateByBits) | ( BitMask >> (8 - RotateByBits));
+    RotateByBits %= bitsPerByte;
+    returnValue = (BitMask << RotateByBits) | ( BitMask >> (bitsPerByte - RotateByBits));
     return returnValue;
 }
 
