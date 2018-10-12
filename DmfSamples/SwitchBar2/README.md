@@ -58,8 +58,9 @@ Module Name:
 
 Abstract:
 
-    Waits for the OSR FX2 driver to load. When it does, reads changes to switch state and sets
-    lightbar on the board to match switch settings.
+    SwitchBar2 Sample: Waits for the OSR FX2 driver to load. When it does, reads changes to switch state and sets
+                       lightbar on the board to match switch settings. This driver opens the underlying function
+                       driver as a remote target using DMF_DeviceInterface Module.
 
 Environment:
 
@@ -81,7 +82,7 @@ Environment:
 #include "Trace.h"
 #include "DmfInterface.tmh"
 
-// DMF: These lines provide default DriverEntry/DeviceAdd/DriverCleanup functions.
+// DMF: These lines provide default DriverEntry/AddDevice/DriverCleanup functions.
 //
 DRIVER_INITIALIZE DriverEntry;
 EVT_WDF_DRIVER_DEVICE_ADD SwitchBarEvtDeviceAdd;
@@ -112,7 +113,7 @@ RotateUCHAR(
 
 Routine Description:
 
-    Shifts a given bit mask by a given number of bits.
+    Rotates (left) a given bit UCHAR mask by a given number of bits.
 
 Arguments:
 
@@ -162,6 +163,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Switches have changed. Read them. (Wait until the switch is read.)
     //
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(DmfModuleDeviceInterfaceTarget,
@@ -199,11 +202,11 @@ Return Value:
 
 Exit:
     ;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-_Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -231,6 +234,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
+
     // Get the address where the DMFMODULE is located.
     //
     dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
@@ -240,6 +245,8 @@ Return Value:
     SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
 
     WdfObjectDelete(Workitem);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -271,7 +278,8 @@ Arguments:
 
 Return Value:
 
-    None
+    Indicates the owner of the OutputBuffer after this function completes and whether or
+    not streaming should stop.
 
 --*/
 {
@@ -286,11 +294,14 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
+
     if (!NT_SUCCESS(CompletionStatus))
     {
         // This will happen when OSR FX2 board is unplugged.
         //
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: stop");
         goto Exit;
     }
 
@@ -319,13 +330,13 @@ Return Value:
     // Continue streaming this IOCTL.
     //
     returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: continue");
 
 Exit:
 
     return returnValue;
 }
 
-static
 VOID
 SwitchBar_OnDeviceArrivalNotification(
     _In_ DMFMODULE DmfModule
@@ -335,7 +346,6 @@ SwitchBar_OnDeviceArrivalNotification(
 Routine Description:
 
     Callback function for Device Arrival Notification.
-    In this case, this driver starts the continuous reader.
 
 Arguments:
 
@@ -347,6 +357,8 @@ Return Value:
 
 --*/
 {
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Dmf_ContinousRequestTarget has been set to start automatically, so it is not started here.
     // Also, the PreClose callback is not necessary.
     //
@@ -355,6 +367,8 @@ Return Value:
     // any switches have been changed.
     //
     SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 
 #pragma code_seg("PAGED")
@@ -389,19 +403,22 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
     // DeviceInterfaceTarget
     // ---------------------
     //
     DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
                                                          &moduleAttributes);
     moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(SWITCH_STATE);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SwitchBarSwitchChangedCallback;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
     // OSR driver needs to be called at PASSIVE_LEVEL because its IOCTL handling code path is all paged.
     // Modules look at this attribute they need to execute code in PASSIVE_LEVEL. It is up to Modules to 
@@ -421,8 +438,9 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
-}
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
+}
 ```
 
 Annotated Code Tour
@@ -566,6 +584,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Switches have changed. Read them. (Wait until the switch is read.)
     //
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(DmfModuleDeviceInterfaceTarget,
@@ -603,6 +623,7 @@ Return Value:
 
 Exit:
     ;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 ```
@@ -612,7 +633,6 @@ function to read switches and set the lightbar, then it deletes the associated W
 
 ```
 #pragma code_seg("PAGE")
-_Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -640,6 +660,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
+
     // Get the address where the DMFMODULE is located.
     //
     dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
@@ -649,6 +671,8 @@ Return Value:
     SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
 
     WdfObjectDelete(Workitem);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 ```
@@ -697,7 +721,8 @@ Arguments:
 
 Return Value:
 
-    None
+    Indicates the owner of the OutputBuffer after this function completes and whether or
+    not streaming should stop.
 
 --*/
 {
@@ -712,11 +737,14 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
+
     if (!NT_SUCCESS(CompletionStatus))
     {
         // This will happen when OSR FX2 board is unplugged.
         //
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: stop");
         goto Exit;
     }
 
@@ -745,6 +773,7 @@ Return Value:
     // Continue streaming this IOCTL.
     //
     returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: continue");
 
 Exit:
 
@@ -759,8 +788,6 @@ Dmf_DeviceInterfaceTarget) has been set to start automatically using this line:
 Note further that this eliminates the need for the PreClose callback.
 
 ```
-
-static
 VOID
 SwitchBar_OnDeviceArrivalNotification(
     _In_ DMFMODULE DmfModule
@@ -770,7 +797,6 @@ SwitchBar_OnDeviceArrivalNotification(
 Routine Description:
 
     Callback function for Device Arrival Notification.
-    In this case, this driver starts the continuous reader.
 
 Arguments:
 
@@ -782,6 +808,8 @@ Return Value:
 
 --*/
 {
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Dmf_ContinousRequestTarget has been set to start automatically, so it is not started here.
     // Also, the PreClose callback is not necessary.
     //
@@ -790,8 +818,9 @@ Return Value:
     // any switches have been changed.
     //
     SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
-}
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
+}
 ```
 
 This is the last function in the driver and the first Client function that is called. This is the Modules Add function. In this case, a single Module, `Dmf_DeviceInterfaceTarget`
@@ -840,15 +869,17 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
     // DeviceInterfaceTarget
     // ---------------------
     //
     DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
                                                          &moduleAttributes);
     moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(SWITCH_STATE);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
@@ -873,8 +904,9 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
-}
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
+}
 ```
 
 Testing the driver

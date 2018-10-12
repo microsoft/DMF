@@ -118,6 +118,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Switches have changed. Read them. (Wait until the switch is read.)
     //
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(DmfModuleDeviceInterfaceTarget,
@@ -155,11 +157,11 @@ Return Value:
 
 Exit:
     ;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-_Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -187,6 +189,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
+
     // Get the address where the DMFMODULE is located.
     //
     dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
@@ -196,6 +200,8 @@ Return Value:
     SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
 
     WdfObjectDelete(Workitem);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -243,11 +249,14 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
+
     if (!NT_SUCCESS(CompletionStatus))
     {
         // This will happen when OSR FX2 board is unplugged.
         //
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: stop");
         goto Exit;
     }
 
@@ -276,13 +285,13 @@ Return Value:
     // Continue streaming this IOCTL.
     //
     returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: continue");
 
 Exit:
 
     return returnValue;
 }
 
-static
 VOID
 SwitchBar_OnDeviceArrivalNotification(
     _In_ DMFMODULE DmfModule
@@ -303,6 +312,8 @@ Return Value:
 
 --*/
 {
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Dmf_ContinousRequestTarget has been set to start automatically, so it is not started here.
     // Also, the PreClose callback is not necessary.
     //
@@ -311,6 +322,8 @@ Return Value:
     // any switches have been changed.
     //
     SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 
 #pragma code_seg("PAGED")
@@ -324,7 +337,7 @@ DmfDeviceModulesAdd(
 
 Routine Description:
 
-    Add all the Dmf Modules used by this driver.
+    Add all the DMF Modules used by this driver.
 
 Arguments:
 
@@ -345,15 +358,17 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
     // DeviceInterfaceTarget
     // ---------------------
     //
     DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
                                                          &moduleAttributes);
     moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(SWITCH_STATE);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
@@ -378,5 +393,7 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 }
 
