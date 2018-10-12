@@ -18,51 +18,31 @@ Environment:
 
 #pragma once
 
-//
 // Define the tracing flags.
-// Tracing GUID - {BAE674B7-AB79-4320-B120-06D2C25916BA}
+// Tracing GUIDs:
+//
+// Client Driver - {E72837CC-1F19-4B2F-86AF-5CB7D0B768F4}
+//
+// NOTE: Every driver must define a unique GUID otherwise tracing from multiple drivers
+//       that use the same GUID will appear.
+//
+// DMF           - {433274DE-89F9-459D-A89B-E81B4AE2FAEE}
 //
 
 #define WPP_CONTROL_GUIDS                                                               \
-    WPP_DEFINE_CONTROL_GUID(                                                            \
-        SwitchBarTraceGuid, (BAE674B7,AB79,4320,B120,06D2C25916BA),                     \
-        WPP_DEFINE_BIT(MYDRIVER_ALL_INFO)                                               \
-        WPP_DEFINE_BIT(TRACE_DRIVER)                                                    \
-        )                                                                               \
    WPP_DEFINE_CONTROL_GUID(                                                             \
-        SurfaceLibraryTraceGuid, (5C357B96,1DC8,4DB3,A4BB,7CB7E4434728),                \
-        WPP_DEFINE_BIT(DMF_TRACE_DeviceInterfaceTarget)                                 \
+        DmfTraceGuid, (433274DE,89F9,459D,A89B,E81B4AE2FAEE),                           \
+        WPP_DEFINE_BIT(DMF_TRACE)                                                       \
+        )                                                                               \
+    WPP_DEFINE_CONTROL_GUID(                                                            \
+        SwitchBarTraceGuid, (E72837CC,1F19,4B2F,86AF,5CB7D0B768F4),                     \
+        WPP_DEFINE_BIT(MYDRIVER_ALL_INFO)                                               \
+        WPP_DEFINE_BIT(TRACE_DEVICE)                                                    \
+        WPP_DEFINE_BIT(TRACE_CALLBACK)                                                  \
         )                                                                               \
 
-//
-// This comment block is scanned by the trace preprocessor to define our
-// Trace function.
-//
-// USEPREFIX and USESUFFIX strip all trailing whitespace, so we need to surround
-// FuncExit messages with brackets 
-//
-// begin_wpp config
-// FUNC Trace{FLAG=MYDRIVER_ALL_INFO}(LEVEL, MSG, ...);
-// FUNC TraceEvents(LEVEL, FLAGS, MSG, ...);
-// FUNC FuncEntry{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
-// FUNC FuncEntryArguments{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
-// FUNC FuncExit{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
-// FUNC FuncExitVoid{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
-// FUNC TraceError{LEVEL=TRACE_LEVEL_ERROR}(FLAGS, MSG, ...);
-// FUNC TraceInformation{LEVEL=TRACE_LEVEL_INFORMATION}(FLAGS, MSG, ...);
-// FUNC TraceVerbose{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
-// FUNC FuncExitNoReturn{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
-// USEPREFIX(FuncEntry, "%!STDPREFIX! [%!FUNC!] --> Entry");
-// USEPREFIX(FuncEntryArguments, "%!STDPREFIX! [%!FUNC!] --> Entry");
-// USEPREFIX(FuncExit, "%!STDPREFIX! [%!FUNC!] <-- Exit <");
-// USESUFFIX(FuncExit, ">");
-// USEPREFIX(FuncExitVoid, "%!STDPREFIX! [%!FUNC!] <-- Exit");
-// USEPREFIX(TraceError, "%!STDPREFIX! [%!FUNC!] ERROR:");
-// USEPREFIX(TraceEvents, "%!STDPREFIX! [%!FUNC!]");
-// USEPREFIX(TraceInformation, "%!STDPREFIX! [%!FUNC!]");
-// USEPREFIX(TraceVerbose, "%!STDPREFIX! [%!FUNC!]");
-// USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
-// end_wpp
+#define WPP_LEVEL_FLAGS_LOGGER(lvl,flags) WPP_LEVEL_LOGGER(flags)
+#define WPP_LEVEL_FLAGS_ENABLED(lvl, flags) (WPP_LEVEL_ENABLED(flags) && WPP_CONTROL(WPP_BIT_ ## flags).Level  >= lvl)
 
 // eof: Trace.h
 //

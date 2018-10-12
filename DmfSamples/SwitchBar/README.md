@@ -53,8 +53,10 @@ Module Name:
 
 Abstract:
 
-    Waits for the OSR FX2 driver to load. When it does, reads changes to switch state and sets
-    lightbar on the board to match switch settings.
+
+    SwitchBar1 Sample: Waits for the OSR FX2 driver to load. When it does, reads changes to switch state and sets
+                       lightbar on the board to match switch settings. This driver opens the underlying function
+                       driver as a remote target using DMF_DeviceInterface Module.
 
 Environment:
 
@@ -76,7 +78,7 @@ Environment:
 #include "Trace.h"
 #include "DmfInterface.tmh"
 
-// DMF: These lines provide default DriverEntry/DeviceAdd/DriverCleanup functions.
+// DMF: These lines provide default DriverEntry/AddDevice/DriverCleanup functions.
 //
 DRIVER_INITIALIZE DriverEntry;
 EVT_WDF_DRIVER_DEVICE_ADD SwitchBarEvtDeviceAdd;
@@ -157,6 +159,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Switches have changed. Read them. (Wait until the switch is read.)
     //
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(DmfModuleDeviceInterfaceTarget,
@@ -194,11 +198,11 @@ Return Value:
 
 Exit:
     ;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-_Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -226,6 +230,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Get the address where the DMFMODULE is located.
     //
     dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
@@ -235,6 +241,8 @@ Return Value:
     SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
 
     WdfObjectDelete(Workitem);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -266,8 +274,7 @@ Arguments:
 
 Return Value:
 
-    Indicates the owner of the OutputBuffer after this function completes and whether or
-    not streaming should stop.
+    None
 
 --*/
 {
@@ -282,11 +289,14 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
+
     if (!NT_SUCCESS(CompletionStatus))
     {
-        // This will happen when OSR FX2 board is unplugged: Stop streaming.
-        // 
+        // This will happen when OSR FX2 board is unplugged.
+        //
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: stop");
         goto Exit;
     }
 
@@ -315,13 +325,13 @@ Return Value:
     // Continue streaming this IOCTL.
     //
     returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: continue");
 
 Exit:
 
     return returnValue;
 }
 
-static
 VOID
 SwitchBar_OnDeviceArrivalNotification(
     _In_ DMFMODULE DmfModule
@@ -331,7 +341,8 @@ SwitchBar_OnDeviceArrivalNotification(
 Routine Description:
 
     Callback function for Device Arrival Notification.
-    In this case, this driver starts the continuous reader.
+    In this case, this driver starts the continuous reader and makes sure that the lightbar is
+    set correctly per the state of the switches.
 
 Arguments:
 
@@ -345,6 +356,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
     {
@@ -354,9 +367,10 @@ Return Value:
         SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
     }
     ASSERT(NT_SUCCESS(ntStatus));
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 
-static
 VOID
 SwitchBar_OnDeviceRemovalNotification(
     _In_ DMFMODULE DmfModule
@@ -378,7 +392,9 @@ Return Value:
 
 --*/
 {
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 
 #pragma code_seg("PAGED")
@@ -413,15 +429,17 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
     // DeviceInterfaceTarget
     // ---------------------
     //
     DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
                                                          &moduleAttributes);
     moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(SWITCH_STATE);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
@@ -433,9 +451,10 @@ Return Value:
     // OSR driver at PASSIVE_LEVEL.
     //
     moduleAttributes.PassiveLevel = TRUE;
-
-    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started.
-    // When it is not available, the continuous reader is stopped.
+    
+    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started
+    // and the lightbar on the board is initialized to the current state of the switches.
+    // When it is not available, the continuous reader is stopped. 
     //
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
@@ -446,6 +465,8 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 }
 
 ```
@@ -591,6 +612,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Switches have changed. Read them. (Wait until the switch is read.)
     //
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(DmfModuleDeviceInterfaceTarget,
@@ -628,6 +651,7 @@ Return Value:
 
 Exit:
     ;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 ```
@@ -637,7 +661,6 @@ function to read switches and set the lightbar, then it deletes the associated W
 
 ```
 #pragma code_seg("PAGE")
-_Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -665,6 +688,8 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     // Get the address where the DMFMODULE is located.
     //
     dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
@@ -674,6 +699,8 @@ Return Value:
     SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
 
     WdfObjectDelete(Workitem);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 #pragma code_seg()
 ```
@@ -722,8 +749,7 @@ Arguments:
 
 Return Value:
 
-    Indicates the owner of the OutputBuffer after this function completes and whether or
-    not streaming should stop.
+    None
 
 --*/
 {
@@ -738,11 +764,14 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
+
     if (!NT_SUCCESS(CompletionStatus))
     {
-        // This will happen when OSR FX2 board is unplugged: Stop streaming.
+        // This will happen when OSR FX2 board is unplugged.
         //
         returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: stop");
         goto Exit;
     }
 
@@ -771,6 +800,7 @@ Return Value:
     // Continue streaming this IOCTL.
     //
     returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! Streaming: continue");
 
 Exit:
 
@@ -782,7 +812,6 @@ This callback is called when the `Dmf_DeviceInterfaceTarget` Module has opened t
 the OSR FX2 board and its driver has started. In this case, this callback simply starts the stream of IOCTLs to the device. 
 
 ```
-static
 VOID
 SwitchBar_OnDeviceArrivalNotification(
     _In_ DMFMODULE DmfModule
@@ -792,7 +821,8 @@ SwitchBar_OnDeviceArrivalNotification(
 Routine Description:
 
     Callback function for Device Arrival Notification.
-    In this case, this driver starts the continuous reader.
+    In this case, this driver starts the continuous reader and makes sure that the lightbar is
+    set correctly per the state of the switches.
 
 Arguments:
 
@@ -806,6 +836,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
+
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
     {
@@ -815,6 +847,8 @@ Return Value:
         SwitchBarReadSwitchesAndUpdateLightBar(DmfModule);
     }
     ASSERT(NT_SUCCESS(ntStatus));
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 ```
 
@@ -822,8 +856,6 @@ This callback is called when the `Dmf_DeviceInterfaceTarget` Module will close t
 the OSR FX2 board and its driver will stop. in this case, this callback simply stops the stream of IOCTLs to the device. 
 
 ```
-
-static
 VOID
 SwitchBar_OnDeviceRemovalNotification(
     _In_ DMFMODULE DmfModule
@@ -845,7 +877,9 @@ Return Value:
 
 --*/
 {
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC!");
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
 ```
 
@@ -896,15 +930,17 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
     // DeviceInterfaceTarget
     // ---------------------
     //
     DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
                                                          &moduleAttributes);
     moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_OSRUSBFX2;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(SWITCH_STATE);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 4;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE;
@@ -916,9 +952,10 @@ Return Value:
     // OSR driver at PASSIVE_LEVEL.
     //
     moduleAttributes.PassiveLevel = TRUE;
-
-    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started.
-    // When it is not available, the continuous reader is stopped.
+    
+    // These callbacks tell us when the underlying target is available. When it is available, the continuous reader is started
+    // and the lightbar on the board is initialized to the current state of the switches.
+    // When it is not available, the continuous reader is stopped. 
     //
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
@@ -929,6 +966,8 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 }
 
 ```
