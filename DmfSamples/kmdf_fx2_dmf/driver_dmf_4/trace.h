@@ -83,15 +83,25 @@ TraceEvents    (
 //       a new guid, using tools\other\i386\guidgen.exe present in the
 //       DDK.
 //
-//    Name of the logger is OSRUSBFX2 and the guid is
-//   {D23A0C5A-D307-4f0e-AE8E-E2A355AD5DAB}
-//   (0xd23a0c5a, 0xd307, 0x4f0e, 0xae, 0x8e, 0xe2, 0xa3, 0x55, 0xad, 0x5d, 0xab);
+// Tracing GUIDs:
+//
+// Client Driver - {82997013-8858-45D1-B175-1E12B0B7F973}
+//
+// NOTE: Every driver must define a unique GUID otherwise tracing from multiple drivers
+//       that use the same GUID will appear.
+//
+// DMF           - {12C255E8-E614-4DD2-B93B-5624E48C119E}
+//
 //
 
 #define WPP_CHECK_FOR_NULL_STRING  //to prevent exceptions due to NULL strings
 
 #define WPP_CONTROL_GUIDS \
-    WPP_DEFINE_CONTROL_GUID(OsrUsbFxTraceGuid,(d23a0c5a,d307,4f0e,ae8e,E2A355AD5DAB), \
+   WPP_DEFINE_CONTROL_GUID(                                                             \
+        DmfTraceGuid, (12C255E8,E614,4DD2,B93B,5624E48C119E),                           \
+        WPP_DEFINE_BIT(DMF_TRACE)                                                       \
+        )                                                                               \
+    WPP_DEFINE_CONTROL_GUID(OsrUsbFxTraceGuid,(82997013,8858,45D1,B175,1E12B0B7F973), \
         WPP_DEFINE_BIT(DBG_INIT)             /* bit  0 = 0x00000001 */ \
         WPP_DEFINE_BIT(DBG_PNP)              /* bit  1 = 0x00000002 */ \
         WPP_DEFINE_BIT(DBG_POWER)            /* bit  2 = 0x00000004 */ \
@@ -110,6 +120,4 @@ TraceEvents    (
 
 
 #endif
-
-
 

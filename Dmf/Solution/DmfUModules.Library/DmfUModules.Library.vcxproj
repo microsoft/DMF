@@ -166,6 +166,8 @@
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Public.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_CmApi.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
@@ -179,9 +181,12 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Trace.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
@@ -202,6 +207,8 @@
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.md" />
+    <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.md" />
     <None Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.md" />

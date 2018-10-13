@@ -267,7 +267,7 @@ Return Value:
     // IoctlHandler
     // ------------
     //
-    // DMF: Althought the DMF_OsrFx2 Module handles most of the IOCTLs, for demonstration purposes and to 
+    // DMF: Although the DMF_OsrFx2 Module handles most of the IOCTLs, for demonstration purposes and to 
     //      support the OsrFx2InterruptPipeCallback, one IOCTL is handled directly by the Client. Thus,
     //      IOCTLs first go to the Dmf_OsrFx2 Module. If they are not handled there, then they are handled
     //      here by this Client.
