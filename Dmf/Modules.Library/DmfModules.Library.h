@@ -72,6 +72,8 @@ extern "C"
 #include "Dmf_SymbolicLinkTarget.h"
 #include "Dmf_DefaultTarget.h"
 #include "Dmf_VirtualHidKeyboard.h"
+#include "Dmf_ComponentFirmwareUpdateHidTransport.h"
+#include "Dmf_ComponentFirmwareUpdate.h"
 
 // Transport Related Definitions.
 //

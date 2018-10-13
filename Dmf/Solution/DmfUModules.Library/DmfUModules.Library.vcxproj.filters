@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Modules">
@@ -55,6 +55,15 @@
     <Filter Include="Modules\Buffers">
       <UniqueIdentifier>{463d24f0-d309-4509-aef8-79fb14c805ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Modules\Protocols">
+      <UniqueIdentifier>{c0193121-ae08-47f5-9c38-b071dbc486ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Protocols">
+      <UniqueIdentifier>{5f701a83-d434-489e-9dc1-76a9bec1cbac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Protocols">
+      <UniqueIdentifier>{41a6c54c-cca8-4ddf-802f-d493e2c1963b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h">
@@ -105,6 +114,15 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.h">
+      <Filter>Headers\Modules\Protocols</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.h">
+      <Filter>Headers\Modules\Protocols</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h">
+      <Filter>Headers\Modules\Protocols</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -145,6 +163,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c">
       <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.c">
+      <Filter>Modules\Protocols</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.c">
+      <Filter>Modules\Protocols</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +214,12 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.md">
+      <Filter>Documentation\Modules\Protocols</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.md">
+      <Filter>Documentation\Modules\Protocols</Filter>
     </None>
   </ItemGroup>
 </Project>

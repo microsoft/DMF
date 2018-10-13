@@ -1,7 +1,8 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All Rights Reserved.
-    
+    Licensed under the MIT license.
+
 Module Name:
 
     Dmf_Transport_ComponentFirmwareUpdate.h
@@ -23,84 +24,84 @@ Environment:
 ////////////////////////
 
 
-typedef enum _FIRMWARE_UPDATE_OFFER_INFORMATION_CODE
+typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_INFORMATION_CODE
 {
-    FIRMWARE_UPDATE_OFFER_INFO_START_ENTIRE_TRANSACTION = 0x00, // To indicate that the Windows driver is new, or has been reloaded, and the entire offer processing is (re)starting. 
-    FIRMWARE_UPDATE_OFFER_INFO_START_OFFER_LIST = 0x01,         // Indicates the beginning of the Offer list from the Windows driver, in case the Accessory has download rules associated with ensuring one subcomponent is updated prior to another subcomponent in the system.
-    FIRMWARE_UPDATE_OFFER_INFO_END_OFFER_LIST = 0x02,           // Indicates the end of the Offer list from the Windows driver. 
-} FIRMWARE_UPDATE_OFFER_INFORMATION_CODE;
+    COMPONENT_FIRMWARE_UPDATE_OFFER_INFO_START_ENTIRE_TRANSACTION = 0x00, // To indicate that the Windows driver is new, or has been reloaded, and the entire offer processing is (re)starting. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_INFO_START_OFFER_LIST = 0x01,         // Indicates the beginning of the Offer list from the Windows driver, in case the Accessory has download rules associated with ensuring one subcomponent is updated prior to another subcomponent in the system.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_INFO_END_OFFER_LIST = 0x02,           // Indicates the end of the Offer list from the Windows driver. 
+} COMPONENT_FIRMWARE_UPDATE_OFFER_INFORMATION_CODE;
 
-typedef enum _FIRMWARE_UPDATE_OFFER_COMMAND_CODE
+typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_CODE
 {
-    FIRMWARE_UPDATE_OFFER_COMMAND_NOTIFY_ON_READY = 0x01,       // Issued by the host when the offer has previously been rejected via FIRMWARE_UPDATE_OFFER_BUSY response from the device. The Accepted response for this will pend from the device until the device is no longer busy. 
-} FIRMWARE_UPDATE_OFFER_COMMAND_CODE;
+    COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_NOTIFY_ON_READY = 0x01,       // Issued by the host when the offer has previously been rejected via COMPONENT_FIRMWARE_UPDATE_OFFER_BUSY response from the device. The Accepted response for this will pend from the device until the device is no longer busy. 
+} COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_CODE;
 
-typedef enum _FIRMWARE_UPDATE_PAYLOAD_RESPONSE
+typedef enum _COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE
 {
-    FIRMWARE_UPDATE_SUCCESS = 0x00,                             // No Error, the requested function(s) succeeded.
-    FIRMWARE_UPDATE_ERROR_PREPARE = 0x01,                       // Could not either: 1) Erase the upper block; 2) Initialize the swap command scratch block; 3) Copy the configuration data to the upper block.
-    FIRMWARE_UPDATE_ERROR_WRITE = 0x02,                         // Could not write the bytes.
-    FIRMWARE_UPDATE_ERROR_COMPLETE = 0x03,                      // Could not set up the swap, in response to FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
-    FIRMWARE_UPDATE_ERROR_VERIFY = 0x04,                        // Verification of the DWord failed, in response to FIRMWARE_UPDATE_FLAG_VERIFY.
-    FIRMWARE_UPDATE_ERROR_CRC = 0x05,                           // CRC of the image failed, in response to FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
-    FIRMWARE_UPDATE_ERROR_SIGNATURE = 0x06,                     // Firmware signature verification failed, in response to FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
-    FIRMWARE_UPDATE_ERROR_VERSION = 0x07,                       // Firmware version verification failed, in response to FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
-    FIRMWARE_UPDATE_ERROR_SWAP_PENDING = 0x08,                  // Firmware has already been updated and a swap is pending.  No further Firmware Update commands can be accepted until the device has been reset.
-    FIRMWARE_UPDATE_ERROR_INVALID_ADDR = 0x09,                  // Firmware has detected an invalid destination address within the message data content.
-    FIRMWARE_UPDATE_ERROR_NO_OFFER = 0x0A,                      // The Firmware Update Content Command was received without first receiving a valid & accepted FW Update Offer. 
-    FIRMWARE_UPDATE_ERROR_INVALID = 0x0B                        // General error for the Firmware Update Content command, such as an invalid applicable Data Length.  
-} FIRMWARE_UPDATE_PAYLOAD_RESPONSE;
+    COMPONENT_FIRMWARE_UPDATE_SUCCESS = 0x00,                             // No Error, the requested function(s) succeeded.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_PREPARE = 0x01,                       // Could not either: 1) Erase the upper block; 2) Initialize the swap command scratch block; 3) Copy the configuration data to the upper block.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_WRITE = 0x02,                         // Could not write the bytes.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_COMPLETE = 0x03,                      // Could not set up the swap, in response to COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_VERIFY = 0x04,                        // Verification of the DWord failed, in response to COMPONENT_FIRMWARE_UPDATE_FLAG_VERIFY.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_CRC = 0x05,                           // CRC of the image failed, in response to COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_SIGNATURE = 0x06,                     // Firmware signature verification failed, in response to COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_VERSION = 0x07,                       // Firmware version verification failed, in response to COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_SWAP_PENDING = 0x08,                  // Firmware has already been updated and a swap is pending.  No further Firmware Update commands can be accepted until the device has been reset.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_INVALID_ADDR = 0x09,                  // Firmware has detected an invalid destination address within the message data content.
+    COMPONENT_FIRMWARE_UPDATE_ERROR_NO_OFFER = 0x0A,                      // The Firmware Update Content Command was received without first receiving a valid & accepted FW Update Offer. 
+    COMPONENT_FIRMWARE_UPDATE_ERROR_INVALID = 0x0B                        // General error for the Firmware Update Content command, such as an invalid applicable Data Length.  
+} COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE;
 
-typedef enum _FIRMWARE_UPDATE_OFFER_RESPONSE
+typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE
 {
-    FIRMWARE_UPDATE_OFFER_SKIP = 0x00,                          // The offer needs to be skipped at this time, indicating to the host to please offer again during next applicable period.
-    FIRMWARE_UPDATE_OFFER_ACCEPT = 0x01,                        // If the update applies, Accept is returned.
-    FIRMWARE_UPDATE_OFFER_REJECT = 0x02,                        // If the update does not apply, a Reject is returned.
-    FIRMWARE_UPDATE_OFFER_BUSY = 0x03,                          // The offer needs to be delayed at this time.  The device has nowhere to put the incoming blob.
-    FIRMWARE_UPDATE_OFFER_COMMAND_READY = 0x04,                 // Used with the Offer Other response for the OFFER_NOTIFY_ON_READY request, when the Accessory is ready to accept additional Offers.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_SKIP = 0x00,                          // The offer needs to be skipped at this time, indicating to the host to please offer again during next applicable period.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_ACCEPT = 0x01,                        // If the update applies, Accept is returned.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT = 0x02,                        // If the update does not apply, a Reject is returned.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_BUSY = 0x03,                          // The offer needs to be delayed at this time.  The device has nowhere to put the incoming blob.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_READY = 0x04,                 // Used with the Offer Other response for the OFFER_NOTIFY_ON_READY request, when the Accessory is ready to accept additional Offers.
 
-    FIRMWARE_UPDATE_OFFER_COMMAND_NOT_SUPPORTED = 0xFF
-} FIRMWARE_UPDATE_OFFER_RESPONSE;
+    COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_NOT_SUPPORTED = 0xFF
+} COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE;
 
-typedef enum _FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON
+typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON
 {
-    FIRMWARE_UPDATE_OFFER_REJECT_OLD_FW = 0x00,                 // The offer was rejected by the product due to the offer version being older than the currently downloaded/existing firmware. 
-    FIRMWARE_UPDATE_OFFER_REJECT_INV_MCU = 0x01,                // The offer was rejected due to it not being applicable to the product’s primary MCU. 
-    FIRMWARE_UPDATE_OFFER_REJECT_SWAP_PENDING = 0x02,           // MCU Firmware has been updated and a swap is currently pending.  No further Firmware Update processing can occur until the blade has been reset.
-    FIRMWARE_UPDATE_OFFER_REJECT_MISMATCH = 0x03,               // The offer was rejected due to a Version mismatch (Debug/Release for example).
-    FIRMWARE_UPDATE_OFFER_REJECT_BANK = 0x04,                   // The offer was rejected due to it being for the wrong firmware bank.
-    FIRMWARE_UPDATE_OFFER_REJECT_PLATFORM = 0x05,               // The offer’s Platform ID does not correlate to the receiving hardware product. 
-    FIRMWARE_UPDATE_OFFER_REJECT_MILESTONE = 0x06,              // The offer’s Milestone does not correlate to the receiving hardware’s Build ID. 
-    FIRMWARE_UPDATE_OFFER_REJECT_INV_PCOL_REV = 0x07,           // The offer indicates an interface Protocol Revision that the receiving product does not support. 
-    FIRMWARE_UPDATE_OFFER_REJECT_VARIANT = 0x08,                // The combination of Milestone & Compatibility Variants Mask did not match the HW. 
-} FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON;
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_OLD_FW = 0x00,                 // The offer was rejected by the product due to the offer version being older than the currently downloaded/existing firmware. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_MCU = 0x01,                // The offer was rejected due to it not being applicable to the product’s primary MCU. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_SWAP_PENDING = 0x02,           // MCU Firmware has been updated and a swap is currently pending.  No further Firmware Update processing can occur until the blade has been reset.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_MISMATCH = 0x03,               // The offer was rejected due to a Version mismatch (Debug/Release for example).
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_BANK = 0x04,                   // The offer was rejected due to it being for the wrong firmware bank.
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_PLATFORM = 0x05,               // The offer’s Platform ID does not correlate to the receiving hardware product. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_MILESTONE = 0x06,              // The offer’s Milestone does not correlate to the receiving hardware’s Build ID. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_PCOL_REV = 0x07,           // The offer indicates an interface Protocol Revision that the receiving product does not support. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VARIANT = 0x08,                // The combination of Milestone & Compatibility Variants Mask did not match the HW. 
+} COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON;
 
-typedef enum _FIRMWARE_UPDATE_FLAG
+typedef enum _COMPONENT_FIRMWARE_UPDATE_FLAG
 {
-    FIRMWARE_UPDATE_FLAG_DEFAULT = 0x00,
-    FIRMWARE_UPDATE_FLAG_FIRST_BLOCK = 0x80,        // Denotes the first block of a firmware payload.
-    FIRMWARE_UPDATE_FLAG_LAST_BLOCK = 0x40,         // Denotes the last block of a firmware payload.
-    FIRMWARE_UPDATE_FLAG_VERIFY = 0x08,             // If set, the firmware verifies the byte array in the upper block at the specified address.
-} FIRMWARE_UPDATE_FLAG;
+    COMPONENT_FIRMWARE_UPDATE_FLAG_DEFAULT = 0x00,
+    COMPONENT_FIRMWARE_UPDATE_FLAG_FIRST_BLOCK = 0x80,        // Denotes the first block of a firmware payload.
+    COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK = 0x40,         // Denotes the last block of a firmware payload.
+    COMPONENT_FIRMWARE_UPDATE_FLAG_VERIFY = 0x08,             // If set, the firmware verifies the byte array in the upper block at the specified address.
+} COMPONENT_FIRMWARE_UPDATE_FLAG;
 
 /////////////////////////////////////
 //  Message Structure definitions  //
 /////////////////////////////////////
 
 #define MAX_NUMBER_OF_IMAGE_PAIRS (7)
-typedef struct _FIRMWARE_VERSIONS
+typedef struct _COMPONENT_FIRMWARE_VERSIONS
 {
     BYTE componentCount;
     BYTE ComponentIdentifiers[MAX_NUMBER_OF_IMAGE_PAIRS];
     DWORD FirmwareVersion[MAX_NUMBER_OF_IMAGE_PAIRS];
-} FIRMWARE_VERSIONS;
+} COMPONENT_FIRMWARE_VERSIONS;
 
 // Defines the response from the device for an offer related command.
 //
 typedef struct _OFFER_RESPONSE
 {
-    FIRMWARE_UPDATE_OFFER_RESPONSE OfferResponseStatus;
-    FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON OfferResponseReason;
+    COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE OfferResponseStatus;
+    COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON OfferResponseReason;
 } OFFER_RESPONSE;
 
 //===================================================

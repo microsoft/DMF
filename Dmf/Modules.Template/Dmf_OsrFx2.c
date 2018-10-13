@@ -39,7 +39,7 @@ typedef struct
     // Handles IOCTLs for FX2.
     //
     DMFMODULE DmfModuleIoctlHandler;
-    // Allows callbacks to Client at PASSIVE_LEVEL if Client reqeusts that.
+    // Allows callbacks to Client at PASSIVE_LEVEL if Client requests that.
     //
     DMFMODULE DmfModuleQueuedWorkitem;
     // WDF USB Device handle.
@@ -57,7 +57,7 @@ typedef struct
     // The FX2 Bulk Interrupt pipe (for switches).
     //
     WDFUSBPIPE InterruptPipe;
-    // Stores current swtich state.
+    // Stores current switch state.
     //
     UCHAR CurrentSwitchState;
     // Stores USB device traits.
@@ -126,6 +126,8 @@ OsrFx2_QueuedWorkitemFunction(
     DMF_CONFIG_OsrFx2* moduleConfig;
     UCHAR* switchState;
 
+    FuncEntry(DMF_TRACE);
+
     switchState = (UCHAR*)ClientBuffer;
     parentDmfModule = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(parentDmfModule);
@@ -134,6 +136,8 @@ OsrFx2_QueuedWorkitemFunction(
     moduleConfig->InterruptPipeCallbackPassive(parentDmfModule,
                                                *switchState,
                                                STATUS_SUCCESS);
+
+    FuncExit(DMF_TRACE, "returnValue=ScheduledTask_WorkResult_Success");
 
     return ScheduledTask_WorkResult_Success;
 }
@@ -262,19 +266,19 @@ Returns:
     if (moduleConfig->EventWriteCallback != NULL)
     {
         moduleConfig->EventWriteCallback(*dmfModuleAddress,
-                                            OsrFx2_EventWriteMessage_ReadStart,
-                                            NULL,
-                                            (ULONG_PTR)Request,
-                                            Length,
-                                            NULL,
-                                            NULL);
+                                         OsrFx2_EventWriteMessage_ReadStart,
+                                         NULL,
+                                         (ULONG_PTR)Request,
+                                         Length,
+                                         NULL,
+                                         NULL);
     }
 
     // First validate input parameters.
     //
     if (Length > TEST_BOARD_TRANSFER_BUFFER_SIZE) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Transfer exceeds %d\n", TEST_BOARD_TRANSFER_BUFFER_SIZE);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Transfer exceeds %d", TEST_BOARD_TRANSFER_BUFFER_SIZE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -285,7 +289,7 @@ Returns:
                                               &requestMemory);
     if(!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputMemory fails: ntStatus=%!STATUS!\n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputMemory fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -299,7 +303,7 @@ Returns:
                                                     NULL);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeFormatRequestForRead fails: ntStatus=%!STATUS!\n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeFormatRequestForRead fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -391,7 +395,7 @@ Returns:
 
     if (NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of bytes written: %I64d\n", (INT64)bytesWritten);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of bytes written: %I64d", (INT64)bytesWritten);
     } 
     else 
     {
@@ -481,7 +485,7 @@ Returns:
     //
     if (Length > TEST_BOARD_TRANSFER_BUFFER_SIZE) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Transfer exceeds %d\n", TEST_BOARD_TRANSFER_BUFFER_SIZE);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Transfer exceeds %d", TEST_BOARD_TRANSFER_BUFFER_SIZE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -492,7 +496,7 @@ Returns:
                                              &requestMemory);
     if(!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveInputBuffer failed\n");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveInputBuffer failed");
         goto Exit;
     }
 
@@ -502,7 +506,7 @@ Returns:
                                                      NULL);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeFormatRequestForWrite failed 0x%x\n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeFormatRequestForWrite fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -516,8 +520,8 @@ Returns:
     {
         // Framework couldn't send the request for some reason.
         //
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend failed\n");
         ntStatus = WdfRequestGetStatus(Request);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -555,12 +559,12 @@ OsrFx2_EvtIoStop(
 
 Routine Description:
 
-    This callback is invoked on every inflight request when the device
-    is suspended or removed. Since our inflight read and write requests
+    This callback is invoked on every in-flight request when the device
+    is suspended or removed. Since our in-flight read and write requests
     are actually pending in the target device, we will just acknowledge
     its presence. Until we acknowledge, complete, or requeue the requests
     framework will wait before allowing the device suspend or remove to
-    proceeed. When the underlying USB stack gets the request to suspend or
+    proceed. When the underlying USB stack gets the request to suspend or
     remove, it will fail all the pending requests.
 
 Arguments:
@@ -757,9 +761,34 @@ Returns:
         if (WdfUsbPipeTypeBulk == pipeInformation.PipeType &&
             WdfUsbTargetPipeIsOutEndpoint(pipe)) 
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BulkOutput Pipe is 0x%p\n", pipe);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BulkOutput Pipe is 0x%p", pipe);
             moduleContext->BulkWritePipe = pipe;
         }
+
+        // Allow this Module to access DMFMODULE given a WDFUSBPIPE.
+        //
+        DMFMODULE* dmfModuleAddress;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
+                                                DMFMODULE);
+        ntStatus = WdfObjectAllocateContext(pipe,
+                                            &objectAttributes,
+                                            (VOID**)&dmfModuleAddress);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+        
+        // Store the Module in the context space of the WDFUSBPIPE.
+        //
+        *dmfModuleAddress = DmfModule;
+
+        // This is just a check to verify the above is correct and to show how to access the Module 
+        // from the handle (as an example). This is used in the Pipe's error callback.
+        //
+        dmfModuleAddress = WdfObjectGet_DMFMODULE(pipe);
+        ASSERT(*dmfModuleAddress == DmfModule);
     }
 
     // If we didn't find all the 3 pipes, fail the start.
@@ -769,7 +798,7 @@ Returns:
            moduleContext->InterruptPipe)) 
     {
         ntStatus = STATUS_INVALID_DEVICE_STATE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device is not configured properly ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device is not configured properly: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -849,12 +878,10 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
-                        "GetBarGraphState: Failed to GetBarGraphState - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSendControlTransferSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     } else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
-            "GetBarGraphState: LED mask is 0x%x\n", BarGraphState->BarsAsUChar);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "LED mask is 0x%x", BarGraphState->BarsAsUChar);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -927,10 +954,10 @@ Returns:
                                                                 &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SetBarGraphState: Failed - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSendControlTransferSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     } else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SetBarGraphState: LED mask is 0x%x\n", BarGraphState->BarsAsUChar);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SetBarGraphState: LED mask is 0x%x", BarGraphState->BarsAsUChar);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1015,11 +1042,11 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GetSevenSegmentState: Failed to get 7 Segment state - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSendControlTransferSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     } 
     else
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GetSevenSegmentState: 7 Segment mask is 0x%x\n", *SevenSegment);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GetSevenSegmentState: 7 Segment mask is 0x%x", *SevenSegment);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1092,11 +1119,11 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SetSevenSegmentState: Failed to set 7 Segment state - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSendControlTransferSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     } 
     else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SetSevenSegmentState: 7 Segment mask is 0x%x\n", *SevenSegment);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SetSevenSegmentState: 7 Segment mask is 0x%x", *SevenSegment);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1171,11 +1198,11 @@ Returns:
                                                                   &bytesTransferred);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GetSwitchState: Failed to Get switches - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSendControlTransferSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     } 
     else 
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GetSwitchState: Switch mask is 0x%x\n", SwitchState->SwitchesAsUChar);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GetSwitchState: Switch mask is 0x%x", SwitchState->SwitchesAsUChar);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1195,7 +1222,7 @@ OsrFx2_StopAllPipes(
 
 Routine Description
 
-    Stops all the USB pipes from transfering data.
+    Stops all the USB pipes from transferring data.
 
 Arguments:
 
@@ -1336,7 +1363,7 @@ Returns:
     ntStatus = WdfUsbTargetDeviceResetPortSynchronously(moduleContext->UsbDevice);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ResetDevice fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceResetPortSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     ntStatus = OsrFx2_StartAllPipes(DmfModule);
@@ -1378,8 +1405,8 @@ Returns:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_USB_CONTROL_SETUP_PACKET    controlSetupPacket;
-    WDF_REQUEST_SEND_OPTIONS        sendOptions;
+    WDF_USB_CONTROL_SETUP_PACKET controlSetupPacket;
+    WDF_REQUEST_SEND_OPTIONS sendOptions;
     DMF_CONTEXT_OsrFx2* moduleContext;
 
     PAGED_CODE();
@@ -1409,7 +1436,7 @@ Returns:
                                                                   NULL);
     if(!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ReenumerateDevice: Failed to Reenumerate - 0x%x \n", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceSendControlTransferSynchronously fails: ntStatus=%!STATUS!", ntStatus);
     }
 
     DMF_CONFIG_OsrFx2* moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -1444,7 +1471,7 @@ OsrFx2_EvtUsbInterruptPipeReadComplete(
 
 Routine Description:
 
-    This the completion routine of the continour reader. This can
+    This the completion routine of the continuous reader. This can
     called concurrently on multiprocessor system if there are
     more than one readers configured. So make sure to protect
     access to global resources.
@@ -1453,7 +1480,7 @@ Arguments:
 
     Buffer - This buffer is freed when this call returns.
              If the driver wants to delay processing of the buffer, it
-             can take an additional referrence.
+             can take an additional reference.
 
     Context - Provided in the WDF_USB_CONTINUOUS_READER_CONFIG_INIT macro
 
@@ -1490,7 +1517,7 @@ Returns:
 
     if (NumberOfBytesTransferred == 0) 
     {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "OsrFxEvtUsbInterruptPipeReadComplete Zero length read occured on the Interrupt Pipe's Continuous Reader");
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "OsrFx2_EvtUsbInterruptPipeReadComplete Zero length read occurred on the Interrupt Pipe's Continuous Reader");
         goto Exit;
     }
 
@@ -1499,7 +1526,7 @@ Returns:
     switchState = (UCHAR*)WdfMemoryGetBuffer(Buffer,
                                              NULL);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "OsrFxEvtUsbInterruptPipeReadComplete SwitchState %x", *switchState);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "OsrFx2_EvtUsbInterruptPipeReadComplete SwitchState=0x%x", *switchState);
 
     // Save of the current state.
     //
@@ -1539,19 +1566,49 @@ static
 BOOLEAN
 OsrFx2_EvtUsbInterruptReadersFailed(
     _In_ WDFUSBPIPE Pipe,
-    _In_ NTSTATUS Status,
+    _In_ NTSTATUS NtStatus,
     _In_ USBD_STATUS UsbdStatus
     )
 {
-    UNREFERENCED_PARAMETER(Pipe);
-    UNREFERENCED_PARAMETER(Status);
+    DMFMODULE* dmfModuleAddress;
+    DMF_CONTEXT_OsrFx2* moduleContext;
+    DMF_CONFIG_OsrFx2* moduleConfig;
+    DMFMODULE dmfModuleOsrFx2;
+
     UNREFERENCED_PARAMETER(UsbdStatus);
 
     FuncEntry(DMF_TRACE);
 
-    // NOTE: This is different than the original OSR Sample. There seems to be no way to retrieve the DMFMODULE from
-    //       WDFUSBPIPE. 
+    // Access the DMFMODULE from the additional context.
     //
+    dmfModuleAddress = WdfObjectGet_DMFMODULE(Pipe);
+    dmfModuleOsrFx2 = *dmfModuleAddress;
+
+    moduleContext = DMF_CONTEXT_GET(dmfModuleOsrFx2);
+    moduleConfig = DMF_CONFIG_GET(dmfModuleOsrFx2);
+
+    // Clear the current switch state.
+    //
+    moduleContext->CurrentSwitchState = 0;
+
+    // Service the pending interrupt switch change request.
+    //
+    if (moduleConfig->InterruptPipeCallback != NULL)
+    {
+        // This call happens at DISPATCH_LEVEL.
+        //
+        moduleConfig->InterruptPipeCallback(dmfModuleOsrFx2,
+                                            moduleContext->CurrentSwitchState,
+                                            NtStatus);
+    }
+    if (moduleConfig->InterruptPipeCallbackPassive != NULL)
+    {
+        // This call happens at PASSIVE_LEVEL.
+        //
+        DMF_QueuedWorkItem_Enqueue(moduleContext->DmfModuleQueuedWorkitem,
+                                   &moduleContext->CurrentSwitchState,
+                                   sizeof(UCHAR));
+    }
 
     FuncExit(DMF_TRACE, "returnValue=%d", TRUE);
 
@@ -1596,23 +1653,19 @@ Returns:
                                           OsrFx2_EvtUsbInterruptPipeReadComplete,
                                           DmfModule,
                                           sizeof(UCHAR));
-    
-    // NOTE: This is different than the original OSR Sample. There seems to be no way to retrieve the DMFMODULE from
-    //       WDFUSBPIPE. We are investigating how to resolve this.
-    //
     continuousReaderConfig.EvtUsbTargetPipeReadersFailed = OsrFx2_EvtUsbInterruptReadersFailed;
 
     // Reader requests are not posted to the target automatically.
-    // Driver must explictly call WdfIoTargetStart to kick start the
+    // Driver must explicitly call WdfIoTargetStart to kick start the
     // reader.  In this sample, it's done in D0Entry.
-    // By defaut, framework queues two requests to the target
+    // By default, framework queues two requests to the target
     // endpoint. Driver can configure up to 10 requests with CONFIG macro.
     //
     ntStatus = WdfUsbTargetPipeConfigContinuousReader(moduleContext->InterruptPipe,
                                                       &continuousReaderConfig);
     if (!NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "OsrFxConfigContReaderForInterruptEndPoint fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetPipeConfigContinuousReader fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1657,7 +1710,7 @@ Arguments:
 
 Returns:
 
-    STATUS_PENDING - This Module owns the given Requst. It will not be completed by the Child Module. This
+    STATUS_PENDING - This Module owns the given Request. It will not be completed by the Child Module. This
                      Module must complete the request eventually.
     Any other NTSTATUS - The given request will be completed with this NTSTATUS.
 
@@ -2209,8 +2262,7 @@ Returns:
                                                           &moduleContext->UsbDevice);
         if (!NT_SUCCESS(ntStatus)) 
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
-                 "WdfUsbTargetDeviceCreateWithParameters failed with Status code %!STATUS!\n", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfUsbTargetDeviceCreateWithParameters fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -2220,8 +2272,8 @@ Returns:
         //
     }
 
-    // Retrieve USBD version information, port driver capabilites and device
-    // capabilites such as speed, power, etc.
+    // Retrieve USBD version information, port driver capabilities and device
+    // capabilities such as speed, power, etc.
     //
     WDF_USB_DEVICE_INFORMATION_INIT(&deviceInfo);
 
@@ -2229,12 +2281,12 @@ Returns:
                                                      &deviceInfo);
     if (NT_SUCCESS(ntStatus)) 
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceHighSpeed: %s\n", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_AT_HIGH_SPEED) ? "TRUE" : "FALSE");
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceSelfPowered: %s\n", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_SELF_POWERED) ? "TRUE" : "FALSE");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceHighSpeed: %s", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_AT_HIGH_SPEED) ? "TRUE" : "FALSE");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceSelfPowered: %s", (deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_SELF_POWERED) ? "TRUE" : "FALSE");
 
         waitWakeEnable = deviceInfo.Traits & WDF_USB_DEVICE_TRAIT_REMOTE_WAKE_CAPABLE;
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceRemoteWakeable: %s\n", waitWakeEnable ? "TRUE" : "FALSE");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IsDeviceRemoteWakeable: %s", waitWakeEnable ? "TRUE" : "FALSE");
 
         // Save these for use later.
         //
