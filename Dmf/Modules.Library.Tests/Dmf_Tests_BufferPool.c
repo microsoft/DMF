@@ -784,7 +784,7 @@ Return Value:
     moduleConfigBufferPool.Mode.SourceSettings.BufferCount = BUFFER_COUNT_PREALLOCATED;
     moduleConfigBufferPool.Mode.SourceSettings.CreateWithTimer = TRUE;
     moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPool;
+    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
     ntStatus = DMF_BufferPool_Create(Device,
                                      &moduleAttributes,
                                      &objectAttributes,

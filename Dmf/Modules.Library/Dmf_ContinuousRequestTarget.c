@@ -961,12 +961,13 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    NTSTATUS ntStatus;
     WDF_REQUEST_REUSE_PARAMS  requestParams;
     WDF_OBJECT_ATTRIBUTES requestAttributes;
     BOOLEAN requestSendResult;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     WDFDEVICE device;
+    WDFREQUEST requestToDeleteOnError;
 
     FuncEntry(DMF_TRACE);
 
@@ -978,6 +979,7 @@ Return Value:
     InterlockedIncrement(&moduleContext->PendingStreamingRequests);
 
     device = DMF_ParentDeviceGet(DmfModule);
+    requestToDeleteOnError = NULL;
 
     // If Request is NULL, it means that a request should be created. Otherwise, it means
     // that Request should be reused.
@@ -995,6 +997,7 @@ Return Value:
              TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
+        requestToDeleteOnError = Request;
     }
     else
     {
@@ -1048,10 +1051,9 @@ Exit:
         //
         InterlockedDecrement(&moduleContext->PendingStreamingRequests);
 
-        if (Request != NULL)
+        if (requestToDeleteOnError != NULL)
         {
-            WdfObjectDelete(Request);
-            Request = NULL;
+            WdfObjectDelete(requestToDeleteOnError);
         }
     }
 
