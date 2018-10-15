@@ -206,55 +206,11 @@ Exit:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_same_
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-SwitchBarWorkitemHandler(
-    _In_ WDFWORKITEM Workitem
-    )
-/*++
-
-Routine Description:
-
-    Workitem handler for this Module.
-
-Arguments:
-
-    Workitem - WDFORKITEM which gives access to necessary context including this
-               Module's DMF Module.
-
-Return Value:
-
-    VOID
-
---*/
-{
-    DMFMODULE* dmfModuleAddressDeviceInterfaceTarget;
-
-    PAGED_CODE();
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
-
-    // Get the address where the DMFMODULE is located.
-    //
-    dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
-
-    // Read switches and set lights.
-    //
-    SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
-
-    WdfObjectDelete(Workitem);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
-}
-#pragma code_seg()
-
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 ContinuousRequestTarget_BufferDisposition
 SwitchBarSwitchChangedCallback(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAddressDeviceInterfaceTarget,
     _In_reads_(OutputBufferSize) VOID* OutputBuffer,
     _In_ size_t OutputBufferSize,
     _In_ VOID* ClientBufferContextOutput,
@@ -265,12 +221,11 @@ SwitchBarSwitchChangedCallback(
 Routine Description:
 
     Continuous reader has received a buffer from the underlying target (OSR FX2) driver.
-    This runs in DISPATCH_LEVEL. Since this driver must synchronously read the state
-    of the switches, this function just spawns a workitem that runs a PASSIVE_LEVEL.
+    This function runs at PASSIVE_LEVEL because the Module was configured to do so!
 
 Arguments:
 
-    DmfModule - The Child Module from which this callback is called.
+    DmfModuleAddressDeviceInterfaceTarget - The Child Module from which this callback is called (DMF_DeviceInterfaceTarget).
     OutputBuffer - It is the data switch data returned from OSR FX2 board.
     OutputBufferSize - Size of switch data returned from OSR FX2 board (UCHAR).
     ClientBufferContextOutput - Not used.
@@ -283,11 +238,6 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus;
-    WDFWORKITEM workitem;
-    WDF_WORKITEM_CONFIG workitemConfig;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
-    DMFMODULE* dmfModuleAddress;
     ContinuousRequestTarget_BufferDisposition returnValue;
 
     UNREFERENCED_PARAMETER(OutputBuffer);
@@ -305,27 +255,9 @@ Return Value:
         goto Exit;
     }
 
-    // Create a WDFWORKITEM and enqueue it. The workitem's function will delete the workitem.
+    // Read switches and set lights.
     //
-    WDF_WORKITEM_CONFIG_INIT(&workitemConfig, 
-                             SwitchBarWorkitemHandler);
-    workitemConfig.AutomaticSerialization = WdfFalse;
-
-    // It is not possible to get the WDFWORKITEM's parent, so create space for the DMFMODULE
-    // in the workitem's context.
-    ///
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
-                                           DMFMODULE);
-    objectAttributes.ParentObject = DmfModule;
-    ntStatus = WdfWorkItemCreate(&workitemConfig,
-                                 &objectAttributes,
-                                 &workitem);
-
-    dmfModuleAddress = WdfObjectGet_DMFMODULE(workitem);
-    *dmfModuleAddress = DmfModule;
-
-    WdfWorkItemEnqueue(workitem);
+    SwitchBarReadSwitchesAndUpdateLightBar(DmfModuleAddressDeviceInterfaceTarget);
 
     // Continue streaming this IOCTL.
     //
@@ -441,6 +373,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 }
+
 ```
 
 Annotated Code Tour
@@ -627,77 +560,26 @@ Exit:
 }
 #pragma code_seg()
 ```
-
-This code is the WDFWORKITEM handler. It is called after being enqueued from the DISPATCH_LEVEL callback received earlier. This callback simply calls the above
-function to read switches and set the lightbar, then it deletes the associated WDFWORKITEM.
-
-```
-#pragma code_seg("PAGE")
-_IRQL_requires_same_
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-SwitchBarWorkitemHandler(
-    _In_ WDFWORKITEM Workitem
-    )
-/*++
-
-Routine Description:
-
-    Workitem handler for this Module.
-
-Arguments:
-
-    Workitem - WDFORKITEM which gives access to necessary context including this
-               Module's DMF Module.
-
-Return Value:
-
-    VOID
-
---*/
-{
-    DMFMODULE* dmfModuleAddressDeviceInterfaceTarget;
-
-    PAGED_CODE();
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
-
-    // Get the address where the DMFMODULE is located.
-    //
-    dmfModuleAddressDeviceInterfaceTarget = WdfObjectGet_DMFMODULE(Workitem);
-
-    // Read switches and set lights.
-    //
-    SwitchBarReadSwitchesAndUpdateLightBar(*dmfModuleAddressDeviceInterfaceTarget);
-
-    WdfObjectDelete(Workitem);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
-}
-#pragma code_seg()
-```
-
-This function is a callback received from the `Dmf_DeviceInterfaceTarget` Module. It is received whenever the `IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE` has returned
+This function is a callback received from the `DMF_DeviceInterfaceTarget` Module. It is received whenever the `IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE` has returned
 from the OSR FX2 driver indicating that the switches on the board have changed. The Module has already extracted the buffers from the underlying `WDFREQUEST` it sent.
-In this case, the data returned by the IOCTL is in OutputBuffer. However, this function runs at DISPATCH_LEVEL. In order to perform the above function, it is 
-necessary to execute at PASSIVE_LEVEL because it needs to perform a synchronous read. Thus, this function does not actually use OutputBuffer. Instead, it simply
-creates and spawns a WDFWORKITEM. 
+In this case, the data returned by the IOCTL is in OutputBuffer. (Note that this sample does not use the buffer. Instead if reads the switch data directly.)
 
-The WDFWORKITEM callback function needs the `Dmf_DeviceInterface` Module handle. Although the WDFWORKITEM's parent is the `DMFMODULE`, it is not possible to 
-retrieve the WDFWORKITEM's parent, so the `DMFMODULE` must be stored in the workitem's context. Thus, this function allocates space in the workitem's 
-context for the `DMFMODULE` handle and then writes that handle to the context after the workitem has been created. Finally, it enqueues the WORKITEM. Note the use of
-the predefined `WdfObjectGet_DMFMODULE()`.
-
+Ordinarily, completion routines from the USB stack run at `DISPATCH_LEVEL`. The completion routine that executes when the continuous requests from the 
+from the `DMF_DeviceInterfaceTarget` Module executes at `DISPATCH_LEVEL` by default. However, this sample reads the switch state synchronously, so it must
+run at `PASSIVE_LEVEL`. Also, the underlying function driver expects that its IOCTL requests arrive at `PASSIVE_LEVEL`. For these reasons, the 
+`DMF_DeviceInterfaceTarget` Module is configured to run at `PASSIVE_LEVEL` by simply setting that option when the Module is configured:
+```
+    moduleAttributes.PassiveLevel = TRUE;
+```
 Finally, note the return value of this function. It tells the caller (`Dmf_DeviceInterfaceTarget` Module) who owns the OutputBuffer and whether or not to 
 continue streaming. When an error is received (CompletionStatus) it means the OSR FX2 driver is unloading. So, in that case this callback tells
 the caller to stop streaming IOCTLs. Otherwise, the callback tells the Client to continue streaming.
-
 ```
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 ContinuousRequestTarget_BufferDisposition
 SwitchBarSwitchChangedCallback(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAddressDeviceInterfaceTarget,
     _In_reads_(OutputBufferSize) VOID* OutputBuffer,
     _In_ size_t OutputBufferSize,
     _In_ VOID* ClientBufferContextOutput,
@@ -708,12 +590,11 @@ SwitchBarSwitchChangedCallback(
 Routine Description:
 
     Continuous reader has received a buffer from the underlying target (OSR FX2) driver.
-    This runs in DISPATCH_LEVEL. Since this driver must synchronously read the state
-    of the switches, this function just spawns a workitem that runs a PASSIVE_LEVEL.
+    This function runs at PASSIVE_LEVEL because the Module was configured to do so!
 
 Arguments:
 
-    DmfModule - The Child Module from which this callback is called.
+    DmfModuleAddressDeviceInterfaceTarget - The Child Module from which this callback is called (DMF_DeviceInterfaceTarget).
     OutputBuffer - It is the data switch data returned from OSR FX2 board.
     OutputBufferSize - Size of switch data returned from OSR FX2 board (UCHAR).
     ClientBufferContextOutput - Not used.
@@ -721,23 +602,17 @@ Arguments:
 
 Return Value:
 
-    Indicates the owner of the OutputBuffer after this function completes and whether or
-    not streaming should stop.
+    None
 
 --*/
 {
-    NTSTATUS ntStatus;
-    WDFWORKITEM workitem;
-    WDF_WORKITEM_CONFIG workitemConfig;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
-    DMFMODULE* dmfModuleAddress;
     ContinuousRequestTarget_BufferDisposition returnValue;
 
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "-->%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "%!FUNC! CompletionStatus=%!STATUS!", CompletionStatus);
 
     if (!NT_SUCCESS(CompletionStatus))
     {
@@ -748,27 +623,9 @@ Return Value:
         goto Exit;
     }
 
-    // Create a WDFWORKITEM and enqueue it. The workitem's function will delete the workitem.
+    // Read switches and set lights.
     //
-    WDF_WORKITEM_CONFIG_INIT(&workitemConfig, 
-                             SwitchBarWorkitemHandler);
-    workitemConfig.AutomaticSerialization = WdfFalse;
-
-    // It is not possible to get the WDFWORKITEM's parent, so create space for the DMFMODULE
-    // in the workitem's context.
-    ///
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
-                                           DMFMODULE);
-    objectAttributes.ParentObject = DmfModule;
-    ntStatus = WdfWorkItemCreate(&workitemConfig,
-                                 &objectAttributes,
-                                 &workitem);
-
-    dmfModuleAddress = WdfObjectGet_DMFMODULE(workitem);
-    *dmfModuleAddress = DmfModule;
-
-    WdfWorkItemEnqueue(workitem);
+    SwitchBarReadSwitchesAndUpdateLightBar(DmfModuleAddressDeviceInterfaceTarget);
 
     // Continue streaming this IOCTL.
     //
@@ -914,7 +771,7 @@ Testing the driver
 
 1. Plug in the OSR FX2 board.
 2. Install any version of the OSR USB FX-2 sample driver.
-3. Install this sample.
+3. Install this sample using this command with Devcon.exe from DDK: `devcon install Switchbar2.inf root\switchbar`
 4. When you run the sample, the light bar should match with the switches. As you change the switches, the light bar should change accordingly.
 5. IMPORTANT: If the display on the board shows 5 or S, it means the board is in Idle state (sleep). Press the button to wake it up.
 6. You can try disabling/enabling either of the two drivers to see how this sample gracefully deals with the appearing/disappearing remote target.
