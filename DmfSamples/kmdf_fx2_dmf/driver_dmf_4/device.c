@@ -241,6 +241,7 @@ Return Value:
                                                   &moduleAttributes);
     moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferCount = 4;
     moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(UCHAR);
+    moduleConfigQueuedWorkitem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
     moduleConfigQueuedWorkitem.EvtQueuedWorkitemFunction = OsrFx2QueuedWorkitem;
     DMF_DmfModuleAdd(DmfModuleInit, 
                      &moduleAttributes, 
