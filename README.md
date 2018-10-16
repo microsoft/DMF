@@ -12,9 +12,49 @@ This blog post provides more information:
 https://blogs.windows.com/buildingapps/2018/08/15/introducing-driver-module-framework/
 
 The Documentation\ folder has detailed information about the framework and how to use it.
-Furthermore, each DMF Module has an associated .md file that explains the Module.
 
-DMF Documentation: https://github.com/Microsoft/DMF/blob/master/Dmf/Documentation/Driver%20Module%20Framework.md
+#### DMF Documentation: 
+https://github.com/Microsoft/DMF/blob/master/Dmf/Documentation/Driver%20Module%20Framework.md
+
+#### Module Documentation: 
+Each DMF Module has an associated .md file that explains the Module. Table below lists all the existing Modules in the library. Module source code can be found in the same path as .md file.
+
+Module Name                 | Module Documentation                                               
+--------------------------- | ---------------------------------------------------------------------------------------------
+Dmf_SelfTarget              | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_SelfTarget.md              
+Dmf_AcpiNotification        | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_AcpiNotification.md        
+Dmf_AcpiTarget              | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_AcpiTarget.md              
+Dmf_AlertableSleep          | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_AlertableSleep.md          
+Dmf_BufferPool              | https://github.com/Microsoft/DMF/blob/master/Dmf/Framework/Modules.Core/Dmf_BufferPool.md       
+Dmf_BufferQueue             | https://github.com/Microsoft/DMF/blob/master/Dmf/Framework/Modules.Core/Dmf_BufferQueue.md      
+Dmf_ButtonTargetViaMsGpio   | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_ButtonTargetViaMsGpio.md   
+Dmf_ContinuousRequestTarget | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_ContinuousRequestTarget.md 
+Dmf_CrashDump               | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_CrashDump.md               
+Dmf_DeviceInterfaceTarget   | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_DeviceInterfaceTarget.md   
+Dmf_GpioTarget              | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_GpioTarget.md              
+Dmf_HashTable               | https://github.com/Microsoft/DMF/blob/master/Dmf/Framework/Modules.Core/Dmf_HashTable.md        
+Dmf_HidTarget               | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_HidTarget.md               
+Dmf_I2cTarget               | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_I2cTarget.md               
+Dmf_IoctlHandler            | https://github.com/Microsoft/DMF/blob/master/Dmf/Framework/Modules.Core/Dmf_IoctlHandler.md     
+Dmf_NotifyUserWithEvent     | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_NotifyUserWithEvent.md     
+Dmf_NotifyUserWithRequest   | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_NotifyUserWithRequest.md   
+Dmf_Pdo                     | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_Pdo.md                     
+Dmf_PingPongBuffer          | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_PingPongBuffer.md          
+Dmf_QueuedWorkitem          | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_QueuedWorkitem.md          
+Dmf_RequestTarget           | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_RequestTarget.md           
+Dmf_Registry                | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_Registry.md                
+Dmf_ResourceHub             | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_ResourceHub.md             
+Dmf_RingBuffer              | https://github.com/Microsoft/DMF/blob/master/Dmf/Framework/Modules.Core/Dmf_RingBuffer.md       
+Dmf_ScheduledTask           | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_ScheduledTask.md           
+Dmf_SerialTarget            | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_SerialTarget.md            
+Dmf_SmbiosWmi               | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_SmbiosWmi.md               
+Dmf_SpiTarget               | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_SpiTarget.md               
+Dmf_Thread                  | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_Thread.md                  
+Dmf_ThreadedBufferQueue     | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_ThreadedBufferQueue.md     
+Dmf_VirtualHidDeviceVhf     | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_VirtualHidDeviceVhf.md     
+Dmf_VirtualHidKeyboard      | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_VirtualHidKeyboard.md      
+Dmf_Wmi                     | https://github.com/Microsoft/DMF/blob/master/Dmf/Modules.Library/Dmf_Wmi.md                     
+
 
 https://github.com/Microsoft/DMF/tree/master/DmfSamples has all the sample drivers that show in incremental steps how to use DMF in a driver. 
 
