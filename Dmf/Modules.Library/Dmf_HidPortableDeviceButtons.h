@@ -33,6 +33,12 @@ typedef enum
     HidPortableDeviceButtons_ButtonId_Maximum
 } HidPortableDeviceButtons_ButtonIdType;
 
+typedef enum
+{
+    HidPortableDeviceButtons_Hotkey_BrightnessUp,
+    HidPortableDeviceButtons_Hotkey_BrightnessDown,
+} HidPortableDeviceButtons_HotkeyType;
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -72,6 +78,14 @@ DMF_HidPortableDeviceButtons_ButtonStateChange(
     _In_ HidPortableDeviceButtons_ButtonIdType ButtonId,
     _In_ ULONG ButtonStateDown
     );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_HidPortableDeviceButtons_HotkeyStateChange(
+    _In_ DMFMODULE DmfModule,
+    _In_ HidPortableDeviceButtons_ButtonIdType Hotkey,
+    _In_ ULONG HotkeyStateDown
+);
 
 // eof: Dmf_HidPortableDeviceButtons.h
 //

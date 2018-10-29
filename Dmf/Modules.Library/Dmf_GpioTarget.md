@@ -205,7 +205,9 @@ None
 Parameter | Description
 ----|----
 DmfModule | An open DMF_GpioTarget Module handle.
-Remarks | * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
+
+#### Remarks
+* See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -229,7 +231,9 @@ None
 Parameter | Description
 ----|----
 DmfModule | An open DMF_GpioTarget Module handle.
-Remarks | * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
+
+#### Remarks
+* See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -255,7 +259,9 @@ None
 Parameter | Description
 ----|----
 DmfModule | An open DMF_GpioTarget Module handle.
-Remarks | * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
+
+#### Remarks
+* See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -283,7 +289,9 @@ Parameter | Description
 DmfModule | An open DMF_GpioTarget Module handle.
 NumberOfGpioLinesAssigned | The given event index.
 NumberOfGpioInterruptsAssigned | The number of GPIO interrupts this Module's instance assigned.
-Remarks | * Use this Method to determine if the resources needed are found. This is for the cases where the Client driver runs regardless of whether or not GPIO lines are available.
+
+#### Remarks
+* Use this Method to determine if the resources needed are found. This is for the cases where the Client driver runs regardless of whether or not GPIO lines are available.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -351,7 +359,7 @@ Value | The given state.
 
 #### Module Remarks
 
-* This Module access a single GPIO line.
+* This Module accesses a single GPIO line.
 * A Client must instantiate one instance of this Module for every GPIO line the Client needs to access.
 
 -----------------------------------------------------------------------------------------------------------------------------------

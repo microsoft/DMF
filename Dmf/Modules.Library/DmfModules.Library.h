@@ -74,6 +74,8 @@ extern "C"
 #include "Dmf_VirtualHidKeyboard.h"
 #include "Dmf_ComponentFirmwareUpdateHidTransport.h"
 #include "Dmf_ComponentFirmwareUpdate.h"
+#include "Dmf_SpbTarget.h"
+#include "Dmf_VirtualHidAmbientLightSensor.h"
 
 // Transport Related Definitions.
 //
