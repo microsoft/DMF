@@ -187,45 +187,6 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-BOOLEAN
-BufferPool_TimerStop(
-    _In_ DMFMODULE DmfModule,
-    _Inout_ BUFFERPOOL_ENTRY* BufferPoolEntry
-    )
-/*++
-
-Routine Description:
-
-    Stops the timer for the given buffer. 
-
-Arguments:
-
-    DmfModule - This Module's handle (for validation purposes).
-    BufferPoolEntry - The given buffer.
-
-Return Value:
-
-    TRUE if the timer was successfully stopped.
-    FALSE if the timer callback will be called.
-
---*/
-{
-    BOOLEAN returnValue;
-
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
-
-    returnValue = WdfTimerStop(BufferPoolEntry->Timer,
-                               FALSE);
-    if (returnValue)
-    {
-        BufferPool_TimerFieldsClear(DmfModule,
-                                    BufferPoolEntry);
-    }
-
-    return returnValue;
-}
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 BufferPool_RemoveEntryList(
     _In_ DMFMODULE DmfModule,
@@ -317,8 +278,8 @@ Return Value:
         {
             // The timer is running. Try to stop it.
             //
-            if (! BufferPool_TimerStop(DmfModule,
-                                       bufferPoolEntry))
+            if (! WdfTimerStop(bufferPoolEntry->Timer,
+                               FALSE))
             {
                 // Timer callback will be called soon, so skip this buffer.
                 // (Try to remove the next buffer.)
@@ -327,9 +288,16 @@ Return Value:
                 bufferPoolEntry = NULL;
                 continue;
             }
-            // The timer has been stopped. The timer callback will not be called.
-            // This buffer will be removed now.
-            //
+            else
+            {
+                // The timer has been stopped. The timer callback will not be called.
+                // Clears fields associated with timer handling.
+                // This buffer will be removed now.
+                //
+                BufferPool_TimerFieldsClear(DmfModule,
+                                            bufferPoolEntry);
+            }
+            
         }
 
         ASSERT(ModuleContext->NumberOfBuffersInList > 0);
@@ -1690,10 +1658,10 @@ Return Value:
         {
             // Temporarily try to stop the timer to prevent future race conditions. 
             //
-            if (! BufferPool_TimerStop(DmfModule,
-                                       bufferPoolEntry))
+            if (! WdfTimerStop(bufferPoolEntry->Timer,
+                               FALSE))
             {
-                // Skip.
+                // Timer callback will be called soon, so skip this buffer.
                 //
                 continue;
             }
@@ -1754,6 +1722,11 @@ Return Value:
                 doneEnumerating = TRUE;
                 ASSERT(ClientBuffer != NULL);
 
+                // The timer has been stopped. Clear the associated fields.
+                //
+                BufferPool_TimerFieldsClear(DmfModule,
+                                            bufferPoolEntry);
+
                 BufferPool_RemoveEntryList(DmfModule,
                                            moduleContext,
                                            bufferPoolEntry);
@@ -1777,12 +1750,15 @@ Return Value:
             case BufferPool_EnumerationDisposition_StopTimerAndStopEnumeration:
             {
                 doneEnumerating = TRUE;
-                break;
+                // Fall through
+                //
             }
             case BufferPool_EnumerationDisposition_StopTimerAndContinueEnumeration:
             {
-                // Nothing to do because the timer was stopped and associated fields were cleared.
+                // The timer was stopped. Clear the associated fields.
                 //
+                BufferPool_TimerFieldsClear(DmfModule,
+                                            bufferPoolEntry);
                 break;
             }
             case BufferPool_EnumerationDisposition_ResetTimerAndStopEnumeration:

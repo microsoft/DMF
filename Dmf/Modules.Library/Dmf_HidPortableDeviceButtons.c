@@ -30,6 +30,12 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Display backlight brightness up and down codes defined by usb hid review request #41.
+// https://www.usb.org/sites/default/files/hutrr41_0.pdf
+//
+#define DISPLAY_BACKLIGHT_BRIGHTNESS_INCREMENT    0x6F
+#define DISPLAY_BACKLIGHT_BRIGHTNESS_DECREMENT    0x70
+
 // The Input Report structure used for the child HID device
 // NOTE: The actual size of this structure must match exactly with the
 //       corresponding descriptor below.
@@ -53,6 +59,14 @@ typedef struct _BUTTONS_INPUT_REPORT
         } Buttons;
     } u;
 } BUTTONS_INPUT_REPORT;
+
+// Used in conjunction with Consumer usage page to send hotkeys to the OS.
+//
+typedef struct
+{
+    UCHAR ReportId;
+    unsigned short HotKey;
+} BUTTONS_HOTKEY_INPUT_REPORT;
 
 #include <poppack.h>
 
@@ -132,6 +146,7 @@ DMF_MODULE_DECLARE_CONFIG(HidPortableDeviceButtons)
 //
 
 #define REPORTID_BUTTONS    0x01
+#define REPORTID_HOTKEYS    0x02
 
 // Report Size includes the Report Id and one byte for data.
 //
@@ -220,6 +235,29 @@ g_HidPortableDeviceButtons_HidReportDescriptor[] =
     0xB1, 0x03,                      // FEATURE (Cnst,Var,Abs)
     0xC0,                            // END_COLLECTION
 
+    0xC0,                            // END_COLLECTION
+
+    //***************************************************************
+    //
+    // hotkeys (consumer)
+    //
+    // report consists of:
+    // 1 byte report ID
+    // 1 word Consumer Key
+    //
+    //***************************************************************
+
+    0x05, 0x0C,                      // USAGE_PAGE (Consumer Devices)
+    0x09, 0x01,                      // HID_USAGE (Consumer Control)
+    0xA1, 0x01,                      // COLLECTION (Application)
+    0x85, REPORTID_HOTKEYS,          // REPORT_ID (REPORTID_HOTKEYS)
+    0x75, 0x10,                      // REPORT_SIZE(16),
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x15, 0x00,                      // LOGICAL_MIN (0)
+    0x26, 0xff, 0x03,                // HID_LOGICAL_MAX (1023)
+    0x19, 0x00,                      // HID_USAGE_MIN (0)
+    0x2A, 0xff, 0x03,                // HID_USAGE_MAX (1023)
+    0x81, 0x00,                      // HID_INPUT (Data,Arr,Abs)
     0xC0                             // END_COLLECTION
 };
 
@@ -758,6 +796,13 @@ Return Value:
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "HidPortableDeviceButtons_SetFeature{Enter connected standby without audio playing}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HidPortableDeviceButtons_GetInputReport.BadReportBufferSize");
     DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HidPortableDeviceButtons_GetInputReport.BadReportId");
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.True{Press or release power}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.False");
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.True{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "ButtonIsEnabled.BadButton");
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Down{Power press}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.Up{Power release}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumePlus.Down{Vol+ press}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
@@ -767,13 +812,11 @@ Return Value:
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power.SAS{Press Power and Vol-}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_VolumeMinus.Up{Vol- release}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
     DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power");
-    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.True{Press or release power}[HidPortableDeviceButtons]", HidPortableDeviceButtons_ButtonPresses);
-    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_Power.False");
-    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.True{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumePlus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "ButtonIsEnabled.HidPortableDeviceButtons_ButtonId_VolumeMinus.False{Don't play audio during connected standby}[HidPortableDeviceButtons,Volume]", HidPortableDeviceButtons_ButtonPresses);
-    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "ButtonIsEnabled.BadButton");
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessUp.Down{Backlight+ press}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessUp.Up{Backlight+ release}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessDown.Down{BacklightDown- press}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_AT_LEAST_CREATE(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessDown.Up{BacklightDown- release}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+    DMF_BRANCHTRACK_MODULE_NEVER_CREATE(DmfModule, "HotkeyStateChange.DMF_HidPortableDeviceButtons_HotkeyStateChange");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1083,8 +1126,104 @@ Return Value:
     hidXferPacket.reportBuffer = (UCHAR*)&inputReportButtonState;
     hidXferPacket.reportBufferLen = moduleContext->VhfHidReport.reportBufferLen;
     hidXferPacket.reportId = moduleContext->VhfHidReport.reportId;
+    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Buttons state=0x%02x", moduleContext->InputReportButtonState.u.Data);
 
     DMF_ModuleUnlock(DmfModule);
+
+    // This function actually populates the upper layer's input report with expected button data.
+    //
+    ntStatus = DMF_VirtualHidDeviceVhf_ReadReportSend(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                      &hidXferPacket);
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_HidPortableDeviceButtons_HotkeyStateChange(
+    _In_ DMFMODULE DmfModule,
+    _In_ HidPortableDeviceButtons_ButtonIdType Hotkey,
+    _In_ ULONG HotkeyStateDown
+    )
+/*++
+
+Routine Description:
+
+    Updates the state of a given hotkey.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ButtonId - The given hotkey.
+    ButtonStateDown - Indicates if the hotkey is pressed DOWN.
+
+Return Value:
+
+    STATUS_SUCCESS means the updated state was successfully sent to HID stack.
+    Other NTSTATUS if there is an error.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidPortableDeviceButtons* moduleContext;
+    BUTTONS_HOTKEY_INPUT_REPORT hotkeyInputReport;
+    HID_XFER_PACKET hidXferPacket;
+
+    FuncEntry(DMF_TRACE);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_HidPortableDeviceButtons);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    hotkeyInputReport.ReportId = REPORTID_HOTKEYS;
+    hotkeyInputReport.HotKey = 0;
+
+    // If statements are used below for clarity and ease of debugging. Also, it prevents
+    // need to cast and allows for possible different states later.
+    //
+    switch (Hotkey)
+    {
+        case HidPortableDeviceButtons_Hotkey_BrightnessUp:
+            if (HotkeyStateDown)
+            {
+                hotkeyInputReport.HotKey = DISPLAY_BACKLIGHT_BRIGHTNESS_INCREMENT;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessUp.Down{Backlight+ press}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            else
+            {
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessUp.Up{Backlight+ release}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+
+        case HidPortableDeviceButtons_Hotkey_BrightnessDown:
+            if (HotkeyStateDown)
+            {
+                hotkeyInputReport.HotKey = DISPLAY_BACKLIGHT_BRIGHTNESS_DECREMENT;
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessDown.Down{BacklightDown- press}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            else
+            {
+                DMF_BRANCHTRACK_MODULE_AT_LEAST(DmfModule, "HotkeyStateChange.HidPortableDeviceButtons_Hotkey_BrightnessDown.Up{BacklightDown- release}[SshKeypad]", HidPortableDeviceButtons_ButtonPresses);
+            }
+            break;
+
+        default:
+            ASSERT(FALSE);
+            ntStatus = STATUS_NOT_SUPPORTED;
+            DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "HotkeyStateChange.DMF_HidPortableDeviceButtons_HotkeyStateChange");
+            DMF_ModuleUnlock(DmfModule);
+            goto Exit;
+    }
+
+    hidXferPacket.reportBuffer = (UCHAR*)&hotkeyInputReport;
+    hidXferPacket.reportBufferLen = sizeof(BUTTONS_HOTKEY_INPUT_REPORT);
+    hidXferPacket.reportId = REPORTID_HOTKEYS;
+    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Hotkey input report hotkey=0x%02x", hotkeyInputReport.HotKey);
 
     // This function actually populates the upper layer's input report with expected button data.
     //

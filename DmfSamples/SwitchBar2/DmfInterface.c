@@ -142,18 +142,17 @@ Return Value:
                                              5);
     switchData.SwitchesAsUChar = ~(switchData.SwitchesAsUChar & 0xFF);
 
-    // Set the light bar...no need to wait.
+    // Set the light bar. Need to wait as the buffer is on the stack.
     //
-    ntStatus = DMF_DeviceInterfaceTarget_Send(DmfModuleDeviceInterfaceTarget,
-                                              &switchData.SwitchesAsUChar,
-                                              sizeof(UCHAR),
-                                              NULL,
-                                              0,
-                                              ContinuousRequestTarget_RequestType_Ioctl,
-                                              IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,
-                                              0,
-                                              NULL,
-                                              NULL);
+    ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(DmfModuleDeviceInterfaceTarget,
+                                                           &switchData.SwitchesAsUChar,
+                                                           sizeof(UCHAR),
+                                                           NULL,
+                                                           0,
+                                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                                           IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,
+                                                           0,
+                                                           NULL);
 
 Exit:
     ;

@@ -573,7 +573,8 @@ GpioTarget_Isr(
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
     ASSERT((moduleConfig->EvtGpioTargetInterruptDpc != NULL) || 
-           (moduleConfig->EvtGpioTargetInterruptPassive != NULL));
+           (moduleConfig->EvtGpioTargetInterruptPassive != NULL) ||
+           (moduleConfig->EvtGpioTargetInterruptIsr != NULL));
 
     // Option 1: Caller wants to do work in ISR at DIRQL (and optionally, at DPC or PASSIVE
     //           levels.)
