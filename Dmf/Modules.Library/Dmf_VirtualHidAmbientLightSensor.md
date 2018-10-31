@@ -1,4 +1,4 @@
-## DMF_VirtualHidKeyboard
+## DMF_VirtualHidAmbientLightSensor
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -6,14 +6,14 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-Exposes a virtual HID keyboard and methods to allow the keyboard to send keystrokes to the input stack.
+Exposes a virtual HID Ambient Light Sensor (ALS) and methods to send lux data up the HID stack.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### DMF_CONFIG_VirtualHidKeyboard
+##### DMF_CONFIG_VirtualHidAmbientLightSensor
 ````
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -28,82 +28,139 @@ typedef struct
     // Version number of the virtual keyboard.
     //
     USHORT VersionNumber;
-    // Determines how the keyboard is instantiated.
+    // Callbacks to get data from ALS hardware.
+    // (These are what the HIDALS driver expects.)
     //
-    VirtualHidKeyboardModeType VirtualHidKeyboardMode;
-} DMF_CONFIG_VirtualHidKeyboard;
+    EVT_VirtualHidAmbientLightSensor_InputReportDataGet* InputReportDataGet;
+    EVT_VirtualHidAmbientLightSensor_FeatureReportDataGet* FeatureReportDataGet;
+    EVT_VirtualHidAmbientLightSensor_FeatureReportDataSet* FeatureReportDataSet;
+} DMF_CONFIG_VirtualHidAmbientLightSensor;
 ````
 Member | Description
 ----|----
 VendorId | The vendor id of the virtual HID keyboard.
 ProductId | The product id of the virtual HID keyboard.
 VersionNumber | The version number of the virtual HID keyboard.
-VirtualHidKeyboardMode | Indicates how the driver exposes the keyboard interface for other drivers, if at all.
+InputReportDataGet | Allows CLIENT to SET input report data.
+FeatureReportDataGet | Allows CLIENT to SET feature report data.
+FeatureReportDataSet | Allows CLIENT to GET feature report data.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
-##### VirtualHidKeyboard_ButtonIdType
-````
-// Indicates how this driver types keystrokes.
-//
-typedef enum
-{
-    VirtualHidKeyboardMode_Invalid,
-    // This driver types the keystrokes and does not expose this function to other drivers.
-    //
-    VirtualHidKeyboardMode_Standalone,
-    // This driver types the keystrokes and exposes this function to other drivers.
-    //
-    VirtualHidKeyboardMode_Server,
-    // This driver does not type keystrokes directly. It calls another driver to do that.
-    //
-    VirtualHidKeyboardMode_Client,
-} VirtualHidKeyboardModeType;
-````
-Member | Description
-----|----
-VirtualHidKeyboardMode_Standalone | This driver types the keystrokes and does not expose this function to other drivers.
-VirtualHidKeyboardMode_Server | This driver types the keystrokes and exposes this function to other drivers.
-VirtualHidKeyboardMode_Client | This driver does not type keystrokes directly. It calls another driver to do that.
+* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
+##### ALS_FEATURE_REPORT_DATA
+````
+typedef struct
+{
+    UCHAR ConnectionType;
+    UCHAR ReportingState;
+    UCHAR PowerState;
+    UCHAR SensorState;
+    USHORT ChangeSensitivity;
+    ULONG ReportInterval;
+    UCHAR MinimumReportInterval;
+    SHORT AlrResponseCurve[VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS][2];
+} VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA;
+````
+See the document, *HID-Sensors-Usages.docx*. This document describes these fields in detail.
+Document is available here: https://docs.microsoft.com/en-us/windows-hardware/design/whitepapers/hid-sensors-usages
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### ALS_INPUT_REPORT_DATA
+````
+typedef struct
+{
+    LONG Lux;
+    UCHAR AlsSensorState;
+    UCHAR AlsSensorEvent;
+} VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA;
+````
+See the document, *HID-Sensors-Usages.docx*. This document describes these fields in detail.
+Document is available here: https://docs.microsoft.com/en-us/windows-hardware/design/whitepapers/hid-sensors-usages
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_VirtualHidAmbientLightSensor_FeatureReportDataGet
+````
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_VirtualHidAmbientLightSensor_FeatureReportDataGet(_In_ DMFMODULE DmfModule,
+                                                      _Out_ VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA* FeatureReportData);
+````
+This callback allows the Client to write Feature Report data.
 
-See MSDN documentation for how the VHF callbacks are used. Set the VhfClientContext member of this Module's Config to the
-DMFMODULE of the Parent Module. Then the Parent Module can access its own Module Context in these callbacks.
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_VirtualHidAmbientLightSensor Module handle.
+FeatureReportData | The target buffer where Client writes ALS Feature Report Data.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_VirtualHidAmbientLightSensor_FeatureReportDataSet
+````
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_VirtualHidAmbientLightSensor_FeatureReportDataSet(_In_ DMFMODULE DmfModule,
+                                                      _Out_ VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA* FeatureReportData);
+````
+This callback allows the Client to read Feature Report data from the application. This data contains ALS configuration information.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_VirtualHidAmbientLightSensor Module handle.
+FeatureReportData | The target buffer where Client reads ALS Feature Report Data.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### EVT_VirtualHidAmbientLightSensor_InputReportDataGet
+````
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_VirtualHidAmbientLightSensor_InputReportDataGet(_In_ DMFMODULE DmfModule,
+                                                    _Out_ VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA* InputReportData);
+````
+This callback allows the Client to write Input Report data. This data contains sensor state as well as current lux data.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_VirtualHidAmbientLightSensor Module handle.
+InputReportData | The target buffer where Client writes ALS Input Report Data.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 #### Module Methods
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### DMF_VirtualHidKeyboard_Type
+##### DMF_VirtualHidAmbientLightSensor_LuxValueSend
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_VirtualHidKeyboard_Type(
+DMF_VirtualHidAmbientLightSensor_LuxValueSend(
     _In_ DMFMODULE DmfModule,
-    _In_ PUSHORT const KeysToType,
-    _In_ ULONG NumberOfKeys,
-    _In_ USHORT UsagePage
+    _In_ float LuxValue
     );
 ````
 
-Type a series of keys using virtual keyboard.
+Allows the Client to send Lux data up the HID stack.
 
 ##### Returns
 
@@ -112,45 +169,12 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_VirtualHidKeyboard Module handle.
-KeysToType | Array of ids of keys to type.
-NumberOfKeys | Number of entries in KeysToType.
-UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID report descriptor.)
+DmfModule | An open DMF_VirtualHidAmbientLightSensor Module handle.
+LuxValue | Lux data to send up the HID stack.
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
-##### DMF_VirtualHidKeyboard_Toggle
-
-````
-_IRQL_requires_max_(PASSIVE_LEVEL)
-NTSTATUS
-DMF_VirtualHidKeyboard_Toggle(
-    _In_ DMFMODULE DmfModule,
-    _In_ USHORT const KeyToToggle,
-    _In_ USHORT UsagePage
-    );
-````
-
-Toggles a single key on the HID keyboard.
-
-##### Returns
-
-NTSTATUS
-
-##### Parameters
-Parameter | Description
-----|----
-DmfModule | An open DMF_VirtualHidKeyboard Module handle.
-KeyToToggle | The id of the key to toggle..
-UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID report descriptor.)
-
-##### Remarks
-
-* None
+* The Client uses this method to send the current lux value read after an interrupt on the ALS has occurred indicating ambient light changed past current threshold.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -168,7 +192,7 @@ UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID rep
 
 #### Module Children
 
-* None
+* DMF_VirtualHidDeviceVhf
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -177,6 +201,8 @@ UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID rep
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Examples
+
+* DmfAls Sample
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

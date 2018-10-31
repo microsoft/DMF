@@ -40,6 +40,9 @@ typedef struct
   // Retry timeout for ScheduledTask_WorkResult_FailButTryAgain.
   //
   ULONG TimerPeriodMsOnFail;
+  // Delay before initial deferred call begins.
+  //
+  ULONG TimeMsBeforeInitialCall;
 } DMF_CONFIG_ScheduledTask;
 ````
 Member | Description
@@ -51,6 +54,7 @@ ExecutionMode | Indicates whether or not EvtScheduledTaskCallback executes in th
 ExecuteWhen | Indicates when EvtScheduledTaskCallback should be called.
 TimerPeriodMsOnSuccess | The amount of time to wait in milliseconds until the EvtScheduledTaskCallback is called again in the case of a successful call.
 TimerPeriodMsOnFail | The amount of time to wait in milliseconds until the EvtScheduledTaskCallback is called again in the case of a failed call.
+TimeMsBeforeInitialCall | The amount of time to wait in milliseconds before the initial deferred call occurs. Default is zero milliseconds.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

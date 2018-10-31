@@ -17,85 +17,34 @@ This Module gives the Client access to devices connected to Small Peripheral Bus
 ````
 typedef struct
 {
-  // Module will not load if SPB Connection not found.
-  //
-  BOOLEAN SpbConnectionMandatory;
-  // Module will not load if Interrupt not found.
-  //
-  BOOLEAN InterruptMandatory;
-  // SPB Connection index for this instance.
-  //
-  ULONG SpbConnectionIndex;
-  // Interrupt index for this instance.
-  //
-  ULONG InterruptIndex;
-  // Open in Read or Write mode.
-  //
-  ULONG OpenMode;
-  // Share Access.
-  //
-  ULONG ShareAccess;
-  // Passive handling.
-  //
-  BOOLEAN PassiveHandling;
-  // Can SPB wake the device.
-  //
-  BOOLEAN CanWakeDevice;
-  // Optional Callback from ISR (with Interrupt Spin Lock held).
-  //
-  EVT_DMF_SpbTarget_InterruptIsr* EvtSpbTargetInterruptIsr;
-  // Optional Callback at DPC_LEVEL Level.
-  //
-  EVT_DMF_SpbTarget_InterruptDpc* EvtSpbTargetInterruptDpc;
-  // Optional Callback at PASSIVE_LEVEL Level.
-  //
-  EVT_DMF_SpbTarget_InterruptPassive* EvtSpbTargetInterruptPassive;
+    // Module will not load if Spb Connection not found.
+    //
+    BOOLEAN SpbConnectionMandatory;
+    // GPIO Connection index for this instance.
+    //
+    ULONG SpbConnectionIndex;
+    // Open in Read or Write mode.
+    //
+    ULONG OpenMode;
+    // Share Access.
+    //
+    ULONG ShareAccess;
+    // Interrupt Resource
+    //
+    DMF_CONFIG_InterruptResource InterruptResource;
 } DMF_CONFIG_SpbTarget;
 ````
 Member | Description
 ----|----
 SpbConnectionMandatory | Module must find the SPB connection at SpbConnectionIndex in order to initialize properly.
-InterruptMandatory | Module must find the Interrupt at InterruptIndex in order to initialize properly.
 SpbConnectionIndex | The index of the SPB line that this Module's instance should access.
-InterruptIndex | The index of the Interrupt that this Module's instance should access.
 OpenMode | Indicates if this Module's instance will read and/or write from/to the SPB line.
 ShareAccess | Indicates if this Module's instance will access the SPB line in exclusive mode.
-PassiveHandling | Indicates that interrupts that happen on the SPB line should be dispatched to Client's callback at PASSIVE_LEVEL. Otherwise, the Client's callback is called at DISPATCH_LEVEL.
-CanWakeDevice | Indicates if the SPB line should be able wake the system.
-EvtSpbTargetInterruptIsr | The callback that is called at DPC_LEVEL when an interrupt happens on the SPB line. The interrupt spin-lock is already acquired while this callback runs.
-EvtSpbTargetInterruptDpc | The callback that is called at DISPATCH_LEVEL when an interrupt happens on the SPB line.
-EvtSpbTargetInterruptPassive | The callback that is called at PASSIVE_LEVEL when an interrupt happens on the SPB line.
+InteruptResource | Allows Client to specify an interrupt resource associated with the SPB resource.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
-
------------------------------------------------------------------------------------------------------------------------------------
-##### SpbTarget_QueuedWorkItem_Type
-````
-typedef enum
-{
-  // Sentinel for validity checking.
-  //
-  SpbTarget_QueuedWorkItem_Invalid,
-  // ISR/DPC has no additional work to do.
-  //
-  SpbTarget_QueuedWorkItem_Nothing,
-  // ISR has more work to do at DISPATCH_LEVEL.
-  //
-  SpbTarget_QueuedWorkItem_Dpc,
-  // DPC has more work to do at PASSIVE_LEVEL.
-  //
-  SpbTarget_QueuedWorkItem_WorkItem
-} SpbTarget_QueuedWorkItem_Type;
-````
-Indicates what the Client wants to do after EvtSpbTargetInterruptIsr/EvtSpbTargetInterruptDpc callbacks have executed.
-
-Member | Description
-----|----
-SpbTarget_QueuedWorkItem_Nothing | Do nothing.
-SpbTarget_QueuedWorkItem_Dpc | Enqueue a DPC.
-SpbTarget_QueuedWorkItem_WorkItem | Enqueue a workitem.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -107,79 +56,7 @@ SpbTarget_QueuedWorkItem_WorkItem | Enqueue a workitem.
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
-##### EVT_DMF_SpbTarget_InterruptIsr
-````
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
-BOOLEAN
-EVT_DMF_SpbTarget_InterruptIsr(
-    _In_ DMFMODULE DmfModule,
-    _In_ ULONG MessageId,
-    _Out_ SpbTarget_QueuedWorkItem_Type* QueuedWorkItem
-    );
-````
-
-Client callback at DISPATCH_LEVEL when an interrupt occurs on the SPB line of this instantiated Module.
-
-##### Returns
-
-TRUE if this driver recognizes the interrupt as its own.
-
-##### Parameters
-Parameter | Description
-----|----
-DmfModule | An open DMF_SpbTarget Module handle.
-MessageId | The MessageId of the interrupt.
-QueuedWorkItem | Indicates what post processing the Client wants to after this callback executes.
-
------------------------------------------------------------------------------------------------------------------------------------
-##### EVT_DMF_SpbTarget_InterruptDpc
-````
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
-VOID
-EVT_DMF_SpbTarget_InterruptDpc(
-    _In_ DMFMODULE DmfModule,
-    _Out_ SpbTarget_QueuedWorkItem_Type* QueuedWorkItem
-    );
-````
-
-Client callback at DISPATCH_LEVEL when an interrupt occurs on the SPB line of this instantiated Module.
-
-##### Returns
-
-None
-
-##### Parameters
-Parameter | Description
-----|----
-DmfModule | An open DMF_SpbTarget Module handle.
-QueuedWorkItem | Indicates what post processing the Client wants to after this callback executes.
-
------------------------------------------------------------------------------------------------------------------------------------
-##### EVT_DMF_SpbTarget_InterruptPassive
-````
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-VOID
-EVT_DMF_SpbTarget_InterruptPassive(
-    _In_ DMFMODULE DmfModule
-    );
-````
-
-Client callback at PASSIVE_LEVEL when an interrupt occurs on the SPB line of this instantiated Module.
-
-##### Returns
-
-None
-
-##### Parameters
-Parameter | Description
-----|----
-DmfModule | An open DMF_SpbTarget Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
+* None
 
 #### Module Methods
 

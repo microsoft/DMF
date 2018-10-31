@@ -108,6 +108,9 @@ typedef struct
     // Retry timeout for ScheduledTask_WorkResult_FailButTryAgain.
     //
     ULONG TimerPeriodMsOnFail;
+    // Delay before initial deferred call begins.
+    //
+    ULONG TimeMsBeforeInitialCall;
 } DMF_CONFIG_ScheduledTask;
 
 // This macro declares the following functions:
