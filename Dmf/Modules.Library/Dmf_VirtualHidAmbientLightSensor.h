@@ -13,7 +13,6 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -25,7 +24,7 @@ Environment:
 
 // It is the number of two column rows in the table.
 //
-#define MAX_ALR_CURVE_RECORDS               24
+#define VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS               24
 
 // Input Report
 //
@@ -35,7 +34,7 @@ typedef struct
     LONG Lux;
     UCHAR AlsSensorState;
     UCHAR AlsSensorEvent;
-} ALS_INPUT_REPORT_DATA;
+} VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA;
 #pragma pack()
 
 // Feature Report
@@ -50,8 +49,8 @@ typedef struct
     USHORT ChangeSensitivity;
     ULONG ReportInterval;
     UCHAR MinimumReportInterval;
-    SHORT AlrResponseCurve[MAX_ALR_CURVE_RECORDS][2];
-} ALS_FEATURE_REPORT_DATA;
+    SHORT AlrResponseCurve[VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS][2];
+} VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA;
 #pragma pack()
 
 typedef
@@ -60,7 +59,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientLightSensor_InputReportDataGet(_In_ DMFMODULE DmfModule,
-                                                    _Out_ ALS_INPUT_REPORT_DATA* InputReportData);
+                                                    _Out_ VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA* InputReportData);
 
 typedef
 _Function_class_(EVT_VirtualHidAmbientLightSensor_FeatureReportDataGet)
@@ -68,7 +67,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientLightSensor_FeatureReportDataGet(_In_ DMFMODULE DmfModule,
-                                                      _Out_ ALS_FEATURE_REPORT_DATA* FeatureReportData);
+                                                      _Out_ VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA* FeatureReportData);
 
 typedef
 _Function_class_(EVT_VirtualHidAmbientLightSensor_FeatureReportDataSet)
@@ -76,7 +75,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientLightSensor_FeatureReportDataSet(_In_ DMFMODULE DmfModule,
-                                                      _In_ ALS_FEATURE_REPORT_DATA* FeatureReportData);
+                                                      _In_ VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA* FeatureReportData);
 
 // Client uses this structure to configure the Module specific parameters.
 //

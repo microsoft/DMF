@@ -469,7 +469,7 @@ Return Value:
                         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START");
                         moduleContext->TimerIsStarted = TRUE;
                         WdfTimerStart(moduleContext->Timer,
-                                      WDF_REL_TIMEOUT_IN_MS(0));
+                                      WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimeMsBeforeInitialCall));
                     }
                     break;
                 }
@@ -623,7 +623,7 @@ Return Value:
                         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START");
                         moduleContext->TimerIsStarted = TRUE;
                         WdfTimerStart(moduleContext->Timer,
-                                      WDF_REL_TIMEOUT_IN_MS(0));
+                                      WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimeMsBeforeInitialCall));
                     }
                     break;
                 }

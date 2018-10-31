@@ -8,12 +8,11 @@ Module Name:
 
 Abstract:
 
-    Support for creating a virtual keyboard device that "types" keys into the host.
+    Exposes a virtual HID Ambient Light Sensor (ALS) and methods to send lux data up the HID stack.
 
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -35,7 +34,7 @@ Environment:
 typedef struct
 {
     UCHAR ReportId;
-    ALS_INPUT_REPORT_DATA InputReportData;
+    VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA InputReportData;
 } ALS_INPUT_REPORT;
 #pragma pack()
 
@@ -45,7 +44,7 @@ typedef struct
 typedef struct
 {
     UCHAR ReportId;
-    ALS_FEATURE_REPORT_DATA FeatureReportData;
+    VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA FeatureReportData;
 } ALS_FEATURE_REPORT;
 #pragma pack()
 
@@ -88,10 +87,6 @@ DMF_MODULE_DECLARE_CONFIG(VirtualHidAmbientLightSensor)
 //
 
 #define REPORT_ID_ALS 1
-
-// It is the number of two column rows in the table.
-//
-#define MAX_ALR_CURVE_RECORDS               24
 
 static
 const
@@ -213,7 +208,7 @@ g_VirtualHidAmbientLightSensor_HidReportDescriptor[] =
     HID_LOGICAL_MIN_16(0x01,0x80),
     HID_LOGICAL_MAX_16(0xFF,0x7F),
     HID_REPORT_SIZE(16),
-    HID_REPORT_COUNT(MAX_ALR_CURVE_RECORDS * 2),
+    HID_REPORT_COUNT(VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS * 2),
     HID_UNIT_EXPONENT(0x0),
     HID_FEATURE(Data_Var_Abs),
 
@@ -585,44 +580,6 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-static
-VOID
-DMF_VirtualHidAmbientLightSensor_Close(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Uninitialize an instance of a DMF Module of type VirtualHidAmbientLightSensor.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    DMF_CONTEXT_VirtualHidAmbientLightSensor* moduleContext;
-    DMF_CONFIG_VirtualHidAmbientLightSensor* moduleConfig;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    FuncExitVoid(DMF_TRACE);
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_VirtualHidAmbientLightSensor_ChildModulesAdd(
     _In_ DMFMODULE DmfModule,
@@ -749,7 +706,6 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_VirtualHidAmbientLightSensor);
     DmfCallbacksDmf_VirtualHidAmbientLightSensor.DeviceOpen = DMF_VirtualHidAmbientLightSensor_Open;
-    DmfCallbacksDmf_VirtualHidAmbientLightSensor.DeviceClose = DMF_VirtualHidAmbientLightSensor_Close;
     DmfCallbacksDmf_VirtualHidAmbientLightSensor.ChildModulesAdd = DMF_VirtualHidAmbientLightSensor_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_VirtualHidAmbientLightSensor,
