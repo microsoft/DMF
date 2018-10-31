@@ -47,34 +47,32 @@ typedef struct
     // Resources assigned.
     //
     BOOLEAN GpioConnectionAssigned;
-    BOOLEAN InterruptAssigned;
 
     // GPIO Line Index that is instantiated in this object.
     //
     ULONG GpioTargetLineIndex;
-    // GPIO Interrupt Index that is instantiated in this object.
-    //
-    ULONG GpioTargetInterruptIndex;
 
     // Underlying GPIO device connection.
     //
     WDFIOTARGET GpioTarget;
+
     // Resource information for GPIO device.
     //
     CM_PARTIAL_RESOURCE_DESCRIPTOR GpioTargetConnection;
-    // Optional interrupt instantiation.
+
+    // InterruptResource.
     //
-    WDFINTERRUPT Interrupt;
-    // Optional workitem instantiation.
+    DMFMODULE DmfModuleInterruptResource;
+
+    // Optional Callback from ISR (with Interrupt Spin Lock held).
     //
-    WDFWORKITEM Workitem;
-    // Queuing of DPCs/workitems may not succeed if they are currently enqueued.
-    // These two variables keep track of the exact number of times the DPC/workitem must
-    // execute. This Module ensures that each attempt to enqueue causes the same number
-    // of actual executions.
+    EVT_DMF_InterruptResource_InterruptIsr* EvtGpioTargetInterruptIsr;
+    // Optional Callback at DPC_LEVEL Level.
     //
-    ULONG NumberOfTimesDpcMustExecute;
-    ULONG NumberOfTimesWorkitemMustExecute;
+    EVT_DMF_InterruptResource_InterruptDpc* EvtGpioTargetInterruptDpc;
+    // Optional Callback at PASSIVE_LEVEL Level.
+    //
+    EVT_DMF_InterruptResource_InterruptPassive* EvtGpioTargetInterruptPassive;
 } DMF_CONTEXT_GpioTarget;
 
 // This macro declares the following function:
@@ -339,304 +337,123 @@ Exit:
 }
 #pragma code_seg()
 
-EVT_WDF_WORKITEM GpioTarget_Workitem;
+EVT_DMF_InterruptResource_InterruptIsr GpioTarget_InterruptIsr;
 
-#pragma code_seg("PAGE")
-_Use_decl_annotations_
-VOID
-GpioTarget_Workitem(
-    _In_ WDFWORKITEM Workitem
-    )
-/*++
-Routine Description:
-
-    Workitem to be queued in DPC.
-    The Client callback is called to indicate that an interrupt happened.
-
-Arguments:
-
-    Workitem - handle to a WDF workitem object.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_GpioTarget* moduleContext;
-    DMF_CONFIG_GpioTarget* moduleConfig;
-    ULONG numberOfTimesWorkitemMustExecute;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    dmfModule = (DMFMODULE)WdfWorkItemGetParentObject(Workitem);
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    ASSERT(moduleConfig->EvtGpioTargetInterruptPassive != NULL);
-
-    // It is possible attempts to enqueue fail, so make sure to execute exactly the number
-    // of times ISR attempted to enqueue.
-    //
-    WdfInterruptAcquireLock(moduleContext->Interrupt);
-    numberOfTimesWorkitemMustExecute = moduleContext->NumberOfTimesWorkitemMustExecute;
-    moduleContext->NumberOfTimesWorkitemMustExecute = 0;
-    WdfInterruptReleaseLock(moduleContext->Interrupt);
-
-    while (numberOfTimesWorkitemMustExecute > 0)
-    {
-        moduleConfig->EvtGpioTargetInterruptPassive(dmfModule);
-        numberOfTimesWorkitemMustExecute--;
-    }
-
-    FuncExitNoReturn(DMF_TRACE);
-}
-#pragma code_seg()
-
-EVT_WDF_INTERRUPT_WORKITEM GpioTarget_PasiveLevelCallback;
-
-#pragma code_seg("PAGE")
-_Use_decl_annotations_
-VOID
-GpioTarget_PasiveLevelCallback(
-    _In_ WDFINTERRUPT Interrupt,
-    _In_ WDFOBJECT WdfDevice
-    )
-/*++
-Routine Description:
-
-    Passive Level callback for a passive level GPIO interrupt.
-
-Arguments:
-
-    Interrupt - handle to a WDF interrupt object.
-    WdfDevice - handle to a WDF device object.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMFMODULE* dmfModuleAddress;
-    DMF_CONFIG_GpioTarget* moduleConfig;
-
-    UNREFERENCED_PARAMETER(WdfDevice);
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    dmfModuleAddress = WdfObjectGet_DMFMODULE(Interrupt);
-
-    // This is just a sanity check.
-    //
-    ASSERT(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
-
-    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
-
-    // Call the optional PASSIVE_LEVEL Client Driver callback.
-    //
-    ASSERT(moduleConfig->EvtGpioTargetInterruptPassive != NULL);
-
-    moduleConfig->EvtGpioTargetInterruptPassive(*dmfModuleAddress);
-
-    FuncExitNoReturn(DMF_TRACE);
-}
-#pragma code_seg()
-
-EVT_WDF_INTERRUPT_DPC GpioTarget_DpcForIsr;
-
-_Use_decl_annotations_
-VOID
-GpioTarget_DpcForIsr(
-    _In_ WDFINTERRUPT Interrupt,
-    _In_ WDFOBJECT WdfDevice
-    )
-/*++
-Routine Description:
-
-    DPC callback for a GPIO interrupt.
-
-Arguments:
-
-    Interrupt - handle to a WDF interrupt object.
-    WdfDevice - handle to a WDF device object.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMFMODULE* dmfModuleAddress;
-    DMF_CONFIG_GpioTarget* moduleConfig;
-    DMF_CONTEXT_GpioTarget* moduleContext;
-    GpioTarget_QueuedWorkItem_Type queuedWorkItem;
-    ULONG numberOfTimesDpcMustExecute;
-
-    UNREFERENCED_PARAMETER(WdfDevice);
-
-    FuncEntry(DMF_TRACE);
-
-    // The Interrupt's Module Context area has the DMF Module.
-    //
-    dmfModuleAddress = WdfObjectGet_DMFMODULE(Interrupt);
-
-    // This is just a sanity check.
-    //
-    ASSERT(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
-
-    moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
-
-    // Call the DISPATCH_LEVEL Client callback.
-    //
-    ASSERT(moduleConfig->EvtGpioTargetInterruptDpc != NULL);
-
-    // It is possible attempts to enqueue fail, so make sure to execute exactly the number
-    // of times ISR attempted to enqueue.
-    //
-    WdfInterruptAcquireLock(moduleContext->Interrupt);
-    numberOfTimesDpcMustExecute = moduleContext->NumberOfTimesDpcMustExecute;
-    moduleContext->NumberOfTimesDpcMustExecute = 0;
-    WdfInterruptReleaseLock(moduleContext->Interrupt);
-
-    while (numberOfTimesDpcMustExecute > 0)
-    {
-        moduleConfig->EvtGpioTargetInterruptDpc(*dmfModuleAddress,
-                                                &queuedWorkItem);
-        if (GpioTarget_QueuedWorkItem_WorkItem == queuedWorkItem)
-        {
-            moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-            ASSERT(moduleContext != NULL);
-
-            ASSERT(moduleContext->Workitem != NULL);
-            WdfInterruptAcquireLock(moduleContext->Interrupt);
-            moduleContext->NumberOfTimesWorkitemMustExecute++;
-            WdfInterruptReleaseLock(moduleContext->Interrupt);
-
-            WdfWorkItemEnqueue(moduleContext->Workitem);
-        }
-        numberOfTimesDpcMustExecute--;
-    }
-
-    FuncExitNoReturn(DMF_TRACE);
-}
-
-EVT_WDF_INTERRUPT_ISR GpioTarget_Isr;
-
-_Use_decl_annotations_
+_Function_class_(EVT_DMF_InterruptResource_InterruptIsr)
+_IRQL_requires_same_
 BOOLEAN
-GpioTarget_Isr(
-    _In_ WDFINTERRUPT Interrupt,
-    _In_ ULONG MessageId
+GpioTarget_InterruptIsr(
+    _In_ DMFMODULE DmfModuleInterruptResource,
+    _In_ ULONG MessageId,
+    _Out_ InterruptResource_QueuedWorkItem_Type* QueuedWorkItem
     )
 /*++
 
-  Routine Description:
+Routine Description:
 
-    This routine responds to interrupts generated by the H/W.
-    This ISR is called at PASSIVE_LEVEL.
+    Chain DIRQL_LEVEL interrupt callback from Child Module to Parent Module.
+    (Callback Clients must always receive callbacks from immediate descendant.)
 
-  Arguments:
+Arguments:
 
-    Interrupt - A handle to a framework interrupt object.
-    MessageId - Message number identifying the device's
-                hardware interrupt message (if using MSI).
+    DmfModuleInterruptResource - Child Module handle.
+    MessageId - Interrupt message id.
+    QueuedWorkItem - Indicates next action per callback client.
 
-  Return Value:
+Return Value:
 
-    TRUE if interrupt recognized.
+    TRUE indicates callback client recognizes interrupt.
 
 --*/
 {
-    DMFMODULE* dmfModuleAddress;
+    DMFMODULE DmfModuleGpioTarget;
     DMF_CONTEXT_GpioTarget* moduleContext;
-    DMF_CONFIG_GpioTarget* moduleConfig;
-    BOOLEAN interruptHandled;
-    BOOLEAN enqueued;
+    BOOLEAN returnValue;
 
-    UNREFERENCED_PARAMETER(MessageId);
+    DmfModuleGpioTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
+    moduleContext = DMF_CONTEXT_GET(DmfModuleGpioTarget);
 
-    FuncEntry(DMF_TRACE);
+    ASSERT(moduleContext->EvtGpioTargetInterruptIsr != NULL);
+    returnValue = moduleContext->EvtGpioTargetInterruptIsr(DmfModuleGpioTarget,
+                                                          MessageId,
+                                                          QueuedWorkItem);
 
-    // The Interrupt's Module context area has the DMF Module.
-    //
-    dmfModuleAddress = WdfObjectGet_DMFMODULE(Interrupt);
+    return returnValue;
+}
 
-    moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
+EVT_DMF_InterruptResource_InterruptDpc GpioTarget_InterruptDpc;
 
-    ASSERT((moduleConfig->EvtGpioTargetInterruptDpc != NULL) || 
-           (moduleConfig->EvtGpioTargetInterruptPassive != NULL) ||
-           (moduleConfig->EvtGpioTargetInterruptIsr != NULL));
+_Function_class_(EVT_DMF_InterruptResource_InterruptDpc)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+GpioTarget_InterruptDpc(
+    _In_ DMFMODULE DmfModuleInterruptResource,
+    _Out_ InterruptResource_QueuedWorkItem_Type* QueuedWorkItem
+    )
+/*++
 
-    // Option 1: Caller wants to do work in ISR at DIRQL (and optionally, at DPC or PASSIVE
-    //           levels.)
-    // Option 2: Caller wants to do work at DPC level (and optionally at PASSIVE level).
-    // Option 3: Caller wants to do work only at PASSIVE_LEVEL.
-    //
-    if (moduleConfig->EvtGpioTargetInterruptIsr != NULL)
-    {
-        GpioTarget_QueuedWorkItem_Type queuedWorkItem;
+Routine Description:
 
-        interruptHandled = moduleConfig->EvtGpioTargetInterruptIsr(*dmfModuleAddress,
-                                                                   MessageId,
-                                                                   &queuedWorkItem);
-        if (interruptHandled)
-        {
-            if (GpioTarget_QueuedWorkItem_Dpc == queuedWorkItem)
-            {
-                ASSERT(moduleConfig->EvtGpioTargetInterruptDpc != NULL);
-                // Interrupt SpinLock is held.
-                //
-                moduleContext->NumberOfTimesDpcMustExecute++;
-                enqueued = WdfInterruptQueueDpcForIsr(Interrupt);
-            }
-            else if (GpioTarget_QueuedWorkItem_WorkItem == queuedWorkItem)
-            {
-                ASSERT(moduleConfig->EvtGpioTargetInterruptPassive != NULL);
-                // Interrupt SpinLock is held.
-                //
-                moduleContext->NumberOfTimesWorkitemMustExecute++;
-                enqueued = WdfInterruptQueueWorkItemForIsr(Interrupt);
-            }
-        }
-    }
-    // Call the optional DPC_LEVEL Client Driver callback.
-    //
-    else if (moduleConfig->EvtGpioTargetInterruptDpc != NULL)
-    {
-        // Interrupt SpinLock is held.
-        //
-        moduleContext->NumberOfTimesDpcMustExecute++;
-        enqueued = WdfInterruptQueueDpcForIsr(Interrupt);
-        interruptHandled = TRUE;
-    }
-    // If no DPC, launch the optional Client Driver PASSIVE_LEVEL callback.
-    //
-    else if (moduleConfig->EvtGpioTargetInterruptPassive != NULL)
-    {
-        // Interrupt SpinLock is held.
-        //
-        moduleContext->NumberOfTimesWorkitemMustExecute++;
-        enqueued = WdfInterruptQueueWorkItemForIsr(Interrupt);
-        interruptHandled = TRUE;
-    }
-    else
-    {
-        ASSERT(FALSE);
-        interruptHandled = TRUE;
-    }
+    Chain DISPATCH_LEVEL interrupt callback from Child Module to Parent Module.
+    (Callback Clients must always receive callbacks from immediate descendant.)
 
-    FuncExitNoReturn(DMF_TRACE);
+Arguments:
 
-    return interruptHandled;
+    DmfModuleInterruptResource - Child Module handle.
+    QueuedWorkItem - Indicates next action per callback client.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE DmfModuleGpioTarget;
+    DMF_CONTEXT_GpioTarget* moduleContext;
+
+    DmfModuleGpioTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
+    moduleContext = DMF_CONTEXT_GET(DmfModuleGpioTarget);
+
+    ASSERT(moduleContext->EvtGpioTargetInterruptIsr != NULL);
+    moduleContext->EvtGpioTargetInterruptDpc(DmfModuleGpioTarget,
+                                            QueuedWorkItem);
+}
+
+EVT_DMF_InterruptResource_InterruptPassive GpioTarget_InterruptPassive;
+
+_Function_class_(EVT_DMF_InterruptResource_InterruptPassive)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+GpioTarget_InterruptPassive(
+    _In_ DMFMODULE DmfModuleInterruptResource
+    )
+/*++
+
+Routine Description:
+
+    Chain PASSIVE_LEVEL interrupt callback from Child Module to Parent Module.
+    (Callback Clients must always receive callbacks from immediate descendant.)
+
+Arguments:
+
+    DmfModuleInterruptResource - Child Module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE DmfModuleGpioTarget;
+    DMF_CONTEXT_GpioTarget* moduleContext;
+
+    DmfModuleGpioTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
+    moduleContext = DMF_CONTEXT_GET(DmfModuleGpioTarget);
+
+    ASSERT(moduleContext->EvtGpioTargetInterruptPassive != NULL);
+    moduleContext->EvtGpioTargetInterruptPassive(DmfModuleGpioTarget);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -648,6 +465,80 @@ GpioTarget_Isr(
 // DMF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_GpioTarget_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_GpioTarget* moduleConfig;
+    DMF_CONTEXT_GpioTarget* moduleContext;
+    DMF_CONFIG_InterruptResource configInterruptResource;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // InterruptResource
+    // -----------------
+    //
+    DMF_CONFIG_InterruptResource_AND_ATTRIBUTES_INIT(&configInterruptResource,
+                                                     &moduleAttributes);
+    RtlCopyMemory(&configInterruptResource,
+                  &moduleConfig->InterruptResource,
+                  sizeof(DMF_CONFIG_InterruptResource));
+    // Chain interrupt callbacks from this Module to Client.
+    //
+    if (moduleConfig->InterruptResource.EvtInterruptResourceInterruptIsr != NULL)
+    {
+        moduleContext->EvtGpioTargetInterruptIsr = moduleConfig->InterruptResource.EvtInterruptResourceInterruptIsr;
+        configInterruptResource.EvtInterruptResourceInterruptIsr = GpioTarget_InterruptIsr;
+    }
+    if (moduleConfig->InterruptResource.EvtInterruptResourceInterruptDpc != NULL)
+    {
+        moduleContext->EvtGpioTargetInterruptDpc = moduleConfig->InterruptResource.EvtInterruptResourceInterruptDpc;
+        configInterruptResource.EvtInterruptResourceInterruptDpc = GpioTarget_InterruptDpc;
+    }
+    if (moduleConfig->InterruptResource.EvtInterruptResourceInterruptPassive != NULL)
+    {
+        moduleContext->EvtGpioTargetInterruptPassive = moduleConfig->InterruptResource.EvtInterruptResourceInterruptPassive;
+        configInterruptResource.EvtInterruptResourceInterruptPassive = GpioTarget_InterruptPassive;
+    }
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleInterruptResource);
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -783,13 +674,6 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // Make sure all pending work is complete.
-    //
-    if (moduleContext->Workitem != NULL)
-    {
-        WdfWorkItemFlush(moduleContext->Workitem);
-    }
-
     if (moduleContext->GpioTarget != NULL)
     {
         WdfIoTargetClose(moduleContext->GpioTarget);
@@ -835,46 +719,27 @@ Return Value:
     ULONG resourceCount;
     ULONG resourceIndex;
     NTSTATUS ntStatus;
-    ULONG interruptResourceIndex;
-    WDF_INTERRUPT_CONFIG interruptConfig;
-    WDF_OBJECT_ATTRIBUTES interruptAttributes;
-    WDF_OBJECT_ATTRIBUTES workitemAttributes;
-    WDF_WORKITEM_CONFIG  workitemConfig;
-    WDFDEVICE device;
     DMF_CONFIG_GpioTarget* moduleConfig;
     ULONG gpioConnectionIndex;
-    ULONG interruptIndex;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(ResourcesRaw != NULL);
-    ASSERT(ResourcesTranslated != NULL);
+    UNREFERENCED_PARAMETER(ResourcesRaw);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT((FALSE == moduleConfig->InterruptMandatory) ||
-           (moduleConfig->EvtGpioTargetInterruptDpc != NULL) ||
-           (moduleConfig->EvtGpioTargetInterruptPassive != NULL) ||
-           (moduleConfig->EvtGpioTargetInterruptIsr != NULL));
-
-    device = DMF_ParentDeviceGet(DmfModule);
-
     moduleContext->GpioConnectionAssigned = FALSE;
-    moduleContext->InterruptAssigned = FALSE;
-    interruptResourceIndex = 0;
 
     // Check the number of resources for the button device.
     //
     resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
 
-    // Parse the resources. This Module cares about GPIO and Interrupt resources.
+    // Parse the resources. This Module cares about GPIO resources.
     //
     gpioConnectionIndex = 0;
-    interruptIndex = 0;
     for (resourceIndex = 0; resourceIndex < resourceCount; resourceIndex++)
     {
         PCM_PARTIAL_RESOURCE_DESCRIPTOR resource;
@@ -916,33 +781,6 @@ Return Value:
                             resource->u.Connection.IdLowPart);
             }
         }
-        else if (CmResourceTypeInterrupt == resource->Type)
-        {
-            if (moduleConfig->InterruptIndex == interruptIndex)
-            {
-                // Store the index of the GPIO interrupt that is instantiated.
-                // (For debug purposes only.)
-                //
-                moduleContext->GpioTargetInterruptIndex = interruptIndex;
-
-                // Save the actual resource index that is used later to initialize the interrupt.
-                //
-                interruptResourceIndex = resourceIndex;
-
-                moduleContext->InterruptAssigned = TRUE;
-
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Assign: GpioTargetInterruptIndex=%d interruptResourceIndex=%d",
-                            moduleContext->GpioTargetInterruptIndex,
-                            interruptResourceIndex);
-            }
-
-            interruptIndex++;
-
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "CmResourceTypeInterrupt 0x%08X 0x%IX 0x%08X",
-                        resource->u.Interrupt.Vector,
-                        resource->u.Interrupt.Affinity,
-                        resource->u.Interrupt.Level);
-        }
         else
         {
             // All other resources are ignored by this Module.
@@ -952,7 +790,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GpioConnectionAssigned=%d GpioConnectionMandatory=%d", moduleContext->GpioConnectionAssigned, moduleConfig->GpioConnectionMandatory);
 
-    //  Validate gpio connection with the Client Driver's requirements.
+    //  Validate Gpio connection with the Client Driver's requirements.
     //
     if (moduleConfig->GpioConnectionMandatory && 
         (! moduleContext->GpioConnectionAssigned))
@@ -961,104 +799,6 @@ Return Value:
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
         NT_ASSERT(FALSE);
         goto Exit;
-    }
-
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "InterruptAssigned=%d InterruptMandatory=%d", moduleContext->InterruptAssigned, moduleConfig->InterruptMandatory);
-
-    //  Validate interrupt with the Client Driver's requirements.
-    //
-    if (moduleConfig->InterruptMandatory && 
-        (! moduleContext->InterruptAssigned))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Interrupt resource not assigned");
-        ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
-        goto Exit;
-    }
-
-    // Initialize the interrupt, if necessary.
-    //
-    if (moduleContext->InterruptAssigned)
-    {
-        WDF_INTERRUPT_CONFIG_INIT(&interruptConfig,
-                                  GpioTarget_Isr,
-                                  NULL);
-
-        interruptConfig.PassiveHandling = moduleConfig->PassiveHandling;
-        interruptConfig.CanWakeDevice = moduleConfig->CanWakeDevice;
-
-        // Configure either a DPC or a Workitem.
-        //
-        if (moduleConfig->EvtGpioTargetInterruptDpc != NULL)
-        {
-            interruptConfig.EvtInterruptDpc = GpioTarget_DpcForIsr;
-        }
-        else if (moduleConfig->EvtGpioTargetInterruptPassive != NULL)
-        {
-            interruptConfig.EvtInterruptWorkItem = GpioTarget_PasiveLevelCallback;
-        }
-
-        interruptConfig.InterruptTranslated = WdfCmResourceListGetDescriptor(ResourcesTranslated,
-                                                                             interruptResourceIndex);
-        interruptConfig.InterruptRaw = WdfCmResourceListGetDescriptor(ResourcesRaw,
-                                                                      interruptResourceIndex);
-
-        // Prepare to save this DMF Module in the object's context.
-        //
-        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&interruptAttributes,
-                                                DMFMODULE);
-        // NOTE: ParentDevice must not be specified! (device is passed to the function).
-        //       Otherwise, STATUS_WDF_PARENT_ASSIGNMENT_NOT_ALLOWED will occur.
-        //
-        ntStatus = WdfInterruptCreate(device,
-                                      &interruptConfig,
-                                      &interruptAttributes,
-                                      &moduleContext->Interrupt);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfInterruptCreate ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "GPIO Interrupt Created");
-
-        // NOTE: It is not possible to get the parent of a WDFINTERRUPT.
-        // Therefore, it is necessary to save the DmfModule in its context area.
-        //
-        DMF_ModuleInContextSave(moduleContext->Interrupt,
-                                DmfModule);
-
-        // If both DPC and Passive level callback, then ISR queues DPC 
-        // and then DPC queues passive level workitem. (It means the Client
-        // wants to do work both at DPC and PASSIVE levels.)
-        //
-        if ((moduleConfig->EvtGpioTargetInterruptDpc != NULL) &&
-            (moduleConfig->EvtGpioTargetInterruptPassive != NULL))
-        {
-            WDF_WORKITEM_CONFIG_INIT(&workitemConfig,
-                                     GpioTarget_Workitem);
-            workitemConfig.AutomaticSerialization = WdfFalse;
-
-            WDF_OBJECT_ATTRIBUTES_INIT(&workitemAttributes);
-            workitemAttributes.ParentObject = DmfModule;
-
-            ntStatus = WdfWorkItemCreate(&workitemConfig,
-                                         &workitemAttributes,
-                                         &moduleContext->Workitem);
-
-            if (! NT_SUCCESS(ntStatus))
-            {
-                moduleContext->Workitem = NULL;
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfWorkItemCreate fails: ntStatus=%!STATUS!", ntStatus);
-                goto Exit;
-            }
-
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Workitem Created");
-        }
-        else
-        {
-            ASSERT(moduleContext->Workitem == NULL);
-        }
     }
 
     ntStatus = STATUS_SUCCESS;
@@ -1119,6 +859,7 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_GpioTarget);
     DmfCallbacksDmf_GpioTarget.DeviceResourcesAssign = DMF_GpioTarget_ResourcesAssign;
+    DmfCallbacksDmf_GpioTarget.ChildModulesAdd = DMF_GpioTarget_ChildModulesAdd;
     DmfCallbacksDmf_GpioTarget.DeviceOpen = DMF_GpioTarget_Open;
     DmfCallbacksDmf_GpioTarget.DeviceClose = DMF_GpioTarget_Close;
 
@@ -1178,7 +919,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    WdfInterruptAcquireLock(moduleContext->Interrupt);
+    DMF_InterruptResource_InterruptAcquireLock(moduleContext->DmfModuleInterruptResource);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1213,7 +954,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    WdfInterruptReleaseLock(moduleContext->Interrupt);
+    DMF_InterruptResource_InterruptReleaseLock(moduleContext->DmfModuleInterruptResource);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1255,7 +996,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    returnValue = WdfInterruptTryToAcquireLock(moduleContext->Interrupt);
+    returnValue = DMF_InterruptResource_InterruptTryToAcquireLock(moduleContext->DmfModuleInterruptResource);
 
     FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
@@ -1275,13 +1016,13 @@ DMF_GpioTarget_IsResourceAssigned(
 
 Routine Description:
 
-    GPIOs may or may not be present on some systems. This function returns the number of GPIO
+    GPIOs may or may not be present on some systems. This function returns the number of Gpio
     resources assigned for drivers where it is not known the GPIOs exist.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    GpioConnectionAssigned - Is GPIO connection assigned to this Module instance.
+    GpioConnectionAssigned - Is Gpio connection assigned to this Module instance.
     InterruptAssigned - Is Interrupt assigned to this Module instance.
 
 Return Value:
@@ -1308,7 +1049,8 @@ Return Value:
 
     if (InterruptAssigned != NULL)
     {
-        *InterruptAssigned = moduleContext->InterruptAssigned;
+        DMF_InterruptResource_IsResourceAssigned(moduleContext->DmfModuleInterruptResource,
+                                                 InterruptAssigned);
     }
 
     FuncExitVoid(DMF_TRACE);

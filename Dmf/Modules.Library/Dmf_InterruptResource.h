@@ -40,7 +40,6 @@ typedef enum
 //
 typedef
 _Function_class_(EVT_DMF_InterruptResource_InterruptIsr)
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 BOOLEAN
 EVT_DMF_InterruptResource_InterruptIsr(_In_ DMFMODULE DmfModule,

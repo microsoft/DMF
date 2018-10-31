@@ -200,8 +200,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 
 #### To Do
 
-* Use this Module in DMF_GpioTarget.
-
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Category
 

@@ -17,85 +17,36 @@ This Module gives the Client access to GPIO pins.
 ````
 typedef struct
 {
-  // Module will not load if Gpio Connection not found.
-  //
-  BOOLEAN GpioConnectionMandatory;
-  // Module will not load if Interrupt not found.
-  //
-  BOOLEAN InterruptMandatory;
-  // GPIO Connection index for this instance.
-  //
-  ULONG GpioConnectionIndex;
-  // Interrupt index for this instance.
-  //
-  ULONG InterruptIndex;
-  // Open in Read or Write mode.
-  //
-  ULONG OpenMode;
-  // Share Access.
-  //
-  ULONG ShareAccess;
-  // Passive handling.
-  //
-  BOOLEAN PassiveHandling;
-  // Can GPIO wake the device.
-  //
-  BOOLEAN CanWakeDevice;
-  // Optional Callback from ISR (with Interrupt Spin Lock held).
-  //
-  EVT_DMF_GpioTarget_InterruptIsr* EvtGpioTargetInterruptIsr;
-  // Optional Callback at DPC_LEVEL Level.
-  //
-  EVT_DMF_GpioTarget_InterruptDpc* EvtGpioTargetInterruptDpc;
-  // Optional Callback at PASSIVE_LEVEL Level.
-  //
-  EVT_DMF_GpioTarget_InterruptPassive* EvtGpioTargetInterruptPassive;
+    // Module will not load if Gpio Connection not found.
+    //
+    BOOLEAN GpioConnectionMandatory;
+    // GPIO Connection index for this instance.
+    //
+    ULONG GpioConnectionIndex;
+    // Open in Read or Write mode.
+    //
+    ULONG OpenMode;
+    // Share Access.
+    //
+    ULONG ShareAccess;
+    // Interrupt Resource.
+    //
+    DMF_CONFIG_InterruptResource InterruptResource;
 } DMF_CONFIG_GpioTarget;
 ````
 Member | Description
 ----|----
 GpioConnectionMandatory | Module must find the Gpio connection at GpioConnectionIndex in order to initialize properly.
-InterruptMandatory | Module must find the Interrupt at InterruptIndex in order to initialize properly.
 GpioConnectionIndex | The index of the GPIO line that this Module's instance should access.
-InterruptIndex | The index of the Interrupt that this Module's instance should access.
 OpenMode | Indicates if this Module's instance will read and/or write from/to the GPIO line.
 ShareAccess | Indicates if this Module's instance will access the GPIO line in exclusive mode.
-PassiveHandling | Indicates that interrupts that happen on the GPIO line should be dispatched to Client's callback at PASSIVE_LEVEL. Otherwise, the Client's callback is called at DISPATCH_LEVEL.
-CanWakeDevice | Indicates if the GPIO line should be able wake the system.
-EvtGpioTargetInterruptIsr | The callback that is called at DPC_LEVEL when an interrupt happens on the GPIO line. The interrupt spin-lock is already acquired while this callback runs.
-EvtGpioTargetInterruptDpc | The callback that is called at DISPATCH_LEVEL when an interrupt happens on the GPIO line.
-EvtGpioTargetInterruptPassive | The callback that is called at PASSIVE_LEVEL when an interrupt happens on the GPIO line.
+InteruptResource | Allows Client to specify an interrupt resource associated with the SPB resource.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
-##### GpioTarget_QueuedWorkItem_Type
-````
-typedef enum
-{
-  // Sentinel for validity checking.
-  //
-  GpioTarget_QueuedWorkItem_Invalid,
-  // ISR/DPC has no additional work to do.
-  //
-  GpioTarget_QueuedWorkItem_Nothing,
-  // ISR has more work to do at DISPATCH_LEVEL.
-  //
-  GpioTarget_QueuedWorkItem_Dpc,
-  // DPC has more work to do at PASSIVE_LEVEL.
-  //
-  GpioTarget_QueuedWorkItem_WorkItem
-} GpioTarget_QueuedWorkItem_Type;
-````
-Indicates what the Client wants to do after EvtGpioTargetInterruptIsr/EvtGpioTargetInterruptDpc callbacks have executed.
-
-Member | Description
-----|----
-GpioTarget_QueuedWorkItem_Nothing | Do nothing.
-GpioTarget_QueuedWorkItem_Dpc | Enqueue a DPC.
-GpioTarget_QueuedWorkItem_WorkItem | Enqueue a workitem.
+* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

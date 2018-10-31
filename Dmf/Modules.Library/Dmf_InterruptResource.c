@@ -691,6 +691,13 @@ Return Value:
         WdfObjectDelete(moduleContext->Interrupt);
     }
 
+    // Make sure all pending work is complete.
+    //
+    if (moduleContext->Workitem != NULL)
+    {
+        WdfWorkItemFlush(moduleContext->Workitem);
+    }
+
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
