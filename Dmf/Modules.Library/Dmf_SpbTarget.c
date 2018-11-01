@@ -46,29 +46,14 @@ typedef struct
     // Resources assigned.
     //
     BOOLEAN SpbConnectionAssigned;
-    BOOLEAN InterruptAssigned;
 
     // SPB Line Index that is instantiated in this object.
     //
     ULONG SpbTargetLineIndex;
-    // SPB Interrupt Index that is instantiated in this object.
-    //
-    ULONG SpbTargetInterruptIndex;
 
     // Resource information for SPB device.
     //
     CM_PARTIAL_RESOURCE_DESCRIPTOR SpbTargetConnection;
-
-    // Optional workitem instantiation.
-    //
-    WDFWORKITEM Workitem;
-    // Queuing of DPCs/workitems may not succeed if they are currently enqueued.
-    // These two variables keep track of the exact number of times the DPC/workitem must
-    // execute. This Module ensures that each attempt to enqueue causes the same number
-    // of actual executions.
-    //
-    ULONG NumberOfTimesDpcMustExecute;
-    ULONG NumberOfTimesWorkitemMustExecute;
 
     // Interrupt object.
     //
@@ -264,7 +249,7 @@ Return Value:
 
 EVT_DMF_InterruptResource_InterruptIsr SpbTarget_InterruptIsr;
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_Function_class_(EVT_DMF_InterruptResource_InterruptIsr)
 _IRQL_requires_same_
 BOOLEAN
 SpbTarget_InterruptIsr(
@@ -308,8 +293,7 @@ Return Value:
 
 EVT_DMF_InterruptResource_InterruptDpc SpbTarget_InterruptDpc;
 
-// Client Driver DPC_LEVEL Callback.
-//
+_Function_class_(EVT_DMF_InterruptResource_InterruptDpc)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -348,6 +332,7 @@ Return Value:
 
 EVT_DMF_InterruptResource_InterruptPassive SpbTarget_InterruptPassive;
 
+_Function_class_(EVT_DMF_InterruptResource_InterruptPassive)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -525,7 +510,7 @@ Return Value:
     //
     resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
 
-    // Parse the resources. This Module cares about SPB and Interrupt resources.
+    // Parse the resources. This Module cares about SPB resources.
     //
     spbConnectionIndex = 0;
     for (resourceIndex = 0; resourceIndex < resourceCount; resourceIndex++)
@@ -708,6 +693,7 @@ Return Value:
     if (moduleContext->Interrupt != nullptr)
     {
         WdfObjectDelete(moduleContext->Interrupt);
+        moduleContext->Interrupt = NULL;
     }
 
     if (moduleContext->SpbController != WDF_NO_HANDLE)
