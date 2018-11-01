@@ -17,8 +17,7 @@ The Documentation\ folder has detailed information about the framework and how t
 https://github.com/Microsoft/DMF/blob/master/Dmf/Documentation/Driver%20Module%20Framework.md
 
 #### Module Documentation: 
-This link contains detailed documentation about each Module. It is also available from the Wiki:
-https://github.com/Microsoft/DMF/wiki/DMF-Overview
+Detailed documentation about each Module is available on the wiki: https://github.com/Microsoft/DMF/wiki/DMF-Overview
 
 #### Samples:
 [DmfSamples](https://github.com/Microsoft/DMF/tree/master/DmfSamples) has all the sample drivers that show in incremental steps how to use DMF in a driver. 
