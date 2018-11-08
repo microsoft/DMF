@@ -73,12 +73,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_AcpiNotification.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c">
-      <Filter>Modules\Driver Patterns</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c">
-      <Filter>Modules\Driver Patterns</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
@@ -88,8 +82,23 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c">
+    <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c">
       <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c">
+      <Filter>Modules\Hid</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -177,12 +186,6 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_AcpiNotification.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.h">
-      <Filter>Headers\Driver Patterns</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h">
-      <Filter>Headers\Driver Patterns</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
@@ -192,8 +195,23 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h">
       <Filter>Headers\Targets</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h">
+    <ClInclude Include="..\..\Modules.Library\Dmf_SpbTarget.h">
       <Filter>Headers\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.h">
+      <Filter>Headers\Hid</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +265,15 @@
     </Filter>
     <Filter Include="Modules\Targets">
       <UniqueIdentifier>{bf0247a9-e655-4eb8-930f-97216494b6e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Hid">
+      <UniqueIdentifier>{3215bee6-d164-4e40-aee9-3e439ff3fdf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Hid">
+      <UniqueIdentifier>{703e185e-f03e-49fc-8dc6-54a0aa112771}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Hid">
+      <UniqueIdentifier>{cffd5108-ea55-4f7d-a315-ad00da2f4d1a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -336,13 +363,28 @@
     <Text Include="..\..\Modules.Library\Dmf_Thread.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
     </Text>
+    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
     </None>
-    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md">
+    <None Include="..\..\Modules.Library\Dmf_SpbTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_InterruptResource.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md">
+      <Filter>Documentation\Modules\Hid</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -29,7 +29,7 @@ extern "C"
 
 // Include DMF Framework.
 //
-#include "..\DmfModule.h"
+#include "..\DmfDefinitions.h"
 #include "DmfModules.Core.Public.h"
 
 // All the Modules in this Library.

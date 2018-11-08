@@ -201,11 +201,6 @@ Routine Description:
 
     Generic callback for ModuleInstanceDestroy for a given DMF Module.
 
-    NOTE: If this code executes it is an invalid code path. Every DMF Module should
-          have a Destroy callback.
-    TODO: I think, given current architecture, that we can provide a function that does the
-          work since all DMF Modules Destroy callbacks perform the same operation.
-
 Arguments:
 
     DmfModule - The given DMF Module.
@@ -224,12 +219,6 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
 
-    DMF_ModuleDestroy(DmfModule);
-    dmfObject = NULL;
-
-    // NOTE: Do not output ClientDriverModuleInstanceName because the memory for the handle
-    //       has been deleted.
-    //
     FuncExit(DMF_TRACE, "DmfModule=0x%p ntStatus=%!STATUS!", DmfModule, STATUS_SUCCESS);
 }
 

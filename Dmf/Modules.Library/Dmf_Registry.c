@@ -20,6 +20,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
@@ -2313,7 +2314,7 @@ Exit:
     //
     if (dmfModuleRegistry != NULL)
     {
-        DMF_Module_Destroy(dmfModuleRegistry);
+        WdfObjectDelete(dmfModuleRegistry);
     }
 
     FuncExit(DMF_TRACE, "returnValue=%d", ntStatus);

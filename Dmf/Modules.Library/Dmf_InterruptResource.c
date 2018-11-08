@@ -19,6 +19,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
@@ -686,10 +687,9 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    if (moduleContext->Interrupt != nullptr)
-    {
-        WdfObjectDelete(moduleContext->Interrupt);
-    }
+    // Do not delete moduleContext->Interrupt. It is prohibited per
+    // Verifier.
+    //
 
     // Make sure all pending work is complete.
     //

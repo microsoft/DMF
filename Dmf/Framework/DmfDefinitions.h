@@ -68,6 +68,12 @@ extern "C"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Some environments use DBG instead of DEBUG.
+//
+#if defined(DEBUG)
+    #define DBG 1
+#endif
+
 // All DMF Modules need these.
 //
 #include <stdlib.h>
@@ -722,12 +728,6 @@ DMF_FilterDeviceGet(
 _IRQL_requires_max_(DISPATCH_LEVEL)
 DMFMODULE
 DMF_ParentModuleGet(
-    _In_ DMFMODULE DmfModule
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Module_Destroy(
     _In_ DMFMODULE DmfModule
     );
 

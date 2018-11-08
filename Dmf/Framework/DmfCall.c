@@ -357,7 +357,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-DMF_Module_Destroy(
+DMF_ModuleTreeDestroy(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -381,23 +381,103 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
     ASSERT(dmfObject != NULL);
 
-    // If it is a Dynamic Module automatically close it before it is destroyed.
-    // (Client has no access to the Close API.)
-    //
-    if (dmfObject->DynamicModule)
-    {
-        DMF_Module_CloseOrUnregisterNotificationOnDestroy(DmfModule);
-    }
+    ASSERT(! dmfObject->DynamicModule);
 
     // Dispatch callback to Child DMF Modules first.
     //
     DMF_ChildDispatchSingleParameterVoid(DmfModule,
-                                         DMF_Module_Destroy);
+                                         DMF_ModuleTreeDestroy);
 
     // Dispatch callback to the given Parent DMF Module next.
     //
     ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
     (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(DmfModule);
+
+    // The Module Callback always does this. Do it for the Module.
+    //
+    DMF_ModuleDestroy(DmfModule, 
+                      TRUE);
+}
+
+_Function_class_(EVT_WDF_OBJECT_CONTEXT_CLEANUP)
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DmfEvtDynamicModuleCleanupCallback(
+    _In_ WDFOBJECT Object
+    )
+/*++
+
+Routine Description:
+
+    Clean up callback when a Dynamic DMFMODULE is deleted. This callback will close the Module
+    and destroy its Child Modules. Then, it calls the Client's CleanUp callback, if any.
+
+Arguments:
+
+    Object - DMFMODULE to delete.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_OBJECT* dmfObject;
+    PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
+
+    // NOTE: DMFMODULE should always be deleted in PASSIVE_LEVEL.
+    // (Even though it can technically be called at DISPATCH_LEVEL, Clients should
+    // not allow this to happen. It means Parents of Modules should not be WDFMEMORY
+    // objects using NonPaged Pool, nor a WDFREQUEST.)
+    //
+#if !defined(DMF_USER_MODE)
+    ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
+#endif
+
+    dmfModule = (DMFMODULE)Object;
+    dmfObject = DMF_ModuleToObject(dmfModule);
+
+    // Save off Client's callback so it can be called after object is destroyed.
+    //
+    clientEvtCleanupCallback = dmfObject->ClientEvtCleanupCallback;
+
+    // Since  it is a Dynamic Module automatically close it before it is destroyed.
+    // (Client has no access to the Close API.)
+    //
+    ASSERT(dmfObject->DynamicModule);
+    DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
+
+    // Dispatch callback to Child DMF Modules first.
+    // 'The current function is permitted to run at an IRQ level above the maximum permitted'
+    //
+    #pragma warning(suppress:28118)
+    DMF_ChildDispatchSingleParameterVoid(dmfModule,
+                                         DMF_ModuleTreeDestroy);
+
+    // Dispatch callback to the given Parent DMF Module next.
+    //
+    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+    // 'The current function is permitted to run at an IRQ level above the maximum permitted'
+    //
+    #pragma warning(suppress:28118)
+    (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(dmfModule);
+
+    // The Module Callback always does this. Do it for the Module.
+    // NOTE: Don't delete the memory because it will be deleted by WDF.
+    // 'The current function is permitted to run at an IRQ level above the maximum permitted'
+    //
+    #pragma warning(suppress:28118)
+    DMF_ModuleDestroy(dmfModule, 
+                      FALSE);
+
+    // Next, allow Client to clean up.
+    //
+    if (clientEvtCleanupCallback != NULL)
+    {
+        clientEvtCleanupCallback(Object);
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

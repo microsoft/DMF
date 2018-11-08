@@ -39,6 +39,7 @@ Environment:
 //       That include file will also include the Library include files of all Libraries the superset
 //       depends on.
 //
+#include "DmfModule.h"
 #include "DmfModules.Template.h"
 #include "DmfModules.Template.Trace.h"
 

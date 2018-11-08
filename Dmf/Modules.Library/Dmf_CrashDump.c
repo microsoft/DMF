@@ -20,6 +20,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
@@ -1292,7 +1293,7 @@ Return Value:
     if (dataSource->DmfModuleDataSourceRingBuffer != NULL)
     {
         ASSERT(dataSource->DmfModuleDataSourceRingBuffer != NULL);
-        DMF_Module_Destroy(dataSource->DmfModuleDataSourceRingBuffer);
+        WdfObjectDelete(dataSource->DmfModuleDataSourceRingBuffer);
         dataSource->DmfModuleDataSourceRingBuffer = NULL;
 
         ASSERT((NULL == dataSource->FileObject[DataSourceModeRead]) && 
@@ -2971,8 +2972,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    DMF_ModuleDestroy(DmfModule);
-    DmfModule = NULL;
+    UNREFERENCED_PARAMETER(DmfModule);
 
 #if !defined(DMF_USER_MODE)
     // Clear global instance handle.

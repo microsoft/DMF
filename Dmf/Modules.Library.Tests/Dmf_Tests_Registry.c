@@ -19,6 +19,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
@@ -2051,6 +2052,81 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_Tests_Registry_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONTEXT_Tests_Registry* moduleContext;
+    DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
+    DMF_CONFIG_Thread moduleConfigThread;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // AlertableSleep
+    // ---------------
+    //
+    DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep, 
+                                                  &moduleAttributes);
+    moduleConfigAlertableSleep.EventCount = 1;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleAlertableSleep);
+
+    // Thread
+    // ------
+    //
+    DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                          &moduleAttributes);
+    moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+    moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_Registry_WorkThread;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleThread);
+
+    // Registry
+    // --------
+    //
+    DMF_Registry_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleRegistry);
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2093,21 +2169,14 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_Tests_Registry* moduleContext;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
-    DMF_CONFIG_Thread moduleConfigThread;
     NTSTATUS ntStatus;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    dmfModule = NULL;
-
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_Registry);
+    DmfCallbacksDmf_Tests_Registry.ChildModulesAdd = DMF_Tests_Registry_ChildModulesAdd;
     DmfCallbacksDmf_Tests_Registry.DeviceOpen = Tests_Registry_Open;
     DmfCallbacksDmf_Tests_Registry.DeviceClose = Tests_Registry_Close;
 
@@ -2123,81 +2192,10 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_Tests_Registry,
-                                &dmfModule);
+                                DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    // Create child modules
-    //
-
-    // DmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = dmfModule;
-
-    // Alertable sleep
-    // ---------------
-    //
-    DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep, 
-                                                  &moduleAttributes);
-    moduleConfigAlertableSleep.EventCount = 1;
-    ntStatus = DMF_AlertableSleep_Create(Device,
-                                         &moduleAttributes,
-                                         &objectAttributes,
-                                         &moduleContext->DmfModuleAlertableSleep);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_AlertableSleep_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Thread
-    // --------
-    //
-    DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
-                                          &moduleAttributes);
-    moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
-    moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_Registry_WorkThread;
-    ntStatus = DMF_Thread_Create(Device,
-                                 &moduleAttributes,
-                                 &objectAttributes,
-                                 &moduleContext->DmfModuleThread);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Registry
-    // --------
-    //
-    DMF_Registry_ATTRIBUTES_INIT(&moduleAttributes);
-    ntStatus = DMF_Registry_Create(Device,
-                                   &moduleAttributes,
-                                   &objectAttributes,
-                                   &moduleContext->DmfModuleRegistry);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-    
-    *DmfModule = dmfModule;
-
-Exit:
-
-    if (!NT_SUCCESS(ntStatus))
-    {
-        if (NULL != dmfModule)
-        {
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-        }
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);

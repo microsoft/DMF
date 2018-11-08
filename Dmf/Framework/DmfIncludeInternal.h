@@ -22,6 +22,7 @@ Environment:
 
 // DMF.
 //
+#include "DmfModule.h"
 #include "DmfModules.Core.h"
 #include "DmfModules.Core.Trace.h"
 #include "Dmf_Bridge.h"
@@ -233,6 +234,9 @@ struct _DMF_OBJECT_
     // Stores the Module's In Flight Recorder handle.
     //
     RECORDER_LOG InFlightRecorder;
+    // Client Cleanup Callback (chained).
+    //
+    PFN_WDF_OBJECT_CONTEXT_CLEANUP ClientEvtCleanupCallback;
 };
 
 // DMF Object Signature.
@@ -590,6 +594,19 @@ DMF_RequestPassthruWithCompletion(
 
 // DmfInternal.h
 //
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ModuleTreeDestroy(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ModuleDestroy(
+    _In_ DMFMODULE DmfModule,
+    _In_ BOOLEAN DeleteMemory
+    );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID

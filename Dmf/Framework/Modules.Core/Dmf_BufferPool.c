@@ -24,6 +24,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Core.h"
 #include "DmfModules.Core.Trace.h"
 
@@ -1801,7 +1802,7 @@ NTSTATUS
 DMF_BufferPool_Get(
     _In_ DMFMODULE DmfModule,
     _Out_ VOID** ClientBuffer,
-    _Out_ VOID** ClientBufferContext
+    _Out_opt_ VOID** ClientBufferContext
     )
 /*++
 
@@ -1845,8 +1846,19 @@ Return Value:
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
     ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
-    ASSERT(ClientBufferContext != NULL);
-    *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
+    if (ClientBufferContext != NULL)
+    {
+        if (bufferPoolEntry->BufferContextSize > 0)
+        {
+            *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
+        }
+        else
+        {
+            // No ASSERT to maintain compatibility with older Clients.
+            //
+            *ClientBufferContext = NULL;
+        }
+    }
 
     ntStatus = STATUS_SUCCESS;
 
