@@ -347,8 +347,9 @@ Return Value:
     DMFMODULE dmfModule;
     DMF_MODULE_COLLECTION_CONFIG moduleCollectionConfig;
     DMFCOLLECTION childModuleCollection;
-    BOOLEAN enableClientCleanupCallback;
+    BOOLEAN chainClientCleanupCallback;
     PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
+    WDF_OBJECT_ATTRIBUTES copyOfDmfModuleObjectAttributes;
 
     PAGED_CODE();
 
@@ -369,8 +370,8 @@ Return Value:
     dmfModule = NULL;
     dmfObject = NULL;
     childModuleCollection = NULL;
-    enableClientCleanupCallback = FALSE;
-    clientEvtCleanupCallback = FALSE;
+    chainClientCleanupCallback = FALSE;
+    clientEvtCleanupCallback = NULL;
 
     // DmfModuleObjectAttributes should always be set, since ParentObject is a must.
     //
@@ -390,6 +391,18 @@ Return Value:
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
+
+    // In the case where Client Clean Up callback function is chained, it is necessary
+    // to override the callers data. In order to not modify the copy the caller uses,
+    // copy to local and override it there.
+    // NOTE: Modifying Client's pointer can cause infinite recursion when clean up callbacks
+    //       are called if the Client does not initialize WDF_OBJECT_ATTRIBUTES before
+    //       every call. Copying here prevents that possibility, regardless of what caller does.
+    //
+    RtlCopyMemory(&copyOfDmfModuleObjectAttributes,
+                  DmfModuleObjectAttributes,
+                  sizeof(WDF_OBJECT_ATTRIBUTES));
+    DmfModuleObjectAttributes = &copyOfDmfModuleObjectAttributes;
 
     // ParentObject must be one of the three types: 
     // DMFMODULE - The Module that is about to be created will be a Child Module. 
@@ -452,13 +465,13 @@ Return Value:
         //
         if (DmfModuleAttributes->DynamicModule)
         {
-            enableClientCleanupCallback = TRUE;
+            chainClientCleanupCallback = TRUE;
         }
     }
 
     // Chain the Client's clean up callback.
     //
-    if (enableClientCleanupCallback)
+    if (chainClientCleanupCallback)
     {
         clientEvtCleanupCallback = DmfModuleObjectAttributes->EvtCleanupCallback;
         DmfModuleObjectAttributes->EvtCleanupCallback = DmfEvtDynamicModuleCleanupCallback;

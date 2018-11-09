@@ -68,10 +68,12 @@ extern "C"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Some environments use DBG instead of DEBUG.
+// Some environments use DBG instead of DEBUG. DMF uses DEBUG so, define DEBUG in that case.
 //
-#if defined(DEBUG)
-    #define DBG 1
+#if DBG
+    #if !defined(DEBUG)
+        #define DEBUG
+    #endif
 #endif
 
 // All DMF Modules need these.

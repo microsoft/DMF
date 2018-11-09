@@ -1469,10 +1469,14 @@ Return Value:
     // If Client wants to use paged pool buffers, then Client must instantiate this Module at Passive Level (which this Module allows).
     // To do so, the DmfModuleAttributes->PassiveLevel must equal TRUE.
     //
+    // NOTE: Only check this for Source Mode since Sink Mode initializes Pool Type to zero since it is not used.
+    //       Zero can mean different pool types on different platforms, e.g., ARM.
+    //
     DMF_CONFIG_BufferPool* moduleConfig;
     moduleConfig = DMF_CONFIG_GET(*DmfModule);
 
-    if (DMF_IsPoolTypePassiveLevel(moduleConfig->Mode.SourceSettings.PoolType))
+    if ((moduleConfig->BufferPoolMode == BufferPool_Mode_Source) &&
+        (DMF_IsPoolTypePassiveLevel(moduleConfig->Mode.SourceSettings.PoolType)))
     {
         ASSERT(DMF_ModuleLockIsPassive(*DmfModule));
     }
