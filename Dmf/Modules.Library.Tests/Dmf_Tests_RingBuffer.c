@@ -19,6 +19,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
@@ -292,7 +293,7 @@ Tests_RingBuffer_RunTests(
             READ_MUST_FAIL();
         }
 
-        DMF_Module_Destroy(dmfModuleRingBuffer);
+        WdfObjectDelete(dmfModuleRingBuffer);
         dmfModuleRingBuffer = NULL;
     }
 
@@ -300,7 +301,7 @@ Exit:
 
     if (dmfModuleRingBuffer != NULL)
     {
-        DMF_Module_Destroy(dmfModuleRingBuffer);
+        WdfObjectDelete(dmfModuleRingBuffer);
     }
 }
 #pragma code_seg()
@@ -397,12 +398,9 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModule;
     NTSTATUS ntStatus;
 
     PAGED_CODE();
-
-    dmfModule = NULL;
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_RingBuffer);
     DmfCallbacksDmf_Tests_RingBuffer.DeviceOpen = Tests_RingBuffer_Open;
@@ -418,25 +416,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_Tests_RingBuffer,
-                                &dmfModule);
+                                DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    *DmfModule = dmfModule;
-
-Exit:
-
-    if (!NT_SUCCESS(ntStatus))
-    {
-        if (NULL != dmfModule)
-        {
-            DMF_Module_Destroy(dmfModule);
-            dmfModule = NULL;
-        }
-    }    
 
     return(ntStatus);
 }

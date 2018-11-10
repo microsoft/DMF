@@ -440,7 +440,9 @@ Return Value:
     FuncEntryArguments(DMF_TRACE, "ModuleCollectionHandle=0x%p ModuleOpenedDuring=%d", ModuleCollectionHandle, ModuleOpenedDuring);
     TraceInformation(DMF_TRACE, "ModuleCollectionHandle=0x%p ModuleOpenedDuring=%d", ModuleCollectionHandle, ModuleOpenedDuring);
 
-    ASSERT(ModuleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    // NumberOfClientDriverDmfModules may be zero in cases where all elements of structure
+    // have not been allocated (usually due to fault injection).
+    //
     for (driverModuleIndex = 0; driverModuleIndex < ModuleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
@@ -529,7 +531,7 @@ Return Value:
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
         ASSERT(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
-        DMF_Module_Destroy(dmfModule);
+        DMF_ModuleTreeDestroy(dmfModule);
         moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex] = NULL;
     }
 

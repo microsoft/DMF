@@ -124,12 +124,12 @@
       <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.c.C.cpp.CPP.h.H</WppFileExtensions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories);..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalIncludeDirectories);..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories);..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories);..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories);..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories);..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppRecorderEnabled>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppRecorderEnabled>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppRecorderEnabled>

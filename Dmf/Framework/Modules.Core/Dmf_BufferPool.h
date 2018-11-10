@@ -173,7 +173,7 @@ NTSTATUS
 DMF_BufferPool_Get(
     _In_ DMFMODULE DmfModule,
     _Out_ VOID** ClientBuffer,
-    _Out_ VOID** ClientBufferContext
+    _Out_opt_ VOID** ClientBufferContext
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

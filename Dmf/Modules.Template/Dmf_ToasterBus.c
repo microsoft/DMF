@@ -19,6 +19,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Template.h"
 #include "DmfModules.Template.Trace.h"
 
@@ -663,6 +664,102 @@ Return Value:
 }
 #pragma code_seg()
 
+IoctlHandler_IoctlRecord ToasterBus_IoctlSpecification[] =
+{
+    { IOCTL_BUSENUM_PLUGIN_HARDWARE, sizeof (BUSENUM_PLUGIN_HARDWARE), 0, ToasterBus_IoctlClientCallback_DevicePlug, FALSE },
+    { IOCTL_BUSENUM_UNPLUG_HARDWARE, sizeof (BUSENUM_UNPLUG_HARDWARE), 0, ToasterBus_IoctlClientCallback_DeviceUnplug, FALSE },
+    { IOCTL_BUSENUM_EJECT_HARDWARE, sizeof (BUSENUM_EJECT_HARDWARE), 0, ToasterBus_IoctlClientCallback_DeviceEject, FALSE }
+};
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ToasterBus_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONFIG_Pdo moduleConfigPdo;
+    DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_ToasterBus* moduleConfig;
+    DMF_CONTEXT_ToasterBus* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Pdo
+    // ---
+    //
+    DMF_CONFIG_Pdo_AND_ATTRIBUTES_INIT(&moduleConfigPdo,
+                                       &moduleAttributes);
+    moduleConfigPdo.DeviceLocation = L"TOASTER BUS 0";
+    moduleConfigPdo.InstanceIdFormatString = L"TOASTER_DEVICE_%02d";
+    // Do not create any PDOs during Module create.
+    // PDOs will be created dynamically through Module Method.
+    //
+    moduleConfigPdo.PdoRecordCount = 0;
+    moduleConfigPdo.PdoRecords = NULL;
+    moduleConfigPdo.EvtPdoPnpCapabilities = NULL;
+    moduleConfigPdo.EvtPdoPowerCapabilities = NULL;
+    moduleConfigPdo.EvtPdoQueryInterfaceAdd = ToasterBus_DeviceQueryInterfaceAdd;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModulePdo);
+
+    // IoctlHandler
+    // ------------
+    //
+    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
+                                                &moduleAttributes);
+    moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_BUSENUM_TOASTER;
+    moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
+    moduleConfigIoctlHandler.EvtIoctlHandlerAccessModeFilter = NULL;
+    moduleConfigIoctlHandler.IoctlRecordCount = ARRAYSIZE(ToasterBus_IoctlSpecification);
+    moduleConfigIoctlHandler.IoctlRecords = ToasterBus_IoctlSpecification;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleIoctlHandler);
+
+    // Registry
+    // --------
+    //
+    DMF_Registry_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleRegistry);
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -675,13 +772,6 @@ static DMF_CALLBACKS_DMF DmfCallbacksDmf_ToasterBus;
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-IoctlHandler_IoctlRecord ToasterBus_IoctlSpecification[] =
-{
-    { IOCTL_BUSENUM_PLUGIN_HARDWARE, sizeof (BUSENUM_PLUGIN_HARDWARE), 0, ToasterBus_IoctlClientCallback_DevicePlug, FALSE },
-    { IOCTL_BUSENUM_UNPLUG_HARDWARE, sizeof (BUSENUM_UNPLUG_HARDWARE), 0, ToasterBus_IoctlClientCallback_DeviceUnplug, FALSE },
-    { IOCTL_BUSENUM_EJECT_HARDWARE, sizeof (BUSENUM_EJECT_HARDWARE), 0, ToasterBus_IoctlClientCallback_DeviceEject, FALSE }
-};
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -713,19 +803,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMFMODULE dmfModule;
-    DMF_CONTEXT_ToasterBus* moduleContext;
-    DMF_CONFIG_ToasterBus* moduleConfig;
-    DMF_CONFIG_Pdo moduleConfigPdo;
-    DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ToasterBus);
+    DmfCallbacksDmf_ToasterBus.ChildModulesAdd = DMF_ToasterBus_ChildModulesAdd;
     DmfCallbacksDmf_ToasterBus.DeviceOpen = DMF_ToasterBus_Open;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ToasterBus,
@@ -741,94 +825,11 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &DmfModuleDescriptor_ToasterBus,
-                                &dmfModule);
+                                DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(dmfModule);
-
-    // dmfModule will be set as ParentObject for all child modules.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = dmfModule;
-
-    // Pdo
-    // ---
-    //
-    DMF_CONFIG_Pdo_AND_ATTRIBUTES_INIT(&moduleConfigPdo,
-                                       &moduleAttributes);
-    moduleConfigPdo.DeviceLocation = L"TOASTER BUS 0";
-    moduleConfigPdo.InstanceIdFormatString = L"TOASTER_DEVICE_%02d";
-    // Do not create any PDOs during Module create.
-    // PDOs will be created dynamically through Module Method.
-    //
-    moduleConfigPdo.PdoRecordCount = 0;
-    moduleConfigPdo.PdoRecords = NULL;
-    moduleConfigPdo.EvtPdoPnpCapabilities = NULL;
-    moduleConfigPdo.EvtPdoPowerCapabilities = NULL;
-    moduleConfigPdo.EvtPdoQueryInterfaceAdd = ToasterBus_DeviceQueryInterfaceAdd;
-    ntStatus = DMF_Pdo_Create(Device,
-                              &moduleAttributes,
-                              &attributes,
-                              &moduleContext->DmfModulePdo);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Pdo_Create fails: ntStatus=%!STATUS!", ntStatus);
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // IoctlHandler
-    // ------------
-    //
-    DMF_CONFIG_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigIoctlHandler,
-                                                &moduleAttributes);
-    moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_BUSENUM_TOASTER;
-    moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
-    moduleConfigIoctlHandler.EvtIoctlHandlerAccessModeFilter = NULL;
-    moduleConfigIoctlHandler.IoctlRecordCount = ARRAYSIZE(ToasterBus_IoctlSpecification);
-    moduleConfigIoctlHandler.IoctlRecords = ToasterBus_IoctlSpecification;
-    ntStatus = DMF_IoctlHandler_Create(Device,
-                                       &moduleAttributes,
-                                       &attributes,
-                                       &moduleContext->DmfModuleIoctlHandler);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_IoctlHandler_Create fails: ntStatus=%!STATUS!", ntStatus);
-        // (All children are destroyed also.)
-        //
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-    // Registry
-    // --------
-    //
-    DMF_Registry_ATTRIBUTES_INIT(&moduleAttributes);
-    ntStatus = DMF_Registry_Create(Device,
-                                   &moduleAttributes,
-                                   &attributes,
-                                   &moduleContext->DmfModuleRegistry);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
-        // (All children are destroyed also.)
-        //
-        DMF_Module_Destroy(dmfModule);
-        dmfModule = NULL;
-        goto Exit;
-    }
-
-Exit:
-
-    *DmfModule = dmfModule;
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

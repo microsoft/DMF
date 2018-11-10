@@ -666,12 +666,6 @@ DMF_ModuleCreate(
     _Out_ DMFMODULE* DmfModule
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_ModuleDestroy(
-    _In_ DMFMODULE DmfModule
-    );
-
 NTSTATUS
 DMF_ModuleOpen(
     _In_ DMFMODULE DmfModule

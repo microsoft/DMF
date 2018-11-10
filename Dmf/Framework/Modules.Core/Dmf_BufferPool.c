@@ -24,6 +24,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Core.h"
 #include "DmfModules.Core.Trace.h"
 
@@ -1468,10 +1469,14 @@ Return Value:
     // If Client wants to use paged pool buffers, then Client must instantiate this Module at Passive Level (which this Module allows).
     // To do so, the DmfModuleAttributes->PassiveLevel must equal TRUE.
     //
+    // NOTE: Only check this for Source Mode since Sink Mode initializes Pool Type to zero since it is not used.
+    //       Zero can mean different pool types on different platforms, e.g., ARM.
+    //
     DMF_CONFIG_BufferPool* moduleConfig;
     moduleConfig = DMF_CONFIG_GET(*DmfModule);
 
-    if (DMF_IsPoolTypePassiveLevel(moduleConfig->Mode.SourceSettings.PoolType))
+    if ((moduleConfig->BufferPoolMode == BufferPool_Mode_Source) &&
+        (DMF_IsPoolTypePassiveLevel(moduleConfig->Mode.SourceSettings.PoolType)))
     {
         ASSERT(DMF_ModuleLockIsPassive(*DmfModule));
     }
@@ -1801,7 +1806,7 @@ NTSTATUS
 DMF_BufferPool_Get(
     _In_ DMFMODULE DmfModule,
     _Out_ VOID** ClientBuffer,
-    _Out_ VOID** ClientBufferContext
+    _Out_opt_ VOID** ClientBufferContext
     )
 /*++
 
@@ -1845,8 +1850,19 @@ Return Value:
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
     ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
-    ASSERT(ClientBufferContext != NULL);
-    *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
+    if (ClientBufferContext != NULL)
+    {
+        if (bufferPoolEntry->BufferContextSize > 0)
+        {
+            *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
+        }
+        else
+        {
+            // No ASSERT to maintain compatibility with older Clients.
+            //
+            *ClientBufferContext = NULL;
+        }
+    }
 
     ntStatus = STATUS_SUCCESS;
 

@@ -102,7 +102,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;DEBUG;DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules.Template</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
@@ -131,7 +131,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;DEBUG;DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules.Template</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
@@ -160,7 +160,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <PreprocessorDefinitions>_WIN64;DEBUG;DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules.Template</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
@@ -189,7 +189,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules.Template</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
@@ -218,7 +218,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules.Template</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
@@ -247,7 +247,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <PreprocessorDefinitions>_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules.Template</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>

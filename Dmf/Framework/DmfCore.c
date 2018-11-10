@@ -300,6 +300,8 @@ DmfModuleDescriptor_Generic =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfEvtDynamicModuleCleanupCallback;
+
 #pragma code_seg("PAGE")
 _Use_decl_annotations_
 NTSTATUS
@@ -345,6 +347,9 @@ Return Value:
     DMFMODULE dmfModule;
     DMF_MODULE_COLLECTION_CONFIG moduleCollectionConfig;
     DMFCOLLECTION childModuleCollection;
+    BOOLEAN chainClientCleanupCallback;
+    PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
+    WDF_OBJECT_ATTRIBUTES copyOfDmfModuleObjectAttributes;
 
     PAGED_CODE();
 
@@ -365,6 +370,8 @@ Return Value:
     dmfModule = NULL;
     dmfObject = NULL;
     childModuleCollection = NULL;
+    chainClientCleanupCallback = FALSE;
+    clientEvtCleanupCallback = NULL;
 
     // DmfModuleObjectAttributes should always be set, since ParentObject is a must.
     //
@@ -375,12 +382,27 @@ Return Value:
     // DMFMODULE (for Child Module)
     // DMFCOLLECTION (for Module created as part of DMF Collection).
     //
+    // (ParentObject should be set in a way that Object Clean Up callbacks happen
+    // in PASSIVE_LEVEL.)
+    //
     if (DmfModuleObjectAttributes->ParentObject == NULL)
     {
         ASSERT(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
+
+    // In the case where Client Clean Up callback function is chained, it is necessary
+    // to override the callers data. In order to not modify the copy the caller uses,
+    // copy to local and override it there.
+    // NOTE: Modifying Client's pointer can cause infinite recursion when clean up callbacks
+    //       are called if the Client does not initialize WDF_OBJECT_ATTRIBUTES before
+    //       every call. Copying here prevents that possibility, regardless of what caller does.
+    //
+    RtlCopyMemory(&copyOfDmfModuleObjectAttributes,
+                  DmfModuleObjectAttributes,
+                  sizeof(WDF_OBJECT_ATTRIBUTES));
+    DmfModuleObjectAttributes = &copyOfDmfModuleObjectAttributes;
 
     // ParentObject must be one of the three types: 
     // DMFMODULE - The Module that is about to be created will be a Child Module. 
@@ -437,6 +459,22 @@ Return Value:
             ntStatus = STATUS_UNSUCCESSFUL;
             goto Exit;
         }
+
+        // Use CleanUp callback for Dynamic Modules so that caller can call
+        // WdfObjectDelete() or delete automatically via Parent.
+        //
+        if (DmfModuleAttributes->DynamicModule)
+        {
+            chainClientCleanupCallback = TRUE;
+        }
+    }
+
+    // Chain the Client's clean up callback.
+    //
+    if (chainClientCleanupCallback)
+    {
+        clientEvtCleanupCallback = DmfModuleObjectAttributes->EvtCleanupCallback;
+        DmfModuleObjectAttributes->EvtCleanupCallback = DmfEvtDynamicModuleCleanupCallback;
     }
 
     ntStatus = WdfMemoryCreate(DmfModuleObjectAttributes,
@@ -453,9 +491,13 @@ Return Value:
         goto Exit;
     }
 
+    RtlZeroMemory(dmfObject,
+                  sizeof(DMF_OBJECT));
+
     if (ModuleDescriptor->ModuleContextAttributes != WDF_NO_OBJECT_ATTRIBUTES)
     {
         // Allocate Module Context.
+        // NOTE: This (ModuleContext) pointer is used only for debugging purposes.
         //
         ntStatus = WdfObjectAllocateContext(memoryDmfObject,
                                             ModuleDescriptor->ModuleContextAttributes,
@@ -467,9 +509,6 @@ Return Value:
         }
     }
 
-    RtlZeroMemory(dmfObject,
-                  sizeof(DMF_OBJECT));
-
     // Begin populating the DMF Object.
     //
     InitializeListHead(&dmfObject->ChildObjectList);
@@ -479,6 +518,7 @@ Return Value:
     dmfObject->ModuleName = ModuleDescriptor->ModuleName;
     dmfObject->IsClosePending = FALSE;
     dmfObject->NeedToCallPreClose = FALSE;
+    dmfObject->ClientEvtCleanupCallback = clientEvtCleanupCallback;
 
     // Create space for the Client Module Instance Name. It needs to be allocated because
     // the name that is passed in may not be statically allocated. A copy needs to be made
@@ -1160,7 +1200,8 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ModuleDestroy(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ BOOLEAN DeleteMemory
     )
 /*++
 
@@ -1216,8 +1257,11 @@ Return Value:
         ASSERT(NULL == dmfObject->ModuleConfigMemory);
     }
 
-    WdfObjectDelete(dmfObject->MemoryDmfObject);
-    dmfObject = NULL;
+    if (DeleteMemory)
+    {
+        WdfObjectDelete(dmfObject->MemoryDmfObject);
+        dmfObject = NULL;
+    }
 
     FuncExitVoid(DMF_TRACE);
 }

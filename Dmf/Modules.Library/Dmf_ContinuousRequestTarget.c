@@ -21,6 +21,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
@@ -1767,19 +1768,18 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
+    moduleConfig = (DMF_CONFIG_ContinuousRequestTarget*)DmfModuleAttributes->ModuleConfigPointer;
+
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ContinuousRequestTarget);
     DmfCallbacksDmf_ContinuousRequestTarget.ChildModulesAdd = DMF_ContinuousRequestTarget_ChildModulesAdd;
-
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ContinuousRequestTarget);
     DmfCallbacksDmf_ContinuousRequestTarget.DeviceOpen = DMF_ContinuousRequestTarget_Open;
     DmfCallbacksDmf_ContinuousRequestTarget.DeviceClose = DMF_ContinuousRequestTarget_Close;
-    DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
-    DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ContinuousRequestTarget,
                                             ContinuousRequestTarget,
@@ -1788,7 +1788,15 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_ContinuousRequestTarget.CallbacksDmf = &DmfCallbacksDmf_ContinuousRequestTarget;
-    DmfModuleDescriptor_ContinuousRequestTarget.CallbacksWdf = &DmfCallbacksWdf_ContinuousRequestTarget;
+
+    if (moduleConfig->PurgeAndStartTargetInD0Callbacks)
+    {
+        DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ContinuousRequestTarget);
+        DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
+        DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
+        DmfModuleDescriptor_ContinuousRequestTarget.CallbacksWdf = &DmfCallbacksWdf_ContinuousRequestTarget;
+    }
+
     DmfModuleDescriptor_ContinuousRequestTarget.ModuleConfigSize = sizeof(DMF_CONFIG_ContinuousRequestTarget);
 
     ntStatus = DMF_ModuleCreate(Device,

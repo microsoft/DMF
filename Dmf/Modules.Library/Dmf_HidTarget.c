@@ -21,6 +21,7 @@ Environment:
 
 // DMF and this Module's Library specific definitions.
 //
+#include "DmfModule.h"
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
@@ -2340,8 +2341,6 @@ Return Value:
     // The Notification should not be enabled at this time. It should have been unregistered.
     //
     ASSERT(NULL == moduleContext->HidInterfaceNotification);
-    DMF_ModuleDestroy(DmfModule);
-    DmfModule = NULL;
 
     FuncExitVoid(DMF_TRACE);
 }
