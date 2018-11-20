@@ -534,7 +534,6 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_ScheduledTask* moduleContext;
-    DMF_CONFIG_ScheduledTask* moduleConfig;
 
     UNREFERENCED_PARAMETER(ResourcesTranslated);
 
@@ -543,8 +542,6 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set ModuleClosing");
     moduleContext->ModuleClosing = TRUE;
@@ -660,6 +657,46 @@ Exit:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_ScheduledTask_ModuleD0Exit(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDF_POWER_DEVICE_STATE TargetState
+    )
+/*++
+
+Routine Description:
+
+    ScheudledTask callback for ModuleD0Exit for a given DMF Module.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    TargetState - The WDF Power State that the given DMF Module will enter.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_ScheduledTask* moduleContext;
+
+    UNREFERENCED_PARAMETER(TargetState);
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set ModuleClosing");
+    moduleContext->ModuleClosing = TRUE;
+
+    FuncExitVoid(DMF_TRACE);
+
+    return STATUS_SUCCESS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -811,6 +848,15 @@ Return Value:
     WdfObjectDelete(moduleContext->DeferredOnDemand);
     moduleContext->DeferredOnDemand = NULL;
 
+    // Since ModuleClosing flag is only set in PrepareHardware or D0Exit, set it now
+    // if necessary to allow the rest of the code to use the flag.
+    //
+    if (moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_Other)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set ModuleClosing");
+        moduleContext->ModuleClosing = TRUE;
+    }
+
     // Stop the timer and wait for any pending call to finish.
     //
     ASSERT(moduleContext->ModuleClosing);
@@ -868,19 +914,30 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_CONFIG_ScheduledTask* moduleConfig;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
+
+    moduleConfig = (DMF_CONFIG_ScheduledTask*)DmfModuleAttributes->ModuleConfigPointer;
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ScheduledTask);
     DmfCallbacksDmf_ScheduledTask.DeviceOpen = DMF_ScheduledTask_Open;
     DmfCallbacksDmf_ScheduledTask.DeviceClose = DMF_ScheduledTask_Close;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ScheduledTask);
-    DmfCallbacksWdf_ScheduledTask.ModulePrepareHardware = DMF_ScheduledTask_ModulePrepareHardware;
-    DmfCallbacksWdf_ScheduledTask.ModuleReleaseHardware = DMF_ScheduledTask_ModuleReleaseHardware;
-    DmfCallbacksWdf_ScheduledTask.ModuleD0Entry = DMF_ScheduledTask_ModuleD0Entry;
+
+    // Allow Module to be created Dynamically when possible.
+    //
+    if ((moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_PrepareHardware) ||
+        (moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_D0Entry))
+    {
+        DmfCallbacksWdf_ScheduledTask.ModulePrepareHardware = DMF_ScheduledTask_ModulePrepareHardware;
+        DmfCallbacksWdf_ScheduledTask.ModuleReleaseHardware = DMF_ScheduledTask_ModuleReleaseHardware;
+        DmfCallbacksWdf_ScheduledTask.ModuleD0Entry = DMF_ScheduledTask_ModuleD0Entry;
+        DmfCallbacksWdf_ScheduledTask.ModuleD0Exit = DMF_ScheduledTask_ModuleD0Exit;
+    }
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ScheduledTask,
                                             ScheduledTask,

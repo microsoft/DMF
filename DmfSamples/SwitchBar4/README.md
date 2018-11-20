@@ -381,16 +381,16 @@ Return Value:
 
     // Set the light bar...no need to wait.
     //
-    ntStatus = DMF_DefaultTarget_Send(DmfModuleDefaultTarget,
-                                      &switchData.SwitchesAsUChar,
-                                      sizeof(UCHAR),
-                                      NULL,
-                                      0,
-                                      ContinuousRequestTarget_RequestType_Ioctl,
-                                      IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,
-                                      0,
-                                      NULL,
-                                      NULL);
+    ntStatus = DMF_DefaultTarget_SendSynchronously(DmfModuleDefaultTarget,
+                                                   &switchData.SwitchesAsUChar,
+                                                   sizeof(UCHAR),
+                                                   NULL,
+                                                   0,
+                                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                                   IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,
+                                                   0,
+                                                   NULL,
+                                                   NULL);
 
 Exit:
     ;
@@ -962,16 +962,16 @@ Return Value:
 
     // Set the light bar...no need to wait.
     //
-    ntStatus = DMF_DefaultTarget_Send(DmfModuleDefaultTarget,
-                                      &switchData.SwitchesAsUChar,
-                                      sizeof(UCHAR),
-                                      NULL,
-                                      0,
-                                      ContinuousRequestTarget_RequestType_Ioctl,
-                                      IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,
-                                      0,
-                                      NULL,
-                                      NULL);
+    ntStatus = DMF_DefaultTarget_SendSynchronously(DmfModuleDefaultTarget,
+                                                   &switchData.SwitchesAsUChar,
+                                                   sizeof(UCHAR),
+                                                   NULL,
+                                                   0,
+                                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                                   IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY,
+                                                   0,
+                                                   NULL,
+                                                   NULL);
 
 Exit:
     ;

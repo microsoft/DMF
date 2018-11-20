@@ -45,7 +45,7 @@ typedef struct
     WDFIOTARGET IoTarget;
     //
     //
-    DMFMODULE DmfModuleContinuousRequestTarget;
+    DMFMODULE DmfModuleRequestTarget;
 } DMF_CONTEXT_SelfTarget;
 
 // This macro declares the following function:
@@ -137,8 +137,8 @@ Return Value:
         goto Exit;
     }
 
-    DMF_ContinuousRequestTarget_IoTargetSet(moduleContext->DmfModuleContinuousRequestTarget,
-                                            moduleContext->IoTarget);
+    DMF_RequestTarget_IoTargetSet(moduleContext->DmfModuleRequestTarget,
+                                  moduleContext->IoTarget);
 
 Exit:
 
@@ -218,7 +218,6 @@ Return Value:
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     DMF_CONTEXT_SelfTarget* moduleContext;
-    DMF_CONFIG_ContinuousRequestTarget continuousRequestTargetModuleConfig;
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
@@ -228,15 +227,14 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // ContinuousRequestTarget
-    // -----------------------
+    // RequestTarget
+    // -------------
     //
-    DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&continuousRequestTargetModuleConfig,
-                                                           &moduleAttributes);
+    DMF_RequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleContinuousRequestTarget);
+                     &moduleContext->DmfModuleRequestTarget);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -399,16 +397,16 @@ Return Value:
 
     ASSERT(moduleContext->IoTarget != NULL);
 
-    ntStatus = DMF_ContinuousRequestTarget_Send(moduleContext->DmfModuleContinuousRequestTarget,
-                                                RequestBuffer,
-                                                RequestLength,
-                                                ResponseBuffer,
-                                                ResponseLength,
-                                                RequestType,
-                                                RequestIoctl,
-                                                RequestTimeoutMilliseconds,
-                                                EvtContinuousRequestTargetSingleAsynchronousRequest,
-                                                SingleAsynchronousRequestClientContext);
+    ntStatus = DMF_RequestTarget_Send(moduleContext->DmfModuleRequestTarget,
+                                      RequestBuffer,
+                                      RequestLength,
+                                      ResponseBuffer,
+                                      ResponseLength,
+                                      RequestType,
+                                      RequestIoctl,
+                                      RequestTimeoutMilliseconds,
+                                      EvtContinuousRequestTargetSingleAsynchronousRequest,
+                                      SingleAsynchronousRequestClientContext);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -465,15 +463,15 @@ Return Value:
 
     ASSERT(moduleContext->IoTarget != NULL);
 
-    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
-                                                             RequestBuffer,
-                                                             RequestLength,
-                                                             ResponseBuffer,
-                                                             ResponseLength,
-                                                             RequestType,
-                                                             RequestIoctl,
-                                                             RequestTimeoutMilliseconds,
-                                                             BytesWritten);
+    ntStatus = DMF_RequestTarget_SendSynchronously(moduleContext->DmfModuleRequestTarget,
+                                                   RequestBuffer,
+                                                   RequestLength,
+                                                   ResponseBuffer,
+                                                   ResponseLength,
+                                                   RequestType,
+                                                   RequestIoctl,
+                                                   RequestTimeoutMilliseconds,
+                                                   BytesWritten);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

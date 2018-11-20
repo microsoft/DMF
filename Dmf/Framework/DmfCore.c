@@ -350,6 +350,7 @@ Return Value:
     BOOLEAN chainClientCleanupCallback;
     PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
     WDF_OBJECT_ATTRIBUTES copyOfDmfModuleObjectAttributes;
+    WDFOBJECT parentObject;
 
     PAGED_CODE();
 
@@ -373,23 +374,27 @@ Return Value:
     chainClientCleanupCallback = FALSE;
     clientEvtCleanupCallback = NULL;
 
-    // DmfModuleObjectAttributes should always be set, since ParentObject is a must.
+    // Parent object of the DMFMODULE to create should always be set to one of the following:
     //
-    ASSERT(WDF_NO_OBJECT_ATTRIBUTES != DmfModuleObjectAttributes);
+    //     1. WDFOBJECT (or inherited object)
+    //     2. DMFMODULE (for Child Module)
+    //     3. DMFCOLLECTION (for Module created as part of DMF Collection).
+    //
 
-    // ParentObject should always be set to one of the following
-    // WDFDEVICE (for Dynamic Module) 
-    // DMFMODULE (for Child Module)
-    // DMFCOLLECTION (for Module created as part of DMF Collection).
-    //
-    // (ParentObject should be set in a way that Object Clean Up callbacks happen
-    // in PASSIVE_LEVEL.)
-    //
-    if (DmfModuleObjectAttributes->ParentObject == NULL)
+    if ((WDF_NO_OBJECT_ATTRIBUTES == DmfModuleObjectAttributes) ||
+        (NULL == DmfModuleObjectAttributes->ParentObject))
     {
-        ASSERT(FALSE);
-        ntStatus = STATUS_INVALID_PARAMETER;
-        goto Exit;
+        // Assign the default parent (Client driver's WDFDEVICE) if no parent is specified.
+        //
+        parentObject = Device;
+    }
+    else
+    {
+        // Allow Client to specify any parent.
+        // IMPORTANT: ParentObject should be set in a way that Object Clean Up callbacks happen
+        //            in PASSIVE_LEVEL.
+        //
+        parentObject = DmfModuleObjectAttributes->ParentObject;
     }
 
     // In the case where Client Clean Up callback function is chained, it is necessary
@@ -404,45 +409,33 @@ Return Value:
                   sizeof(WDF_OBJECT_ATTRIBUTES));
     DmfModuleObjectAttributes = &copyOfDmfModuleObjectAttributes;
 
-    // ParentObject must be one of the three types: 
-    // DMFMODULE - The Module that is about to be created will be a Child Module. 
-    // DMFCOLLECTION - Not a Child Module. The Module that is about to be created will be part of a Module Collection.
-    // WDFDEVICE - Not a Child Module. The Module that is about to be created will not be part of any Module Collection. Created by Client directly.
-    //
-
     // Check if ParentObject is of type DMFMODULE.
     // If it is, create a ChildModule.
     //
-    childModuleCreate = WdfObjectIsCustomType(DmfModuleObjectAttributes->ParentObject,
+    childModuleCreate = WdfObjectIsCustomType(parentObject,
                                               DMFMODULE_TYPE);
     if (childModuleCreate)
     {
-        dmfModuleParent = (DMFMODULE)DmfModuleObjectAttributes->ParentObject;
+        // Client is creating a Child Module.
+        //
+        dmfModuleParent = (DMFMODULE)parentObject;
         dmfObjectParent = DMF_ModuleToObject(dmfModuleParent);
 
         ASSERT(Device == DMF_ParentDeviceGet(dmfModuleParent));
     }
     else
     {
-        // Not creating a Child Module. 
-        // Ensure Parent is either WDFDEVICE or DMFCOLLECTION.
+        // Client is not creating a Child Module.
         //
-        if ((Device != DmfModuleObjectAttributes->ParentObject) &&
-            (!WdfObjectIsCustomType(DmfModuleObjectAttributes->ParentObject,
-                                    DMFCOLLECTION_TYPE))
-            )
-        {
-            ASSERT(FALSE);
-            ntStatus = STATUS_UNSUCCESSFUL;
-            goto Exit;
-        }
 
         // Don't create Dynamic Module if the Module supports WDF callbacks since those
         // callbacks might not happen and the Module will not execute as originally planned.
         //
-        if (DmfModuleAttributes->DynamicModule &&
-            NULL != ModuleDescriptor->CallbacksWdf)
+        if ((DmfModuleAttributes->DynamicModule) &&
+            (NULL != ModuleDescriptor->CallbacksWdf))
         {
+            // TODO: Verify same condition for all Child Modules.
+            //
             ASSERT(FALSE);
             ntStatus = STATUS_UNSUCCESSFUL;
             goto Exit;
@@ -544,6 +537,8 @@ Return Value:
     clientModuleInstanceNameSizeBytes = strlen(clientModuleInstanceName) + sizeof(CHAR);
     ASSERT(clientModuleInstanceNameSizeBytes > 1);
 
+    // Allocate space for the instance name. This name is useful during debugging.
+    //
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = memoryDmfObject;
     ntStatus = WdfMemoryCreate(&attributes,

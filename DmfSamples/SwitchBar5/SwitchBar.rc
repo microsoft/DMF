@@ -1,0 +1,12 @@
+#include <windows.h>
+
+#include <ntverp.h>
+
+#define VER_FILETYPE                VFT_DRV
+#define VER_FILESUBTYPE             VFT2_DRV_SYSTEM
+#define VER_FILEDESCRIPTION_STR     "WDF-DMF Sample Driver for OSR USB-FX2 Learning Kit (SwitchBar3)"
+#define VER_INTERNALNAME_STR        "SwitchBar3.sys"
+#define VER_ORIGINALFILENAME_STR    "SwitchBar3.sys"
+
+#include "common.ver"
+
