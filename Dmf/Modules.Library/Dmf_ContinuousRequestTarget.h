@@ -156,8 +156,14 @@ typedef struct
     // Flag to indicate whether to Purge target in D0Exit and Start in D0Entry
     // This flag should be set to TRUE, if IO target needs to process all the requests
     // before entering low power.
+    // NOTE: This flag will affect all instances of the Module on running on the same target.
     //
     BOOLEAN PurgeAndStartTargetInD0Callbacks;
+    // Flag to indicate whether to Cancel all this Module's instance' WDFREQUESTS target in D0Exit 
+    // and send them down again in D0Entry. When, possible use this flag as it only affect a single
+    // instance of the Module.
+    //
+    BOOLEAN CancelAndResendRequestInD0Callbacks;
     // Indicates the mode of ContinuousRequestTarget.
     //
     ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;

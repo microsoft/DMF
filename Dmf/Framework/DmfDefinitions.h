@@ -953,6 +953,19 @@ typedef struct _DMF_PORTABLE_LOOKASIDELIST
 #endif // defined(DMF_USER_MODE)
 } DMF_PORTABLE_LOOKASIDELIST;
 
+typedef struct _DMF_PORTABLE_RUNDOWN
+{
+#if !defined(DMF_USER_MODE)
+    EX_RUNDOWN_REF RundownRef;
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    ULONG PlaceHolder;
+#endif // !defined(DMF_USER_MODE)
+} DMF_PORTABLE_RUNDOWN_REF;
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID 
 DMF_Portable_EventCreate(
@@ -1027,8 +1040,38 @@ DMF_Portable_LookasideListCreateMemory(
     _Out_ WDFMEMORY* Memory
     );
 
+VOID
+DMF_Portable_Rundown_Initialize(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
+VOID
+DMF_Portable_Rundown_Reinitialize(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
+BOOLEAN
+DMF_Portable_Rundown_Acquire(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
+VOID
+DMF_Portable_Rundown_Release(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
+VOID
+DMF_Portable_Rundown_WaitForRundownProtectionRelease(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
+VOID
+DMF_Portable_Rundown_Completed(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Invoke Api prototypes 
+// "Invoke" API prototypes 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 

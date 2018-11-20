@@ -349,7 +349,7 @@ Return Value:
 
     NTSTATUS from the KMDF/UMDF function.
 
-    --*/
+--*/
 {
     NTSTATUS ntStatus;
 
@@ -419,7 +419,7 @@ Return Value:
 
     NTSTATUS from the KMDF/UMDF function.
 
-    --*/
+--*/
 {
     NTSTATUS ntStatus;
 
@@ -442,6 +442,206 @@ Return Value:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
+}
+
+VOID
+DMF_Portable_Rundown_Initialize(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    )
+/*++
+
+Routine Description:
+
+    Initialize a given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Arguments:
+
+    RundownRef - The given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+#if !defined(DMF_USER_MODE)
+    ExInitializeRundownProtection(&RundownRef->RundownRef);
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    UNREFERENCED_PARAMETER(RundownRef);
+    ASSERT(FALSE);
+#endif
+}
+
+VOID
+DMF_Portable_Rundown_Reinitialize(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    )
+/*++
+
+Routine Description:
+
+    Reinitialize a given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Arguments:
+
+    RundownRef - The given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+#if !defined(DMF_USER_MODE)
+    ExReInitializeRundownProtection(&RundownRef->RundownRef);
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    UNREFERENCED_PARAMETER(RundownRef);
+    ASSERT(FALSE);
+#endif
+}
+
+BOOLEAN
+DMF_Portable_Rundown_Acquire(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    )
+/*++
+
+Routine Description:
+
+    Increment the reference count in a given DMF_PORTABLE_RUNODOWN_REF structure
+    if rundown has not yet started.
+
+Arguments:
+
+    RundownRef - The given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Return Value:
+
+    TRUE if rundown down has not started and the increment occurred.
+
+--*/
+{
+    BOOLEAN returnValue;
+
+#if !defined(DMF_USER_MODE)
+    returnValue = ExAcquireRundownProtection(&RundownRef->RundownRef);
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    UNREFERENCED_PARAMETER(RundownRef);
+    ASSERT(FALSE);
+    returnValue = FALSE;
+#endif
+    
+    return returnValue;
+}
+
+VOID
+DMF_Portable_Rundown_Release(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    )
+/*++
+
+Routine Description:
+
+    Decrement the reference count in a given DMF_PORTABLE_RUNODOWN_REF structure.
+
+Arguments:
+
+    RundownRef - The given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+#if !defined(DMF_USER_MODE)
+    ExReleaseRundownProtection(&RundownRef->RundownRef);
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    UNREFERENCED_PARAMETER(RundownRef);
+    ASSERT(FALSE);
+#endif
+}
+
+VOID
+DMF_Portable_Rundown_WaitForRundownProtectionRelease(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    )
+/*++
+
+Routine Description:
+
+    Wait for a given DMF_PORTABLE_RUNDOWN_REF structure's reference count to go to
+    zero while preventing any more increments from happening.
+
+Arguments:
+
+    RundownRef - The given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+#if !defined(DMF_USER_MODE)
+    ExWaitForRundownProtectionRelease(&RundownRef->RundownRef);
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    UNREFERENCED_PARAMETER(RundownRef);
+    ASSERT(FALSE);
+#endif
+}
+
+VOID
+DMF_Portable_Rundown_Completed(
+    _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    )
+/*++
+
+Routine Description:
+
+    Wait for a given DMF_PORTABLE_RUNDOWN_REF structure's reference count to go to
+    zero while preventing any more increments from happening.
+
+Arguments:
+
+    RundownRef - The given DMF_PORTABLE_RUNDOWN_REF structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+#if !defined(DMF_USER_MODE)
+    ExRundownCompleted(&RundownRef->RundownRef);
+#else
+    // TODO: Equivalent code will go here. Change is pending.
+    //       Until then, Client must implement another solution
+    //       in User-mode.
+    //
+    UNREFERENCED_PARAMETER(RundownRef);
+    ASSERT(FALSE);
+#endif
 }
 
 // eof: DmfPortable.c
