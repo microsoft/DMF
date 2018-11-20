@@ -201,8 +201,6 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfModuleAdd 103](#dmf_dmfmoduleadd)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDestroy 106](#dmf_moduledestroy)
-
 [DMF Module API Reference 107](#dmf-module-api-reference)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Enumerations 108](#module-enumerations)
@@ -1295,8 +1293,8 @@ DMF_[ModuleName]_NotificationRegister callback*.
 7.  Call the Module's Methods as needed passing the **DMFMODULE** from
     step 6.
 
-8.  Finally, destroy the DMFMODULE using
-    **DMF_Module_InstanceDestroy()**.
+8.  Finally, destroy the **DMFMODULE** using `WdfObjectDelete()` or let WDF
+    delete it automatically when its parent WDFOBJECT is deleted.
 
 ### Asynchronous Notification Dynamic Instantiation
 
@@ -1335,14 +1333,17 @@ a DMF_[ModuleName]_NotificationRegister callback.*
 8.  Call the Module's Methods as needed passing the **DMFMODULE** from
     step 7.
 
-9.  Finally, destroy the DMFMODULE using
-    **DMF_Module_InstanceDestroy()**.
+9.  Finally, destroy the **DMFMODULE** using `WdfObjectDelete()` or let WDF
+    delete it automatically when its parent WDFOBJECT is deleted.
 
 ### Destroying a Dynamic Module
 
-It is not necessary to immediately close and destroy the Module after
-its Methods are called. But, it is the responsibility of the Client
-Driver to do so before the driver corresponding WDFDEVICE is deleted.
+It is not necessary to immediately destroy a Dynamic Module after it is created and
+its Methods are called. If the Module's parent **WDFOBJECT** is a **WDFDEVICE** or
+some other **WDFOBJECT**, the Module will be automatically destroyed when its
+parent **WDFOBJECT** is destroyed, similar to all other WDF objects. Likewise,
+the Client can call `WdfObjectDelete()` passing the **DMFMODULE** handle of the
+Dynamic Module at any time.
 
 Here is an example of the above sequence showing the **Dmf_AcpiTarget**
 Module dynamically instantiated:
@@ -1396,7 +1397,7 @@ ConfigurationDetermine(
 Exit:
     if (dmfModuleAcpiTarget != NULL)
     {
-        DMF_Module_Destroy(dmfModuleAcpiTarget);
+        WdfObjectDelete(dmfModuleAcpiTarget);
     }
     return ntStatus;
 }
@@ -4006,34 +4007,6 @@ Return Value:
                      NULL);
 }
 ```
-### DMF_ModuleDestroy
-```
-VOID
-DMF_Module_Destroy(
-    _In_ DMFMODULE DmfModule
-    );
-```
-Given an instance of a Module, tells DMF to destroy the Module.
-
-#### Parameters
-  Parameter | Description
-  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
-  
-#### Returns
-
-None
-
-Remarks
-
--   This function is used by Clients that instantiate Modules that are
-    dynamically created. Otherwise, DMF calls this API automatically as
-    needed.
-
--   This function is used by Modules when they support the
-    DMF_[ModuleName]_Destroy callback. **It is rare that this is the
-    case, however.**
-
 DMF Module API Reference
 ========================
 
@@ -5879,12 +5852,7 @@ None
 
 #### Remarks
 
--   Module authors should avoid supporting this callback because Module
-    Create functions should not allocate resources that DMF Framework
-    does not know about.
-
--   **If a Module supports this callback, the callback must call
-    DMF_ModuleDestroy()**.
+-   Modules generally do not need to support this callback unless the Module allocates resources in its Create callback (which is discouraged).
 
 -   After this callback returns, the Module nor the Module's Methods may
     be used because the Module's data structures will have been
@@ -5937,12 +5905,14 @@ function failed.
     but not its own as that will cause infinite recursion.)
 
 -   This function is also called by Clients to create a Dynamic Module.
-    See the section *Dynamic Modules* for more information.
+    See the section *Dynamic Modules* for more information. **Modules that are dynamically
+    allocated are freed either by using `WdfObjectDelete()` or by allowing WDF to automatically
+    free the Module when its parent object is deleted.**
 
 -   Every Module must implement this function.
 
--   This function should only initialize and create the Module and its
-    Child Modules. It should not allocate resources or talk to hardware.
+-   This function should only initialize and create the Module. Generally, it should not allocate
+    resources or talk to hardware.
 
 ### DECLARE_DMF_MODULE
 ```
@@ -6420,38 +6390,6 @@ None
 -   This function is only applicable if
     **DMF_ModuleNotificationClose()** is used by the Module from the
     Module's notification callback.
-
-### DMF_ModuleDestroy
-```
-VOID
-DMF_ModuleDestroy(
-    _In_ DMFMODULE DmfModule
-    )
-```
-This function destroys a Module. It is the opposite of
-**DMF_ModuleCreate**. Child Module's are automatically recursively
-destroyed.
-
-#### Parameters
-
-  Parameter | Description
-  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
-
-#### Returns
-
-None
-
-#### Remarks
-
--   Generally speaking, Modules do not need to call this function
-    because DMF's default Destroy handler calls this function.
-
--   This function, if it is used, should only be called from the
-    Module's Destroy callback.
-
--   After this function is called, the Module's Private Context and
-    Config are destroyed and inaccessible.
 
 ### DMF_ModuleIsInFilterDriver
 ```
@@ -7544,7 +7482,6 @@ Client Driver and create instances of Modules.
   **[DMF_DmfDeviceInitSetEventCallbacks]**             |  Client Driver makes this call to set **EvtDmfDeviceModulesAdd** callback prior to calling **DMF_ModulesCreate**. **DMF_DEFAULT_DEVICEADD** calls this function.
   **[DMF_ModulesCreate]**                              |  The last call made after the above calls. DMF will configure and create Modules specified and connect DMF to the Client Driver. After this call the instantiated Modules are ready for use.
   **DMF_ModuleCreate**                                 |  Client Drivers use this call to create Dynamic Modules. *Client drivers typically do not create Dynamic Modules.*
-  **DMF_ModuleDestroy**                                |  Client Drivers use this call to destroy Dynamic Modules (created by **DMF_ModuleCreate**).
   **DMF_ParentDeviceGet**                              |  Client Drivers use this function to retrieve the **WDFDEVICE** that is set as parent of a Module. Using that device, the Client Driver can access the corresponding Device Context.
   **DMF_FilterDeviceGet**                              |  Client Filter Drivers use this function to retrieve the **WDFDEVICE** that corresponds to the Filter Device Filter Device Object.
 
@@ -7565,7 +7502,6 @@ Modules.
   **DMF_CONFIG_GET**                            |  Modules use this function to retrieve the Module's Config information set by the Client.
   **DMF_CONTEXT_GET**                           |  Modules use this function to retrieve the Module's Context. (This context is similar to a Client Driver's device context.)
   **[DMF_ModuleCreate]**                        |  Modules use this call to tell DMF to create an instance of themselves. Modules can also use this call to create instances of Dynamic Modules of other Modules.
-  **DMF_ModuleDestroy**                         |  Modules use this call to tell DMF to destroy an instance of themselves **only** if they support the **DMF_[ModuleName]_Destroy callback**. *Typically, Modules do not support this callback as DMF makes that call on behalf of the Module.* Modules use this call to tell DMF to destroy an instance of a Dynamic Module, however.
   **DMF_ModuleOpen**                            |  Modules that manually control when they open/close use this call to open.
   **DMF_ModuleClose**                           |  Modules that manually control when they open/close use this call to close.
   **DMF_ModuleAcquire**                         |  Modules that manually control when they open/close use this call at the **beginning** of their Methods to ensure that the Module's context is valid during the Method's execution. Using this call ensures that the Module remains open for the duration of the Method's execution.
