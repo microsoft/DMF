@@ -1475,7 +1475,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -1516,7 +1516,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -1713,7 +1713,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -1861,7 +1861,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -2014,7 +2014,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -2055,7 +2055,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -2154,7 +2154,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -2195,7 +2195,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {

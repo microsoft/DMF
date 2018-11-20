@@ -137,7 +137,7 @@ DMF_DeviceInterfaceTarget_StreamStart(
     _In_ DMFMODULE DmfModule
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_DeviceInterfaceTarget_StreamStop(
     _In_ DMFMODULE DmfModule

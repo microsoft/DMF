@@ -2496,7 +2496,7 @@ Exit:
     return ntStatus;
 }
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContinuousRequestTarget_Stop(
     _In_ DMFMODULE DmfModule
@@ -2513,7 +2513,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
@@ -2571,7 +2571,7 @@ Arguments:
 
 Return Value:
 
-    VOID.
+    None
 
 --*/
 {
