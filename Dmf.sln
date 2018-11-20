@@ -32,6 +32,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfU", "Dmf\Solution\DmfU\D
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKModules.Library.Tests", "Dmf\Solution\DmfKModules.Library.Tests\DmfKModules.Library.Tests.vcxproj", "{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{B474F7F0-867B-4A9D-86FB-3D421186DEF3}"
+	ProjectSection(SolutionItems) = preProject
+		Dmf\Documentation\Driver Module Framework.md = Dmf\Documentation\Driver Module Framework.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
