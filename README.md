@@ -8,6 +8,9 @@ DMF does not replace WDF. DMF is a second framework that is used with WDF. The d
 
 The source code for both the framework and Modules written using the framework are released. 
 
+Introduction Video from 2018 WinHEC:
+www.WinHEC.com (See the video titled, "Driver Module Framework".)
+
 This blog post provides more information: 
 https://blogs.windows.com/buildingapps/2018/08/15/introducing-driver-module-framework/
 
