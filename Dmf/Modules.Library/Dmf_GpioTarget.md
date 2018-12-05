@@ -40,7 +40,7 @@ GpioConnectionMandatory | Module must find the Gpio connection at GpioConnection
 GpioConnectionIndex | The index of the GPIO line that this Module's instance should access.
 OpenMode | Indicates if this Module's instance will read and/or write from/to the GPIO line.
 ShareAccess | Indicates if this Module's instance will access the GPIO line in exclusive mode.
-InteruptResource | Allows Client to specify an interrupt resource associated with the SPB resource.
+InteruptResource | Allows Client to specify an interrupt resource associated with the interrupt resource.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -312,12 +312,14 @@ Value | The given state.
 
 * This Module accesses a single GPIO line.
 * A Client must instantiate one instance of this Module for every GPIO line the Client needs to access.
+* IMPORTANT: If the device only has an interrupt resource defined, then use DMF_InterruptResource Module instead of this Module.
+* If the Client needs to read/write from/to the GPIO interrupt, then the Client should instantiate a single instance of this Module setting both the GpioConnectionIndex and the InterruptLineIndex set.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Children
 
-* None
+* DMF_InterruptResource
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -330,6 +332,8 @@ Value | The given state.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### To Do
+
+* Create DMF_GpioEx Module that will allow Client to connect only to interrupt.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Category

@@ -55,6 +55,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c" />
@@ -93,6 +94,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h" />
@@ -383,6 +385,7 @@
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md" />
   </ItemGroup>

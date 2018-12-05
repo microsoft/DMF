@@ -81,13 +81,13 @@ EVT_VirtualHidAmbientLightSensor_FeatureReportDataSet(_In_ DMFMODULE DmfModule,
 //
 typedef struct
 {
-    // Vendor Id of the virtual keyboard.
+    // Vendor Id of the virtual light sensor.
     //
     USHORT VendorId;
-    // Product Id of the virtual keyboard.
+    // Product Id of the virtual light sensor.
     //
     USHORT ProductId;
-    // Version number of the virtual keyboard.
+    // Version number of the virtual light sensor.
     //
     USHORT VersionNumber;
     // Callbacks to get data from ALS hardware.
