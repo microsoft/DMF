@@ -80,6 +80,7 @@ Environment:
 // USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
 // CUSTOM_TYPE(SMFX_MACHINE_EXCEPTION, ItemEnum(SmFx::MachineException));
 // CUSTOM_TYPE(SMFX_TRANSITION_TYPE, ItemEnum(SmFx::TransitionType));
+// CUSTOM_TYPE(UCMUCSI_PPM_IOCTL, ItemEnum(_UCMUCSI_PPM_IOCTL));
 // end_wpp
 
 // eof: DmfTrace.h

@@ -100,6 +100,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c">
       <Filter>Modules\Hid</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -211,6 +214,9 @@
       <Filter>Headers\Hid</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h">
       <Filter>Headers\Hid</Filter>
     </ClInclude>
   </ItemGroup>
@@ -384,6 +390,9 @@
       <Filter>Documentation\Modules\Hid</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md">
       <Filter>Documentation\Modules\Hid</Filter>
     </None>
   </ItemGroup>

@@ -544,7 +544,16 @@ Return Value:
     moduleBufferQueueConfigList.SourceSettings.BufferCount = moduleConfig->MaximumNumberOfPendingDataBuffers;
     moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(USEREVENT_ENTRY) +
                                                             moduleConfig->SizeOfDataBuffer;
+    if (DmfParentModuleAttributes->PassiveLevel)
+    {
+        moduleBufferQueueConfigList.SourceSettings.PoolType = PagedPool;
+    }
+    else
+    {
+        moduleBufferQueueConfigList.SourceSettings.PoolType = NonPagedPoolNx;
+    }
     moduleAttributes.ClientModuleInstanceName = "NotifyUserWithRequestBufferQueue";
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
@@ -610,7 +619,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_NotifyUserWithRequest,
                                             NotifyUserWithRequest,
                                             DMF_CONTEXT_NotifyUserWithRequest,
-                                            DMF_MODULE_OPTIONS_PASSIVE,
+                                            DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_NotifyUserWithRequest.CallbacksDmf = &DmfCallbacksDmf_NotifyUserWithRequest;

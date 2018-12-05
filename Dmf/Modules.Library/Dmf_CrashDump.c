@@ -30,7 +30,7 @@ Environment:
 
 #else
 
-#include "..\..\User\General\CSystemTelemetryDevice.h"
+#include "CSystemTelemetryDevice.h"
 
 #define INITGUID
 

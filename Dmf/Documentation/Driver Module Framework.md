@@ -585,7 +585,7 @@ rarely designed with all the above features that a DMF driver has.
 DMF Container Driver
 --------------------
 
-In this mode, there is no specific Client Driver code other than to
+In this type of driver, there is no specific Client Driver code other than to
 instantiate DMF Modules and potentially handle Module specific
 callbacks. There is no Device Context. The DMF Modules act *like* small
 drivers and perform all their work (driver's "business logic")
@@ -597,7 +597,7 @@ has its own Private Context.*
 DMF Non-Container Driver
 ------------------------
 
-In this mode, the Client Driver has a Device Context. The Client Driver
+In this type of driver, the Client Driver has a Device Context. The Client Driver
 instantiates Modules and uses them to perform work (device driver's
 "business logic"). But there is also unique driver code that is not part
 of any Module. It is a classic WDF driver except that it uses DMF
@@ -606,6 +606,18 @@ Driver has a Device Context*.
 
 (In the above diagrams, the blue boxes contain code that performs the
 work ("business logic") of the Client Driver.)
+
+WDF driver that uses only Dynamic DMF Modules
+---------------------------------------------
+
+In this type of driver, the Client driver only uses Dynamic Modules. Dynamic Modules do not
+support WDF callbacks, so these kinds of Modules can be instantiated at any time. (Static Modules
+must be instantiated in the `DmfModulesAdd` callback during `DeviceAd`d so that they are able to
+receive any WDF callback starting with `EvtDevicePrepareHardware`.) Both Static and Dynamic Modules
+may be instantiated in `DmfModulesAdd`, but only Dynamic Modules can be instantiated after DeviceAdd.
+**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+DMF_ModulesCreate().**
+
 
 Examples of Modules
 -------------------
@@ -679,8 +691,6 @@ document, *DMF Modules Overview*.
 -   DMF_IoctlHandler
 
 -   DMF_Pdo
-
-
 
 Properties of Modules
 ---------------------
@@ -837,6 +847,9 @@ DMF drivers have the following properties:
 Using DMF in an Existing Driver or a Driver that has a DeviceAdd callback
 -------------------------------------------------------------------------
 
+**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+DMF_ModulesCreate().**
+
 Aside from including the appropriate headers and libraries, there are
 four specific steps to using DMF in a driver that has a **DeviceAdd**
 callback (usually so it can have its own Device Context):
@@ -854,6 +867,9 @@ sections explain steps 3 and 4 which are common for all drivers that use
 DMF. They are "Instantiating DMF Modules" and "Using DMF Modules".
 
 ### Hook DMF into the driver.
+
+**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+DMF_ModulesCreate().**
 
 It is necessary to "hook" DMF into the driver so that DMF can perform
 two important tasks:
@@ -985,6 +1001,9 @@ Finally, with regard to filter drivers, note the following:
     handle.
 
 ### Initialize DMF
+
+**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+DMF_ModulesCreate().**
 
 Using the above steps, DMF is hooked into the Client Driver but is not
 yet initialized. The next step is to initialize DMF.
@@ -1121,6 +1140,9 @@ Now the Client Driver is ready to instantiate Modules. See the section
 
 Instantiating DMF Modules
 -------------------------
+
+**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+DMF_ModulesCreate().**
 
 This section is common to all types of DMF drivers. Most DMF drivers
 will instantiate at least one Module. If you have followed the steps

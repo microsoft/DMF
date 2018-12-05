@@ -42,14 +42,14 @@ typedef struct
     //
     BOOLEAN InterruptAssigned;
 
-    // SPB Line Index that is instantiated in this object.
+    // Interrupt Line Index that is instantiated in this object.
     //
     ULONG InterruptResourceLineIndex;
-    // SPB Interrupt Index that is instantiated in this object.
+    // Interrupt Index that is instantiated in this object.
     //
     ULONG InterruptResourceInterruptIndex;
 
-    // Resource information for SPB device.
+    // Resource information of the interrupt.
     //
     CM_PARTIAL_RESOURCE_DESCRIPTOR InterruptResourceConnection;
 
@@ -158,7 +158,7 @@ InterruptResource_PasiveLevelCallback(
 /*++
 Routine Description:
 
-    Passive Level callback for a passive level SPB interrupt.
+    Passive Level callback for a passive level interrupt.
 
 Arguments:
 
@@ -209,7 +209,7 @@ InterruptResource_DpcForIsr(
 /*++
 Routine Description:
 
-    DPC callback for a SPB interrupt.
+    DPC callback for a interrupt.
 
 Arguments:
 
@@ -480,7 +480,7 @@ Return Value:
         {
             if (moduleConfig->InterruptIndex == interruptIndex)
             {
-                // Store the index of the SPB interrupt that is instantiated.
+                // Store the index of the interrupt that is instantiated.
                 // (For debug purposes only.)
                 //
                 moduleContext->InterruptResourceInterruptIndex = interruptIndex;
@@ -519,8 +519,14 @@ Return Value:
     }
 
     // Initialize the interrupt, if necessary.
+    // If the Client does not register any handlers, do not connect to the interrupt.
+    // This is necessary for the case where the Client just uses a GPIO but does not 
+    // need the interrupt resource that is present.
     //
-    if (moduleContext->InterruptAssigned)
+    if ((moduleContext->InterruptAssigned) &&
+        ((moduleConfig->EvtInterruptResourceInterruptIsr != NULL) ||
+         (moduleConfig->EvtInterruptResourceInterruptPassive != NULL) ||
+         (moduleConfig->EvtInterruptResourceInterruptDpc != NULL)))
     {
         WDF_INTERRUPT_CONFIG_INIT(&interruptConfig,
                                   InterruptResource_Isr,
@@ -562,7 +568,7 @@ Return Value:
             goto Exit;
         }
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SPB Interrupt Created");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Interrupt Created");
 
         // NOTE: It is not possible to get the parent of a WDFINTERRUPT.
         // Therefore, it is necessary to save the DmfModule in its context area.
