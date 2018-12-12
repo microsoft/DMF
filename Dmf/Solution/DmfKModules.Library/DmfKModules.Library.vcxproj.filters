@@ -103,6 +103,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c">
       <Filter>Modules\Hid</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -218,6 +221,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h">
       <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
+      <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -394,6 +400,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md">
       <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_String.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>
