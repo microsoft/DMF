@@ -176,6 +176,8 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RequestTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ScheduledTask.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
@@ -195,6 +197,8 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RequestTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
@@ -218,6 +222,8 @@
     <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />
     <None Include="..\..\Modules.Library\Dmf_Registry.md" />
     <None Include="..\..\Modules.Library\Dmf_ScheduledTask.md" />
+    <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md" />
+    <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_Thread.md" />
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
   </ItemGroup>

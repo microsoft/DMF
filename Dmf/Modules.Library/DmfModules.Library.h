@@ -78,6 +78,7 @@ extern "C"
 #include "Dmf_SpbTarget.h"
 #include "Dmf_VirtualHidAmbientLightSensor.h"
 #include "Dmf_VirtualHidAmbientColorSensor.h"
+#include "Dmf_String.h"
 
 // Transport Related Definitions.
 //

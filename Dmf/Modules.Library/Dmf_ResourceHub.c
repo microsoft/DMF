@@ -496,7 +496,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = ConnectionPropertiesLifetimeReference;
 
-    // Setup input buffer structure with params from caller.
+    // Setup input buffer structure with parameters from the caller.
     //
     requiredInputBufferSize = sizeof(RH_QUERY_CONNECTION_PROPERTIES_INPUT_BUFFER);
     ntStatus = WdfMemoryCreate(&attributes,
