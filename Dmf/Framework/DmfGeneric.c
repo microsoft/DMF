@@ -266,7 +266,9 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
+    // This is needed for cases where Module Opens, Close and Opens again.
+    //
+    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
     UNREFERENCED_PARAMETER(ResourcesRaw);
     UNREFERENCED_PARAMETER(ResourcesTranslated);
@@ -405,6 +407,9 @@ Return Value:
         if (dmfObject->ModuleOpenedDuring == ModuleOpenedDuringType_PrepareHardware)
         {
             DMF_Internal_Close(DmfModule);
+            // This is needed for cases where Module Opens, Close and Opens again.
+            //
+            dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_Invalid;
         }
     }
     else if (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware == dmfObject->ModuleDescriptor.OpenOption)
@@ -412,6 +417,9 @@ Return Value:
         // This Module's Notification Registration is automatically closed in PrepareHardware.
         //
         DMF_Internal_NotificationUnregister(DmfModule);
+        // This is needed for cases where Module Opens, Close and Opens again.
+        //
+        dmfObject->ModuleNotificationRegisteredDuring = ModuleOpenedDuringType_Invalid;
     }
     else if (dmfObject->ModuleDescriptor.OpenOption < DMF_MODULE_OPEN_OPTION_LAST)
     {
@@ -1783,7 +1791,9 @@ Return Value:
     UNREFERENCED_PARAMETER(ResourcesRaw);
     UNREFERENCED_PARAMETER(ResourcesTranslated);
 
-    DMF_HandleValidate_IsCreatedOrIsNotify(dmfObject);
+    // This is needed for cases where Module Opens, Close and Opens again.
+    //
+    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
     // This is called during PrepareHardware when the flag is used.
     //
