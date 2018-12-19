@@ -1467,6 +1467,12 @@ Return Value:
         goto Exit;
     }
 
+    // Remember that DMF_Invoke_DeviceCallbacksDestroy() needs to be called before the Module
+    // Collection is destroyed.
+    //
+    DMF_MODULE_COLLECTION* moduleCollection = DMF_CollectionToHandle(dmfDeviceContext->DmfCollection);
+    moduleCollection->ManualDestroyCallbackIsPending = TRUE;
+
     // Dispatch Device Prepare Hardware.
     //
     ntStatus = DmfContainerEvtDevicePrepareHardware(Device,
