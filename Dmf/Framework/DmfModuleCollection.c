@@ -509,6 +509,19 @@ Return Value:
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(dmfCollection);
 
+    // In the case of non-PnP drivers where DMF_Invoke_DeviceCallbacksCreate() has been called in DriverEntry()
+    // the Client driver has no chance to call the corresponding DMF_Invoke_DeviceCallbacksDestroy() since this
+    // callback happens before the Client driver's Cleanup callback. Because Modules must be Closed before they
+    // are destroyed this condition is detected and the corresponding function is called here.
+    //
+    if (moduleCollectionHandle->ManualDestroyCallbackIsPending)
+    {
+        moduleCollectionHandle->ManualDestroyCallbackIsPending = FALSE;
+        DMF_Invoke_DeviceCallbacksDestroy(moduleCollectionHandle->ClientDevice,
+                                          NULL,
+                                          WdfPowerDeviceD0);
+    }
+
     // Close any modules that were automatically opened after creation.
     //
     for (driverModuleIndex = (moduleCollectionHandle->NumberOfClientDriverDmfModules - 1);
@@ -3875,6 +3888,13 @@ Return Value:
     //
     dmfDeviceContext->DmfCollection = dmfCollection;
     dmfDeviceContext->ClientImplementsEvtWdfDriverDeviceAdd = DMF_DmfDeviceInitClientImplementsDeviceAdd(dmfDeviceInit);
+
+    // Store information needed to automatically call DMF_Invoke_DeviceCallbacksDestroy() when the
+    // Client is unable to do so (e.g., in the case of non-PnP drivers).
+    //
+    DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(dmfCollection);
+    moduleCollectionHandle->ClientDevice = Device;
+    moduleCollectionHandle->ManualDestroyCallbackIsPending = FALSE;
 
 Exit:
 

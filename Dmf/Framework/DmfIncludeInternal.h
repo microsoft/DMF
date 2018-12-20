@@ -292,6 +292,16 @@ struct _DMF_MODULE_COLLECTION_
     // Flags indicating if modules implement WDF callbacks.
     //
     DMF_CALLBACKS_WDF_CHECK DmfCallbacksWdfCheck;
+
+    // Indicates that Client invoked Create callbacks manually.
+    // It is necessary for the case where Module Collection Cleanup callback
+    // is called, but the Client has not had a chance to call the corresponding
+    // Destroy callback. (The Client cannot do so in its parent object Cleanup
+    // callback as that happens after the Module Collection is destroyed since
+    // the Module Collection's Cleanup callback is called first by WDF.
+    //
+    BOOLEAN ManualDestroyCallbackIsPending;
+    WDFDEVICE ClientDevice;
 };
 
 typedef struct _DMF_DEVICE_CONTEXT
