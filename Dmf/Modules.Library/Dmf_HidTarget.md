@@ -282,6 +282,41 @@ NumberOfBytesToCopy | The number of bytes that should be sent.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_HidTarget_FeatureSetEx
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureSet(
+  _In_ DMFMODULE DmfModule,
+  _In_ UCHAR FeatureId,
+  _In_ UCHAR* Buffer,
+  _In_ ULONG BufferSize,
+  _In_ ULONG OffsetOfDataToCopy,
+  _In_ ULONG NumberOfBytesToCopy
+  );
+````
+
+Allows the Client to send a "Set Feature" command to the HID device connected the instance of this Module.
+Will search all 'data' report ids for the right one and use the corresponding size.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+FeatureId | The Feature Id to send.
+Buffer | The Client buffer that contains the data to send to the device associated with FeatureId.
+BufferSize | The size of Buffer in bytes.
+OffsetOfDataToCopy | The offset in Buffer where the data to send begins.
+NumberOfBytesToCopy | The number of bytes that should be sent.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_HidTarget_InputRead
 
 ````

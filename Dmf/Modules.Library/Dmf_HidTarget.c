@@ -2929,7 +2929,6 @@ Return Value:
     CHAR* report;
     NTSTATUS ntStatus;
     DMF_CONTEXT_HidTarget* moduleContext;
-    WDFDEVICE device;
     WDFMEMORY reportMemory;
     WDF_OBJECT_ATTRIBUTES attributes;
 
@@ -2952,8 +2951,6 @@ Return Value:
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    device = DMF_ParentDeviceGet(DmfModule);
 
     if (NumberOfBytesToCopy > BufferSize)
     {
@@ -2999,7 +2996,7 @@ Return Value:
                                           moduleContext->HidCaps.FeatureReportByteLength);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HidP_InitializeReportForID ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HidP_InitializeReportForID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3023,7 +3020,7 @@ Return Value:
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -3043,7 +3040,7 @@ Return Value:
                                                  NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3056,7 +3053,245 @@ ExitNoRelease:
     if (reportMemory != WDF_NO_HANDLE)
     {
         WdfObjectDelete(reportMemory);
-        reportMemory = WDF_NO_HANDLE;
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureSetEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR FeatureId,
+    _In_ UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_ ULONG OffsetOfDataToCopy,
+    _In_ ULONG NumberOfBytesToCopy
+    )
+/*++
+
+Routine Description:
+
+    Sends a Set Feature request to underlying HID device.
+    TODO: There are 3 categories of feature (button, value, and data) and each
+          needs to be processed to find the correct report id.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FeatureId - Feature Id to call Set Feature on
+    Buffer - Source buffer for the data write
+    BufferSize - Size of Buffer in bytes
+    OffsetOfDataToCopy - Offset of data from Feature Report buffer to write to
+    NumberOfBytesToCopy - Number of bytes to copy in Feature Report Buffer
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    WDF_MEMORY_DESCRIPTOR outputDescriptor;
+    PHIDP_PREPARSED_DATA preparsedData;
+    CHAR* report;
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    WDFMEMORY reportMemory;
+    WDF_OBJECT_ATTRIBUTES attributes;
+    PHIDP_VALUE_CAPS valueCaps;
+    WDFMEMORY memoryValueCaps;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_Hid);
+
+    preparsedData = NULL;
+    report = NULL;
+    reportMemory = WDF_NO_HANDLE;
+    memoryValueCaps = WDF_NO_HANDLE;
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        goto ExitNoRelease;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (NumberOfBytesToCopy > BufferSize)
+    {
+        ASSERT(FALSE);
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Insufficient Buffer Length ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    preparsedData = (PHIDP_PREPARSED_DATA)WdfMemoryGetBuffer(moduleContext->PreparsedDataMemory,
+                                                             NULL);
+
+    // Find the size of the hid report based on the Feature Id (aka report id).
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               sizeof(HIDP_VALUE_CAPS) * moduleContext->HidCaps.NumberFeatureValueCaps,
+                               &memoryValueCaps,
+                               (PVOID*)&valueCaps);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceError(DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+        
+    USHORT capsCountFound = moduleContext->HidCaps.NumberFeatureValueCaps;
+    ntStatus = HidP_GetValueCaps(HidP_Feature, 
+                                 valueCaps, 
+                                 &capsCountFound, 
+                                 preparsedData);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceError(DMF_TRACE, "HidP_GetValueCaps fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+    ASSERT(capsCountFound <= moduleContext->HidCaps.NumberFeatureValueCaps);
+
+    USHORT capIndex;
+    UINT featureReportByteLength = 0;
+    BOOLEAN topLevel = FALSE;
+
+    for (capIndex = 0; capIndex < capsCountFound; capIndex++)
+    {
+        if (valueCaps[capIndex].ReportID == FeatureId)
+        {
+            if (capIndex == 0)
+            {
+                // TODO: Confirm we need to do this.
+                //
+                topLevel = TRUE;
+            }
+            // Add space for the Report Id.
+            //
+            featureReportByteLength = valueCaps[capIndex].ReportCount + 1;
+            break;
+        }
+    }
+
+    if (featureReportByteLength == 0)
+    {
+        TraceError(DMF_TRACE, "Unable to find FeatureId %d", FeatureId);
+        goto Exit;
+    }
+
+    if (OffsetOfDataToCopy + NumberOfBytesToCopy > featureReportByteLength)
+    {
+        ASSERT(FALSE);
+        ntStatus = STATUS_BUFFER_OVERFLOW;
+        goto Exit;
+    }
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&attributes,
+                               NonPagedPoolNx,
+                               MemoryTag,
+                               featureReportByteLength,
+                               &reportMemory,
+                               (VOID**)&report);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate for report fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Start with a zeroed report.
+    //
+    RtlZeroMemory(report,
+                  featureReportByteLength);
+
+    if (topLevel)
+    {
+        ntStatus = HidP_InitializeReportForID(HidP_Feature,
+                                              (UCHAR)FeatureId,
+                                              preparsedData,
+                                              report,
+                                              featureReportByteLength);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HidP_InitializeReportForID fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
+                                      report,
+                                      featureReportByteLength);
+
+    // When the data to copy is partial, get the full feature report
+    // so that the partial contents can be copied into it.
+    //
+    if (OffsetOfDataToCopy + NumberOfBytesToCopy < featureReportByteLength)
+    {
+        // Get the Feature report Buffer
+        //
+        ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
+                                                     NULL,
+                                                     IOCTL_HID_GET_FEATURE,
+                                                     NULL,
+                                                     &outputDescriptor,
+                                                     NULL,
+                                                     NULL);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
+    // Copy the data from caller's buffer to the feature report.
+    //
+    RtlCopyMemory(&report[OffsetOfDataToCopy],
+                  Buffer,
+                  NumberOfBytesToCopy);
+
+    ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
+                                                 NULL,
+                                                 IOCTL_HID_SET_FEATURE,
+                                                 &outputDescriptor,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoRelease:
+
+    if (memoryValueCaps != WDF_NO_HANDLE)
+    {
+        WdfObjectDelete(memoryValueCaps);
+    }
+
+    if (reportMemory != WDF_NO_HANDLE)
+    {
+        WdfObjectDelete(reportMemory);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);

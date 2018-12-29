@@ -256,6 +256,41 @@ NtStatus | The NTSTATUS value to set in the Request that is to be returned.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_NotifyUserWithRequest_RequestReturnEx
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_NotifyUserWithRequest_RequestReturnEx(
+  _In_ DMFMODULE DmfModule,
+  _In_opt_ EVT_DMF_NotifyUserWithRequest_Function* EventCallbackFunction,
+  _In_opt_ VOID* EventCallbackContext,
+  _In_ NTSTATUS NtStatus
+  );
+````
+
+The Client calls this Method to dequeue a single Request, populate it and return it to the Caller. The Client populates the request
+using a given callback. The return NTSTATUS indicates if any Request was available to return.
+
+##### Returns
+
+STATUS_SUCCESS - A request was completed normally.
+STATUS_UNSUCCESSFUL - There was no request in the queue.None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_NotifyUserWithRequest Module handle.
+EventCallbackFunction | The callback that the Module calls which allows the Client to populate the Request that will be returned.
+EventCallbackContext | A Client Specific context that is passed to the given callback.
+NtStatus | The NTSTATUS value to set in the Request that is to be returned.
+
+##### Remarks
+
+* This Method does not extract data from the queue to return. The data to return is passed to the Method.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module IOCTLs
 
 * None

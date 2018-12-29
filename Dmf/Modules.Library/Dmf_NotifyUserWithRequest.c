@@ -1043,5 +1043,64 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_NotifyUserWithRequest_RequestReturnEx(
+    _In_ DMFMODULE DmfModule,
+    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ ULONG_PTR EventCallbackContext,
+    _In_ NTSTATUS NtStatus
+    )
+/*++
+
+Routine Description:
+
+    This is a variation of DMF_NotifyUserWithRequest_RequestReturn just by adding operation status.
+    Use case for variated function is when Client does not know if there is a request in a queue
+    but must still get data stored until a request arrives to carry the new data back.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    EventCallbackFunction - The function to call with dequeued request.
+    EventCallbackContext - Context to pass to EventCallbackFunction.
+    NtStatus - The status to send in completed request.
+
+Return Value:
+
+    STATUS_SUCCESS - A request was completed normally.
+    STATUS_UNSUCCESSFUL - There was no request in the queue.
+
+++*/
+{
+    ULONG numberOfRequestsCompleted;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_NotifyUserWithRequest);
+
+    numberOfRequestsCompleted = NotifyUserWithRequest_EventRequestReturn(DmfModule,
+                                                                         EventCallbackFunction,
+                                                                         EventCallbackContext,
+                                                                         NtStatus);
+    if (0 == numberOfRequestsCompleted)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;   
+    }
+    else
+    {
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    FuncExitVoid(DMF_TRACE);
+
+    return ntStatus;
+}
+
 // eof: Dmf_NotifyUserWithRequest.c
 //

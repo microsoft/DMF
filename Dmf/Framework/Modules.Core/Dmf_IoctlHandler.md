@@ -46,8 +46,7 @@ Member | Description
 ----|----
 DeviceInterfaceGuid | The GUID of the Device Interface to expose.
 AccessModeFilter | Indicates what kind of access control mechanism is used, if any. Use IoctlHandler_AccessModeDefault in most cases.
-EvtIoctlHandlerAccessModeFilter
-A callback that allows the Client to filter the IOCTL with Client specific logic.
+EvtIoctlHandlerAccessModeFilter | A callback that allows the Client to filter the IOCTL with Client specific logic.
 IoctlRecords | A table of records that specify information about each supported IOCTL.
 CustomCapabilities | Windows Store App access capabilities string.
 IsRestricted | If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.

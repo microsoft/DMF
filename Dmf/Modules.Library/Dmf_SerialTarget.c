@@ -256,7 +256,7 @@ Return Value:
     ntStatus = DMF_SerialTarget_StreamStart(*dmfModuleAddress);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
     }
 
 Exit:

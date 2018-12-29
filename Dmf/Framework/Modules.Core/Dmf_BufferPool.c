@@ -1078,8 +1078,12 @@ Return Value:
     // Populate Module Context.
     //
     moduleContext->EnableLookAside = moduleConfig->Mode.SourceSettings.EnableLookAside;
-    ASSERT((moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
-           (! moduleConfig->Mode.SourceSettings.EnableLookAside));
+    ASSERT((moduleConfig->BufferPoolMode == BufferPool_Mode_Source && 
+            ((! moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
+             moduleConfig->Mode.SourceSettings.EnableLookAside)) ||
+           (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && 
+            (! moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount == 0))
+          );
     ASSERT((moduleConfig->Mode.SourceSettings.CreateWithTimer && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
            (! moduleConfig->Mode.SourceSettings.CreateWithTimer));
     moduleContext->BufferPoolMode = moduleConfig->BufferPoolMode;
@@ -1099,7 +1103,7 @@ Return Value:
                 moduleConfig->Mode.SourceSettings.BufferCount,
                 moduleConfig->Mode.SourceSettings.BufferSize);
 
-    if (moduleConfig->Mode.SourceSettings.BufferCount > 0)
+    if (moduleConfig->BufferPoolMode == BufferPool_Mode_Source)
     {
         ASSERT(moduleConfig->Mode.SourceSettings.BufferSize > 0);
         sizeOfEachAllocation = sizeof(BUFFERPOOL_ENTRY) +

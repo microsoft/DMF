@@ -90,7 +90,7 @@ NTSTATUS
 DMF_BufferQueue_Dequeue(
   _In_ DMFMODULE DmfModule,
   _Out_ VOID** ClientBuffer,
-  _Out_ VOID** ClientBufferContext
+  _Out_opt_ VOID** ClientBufferContext
   );
 ````
 
