@@ -931,7 +931,7 @@ Return Value:
                                             RequestTarget,
                                             DMF_CONTEXT_RequestTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_RequestTarget.CallbacksDmf = &DmfCallbacksDmf_RequestTarget;
 

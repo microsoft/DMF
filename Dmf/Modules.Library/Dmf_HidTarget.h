@@ -144,6 +144,18 @@ DMF_HidTarget_FeatureSet(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_HidTarget_FeatureSetEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR FeatureId,
+    _In_ UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_ ULONG OffsetOfDataToCopy,
+    _In_ ULONG NumberOfBytesToCopy
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_HidTarget_InputRead(
     _In_ DMFMODULE DmfModule
     );

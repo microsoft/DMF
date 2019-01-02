@@ -1754,41 +1754,57 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // BufferPoolInput
-    // ---------------
+    // Create buffer pools for input and output buffers only if they are needed.
     //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
-                                              &moduleAttributes);
-    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = FALSE;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountInput;
-    moduleConfigBufferPool.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeInput;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfig->BufferInputSize;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextInputSize;
-    moduleAttributes.ClientModuleInstanceName = "BufferPoolInput";
-    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleBufferPoolInput);
+    if (moduleConfig->BufferInputSize > 0)
+    {
+        // BufferPoolInput
+        // ---------------
+        //
+        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                                  &moduleAttributes);
+        moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+        moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = FALSE;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountInput;
+        moduleConfigBufferPool.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeInput;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfig->BufferInputSize;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextInputSize;
+        moduleAttributes.ClientModuleInstanceName = "BufferPoolInput";
+        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleBufferPoolInput);
+    }
+    else
+    {
+        ASSERT(moduleConfig->BufferCountInput == 0);
+    }
 
-    // BufferPoolOutput
-    // ----------------
-    //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
-                                              &moduleAttributes);
-    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = moduleConfig->EnableLookAsideOutput;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountOutput;
-    moduleConfigBufferPool.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeOutput;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfig->BufferOutputSize;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextOutputSize;
-    moduleAttributes.ClientModuleInstanceName = "BufferPoolOutput";
-    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleBufferPoolOutput);
+    if (moduleConfig->BufferOutputSize > 0)
+    {
+        // BufferPoolOutput
+        // ----------------
+        //
+        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                                  &moduleAttributes);
+        moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+        moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = moduleConfig->EnableLookAsideOutput;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountOutput;
+        moduleConfigBufferPool.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeOutput;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfig->BufferOutputSize;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextOutputSize;
+        moduleAttributes.ClientModuleInstanceName = "BufferPoolOutput";
+        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleBufferPoolOutput);
+    }
+    else
+    {
+        ASSERT(moduleConfig->BufferCountOutput == 0);
+    }
 
     // BufferPoolContext
     // -----------------

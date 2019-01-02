@@ -167,6 +167,7 @@ static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_String;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGED")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -220,6 +221,7 @@ Return Value:
 
     return(ntStatus);
 }
+#pragma code_seg()
 
 // Module Methods
 //

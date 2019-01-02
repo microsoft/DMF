@@ -106,5 +106,14 @@ DMF_NotifyUserWithRequest_RequestReturnAll(
     _In_ NTSTATUS NtStatus
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_NotifyUserWithRequest_RequestReturnEx(
+    _In_ DMFMODULE DmfModule,
+    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ ULONG_PTR EventCallbackContext,
+    _In_ NTSTATUS NtStatus
+    );
+
 // eof: Dmf_NotifyUserWithRequest.h
 //
