@@ -27,7 +27,7 @@ Environment:
 #define Template_TransportMessage_Foo       0
 #define Template_TransportMessage_Bar       1
 
-//// TEMPLATE: If the Module has a CONFIG structure, delcare it here as well as 
+//// TEMPLATE: If the Module has a CONFIG structure, declare it here as well as 
 ////           the corresponding Module definition macro.
 ////
 
@@ -49,7 +49,7 @@ typedef struct
 DECLARE_DMF_MODULE(Template)
 
 //// TEMPLATE: If the Module has no CONFIG structure, use these lines instead of the 
-////           the above structure and defintion:
+////           the above structure and definition:
 ////
 
 //// This macro declares the following functions:
@@ -59,9 +59,6 @@ DECLARE_DMF_MODULE(Template)
 //DECLARE_DMF_MODULE_NO_CONFIG(Template)
 
 // Module Methods
-//
-
-// TEMPLATE: Add prototypes for any Module Methods.
 //
 
 // eof: Dmf_Template.h
