@@ -96,7 +96,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Tempate_ModuleSupportFunction(
+Template_ModuleSupportFunction(
     _In_ DMFMODULE DmfModule
     )
 /*++

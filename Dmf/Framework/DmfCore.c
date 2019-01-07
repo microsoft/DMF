@@ -1145,10 +1145,7 @@ Exit:
         // Also, do not write the *DmfObject because the Client should not have access
         // to this handle.
         //
-        // Suppress: 'dmfModule' could be '0''
-        //
-        #pragma warning(suppress:6387)
-        DMFMODULE parentDmfModule = DMF_ParentModuleGet(dmfModule);
+        DMFMODULE parentDmfModule = (DMFMODULE)(dmfObjectParent->MemoryDmfObject);
 
         // Suppress: 'dmfModule' could be '0''
         //
