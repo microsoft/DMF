@@ -614,6 +614,13 @@ typedef struct
     // If the Module sets this to 0, its logs will be part of the default recorder buffer.
     //
     ULONG InFlightRecorderSize;
+    // Transport Interface GUID supported by this Module on upper layer.
+    //
+    GUID SupportedTransportInterfaceGuid;
+    // Transport Interface GUID required by this Module on upper layer.
+    // (This field is mandatory when DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED is set.)
+    //
+    GUID RequiredTransportInterfaceGuid;
 } DMF_MODULE_DESCRIPTOR;
 
 #define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)      \

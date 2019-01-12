@@ -280,7 +280,9 @@ typedef NTSTATUS DMF_ModuleInstanceCreate(_In_ WDFDEVICE Device,
                                           _In_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes, 
                                           _Out_ DMFMODULE* DmfModule);
 
-typedef NTSTATUS DMF_ModuleTransportsCreate(_In_ DMFMODULE DmfModule);
+typedef VOID DMF_TransportModuleAdd(_In_ DMFMODULE DmfModule,
+                                    _In_ struct _DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+                                    _In_ PVOID DmfModuleInit);
 
 typedef NTSTATUS DMF_ModuleTransportMethod(_In_ DMFMODULE DmfModule,
                                            _In_ ULONG Message,
@@ -325,11 +327,14 @@ typedef struct _DMF_MODULE_ATTRIBUTES
     // When a Module Transport is required, this callback must be set so that the 
     // Client can attach Transport Modules.
     //
-    DMF_ModuleTransportsCreate* TransportsCreator;
+    DMF_TransportModuleAdd* TransportModuleAdd;
     // TRUE if Client wants the Module options to be set to MODULE_OPTIONS_PASSIVE.
     // NOTE: Module Options must be set to MODULE_OPTIONS_DISPATCH_MAXIMUM.
     //
     BOOLEAN PassiveLevel;
+    // Indicates that this Module is a Transport Module.
+    //
+    BOOLEAN IsTransportModule;
 } DMF_MODULE_ATTRIBUTES;
 
 __forceinline

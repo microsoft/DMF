@@ -220,7 +220,6 @@ struct _DMF_OBJECT_
     // (NOTE: These are subset of ChildModulesVoid.)
     //
     DMF_OBJECT* TransportModule;
-    BOOLEAN SetTransportMode;
     // Parent Module.
     //
     DMF_OBJECT* DmfObjectParent;
@@ -237,6 +236,12 @@ struct _DMF_OBJECT_
     // Client Cleanup Callback (chained).
     //
     PFN_WDF_OBJECT_CONTEXT_CLEANUP ClientEvtCleanupCallback;
+    // indicates this Module is a Transport.
+    //
+    BOOLEAN IsTransport;
+    // Transport Interface GUID for validation.
+    //
+    GUID DesiredTransportInterfaceGuid;
 };
 
 // DMF Object Signature.
@@ -365,6 +370,11 @@ typedef struct
         // Parent DMFMODULE.
         //
         DMFMODULE ParentDmfModule;
+        // Indicates that it is a Transport Module. This field will be copied to the
+        // individual Module Attributes like other fields from this structure are
+        // prior to the Module being created.
+        //
+        BOOLEAN IsTransportModule;
     } DmfPrivate;
 
     // These can be set by Client.

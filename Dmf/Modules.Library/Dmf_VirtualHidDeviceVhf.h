@@ -150,15 +150,15 @@ Environment:
 #define HID_USAGE_SENSOR_UNITS_GRAM                                                     0x66,0x01,0x01           // Unit
 #define HID_USAGE_SENSOR_UNITS_CENTIMETER                                               0x65,0x11                // Unit
 #ifdef DEFINE_NON_HID_UNITS
-#define HID_USAGE_SENSOR_UNITS_CELSIUS              “Use Unit(Kelvin) and subtract 273.15”
-#define HID_USAGE_SENSOR_UNITS_KILOGRAM             “Use Unit(gram) and UnitExponent(0x03)”
-#define HID_USAGE_SENSOR_UNITS_METER                “Use Unit(centimeter) and UnitExponent(0x02)”
-#define HID_USAGE_SENSOR_UNITS_BAR                  “Use Unit(Pascal) and UnitExponent(0x05)”
-#define HID_USAGE_SENSOR_UNITS_KNOT                 “Use Unit(m/s) and multiply by 1852/3600”
-#define HID_USAGE_SENSOR_UNITS_PERCENT              “Use Unit(Not_Specified)”
-#define HID_USAGE_SENSOR_UNITS_G                    “Use Unit(m/s2) and divide by 9.8”
-#define HID_USAGE_SENSOR_UNITS_MILLISECOND          “Use Unit(second) and UnitExponent(0x0D)”
-#define HID_USAGE_SENSOR_UNITS_MILLIGAUSS           “Use Unit(Gauss) and UnitExponent(0x0D)”
+#define HID_USAGE_SENSOR_UNITS_CELSIUS             // Use Unit(Kelvin) and subtract 273.15
+#define HID_USAGE_SENSOR_UNITS_KILOGRAM            // Use Unit(gram) and UnitExponent(0x03)
+#define HID_USAGE_SENSOR_UNITS_METER               // Use Unit(centimeter) and UnitExponent(0x02)
+#define HID_USAGE_SENSOR_UNITS_BAR                 // Use Unit(Pascal) and UnitExponent(0x05)
+#define HID_USAGE_SENSOR_UNITS_KNOT                // Use Unit(m/s) and multiply by 1852/3600
+#define HID_USAGE_SENSOR_UNITS_PERCENT             // Use Unit(Not_Specified)
+#define HID_USAGE_SENSOR_UNITS_G                   // Use Unit(m/s2) and divide by 9.8
+#define HID_USAGE_SENSOR_UNITS_MILLISECOND         // Use Unit(second) and UnitExponent(0x0D)
+#define HID_USAGE_SENSOR_UNITS_MILLIGAUSS          // Use Unit(Gauss) and UnitExponent(0x0D)
 #endif
 //unit deprecated usages
 #define HID_USAGE_SENSOR_UNITS_DEPRECATED_LUX                                           0x01

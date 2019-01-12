@@ -2723,19 +2723,19 @@ DMF_ModuleCollectionConfigAddAttributes(
 
 Routine Description:
 
-Add a Module's initialized Config structure to the list of Config structures
-that is used later to create a Module Collection.
+    Add a Module's initialized Config structure to the list of Config structures
+    that is used later to create a Module Collection.
 
 Arguments:
 
-ModuleCollectionConfig - Indicates how the Client wants to set up the Module Collection.
-ModuleAttributes - Module specific attributes for the Module to add to the list.
-ObjectAttributes - DMF specific attributes for the Module to add to the list.
-ResultantDmfModule - When the Module is created, its handle is written here so that Client can access the Module.
+    ModuleCollectionConfig - Indicates how the Client wants to set up the Module Collection.
+    ModuleAttributes - Module specific attributes for the Module to add to the list.
+    ObjectAttributes - DMF specific attributes for the Module to add to the list.
+    ResultantDmfModule - When the Module is created, its handle is written here so that Client can access the Module.
 
 Return Value:
 
-NTSTATUS
+    NTSTATUS
 
 --*/
 {
@@ -2772,6 +2772,10 @@ NTSTATUS
     //
     ASSERT(NULL == ModuleAttributes->ResultantDmfModule);
     ModuleAttributes->ResultantDmfModule = ResultantDmfModule;
+
+    // This flag is set before the Client callback. Set it on a per Module basis now.
+    //
+    ModuleAttributes->IsTransportModule = ModuleCollectionConfig->DmfPrivate.IsTransportModule;
 
     // Module is created as part of a collection. It is not a DynamicModule.
     //
@@ -3474,11 +3478,17 @@ Return Value:
 
         dmfObject = DMF_ModuleToObject(dmfModule);
 
+        // If the Module is not instantiated as a Transport Module, and the Client wants the 
+        // Module Handle, give it to the Client.
+        //
         if (moduleAttributesPointer->ResultantDmfModule != NULL)
         {
-            // The Client Driver requests the DmfModule. Give the Client Driver the newly created Module's handle.
-            //
-            *moduleAttributesPointer->ResultantDmfModule = dmfModule;
+            if (!moduleAttributesPointer->IsTransportModule)
+            {
+                // The Client Driver requests the DmfModule. Give the Client Driver the newly created Module's handle.
+                //
+                *moduleAttributesPointer->ResultantDmfModule = dmfModule;
+            }
         }
         else
         {
