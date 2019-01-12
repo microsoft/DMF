@@ -60,7 +60,6 @@ DMF_MODULE_DECLARE_CONTEXT(LegacyTransportA)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 LegacyTransportA_PrintString(
@@ -257,6 +256,7 @@ Return Value:
     // NOTE: This is only used for Transport Modules.
     //
     DmfModuleDescriptor_LegacyTransportA.ModuleTransportMethod = DMF_LegacyTransportA_TransportMethod;
+    DmfModuleDescriptor_LegacyTransportA.SupportedTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

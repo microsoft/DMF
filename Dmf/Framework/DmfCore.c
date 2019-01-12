@@ -512,6 +512,7 @@ Return Value:
     dmfObject->IsClosePending = FALSE;
     dmfObject->NeedToCallPreClose = FALSE;
     dmfObject->ClientEvtCleanupCallback = clientEvtCleanupCallback;
+    dmfObject->IsTransport = DmfModuleAttributes->IsTransportModule;
 
     // Create space for the Client Module Instance Name. It needs to be allocated because
     // the name that is passed in may not be statically allocated. A copy needs to be made
@@ -661,9 +662,14 @@ Return Value:
     //
     dmfObject->ModuleDescriptor.ModuleLiveKernelDumpInitialize = ModuleDescriptor->ModuleLiveKernelDumpInitialize;
 
-    // Copy over the Module Transport Method if any.
+    // Copy over the Module Transport Method and GUID.
     //
     dmfObject->ModuleDescriptor.ModuleTransportMethod = ModuleDescriptor->ModuleTransportMethod;
+
+    // Copy the Protocol-Transport GUIDs.
+    //
+    dmfObject->ModuleDescriptor.RequiredTransportInterfaceGuid = ModuleDescriptor->RequiredTransportInterfaceGuid;
+    dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid = ModuleDescriptor->SupportedTransportInterfaceGuid;
 
     // Overwrite the number of Auxiliary Locks needed.
     //
@@ -1002,6 +1008,44 @@ Return Value:
         ASSERT(NULL == dmfObject->DmfObjectParent);
         dmfObject->DmfObjectParent = dmfObjectParent;
 
+        // Perform operations when this Module is instantiated as a Transport Module.
+        //
+        if (dmfObject->IsTransport)
+        {
+            ASSERT(dmfObjectParent->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED);
+#if DBG
+            GUID zeroGuid;
+
+            RtlZeroMemory(&zeroGuid,
+                          sizeof(zeroGuid));
+            ASSERT(!DMF_Utility_IsEqualGUID(&zeroGuid,
+                                            &dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid));
+            ASSERT(!DMF_Utility_IsEqualGUID(&zeroGuid,
+                                            &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid));
+#endif
+            // The Child's supported interface GUID must match the Parent's desired interface GUID.
+            //
+            if (DMF_Utility_IsEqualGUID(&dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid,
+                                        &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid))
+            {
+                DMFMODULE parentDmfModule = DMF_ObjectToModule(dmfObjectParent);
+                DMFMODULE childDmfModule = DMF_ObjectToModule(dmfObject);
+
+                // Set the Parent's Transport Module to this Child Module.
+                //
+                DMF_ModuleTransportSet(parentDmfModule,
+                                       childDmfModule);
+            }
+            else
+            {
+                // Attempted to connect incompatible transport interface.
+                //
+                ASSERT(FALSE);
+                ntStatus = STATUS_UNSUCCESSFUL;
+                goto Exit;
+            }
+        }
+
         // NOTE: These values are expected to be NULL because the Parent
         //       has not initialized the ModuleCollection yet. (It cannot
         //       because that pointer is not passed to the Instance Creation
@@ -1021,23 +1065,6 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAddCustomType fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
-    }
-
-    // Allow the Client to set a Transport if it is required.
-    //
-    if (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED)
-    {
-        // This Module requires a Transport. Client must have set a Transport creation callback.
-        //
-        ASSERT(DmfModuleAttributes->TransportsCreator != NULL);
-        dmfObject->SetTransportMode = TRUE;
-        ntStatus = DmfModuleAttributes->TransportsCreator(dmfModule);
-        dmfObject->SetTransportMode = FALSE;
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "TransportsCreator fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
     }
 
 #if !defined(DMF_USER_MODE)
@@ -1092,6 +1119,19 @@ Return Value:
     dmfObject->ModuleDescriptor.CallbacksDmf->ChildModulesAdd(dmfModule,
                                                               DmfModuleAttributes,
                                                               (PDMFMODULE_INIT)&moduleCollectionConfig);
+    // Allow the Client to set a Transport if it is required.
+    //
+    if (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED)
+    {
+        ASSERT(DmfModuleAttributes->TransportModuleAdd != NULL);
+        // Indicate that all Modules added here are Transport Modules.
+        //
+        moduleCollectionConfig.DmfPrivate.IsTransportModule = TRUE;
+        DmfModuleAttributes->TransportModuleAdd(dmfModule,
+                                                DmfModuleAttributes,
+                                                (PDMFMODULE_INIT)&moduleCollectionConfig);
+    }
+
     if (moduleCollectionConfig.DmfPrivate.ListOfConfigs != NULL)
     {
         // 'local variable is initialized but not referenced'
@@ -1138,22 +1178,7 @@ Exit:
         dmfObject = NULL;
     }
 
-    if ((dmfObjectParent != NULL) &&
-        (dmfObjectParent->SetTransportMode))
-    {
-        // If this is a Transport Module, connect it to its Parent as a Transport.
-        // Also, do not write the *DmfObject because the Client should not have access
-        // to this handle.
-        //
-        DMFMODULE parentDmfModule = (DMFMODULE)(dmfObjectParent->MemoryDmfObject);
-
-        // Suppress: 'dmfModule' could be '0''
-        //
-        #pragma warning(suppress:6387)
-        DMF_ModuleTransportSet(parentDmfModule, 
-                               dmfModule);
-    }
-    else if (dmfObject != NULL)
+    if (dmfObject != NULL)
     {
         ASSERT(! dmfObject->DynamicModule);
         // If this Module is a Dynamic Module or it is an immediate or non-immediate Child

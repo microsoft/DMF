@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    LegacyTransportB a Sample Transport Module (instance "a").
+    LegacyTransportB a Sample Transport Module (instance "b").
 
 Environment:
 
@@ -60,7 +60,6 @@ DMF_MODULE_DECLARE_CONTEXT(LegacyTransportB)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 LegacyTransportB_PrintString(
@@ -133,7 +132,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "From Transport Instance \"a\": PowerUp");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "From Transport Instance \"b\": PowerUp");
 
     ntStatus = STATUS_SUCCESS;
 
@@ -179,7 +178,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "From Transport Instance \"a\": Open");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "From Transport Instance \"b\": Open");
 
     ntStatus = STATUS_SUCCESS;
 
@@ -257,6 +256,7 @@ Return Value:
     // NOTE: This is only used for Transport Modules.
     //
     DmfModuleDescriptor_LegacyTransportB.ModuleTransportMethod = DMF_LegacyTransportB_TransportMethod;
+    DmfModuleDescriptor_LegacyTransportB.SupportedTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

@@ -165,6 +165,7 @@ Return Value:
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_LegacyProtocol.CallbacksDmf = &DmfCallbacksDmf_LegacyProtocol;
+    DmfModuleDescriptor_LegacyProtocol.RequiredTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
