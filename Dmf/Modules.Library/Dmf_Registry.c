@@ -2284,26 +2284,6 @@ Return Value:
     }
     ASSERT(NULL != dmfModuleRegistry);
 
-    // Make sure the registry is ready before trying anything else.
-    //
-    ntStatus = RtlCheckRegistryKey(RTL_REGISTRY_ABSOLUTE,
-                                   L"\\Registry\\Machine\\System");
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "HKLM\\System is not ready yet: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Make sure the registry is ready before trying anything else.
-    //
-    ntStatus = RtlCheckRegistryKey(RTL_REGISTRY_ABSOLUTE,
-                                   L"\\Registry\\Machine\\SOFTWARE");
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "HKLM\\Software is not ready yet: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
     // Do the work using the Module instance.
     //
     ntStatus = CallbackWork(dmfModuleRegistry);

@@ -24,10 +24,6 @@ Environment:
 
 #include "DmfUtility.tmh"
 
-#include <initguid.h>
-DEFINE_GUID(GUID_SURFACE_FIRMWARE_MODE_SETTINGS,
-            0x3811BE0C, 0x6AEF, 0x44DD, 0x93, 0x82, 0xCD, 0x99, 0xA2, 0x4C, 0x66, 0x19);
-
 #pragma warning (disable : 4100 4131)
 int __cdecl
 _purecall (

@@ -32,15 +32,6 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#if defined(DMF_USER_MODE)
-// Specific external includes for this DMF Module.
-//
-#include <Guiddef.h>
-#include <wdmguid.h>
-#include <cfgmgr32.h>
-#include <ndisguid.h>
-#endif // defined(DMF_USER_MODE)
-
 // These are virtual Methods that are set based on the transport.
 // These functions are common to both the Stream and Target transport.
 // They are set to the correct version when the Module is created.

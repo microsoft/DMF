@@ -32,10 +32,7 @@ Environment:
 
 #include "CSystemTelemetryDevice.h"
 
-#define INITGUID
-
 #include <powrprof.h>
-#include <initguid.h>
 
 #endif // !defined(DMF_USER_MODE)
 

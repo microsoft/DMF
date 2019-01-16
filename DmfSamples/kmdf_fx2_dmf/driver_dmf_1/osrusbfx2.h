@@ -29,10 +29,10 @@ Environment:
 #include "usbdlib.h"
 #include "public.h"
 #include "driverspecs.h"
-//#include <wdf.h>
 #include <wdfusb.h>
 #define NTSTRSAFE_LIB
 #include <ntstrsafe.h>
+#include <devpkey.h>
 
 #include "trace.h"
 

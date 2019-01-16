@@ -55,6 +55,10 @@ extern "C"
 //
 #pragma warning(disable:4201)
 
+// Check that the Windows version is Win10 or later. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_OR_LATER (NTDDI_WIN10_RS3 && (NTDDI_VERSION >= NTDDI_WIN10))
+
 // Check that the Windows version is RS3 or later. The supported versions are defined in sdkddkver.h.
 //
 #define IS_WIN10_RS3_OR_LATER (NTDDI_WIN10_RS3 && (NTDDI_VERSION >= NTDDI_WIN10_RS3))
@@ -114,16 +118,23 @@ extern "C"
         #endif // !defined(ASSERT)
     #endif // defined(DEBUG)
     #include <windows.h>
+    #include <stdio.h>
     #include <wdf.h>
+    #include <Objbase.h>
+    // NOTE: This file includes poclass.h. Do not include that again
+    //       otherwise, redefinition errors will occur.
+    //
+    #include <batclass.h>
     #include <hidclass.h>
     #include <powrprof.h>
-    #include <stdio.h>
-    #include <Usbiodef.h>
-    #include <Guiddef.h>
+    #include <usbiodef.h>
+    #include <cguid.h>
+    #include <guiddef.h>
     #include <wdmguid.h>
     #include <cfgmgr32.h>
     #include <ndisguid.h>
-    #include <Strsafe.h>
+    #include <strsafe.h>
+    #include <ndisguid.h>
     // TODO: Add support for USB in User Mode drivers.
     //
 #else
@@ -137,6 +148,8 @@ extern "C"
     //
     #include <ntstrsafe.h>
     #include <wdf.h>
+    // NOTE: This file has be listed here. Listing it later causes many redefinition compilation errors.
+    //
     #include <acpiioct.h>
     #include <wmiguid.h>
     #include <ntddstor.h>
@@ -146,6 +159,10 @@ extern "C"
     #include <wdmguid.h>
     #include <ntddvdeo.h>
     #include <spb.h>
+    // NOTE: This file includes poclass.h. Do not include that again
+    //       otherwise, redefinition errors will occur.
+    //
+    #include <batclass.h>
     #include <hidport.h>
     #include "usbdi.h"
     #include "usbdlib.h"
@@ -158,7 +175,11 @@ extern "C"
 #endif // defined(DMF_USER_MODE)
 #include <hidusage.h>
 #include <hidpi.h>
-#include <devpkey.h>
+
+// NOTE: This is necessary in order to avoid redefinition errors. It is not clear why
+//       this is the case.
+//
+#define DEVPKEY_H_INCLUDED
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

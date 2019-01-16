@@ -54,9 +54,6 @@ DMF_MODULE_DECLARE_CONFIG(ThermalCoolingInterface)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#include <initguid.h>
-#include <poclass.h>
-
 DEVICE_ACTIVE_COOLING ThermalCoolingInterface_ActiveCooling;
 
 #pragma code_seg("PAGE")
@@ -343,7 +340,6 @@ Return Value:
 
 // Module Methods
 //
-
 
 // eof: Dmf_ThermalCoolingInterface.c
 //
