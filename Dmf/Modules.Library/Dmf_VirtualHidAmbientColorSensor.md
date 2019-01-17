@@ -154,7 +154,7 @@ InputReportData | The target buffer where Client writes ACS Input Report Data.
 ##### DMF_VirtualHidAmbientColorSensor_LuxValueSend
 
 ````
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_VirtualHidAmbientColorSensor_AllValuesSend(
     _In_ DMFMODULE DmfModule,

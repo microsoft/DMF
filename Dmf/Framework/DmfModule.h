@@ -21,6 +21,11 @@ Environment:
 
 #pragma once
 
+// Place this here so that all GUIDs defined by Modules can be compiled
+// and linked without Client driver needing to include this file.
+//
+#include <initguid.h>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Client facing definitions. These are also needed by Modules.

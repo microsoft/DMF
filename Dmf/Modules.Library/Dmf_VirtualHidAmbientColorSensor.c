@@ -757,7 +757,7 @@ Return Value:
 // Module Methods
 //
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_VirtualHidAmbientColorSensor_AllValuesSend(
     _In_ DMFMODULE DmfModule,

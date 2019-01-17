@@ -19,8 +19,6 @@ Environment:
 
 #pragma once
 
-#include <initguid.h>
-
 // {573E8C73-0CB4-4471-A1BF-FAB26C31D384}
 DEFINE_GUID(GUID_DEVINTERFACE_OSRUSBFX2, 
             0x573e8c73, 0xcb4, 0x4471, 0xa1, 0xbf, 0xfa, 0xb2, 0x6c, 0x31, 0xd3, 0x84);

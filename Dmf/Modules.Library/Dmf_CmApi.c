@@ -57,6 +57,8 @@ DMF_MODULE_DECLARE_CONFIG(CmApi)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#include <devpkey.h>
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
