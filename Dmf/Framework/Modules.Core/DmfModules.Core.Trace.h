@@ -19,6 +19,8 @@ Environment:
 
 #pragma once
 
+#include "..\Framework\DmfTrace.h"
+
 // WPP Tracing Support
 //
 #define WPP_CONTROL_GUIDS                                                                                      \

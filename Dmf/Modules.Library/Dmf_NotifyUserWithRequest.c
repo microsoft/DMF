@@ -202,6 +202,13 @@ Return Value:
                                              &request);
     if (NT_SUCCESS(ntStatus))
     {
+        // NOTE: The decrement must happen before the request returns because
+        //       the caller may immediately enqueue another request.
+        //
+        ASSERT(moduleContext->EventCountHeld > 0);
+        InterlockedDecrement(&moduleContext->EventCountHeld);
+        numberOfRequestsCompleted++;
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
         if (NULL == EventCallbackFunction)
         {
             // Complete the request on behalf of Client Driver.
@@ -221,10 +228,6 @@ Return Value:
                                   EventCallbackContext,
                                   NtStatus);
         }
-        ASSERT(moduleContext->EventCountHeld > 0);
-        InterlockedDecrement(&moduleContext->EventCountHeld);
-        numberOfRequestsCompleted++;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
     }
     else
     {
