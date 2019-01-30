@@ -83,6 +83,10 @@ DMF_MODULE_DECLARE_CONFIG(HidTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// For HidD* API.
+//
+#include <hidsdi.h>
+
 // {55F3D844-8F9E-4EBD-AE33-EB778524CEEF}
 DEFINE_GUID(GUID_CUSTOM_DEVINTERFACE, 0x55f3d844, 0x8f9e, 0x4ebd, 0xae, 0x33, 0xeb, 0x77, 0x85, 0x24, 0xce, 0xef);
 
@@ -3400,6 +3404,109 @@ Return Value:
         }
 
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoRelease:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_InputReportGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFMEMORY InputReportMemory,
+    _Out_ ULONG* InputReportLength
+    )
+/*++
+
+Routine Description:
+
+    Synchronously reads an Input Report.
+    NOTE: This function is not normally used to read Input Reports. Use it only if 
+          the underlying device is known to not asynchronously respond reliably. If 
+          there is no data available within 5 seconds, this call will complete
+          regardless whereas the normally used Method (DMF_HidTarget_InputRead)
+          will continue to wait.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    InputReportMemory - Retrieved data is written to this buffer.
+    InputReportLength - Amount of data read from device.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    HANDLE ioTargetFileHandle;
+    size_t bufferSize;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_Hid);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        goto ExitNoRelease;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    PVOID reportBuffer = WdfMemoryGetBuffer(InputReportMemory,
+                                            &bufferSize);
+
+    if (NULL == reportBuffer)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryGetBuffer fails");
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+
+    // Let Client know buffer size.
+    //
+    *InputReportLength = moduleContext->HidCaps.InputReportByteLength;
+
+    if (bufferSize < *InputReportLength)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BufferSize too small bufferSize=%d expected=%d", 
+                    (int)bufferSize, 
+                    (int)moduleContext->HidCaps.InputReportByteLength);
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    // HidD APIs require the actual file handle, not the WDFIOTARGET.
+    //
+    ioTargetFileHandle = WdfIoTargetWdmGetTargetFileHandle(moduleContext->IoTarget);
+
+    // Read input report from the device.
+    //
+    if (!HidD_GetInputReport(ioTargetFileHandle,
+                             reportBuffer,
+                             *InputReportLength))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HidD_GetInputReport fails");
+        ntStatus = STATUS_INTERNAL_ERROR;
         goto Exit;
     }
 

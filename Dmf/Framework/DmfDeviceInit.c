@@ -92,7 +92,7 @@ typedef struct DMFDEVICE_INIT
 // This is a sentinel for failed allocations. In this way, callers call to allocate always succeeds. It
 // eliminates an if() in all Client drivers.
 //
-DMFDEVICE_INIT g_DmfDefaultDeviceInit = {};
+struct DMFDEVICE_INIT g_DmfDefaultDeviceInit = { 0 };
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)

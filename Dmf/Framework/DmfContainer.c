@@ -1372,7 +1372,7 @@ DMF_ContainerFileObjectConfigInit(
     // For filter/miniport drivers we don't know the policy on FileObject usage.
     // Make sure we don't use FsContexts by default, and allow FileObject to be optional.
     //
-    FileObjectConfig->FileObjectClass = WDF_FILEOBJECT_CLASS(WdfFileObjectWdfCannotUseFsContexts | WdfFileObjectCanBeOptional);
+    FileObjectConfig->FileObjectClass = (WDF_FILEOBJECT_CLASS)(WdfFileObjectWdfCannotUseFsContexts | WdfFileObjectCanBeOptional);
 }
 #pragma code_seg()
 

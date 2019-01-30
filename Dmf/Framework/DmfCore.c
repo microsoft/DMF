@@ -987,21 +987,24 @@ Return Value:
     ASSERT(ModuleState_Invalid == dmfObject->ModuleState);
     dmfObject->ModuleState = ModuleState_Created;
 
-    // Add the Child Module to the list of the Parent Module's children
-    // if its not a Dynamic Module. The lifetime of the Dynamic Module is
-    // managed by the Client. 
-    //
-    if ((childModuleCreate) &&
-        (! DmfModuleAttributes->DynamicModule))
+    if (childModuleCreate)
     {
         ASSERT(dmfObjectParent != NULL);
         ASSERT(dmfModuleParent != NULL);
-        InsertTailList(&dmfObjectParent->ChildObjectList,
-                       &dmfObject->ChildListEntry);
 
-        // Increment the Number of Child Modules.
+        // Add the Child Module to the list of the Parent Module's children
+        // if its not a Dynamic Module. The lifetime of the Dynamic Module is
+        // managed by the Client. 
         //
-        dmfObjectParent->NumberOfChildModules += 1;
+        if (!DmfModuleAttributes->DynamicModule)
+        {
+            InsertTailList(&dmfObjectParent->ChildObjectList,
+                           &dmfObject->ChildListEntry);
+
+            // Increment the Number of Child Modules.
+            //
+            dmfObjectParent->NumberOfChildModules += 1;
+        }
 
         // Save the Parent in the Child.
         //

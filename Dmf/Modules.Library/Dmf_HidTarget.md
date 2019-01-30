@@ -330,6 +330,9 @@ DMF_HidTarget_InputRead(
 
 Allows the Client to send a "Input Report Read" command to the HID device connected the instance of this Module.
 
+NOTE: This call is asynchronous. Please see comments for DMF_HidTarget_InputReportRead() for
+      more information.
+
 ##### Returns
 
 NTSTATUS
@@ -338,6 +341,40 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_HidTarget Module handle.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_HidTarget_InputReportGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_InputReportGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFMEMORY InputReportMemory,
+    _Out_ ULONG* InputReportLength
+    )
+````
+
+Synchronously reads an Input Report.
+
+NOTE: This function is not normally used to read Input Reports. Use it only if 
+        the underlying device is known to not asynchronously respond reliably. If 
+        there is no data available within 5 seconds, this call will complete
+        regardless whereas the normally used Method (DMF_HidTarget_InputRead)
+        will continue to wait.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+InputReportMemory | InputReportMemory is the WDFMEMORY returned by DMF_HidTarget_ReportCreate(). (First, call DMF_HidTarget_ReportCreate() to get the handle, then call this function.)
+InputReportLength | Amount of data read from the device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
