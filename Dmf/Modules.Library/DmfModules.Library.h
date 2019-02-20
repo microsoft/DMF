@@ -38,6 +38,10 @@ extern "C"
 #include "..\Framework\Modules.Core\DmfModules.Core.h"
 #include "DmfModules.Library.Public.h"
 
+// Interfaces in this Library.
+// (None at this time.)
+//
+
 // All the Modules in this Library.
 //
 #include "Dmf_PingPongBuffer.h"

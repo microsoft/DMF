@@ -279,6 +279,10 @@
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Public.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceProtocol1.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport1.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport2.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyProtocol.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_Template.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_ToasterBus.h" />
@@ -290,6 +294,10 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportB.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceProtocol1.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport1.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport2.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyProtocol.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_ToasterBus.c" />

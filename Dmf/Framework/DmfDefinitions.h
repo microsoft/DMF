@@ -317,7 +317,7 @@ typedef struct _DMF_MODULE_ATTRIBUTES
     // Size of this Structure.
     //
     ULONG SizeOfHeader; 
-    // It is a pointer to the Module Specific config.
+    // It is a pointer to the Module Specific Config.
     //
     VOID* ModuleConfigPointer;
     // It is the size of the Module Specific Config which is pointed to 
@@ -764,6 +764,309 @@ DMF_ParentModuleGet(
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DMF Interface Definitions
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+// Basic Interface Definitions
+// ---------------------------
+//
+
+// Declare an opaque handle representing a DMFMODULE (DMF_OBJECT). This is an opaque handle for the Clients.
+//
+DECLARE_HANDLE(DMFINTERFACE);
+
+// Structures used by DMF Core.
+//
+
+typedef enum
+{
+    InterfaceState_Invalid = 0,
+    // The Interface has been created.
+    //
+    InterfaceState_Created,
+    // The Interface is about to open.
+    //
+    InterfaceState_Opening,
+    // The Interface has been opened.
+    //
+    InterfaceState_Opened,
+    // The Interface is about to close.
+    //
+    InterfaceState_Closing,
+    // The Interface has been closed.
+    //
+    InterfaceState_Closed,
+    // The Interface has been destroyed.
+    //
+    InterfaceState_Destroyed,
+    // Sentinel.
+    //
+    InterfaceState_Last
+} InterfaceStateType;
+
+typedef enum
+{
+    Interface_Invalid = 0,
+    // The Interface is a Transport.
+    //
+    Interface_Transport,
+    // The Interface is a Protocol.
+    //
+    Interface_Protocol,
+    // Sentinel.
+    //
+    Interface_Last
+} InterfaceType;
+
+// Function used to initiate binding from the Interface Protocol.
+//
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_INTERFACE_ProtocolBind(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+// Function used to unbind two Modules.
+//
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_ProtocolUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+// Function used to Notify the Protocol and Transport Modules that binding is complete.
+//
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_PostBind(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+// Function used to Notify the Protocol and Transport Modules that unbinding is about to start.
+//
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_PreUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+// A generic Interface Descriptor.
+//
+typedef struct _DMF_INTERFACE_DESCRIPTOR
+{
+    // This structure is wrapped by multiple structures. 
+    // The size represents the size of the outer most structure. 
+    //
+    ULONG Size;
+    // Name of this Interface.
+    //
+    PSTR InterfaceName;
+    // Type of this Interface.
+    //
+    InterfaceType InterfaceType;
+    // Wdf Object attributes describing the Declaration Data (Calls supported by this Interface).
+    //
+    WDF_OBJECT_ATTRIBUTES DeclarationDataWdfAttributes;
+    // If set, it means module has set ModuleInterfaceContextWdfAttributes
+    //
+    BOOLEAN ModuleInterfaceContextSet;
+    // Wdf Object attributes describing the Module's Interface context.
+    // A context will be allocated for each DMFINTERFACE instance. 
+    //
+    WDF_OBJECT_ATTRIBUTES ModuleInterfaceContextWdfAttributes;
+    // Callback used to Notify the Module that Binding is complete.
+    //
+    EVT_DMF_INTERFACE_PostBind* DmfInterfacePostBind;
+    // Callback used to Notify the Module that Unbinding is about to start.
+    //
+    EVT_DMF_INTERFACE_PreUnbind* DmfInterfacePreUnbind;
+} DMF_INTERFACE_DESCRIPTOR;
+
+// Transport specific Interface Descriptor.
+//
+typedef struct _DMF_INTERFACE_TRANSPORT_DESCRIPTOR
+{
+    // Common Interface Attributes.
+    //
+    DMF_INTERFACE_DESCRIPTOR GenericInterfaceDescriptor;
+} DMF_INTERFACE_TRANSPORT_DESCRIPTOR;
+
+// Protocol specific Interface Descriptor.
+//
+typedef struct _DMF_INTERFACE_PROTOCOL_DESCRIPTOR
+{
+    // Common Interface Attributes.
+    //
+    DMF_INTERFACE_DESCRIPTOR GenericInterfaceDescriptor;
+    // Pointer to Interface Protocol's Bind function.
+    //
+    EVT_DMF_INTERFACE_ProtocolBind* DmfInterfaceProtocolBind;
+    // Pointer to Interface Protocol's Unbind function.
+    //
+    EVT_DMF_INTERFACE_ProtocolUnbind* DmfInterfaceProtocolUnbind;
+} DMF_INTERFACE_PROTOCOL_DESCRIPTOR;
+
+// Module Methods.
+// ---------------
+#define DMF_INTERFACE_PROTOCOL_DESCRIPTOR_INIT(                                                 \
+        DmfProtocolDescriptor,                                                                  \
+        InterfaceName,                                                                          \
+        DeclarationDataType,                                                                    \
+        EvtProtocolBind,                                                                        \
+        EvtProtocolUnbind,                                                                      \
+        EvtPostBind,                                                                            \
+        EvtPreUnbind                                                                            \
+        )                                                                                       \
+    DMF_INTERFACE_PROTOCOL_DESCRIPTOR_INIT_INTERNAL(                                            \
+        DmfProtocolDescriptor,                                                                  \
+        InterfaceName,                                                                          \
+        sizeof(DeclarationDataType),                                                            \
+        EvtProtocolBind,                                                                        \
+        EvtProtocolUnbind,                                                                      \
+        EvtPostBind,                                                                            \
+        EvtPreUnbind                                                                            \
+        );                                                                                      \
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(                                                    \
+        &(((DMF_INTERFACE_DESCRIPTOR*)(DmfProtocolDescriptor))->DeclarationDataWdfAttributes),  \
+        DeclarationDataType);
+
+#define DMF_INTERFACE_TRANSPORT_DESCRIPTOR_INIT(                                                \
+        DmfTransportDescriptor,                                                                 \
+        InterfaceName,                                                                          \
+        DeclarationDataType,                                                                    \
+        EvtPostBind,                                                                            \
+        EvtPreUnbind                                                                            \
+        )                                                                                       \
+    DMF_INTERFACE_TRANSPORT_DESCRIPTOR_INIT_INTERNAL(                                           \
+        DmfTransportDescriptor,                                                                 \
+        InterfaceName,                                                                          \
+        sizeof(DeclarationDataType),                                                            \
+        EvtPostBind,                                                                            \
+        EvtPreUnbind                                                                            \
+        );                                                                                      \
+                                                                                                \
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(                                                    \
+        &(((DMF_INTERFACE_DESCRIPTOR*)(DmfTransportDescriptor))->DeclarationDataWdfAttributes), \
+        DeclarationDataType                                                                     \
+        );
+
+#define DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE(                                                      \
+        DmfInterfaceDescriptor,                                                                         \
+        ContextType                                                                                     \
+        )                                                                                               \
+    ((DMF_INTERFACE_DESCRIPTOR*)(DmfInterfaceDescriptor))->ModuleInterfaceContextSet = TRUE;            \
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(                                                            \
+        &(((DMF_INTERFACE_DESCRIPTOR*)(DmfInterfaceDescriptor))->ModuleInterfaceContextWdfAttributes),  \
+        ContextType);
+
+// Method to add an Interface.
+//
+NTSTATUS
+DMF_ModuleInterfaceDescriptorAdd(
+    _Inout_ DMFMODULE DmfModule,
+    _In_ DMF_INTERFACE_DESCRIPTOR* InterfaceDescriptor
+    );
+
+// Interface definitions and methods. 
+// ----------------------------------
+//
+
+// Defines an accessor methods for the Protocol and Transport Declaration Data. 
+//
+#define DECLARE_DMF_INTERFACE(InterfaceName)                                                                                                                                                 \
+                                                                                                                                                                                    \
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_PROTOCOL_##InterfaceName##_DECLARATION_DATA, ##InterfaceName##ProtocolDeclarationDataGet);                                             \
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_TRANSPORT_##InterfaceName##_DECLARATION_DATA, ##InterfaceName##TransportDeclarationDataGet);                                           \
+                                                                                                                                                                                    \
+
+// Methods used by DMF Interfaces.
+//
+DMFMODULE
+DMF_InterfaceTransportModuleGet(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+DMFMODULE
+DMF_InterfaceProtocolModuleGet(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+VOID*
+DMF_InterfaceTransportDeclarationDataGet(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+VOID*
+DMF_InterfaceProtocolDeclarationDataGet(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+NTSTATUS
+DMF_InterfaceReference(
+    _Inout_ DMFINTERFACE DmfInterface
+    );
+
+VOID
+DMF_InterfaceDereference(
+    _Inout_ DMFINTERFACE DmfInterface
+    );
+
+// Client Methods for Binding/Unbinding.
+// -------------------------------------
+//
+// Bind Protocol and Transport.
+//
+
+// Method to bind Protocol and Transport.
+//
+NTSTATUS
+DMF_ModuleInterfaceBind(
+    _In_ DMFMODULE ProtocolModule,
+    _In_ DMFMODULE TransportModule,
+    _In_ DMF_INTERFACE_PROTOCOL_DESCRIPTOR* ProtocolDescriptor,
+    _In_ DMF_INTERFACE_TRANSPORT_DESCRIPTOR* TransportDescriptor
+    );
+
+// Method to un-bind Protocol and Transport.
+//
+VOID
+DMF_ModuleInterfaceUnbind(
+    _In_ DMFMODULE ProtocolModule,
+    _In_ DMFMODULE TransportModule,
+    _In_ DMF_INTERFACE_PROTOCOL_DESCRIPTOR* ProtocolDescriptor,
+    _In_ DMF_INTERFACE_TRANSPORT_DESCRIPTOR* TransportDescriptor
+    );
+
+#define DMF_INTERFACE_BIND(ProtocolModule,                                                                                                                                          \
+                           TransportModule,                                                                                                                                         \
+                           InterfaceName)                                                                                                                                           \
+        DMF_ModuleInterfaceBind(ProtocolModule,                                                                                                                                     \
+                                TransportModule,                                                                                                                                    \
+                                (DMF_INTERFACE_PROTOCOL_DESCRIPTOR*)##InterfaceName##ProtocolDeclarationDataGet(ProtocolModule),                                                    \
+                                (DMF_INTERFACE_TRANSPORT_DESCRIPTOR*)##InterfaceName##TransportDeclarationDataGet(TransportModule))                                                 \
+                                                                                                                                                                                    \
+
+// Un-bind Protocol and Transport.
+//
+#define DMF_INTERFACE_UNBIND(ProtocolModule,                                                                                                                                        \
+                             TransportModule,                                                                                                                                       \
+                             InterfaceName)                                                                                                                                         \
+        DMF_ModuleInterfaceUnbind(ProtocolModule,                                                                                                                                   \
+                                  TransportModule,                                                                                                                                  \
+                                  (DMF_INTERFACE_PROTOCOL_DESCRIPTOR*)##InterfaceName##ProtocolDeclarationDataGet(ProtocolModule),                                                  \
+                                  (DMF_INTERFACE_TRANSPORT_DESCRIPTOR*)##InterfaceName##TransportDeclarationDataGet(TransportModule))                                               \
+                                                                                                                                                                                    \
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Features
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -861,7 +1164,6 @@ DMF_DmfDeviceInitAllocate(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-
 PDMFDEVICE_INIT 
 DMF_DmfControlDeviceInitAllocate(
     _In_opt_ PWDFDEVICE_INIT DeviceInit

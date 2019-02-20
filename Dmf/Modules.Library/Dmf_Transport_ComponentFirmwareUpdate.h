@@ -66,12 +66,12 @@ typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE
 typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON
 {
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_OLD_FW = 0x00,                 // The offer was rejected by the product due to the offer version being older than the currently downloaded/existing firmware. 
-    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_MCU = 0x01,                // The offer was rejected due to it not being applicable to the product’s primary MCU. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_MCU = 0x01,                // The offer was rejected due to it not being applicable to the product's primary MCU. 
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_SWAP_PENDING = 0x02,           // MCU Firmware has been updated and a swap is currently pending.  No further Firmware Update processing can occur until the blade has been reset.
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_MISMATCH = 0x03,               // The offer was rejected due to a Version mismatch (Debug/Release for example).
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_BANK = 0x04,                   // The offer was rejected due to it being for the wrong firmware bank.
-    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_PLATFORM = 0x05,               // The offer’s Platform ID does not correlate to the receiving hardware product. 
-    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_MILESTONE = 0x06,              // The offer’s Milestone does not correlate to the receiving hardware’s Build ID. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_PLATFORM = 0x05,               // The offer's Platform ID does not correlate to the receiving hardware product. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_MILESTONE = 0x06,              // The offer's Milestone does not correlate to the receiving hardware's Build ID. 
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_PCOL_REV = 0x07,           // The offer indicates an interface Protocol Revision that the receiving product does not support. 
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VARIANT = 0x08,                // The combination of Milestone & Compatibility Variants Mask did not match the HW. 
 } COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON;
@@ -348,11 +348,11 @@ DMF_ComponentFirmwareUpdateTransport_BindInterface(
 
 Routine Description:
 
-    Bind the componenent firmware interface to a particular transport implementation. This is called by Transport module.
+    Bind the component firmware interface to a particular transport implementation. This is called by Transport module.
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     Intf_ComponentFirmwareUpdateTransport - Interface table for the Component Firmware Update Transports.
 
 Return:
@@ -423,7 +423,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
     ComponentFirmwareUpdateConfig - Information about the callback to protocol module.
     ComponentFirmwareUpdateTransportConfig - Transport specific configuration.
@@ -467,7 +467,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
 
 Return:
@@ -509,7 +509,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
 
 Return:
@@ -554,7 +554,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
     Buffer - Header, followed by Offer Information to Send.
     BufferSize - Size of the above in bytes.
@@ -605,7 +605,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
     Buffer - Header followed by Offer Command to Send.
     BufferSize - Size of the above in bytes.
@@ -656,11 +656,11 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
     Buffer - Header, followed by Offer Content to Send.
     BufferSize - Size of the above in bytes.
-    HeaderSize - Size of the header. Header is at the begining of 'Buffer'.
+    HeaderSize - Size of the header. Header is at the beginning of 'Buffer'.
 
 Return:
 
@@ -707,7 +707,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
     Buffer - Header, followed by Payload to Send.
     BufferSize - Size of the above in bytes.
@@ -755,7 +755,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
 
 Return:
@@ -797,7 +797,7 @@ Routine Description:
 
 Parameters:
 
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
+    DmfComponentFirmwareUpdateTransportModule - Transport Module's DMF Object.
     DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
 
 Return:

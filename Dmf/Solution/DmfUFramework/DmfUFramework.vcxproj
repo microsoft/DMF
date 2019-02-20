@@ -166,6 +166,7 @@
     <ClCompile Include="..\..\Framework\DmfFilter.c" />
     <ClCompile Include="..\..\Framework\DmfGeneric.c" />
     <ClCompile Include="..\..\Framework\DmfHelpers.c" />
+    <ClCompile Include="..\..\Framework\DmfInterfaceInternal.c" />
     <ClCompile Include="..\..\Framework\DmfInternal.c" />
     <ClCompile Include="..\..\Framework\DmfModuleCollection.c" />
     <ClCompile Include="..\..\Framework\DmfPortable.c" />
@@ -184,6 +185,7 @@
     <ClInclude Include="..\..\Framework\DmfIncludeInternal.h" />
     <ClInclude Include="..\..\Framework\DmfTrace.h" />
     <ClInclude Include="..\..\Framework\DmfModule.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\DmfInterface.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Public.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.h" />

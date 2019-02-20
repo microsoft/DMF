@@ -216,6 +216,14 @@ struct _DMF_OBJECT_
     // Number of Child Modules.
     //
     ULONG NumberOfChildModules;
+    // Collection of Interface Bindings where this Module is either the Transport or the Protocol.
+    //
+    // sweana: do we need a lock to protect this?
+    //
+    WDFCOLLECTION InterfaceBindings;
+    // Spin Lock to protect access to InterfaceBindings.
+    //
+    WDFSPINLOCK InterfaceBindingsLock;
     // Transport Modules.
     // (NOTE: These are subset of ChildModulesVoid.)
     //
@@ -308,6 +316,36 @@ struct _DMF_MODULE_COLLECTION_
     BOOLEAN ManualDestroyCallbackIsPending;
     WDFDEVICE ClientDevice;
 };
+
+// Represents a binding between Protocol and Transport.
+//
+typedef struct _DMF_INTERFACE_OBJECT
+{
+    // Transport Module.
+    //
+    DMFMODULE TransportModule;
+    // Protocol Module.
+    //
+    DMFMODULE ProtocolModule;
+    // Transport Module's Descriptor.
+    //
+    DMF_INTERFACE_TRANSPORT_DESCRIPTOR* TransportDescriptor;
+    // Protocol Module's Descriptor.
+    //
+    DMF_INTERFACE_PROTOCOL_DESCRIPTOR* ProtocolDescriptor;
+    // State of this Interface.
+    //
+    InterfaceStateType InterfaceState;
+    // Reference counter for this Interface.
+    //
+    LONG ReferenceCount;
+    // Lock to protect accesses to this structure.
+    //
+    WDFSPINLOCK InterfaceLock;
+    // WDF Object corresponding to DMF_INTERFACE_OBJECT.
+    //
+    DMFINTERFACE DmfInterface;
+} DMF_INTERFACE_OBJECT;
 
 typedef struct _DMF_DEVICE_CONTEXT
 {
@@ -623,6 +661,11 @@ DMF_ModuleDestroy(
     _In_ BOOLEAN DeleteMemory
     );
 
+VOID
+DMF_ModuleInterfacesUnbind(
+    _In_ DMFMODULE DmfModule
+    );
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Internal_Destroy(
@@ -898,6 +941,20 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 EVT_DMF_MODULE_Generic_OnDeviceNotificationClose(
     _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_Generic_PostBind(
+    _In_ DMFINTERFACE DmfInterface
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_Generic_PreUnbind(
+    _In_ DMFINTERFACE DmfInterface
     );
 
 VOID
@@ -1291,6 +1348,48 @@ Routine Description:
 {
     ASSERT(DmfObject != NULL);
     return (DMFMODULE)DmfObject->MemoryDmfObject;
+}
+
+__forceinline
+DMF_INTERFACE_OBJECT*
+DMF_InterfaceToObject(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Converts the DMFINTERFACE (which is a really a WDFMEMORY object)
+    to its corresponding internal DMF_INTERFACE_OBJECT pointer.
+
+--*/
+{
+    DMF_INTERFACE_OBJECT* dmfInterfaceObject;
+
+    ASSERT(DmfInterface != NULL);
+
+    dmfInterfaceObject = (DMF_INTERFACE_OBJECT*)WdfMemoryGetBuffer((WDFMEMORY)DmfInterface,
+                                                                    NULL);
+    ASSERT(dmfInterfaceObject != NULL);
+
+    return dmfInterfaceObject;
+}
+
+__forceinline
+DMFINTERFACE
+DMF_ObjectToInterface(
+    _In_ DMF_INTERFACE_OBJECT* DmfInterfaceObject
+    )
+/*++
+
+Routine Description:
+
+    Converts the internal DMF_INTERFACE_OBJECT pointer to its corresponding DMFINTERFACE.
+
+--*/
+{
+    ASSERT(DmfInterfaceObject != NULL);
+    return (DMFINTERFACE)DmfInterfaceObject->DmfInterface;
 }
 
 __forceinline

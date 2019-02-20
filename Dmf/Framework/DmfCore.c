@@ -607,6 +607,28 @@ Return Value:
         ASSERT(DmfModuleAttributes->ModuleConfigPointer == NULL);
     }
 
+    // Create WDFCOLLECTION to store the Interface Bindings of this Module.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = memoryDmfObject;
+    ntStatus = WdfCollectionCreate(&attributes,
+                                   &dmfObject->InterfaceBindings);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Collection for InterfaceBindings.");
+        goto Exit;
+    }
+
+    // Create a spin lock to protect access to the Interface Bindings Collection.
+    //
+    ntStatus = WdfSpinLockCreate(&attributes,
+                                 &dmfObject->InterfaceBindingsLock);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "InterfaceBindingsLock create fails.");
+        goto Exit;
+    }
+
     // Initialize the callbacks to generic handlers.
     //
     dmfObject->ModuleDescriptor = DmfModuleDescriptor_Generic;
@@ -998,6 +1020,17 @@ Return Value:
         //
         if (!DmfModuleAttributes->DynamicModule)
         {
+            // NOTE: These values are expected to be NULL because the Parent
+            //       has not initialized the ModuleCollection yet. (It cannot
+            //       because that pointer is not passed to the Instance Creation
+            //       function. Perhaps later we modify the Instance Creation 
+            //       function to accept it. It is not necessary for proper
+            //       functioning of the drivers, however. These asserts are 
+            //       here to ensure that we all know this is "by design".
+            //
+            ASSERT(NULL == dmfObject->ModuleCollection);
+            ASSERT(NULL == dmfObjectParent->ModuleCollection);
+
             InsertTailList(&dmfObjectParent->ChildObjectList,
                            &dmfObject->ChildListEntry);
 
@@ -1049,16 +1082,7 @@ Return Value:
             }
         }
 
-        // NOTE: These values are expected to be NULL because the Parent
-        //       has not initialized the ModuleCollection yet. (It cannot
-        //       because that pointer is not passed to the Instance Creation
-        //       function. Perhaps later we modify the Instance Creation 
-        //       function to accept it. It is not necessary for proper
-        //       functioning of the drivers, however. These asserts are 
-        //       here to ensure that we all know this is "by design".
-        //
-        ASSERT(NULL == dmfObject->ModuleCollection);
-        ASSERT(NULL == dmfObjectParent->ModuleCollection);
+
     }
 
     dmfModule = (DMFMODULE)memoryDmfObject;
@@ -1245,6 +1269,10 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
     TraceInformation(DMF_TRACE, "DmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
+
+    // Unbind all Interface Binding of this Module.
+    //
+    DMF_ModuleInterfacesUnbind(DmfModule);
 
     DMF_HandleValidate_Destroy(dmfObject);
     dmfObject->ModuleState = ModuleState_Destroying;

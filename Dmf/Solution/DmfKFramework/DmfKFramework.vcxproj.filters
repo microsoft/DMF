@@ -67,6 +67,9 @@
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.c">
       <Filter>Modules\Buffers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Framework\DmfInterfaceInternal.c">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\DmfTrace.h">
@@ -178,23 +181,23 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\Framework\Modules.Core\Dmf_HashTable.md">
+    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferPool.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_HashTable.md">
       <Filter>Documentation\Modules\Data Structures</Filter>
-    </None>
-    <None Include="..\..\Framework\Modules.Core\Dmf_BufferPool.md">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </None>
-    <None Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md">
-      <Filter>Documentation\Modules\Features</Filter>
-    </None>
-    <None Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md">
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </None>
-    <None Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.md">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </None>
-    <None Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.md">
-      <Filter>Documentation\Modules\Buffers</Filter>
-    </None>
+    </Text>
+    <Text Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md">
+      <Filter>Documentation\Modules\Features</Filter>
+    </Text>
   </ItemGroup>
 </Project>

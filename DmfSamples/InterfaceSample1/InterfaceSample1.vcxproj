@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4C2941B5-24FA-4064-8C47-1F7436CB22B5}</ProjectGuid>
+    <ProjectGuid>{05E8B353-3195-4DCE-95B5-B8A1573B815A}</ProjectGuid>
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
     <KMDF_VERSION_MAJOR>1</KMDF_VERSION_MAJOR>
     <SupportsPackaging>false</SupportsPackaging>
@@ -27,7 +27,7 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">Win32</Platform>
     <SampleGuid>{3EBA8CBF-2E65-4819-9EEA-E10825BB0705}</SampleGuid>
-    <ProjectName>LegacyProtocolTransport</ProjectName>
+    <ProjectName>InterfaceSample1</ProjectName>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -88,16 +88,16 @@
     </ClCompile>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>LegacyProtocolTransport</TargetName>
+    <TargetName>InterfaceSample1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>LegacyProtocolTransport</TargetName>
+    <TargetName>InterfaceSample1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetName>LegacyProtocolTransport</TargetName>
+    <TargetName>InterfaceSample1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>LegacyProtocolTransport</TargetName>
+    <TargetName>InterfaceSample1</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ResourceCompile>
@@ -115,7 +115,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\..\Release\x64\lib\DmfK\DmfK.lib;..\..\..\Release\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\Release\x64\lib\DmfK\DmfK.lib;..\..\Release\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,7 +134,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\..\Debug\x64\lib\DmfK\DmfK.lib;..\..\..\Debug\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\Debug\x64\lib\DmfK\DmfK.lib;..\..\Debug\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,7 +153,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\..\Release\Win32\lib\DmfK\DmfK.lib;..\..\..\Release\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\Release\Win32\lib\DmfK\DmfK.lib;..\..\Release\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -172,7 +172,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\..\Debug\Win32\lib\DmfK\DmfK.lib;..\..\..\Debug\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;$(DDK_LIB_PATH)\usbd.lib;..\..\Debug\Win32\lib\DmfK\DmfK.lib;..\..\Debug\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -228,10 +228,10 @@
     <ClInclude Include="trace.h" />
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="LegacyProtocolTransport.inx" />
+    <Inf Include="InterfaceSample1.inx" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LegacyProtocolTransport.rc" />
+    <ResourceCompile Include="InterfaceSample1.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

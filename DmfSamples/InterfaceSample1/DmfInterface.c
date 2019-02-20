@@ -13,16 +13,12 @@ Module Name:
 
 Abstract:
 
-    LegacyProtocol Sample: Demonstrates how to use the Legacy DMF (Protocol/Transport) Interface to dynamically 
-                           attach a Child Module to a Parent Module at runtime instead of compile time
-                           as is normally done. This feature allows a driver to implement a generic
-                           Protocol. Then, the driver chooses a Transport specific implementation at runtime.
-                           For example, a Protocol could implement a Latch that opens and closes. Then, the
-                           Transport might allow that Protocol to execute over HID, USB, or PCI.
-                           In this example, the registry is used to indicate which Transport should load, 1 or 2.
-                           Then, that Transport Module is created and attached to the Protocol Module. In 
-                           EvtDeviceD0Entry() this driver displays "Hello, world!" via the Protocol which then
-                           calls the attached Transport to do the actual work.
+    InterfaceClientTransport1 Sample: Demonstrates how to use the DMF (Protocol/Transport) Interface to dynamically 
+                                      bind (attach) a Child Module to a Parent Module at runtime instead of compile time
+                                      as is normally done. This feature allows a driver to implement a generic
+                                      Protocol. Then, the driver chooses an Transport specific implementation at runtime.
+                                      For example, a Protocol could implement a Latch that opens and closes. Then, the
+                                      Transport might allow that Protocol to execute over HID, USB, or PCI.
 
 Environment:
 
@@ -42,35 +38,37 @@ Environment:
 // Forward declarations.
 //
 DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_DRIVER_DEVICE_ADD LegacyProtocolTransportEvtDeviceAdd;
-EVT_WDF_OBJECT_CONTEXT_CLEANUP LegacyProtocolTransportEvtDriverContextCleanup;
+EVT_WDF_DRIVER_DEVICE_ADD InterfaceClientServerEvtDeviceAdd;
+EVT_WDF_OBJECT_CONTEXT_CLEANUP InterfaceClientServerEvtDriverContextCleanup;
 EVT_DMF_DEVICE_MODULES_ADD DmfDeviceModulesAdd;
-EVT_WDF_DEVICE_D0_ENTRY LegacyProtocolTransportEvtDeviceD0Entry;
+EVT_WDF_DEVICE_D0_ENTRY InterfaceClientServerEvtDeviceD0Entry;
+EVT_WDF_DEVICE_PREPARE_HARDWARE InterfaceClientServerEvtDevicePrepareHardware;
+EVT_WDF_DEVICE_RELEASE_HARDWARE InterfaceClientServerEvtDeviceReleaseHardware;
 
 /*WPP_INIT_TRACING(); (This comment is necessary for WPP Scanner.)*/
 #pragma code_seg("INIT")
 DMF_DEFAULT_DRIVERENTRY(DriverEntry,
-                        LegacyProtocolTransportEvtDriverContextCleanup,
-                        LegacyProtocolTransportEvtDeviceAdd)
+                        InterfaceClientServerEvtDriverContextCleanup,
+                        InterfaceClientServerEvtDeviceAdd)
 #pragma code_seg()
 
 typedef struct
 {
-    // Identifies which transport to load.
-    //
-    ULONG TransportId;
     // The Interface's Protocol Module.
     //
     DMFMODULE DmfModuleProtocol;
+    // The Interface's Transport Module.
+    //
+    DMFMODULE DmfModuleTransport;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DEVICE_CONTEXT, DeviceContextGet)
 
 #pragma code_seg("PAGED")
-DMF_DEFAULT_DRIVERCLEANUP(LegacyProtocolTransportEvtDriverContextCleanup)
+DMF_DEFAULT_DRIVERCLEANUP(InterfaceClientServerEvtDriverContextCleanup)
 
 _Use_decl_annotations_
 NTSTATUS
-LegacyProtocolTransportEvtDeviceAdd(
+InterfaceClientServerEvtDeviceAdd(
     _In_ WDFDRIVER Driver,
     _Inout_ PWDFDEVICE_INIT DeviceInit
     )
@@ -93,7 +91,9 @@ LegacyProtocolTransportEvtDeviceAdd(
     // Tell WDF this callback should be called.
     //
     WDF_PNPPOWER_EVENT_CALLBACKS_INIT(&pnpPowerCallbacks);
-    pnpPowerCallbacks.EvtDeviceD0Entry = LegacyProtocolTransportEvtDeviceD0Entry;
+    pnpPowerCallbacks.EvtDeviceD0Entry = InterfaceClientServerEvtDeviceD0Entry;
+    pnpPowerCallbacks.EvtDevicePrepareHardware = InterfaceClientServerEvtDevicePrepareHardware;
+    pnpPowerCallbacks.EvtDeviceReleaseHardware = InterfaceClientServerEvtDeviceReleaseHardware;
 
     // All DMF drivers must call this function even if they do not support PnP Power callbacks.
     // (In this case, this driver does support a PnP Power callback.)
@@ -167,7 +167,7 @@ _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 ULONG
-TransportIdGet(
+InterfaceTransportIdGet(
     _In_ WDFDEVICE WdfDevice
     )
 /*++
@@ -232,73 +232,6 @@ Exit:
 }
 #pragma code_seg()
 
-VOID
-LegacyProtocolTransportModuleAdd(
-    _In_ DMFMODULE DmfModuleProtocol,
-    _In_ struct _DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
-    _In_ PVOID DmfModuleInit
-    )
-/*++
-
-Routine Description:
-
-    Given a Protocol Module, this callback adds a Child Module that is used by the given
-    Protocol Module as a Transport Module. The interface between the Protocol and 
-    Transport Module must match.
-
-Arguments:
-
-    DmfModuleProtocol - The given Protocol Module.
-    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
-    DmfModuleInit - Opaque structure passed to Dmf_ModuleAdd().
-
-Return Value:
-
-    NTSTATUS indicates if the Transport Module is created.
-
---*/
-{
-    DEVICE_CONTEXT* deviceContext;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
-    WDFDEVICE device;
-
-    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
-
-    PAGED_CODE();
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
-
-    device = DMF_ParentDeviceGet(DmfModuleProtocol);
-    deviceContext = DeviceContextGet(device);
-
-    if (deviceContext->TransportId == 1)
-    {
-        // LegacyTransportA
-        // ----------------
-        //
-        DMF_LegacyTransportA_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
-    }
-    else if (deviceContext->TransportId == 2)
-    {
-        // LegacyTransportB
-        // ----------------
-        //
-        DMF_LegacyTransportB_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
-    }
-    else
-    {
-        ASSERT(FALSE);
-    }
-}
-
 #pragma code_seg("PAGED")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -324,7 +257,11 @@ Return Value:
 --*/
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_SampleInterfaceProtocol1 moduleConfigInterfaceProtocol1;
+    DMF_CONFIG_SampleInterfaceTransport1 moduleConfigInterfaceTransport1;
+    DMF_CONFIG_SampleInterfaceTransport2 moduleConfigInterfaceTransport2;
     DEVICE_CONTEXT* deviceContext;
+    ULONG transportId;
 
     UNREFERENCED_PARAMETER(Device);
 
@@ -334,24 +271,122 @@ Return Value:
 
     deviceContext = DeviceContextGet(Device);
 
-    deviceContext->TransportId = TransportIdGet(Device);
+    transportId = InterfaceTransportIdGet(Device);
 
-    // LegacyProtocol
-    // --------------
+    // SampleInterfaceProtocol1
+    // ------------------------
     //
-    DMF_LegacyProtocol_ATTRIBUTES_INIT(&moduleAttributes);
-    moduleAttributes.TransportModuleAdd = LegacyProtocolTransportModuleAdd;
+    DMF_CONFIG_SampleInterfaceProtocol1_AND_ATTRIBUTES_INIT(&moduleConfigInterfaceProtocol1,
+                                                            &moduleAttributes);
+    moduleConfigInterfaceProtocol1.ModuleId = 1;
+    moduleConfigInterfaceProtocol1.ModuleName = "SampleInterfaceProtocol1";
+ 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &(deviceContext->DmfModuleProtocol));
 
+    if (transportId == 1)
+    {
+        // SampleInterfaceTransport1
+        // -------------------------
+        //
+        DMF_CONFIG_SampleInterfaceTransport1_AND_ATTRIBUTES_INIT(&moduleConfigInterfaceTransport1,
+                                                                 &moduleAttributes);
+        moduleConfigInterfaceTransport1.ModuleId = 1;
+        moduleConfigInterfaceTransport1.ModuleName = "SampleInterfaceTransport1";
+
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &(deviceContext->DmfModuleTransport));
+    }
+
+    else if (transportId == 2)
+    {
+        // SampleInterfaceTransport2
+        // -------------------------
+        //
+        DMF_CONFIG_SampleInterfaceTransport2_AND_ATTRIBUTES_INIT(&moduleConfigInterfaceTransport2,
+                                                              &moduleAttributes);
+        moduleConfigInterfaceTransport2.ModuleId = 2;
+        moduleConfigInterfaceTransport2.ModuleName = "SampleInterfaceTransport2";
+
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &(deviceContext->DmfModuleTransport));
+    }
+    else
+    {
+        ASSERT(0);
+    }
+
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGED")
+_Use_decl_annotations_
 NTSTATUS
-LegacyProtocolTransportEvtDeviceD0Entry(
+InterfaceClientServerEvtDevicePrepareHardware(
+    _In_ WDFDEVICE Device,
+    _In_ WDFCMRESLIST ResourcesRaw,
+    _In_ WDFCMRESLIST ResourcesTranslated
+    )
+/*++
+
+Routine Description:
+
+    When the driver starts bind the Client and Server Modules.
+ 
+Arguments:
+
+    Device - Handle to a framework device object.
+    PreviousState - Device power state which the device was in most recently.
+                    If the device is being newly started, this will be
+                    PowerDeviceUnspecified.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DEVICE_CONTEXT* deviceContext;
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(ResourcesRaw);
+    UNREFERENCED_PARAMETER(ResourcesTranslated);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
+    deviceContext = DeviceContextGet(Device);
+
+    // Bind the Modules using SampleInterface Interface.
+    // The decision about which Transport to bind has already been made and the
+    // Transport Module has already been created.
+    //
+    ntStatus = DMF_INTERFACE_BIND(deviceContext->DmfModuleProtocol,
+                                  deviceContext->DmfModuleTransport,
+                                  SampleInterface);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "DMF_INTERFACE_BIND fails: ntStatus=%!STATUS!", ntStatus);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "DMF_INTERFACE_BIND succeeds: ntStatus=%!STATUS!", ntStatus);
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+NTSTATUS
+InterfaceClientServerEvtDeviceD0Entry(
     WDFDEVICE Device,
     WDF_POWER_DEVICE_STATE PreviousState
     )
@@ -359,9 +394,8 @@ LegacyProtocolTransportEvtDeviceD0Entry(
 
 Routine Description:
 
-    When the driver powers up call a Protocol Method that calls the corresponding
-    Transport Module's Method. In this case, the Method simply displays a string
-    along with an indication of which Transport Module is running.
+    When the driver powers up call a Client (Protocol) Method that calls 
+    the corresponding bound (Server) Transport Method.
  
 Arguments:
 
@@ -384,17 +418,68 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
 
     deviceContext = DeviceContextGet(Device);
-    ntStatus = STATUS_SUCCESS;
 
-    // Call the Protocol's Method. The underlying Transport will do the work.
+    // Call a Test Method exposed by the Client Module.
     //
-    DMF_LegacyProtocol_StringDisplay(deviceContext->DmfModuleProtocol,
-                                     L"Hello, world!");
+    ntStatus = DMF_SampleInterfaceProtocol1_TestMethod(deviceContext->DmfModuleProtocol);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "DMF_SampleInterfaceProtocol1_TestMethod fails: ntStatus=%!STATUS!", ntStatus);
+    }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 
     return ntStatus;
 }
+
+#pragma code_seg("PAGED")
+_Use_decl_annotations_
+NTSTATUS
+InterfaceClientServerEvtDeviceReleaseHardware(
+    _In_ WDFDEVICE Device,
+    _In_ WDFCMRESLIST ResourcesTranslated
+    )
+/*++
+
+Routine Description:
+
+    When the driver stops unbind the Client and Server Modules.
+ 
+Arguments:
+
+    Device - Handle to a framework device object.
+    PreviousState - Device power state which the device was in most recently.
+                    If the device is being newly started, this will be
+                    PowerDeviceUnspecified.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DEVICE_CONTEXT* deviceContext;
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(ResourcesTranslated);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+
+    deviceContext = DeviceContextGet(Device);
+
+    ntStatus = STATUS_SUCCESS;
+
+    // Unbind the Modules using SampleInterface Interface.
+    //
+    DMF_INTERFACE_UNBIND(deviceContext->DmfModuleProtocol,
+                         deviceContext->DmfModuleTransport,
+                         SampleInterface);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
+
+    return ntStatus;
+}
+#pragma code_seg()
 
 // eof: DmfInterface.c
 //

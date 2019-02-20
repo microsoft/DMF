@@ -35,15 +35,21 @@ extern "C"
 // Other library specific includes.
 //
 
+// Interfaces in this Library.
+//
+#include "Dmf_Interface_SampleInterface.h"
+
 // All the Modules in this Library.
 //
-
 #include "Dmf_Template.h"
 #include "Dmf_ToasterBus.h"
 #include "Dmf_OsrFx2.h"
 #include "Dmf_LegacyProtocol.h"
 #include "Dmf_LegacyTransportA.h"
 #include "Dmf_LegacyTransportB.h"
+#include "Dmf_SampleInterfaceProtocol1.h"
+#include "Dmf_SampleInterfaceTransport1.h"
+#include "Dmf_SampleInterfaceTransport2.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.

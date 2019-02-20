@@ -13,6 +13,12 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{170db0e0-58a3-49e2-a5c2-35559fc00189}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Interfaces">
+      <UniqueIdentifier>{391a17c8-60d3-4557-8782-446859e5e834}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Interfaces">
+      <UniqueIdentifier>{065895c8-fdd0-40da-980d-335fb5fbd927}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Template\Dmf_OsrFx2.md">
@@ -50,6 +56,18 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_OsrFx2_Public.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.h">
+      <Filter>Headers\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport1.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport2.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceProtocol1.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportA.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -68,6 +86,18 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Template\Dmf_OsrFx2.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.c">
+      <Filter>Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport1.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport2.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceProtocol1.c">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyTransportA.c">

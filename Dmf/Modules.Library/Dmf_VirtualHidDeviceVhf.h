@@ -19,7 +19,7 @@ Environment:
 
 #pragma once
 
-// This code is only supported in Kernel-mode.
+// This Module is only supported in Kernel-mode because VHF only support Kernel-mode.
 //
 #if !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
 
@@ -32,14 +32,19 @@ Environment:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-//sensor category usages
+// Sensor category USAGES:
+//
 #define HID_USAGE_SENSOR_TYPE_COLLECTION                                                0x09,0x01
-//sensor category biometric
+
+// Sensor category BIOMETRIC:
+//
 #define HID_USAGE_SENSOR_CATEGORY_BIOMETRIC                                             0x09,0x10
 #define HID_USAGE_SENSOR_TYPE_BIOMETRIC_PRESENCE                                        0x09,0x11
 #define HID_USAGE_SENSOR_TYPE_BIOMETRIC_PROXIMITY                                       0x09,0x12
 #define HID_USAGE_SENSOR_TYPE_BIOMETRIC_TOUCH                                           0x09,0x13
-//sensor category electrical
+
+// Sensor category ELECTRICAL:
+//
 #define HID_USAGE_SENSOR_CATEGORY_ELECTRICAL                                            0x09,0x20
 #define HID_USAGE_SENSOR_TYPE_ELECTRICAL_CAPACITANCE                                    0x09,0x21
 #define HID_USAGE_SENSOR_TYPE_ELECTRICAL_CURRENT                                        0x09,0x22
@@ -50,18 +55,24 @@ Environment:
 #define HID_USAGE_SENSOR_TYPE_ELECTRICAL_POTENTIOMETER                                  0x09,0x27
 #define HID_USAGE_SENSOR_TYPE_ELECTRICAL_FREQUENCY                                      0x09,0x28
 #define HID_USAGE_SENSOR_TYPE_ELECTRICAL_PERIOD                                         0x09,0x29
-//sensor category environmental
+
+// Sensor category ENVIRONMENTAL:
+//
 #define HID_USAGE_SENSOR_CATEGORY_ENVIRONMENTAL                                         0x09,0x30
 #define HID_USAGE_SENSOR_TYPE_ENVIRONMENTAL_ATMOSPHERIC_PRESSURE                        0x09,0x31
 #define HID_USAGE_SENSOR_TYPE_ENVIRONMENTAL_HUMIDITY                                    0x09,0x32
 #define HID_USAGE_SENSOR_TYPE_ENVIRONMENTAL_TEMPERATURE                                 0x09,0x33
 #define HID_USAGE_SENSOR_TYPE_ENVIRONMENTAL_WIND_DIRECTION                              0x09,0x34
 #define HID_USAGE_SENSOR_TYPE_ENVIRONMENTAL_WIND_SPEED                                  0x09,0x35
-//sensor category light
+
+// Sensor category LIGHT:
+//
 #define HID_USAGE_SENSOR_CATEGORY_LIGHT                                                 0x09,0x40
 #define HID_USAGE_SENSOR_TYPE_LIGHT_AMBIENTLIGHT                                        0x09,0x41
 #define HID_USAGE_SENSOR_TYPE_LIGHT_CONSUMER_INFRARED                                   0x09,0x42
-//sensor category location
+
+// Sensor category LOCATION:
+//
 #define HID_USAGE_SENSOR_CATEGORY_LOCATION                                              0x09,0x50
 #define HID_USAGE_SENSOR_TYPE_LOCATION_BROADCAST                                        0x09,0x51
 #define HID_USAGE_SENSOR_TYPE_LOCATION_DEAD_RECKONING                                   0x09,0x52
@@ -70,7 +81,9 @@ Environment:
 #define HID_USAGE_SENSOR_TYPE_LOCATION_OTHER                                            0x09,0x55
 #define HID_USAGE_SENSOR_TYPE_LOCATION_STATIC                                           0x09,0x56
 #define HID_USAGE_SENSOR_TYPE_LOCATION_TRIANGULATION                                    0x09,0x57
-//sensor category mechanical
+
+// Sensor category MECHANICAL:
+//
 #define HID_USAGE_SENSOR_CATEGORY_MECHANICAL                                            0x09,0x60
 #define HID_USAGE_SENSOR_TYPE_MECHANICAL_BOOLEAN_SWITCH                                 0x09,0x61
 #define HID_USAGE_SENSOR_TYPE_MECHANICAL_BOOLEAN_SWITCH_ARRAY                           0x09,0x62
@@ -81,7 +94,9 @@ Environment:
 #define HID_USAGE_SENSOR_TYPE_MECHANICAL_SCALE_WEIGHT                                   0x09,0x67
 #define HID_USAGE_SENSOR_TYPE_MECHANICAL_VIBRATOR                                       0x09,0x68
 #define HID_USAGE_SENSOR_TYPE_MECHANICAL_HALL_EFFECT_SWITCH                             0x09,0x69
-//sensor category motion
+
+// Sensor category MOTION:
+//
 #define HID_USAGE_SENSOR_CATEGORY_MOTION                                                0x09,0x70
 #define HID_USAGE_SENSOR_TYPE_MOTION_ACCELEROMETER_1D                                   0x09,0x71
 #define HID_USAGE_SENSOR_TYPE_MOTION_ACCELEROMETER_2D                                   0x09,0x72
@@ -93,7 +108,9 @@ Environment:
 #define HID_USAGE_SENSOR_TYPE_MOTION_SPEEDOMETER                                        0x09,0x78
 #define HID_USAGE_SENSOR_TYPE_MOTION_ACCELEROMETER                                      0x09,0x79
 #define HID_USAGE_SENSOR_TYPE_MOTION_GYROMETER                                          0x09,0x7A
-//sensor category orientation
+
+// Sensor category ORIENTATION:
+//
 #define HID_USAGE_SENSOR_CATEGORY_ORIENTATION                                           0x09,0x80
 #define HID_USAGE_SENSOR_TYPE_ORIENTATION_COMPASS_1D                                    0x09,0x81
 #define HID_USAGE_SENSOR_TYPE_ORIENTATION_COMPASS_2D                                    0x09,0x82
@@ -108,59 +125,70 @@ Environment:
 #define HID_USAGE_SENSOR_TYPE_ORIENTATION_COMPASS                                       0x09,0x8B
 #define HID_USAGE_SENSOR_TYPE_ORIENTATION_INCLINOMETER                                  0x09,0x8C
 #define HID_USAGE_SENSOR_TYPE_ORIENTATION_DISTANCE                                      0x09,0x8D
-//sensor category scanner
+
+// Sensor category SCANNER:
+//
 #define HID_USAGE_SENSOR_CATEGORY_SCANNER                                               0x09,0x90
 #define HID_USAGE_SENSOR_TYPE_SCANNER_BARCODE                                           0x09,0x91
 #define HID_USAGE_SENSOR_TYPE_SCANNER_RFID                                              0x09,0x92
 #define HID_USAGE_SENSOR_TYPE_SCANNER_NFC                                               0x09,0x93
-//sensor category time
+
+// Sensor category TIME:
+//
 #define HID_USAGE_SENSOR_CATEGORY_TIME                                                  0x09,0xA0
 #define HID_USAGE_SENSOR_TYPE_TIME_ALARM                                                0x09,0xA1
 #define HID_USAGE_SENSOR_TYPE_TIME_RTC                                                  0x09,0xA2
-//sensor category other
+
+// Sensor category OTHER:
+//
 #define HID_USAGE_SENSOR_CATEGORY_OTHER                                                 0x09,0xE0
 #define HID_USAGE_SENSOR_TYPE_OTHER_CUSTOM                                              0x09,0xE1
 #define HID_USAGE_SENSOR_TYPE_OTHER_GENERIC                                             0x09,0xE2
 #define HID_USAGE_SENSOR_TYPE_OTHER_GENERIC_ENUMERATOR                                  0x09,0xE3
 
-//unit usages
-#define HID_USAGE_SENSOR_UNITS_NOT_SPECIFIED                                            0x65,0x00                // Unit
-#define HID_USAGE_SENSOR_UNITS_LUX                                                      0x67,0xE1,0x00,0x00,0x01 // Unit
-#define HID_USAGE_SENSOR_UNITS_KELVIN                                                   0x67,0x01,0x00,0x01,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_FAHRENHEIT                                               0x67,0x03,0x00,0x01,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_PASCAL                                                   0x66,0xF1,0xE1           // Unit
-#define HID_USAGE_SENSOR_UNITS_NEWTON                                                   0x66,0x11,0xE1           // Unit
-#define HID_USAGE_SENSOR_UNITS_METERS_PER_SECOND                                        0x66,0x11,0xF0           // Unit
-#define HID_USAGE_SENSOR_UNITS_METERS_PER_SEC_SQRD                                      0x66,0x11,0xE0           // Unit
-#define HID_USAGE_SENSOR_UNITS_FARAD                                                    0x67,0xE1,0x4F,0x20,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_AMPERE                                                   0x67,0x01,0x00,0x10,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_WATT                                                     0x66,0x21,0xD1           // Unit
-#define HID_USAGE_SENSOR_UNITS_HENRY                                                    0x67,0x21,0xE1,0xE0,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_OHM                                                      0x67,0x21,0xD1,0xE0,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_VOLT                                                     0x67,0x21,0xD1,0xF0,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_HERTZ                                                    0x66,0x01,0xF0           // Unit
-#define HID_USAGE_SENSOR_UNITS_DEGREES                                                  0x65,0x14                // Unit
-#define HID_USAGE_SENSOR_UNITS_DEGREES_PER_SECOND                                       0x66,0x14,0xF0           // Unit
-#define HID_USAGE_SENSOR_UNITS_DEGREES_PER_SEC_SQRD                                     0x66,0x14,0xE0           // Unit
-#define HID_USAGE_SENSOR_UNITS_RADIANS                                                  0x65,0x12                // Unit
-#define HID_USAGE_SENSOR_UNITS_RADIANS_PER_SECOND                                       0x66,0x12,0xF0           // Unit
-#define HID_USAGE_SENSOR_UNITS_RADIANS_PER_SEC_SQRD                                     0x66,0x12,0xE0           // Unit
-#define HID_USAGE_SENSOR_UNITS_SECOND                                                   0x66,0x01,0x10           // Unit
-#define HID_USAGE_SENSOR_UNITS_GAUSS                                                    0x67,0x01,0xE1,0xF0,0x00 // Unit
-#define HID_USAGE_SENSOR_UNITS_GRAM                                                     0x66,0x01,0x01           // Unit
-#define HID_USAGE_SENSOR_UNITS_CENTIMETER                                               0x65,0x11                // Unit
+// Unit usages:
+// ------------
+//
+#define HID_USAGE_SENSOR_UNITS_NOT_SPECIFIED                                            0x65,0x00               
+#define HID_USAGE_SENSOR_UNITS_LUX                                                      0x67,0xE1,0x00,0x00,0x01
+#define HID_USAGE_SENSOR_UNITS_KELVIN                                                   0x67,0x01,0x00,0x01,0x00
+#define HID_USAGE_SENSOR_UNITS_FAHRENHEIT                                               0x67,0x03,0x00,0x01,0x00
+#define HID_USAGE_SENSOR_UNITS_PASCAL                                                   0x66,0xF1,0xE1          
+#define HID_USAGE_SENSOR_UNITS_NEWTON                                                   0x66,0x11,0xE1          
+#define HID_USAGE_SENSOR_UNITS_METERS_PER_SECOND                                        0x66,0x11,0xF0          
+#define HID_USAGE_SENSOR_UNITS_METERS_PER_SEC_SQRD                                      0x66,0x11,0xE0          
+#define HID_USAGE_SENSOR_UNITS_FARAD                                                    0x67,0xE1,0x4F,0x20,0x00
+#define HID_USAGE_SENSOR_UNITS_AMPERE                                                   0x67,0x01,0x00,0x10,0x00
+#define HID_USAGE_SENSOR_UNITS_WATT                                                     0x66,0x21,0xD1          
+#define HID_USAGE_SENSOR_UNITS_HENRY                                                    0x67,0x21,0xE1,0xE0,0x00
+#define HID_USAGE_SENSOR_UNITS_OHM                                                      0x67,0x21,0xD1,0xE0,0x00
+#define HID_USAGE_SENSOR_UNITS_VOLT                                                     0x67,0x21,0xD1,0xF0,0x00
+#define HID_USAGE_SENSOR_UNITS_HERTZ                                                    0x66,0x01,0xF0          
+#define HID_USAGE_SENSOR_UNITS_DEGREES                                                  0x65,0x14               
+#define HID_USAGE_SENSOR_UNITS_DEGREES_PER_SECOND                                       0x66,0x14,0xF0          
+#define HID_USAGE_SENSOR_UNITS_DEGREES_PER_SEC_SQRD                                     0x66,0x14,0xE0          
+#define HID_USAGE_SENSOR_UNITS_RADIANS                                                  0x65,0x12               
+#define HID_USAGE_SENSOR_UNITS_RADIANS_PER_SECOND                                       0x66,0x12,0xF0          
+#define HID_USAGE_SENSOR_UNITS_RADIANS_PER_SEC_SQRD                                     0x66,0x12,0xE0          
+#define HID_USAGE_SENSOR_UNITS_SECOND                                                   0x66,0x01,0x10          
+#define HID_USAGE_SENSOR_UNITS_GAUSS                                                    0x67,0x01,0xE1,0xF0,0x00
+#define HID_USAGE_SENSOR_UNITS_GRAM                                                     0x66,0x01,0x01          
+#define HID_USAGE_SENSOR_UNITS_CENTIMETER                                               0x65,0x11               
+
 #ifdef DEFINE_NON_HID_UNITS
-#define HID_USAGE_SENSOR_UNITS_CELSIUS             // Use Unit(Kelvin) and subtract 273.15
-#define HID_USAGE_SENSOR_UNITS_KILOGRAM            // Use Unit(gram) and UnitExponent(0x03)
-#define HID_USAGE_SENSOR_UNITS_METER               // Use Unit(centimeter) and UnitExponent(0x02)
-#define HID_USAGE_SENSOR_UNITS_BAR                 // Use Unit(Pascal) and UnitExponent(0x05)
-#define HID_USAGE_SENSOR_UNITS_KNOT                // Use Unit(m/s) and multiply by 1852/3600
-#define HID_USAGE_SENSOR_UNITS_PERCENT             // Use Unit(Not_Specified)
-#define HID_USAGE_SENSOR_UNITS_G                   // Use Unit(m/s2) and divide by 9.8
-#define HID_USAGE_SENSOR_UNITS_MILLISECOND         // Use Unit(second) and UnitExponent(0x0D)
-#define HID_USAGE_SENSOR_UNITS_MILLIGAUSS          // Use Unit(Gauss) and UnitExponent(0x0D)
+#define HID_USAGE_SENSOR_UNITS_CELSIUS                                                  "Use Unit(Kelvin) and subtract 273.15"
+#define HID_USAGE_SENSOR_UNITS_KILOGRAM                                                 "Use Unit(gram) and UnitExponent(0x03)"
+#define HID_USAGE_SENSOR_UNITS_METER                                                    "Use Unit(centimeter) and UnitExponent(0x02)"
+#define HID_USAGE_SENSOR_UNITS_BAR                                                      "Use Unit(Pascal) and UnitExponent(0x05)"
+#define HID_USAGE_SENSOR_UNITS_KNOT                                                     "Use Unit(m/s) and multiply by 1852/3600"
+#define HID_USAGE_SENSOR_UNITS_PERCENT                                                  "Use Unit(Not_Specified)"
+#define HID_USAGE_SENSOR_UNITS_G                                                        "Use Unit(m/s2) and divide by 9.8"
+#define HID_USAGE_SENSOR_UNITS_MILLISECOND                                              "Use Unit(second) and UnitExponent(0x0D)"
+#define HID_USAGE_SENSOR_UNITS_MILLIGAUSS                                               "Use Unit(Gauss) and UnitExponent(0x0D)"
 #endif
-//unit deprecated usages
+
+// Unit deprecated usages:
+//
 #define HID_USAGE_SENSOR_UNITS_DEPRECATED_LUX                                           0x01
 #define HID_USAGE_SENSOR_UNITS_DEPRECATED_KELVIN                                        0x02
 #define HID_USAGE_SENSOR_UNITS_DEPRECATED_CELSIUS                                       0x03
@@ -190,11 +218,12 @@ Environment:
 #define HID_USAGE_SENSOR_UNITS_DEPRECATED_BYTES                                         0x1B
 #define HID_USAGE_SENSOR_UNITS_DEPRECATED_MILLIGAUSS                                    0x1C
 
-//data type usage modifiers -- we use them as modifiers for sensor properties & data fields
-//to create thresholds, for example.
-//NOTE: the usage tables actually define these as two bytes, but in order
-//to get the define macros to work so these are ‘or-ed’ these are defined
-//here as only one byte.
+// Data type usage modifiers:
+//
+// Use them as modifiers for sensor properties and data fields to create thresholds, for example.
+// NOTE: The usage tables actually define these as two bytes, but in order to get the define
+//       macros to work so these are or-ed these are defined here as only one byte.
+//
 #define HID_USAGE_SENSOR_DATA_MOD_NONE                                                  0x00 // US
 #define HID_USAGE_SENSOR_DATA_MOD_CHANGE_SENSITIVITY_ABS                                0x10 // US
 #define HID_USAGE_SENSOR_DATA_MOD_MAX                                                   0x20 // US
@@ -212,10 +241,12 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_MOD_CHANGE_SENSITIVITY_REL_PCT                            0xE0 // US
 #define HID_USAGE_SENSOR_DATA_MOD_VENDOR_RESERVED                                       0xF0 // US
 
-
-//state usages
+// State usages:
+//
 #define HID_USAGE_SENSOR_STATE                                                          0x0A,0x01,0x02 // NAry
-//state selectors
+
+// State selectors:
+//
 #define HID_USAGE_SENSOR_STATE_UNKNOWN_SEL                                              0x0A,0x00,0x08 // Sel
 #define HID_USAGE_SENSOR_STATE_READY_SEL                                                0x0A,0x01,0x08 // Sel
 #define HID_USAGE_SENSOR_STATE_NOT_AVAILABLE_SEL                                        0x0A,0x02,0x08 // Sel
@@ -223,7 +254,9 @@ Environment:
 #define HID_USAGE_SENSOR_STATE_INITIALIZING_SEL                                         0x0A,0x04,0x08 // Sel
 #define HID_USAGE_SENSOR_STATE_ACCESS_DENIED_SEL                                        0x0A,0x05,0x08 // Sel
 #define HID_USAGE_SENSOR_STATE_ERROR_SEL                                                0x0A,0x06,0x08 // Sel
-//state enums
+
+// State enums:
+//
 #define HID_USAGE_SENSOR_STATE_UNKNOWN_ENUM                                             0x01 // Enum
 #define HID_USAGE_SENSOR_STATE_READY_ENUM                                               0x02 // Enum
 #define HID_USAGE_SENSOR_STATE_NOT_AVAILABLE_ENUM                                       0x03 // Enum
@@ -231,7 +264,9 @@ Environment:
 #define HID_USAGE_SENSOR_STATE_INITIALIZING_ENUM                                        0x05 // Enum
 #define HID_USAGE_SENSOR_STATE_ACCESS_DENIED_ENUM                                       0x06 // Enum
 #define HID_USAGE_SENSOR_STATE_ERROR_ENUM                                               0x07 // Enum
-//state deprecated enums
+
+// State deprecated enums:
+//
 #define HID_USAGE_SENSOR_STATE_DEPRECATED_UNKNOWN_ENUM                                  0x00
 #define HID_USAGE_SENSOR_STATE_DEPRECATED_NOT_AVAILABLE_ENUM                            0x01
 #define HID_USAGE_SENSOR_STATE_DEPRECATED_READY_ENUM                                    0x02
@@ -240,9 +275,12 @@ Environment:
 #define HID_USAGE_SENSOR_STATE_DEPRECATED_ACCESS_DENIED_ENUM                            0x05
 #define HID_USAGE_SENSOR_STATE_DEPRECATED_ERROR_ENUM                                    0x06
 
-//event usages
+// Event usages:
+//
 #define HID_USAGE_SENSOR_EVENT                                                          0x0A,0x02,0x02 // NAry
-//event selectors
+
+// Event selectors:
+//
 #define HID_USAGE_SENSOR_EVENT_UNKNOWN_SEL                                              0x0A,0x10,0x08 // Sel
 #define HID_USAGE_SENSOR_EVENT_STATE_CHANGED_SEL                                        0x0A,0x11,0x08 // Sel
 #define HID_USAGE_SENSOR_EVENT_PROPERTY_CHANGED_SEL                                     0x0A,0x12,0x08 // Sel
@@ -266,7 +304,9 @@ Environment:
 #define HID_USAGE_SENSOR_EVENT_PERIOD_EXCEEDED_SEL                                      0x0A,0x1E,0x08 // Sel
 #define HID_USAGE_SENSOR_EVENT_FREQUENCY_EXCEEDED_SEL                                   0x0A,0x1F,0x08 // Sel
 #define HID_USAGE_SENSOR_EVENT_COMPLEX_TRIGGER_SEL                                      0x0A,0x20,0x08 // Sel
-//event enums
+
+// Event enums:
+//
 #define HID_USAGE_SENSOR_EVENT_UNKNOWN_ENUM                                             0x01 // Enum
 #define HID_USAGE_SENSOR_EVENT_STATE_CHANGED_ENUM                                       0x02 // Enum
 #define HID_USAGE_SENSOR_EVENT_PROPERTY_CHANGED_ENUM                                    0x03 // Enum
@@ -290,7 +330,9 @@ Environment:
 #define HID_USAGE_SENSOR_EVENT_PERIOD_EXCEEDED_ENUM                                     0x0F // Enum
 #define HID_USAGE_SENSOR_EVENT_FREQUENCY_EXCEEDED_ENUM                                  0x10 // Enum
 #define HID_USAGE_SENSOR_EVENT_COMPLEX_TRIGGER_ENUM                                     0x11 // Enum
-//event deprecated enums
+
+// Event deprecated enums:
+//
 #define HID_USAGE_SENSOR_EVENT_DEPRECATED_UNKNOWN_ENUM                                  0x00
 #define HID_USAGE_SENSOR_EVENT_DEPRECATED_STATE_CHANGED_ENUM                            0x01
 #define HID_USAGE_SENSOR_EVENT_DEPRECATED_PROPERTY_CHANGED_ENUM                         0x02
@@ -308,7 +350,9 @@ Environment:
 #define HID_USAGE_SENSOR_EVENT_DEPRECATED_PERIOD_EXCEEDED_ENUM                          0x0E
 #define HID_USAGE_SENSOR_EVENT_DEPRECATED_FREQUENCY_EXCEEDED_ENUM                       0x0F
 
-//property usages (get/set feature report)
+// Property usages (get/set feature report):
+// ----------------------------------------
+//
 #define HID_USAGE_SENSOR_PROPERTY                                                       0x0A,0x00,0x03
 #define HID_USAGE_SENSOR_PROPERTY_FRIENDLY_NAME                                         0x0A,0x01,0x03
 #define HID_USAGE_SENSOR_PROPERTY_PERSISTENT_UNIQUE_ID                                  0x0A,0x02,0x03
@@ -319,21 +363,31 @@ Environment:
 #define HID_USAGE_SENSOR_PROPERTY_SENSOR_SERIAL_NUMBER                                  0x0A,0x07,0x03
 #define HID_USAGE_SENSOR_PROPERTY_SENSOR_DESCRIPTION                                    0x0A,0x08,0x03
 #define HID_USAGE_SENSOR_PROPERTY_SENSOR_CONNECTION_TYPE                                0x0A,0x09,0x03 // NAry
-//begin connection type selectors
+
+// Begin connection type selectors:
+//
 #define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_INTEGRATED_SEL                     0x0A,0x30,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_ATTACHED_SEL                       0x0A,0x31,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_EXTERNAL_SEL                       0x0A,0x32,0x08 // Sel
-//end connection type selectors
-//begin connection type enums
+// End connection type selectors
+//
+
+// Begin connection type enums:
+//
 #define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_INTEGRATED_ENUM                    0x01 // Enum
-#define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_ATTACHED_SEL_ENUM                      0x02 // Enum
-#define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_EXTERNAL_SEL_ENUM                      0x03 // Enum
-//end connection type enums
-//begin connection type deprecated enums
+#define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_ATTACHED_SEL_ENUM                  0x02 // Enum
+#define HID_USAGE_SENSOR_PROPERTY_CONNECTION_TYPE_PC_EXTERNAL_SEL_ENUM                  0x03 // Enum
+// End connection type enums
+//
+
+// Begin connection type deprecated enums:
+//
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_CONNECTION_TYPE_PC_INTEGRATED_ENUM         0x00 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_CONNECTION_TYPE_PC_ATTACHED_ENUM           0x01 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_CONNECTION_TYPE_PC_EXTERNAL_ENUM           0x02 // Enum
-//end connection type deprecated enums
+// End connection type deprecated enums
+//
+
 #define HID_USAGE_SENSOR_PROPERTY_SENSOR_DEVICE_PATH                                    0x0A,0x0A,0x03
 #define HID_USAGE_SENSOR_PROPERTY_HARDWARE_REVISION                                     0x0A,0x0B,0x03
 #define HID_USAGE_SENSOR_PROPERTY_FIRMWARE_VERSION                                      0x0A,0x0C,0x03
@@ -347,7 +401,8 @@ Environment:
 #define HID_USAGE_SENSOR_PROPERTY_RANGE_MAXIMUM                                         0x0A,0x14,0x03
 #define HID_USAGE_SENSOR_PROPERTY_RANGE_MINIMUM                                         0x0A,0x15,0x03
 #define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE                                       0x0A,0x16,0x03 // NAry
-//begin reporting state selectors
+// Begin reporting state selectors:
+//
 #define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL                         0x0A,0x40,0x08 // Sel
 #define HID_USAGE_REPORTING_STATE_ON_NONE_SEL       HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL
 #define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_SEL                        0x0A,0x41,0x08 // Sel
@@ -357,19 +412,25 @@ Environment:
 #define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_WAKE_SEL                    0x0A,0x43,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_WAKE_SEL                   0x0A,0x44,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_THRESHOLD_EVENTS_WAKE_SEL             0x0A,0x45,0x08 // Sel
-//end reporting state selectors
-//begin reporting state enums
-#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL_ENUM                        0x01 // Enum
+// End reporting state selectors
+//
+
+// Begin reporting state enums:
+//
+#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL_ENUM                    0x01 // Enum
 #define HID_USAGE_REPORTING_STATE_ON_NONE_ENUM      HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL_ENUM
-#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_SEL_ENUM                       0x02 // Enum
+#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_SEL_ENUM                   0x02 // Enum
 #define HID_USAGE_REPORTING_STATE_ON_ALL_ENUM       HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_SEL_ENUM
-#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_THRESHOLD_EVENTS_SEL_ENUM                 0x03 // Enum
+#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_THRESHOLD_EVENTS_SEL_ENUM             0x03 // Enum
 #define HID_USAGE_REPORTING_STATE_ON_THRESHOLD_ENUM HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_THRESHOLD_EVENTS_SEL_ENUM
-#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL_WAKE_ENUM                   0x04 // Enum
-#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_SEL_WAKE_ENUM                  0x05 // Enum
-#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_THRESHOLD_EVENTS_WAKE_SEL_ENUM            0x06 // Enum
-//end reporting state enums
-//begin reporting state deprecated enums
+#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_NO_EVENTS_SEL_WAKE_ENUM               0x04 // Enum
+#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_ALL_EVENTS_SEL_WAKE_ENUM              0x05 // Enum
+#define HID_USAGE_SENSOR_PROPERTY_REPORTING_STATE_THRESHOLD_EVENTS_WAKE_SEL_ENUM        0x06 // Enum
+// End reporting state enums
+//
+
+// Begin reporting state deprecated enums:
+//
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_REPORTING_STATE_NO_EVENTS_ENUM             0x00 // Enum
 #define HID_USAGE_DEPRECATED_REPORTING_STATE_ON_NONE_ENUM      HID_USAGE_SENSOR_PROPERTY_DEPRECATED_REPORTING_STATE_NO_EVENTS_ENUM
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_REPORTING_STATE_ALL_EVENTS_ENUM            0x01 // Enum
@@ -379,41 +440,56 @@ Environment:
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_REPORTING_STATE_NO_EVENTS_WAKE_ENUM        0x03 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_REPORTING_STATE_ALL_EVENTS_WAKE_ENUM       0x04 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_REPORTING_STATE_THRESHOLD_EVENTS_WAKE_ENUM 0x05 // Enum
-//end reporting state deprecated enums
+// End reporting state deprecated enums
+//
+
 #define HID_USAGE_SENSOR_PROPERTY_SAMPLING_RATE                                         0x0A,0x17,0x03
 #define HID_USAGE_SENSOR_PROPERTY_RESPONSE_CURVE                                        0x0A,0x18,0x03
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE                                           0x0A,0x19,0x03 // NAry
-//begin power state selectors
+// Begin power state selectors:
+//
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_UNDEFINED_SEL                             0x0A,0x50,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D0_FULL_POWER_SEL                         0x0A,0x51,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D1_LOW_POWER_SEL                          0x0A,0x52,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D2_STANDBY_WITH_WAKE_SEL                  0x0A,0x53,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D3_SLEEP_WITH_WAKE_SEL                    0x0A,0x54,0x08 // Sel
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D4_POWER_OFF_SEL                          0x0A,0x55,0x08 // Sel
-//end power state selectors
-//begin power state enums
+// End power state selectors
+//
+
+// Begin power state enums:
+//
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_UNDEFINED_ENUM                            0x01 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D0_FULL_POWER_ENUM                        0x02 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D1_LOW_POWER_ENUM                         0x03 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D2_STANDBY_WITH_WAKE_ENUM                 0x04 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D3_SLEEP_WITH_WAKE_ENUM                   0x05 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D4_POWER_OFF_ENUM                         0x06 // Enum
-//end power state enums
-//begin deprecated power state enums
+// End power state enums
+//
+
+// Begin deprecated power state enums:
+//
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_POWER_STATE_UNDEFINED_ENUM                 0x00 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_POWER_STATE_D0_FULL_POWER_ENUM             0x01 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_POWER_STATE_D1_LOW_POWER_ENUM              0x02 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_POWER_STATE_D2_STANDBY_WITH_WAKE_ENUM      0x03 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_POWER_STATE_D3_SLEEP_WITH_WAKE_ENUM        0x04 // Enum
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_POWER_STATE_D4_POWER_OFF_ENUM              0x05 // Enum
-//end deprecated power state enums
+// End deprecated power state enums
+//
+
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_FEATURE_PAGE_COUNT                         0x0A,0x1A,0x03
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_FEATURE_PAGE_ID                            0x0A,0x1B,0x03
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_INPUT_PAGE_COUNT                           0x0A,0x1C,0x03
 #define HID_USAGE_SENSOR_PROPERTY_DEPRECATED_INPUT_PAGE_ID                              0x0A,0x1D,0x03
 
-//data type location
-//data field usages (input report)
+// Data type location:
+// -------------------
+//
+
+// Data field usages (input report)
+//
 #define HID_USAGE_SENSOR_DATA_LOCATION                                                  0x0A,0x00,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_DESIRED_ACCURACY                                 0x0A,0x01,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_ALTITUDE_ANTENNA_SEALEVEL                        0x0A,0x02,0x04
@@ -425,13 +501,18 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_LOCATION_DGPS_DATA_AGE                                    0x0A,0x08,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_ERROR_RADIUS                                     0x0A,0x09,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_FIX_QUALITY                                      0x0A,0x0A,0x04 // NAry
-//begin fix quality selectors
+// Begin fix quality selectors:
+//
 #define HID_USAGE_SENSOR_DATA_FIX_QUALITY_NO_FIX                                        0x0A,0x70,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_FIX_QUALITY_GPS                                           0x0A,0x71,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_FIX_QUALITY_DGPS                                          0x0A,0x72,0x08 // Sel
-//end fix quality selectors
+// End fix quality selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_LOCATION_FIX_TYPE                                         0x0A,0x0B,0x04 // NAry
-//begin fix type selectors
+
+// Begin fix type selectors:
+//
 #define HID_USAGE_SENSOR_DATA_FIX_TYPE_NO_FIX                                           0x0A,0x80,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_FIX_TYPE_GPS_SPS_MODE_FIX_VALID                           0x0A,0x81,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_FIX_TYPE_DGPS_SPS_MODE_FIX_VALID                          0x0A,0x82,0x08 // Sel
@@ -441,27 +522,40 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_FIX_TYPE_ESTIMATED_DEAD_RECKONING                         0x0A,0x86,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_FIX_TYPE_MANUAL_INPUT_MODE                                0x0A,0x87,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_FIX_TYPE_SIMULATOR_MODE                                   0x0A,0x88,0x08 // Sel
-//end fix type selectors
+// End fix type selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_LOCATION_GEOIDAL_SEPARATION                               0x0A,0x0C,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_GPS_OPERATION_MODE                               0x0A,0x0D,0x04 // NAry
-//begin gps operation mode selectors
+
+// Begin GPS operation mode selectors:
+//
 #define HID_USAGE_SENSOR_DATA_GPS_OP_MODE_MANUAL                                        0x0A,0x90,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_OP_MODE_AUTOMATIC                                     0x0A,0x91,0x08 // Sel
-//end gps operation mode selectors
+// End GPS operation mode selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_LOCATION_GPS_SELECTION_MODE                               0x0A,0x0E,0x04 // NAry
-//begin gps selection mode selectors
+// Begin GPS selection mode selectors:
+//
 #define HID_USAGE_SENSOR_DATA_GPS_SEL_MODE_AUTONOMOUS                                   0x0A,0xA0,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_SEL_MODE_DGPS                                         0x0A,0xA1,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_SEL_MODE_ESTIMATED_DEAD_RECKONING                     0x0A,0xA2,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_SEL_MODE_MANUAL_INPUT                                 0x0A,0xA3,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_SEL_MODE_SIMULATOR                                    0x0A,0xA4,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_SEL_MODE_DATA_NOT_VALID                               0x0A,0xA5,0x08 // Sel
-//end gps selection mode selectors
+// End GPS selection mode selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_LOCATION_GPS_STATUS                                       0x0A,0x0F,0x04 // NAry
-//begin gps status selectors
+
+// Begin GPS status selectors:
+//
 #define HID_USAGE_SENSOR_DATA_GPS_STATUS_DATA_VALID                                     0x0A,0xB0,0x08 // Sel
 #define HID_USAGE_SENSOR_DATA_GPS_STATUS_DATA_NOT_VALID                                 0x0A,0xB1,0x08 // Sel
-//end gps status selectors
+// End GPS status selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_LOCATION_POSITION_DILUTION_OF_PRECISION                   0x0A,0x10,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_HORIZONTAL_DILUTION_OF_PRECISION                 0x0A,0x11,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_VERTICAL_DILUTION_OF_PRECISION                   0x0A,0x12,0x04
@@ -486,18 +580,26 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_LOCATION_STATE_OR_PROVINCE                                0x0A,0x25,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_COUNTRY_OR_REGION                                0x0A,0x26,0x04
 #define HID_USAGE_SENSOR_DATA_LOCATION_POSTAL_CODE                                      0x0A,0x27,0x04
-//property usages (get/set feature report)
+
+// Property usages (get/set feature report):
+// -----------------------------------------
+//
 #define HID_USAGE_SENSOR_PROPERTY_LOCATION                                              0x0A,0x2A,0x04
 #define HID_USAGE_SENSOR_PROPERTY_LOCATION_DESIRED_ACCURACY                             0x0A,0x2B,0x04 // NAry
-//begin location desired accuracy selectors
+// Begin location desired accuracy selectors:
+//
 #define HID_USAGE_SENSOR_DESIRED_ACCURACY_DEFAULT                                       0x0A,0x60,0x08 // Sel
 #define HID_USAGE_SENSOR_DESIRED_ACCURACY_HIGH                                          0x0A,0x61,0x08 // Sel
 #define HID_USAGE_SENSOR_DESIRED_ACCURACY_MEDIUM                                        0x0A,0x62,0x08 // Sel
 #define HID_USAGE_SENSOR_DESIRED_ACCURACY_LOW                                           0x0A,0x63,0x08 // Sel
-//end location desired accuracy selectors
+// End location desired accuracy selectors
+//
 
-//data type environmental
-//data field usages (input report)
+// Data type environmental:
+// ------------------------
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_ENVIRONMENTAL                                             0x0A,0x30,0x04
 #define HID_USAGE_SENSOR_DATA_ENVIRONMENTAL_ATMOSPHERIC_PRESSURE                        0x0A,0x31,0x04
 #define HID_USAGE_SENSOR_DATA_ENVIRONMENTAL_REFERENCE_PRESSURE                          0x0A,0x32,0x04
@@ -505,12 +607,16 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_ENVIRONMENTAL_TEMPERATURE                                 0x0A,0x34,0x04
 #define HID_USAGE_SENSOR_DATA_ENVIRONMENTAL_WIND_DIRECTION                              0x0A,0x35,0x04
 #define HID_USAGE_SENSOR_DATA_ENVIRONMENTAL_WIND_SPEED                                  0x0A,0x36,0x04
-//property usages (get/set feature report)
+// Property usages (get/set feature report):
+//
 #define HID_USAGE_SENSOR_PROPERTY_ENVIRONMENTAL                                         0x0A,0x40,0x04
 #define HID_USAGE_SENSOR_PROPERTY_ENVIRONMENTAL_REFERENCE_PRESSURE                      0x0A,0x41,0x04
 
-//data type motion
-//data field usages (input report)
+// Data type motion:
+// -----------------
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_MOTION                                                    0x0A,0x50,0x04
 #define HID_USAGE_SENSOR_DATA_MOTION_STATE                                              0x0A,0x51,0x04
 #define HID_USAGE_SENSOR_DATA_MOTION_ACCELERATION                                       0x0A,0x52,0x04
@@ -528,8 +634,12 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_MOTION_SPEED                                              0x0A,0x5E,0x04
 #define HID_USAGE_SENSOR_DATA_MOTION_INTENSITY                                          0x0A,0x5F,0x04
 
-//data type orientation
-//data field usages (input report)
+// Data type orientation:
+// ----------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_ORIENTATION                                               0x0A,0x70,0x04
 #define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETIC_HEADING                              0x0A,0x71,0x04
 #define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETIC_HEADING_X                            0x0A,0x72,0x04
@@ -554,14 +664,21 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETIC_FLUX_X_AXIS                          0x0A,0x85,0x04
 #define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETIC_FLUX_Y_AXIS                          0x0A,0x86,0x04
 #define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETIC_FLUX_Z_AXIS                          0x0A,0x87,0x04
-#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY 0x0A,0x88,0x04 // NAry
-//begin orientation magnetometer accuracy selectors
-#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY_LOW 0x0A,0xE0,0x08 // Sel
-#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY_MEDIUM 0x0A,0xE1,0x08 // Sel
-#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY_HIGH 0x0A,0xE2,0x08 // Sel
+#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY                         0x0A,0x88,0x04 // NAry
+// Begin orientation magnetometer accuracy selectors:
+//
+#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY_LOW                     0x0A,0xE0,0x08 // Sel
+#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY_MEDIUM                  0x0A,0xE1,0x08 // Sel
+#define HID_USAGE_SENSOR_DATA_ORIENTATION_MAGNETOMETER_ACCURACY_HIGH                    0x0A,0xE2,0x08 // Sel
+// End orientation magnetometer accuracy selectors:
+//
 
-//data type mechanical
-//data field usages (input report)
+// Data type mechanical:
+// ---------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_MECHANICAL                                                0x0A,0x90,0x04
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_BOOLEAN_SWITCH_STATE                           0x0A,0x91,0x04
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_BOOLEAN_SWITCH_ARRAY_STATES                    0x0A,0x92,0x04
@@ -571,22 +688,31 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_GAUGE_PRESSURE                                 0x0A,0x96,0x04
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_STRAIN                                         0x0A,0x97,0x04
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_WEIGHT                                         0x0A,0x98,0x04
-//property usages (get/set feature report)
+// Property usages (get/set feature report):
+//
 #define HID_USAGE_SENSOR_PROPERTY_MECHANICAL                                            0x0A,0xA0,0x04
 #define HID_USAGE_SENSOR_PROPERTY_MECHANICAL_VIBRATION_STATE                            0x0A,0xA1,0x04
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_VIBRATION_SPEED_FORWARD                        0x0A,0xA2,0x04
 #define HID_USAGE_SENSOR_DATA_MECHANICAL_VIBRATION_SPEED_BACKWARD                       0x0A,0xA3,0x04
 
-//data type biometric
-//data field usages (input report)
+// Data type biometric:
+// --------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_BIOMETRIC                                                 0x0A,0xB0,0x04
 #define HID_USAGE_SENSOR_DATA_BIOMETRIC_HUMAN_PRESENCE                                  0x0A,0xB1,0x04
 #define HID_USAGE_SENSOR_DATA_BIOMETRIC_HUMAN_PROXIMITY_RANGE                           0x0A,0xB2,0x04
 #define HID_USAGE_SENSOR_DATA_BIOMETRIC_HUMAN_PROXIMITY_OUT_OF_RANGE                    0x0A,0xB3,0x04
 #define HID_USAGE_SENSOR_DATA_BIOMETRIC_HUMAN_TOUCH_STATE                               0x0A,0xB4,0x04
 
-//data type light sensor
-//data field usages (input report)
+// Data type light sensor:
+// -----------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_LIGHT                                                     0x0A,0xD0,0x04
 #define HID_USAGE_SENSOR_DATA_LIGHT_ILLUMINANCE                                         0x0A,0xD1,0x04
 #define HID_USAGE_SENSOR_DATA_LIGHT_COLOR_TEMPERATURE                                   0x0A,0xD2,0x04
@@ -594,21 +720,31 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_LIGHT_CHROMATICITY_X                                      0x0A,0xD4,0x04
 #define HID_USAGE_SENSOR_DATA_LIGHT_CHROMATICITY_Y                                      0x0A,0xD5,0x04
 #define HID_USAGE_SENSOR_DATA_LIGHT_CONSUMER_IR_SENTENCE_RECEIVE                        0x0A,0xD6,0x04
-//property usages (get/set feature report)
+// Property usages (get/set feature report):
+//
 #define HID_USAGE_SENSOR_PROPERTY_LIGHT                                                 0x0A,0xE0,0x04
 #define HID_USAGE_SENSOR_PROPERTY_LIGHT_CONSUMER_IR_SENTENCE_SEND                       0x0A,0xE1,0x04
 
-//data type scanner
-//data field usages (input report)
+// Data type scanner:
+// ------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_SCANNER                                                   0x0A,0xF0,0x04
 #define HID_USAGE_SENSOR_DATA_SCANNER_RFID_TAG                                          0x0A,0xF1,0x04
 #define HID_USAGE_SENSOR_DATA_SCANNER_NFC_SENTENCE_RECEIVE                              0x0A,0xF2,0x04
-//property usages (get/set feature report)
+// Property usages (get/set feature report):
+//
 #define HID_USAGE_SENSOR_PROPERTY_SCANNER                                               0x0A,0xF8,0x04
 #define HID_USAGE_SENSOR_PROPERTY_SCANNER_NFC_SENTENCE_SEND                             0x0A,0xF9,0x04
 
-//data type electrical
-//data field usages (input report)
+// Data type electrical:
+// ---------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_ELECTRICAL                                                0x0A,0x00,0x05
 #define HID_USAGE_SENSOR_DATA_ELECTRICAL_CAPACITANCE                                    0x0A,0x01,0x05
 #define HID_USAGE_SENSOR_DATA_ELECTRICAL_CURRENT                                        0x0A,0x02,0x05
@@ -620,8 +756,12 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_ELECTRICAL_PERIOD                                         0x0A,0x08,0x05
 #define HID_USAGE_SENSOR_DATA_ELECTRICAL_PERCENT_OF_RANGE                               0x0A,0x09,0x05
 
-//data type time
-//data field usages (input report)
+// Data type time:
+// ---------------
+//
+
+// Data field usages (input report)
+//
 #define HID_USAGE_SENSOR_DATA_TIME                                                      0x0A,0x20,0x05
 #define HID_USAGE_SENSOR_DATA_TIME_YEAR                                                 0x0A,0x21,0x05
 #define HID_USAGE_SENSOR_DATA_TIME_MONTH                                                0x0A,0x22,0x05
@@ -633,7 +773,9 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_TIME_MILLISECOND                                          0x0A,0x28,0x05
 #define HID_USAGE_SENSOR_DATA_TIME_TIMESTAMP                                            0x0A,0x29,0x05
 #define HID_USAGE_SENSOR_DATA_TIME_JULIAN_DAY_OF_YEAR                                   0x0A,0x2A,0x05
-//property usages (get/set feature report)
+
+// Property usages (get/set feature report):
+//
 #define HID_USAGE_SENSOR_PROPERTY_TIME                                                  0x0A,0x30,0x05
 #define HID_USAGE_SENSOR_PROPERTY_TIME_TIME_ZONE_OFFSET_FROM_UTC                        0x0A,0x31,0x05
 #define HID_USAGE_SENSOR_PROPERTY_TIME_TIME_ZONE_NAME                                   0x0A,0x32,0x05
@@ -641,8 +783,12 @@ Environment:
 #define HID_USAGE_SENSOR_PROPERTY_TIME_TIME_TRIM_ADJUSTMENT                             0x0A,0x34,0x05
 #define HID_USAGE_SENSOR_PROPERTY_TIME_ARM_ALARM                                        0x0A,0x35,0x05
 
-//data type custom
-//data field usages (input report)
+// Data type custom:
+// -----------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_CUSTOM                                                    0x0A,0x40,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_USAGE                                              0x0A,0x41,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_BOOLEAN_ARRAY                                      0x0A,0x42,0x05
@@ -654,7 +800,9 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_5                                            0x0A,0x48,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_6                                            0x0A,0x49,0x05
 
-#if 1 //define vendor-specific (non-spec) custom datafields
+// Vendor-specific (non-spec) custom data fields:
+// ----------------------------------------------
+//
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_7                                            0x0A,0x4A,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_8                                            0x0A,0x4B,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_9                                            0x0A,0x4C,0x05
@@ -677,10 +825,13 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_26                                           0x0A,0x5D,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_27                                           0x0A,0x5E,0x05
 #define HID_USAGE_SENSOR_DATA_CUSTOM_VALUE_28                                           0x0A,0x5F,0x05
-#endif
 
-//data type generic
-//data field usages (input report)
+// Data type generic:
+// ------------------
+//
+
+// Data field usages (input report):
+//
 #define HID_USAGE_SENSOR_DATA_GENERIC                                                   0x0A,0x60,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_GUID_OR_PROPERTYKEY                               0x0A,0x61,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_CATEGORY_GUID                                     0x0A,0x62,0x05
@@ -694,20 +845,24 @@ Environment:
 #define HID_USAGE_SENSOR_DATA_ENUMERATOR_TABLE_ROW_INDEX                                0x0A,0x6A,0x05
 #define HID_USAGE_SENSOR_DATA_ENUMERATOR_TABLE_ROW_COUNT                                0x0A,0x6B,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_GUID_OR_PROPERTYKEY_KIND                          0x0A,0x6C,0x05 // NAry
-//begin GorPK kind selectors
+// Begin GorPK kind selectors:
+//
 #define HID_USAGE_SENSOR_GORPK_KIND_CATEGORY                                            0x0A,0xD0,0x08 // Sel
 #define HID_USAGE_SENSOR_GORPK_KIND_TYPE                                                0x0A,0xD1,0x08 // Sel
 #define HID_USAGE_SENSOR_GORPK_KIND_EVENT                                               0x0A,0xD2,0x08 // Sel
 #define HID_USAGE_SENSOR_GORPK_KIND_PROPERTY                                            0x0A,0xD3,0x08 // Sel
 #define HID_USAGE_SENSOR_GORPK_KIND_DATAFIELD                                           0x0A,0xD4,0x08 // Sel
-//end GorPK kind selectors
+// End GorPK kind selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_GENERIC_GUID                                              0x0A,0x6D,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_PROPERTYKEY                                       0x0A,0x6E,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_TOP_LEVEL_COLLECTION_ID                           0x0A,0x6F,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_REPORT_ID                                         0x0A,0x70,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_REPORT_ITEM_POSITION_INDEX                        0x0A,0x71,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_FIRMWARE_VARTYPE                                  0x0A,0x72,0x05 // NAry
-//begin firmware vartype selectors
+// Begin firmware vartype selectors:
+//
 #define HID_USAGE_SENSOR_FIRMWARE_VARTYPE_VT_NULL                                       0x0A,0x00,0x09 // Sel
 #define HID_USAGE_SENSOR_FIRMWARE_VARTYPE_VT_BOOL                                       0x0A,0x01,0x09 // Sel
 #define HID_USAGE_SENSOR_FIRMWARE_VARTYPE_VT_UI1                                        0x0A,0x02,0x09 // Sel
@@ -756,9 +911,12 @@ Environment:
 #define HID_USAGE_SENSOR_FIRMWARE_VARTYPE_VT_F32ED                                      0x0A,0x2D,0x09 // Sel
 #define HID_USAGE_SENSOR_FIRMWARE_VARTYPE_VT_F32EE                                      0x0A,0x2E,0x09 // Sel
 #define HID_USAGE_SENSOR_FIRMWARE_VARTYPE_VT_F32EF                                      0x0A,0x2F,0x09 // Sel
-//end firmware vartype selectors
+//End firmware vartype selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_GENERIC_UNIT_OF_MEASURE                                   0x0A,0x73,0x05 // NAry
-//begin unit of measure selectors
+// Begin unit of measure selectors:
+//
 #define HID_USAGE_SENSOR_GENERIC_UNIT_NOT_SPECIFIED                                     0x0A,0x40,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_UNIT_LUX                                               0x0A,0x41,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_UNIT_DEGREES_KELVIN                                    0x0A,0x42,0x09 // Sel
@@ -790,9 +948,12 @@ Environment:
 #define HID_USAGE_SENSOR_GENERIC_UNIT_BYTES                                             0x0A,0x5C,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_UNIT_MILLIGAUSS                                        0x0A,0x5D,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_UNIT_BITS                                              0x0A,0x5E,0x09 // Sel
-//end unit of measure selectors
+// End unit of measure selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_GENERIC_UNIT_EXPONENT                                     0x0A,0x74,0x05 // NAry
-//begin unit exponent selectors
+// Begin unit exponent selectors:
+//
 #define HID_USAGE_SENSOR_GENERIC_EXPONENT_0                                             0x0A,0x70,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_EXPONENT_1                                             0x0A,0x71,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_EXPONENT_2                                             0x0A,0x72,0x09 // Sel
@@ -809,10 +970,13 @@ Environment:
 #define HID_USAGE_SENSOR_GENERIC_EXPONENT_D                                             0x0A,0x7D,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_EXPONENT_E                                             0x0A,0x7E,0x09 // Sel
 #define HID_USAGE_SENSOR_GENERIC_EXPONENT_F                                             0x0A,0x7F,0x09 // Sel
-//end unit exponent selectors
+// End unit exponent selectors
+//
+
 #define HID_USAGE_SENSOR_DATA_GENERIC_REPORT_SIZE                                       0x0A,0x75,0x05
 #define HID_USAGE_SENSOR_DATA_GENERIC_REPORT_COUNT                                      0x0A,0x76,0x05
-//property usages (get/set feature report)
+// Property usages (get/set feature report)
+//
 #define HID_USAGE_SENSOR_PROPERTY_GENERIC                                               0x0A,0x80,0x05
 #define HID_USAGE_SENSOR_PROPERTY_ENUMERATOR_TABLE_ROW_INDEX                            0x0A,0x81,0x05
 #define HID_USAGE_SENSOR_PROPERTY_ENUMERATOR_TABLE_ROW_COUNT                            0x0A,0x82,0x05
