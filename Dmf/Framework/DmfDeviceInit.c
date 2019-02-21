@@ -725,7 +725,7 @@ Return Value:
     //
     if (! DmfDeviceInit->BridgeEnabled)
     {
-          TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfDeviceInit Bridge not enabled");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfDeviceInit Bridge not enabled");
         goto Exit;
     }
 
@@ -734,17 +734,17 @@ Return Value:
     //
     if (! DmfDeviceInit->PnpPowerCallbacksHooked)
     {
-          TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfDeviceInitHookPnpPowerEventCallbacks not called!");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfDeviceInitHookPnpPowerEventCallbacks not called!");
         goto Exit;
     }
     if (! DmfDeviceInit->PowerPolicyCallbacksHooked)
     {
-          TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfDeviceInitHookPowerPolicyEventCallbacks not called!");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfDeviceInitHookPowerPolicyEventCallbacks not called!");
         goto Exit;
     }
     if (! DmfDeviceInit->FileObjectConfigHooked)
     {
-          TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfDeviceInitHookFileObjectConfig not called!");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfDeviceInitHookFileObjectConfig not called!");
         goto Exit;
     }
 
@@ -754,7 +754,7 @@ Return Value:
     {
         if (DmfDeviceInit->ClientDriverDevice == NULL)
         {
-              TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfControlDeviceInitSetClientDriverDevice not called!");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfControlDeviceInitSetClientDriverDevice not called!");
             goto Exit;
         }
     }
@@ -762,7 +762,7 @@ Return Value:
     {
         if (DmfDeviceInit->ClientDriverDevice != NULL)
         {
-              TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfControlDeviceInitSetClientDriverDevice should not be called!");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfControlDeviceInitSetClientDriverDevice should not be called!");
             goto Exit;
         }
     }
@@ -1067,9 +1067,14 @@ Return Value:
             bridgeModuleConfig->EvtQueueIoWrite = QueueConfig->EvtIoWrite;
 
             DMF_ContainerQueueConfigCallbacksInit(QueueConfig);
-
-            DmfDeviceInit->QueueConfigHooked = TRUE;
         }
+        // If the Client Driver does not call this function, by default DMF assumes that
+        // it should create its own default queue. Otherwise, there are two cases:
+        // 1. Client Driver created the queue above so DMF should not create the queue.
+        // 2. Client Driver does not want a default queue created.
+        // This flag is checked later to determine if DMF should create a default queue.
+        //
+        DmfDeviceInit->QueueConfigHooked = TRUE;
     }
 }
 #pragma code_seg()

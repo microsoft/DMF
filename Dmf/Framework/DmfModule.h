@@ -46,6 +46,9 @@ WDF_DECLARE_CUSTOM_TYPE(DMFMODULE_TYPE);
 // Declare DMFCOLLECTION custom handle type as DMFCOLLECTION_TYPE.
 //
 WDF_DECLARE_CUSTOM_TYPE(DMFCOLLECTION_TYPE);
+// Declare DMFINTERFACE custom handle type as DMFINTERFACE_TYPE.
+//
+WDF_DECLARE_CUSTOM_TYPE(DMFINTERFACE_TYPE);
 // So we can set this pointer in various objects.
 //
 WDF_DECLARE_CONTEXT_TYPE(DMFMODULE);
@@ -666,6 +669,31 @@ Descriptor.CallbacksWdf                    = NULL;                              
 Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;                             \
 Descriptor.ModuleContextAttributes         = &moduleContextAttributes;                                          \
                                                                                                                 \
+
+//
+// Method to initialize Protocol descriptor.
+//
+VOID
+DMF_INTERFACE_PROTOCOL_DESCRIPTOR_INIT_INTERNAL(
+    _Out_ DMF_INTERFACE_PROTOCOL_DESCRIPTOR* DmfProtocolDescriptor,
+    _In_ PSTR InterfaceName,
+    _In_ ULONG DeclarationDataSize,
+    _In_ EVT_DMF_INTERFACE_ProtocolBind* EvtProtocolBind,
+    _In_ EVT_DMF_INTERFACE_ProtocolUnbind* EvtProtocolUnbind,
+    _In_opt_ EVT_DMF_INTERFACE_PostBind* EvtPostBind,
+    _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind
+    );
+
+// Method to initialize Transport descriptor.
+//
+VOID
+DMF_INTERFACE_TRANSPORT_DESCRIPTOR_INIT_INTERNAL(
+    _Out_ DMF_INTERFACE_TRANSPORT_DESCRIPTOR* DmfTransportDescriptor,
+    _In_ PSTR InterfaceName,
+    _In_ ULONG DeclarationDataSize,
+    _In_opt_ EVT_DMF_INTERFACE_PostBind* EvtPostBind,
+    _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind
+);
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_

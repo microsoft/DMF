@@ -191,6 +191,82 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_Generic_PostBind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Generic callback for EvtInterfacePostBind.
+    It is a NOP.
+
+Arguments:
+
+    DmfModule - DMF Module
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfInterface);
+
+    FuncEntryArguments(DMF_TRACE, "DmfInterface=0x%p", DmfInterface);
+
+    // It is OK for this function to be called as NOP.
+    //
+
+    FuncExit(DMF_TRACE, "DmfInterface=0x%p ntStatus=%!STATUS!", DmfInterface, STATUS_SUCCESS);
+
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_INTERFACE_Generic_PreUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Generic callback for EvtInterfacePreUnbind.
+    It is a NOP.
+
+Arguments:
+
+    DmfModule - DMF Module
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfInterface);
+
+    FuncEntryArguments(DMF_TRACE, "DmfInterface=0x%p", DmfInterface);
+
+    // It is OK for this function to be called as NOP.
+    //
+
+    FuncExit(DMF_TRACE, "DmfInterface=0x%p ntStatus=%!STATUS!", DmfInterface, STATUS_SUCCESS);
+
+}
+#pragma code_seg()
+
 VOID
 DMF_Generic_Destroy(
     _In_ DMFMODULE DmfModule

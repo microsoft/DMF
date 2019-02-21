@@ -1353,6 +1353,8 @@ DMF_ContainerPnpPowerCallbacksInit(
 }
 #pragma code_seg()
 
+#define WDF_FILEOBJECT_CLASS_DEFAULT_SETTINGS       ((WDF_FILEOBJECT_CLASS)(WdfFileObjectWdfCannotUseFsContexts | WdfFileObjectCanBeOptional))
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -1369,10 +1371,16 @@ DMF_ContainerFileObjectConfigInit(
                                DmfContainerEvtFileClose,
                                DmfContainerEvtFileCleanup);
 
+    // This is the default setting if the Client Driver does not set it using
+    // DMF_DmfDeviceInitHookFileObjectConfig().
+    //
     // For filter/miniport drivers we don't know the policy on FileObject usage.
     // Make sure we don't use FsContexts by default, and allow FileObject to be optional.
     //
-    FileObjectConfig->FileObjectClass = (WDF_FILEOBJECT_CLASS)(WdfFileObjectWdfCannotUseFsContexts | WdfFileObjectCanBeOptional);
+    // TODO: Not setting this default will cause a crash inside WDF during Cleanup calls.
+    //       We should revisit this with WDF experts to see if we can eliminate this code.
+    //
+    FileObjectConfig->FileObjectClass = WDF_FILEOBJECT_CLASS_DEFAULT_SETTINGS;
 }
 #pragma code_seg()
 
