@@ -1371,19 +1371,16 @@ DMF_ContainerFileObjectConfigInit(
                                DmfContainerEvtFileClose,
                                DmfContainerEvtFileCleanup);
 
-    // Use settings passed by Client Driver by default. Otherwise, set defaults
-    // that are known good by DMF.
+    // This is the default setting if the Client Driver does not set it using
+    // DMF_DmfDeviceInitHookFileObjectConfig().
     //
-    if (WdfFileObjectWdfCannotUseFsContexts == FileObjectConfig->FileObjectClass)
-    {
-        // For filter/miniport drivers we don't know the policy on FileObject usage.
-        // Make sure we don't use FsContexts by default, and allow FileObject to be optional.
-        //
-        // TODO: Not setting this default will cause a crash inside WDF during Cleanup calls.
-        //       We should revisit this with WDF experts to see if we can eliminate this code.
-        //
-        FileObjectConfig->FileObjectClass = WDF_FILEOBJECT_CLASS_DEFAULT_SETTINGS;
-    }
+    // For filter/miniport drivers we don't know the policy on FileObject usage.
+    // Make sure we don't use FsContexts by default, and allow FileObject to be optional.
+    //
+    // TODO: Not setting this default will cause a crash inside WDF during Cleanup calls.
+    //       We should revisit this with WDF experts to see if we can eliminate this code.
+    //
+    FileObjectConfig->FileObjectClass = WDF_FILEOBJECT_CLASS_DEFAULT_SETTINGS;
 }
 #pragma code_seg()
 

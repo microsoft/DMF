@@ -951,6 +951,10 @@ Return Value:
             FileObjectConfig->EvtDeviceFileCreate = fileObjectConfig.EvtDeviceFileCreate;
             FileObjectConfig->EvtFileCleanup = fileObjectConfig.EvtFileCleanup;
             FileObjectConfig->EvtFileClose = fileObjectConfig.EvtFileClose;
+            // Allow Client Driver to override this setting.
+            // NOTE: In most cases WdfFileObjectCanBeOptional is needed.
+            //
+            FileObjectConfig->FileObjectClass = fileObjectConfig.FileObjectClass;
         }
 
         DmfDeviceInit->FileObjectConfigHooked = TRUE;
