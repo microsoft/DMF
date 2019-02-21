@@ -2955,7 +2955,7 @@ Return Value:
         case NonPagedPoolMustSucceedSession:
         case NonPagedPoolCacheAlignedSession:
         case NonPagedPoolCacheAlignedMustSSession:
-#if !defined(POOL_NX_OPTIN_AUTO)
+#if (!defined(_ARM_) && !defined(_ARM64_)) || (!defined(POOL_NX_OPTIN_AUTO))
         // If POOL_NX_OPTIN_AUTO is defined, it means that NonPagedPoolNx = NonPagedPool.
         // So, don't include this case as it is a duplicate. This is the case for ARM and ARM64.
         //
