@@ -177,15 +177,6 @@ DMF_BranchTrack_CheckPointCreate(
 #define DMF_BRANCHTRACK_CREATE(DmfObject, BranchName, Callback, HintName, Context)                                  DMF_BranchTrack_CheckPointCreate(DmfObject, BranchName, HintName, __FILE__, __LINE__, Callback, Context, TRUE)
 #define DMF_BRANCHTRACK_CREATE_CONDITIONAL(DmfObject, BranchName, Callback, HintName, Context, Condition)           DMF_BranchTrack_CheckPointCreate(DmfObject, BranchName, HintName, __FILE__, __LINE__, Callback, Context, Condition)
 
-#define DMF_BRANCHTRACK_STRING_Exactly              "exactly"
-#define DMF_BRANCHTRACK_STRING_MoreThan             "more than"
-#define DMF_BRANCHTRACK_STRING_LessThan             "less than"
-#define DMF_BRANCHTRACK_STRING_Never                "never"
-#define DMF_BRANCHTRACK_STRING_AtLeast              "at least"
-#define DMF_BRANCHTRACK_STRING_Optionally           "optionally"
-#define DMF_BRANCHTRACK_STRING_FaultInjection       "FaultInjection"
-#define DMF_BRANCHTRACK_STRING_NoFaultInjection     "NoFaultInjection"
-
 // Branch that should be executed more than specified number of times to pass.
 //
 #define DMF_BRANCHTRACK_MORE_THAN(DmfObject, Name, Count)                                           DMF_BRANCHTRACK_GENERIC(DmfObject, Name, DMF_BranchTrack_Helper_BranchStatusQuery_MoreThan, DMF_BRANCHTRACK_STRING_MoreThan, (ULONG_PTR)Count)

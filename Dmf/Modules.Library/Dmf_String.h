@@ -64,5 +64,12 @@ DMF_String_FindInListLookForLeftMatchChar(
     _In_ CHAR* LookFor
     );
 
+NTSTATUS
+DMF_String_WideStringCopyAsAnsi(
+    _Out_writes_(BufferSize) CHAR* AnsiString,
+    _In_z_ WCHAR* WideString,
+    _In_ ULONG BufferSize
+    );
+
 // eof: Dmf_String.h
 //

@@ -335,7 +335,7 @@ DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
 
 #### Module Remarks
 
-* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed.
+* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
 * This Module does all the work of allocating the buffers and Requests as specified by the Client.
 * This Module stops and start streaming automatically during power transition.
 * This Module is similar to the USB Continuous Reader in WDF but for any WDFIOTARGET.

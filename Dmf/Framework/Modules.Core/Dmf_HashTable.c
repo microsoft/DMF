@@ -869,7 +869,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_HashTable.CallbacksDmf = &DmfCallbacksDmf_HashTable;
-    DmfModuleDescriptor_HashTable.ModuleConfigSize = sizeof(DMF_CONFIG_HashTable);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

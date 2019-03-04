@@ -1457,7 +1457,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_BufferPool.CallbacksDmf = &DmfCallbacksDmf_BufferPool;
-    DmfModuleDescriptor_BufferPool.ModuleConfigSize = sizeof(DMF_CONFIG_BufferPool);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

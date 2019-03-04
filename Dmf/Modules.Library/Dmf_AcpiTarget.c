@@ -792,8 +792,6 @@ Return Value:
                                DMF_MODULE_OPTIONS_PASSIVE,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_AcpiTarget.ModuleConfigSize = sizeof(DMF_CONFIG_AcpiTarget);
-
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,

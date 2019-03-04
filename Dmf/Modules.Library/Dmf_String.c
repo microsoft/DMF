@@ -155,6 +155,69 @@ Return Value:
                    strlen(LookFor));
 }
 
+
+#if defined(DMF_USER_MODE)
+
+static
+CHAR* 
+String_WideStringToMultiString(
+    _In_ WCHAR* WideString
+    )
+{
+    ULONG numberOfBytes;
+    PCHAR multiString;
+
+    multiString = NULL;
+
+    // Get the length of the converted string
+    //
+    numberOfBytes = WideCharToMultiByte(CP_ACP,
+                                        0,
+                                        WideString,
+                                        -1,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        NULL);
+    if (0 == numberOfBytes)
+    {
+        goto Exit;
+    }
+
+    // Allocate space to hold the converted string
+    //
+    multiString = (PCHAR)malloc(numberOfBytes);
+    if (NULL == multiString)
+    {
+        goto Exit;
+    }
+
+    ZeroMemory(multiString, 
+                numberOfBytes);
+
+    // Convert the string
+    //
+    numberOfBytes = WideCharToMultiByte(CP_ACP,
+                                        0,
+                                        WideString,
+                                        -1,
+                                        multiString,
+                                        numberOfBytes,
+                                        NULL,
+                                        NULL);
+    if (0 == numberOfBytes)
+    {
+        free(multiString);
+        multiString = NULL;
+        goto Exit;
+    }
+
+Exit:
+
+    return multiString;
+}
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Descriptor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -363,6 +426,91 @@ Return Value:
                                      NumberOfStringsInStringList,
                                      LookFor,
                                      String_FindInListLeftLookForMatchCharCallback);
+}
+
+NTSTATUS
+DMF_String_WideStringCopyAsAnsi(
+    _Out_writes_(BufferSize) CHAR* AnsiString,
+    _In_z_ WCHAR* WideString,
+    _In_ ULONG BufferSize
+    )
+/*++
+
+Routine Description:
+
+    Copy a Wide String as an Ansi String.
+
+Arguments:
+
+    AnsiString - Target Ansi String.
+    WideString - Source Wide String.
+    BufferSize - Total size of output buffer.
+
+Return Value:
+
+    None
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(BufferSize);
+
+    FuncEntry(DMF_TRACE);
+
+    ASSERT(AnsiString != NULL);
+    ASSERT(WideString != NULL);
+
+    *AnsiString = '\0';
+
+#if !defined(DMF_USER_MODE)
+    ANSI_STRING ansiString;
+    UNICODE_STRING unicodeString;
+
+    RtlInitAnsiString(&ansiString,
+                      AnsiString);
+    ansiString.MaximumLength = (USHORT)BufferSize;
+
+    RtlInitUnicodeString(&unicodeString,
+                         WideString);
+    ASSERT(unicodeString.Length <= BufferSize);
+
+    // Since this funtion does not allocate memory it will always succeed.
+    //
+    ntStatus = RtlUnicodeStringToAnsiString(&ansiString,
+                                            &unicodeString,
+                                            FALSE);
+    ASSERT(NT_SUCCESS(ntStatus));
+#else
+    char* string;
+
+    string = String_WideStringToMultiString(WideString);
+    if (NULL == string)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "String_WideStringToMultiString");
+        goto Exit;
+    }
+
+    strcpy_s(AnsiString, 
+             BufferSize,
+             string);
+    free(string);
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+    ;
+
+#endif
+
+    // AnsiString has the converted string.
+    //
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 
 // eof: Dmf_String.c

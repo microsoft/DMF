@@ -519,7 +519,6 @@ Return Value:
 
     DmfModuleDescriptor_SampleInterfaceTransport1.CallbacksDmf = &DmfCallbacksDmf_SampleInterfaceTransport1;
     DmfModuleDescriptor_SampleInterfaceTransport1.CallbacksWdf = &DmfCallbacksWdf_SampleInterfaceTransport1;
-    DmfModuleDescriptor_SampleInterfaceTransport1.ModuleConfigSize = sizeof(DMF_CONFIG_SampleInterfaceTransport1);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

@@ -452,7 +452,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_AcpiNotification.CallbacksDmf = &DmfCallbacksDmf_AcpiNotification;
-    DmfModuleDescriptor_AcpiNotification.ModuleConfigSize = sizeof(DMF_CONFIG_AcpiNotification);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

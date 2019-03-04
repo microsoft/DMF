@@ -819,7 +819,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_ToasterBus.CallbacksDmf = &DmfCallbacksDmf_ToasterBus;
-    DmfModuleDescriptor_ToasterBus.ModuleConfigSize = sizeof(DMF_CONFIG_ToasterBus);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

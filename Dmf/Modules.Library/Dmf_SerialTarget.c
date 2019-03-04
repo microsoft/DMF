@@ -995,7 +995,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_SerialTarget.CallbacksDmf = &DmfCallbacksDmf_SerialTarget;
-    DmfModuleDescriptor_SerialTarget.ModuleConfigSize = sizeof(DMF_CONFIG_SerialTarget);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

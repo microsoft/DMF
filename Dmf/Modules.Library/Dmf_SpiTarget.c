@@ -797,8 +797,6 @@ Return Value:
 
     DmfModuleDescriptor_SpiTarget.CallbacksDmf = &DmfCallbacksDmf_SpiTarget;
 
-    DmfModuleDescriptor_SpiTarget.ModuleConfigSize = sizeof(DMF_CONFIG_SpiTarget);
-
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,

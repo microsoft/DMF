@@ -2959,6 +2959,9 @@ Return Value:
         // If POOL_NX_OPTIN_AUTO is defined, it means that NonPagedPoolNx = NonPagedPool.
         // So, don't include this case as it is a duplicate. This is the case for ARM and ARM64.
         //
+        // NOTE: The condition has the OR so that the check is compatible with EWDK that does
+        //       not support POOL_NX_OPTIN_AUTO.
+        //
         case NonPagedPoolNx:
         case NonPagedPoolNxCacheAligned:
 #endif

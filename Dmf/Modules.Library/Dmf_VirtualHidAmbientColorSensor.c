@@ -736,7 +736,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_VirtualHidAmbientColorSensor.CallbacksDmf = &DmfCallbacksDmf_VirtualHidAmbientColorSensor;
-    DmfModuleDescriptor_VirtualHidAmbientColorSensor.ModuleConfigSize = sizeof(DMF_CONFIG_VirtualHidAmbientColorSensor);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

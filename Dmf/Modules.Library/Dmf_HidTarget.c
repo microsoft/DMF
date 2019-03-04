@@ -2548,7 +2548,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
     DmfModuleDescriptor_Hid.CallbacksDmf = &DmfCallbacksDmf_HidTarget;
-    DmfModuleDescriptor_Hid.ModuleConfigSize = sizeof(DMF_CONFIG_HidTarget);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

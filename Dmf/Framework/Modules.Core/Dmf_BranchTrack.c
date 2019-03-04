@@ -1548,7 +1548,6 @@ Return Value:
 
     DmfModuleDescriptor_BranchTrack.CallbacksDmf = &DmfCallbacksDmf_BranchTrack;
     DmfModuleDescriptor_BranchTrack.CallbacksWdf = &DmfCallbacksWdf_BranchTrack;
-    DmfModuleDescriptor_BranchTrack.ModuleConfigSize = sizeof(DMF_CONFIG_BranchTrack);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

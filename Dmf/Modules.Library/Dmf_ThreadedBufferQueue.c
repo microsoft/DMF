@@ -446,7 +446,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_ThreadedBufferQueue.CallbacksDmf = &DmfCallbacksDmf_ThreadedBufferQueue;
-    DmfModuleDescriptor_ThreadedBufferQueue.ModuleConfigSize = sizeof(DMF_CONFIG_ThreadedBufferQueue);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

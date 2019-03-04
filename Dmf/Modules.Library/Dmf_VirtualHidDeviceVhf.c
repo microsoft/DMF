@@ -329,7 +329,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_VirtualHidDeviceVhf.CallbacksDmf = &DmfCallbacksDmf_VirtualHidDeviceVhf;
-    DmfModuleDescriptor_VirtualHidDeviceVhf.ModuleConfigSize = sizeof(DMF_CONFIG_VirtualHidDeviceVhf);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

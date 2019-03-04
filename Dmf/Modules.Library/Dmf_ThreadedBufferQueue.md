@@ -346,7 +346,7 @@ NtStatus | Status indicating result of work.
 
 #### Module Remarks
 
-* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed.
+* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
 * This Module is useful in cases where multiple threads receive requests to perform work but the work must be done in a synchronous manner (when writing to hardware).
 * The Client just needs to supply a callback that does Client specific work.
 * This Module does the work of removing work from the Consumer list and replacing the work buffer back into the Producer list.

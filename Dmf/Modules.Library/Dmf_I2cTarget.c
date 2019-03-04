@@ -910,8 +910,6 @@ Return Value:
 
     DmfModuleDescriptor_I2cTarget.CallbacksDmf = &DmfCallbacksDmf_I2cTarget;
 
-    DmfModuleDescriptor_I2cTarget.ModuleConfigSize = sizeof(DMF_CONFIG_I2cTarget);
-
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,

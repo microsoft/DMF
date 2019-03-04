@@ -626,7 +626,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_NotifyUserWithRequest.CallbacksDmf = &DmfCallbacksDmf_NotifyUserWithRequest;
-    DmfModuleDescriptor_NotifyUserWithRequest.ModuleConfigSize = sizeof(DMF_CONFIG_NotifyUserWithRequest);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

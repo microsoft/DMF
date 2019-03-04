@@ -383,7 +383,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_QueuedWorkItem.CallbacksDmf = &DmfCallbacksDmf_QueuedWorkItem;
-    DmfModuleDescriptor_QueuedWorkItem.ModuleConfigSize = sizeof(DMF_CONFIG_QueuedWorkItem);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
