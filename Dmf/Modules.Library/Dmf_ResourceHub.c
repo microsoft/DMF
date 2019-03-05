@@ -1321,7 +1321,6 @@ Return Value:
 
     DmfModuleDescriptor_ResourceHub.CallbacksDmf = &DmfCallbacksDmf_ResourceHub;
     DmfModuleDescriptor_ResourceHub.CallbacksWdf = &DmfCallbacksWdf_ResourceHub;
-    DmfModuleDescriptor_ResourceHub.ModuleConfigSize = sizeof(DMF_CONFIG_ResourceHub);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

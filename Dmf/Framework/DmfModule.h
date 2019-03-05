@@ -426,9 +426,15 @@ DMF_##ModuleName##_LiveKernelDumpInitialize(_In_ DMFMODULE DmfModule)           
 }                                                                                               \
                                                                                                 \
 
+// When a Module has no Config, declare a dummy Config that is not used by Module or Clients,
+// but makes it possible to easily set the size of the Config to a valid value.
+//
 #define DMF_MODULE_DECLARE_NO_CONFIG(ModuleName)                                                \
+typedef struct                                                                                  \
+{                                                                                               \
+    VOID* UnusedElement;                                                                        \
+} DMF_CONFIG_##ModuleName##;                                                                    \
                                                                                                 \
-
 
 // These are DMF specific Module callbacks.
 //
@@ -631,46 +637,45 @@ typedef struct
     GUID RequiredTransportInterfaceGuid;
 } DMF_MODULE_DESCRIPTOR;
 
-#define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)      \
-                                                                                       \
-RtlZeroMemory(&Descriptor,                                                             \
-              sizeof(DMF_MODULE_DESCRIPTOR));                                          \
-                                                                                       \
-Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);            \
-Descriptor.ModuleName                      = ""#Name;                                  \
-Descriptor.ModuleOptions                   = Module_Options;                           \
-Descriptor.OpenOption                      = Open_Option;                              \
-Descriptor.ModuleConfigSize                = 0;                                        \
-Descriptor.ModuleBranchTrackInitialize     = NULL;                                     \
-Descriptor.NumberOfAuxiliaryLocks          = 0;                                        \
-Descriptor.CallbacksDmf                    = NULL;                                     \
-Descriptor.CallbacksWdf                    = NULL;                                     \
-Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;    \
-Descriptor.ModuleContextAttributes         = WDF_NO_OBJECT_ATTRIBUTES;                 \
-                                                                                       \
+#define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)           \
+                                                                                            \
+RtlZeroMemory(&Descriptor,                                                                  \
+              sizeof(DMF_MODULE_DESCRIPTOR));                                               \
+                                                                                            \
+Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);                 \
+Descriptor.ModuleName                      = ""#Name;                                       \
+Descriptor.ModuleOptions                   = Module_Options;                                \
+Descriptor.OpenOption                      = Open_Option;                                   \
+Descriptor.ModuleConfigSize                = sizeof(DMF_CONFIG_##Name##);                   \
+Descriptor.ModuleBranchTrackInitialize     = NULL;                                          \
+Descriptor.NumberOfAuxiliaryLocks          = 0;                                             \
+Descriptor.CallbacksDmf                    = NULL;                                          \
+Descriptor.CallbacksWdf                    = NULL;                                          \
+Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;         \
+Descriptor.ModuleContextAttributes         = WDF_NO_OBJECT_ATTRIBUTES;                      \
+                                                                                            \
 
-#define DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(Descriptor, Name, ModuleContext, Module_Options, Open_Option)   \
-                                                                                                                \
-WDF_OBJECT_ATTRIBUTES moduleContextAttributes;                                                                  \
-RtlZeroMemory(&Descriptor,                                                                                      \
-              sizeof(DMF_MODULE_DESCRIPTOR));                                                                   \
-WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&moduleContextAttributes,                                               \
-                                        ModuleContext);                                                         \
-                                                                                                                \
-Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);                                     \
-Descriptor.ModuleName                      = ""#Name;                                                           \
-Descriptor.ModuleOptions                   = Module_Options;                                                    \
-Descriptor.OpenOption                      = Open_Option;                                                       \
-Descriptor.ModuleConfigSize                = 0;                                                                 \
-Descriptor.ModuleBranchTrackInitialize     = NULL;                                                              \
-Descriptor.NumberOfAuxiliaryLocks          = 0;                                                                 \
-Descriptor.CallbacksDmf                    = NULL;                                                              \
-Descriptor.CallbacksWdf                    = NULL;                                                              \
-Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;                             \
-Descriptor.ModuleContextAttributes         = &moduleContextAttributes;                                          \
-                                                                                                                \
+#define DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(Descriptor, Name, ModuleContext, Module_Options, Open_Option)         \
+                                                                                                                      \
+WDF_OBJECT_ATTRIBUTES moduleContextAttributes;                                                                        \
+RtlZeroMemory(&Descriptor,                                                                                            \
+              sizeof(DMF_MODULE_DESCRIPTOR));                                                                         \
+WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&moduleContextAttributes,                                                     \
+                                        ModuleContext);                                                               \
+                                                                                                                      \
+Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);                                           \
+Descriptor.ModuleName                      = ""#Name;                                                                 \
+Descriptor.ModuleOptions                   = Module_Options;                                                          \
+Descriptor.OpenOption                      = Open_Option;                                                             \
+Descriptor.ModuleConfigSize                = sizeof(DMF_CONFIG_##Name##);                                             \
+Descriptor.ModuleBranchTrackInitialize     = NULL;                                                                    \
+Descriptor.NumberOfAuxiliaryLocks          = 0;                                                                       \
+Descriptor.CallbacksDmf                    = NULL;                                                                    \
+Descriptor.CallbacksWdf                    = NULL;                                                                    \
+Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;                                   \
+Descriptor.ModuleContextAttributes         = &moduleContextAttributes;                                                \
+                                                                                                                      \
 
-//
 // Method to initialize Protocol descriptor.
 //
 VOID

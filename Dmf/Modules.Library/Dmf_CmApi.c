@@ -399,7 +399,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_CmApi.CallbacksDmf = &DmfCallbacksDmf_CmApi;
-    DmfModuleDescriptor_CmApi.ModuleConfigSize = sizeof(DMF_CONFIG_CmApi);
 
     // ObjectAttributes must be initialized and
     // ParentObject attribute must be set to either WDFDEVICE or DMFMODULE.

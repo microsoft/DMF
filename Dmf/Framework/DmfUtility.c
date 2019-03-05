@@ -1272,7 +1272,7 @@ Arguments:
     Text - Additional data to add to be included in the error log.
     NumberOfFormatStrings - Number of format strings.
     FormatStrings - An array of format specifiers for each argument passed below.
-    NumberOfInsertionStrings - Number of insertion strings.
+    NumberOfInsertionStrings - The number of insertion string args that follow.
     ... - Variable list of insertion strings.
 
 Return Value:

@@ -261,7 +261,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_AlertableSleep.CallbacksDmf = &DmfCallbacksDmf_AlertableSleep;
-    DmfModuleDescriptor_AlertableSleep.ModuleConfigSize = sizeof(DMF_CONFIG_AlertableSleep);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

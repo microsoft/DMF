@@ -203,7 +203,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_SymbolicLinkTarget.CallbacksDmf = &DmfCallbacksDmf_SymbolicLinkTarget;
-    DmfModuleDescriptor_SymbolicLinkTarget.ModuleConfigSize = sizeof(DMF_CONFIG_SymbolicLinkTarget);
 
     // ObjectAttributes must be initialized and
     // ParentObject attribute must be set to either WDFDEVICE or DMFMODULE.

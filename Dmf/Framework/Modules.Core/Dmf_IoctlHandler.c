@@ -1005,7 +1005,6 @@ Return Value:
 
     DmfModuleDescriptor_IoctlHandler.CallbacksDmf = &DmfCallbacksDmf_IoctlHandler;
     DmfModuleDescriptor_IoctlHandler.CallbacksWdf = &DmfCallbacksWdf_IoctlHandler;
-    DmfModuleDescriptor_IoctlHandler.ModuleConfigSize = sizeof(DMF_CONFIG_IoctlHandler);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

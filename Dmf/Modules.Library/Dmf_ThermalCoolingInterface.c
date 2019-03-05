@@ -320,7 +320,6 @@ Return Value:
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_ThermalCoolingInterface.CallbacksDmf = &DmfCallbacksDmf_ThermalCoolingInterface;
-    DmfModuleDescriptor_ThermalCoolingInterface.ModuleConfigSize = sizeof(DMF_CONFIG_ThermalCoolingInterface);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

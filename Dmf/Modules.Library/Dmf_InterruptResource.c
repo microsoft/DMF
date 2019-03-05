@@ -767,8 +767,6 @@ Return Value:
 
     DmfModuleDescriptor_InterruptResource.CallbacksDmf = &DmfCallbacksDmf_InterruptResource;
 
-    DmfModuleDescriptor_InterruptResource.ModuleConfigSize = sizeof(DMF_CONFIG_InterruptResource);
-
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,

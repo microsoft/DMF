@@ -36,6 +36,15 @@ DEFINE_GUID(GUID_DEVINTERFACE_BranchTrack,
 //
 #define BRANCHTRACK_DEFAULT_MAXIMUM_BRANCHES                200
 
+#define DMF_BRANCHTRACK_STRING_Exactly              "exactly"
+#define DMF_BRANCHTRACK_STRING_MoreThan             "more than"
+#define DMF_BRANCHTRACK_STRING_LessThan             "less than"
+#define DMF_BRANCHTRACK_STRING_Never                "never"
+#define DMF_BRANCHTRACK_STRING_AtLeast              "at least"
+#define DMF_BRANCHTRACK_STRING_Optionally           "optionally"
+#define DMF_BRANCHTRACK_STRING_FaultInjection       "FaultInjection"
+#define DMF_BRANCHTRACK_STRING_NoFaultInjection     "NoFaultInjection"
+
 enum BRANCHTRACK_REQUEST_TYPE
 {
     BRANCHTRACK_REQUEST_TYPE_INVALID = 0,

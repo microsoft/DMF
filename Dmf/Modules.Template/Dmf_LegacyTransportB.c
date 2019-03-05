@@ -52,6 +52,7 @@ DMF_MODULE_DECLARE_CONTEXT(LegacyTransportB)
 
 // This Module has no Config.
 //
+DMF_MODULE_DECLARE_NO_CONFIG(LegacyTransportB)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code

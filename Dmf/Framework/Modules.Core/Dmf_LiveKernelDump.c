@@ -1032,7 +1032,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_LiveKernelDump.CallbacksDmf = &DmfCallbacksDmf_LiveKernelDump;
-    DmfModuleDescriptor_LiveKernelDump.ModuleConfigSize = sizeof(DMF_CONFIG_LiveKernelDump);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

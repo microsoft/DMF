@@ -155,7 +155,7 @@ ContextBufferSize | The size in bytes of ContextBuffer.
 
 #### Module Remarks
 
-* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed.
+* [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
 * In some cases, it is necessary to execute code in a different thread than the current thread. This Module serves this purpose.
 * The Client initializes this Module's DMF_BufferQueue lists with the maximum size of parameters buffer that will be passed to the enqueue function.
 * The Client initializes the number of buffers to equal the maximum number of allowed simultaneous calls.

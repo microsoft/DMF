@@ -2141,8 +2141,6 @@ Return Value:
         DmfModuleDescriptor_ContinuousRequestTarget.CallbacksWdf = &DmfCallbacksWdf_ContinuousRequestTarget;
     }
 
-    DmfModuleDescriptor_ContinuousRequestTarget.ModuleConfigSize = sizeof(DMF_CONFIG_ContinuousRequestTarget);
-
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,

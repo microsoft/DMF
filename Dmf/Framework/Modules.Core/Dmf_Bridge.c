@@ -2743,7 +2743,6 @@ Return Value:
 
     DmfModuleDescriptor_Bridge.CallbacksDmf = &DmfCallbacksDmf_Bridge;
     DmfModuleDescriptor_Bridge.CallbacksWdf = &DmfCallbacksWdf_Bridge;
-    DmfModuleDescriptor_Bridge.ModuleConfigSize = sizeof(DMF_CONFIG_Bridge);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

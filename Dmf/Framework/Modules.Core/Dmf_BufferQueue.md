@@ -315,10 +315,10 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 #### Module Remarks
 
-* Clients that need any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. This tells DMF to create PASSIVE_LEVEL locks so that paged pool can be accessed.
-* The Module implements internal sychrnoization allowing the Client to interact with the module in multi-threaded envorinment without worrying about synchronization.
+* Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
+* The Module implements internal synchronization allowing the Client to interact with the module in multi-threaded environment without worrying about synchronization.
 * Any buffers that are part of the internal producer or consumer list are said to be owned by the DMF_BufferQueue Module. Any buffers that the Client retrieved from the DMF_BufferQueue and have not yet returned those to the DMF_BufferQueue module are said to be owned by the Client. When the DMF_BufferQueue Module instance is deleted, all the corresponding buffers that are in the producer or consumer list are automatically deleted. Internal reference counting prevents the module from getting actually deleted until all be Client owned buffers are pushed back to the DMF_BufferQueue. 
-* *It is important to note* that when the DMF_BufferQueue Module instance is deleted, any buffers in the consumer list are siliently deleted. Client must account for this since there may have been pending to-be-done work in the consumer list. 
+* *It is important to note* that when the DMF_BufferQueue Module instance is deleted, any buffers in the consumer list are silently deleted. Client must account for this since there may have been pending to-be-done work in the consumer list. 
 
 
 -----------------------------------------------------------------------------------------------------------------------------------

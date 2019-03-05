@@ -871,7 +871,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_GpioTarget.CallbacksDmf = &DmfCallbacksDmf_GpioTarget;
-    DmfModuleDescriptor_GpioTarget.ModuleConfigSize = sizeof(DMF_CONFIG_GpioTarget);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

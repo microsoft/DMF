@@ -126,6 +126,7 @@ typedef struct
 #define OffsetToPointer(Base, Offset) ((UCHAR*)((UCHAR*)(Base) + (Offset)))
 
 #define SMBIOS_TABLE_01                     0x01
+#define SMBIOS_TABLE_127                    0x7f
 
 CHAR*
 SmbiosViaWmi_StringAssign(
@@ -317,6 +318,15 @@ Return Value:
                                                                                 endPointer);
                 TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SmbiosTable01.Family=[%s]", moduleContext->SmbiosTable01->Family);
                 break;
+            }
+            // This case handle the scenario where the SMBIOS buffer is larger than the
+            // data in the buffer. The end of the buffer, in this case, is indicated by "table 127".
+            //
+            case SMBIOS_TABLE_127:
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Found End-Of-Table");
+                ntStatus = STATUS_SUCCESS;
+                goto Exit;
             }
             default:
             {

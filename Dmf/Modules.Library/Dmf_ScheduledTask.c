@@ -947,7 +947,6 @@ Return Value:
 
     DmfModuleDescriptor_ScheduledTask.CallbacksDmf = &DmfCallbacksDmf_ScheduledTask;
     DmfModuleDescriptor_ScheduledTask.CallbacksWdf = &DmfCallbacksWdf_ScheduledTask;
-    DmfModuleDescriptor_ScheduledTask.ModuleConfigSize = sizeof(DMF_CONFIG_ScheduledTask);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

@@ -767,7 +767,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     DmfModuleDescriptor_VirtualHidKeyboard.CallbacksDmf = &DmfCallbacksDmf_VirtualHidKeyboard;
-    DmfModuleDescriptor_VirtualHidKeyboard.ModuleConfigSize = sizeof(DMF_CONFIG_VirtualHidKeyboard);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

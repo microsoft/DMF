@@ -885,8 +885,6 @@ Return Value:
 
     DmfModuleDescriptor_HidPortableDeviceButtons.CallbacksDmf = &DmfCallbacksDmf_HidPortableDeviceButtons;
     DmfModuleDescriptor_HidPortableDeviceButtons.CallbacksWdf = &DmfCallbacksWdf_HidPortableDeviceButtons;
-    DmfModuleDescriptor_HidPortableDeviceButtons.ModuleConfigSize = sizeof(DMF_CONFIG_HidPortableDeviceButtons);
-    DmfModuleDescriptor_HidPortableDeviceButtons.ModuleBranchTrackInitialize = DMF_HidPortableDeviceButtons_BranchTrackInitialize;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

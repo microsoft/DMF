@@ -2643,7 +2643,6 @@ Return Value:
 
     DmfModuleDescriptor_ResourceHub.CallbacksDmf = &DmfCallbacksDmf_ResourceHub;
     DmfModuleDescriptor_ResourceHub.CallbacksWdf = &DmfCallbacksWdf_ResourceHub;
-    DmfModuleDescriptor_ResourceHub.ModuleConfigSize = sizeof(DMF_CONFIG_ResourceHub);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
@@ -2850,7 +2849,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
     DmfModuleDescriptor_ResourceHub.CallbacksDmf = &DmfCallbacksDmf_ResourceHub;
     DmfModuleDescriptor_ResourceHub.CallbacksWdf = &DmfCallbacksWdf_ResourceHub;
-    DmfModuleDescriptor_ResourceHub.ModuleConfigSize = sizeof(DMF_CONFIG_ResourceHub);
 
     // Step 5: Tell DMF to create the Module.
     //
@@ -7169,7 +7167,7 @@ a variable number of parameters.
   **PCWSTR Text**                  | Additional data to add to be included in the error log.
   **INT NumberOfFormatStrings**    | Number of format strings.
   **PWCHAR\* FormatStrings**        | An array of format specifiers for each argument passed below.
-  **INT NumberOfInsertionStrings** | Number of insertion strings.
+  **INT NumberOfInsertionStrings** | The number of insertion string args that follow.
   **...**                          | Variable list of insertion strings.
 
 #### Returns
@@ -7180,6 +7178,12 @@ None.
 
 -   This call is designed to be used from the Client Driver's DeviceAdd
     function (before DMF is initialized).
+
+-   The FormatStrings may contain 'format specifier' values (e.g. %d, %x).
+    In that case, NumberOfInsertionStrings should equal the total number
+    of format specifiers and the variable list should contain an equal 
+    number of values that will be inserted into those FormatStrings in
+    place of the format specifiers.
 
 -   This function performs non-trivial parsing and manipulation of the
     given parameters to output a proper entry in the Event Log.

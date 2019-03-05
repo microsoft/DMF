@@ -834,7 +834,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_RingBuffer.CallbacksDmf = &DmfCallbacksDmf_RingBuffer;
-    DmfModuleDescriptor_RingBuffer.ModuleConfigSize = sizeof(DMF_CONFIG_RingBuffer);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

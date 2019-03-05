@@ -569,9 +569,9 @@ Return Value:
     // Create the area for Module Config, if any.
     //
     ASSERT(NULL == dmfObject->ModuleConfig);
-    ASSERT(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
-    if (ModuleDescriptor->ModuleConfigSize > 0)
+    if (DmfModuleAttributes->SizeOfModuleSpecificConfig != NULL)
     {
+        ASSERT(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
         WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
         attributes.ParentObject = memoryDmfObject;
         ntStatus = WdfMemoryCreate(&attributes,
@@ -600,11 +600,10 @@ Return Value:
     }
     else
     {
-        // If Module has not defined an Module Config, an Module Config must not be passed in.
-        // Most likely, Module author forgot to set the size of the Module Config in the 
-        // Module Entry Point Table.
+        // NOTE: Because only proper Config initialization macros are exposed, there is no way for the 
+        //       Client to improperly initialize the Config (as it was in the past). It means, that if 
+        //       this path executes, the Module Author has not defined a Config.
         //
-        ASSERT(DmfModuleAttributes->ModuleConfigPointer == NULL);
     }
 
     // Create WDFCOLLECTION to store the Interface Bindings of this Module.

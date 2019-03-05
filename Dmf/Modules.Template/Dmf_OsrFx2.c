@@ -2396,7 +2396,6 @@ Returns:
 
     DmfModuleDescriptor_OsrFx2.CallbacksDmf = &DmfCallbacksDmf_OsrFx2;
     DmfModuleDescriptor_OsrFx2.CallbacksWdf = &DmfCallbacksWdf_OsrFx2;
-    DmfModuleDescriptor_OsrFx2.ModuleConfigSize = sizeof(DMF_CONFIG_OsrFx2);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

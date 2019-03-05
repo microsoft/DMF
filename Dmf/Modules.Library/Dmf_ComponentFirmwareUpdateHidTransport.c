@@ -1293,7 +1293,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
 
     DmfModuleDescriptor_ComponentFirmwareUpdateHidTransport.CallbacksDmf = &DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport;
-    DmfModuleDescriptor_ComponentFirmwareUpdateHidTransport.ModuleConfigSize = sizeof(DMF_CONFIG_ComponentFirmwareUpdateHidTransport);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

@@ -717,7 +717,6 @@ Return Value:
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_Pdo.CallbacksDmf = &DmfCallbacksDmf_Pdo;
-    DmfModuleDescriptor_Pdo.ModuleConfigSize = sizeof(DMF_CONFIG_Pdo);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

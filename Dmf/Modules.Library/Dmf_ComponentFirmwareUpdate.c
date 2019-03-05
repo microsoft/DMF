@@ -5358,7 +5358,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
 
     DmfModuleDescriptor_ComponentFirmwareUpdate.CallbacksDmf = &DmfCallbacksDmf_ComponentFirmwareUpdate;
-    DmfModuleDescriptor_ComponentFirmwareUpdate.ModuleConfigSize = sizeof(DMF_CONFIG_ComponentFirmwareUpdate);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

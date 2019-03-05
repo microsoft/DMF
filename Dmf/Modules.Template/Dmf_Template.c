@@ -1062,7 +1062,6 @@ Return Value:
 
     DmfModuleDescriptor_Template.CallbacksDmf = &DmfCallbacksDmf_Template;
     DmfModuleDescriptor_Template.CallbacksWdf = &DmfCallbacksWdf_Template;
-    DmfModuleDescriptor_Template.ModuleConfigSize = sizeof(DMF_CONFIG_Template);
     // NOTE: This is only used for Transport Modules.
     //
     DmfModuleDescriptor_Template.ModuleTransportMethod = DMF_Template_TransportMethod;

@@ -3628,7 +3628,6 @@ Return Value:
 
     DmfModuleDescriptor_CrashDump.CallbacksDmf = &DmfCallbacksDmf_CrashDump;
     DmfModuleDescriptor_CrashDump.CallbacksWdf = &DmfCallbacksWdf_CrashDump;
-    DmfModuleDescriptor_CrashDump.ModuleConfigSize = sizeof(DMF_CONFIG_CrashDump);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

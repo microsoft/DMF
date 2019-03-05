@@ -661,7 +661,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_PingPongBuffer.CallbacksDmf = &DmfCallbacksDmf_PingPongBuffer;
-    DmfModuleDescriptor_PingPongBuffer.ModuleConfigSize = sizeof(DMF_CONFIG_PingPongBuffer);
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
