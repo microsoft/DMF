@@ -873,13 +873,13 @@ typedef struct _DMF_INTERFACE_DESCRIPTOR
     // Type of this Interface.
     //
     InterfaceType InterfaceType;
-    // Wdf Object attributes describing the Declaration Data (Calls supported by this Interface).
+    // WDF Object attributes describing the Declaration Data (Calls supported by this Interface).
     //
     WDF_OBJECT_ATTRIBUTES DeclarationDataWdfAttributes;
     // If set, it means module has set ModuleInterfaceContextWdfAttributes
     //
     BOOLEAN ModuleInterfaceContextSet;
-    // Wdf Object attributes describing the Module's Interface context.
+    // WDF Object attributes describing the Module's Interface context.
     // A context will be allocated for each DMFINTERFACE instance. 
     //
     WDF_OBJECT_ATTRIBUTES ModuleInterfaceContextWdfAttributes;

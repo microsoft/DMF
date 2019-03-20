@@ -9,8 +9,12 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
+    DMF Implementation:
+
     This Module contains DMF Interface implementation
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -158,7 +162,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    None
 
 --*/
 {
@@ -198,7 +202,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    None
 
 --*/
 {
@@ -304,7 +308,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    None
 
 --*/
 {
@@ -333,22 +337,23 @@ DMF_ModuleInterfaceFind(
 Routine Description:
 
     Tries to find an Interface corresponding to a Module in another Module's InterfaceBindings collection.
-
+    
 Arguments:
 
     ModuleToFind - The Module to find.
     ModuleWithBindings - The Module with the InterfaceBindings collection.
-    DmfInterfaceObject - A pointer that receives the address of the DMF_INTERFACE_OBJECT corresponding to the DMFINTERFACE found.
+    DmfInterfaceObject - A pointer that receives the address of the DMF_INTERFACE_OBJECT corresponding to
+                         the DMFINTERFACE found.
 
 Return Value:
 
-    TRUE: If an Interface was found.
-    FALSE: Otherwise.
+    TRUE - If an Interface was found.
+    FALSE - Otherwise.
 
-Note:
-    If two Modules are connected through multiple Interfaces, this function will return the first Interface containing the Modules provided.
-    If two Modules can be connected through multiple Interfaces, this function should also accept an Interface Name parameter to identify the Interface being searched
-    and return the appropriate Interface's memory buffer.
+    NOTE: If two Modules are connected through multiple Interfaces, this function will return the first Interface
+          containing the Modules provided. If two Modules can be connected through multiple Interfaces, this 
+          function should also accept an Interface Name parameter to identify the Interface being searched
+          and return the appropriate Interface's memory buffer.
 
 --*/
 {
@@ -417,13 +422,13 @@ Arguments:
 
 Return Value:
 
-    TRUE: If an Interface was found.
-    FALSE: Otherwise.
+    TRUE - If an Interface was found.
+    FALSE - Otherwise.
 
-Note:
-    If two Modules are connected through multiple Interfaces, this function will return the first Interface containing the Modules provided.
-    If two Modules can be connected through multiple Interfaces, this function should also accept an Interface Name parameter to identify the Interface being searched
-    and return the appropriate Interface's memory buffer.
+    NOTE: If two Modules are connected through multiple Interfaces, this function will return the first
+          Interface containing the Modules provided. If two Modules can be connected through multiple 
+          Interfaces, this function should also accept an Interface Name parameter to identify the Interface
+          being searched and return the appropriate Interface's memory buffer.
 
 --*/
 {
@@ -543,7 +548,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    None
 
 --*/
 {
@@ -585,7 +590,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    None
 
 --*/
 {
@@ -703,7 +708,11 @@ DMF_ModuleInterfaceBind(
 Routine Description:
 
     Creates an Interface between the given Protocol and Transport Modules.
-    This Interface is based on Interface specific information provided by the ProtocolDescriptor and TransportDescriptor.
+    This Interface is based on Interface specific information provided by the ProtocolDescriptor
+    and TransportDescriptor.
+
+    NOTE: Synchronization must be considered if DMF_ModuleInterfaceBind, DMF_ModuleInterfaceUnbind and
+          DMF_ModuleInterfacesUnbind calls occur simultaneously.
 
 Arguments:
 
@@ -715,10 +724,6 @@ Arguments:
 Return Value:
 
     NTSTATUS indicating if the Interface creation was successful.
-
-Note:
-
-    Synchronization must be considered if DMF_ModuleInterfaceBind, DMF_ModuleInterfaceUnbind and DMF_ModuleInterfacesUnbind calls occur simultaneously.
 
 --*/
 {
@@ -903,7 +908,11 @@ DMF_ModuleInterfaceUnbind(
 Routine Description:
 
     Destroys the Interface between the given Protocol and Transport Modules.
-    This Interface is based on Interface specific information provided by the ProtocolDescriptor and TransportDescriptor.
+    This Interface is based on Interface specific information provided by the ProtocolDescriptor
+    and TransportDescriptor.
+
+    NOTE: Synchronization must be considered if DMF_ModuleInterfaceBind, DMF_ModuleInterfaceUnbind and
+          DMF_ModuleInterfacesUnbind calls occur simultaneously.
 
 Arguments:
 
@@ -914,11 +923,7 @@ Arguments:
 
 Return Value:
 
-    None.
-
-Note:
-
-    Synchronization must be considered if DMF_ModuleInterfaceBind, DMF_ModuleInterfaceUnbind and DMF_ModuleInterfacesUnbind calls occur simultaneously.
+    None
 
 --*/
 
@@ -1002,17 +1007,16 @@ Routine Description:
 
     Unbinds all the Interfaces associated with a given DMF Module.
 
+    NOTE: Synchronization must be considered if DMF_ModuleInterfaceBind, DMF_ModuleInterfaceUnbind and
+          DMF_ModuleInterfacesUnbind calls occur simultaneously.
+
 Arguments:
 
     DmfModule - The given DMF Module.
 
 Return Value:
 
-    None.
-
-Note:
-
-    Synchronization must be considered if DMF_ModuleInterfaceBind, DMF_ModuleInterfaceUnbind and DMF_ModuleInterfacesUnbind calls occur simultaneously.
+    None
 
 --*/
 {

@@ -9,8 +9,12 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
-    This Module contains support for the Portable APIs.
+    DMF Implementation:
+    
+    This Module contains support for the Portable (between Kernel and User-mode) APIs.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -159,8 +163,8 @@ Arguments:
 
     EventPointer - Pointer to Event Object Storage.
     Alertable - Indicates if wait is alertable.
-    Timeout100nsPointer - Pointer to Timeout in 100-nano seconds unit (applicable for non-usermode).
-    TimeoutMs - Timeout value in milliseconds (applicable for usermode).
+    Timeout100nsPointer - Pointer to Timeout in 100-nano seconds unit (applicable for non-User-mode).
+    TimeoutMs - Timeout value in milliseconds (applicable for User-mode).
 
 Return Value:
 

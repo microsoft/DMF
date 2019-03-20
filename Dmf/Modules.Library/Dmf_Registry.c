@@ -518,10 +518,11 @@ Return Value:
                 }
                 else
                 {
-                    // Likely a poorly formatted registry path. It could be that the hive is misspelled or that
-                    // the path does not start with \Registry\Machine.
+                    // A poorly formatted registry path, or
+                    // a misspelled hive, or
+                    // the path does not start with \Registry\Machine, or
+                    // registry at the specified path is not ready yet.
                     //
-                    ASSERT(FALSE);
                     ntStatus = STATUS_OBJECT_NAME_NOT_FOUND;
                 }
             }
@@ -665,7 +666,6 @@ Return Value:
         ntStatus = Registry_RecursivePathCreate(fullPathName);
         if (! NT_SUCCESS(ntStatus))
         {
-            ASSERT(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to create RegistryPath=%S ntStatus=%!STATUS!", fullPathName, ntStatus);
             goto Exit;
         }
@@ -1933,7 +1933,7 @@ Return:
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Wdf Module Callbacks
+// WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 

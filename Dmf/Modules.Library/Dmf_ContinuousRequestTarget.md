@@ -223,16 +223,18 @@ ClientBuferContextOutput | The DMF_BufferPool buffer's Client specific context a
 CompletionStatus | The return NTSTATUS in the associated Request returned by the underlying WDFIOTARGET.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput
+##### EVT_DMF_ContinuousRequestTarget_SendCompletion
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
-EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput(
+EVT_DMF_ContinuousRequestTarget_SendCompletion(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* ClientRequestContext,
-    _In_reads_(OutputBufferSize) VOID* OutputBuffer,
-    _In_ size_t OutputBufferSize,
+    _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
+    _In_ size_t InputBufferBytesWritten,
+    _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesRead,
     _In_ NTSTATUS CompletionStatus
     );
 ````
@@ -248,8 +250,10 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 ClientRequestContext | A Client specific context. Usually it is a WDFREQUEST.
+InputBuffer | The input buffer that contains the data sent to the underlying WDFIOTARGET.
+InputBufferBytesWritten | Number of bytes written. For IOCTL this will be actual size of the Input Buffer. 
 OutputBuffer | The output buffer that contains the data returned by the underlying WDFIOTARGET.
-OutputBufferSize | The size of OutputBuffer.
+OutputBufferBytesRead | Number of bytes read.
 CompletionStatus | The return NTSTATUS in the associated Request returned by the underlying WDFIOTARGET.
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -355,7 +359,7 @@ DMF_ContinuousRequestTarget_Send(
   _In_ ContinuousRequestTarget_RequestType RequestType,
   _In_ ULONG RequestIoctl,
   _In_ ULONG RequestTimeoutMilliseconds,
-  _In_opt_ EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput* EvtContinuousRequestTargetSingleAsynchronousRequest,
+  _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext
   );
 ````

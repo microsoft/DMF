@@ -118,7 +118,7 @@ typedef struct
 {
     DMFMODULE DmfModule;
     ContinuousRequestTarget_RequestType SingleAsynchronousRequestType;
-    EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput* EvtContinuousRequestTargetSingleAsynchronousRequest;
+    EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest;
     VOID* SingleAsynchronousCallbackClientContext;
 } ContinuousRequestTarget_SingleAsynchronousRequestContext;
 
@@ -278,15 +278,15 @@ Return Value:
         {
             // Get the write buffer memory handle.
             //
-            *OutputBufferSize = CompletionParams->Parameters.Write.Length;
-            outputMemory = CompletionParams->Parameters.Write.Buffer;
+            *InputBufferSize = CompletionParams->Parameters.Write.Length;
+            inputMemory = CompletionParams->Parameters.Write.Buffer;
             // Get the write buffer.
             //
-            if (outputMemory != NULL)
+            if (inputMemory != NULL)
             {
-                *OutputBuffer = WdfMemoryGetBuffer(outputMemory,
-                                                   NULL);
-                ASSERT(*OutputBuffer != NULL);
+                *InputBuffer = WdfMemoryGetBuffer(inputMemory,
+                                                  NULL);
+                ASSERT(*InputBuffer != NULL);
             }
             break;
         }
@@ -392,6 +392,8 @@ Return Value:
     {
         (SingleAsynchronousRequestContext->EvtContinuousRequestTargetSingleAsynchronousRequest)(DmfModule,
                                                                                                 SingleAsynchronousRequestContext->SingleAsynchronousCallbackClientContext,
+                                                                                                inputBuffer,
+                                                                                                inputBufferSize,
                                                                                                 outputBuffer,
                                                                                                 outputBufferSize,
                                                                                                 ntStatus);
@@ -1149,7 +1151,7 @@ ContinuousRequestTarget_RequestCreateAndSend(
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
     _Out_opt_ size_t* BytesWritten,
-    _In_opt_ EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     )
 /*++
@@ -1575,7 +1577,7 @@ Return Value:
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Wdf Module Callbacks
+// WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
@@ -2291,7 +2293,7 @@ DMF_ContinuousRequestTarget_Send(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_opt_ EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     )
 /*++

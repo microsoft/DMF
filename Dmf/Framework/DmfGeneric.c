@@ -9,10 +9,14 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
+    DMF Implementation:
+
     This Module contains the default (generic) handlers for all DMF Module Callbacks.
     This allows DMF to perform validation, prevents the need for NULL pointer checking,
     and allows DMF to automatically support Module Callbacks as needed.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -41,7 +45,7 @@ Environment:
 //
 
 // Generic Callbacks. These handlers may be overridden by Client.
-// ----------------------------------------------------------------
+// --------------------------------------------------------------
 //
 
 #pragma code_seg("PAGE")
