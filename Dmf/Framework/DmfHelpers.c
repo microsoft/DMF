@@ -9,9 +9,13 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
+    DMF Implementation:
+
     This Module contains helper functions. Some are used by Clients and DMF, others are used
     only by the DMF.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -103,11 +107,11 @@ Return Value:
     ASSERT(dmfObject != NULL);
     ASSERT(dmfObject->ParentDevice != NULL);
 
-    // ParentDevice can be either Client driver device or the Control device 
-    // (in the case when the Client driver is a filter driver and DmfModule is added 
+    // ParentDevice can be either Client Driver device or the Control device 
+    // (in the case when the Client Driver is a filter driver and DmfModule is added 
     // to the Control device.)
-    // Since Client will need access to Client driver device,
-    // return the Client driver device stored in ParentDevice's dmf context.
+    // Since Client will need access to Client Driver device,
+    // return the Client Driver device stored in ParentDevice's dmf context.
     //
     dmfDeviceContext = DmfDeviceContextGet(dmfObject->ParentDevice);
 

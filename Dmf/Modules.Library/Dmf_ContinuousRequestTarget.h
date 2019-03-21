@@ -80,15 +80,17 @@ EVT_DMF_ContinuousRequestTarget_BufferOutput(_In_ DMFMODULE DmfModule,
 // Client Driver callback function to be called from single request completion routine.
 //
 typedef
-_Function_class_(EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput)
+_Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
-EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput(_In_ DMFMODULE DmfModule,
-                                                               _In_ VOID* ClientRequestContext,
-                                                               _In_reads_(OutputBufferSize) VOID* OutputBuffer,
-                                                               _In_ size_t OutputBufferSize,
-                                                               _In_ NTSTATUS CompletionStatus);
+EVT_DMF_ContinuousRequestTarget_SendCompletion(_In_ DMFMODULE DmfModule,
+                                               _In_ VOID* ClientRequestContext,
+                                               _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
+                                               _In_ size_t InputBufferBytesWritten,
+                                               _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+                                               _In_ size_t OutputBufferBytesRead,
+                                               _In_ NTSTATUS CompletionStatus);
 
 // These definitions indicate the mode of ContinuousRequestTarget.
 // Indicates how and when the Requests start and stop streaming.
@@ -210,7 +212,7 @@ DMF_ContinuousRequestTarget_Send(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_opt_ EVT_DMF_ContinuousRequestTarget_SingleAsynchronousBufferOutput* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     );
 

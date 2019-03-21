@@ -9,8 +9,12 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
-    This Module contains Client interfaces for Module Callbacks.
+    DMF Implementation:
+    Functions in this file dispatch callbacks from WDF to every instantiated Module and
+    its Child Modules. Also, several helper functions are included in this file.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -22,20 +26,6 @@ Environment:
 #include "DmfIncludeInternal.h"
 
 #include "DmfCall.tmh"
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Client Driver Calls
-//
-// A function that will "Invoke a callback" is a function that the Client Driver calls to
-// execute a predefined DMF Module Callback functions. Doing so, also means that the
-// target DMF Module's Child DMF Modules will also be automatically called (when
-// appropriate).
-//
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-//
 
 // DMF dispatches all callbacks it receives from WDF to each Module in the Module Collection
 // (Parent Module) as well as to each of its Child Modules. Depending on the callback, DMF 
@@ -73,7 +63,7 @@ Environment:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Module Callback Invoke Function Helpers
+// Module Callback Child Module Helper Functions
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -186,17 +176,17 @@ DMF_ChildDispatchSingleParameterNtStatus(
 
 Routine Description:
 
-    Given a DMF Module, this function calls the given Wdf callback for each child Module.
-    The given Wdf Callback returns NTSTATUS and takes WdfDevice associated with the given DMF Module.
+    Given a DMF Module, this function calls the given WDF callback for each child Module.
+    The given WDF Callback returns NTSTATUS and takes WdfDevice associated with the given DMF Module.
 
 Arguments:
 
     DmfModule - The given DMF Module.
-    ChildRecursiveFunction - The given Wdf callback.
+    ChildRecursiveFunction - The given WDF callback.
 
 Return Value:
 
-    The given Wdf callback's return value.
+    The given WDF callback's return value.
 
 --*/
 {
@@ -235,13 +225,13 @@ DMF_ChildDispatchSingleParameterVoid(
 
 Routine Description:
 
-    Given a DMF Module, this function calls the given Wdf callback for each child Module.
-    The given Wdf Callback returns VOID and takes WdfDevice associated with the given DMF Module.
+    Given a DMF Module, this function calls the given WDF callback for each child Module.
+    The given WDF Callback returns VOID and takes WdfDevice associated with the given DMF Module.
 
 Arguments:
 
     DmfModule - The given DMF Module.
-    ChildRecursiveFunction - The given Wdf callback.
+    ChildRecursiveFunction - The given WDF callback.
 
 Return Value:
 
@@ -267,10 +257,13 @@ Return Value:
     }
 }
 
-// Save a DMFMODULE in a WDF Object.
-// NOTE: Not all WDFOBJECT have access to Parent so this helper is necessary
-//       for those cases.
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// Helper Functions for Module Authors
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
 VOID
 DMF_ModuleInContextSave(
     _In_ WDFOBJECT WdfObject,
@@ -280,12 +273,15 @@ DMF_ModuleInContextSave(
 
 Routine Description:
 
-    Given a Wdf Object and a DMF Module, this function stores the given DMF Module 
-    in the context of the given Wdf Object.
+    Given a WDF Object and a DMF Module, this function stores the given DMF Module 
+    in the context of the given WDF Object.
+
+    NOTE: Not all WDFOBJECT have access to Parent so this helper is necessary
+          for those cases.
 
 Arguments:
 
-    WdfObject - The given Wdf Object.
+    WdfObject - The given WDF Object.
     DmfModule - The given DMF Module.
 
 Return Value:
@@ -327,7 +323,7 @@ Arguments:
 
 Return Value:
 
-    NTSTATUS
+    NTSTATUS from the Module's Transport Method.
 
 --*/
 {
@@ -364,7 +360,7 @@ DMF_ModuleTreeDestroy(
 
 Routine Description:
 
-    Given a DMF Module, this function closes and destroys the Module.
+    Given a DMF Module, this function destroys the Module.
 
 Arguments:
 
@@ -479,6 +475,13 @@ Return Value:
         clientEvtCleanupCallback(Object);
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// DMF calls these functions to execute Modules' WDF callbacks.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -901,8 +904,6 @@ Exit:
     return ntStatus;
 }
 
-// TRUE means the Module handled the request and no other Module needs to check it.
-//
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Module_QueueIoRead(
@@ -929,7 +930,9 @@ Arguments:
 
 Return Value:
 
-    None
+    TRUE if either the given DMF Module or it children handle the IOCTL
+    (and it should not be handled by any other Module).
+    FALSE, otherwise.
 
 --*/
 {
@@ -983,8 +986,6 @@ Exit:
     return returnValue;
 }
 
-// TRUE means the Module handled the request and no other Module needs to check it.
-//
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Module_QueueIoWrite(
@@ -1011,7 +1012,9 @@ Arguments:
 
 Return Value:
 
-    None
+    TRUE if either the given DMF Module or it children handle the IOCTL
+    (and it should not be handled by any other Module).
+    FALSE, otherwise.
 
 --*/
 {
@@ -1065,8 +1068,6 @@ Exit:
     return returnValue;
 }
 
-// TRUE means the Module handled the request and no other Module needs to check it.
-//
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Module_DeviceIoControl(
@@ -1097,7 +1098,8 @@ Arguments:
 
 Return Value:
 
-    TRUE if either the given DMF Module or it children handle the IOCTL.
+    TRUE if either the given DMF Module or it children handle the IOCTL
+    (and it should not be handled by any other Module).
     FALSE, otherwise.
 
 --*/
@@ -1156,8 +1158,6 @@ Exit:
     return returnValue;
 }
 
-// TRUE means the Module handled the request and no other Module needs to check it.
-//
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Module_InternalDeviceIoControl(
@@ -1188,7 +1188,8 @@ Arguments:
 
 Return Value:
 
-    TRUE if either the given DMF Module or it children handle the IOCTL.
+    TRUE if either the given DMF Module or it children handle the IOCTL
+    (and it should not be handled by any other Module).
     FALSE, otherwise.
 
 --*/
@@ -2506,9 +2507,9 @@ DMF_ModuleReference(
 
 Routine Description:
 
-    If a Module is open, acquires the Module so it remains open until DMF_ModuleDereference is called.
-    Use this in Module Methods when a Module is opened in notification callback.
-
+    If a Module is open, acquires a reference to the Module so it remains open until 
+    DMF_ModuleDereference is called.  Use this in Module Methods when a Module is 
+    opened in notification callback.
 
 Arguments:
 
@@ -2516,8 +2517,8 @@ Arguments:
 
 Return Value:
 
-   STATUS_SUCCESS - Module is open, and reference has been acquired.
-   STATUS_INVALID_DEVICE_STATE - Module is not open
+   STATUS_SUCCESS - Module is open and reference has been acquired.
+   STATUS_INVALID_DEVICE_STATE - Module is not open.
 
 --*/
 {
@@ -2560,7 +2561,7 @@ DMF_ModuleDereference(
 
 Routine Description:
 
-    Releases the Module acquired in DMF_ModuleReference
+    Releases the Module acquired in DMF_ModuleReference.
 
 Arguments:
 
@@ -2568,7 +2569,7 @@ Arguments:
 
 Return Value:
 
-    NONE
+    None
 
 --*/
 {
@@ -2595,7 +2596,14 @@ DMF_ModuleWaitForReferenceCountToClear(
 
 Routine Description:
 
-    Dispatch Close to the given DMF Module's corresponding handler.
+    Waits for the Module's reference count to reach zero. This is used for rundown
+    management when a Module is closing but its Methods may still be called or running.
+    It allows DMF to make the Module is open while Methods that are already running
+    continue running, but disallows new Methods from starting to run.
+
+    TODO: Replace this logic with the Kernel-mode primitive that performs this logic.
+          Note, however, that the primitive is not supported in User-mode. Therefore,
+          in that case, this code is still needed.
 
 Arguments:
 
@@ -2603,7 +2611,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    None
 
 --*/
 {
@@ -2683,7 +2691,7 @@ Arguments:
 
 Return Value:
 
-   None.
+    None
 
 --*/
 {
@@ -2729,7 +2737,7 @@ Arguments:
 
 Return Value:
 
-   None.
+    None
 
 --*/
 {
@@ -2854,6 +2862,7 @@ DMF_ModuleIsLocked(
 Routine Description:
 
     Returns the lock status of the given DMF Module.
+    NOTE: This function is for debug purposes only.
 
 Arguments:
 
@@ -2893,6 +2902,7 @@ DMF_ModuleLockIsPassive(
 Routine Description:
 
     Indicates if the Module lock is a passive level lock.
+    NOTE: This function is for debug purposes only.
 
 Arguments:
 
@@ -2932,6 +2942,7 @@ DMF_IsPoolTypePassiveLevel(
 Routine Description:
 
     Indicates if the given pool type is passive level.
+    NOTE: This function is for debug purposes only.
 
 Arguments:
 
@@ -3102,6 +3113,7 @@ DMF_ModuleAuxiliarySynchnonizationIsLocked(
 Routine Description:
 
     Returns the lock status of the given DMF Module.
+    NOTE: This function is for debug purposes only.
 
 Arguments:
 
@@ -3162,6 +3174,10 @@ Routine Description:
     First, each of the Child DMF Modules' corresponding callbacks are called.
     (Order is not particularly important.)
     Next, the given DMF Module's corresponding callback is called.
+
+    NOTE: This callback is provided so that Modules can easily indicate that the Module's
+          Open callback should be called in either PrepareHardware or D0Entry, yet still
+          acquire resources provided in PrepareHardware.
 
 Arguments:
 

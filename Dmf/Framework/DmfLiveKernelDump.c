@@ -9,8 +9,13 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
-    This Module contains the support that allows DMF Modules to easily use LiveKernelDump.
+    DMF Implementation:
+
+    This Module contains the support that allows DMF Modules to easily use the
+    LiveKernelDump Feature Module.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -58,8 +63,9 @@ DMF_LiveKernelDump_ModuleInitialize(
 
 Routine Description:
 
-    This function adds each Module's DMF structures such as DMF_OBJECT and DMF_CONFIG_Xxx to the Framework Ring Buffer in the LiveKernelDump Module.
-    These structures will be available when a Live Kernel Memory Dump is generated.
+    This function adds each Module's DMF structures such as DMF_OBJECT and DMF_CONFIG_Xxx
+    to the Framework Ring Buffer in the LiveKernelDump Module. These structures will be
+    available when a Live Kernel Memory Dump is generated.
 
 Arguments:
 
@@ -150,7 +156,8 @@ Routine Description:
 
 Arguments:
 
-    ModuleCollectionHandle - Module Collection that contains the Modules that need LiveKernelDump initialization.
+    ModuleCollectionHandle - Module Collection that contains the Modules that need
+                             LiveKernelDump initialization.
 
 Return Value:
 

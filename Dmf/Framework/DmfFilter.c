@@ -9,9 +9,11 @@ Module Name:
 
 Abstract:
 
-    Support for creating and deleting Control device object to support branchtrack for filter drivers.
+    DMF Implementation:
 
-    NOTE: Make sure to set "compile as C++" when this code linked with C++ programs.
+    Support for DMF Filter Drivers.
+
+    NOTE: Make sure to set "compile as C++" option.
     NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
@@ -39,18 +41,18 @@ DMF_FilterControl_DeviceCreate(
 
 Routine Description:
 
-    Create a control device for the given WdfDevice instance.
-    Store the control device handle in dmf device context.
-    Enable branchtrack for control device.
+    Create a Control Device for the given WdfDevice instance.
+    Store the Control Device handle in DMF device context.
+    Enable BranchTrack for Control Device.
 
-    NOTE: Client driver must delete the control device object after the framework has deleted the given WdfDevice object.
-          To determine when the framework has deleted the given Device object, client driver should provide
+    NOTE: Client Driver must delete the control device object after the framework has deleted the given WdfDevice object.
+          To determine when the framework has deleted the given Device Object, Client Driver should provide
           EvtCleanupCallback functions for the object and invoke DMF_FilterControl_DeviceDelete in that callback.
 
 Arguments:
 
     Device - The given WDFDEVICE.
-    FilterBranchTrackConfig - BranchTrack Module config.
+    FilterBranchTrackConfig - BranchTrack Module Config.
     ControlDeviceName - The name of the Filter Control Device to create.
 
 Return Value:

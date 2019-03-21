@@ -353,7 +353,7 @@ typedef struct _DMF_DEVICE_CONTEXT
     //
     WDFDEVICE WdfDevice;
 
-    // Flag to indicate if Client driver implements
+    // Flag to indicate if Client Driver implements
     // an EVT_WDF_DRIVER_DEVICE_ADD callback.
     //
     BOOLEAN ClientImplementsEvtWdfDriverDeviceAdd;
@@ -367,12 +367,12 @@ typedef struct _DMF_DEVICE_CONTEXT
     //
     WDFDEVICE WdfControlDevice;
 
-    // Client driver device.
+    // Client Driver device.
     // Same as WdfDevice for non-Control device.
     //
     WDFDEVICE WdfClientDriverDevice;
 
-    // Indicates that the Client driver is a Filter driver.
+    // Indicates that the Client Driver is a Filter driver.
     //
     BOOLEAN IsFilterDevice;
 } DMF_DEVICE_CONTEXT;
@@ -396,10 +396,10 @@ typedef struct
         // in the collection.
         //
         WDFCOLLECTION ListOfConfigs;
-        // Has the Client driver initialized a BranchTrack Module?
+        // Has the Client Driver initialized a BranchTrack Module?
         //
         BOOLEAN BranchTrackEnabled;
-        // Has the Client driver initialized a LiveKernelDump Module?
+        // Has the Client Driver initialized a LiveKernelDump Module?
         //
         BOOLEAN LiveKernelDumpEnabled;
         // Parent WDFDEVICE (The Client Driver's WDFDEVICE.)
@@ -1492,25 +1492,25 @@ DMF_ModuleWaitForReferenceCountToClear(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerPnpPowerCallbacksInit(
-    _Inout_ PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
+    _Out_ WDF_PNPPOWER_EVENT_CALLBACKS* PnpPowerEventCallbacks
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerPowerPolicyCallbacksInit(
-    _Inout_ PWDF_POWER_POLICY_EVENT_CALLBACKS PowerPolicyCallbacks
+    _Out_ WDF_POWER_POLICY_EVENT_CALLBACKS* PowerPolicyCallbacks
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerFileObjectConfigInit(
-    _Out_ PWDF_FILEOBJECT_CONFIG FileObjectConfig
+    _Out_ WDF_FILEOBJECT_CONFIG* FileObjectConfig
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerQueueConfigCallbacksInit(
-    _Inout_ PWDF_IO_QUEUE_CONFIG IoQueueConfig
+    _Out_ WDF_IO_QUEUE_CONFIG* IoQueueConfig
     );
 
 // DmfDeviceInit.c

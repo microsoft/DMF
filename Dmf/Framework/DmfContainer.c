@@ -9,8 +9,14 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
-    This Module has the support for WDF Event Callbacks in DMF.
+    DMF Implementation:
+
+    This file provides support for the Container Driver that "contains" all 
+    DMF drivers. This file contains the callbacks that WDF calls. These
+    callbacks then dispatch to Modules and their Child Modules.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -65,6 +71,13 @@ EVT_WDF_FILE_CLOSE DmfContainerEvtFileClose;
 }
 #endif // defined(__cplusplus)
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// WDF callbacks to the DMF Container Driver.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
 #pragma code_seg("PAGE")
 _Use_decl_annotations_
 NTSTATUS
@@ -81,7 +94,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     ResourcesRaw - WDF Resource Raw parameter that is passed to the given
                    DMF Module callback.
     ResourcesTranslated - WDF Resources Translated parameter that is passed to the given
@@ -138,7 +151,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     ResourcesTranslated - WDF Resources Translated parameter that is passed to the given
                           DMF Module callback.
 
@@ -193,7 +206,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     PreviousState - The WDF Power State that the Container Driver should exit from.
 
 Return Value:
@@ -243,7 +256,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     PreviousState - The WDF Power State that the Container Driver should exit from.
 
 Return Value:
@@ -292,7 +305,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     TargetState - The WDF Power State that the Container Driver will enter into.
 
 Return Value:
@@ -341,7 +354,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     TargetState - The WDF Power State that the Container Driver will enter into.
 
 Return Value:
@@ -421,9 +434,9 @@ Return Value:
                                               Length);
     if (! handled)
     {
-        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
-        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
-        // complete the Request indicating that the Client driver does not support the Request.
+        // No Module handled this Request. If the Client Driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client Driver is not a Filter driver,
+        // complete the Request indicating that the Client Driver does not support the Request.
         //
         if (dmfDeviceContext->IsFilterDevice)
         {
@@ -487,9 +500,9 @@ Return Value:
                                                Length);
     if (! handled)
     {
-        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
-        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
-        // complete the Request indicating that the Client driver does not support the Request.
+        // No Module handled this Request. If the Client Driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client Driver is not a Filter driver,
+        // complete the Request indicating that the Client Driver does not support the Request.
         //
         if (dmfDeviceContext->IsFilterDevice)
         {
@@ -562,9 +575,9 @@ Return Value:
                                                   IoControlCode);
     if (! handled)
     {
-        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
-        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
-        // complete the Request indicating that the Client driver does not support the Request.
+        // No Module handled this Request. If the Client Driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client Driver is not a Filter driver,
+        // complete the Request indicating that the Client Driver does not support the Request.
         //
         if (dmfDeviceContext->IsFilterDevice)
         {
@@ -638,9 +651,9 @@ Return Value:
                                                           IoControlCode);
     if (! handled)
     {
-        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
-        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
-        // complete the Request indicating that the Client driver does not support the Request.
+        // No Module handled this Request. If the Client Driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client Driver is not a Filter driver,
+        // complete the Request indicating that the Client Driver does not support the Request.
         //
         if (dmfDeviceContext->IsFilterDevice)
         {
@@ -667,6 +680,21 @@ VOID
 DmfContainerEvtDeviceSelfManagedIoCleanup(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Self Managed Io Clean Up callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -691,6 +719,21 @@ VOID
 DmfContainerEvtDeviceSelfManagedIoFlush(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Self Managed Io Flush callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -715,6 +758,21 @@ NTSTATUS
 DmfContainerEvtDeviceSelfManagedIoInit(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Self Managed Io Init callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -742,6 +800,21 @@ NTSTATUS
 DmfContainerEvtDeviceSelfManagedIoSuspend(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Self Managed Io Suspend callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -769,6 +842,21 @@ NTSTATUS
 DmfContainerEvtDeviceSelfManagedIoRestart(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Self Managed Io Restart callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -796,6 +884,21 @@ VOID
 DmfContainerEvtDeviceSurpriseRemoval(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Surprise Removal callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -820,6 +923,21 @@ NTSTATUS
 DmfContainerEvtDeviceQueryRemove(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Query Remove callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -847,6 +965,21 @@ NTSTATUS
 DmfContainerEvtDeviceQueryStop(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Query Stop callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -875,6 +1008,22 @@ DmfContainerEvtDeviceRelationsQuery(
     _In_ WDFDEVICE Device,
     _In_ DEVICE_RELATION_TYPE RelationType
     )
+/*++
+
+Routine Description:
+
+    WDF Relations Query callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+    RelationType - Parameter passed by WDF that is dispatched.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -902,6 +1051,21 @@ DmfContainerEvtDeviceUsageNotificationEx(
     _In_ WDF_SPECIAL_FILE_TYPE NotificationType,
     _In_ BOOLEAN IsInNotificationPath
     )
+/*++
+
+Routine Description:
+
+    WDF Device Usage Notification callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -931,6 +1095,21 @@ NTSTATUS
 DmfContainerEvtDeviceArmWakeFromS0(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Arm Wake From S0 callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -958,6 +1137,21 @@ VOID
 DmfContainerEvtDeviceDisarmWakeFromS0(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Disarm Wake From S0 callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -982,6 +1176,21 @@ VOID
 DmfContainerEvtDeviceWakeFromS0Triggered(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Wake From S0 Triggered callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -1008,6 +1217,21 @@ DmfContainerEvtDeviceArmWakeFromSxWithReason(
     _In_ BOOLEAN DeviceWakeEnabled,
     _In_ BOOLEAN ChildrenArmedForWake
     )
+/*++
+
+Routine Description:
+
+    WDF Arm Wake From Sx With Reason callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
     NTSTATUS ntStatus;
@@ -1037,6 +1261,21 @@ VOID
 DmfContainerEvtDeviceDisarmWakeFromSx(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Disarm Wake From Sx callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -1061,6 +1300,21 @@ VOID
 DmfContainerEvtDeviceWakeFromSxTriggered(
     _In_ WDFDEVICE Device
     )
+/*++
+
+Routine Description:
+
+    WDF Wake From Sx Triggered callback.
+
+Arguments:
+
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
@@ -1117,7 +1371,7 @@ Return Value:
     UNREFERENCED_PARAMETER(Context);
 
     // Simply complete the request using its current NTSTATUS.
-    // TODO: Allow Modules and Client driver to post-process the request.
+    // TODO: Allow Modules and Client Driver to post-process the request.
     //
     WdfRequestComplete(Request,
                        Params->IoStatus.Status);
@@ -1135,18 +1389,17 @@ DmfContainerEvtFileCreate(
 
 Routine Description:
 
-    The framework calls a driver's EvtDeviceFileCreate callback
-    when the framework receives an IRP_MJ_CREATE request.
-    The system sends this request when a user application opens the
-    device to perform an I/O operation, such as reading or writing to a device.
-    This callback is called in the context of the thread
+    The framework calls a driver's EvtDeviceFileCreate callback when the framework
+    receives an IRP_MJ_CREATE request. The system sends this request when a user
+    application opens the device to perform an I/O operation, such as reading or
+    writing to a device. This callback is called in the context of the thread
     that created the IRP_MJ_CREATE request.
 
 Arguments:
 
     Device - Handle to a framework device object.
-    FileObject - Pointer to fileobject that represents the open handle.
-    CreateParams - Parameters for create
+    Request - Corresponding WDFREQUEST.
+    FileObject - Corresponding WDFFILEOBJECT.
 
 Return Value:
 
@@ -1173,8 +1426,8 @@ Return Value:
                                              FileObject);
     if (! handled)
     {
-        // No Module handled this Request. If the Client driver is a Filter driver, pass the 
-        // Request to the next driver in the stack. If the Client driver is not a Filter driver,
+        // No Module handled this Request. If the Client Driver is a Filter driver, pass the 
+        // Request to the next driver in the stack. If the Client Driver is not a Filter driver,
         // complete the Request indicating the file can be opened (see below).
         //
         if (dmfDeviceContext->IsFilterDevice)
@@ -1212,12 +1465,12 @@ DmfContainerEvtFileCleanup(
 
 Routine Description:
 
-    The framework calls a driver's EvtDeviceFileCleanup callback
-    when the framework receives an IRP_MJ_CLEANUP request.
+    The framework calls a driver's EvtDeviceFileCleanup callback when the framework
+    receives an IRP_MJ_CLEANUP request.
 
 Arguments:
 
-    FileObject - Pointer to fileobject that represents the open handle.
+    FileObject - Pointer to WDFFILEOBJECT that represents the open handle.
 
 Return Value:
 
@@ -1279,12 +1532,12 @@ DmfContainerEvtFileClose(
 
 Routine Description:
 
-    The framework calls a driver's EvtDeviceFileClose callback
-    when the framework receives an IRP_MJ_CLOSE request.
+    The framework calls a driver's EvtDeviceFileClose callback when the framework
+    receives an IRP_MJ_CLOSE request.
 
 Arguments:
 
-    FileObject - Pointer to fileobject that represents the open handle.
+    FileObject - Pointer to WDFFILEOBJECT that represents the open handle.
 
 Return Value:
 
@@ -1323,12 +1576,35 @@ Return Value:
 }
 #pragma code_seg()
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Config initialization functions to initialize set WDF callbacks in the DMF Container Driver.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerPnpPowerCallbacksInit(
-    _Inout_ PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
+    _Out_ WDF_PNPPOWER_EVENT_CALLBACKS* PnpPowerEventCallbacks
     )
+/*++
+
+Routine Description:
+
+    Tells WDF to call the DMF Container Driver's PnP Power callbacks when those
+    callbacks are dispatched by WDF.
+
+Arguments:
+
+    PnpPowerEventCallbacks - Target buffer where callback information is written.
+
+Return Value:
+
+    None
+
+--*/
 {
     PAGED_CODE();
 
@@ -1359,8 +1635,24 @@ DMF_ContainerPnpPowerCallbacksInit(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerFileObjectConfigInit(
-    _Out_ PWDF_FILEOBJECT_CONFIG FileObjectConfig
+    _Out_ WDF_FILEOBJECT_CONFIG* FileObjectConfig
     )
+/*++
+
+Routine Description:
+
+    Tells WDF to call the DMF Container Driver's File Object callbacks when those
+    callbacks are dispatched by WDF.
+
+Arguments:
+
+    FileObjectConfig - Target buffer where callback information is written.
+
+Return Value:
+
+    None
+
+--*/
 {
     PAGED_CODE();
 
@@ -1388,8 +1680,24 @@ DMF_ContainerFileObjectConfigInit(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerPowerPolicyCallbacksInit(
-    _Inout_ PWDF_POWER_POLICY_EVENT_CALLBACKS PowerPolicyCallbacks
+    _Out_ WDF_POWER_POLICY_EVENT_CALLBACKS* PowerPolicyCallbacks
     )
+/*++
+
+Routine Description:
+
+    Tells WDF to call the DMF Container Driver's Power Policy callbacks when those
+    callbacks are dispatched by WDF.
+
+Arguments:
+
+    PowerPolicyCallbacks - Target buffer where callback information is written.
+
+Return Value:
+
+    None
+
+--*/
 {
     PAGED_CODE();
 
@@ -1408,8 +1716,24 @@ DMF_ContainerPowerPolicyCallbacksInit(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContainerQueueConfigCallbacksInit(
-    _Inout_ PWDF_IO_QUEUE_CONFIG IoQueueConfig
+    _Out_ WDF_IO_QUEUE_CONFIG* IoQueueConfig
     )
+/*++
+
+Routine Description:
+
+    Tells WDF to call the DMF Container Driver's IO Queue callbacks when those
+    callbacks are dispatched by WDF.
+
+Arguments:
+
+    IoQueueConfig - Target buffer where callback information is written.
+
+Return Value:
+
+    None
+
+--*/
 {
     PAGED_CODE();
 
@@ -1423,6 +1747,14 @@ DMF_ContainerQueueConfigCallbacksInit(
 #endif // !defined(DMF_USER_MODE)
 }
 #pragma code_seg()
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// DMF_Invoke_* Helpers that allow Client Driver to execute Module's PrepareHardware/D0Entry 
+// callbacks. (Used by Miniport and Control Drivers.)
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 #pragma code_seg("PAGE")
 _Use_decl_annotations_
@@ -1438,10 +1770,11 @@ DMF_Invoke_DeviceCallbacksCreate(
 Routine Description:
 
     Invoke DMF Device PrepareHardware and Device D0Entry Callbacks.
+    NOTE: This function is used by Miniport or Control drivers.
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     ResourcesRaw - WDF Resource Raw parameter that is passed to the given
                    DMF Module callback.
     ResourcesTranslated - WDF Resources Translated parameter that is passed to the given
@@ -1450,8 +1783,8 @@ Arguments:
 
 Return Value:
 
-   STATUS_SUCCESS if all the DMF Modules in the collection succeed; or an error code
-   of the first one that fails.
+    STATUS_SUCCESS if all the DMF Modules in the collection succeed; or an error code
+    of the first one that fails.
 
 --*/
 {
@@ -1526,7 +1859,7 @@ Routine Description:
 
 Arguments:
 
-    Device - WDF Device
+    Device - Client Driver's WDF Device. DMF use it to access its private Device Context.
     ResourcesTranslated - WDF Resources Translated parameter that is passed to the given
                           DMF Module callback.
     TargetState - The WDF Power State that the Container Driver will enter into.

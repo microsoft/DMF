@@ -22,7 +22,7 @@ Environment:
 #pragma once
 
 // Place this here so that all GUIDs defined by Modules can be compiled
-// and linked without Client driver needing to include this file.
+// and linked without Client Driver needing to include this file.
 //
 #include <initguid.h>
 
@@ -621,7 +621,7 @@ typedef struct
     // Number of additional locks needed for the Module (optional).
     //
     ULONG NumberOfAuxiliaryLocks;
-    // Wdf Object attributes specifying Module Context details.
+    // WDF Object attributes specifying Module Context details.
     //
     PWDF_OBJECT_ATTRIBUTES ModuleContextAttributes;
     // In Flight Recorder Size.

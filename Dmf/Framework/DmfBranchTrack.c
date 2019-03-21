@@ -9,8 +9,13 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
-    This Module contains the support that allows DMF Modules to easily use BranchTrack.
+    DMF Implementation:
+
+    This Module contains the support that allows DMF Modules to easily use the
+    BranchTrack Feature Module.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 

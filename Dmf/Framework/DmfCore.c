@@ -9,8 +9,12 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
+    DMF Implementation:
+
     This Module contains DMF Module create/destroy support.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -384,7 +388,7 @@ Return Value:
     if ((WDF_NO_OBJECT_ATTRIBUTES == DmfModuleObjectAttributes) ||
         (NULL == DmfModuleObjectAttributes->ParentObject))
     {
-        // Assign the default parent (Client driver's WDFDEVICE) if no parent is specified.
+        // Assign the default parent (Client Driver's WDFDEVICE) if no parent is specified.
         //
         parentObject = Device;
     }
@@ -1318,6 +1322,23 @@ DMF_ModuleTransportSet(
     _In_ DMFMODULE DmfModule,
     _In_ DMFMODULE TransportDmfModule
     )
+/*++
+
+Routine Description:
+
+    Given a Module, set its Transport Module to the given Transport Module.
+    NOTE: For Legacy Protocol-Transport support only.
+
+Arguments:
+
+    DmfModule - The given Module.
+    TransportDmfModule - The given Transport Module.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMF_OBJECT* dmfObject;
     DMF_OBJECT* dmfObjectTransport;
@@ -1332,6 +1353,21 @@ DMFMODULE
 DMF_ModuleTransportGet(
     _In_ DMFMODULE DmfModule
     )
+/*++
+
+Routine Description:
+
+    Given a Module, get its Transport Module.
+
+Arguments:
+
+    DmfModule - The given Module.
+
+Return Value:
+
+    The given Module's Transport Module.
+
+--*/
 {
     DMFMODULE transportModule;
     DMF_OBJECT* dmfObject;
@@ -1353,7 +1389,8 @@ DMF_ModuleRequestCompleteOrForward(
 
 Routine Description:
 
-    Completes a given File Create WDFREQUEST:
+    Given a Module, a WDFREQUEST and the NTSTATUS to set in the WDFREQUEST by caller,
+    complete or forward the WDFREQUEST as needed:
     If the caller wants to return STATUS_SUCCESS:
         If the Client Driver is a filter driver, tell DMF to pass the request down the stack.
         If the Client Driver is not a filter drier, then complete the request (by falling through).
@@ -1405,6 +1442,21 @@ RECORDER_LOG
 DMF_InFlightRecorderGet(
     _In_ DMFMODULE DmfModule
     )
+/*++
+
+Routine Description:
+
+    Given a Module, get its WPP In-flight Recorder handle.
+
+Arguments:
+
+    DmfModule - The given Module.
+
+Return Value:
+
+    The given Module's WPP In-flight Recorder handle.
+
+--*/
 {
     DMF_OBJECT* dmfObject = DMF_ModuleToObject(DmfModule);
 

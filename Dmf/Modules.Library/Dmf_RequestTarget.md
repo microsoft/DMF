@@ -50,16 +50,18 @@ ContinuousRequestTarget_RequestType_Write | Indicates that the request is sent t
 #### Module Callbacks
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### EVT_DMF_RequestTarget_SingleAsynchronousBufferOutput
+##### EVT_DMF_RequestTarget_SendCompletion
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
-EVT_DMF_RequestTarget_SingleAsynchronousBufferOutput(
+EVT_DMF_RequestTarget_SendCompletion(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* ClientRequestContext,
-    _In_reads_(OutputBufferSize) VOID* OutputBuffer,
-    _In_ size_t OutputBufferSize,
+    _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
+    _In_ size_t InputBufferBytesWritten,
+    _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesRead,
     _In_ NTSTATUS CompletionStatus
     );
 ````
@@ -75,8 +77,10 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_RequestTarget Module handle.
 ClientRequestContext | The Client specific context the Client sent when sending the request. Usually, this is the corresponding WDFREQUEST.
+InputBuffer | Contains the corresponding WDFREQUEST input buffer.
+InputBufferBytesWritten | Number of bytes written. For IOCTL this will be actual size of the Input Buffer. 
 OutputBuffer | Contains the corresponding WDFREQUEST output buffer.
-OutputBufferSize | The size in bytes of OutputBuffer.
+OutputBufferBytesRead | Number of bytes read.
 CompletionStatus | The completion status sent by the underlying WDFIOTARGET.
 
 ##### Remarks
@@ -153,7 +157,7 @@ DMF_RequestTarget_Send(
   _In_ ContinuousRequestTarget_RequestType RequestType,
   _In_ ULONG RequestIoctl,
   _In_ ULONG RequestTimeoutMilliseconds,
-  _In_opt_ EVT_DMF_RequestTarget_SingleAsynchronousBufferOutput* EvtRequestTargetSingleAsynchronousRequest,
+  _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext
   );
 ````

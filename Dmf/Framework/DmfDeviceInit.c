@@ -9,8 +9,12 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
+    DMF Implementation:
+
     This Module has the support for initializing DMF Device Init.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -42,7 +46,7 @@ typedef struct DMFDEVICE_INIT
     VOID* DmfBridgeConfig;
     WDFMEMORY DmfBridgeConfigMemory;
 
-    // Flag to indicate if Client driver implements
+    // Flag to indicate if Client Driver implements
     // an EVT_WDF_DRIVER_DEVICE_ADD callback.
     //
     BOOLEAN ClientImplementsDeviceAdd;
@@ -79,12 +83,12 @@ typedef struct DMFDEVICE_INIT
     //
     BOOLEAN IsControlDevice;
 
-    // Client driver device associated with Control device
+    // Client Driver device associated with Control device
     // NULL if IsControlDevice is FALSE.
     //
     WDFDEVICE ClientDriverDevice;
 
-    // Indicates that the Client driver is a Filter driver.
+    // Indicates that the Client Driver is a Filter driver.
     //
     BOOLEAN IsFilterDevice;
 } *PDMFDEVICE_INIT;
@@ -93,6 +97,13 @@ typedef struct DMFDEVICE_INIT
 // eliminates an if() in all Client drivers.
 //
 struct DMFDEVICE_INIT g_DmfDefaultDeviceInit = { 0 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Helper Functions
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -134,7 +145,7 @@ DMF_DmfDeviceInitBridgeModuleConfigGet(
 
 Routine Description:
 
-    Return the pointer to Bridge Module config store in DMFDEVICE_INIT.
+    Return the pointer to Bridge Module Config store in DMFDEVICE_INIT.
 
 Parameters Description:
 
@@ -142,7 +153,7 @@ Parameters Description:
 
 Return Value:
 
-    Pointer to bridge Module config.
+    Pointer to bridge Module Config.
     NULL if bridge is not enabled.
 
 --*/
@@ -164,7 +175,7 @@ DMF_DmfDeviceInitClientImplementsDeviceAdd(
 
 Routine Description:
 
-    Let the caller know if Client driver implements EVT_WDF_DRIVER_DEVICE_ADD.
+    Let the caller know if Client Driver implements EVT_WDF_DRIVER_DEVICE_ADD.
 
 Parameters Description:
 
@@ -172,7 +183,7 @@ Parameters Description:
 
 Return Value:
 
-    TRUE if Client driver implements EVT_WDF_DRIVER_DEVICE_ADD.
+    TRUE if Client Driver implements EVT_WDF_DRIVER_DEVICE_ADD.
     FALSE otherwise.
 
 --*/
@@ -254,7 +265,7 @@ DMF_DmfControlDeviceInitClientDriverDeviceGet(
 
 Routine Description:
 
-    Return the Client driver device associated with DmfDeviceInit.
+    Return the Client Driver device associated with DmfDeviceInit.
 
 Parameters Description:
 
@@ -262,7 +273,7 @@ Parameters Description:
 
 Return Value:
 
-    Client driver device if DmfDeviceInit is allocated for Control device.
+    Client Driver device if DmfDeviceInit is allocated for Control device.
     NULL otherwise.
 
 --*/
@@ -314,7 +325,7 @@ DMF_DmfDeviceInitBranchTrackModuleConfigGet(
 
 Routine Description:
 
-    Return the pointer to BranchTrack Module config stored in DMFDEVICE_INIT.
+    Return the pointer to BranchTrack Module Config stored in DMFDEVICE_INIT.
 
 Parameters Description:
 
@@ -322,7 +333,7 @@ Parameters Description:
 
 Return Value:
 
-    Pointer to BranchTrack Module config.
+    Pointer to BranchTrack Module Config.
     NULL if BranchTrack is not enabled.
 
 --*/
@@ -351,7 +362,7 @@ DMF_DmfDeviceInitLiveKernelDumpModuleConfigGet(
 
 Routine Description:
 
-    Return the pointer to LiveKernelDump Module config stored in DMFDEVICE_INIT.
+    Return the pointer to LiveKernelDump Module Config stored in DMFDEVICE_INIT.
 
 Parameters Description:
 
@@ -359,7 +370,7 @@ Parameters Description:
 
 Return Value:
 
-    Pointer to LiveKernelDump Module config.
+    Pointer to LiveKernelDump Module Config.
 
 --*/
 {
@@ -407,6 +418,13 @@ Return Value:
 }
 #pragma code_seg()
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Client Driver APIs related to PDMFDEVICE_INIT
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 PDMFDEVICE_INIT
@@ -447,7 +465,7 @@ Return Value:
                                (VOID**)&dmfDeviceInit);
     if (! NT_SUCCESS(ntStatus))
     {
-        // Set the sentinel for failed allocation. Client driver does not need to check.
+        // Set the sentinel for failed allocation. Client Driver does not need to check.
         // Failure is dealt with later. (Note: It eliminates an if() for all Client drivers for a condition that will
         // probably never occur.
         //
@@ -470,7 +488,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         WdfObjectDelete(dmfDeviceInitMemory);
-        // Set the sentinel for failed allocation. Client driver does not need to check.
+        // Set the sentinel for failed allocation. Client Driver does not need to check.
         // Failure is dealt with later. (Note: It eliminates an if() for all Client drivers for a condition that will
         // probably never occur.
         //
@@ -646,12 +664,12 @@ DMF_DmfControlDeviceInitSetClientDriverDevice(
 
 Routine Description:
 
-    Store the given Client driver device in DmfDeviceInit structure for Control device.
+    Store the given Client Driver device in DmfDeviceInit structure for Control device.
 
 Parameters Description:
 
     DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
-    Device - The given Client driver device.
+    Device - The given Client Driver device.
 
 Return Value:
 
@@ -748,7 +766,7 @@ Return Value:
         goto Exit;
     }
 
-    // For Control device, Client driver device has to be set.
+    // For Control device, Client Driver device has to be set.
     //
     if (DmfDeviceInit->IsControlDevice)
     {
@@ -1089,7 +1107,7 @@ DMF_DmfFdoSetFilter(
 
 Routine Description:
 
-    Tells DMF that the Client driver is a Filter driver. This is necessary to enable passthru
+    Tells DMF that the Client Driver is a Filter driver. This is necessary to enable passthru
     of requests to lower stack.
 
 Parameters Description:
@@ -1151,6 +1169,13 @@ Return Value:
 }
 #pragma code_seg()
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Feature Module Config Initialization Functions
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -1162,7 +1187,7 @@ DMF_DmfDeviceInitSetBranchTrackConfig(
 
 Routine Description:
 
-    Set BranchTrack config.
+    Set BranchTrack Config.
 
 Parameters Description:
 
@@ -1201,7 +1226,7 @@ DMF_DmfDeviceInitSetLiveKernelDumpConfig(
 
 Routine Description:
 
-    Set LiveKernelDump config.
+    Set LiveKernelDump Config.
 
 Parameters Description:
 

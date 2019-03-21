@@ -9,8 +9,14 @@ Module Name:
 
 Abstract:
 
-    DMF Implementation.
-    This Module contains implementation of Internal DMF Callbacks.
+    DMF Implementation:
+
+    This Module contains implementation of Internal DMF Callbacks. Given a Module handle, these
+    functions extract the address of the given Module's callback and call it. In DEBUG builds,
+    some sanity checks are performed.
+
+    NOTE: Make sure to set "compile as C++" option.
+    NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
 
 Environment:
 
@@ -22,10 +28,6 @@ Environment:
 #include "DmfIncludeInternal.h"
 
 #include "DmfInternal.tmh"
-
-// Internal Callbacks. These are always called first.
-// --------------------------------------------------
-//
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
