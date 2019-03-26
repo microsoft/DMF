@@ -428,6 +428,7 @@ Return Value:
                                      String_FindInListLeftLookForMatchCharCallback);
 }
 
+#pragma code_seg("PAGE")
 NTSTATUS
 DMF_String_WideStringCopyAsAnsi(
     _Out_writes_(BufferSize) CHAR* AnsiString,
@@ -477,7 +478,7 @@ Return Value:
                          WideString);
     ASSERT(unicodeString.Length <= BufferSize);
 
-    // Since this funtion does not allocate memory it will always succeed.
+    // Since this function does not allocate memory it will always succeed.
     //
     ntStatus = RtlUnicodeStringToAnsiString(&ansiString,
                                             &unicodeString,
@@ -512,6 +513,7 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 // eof: Dmf_String.c
 //
