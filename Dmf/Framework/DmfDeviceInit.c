@@ -631,14 +631,20 @@ Return Value:
 
         WDF_OBJECT_ATTRIBUTES_INIT(&fileObjectAttributes);
 
-        WdfDeviceInitSetFileObjectConfig(DeviceInit,
-                                         &fileObjectConfig,
-                                         &fileObjectAttributes);
+        // Allow NonPnP Client driver to hook File Object callback
+        // (since it is legitimate to do so.).
+        //
+        if (! dmfDeviceInit->FileObjectConfigHooked)
+        {
+            WdfDeviceInitSetFileObjectConfig(DeviceInit,
+                                             &fileObjectConfig,
+                                             &fileObjectAttributes);
+            dmfDeviceInit->FileObjectConfigHooked = TRUE;
+        }
     }
     else
     {
-        // If DeviceInit is NULL, do not set any WDF callbacks and
-        // do not create a default queue.
+        // If DeviceInit is NULL, do not set any WDF callbacks and do not create a default queue.
         // Drivers which pass NULL for DeviceInit, will Invoke callbacks manually when needed.
         //
         dmfDeviceInit->PnpPowerCallbacksHooked = TRUE;
@@ -649,6 +655,7 @@ Return Value:
     }
 
 Exit:
+
     return dmfDeviceInit;
 }
 #pragma code_seg()

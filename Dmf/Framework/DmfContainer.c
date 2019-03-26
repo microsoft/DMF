@@ -1761,8 +1761,8 @@ _Use_decl_annotations_
 NTSTATUS
 DMF_Invoke_DeviceCallbacksCreate(
     _In_ WDFDEVICE Device,
-    _In_ WDFCMRESLIST ResourcesRaw,
-    _In_ WDFCMRESLIST ResourcesTranslated,
+    _In_opt_ WDFCMRESLIST ResourcesRaw,
+    _In_opt_ WDFCMRESLIST ResourcesTranslated,
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     )
 /*++
@@ -1812,10 +1812,13 @@ Return Value:
     // Collection is destroyed.
     //
     DMF_MODULE_COLLECTION* moduleCollection = DMF_CollectionToHandle(dmfDeviceContext->DmfCollection);
+
     moduleCollection->ManualDestroyCallbackIsPending = TRUE;
 
     // Dispatch Device Prepare Hardware.
+    // 'ResourcesRaw' could be '0':  this does not adhere to the specification for the function 'DmfContainerEvtDevicePrepareHardware'
     //
+    #pragma warning(suppress:6387)
     ntStatus = DmfContainerEvtDevicePrepareHardware(Device,
                                                     ResourcesRaw,
                                                     ResourcesTranslated);
