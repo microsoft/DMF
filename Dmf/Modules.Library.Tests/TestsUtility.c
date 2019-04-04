@@ -210,8 +210,8 @@ _Must_inspect_result_
 _IRQL_requires_same_
 UINT16
 TestsUtility_CrcCompute(
-    PUINT8 Message,
-    UINT32 NumberOfBytes
+    _In_ UINT8* Message,
+    _In_ UINT32 NumberOfBytes
     )
 /*++
 
