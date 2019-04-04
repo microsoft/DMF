@@ -49,6 +49,7 @@ extern "C"
 #include "Dmf_Tests_HashTable.h"
 #include "Dmf_Tests_IoctlHandler.h"
 #include "Dmf_Tests_SelfTarget.h"
+#include "Dmf_Tests_Pdo.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.

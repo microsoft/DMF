@@ -53,8 +53,9 @@ typedef enum _TEST_ACTION
     TEST_ACTION_READSUCCESS,
     TEST_ACTION_READFAIL,
     TEST_ACTION_ENUMERATE,
-    TEST_ACTION_MIN     = TEST_ACTION_READSUCCESS,
-    TEST_ACTION_MAX     = TEST_ACTION_ENUMERATE
+    TEST_ACTION_COUNT,
+    TEST_ACTION_MINIUM      = TEST_ACTION_READSUCCESS,
+    TEST_ACTION_MAXIMUM     = TEST_ACTION_ENUMERATE
 } TEST_ACTION;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -468,8 +469,8 @@ Tests_HashTable_WorkThread(
 
     // Generate a random test action Id for a current iteration.
     //
-    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MIN,
-                                                                TEST_ACTION_MAX);
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+                                                                TEST_ACTION_MAXIMUM);
     // Execute the test action.
     //
     switch (testAction)

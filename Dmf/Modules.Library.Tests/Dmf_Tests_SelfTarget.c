@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (1)
+#define THREAD_COUNT                (4)
 
 typedef enum _TEST_ACTION
 {
@@ -38,8 +38,9 @@ typedef enum _TEST_ACTION
     TEST_ACTION_ASYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUSCANCEL,
     TEST_ACTION_CONTINUOUS,
-    TEST_ACTION_MIN     = TEST_ACTION_SYNCHRONOUS,
-    TEST_ACTION_MAX     = TEST_ACTION_CONTINUOUS
+    TEST_ACTION_COUNT,
+    TEST_ACTION_MINIUM      = TEST_ACTION_SYNCHRONOUS,
+    TEST_ACTION_MAXIMUM     = TEST_ACTION_CONTINUOUS
 } TEST_ACTION;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -295,8 +296,8 @@ Tests_SelfTarget_WorkThread(
 
     // Generate a random test action Id for a current iteration.
     //
-    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MIN,
-                                                                TEST_ACTION_MAX);
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+                                                                TEST_ACTION_MAXIMUM);
     // Execute the test action.
     //
     switch (testAction)
@@ -365,7 +366,7 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-
+DbgBreakPoint();
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = STATUS_SUCCESS;
@@ -423,7 +424,7 @@ Return Value:
     LONG index;
 
     PAGED_CODE();
-
+DbgBreakPoint();
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -566,7 +567,7 @@ Return Value:
                                             Tests_SelfTarget,
                                             DMF_CONTEXT_Tests_SelfTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
 
     DmfModuleDescriptor_Tests_SelfTarget.CallbacksDmf = &DmfCallbacksDmf_Tests_SelfTarget;
 
