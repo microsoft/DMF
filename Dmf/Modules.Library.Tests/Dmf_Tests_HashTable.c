@@ -33,10 +33,8 @@ Environment:
 #define KEY_SIZE                    (32)
 #define BUFFER_SIZE                 (32)
 #define BUFFER_COUNT_PREALLOCATED   (16)
-#define BUFFER_COUNT_MAX            (24)
+#define BUFFER_COUNT_MAXIMUM        (24)
 #define THREAD_COUNT                (4)
-
-#define CLIENT_CONTEXT_SIGNATURE    'GISB'
 
 // It is a table of data that is automatically generated. This data is
 // then written to the hash table. Then, this table is used to find 
@@ -68,7 +66,7 @@ typedef struct
 {
     // Automatically generated data that is used for tests.
     //
-    HashTable_DataRecord DataRecords[BUFFER_COUNT_MAX];
+    HashTable_DataRecord DataRecords[BUFFER_COUNT_MAXIMUM];
     // HashTable Module to test using default hash function.
     //
     DMFMODULE DmfModuleHashTableDefault;
@@ -133,7 +131,7 @@ Tests_HashTable_DataGenerate(
 
     // Generate the table with random data.
     //
-    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAX; recordIndex++)
+    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAXIMUM; recordIndex++)
     {
         HashTable_DataRecord* dataRecord = &moduleContext->DataRecords[recordIndex];
 
@@ -164,7 +162,7 @@ Tests_HashTable_Populate(
 
     // Populate the hash table.
     //
-    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAX; recordIndex++)
+    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAXIMUM; recordIndex++)
     {
         HashTable_DataRecord* dataRecord = &moduleContext->DataRecords[recordIndex];
 
@@ -188,7 +186,7 @@ Tests_HashTable_DataRecordsSearch(
 
     returnValue = -1;
 
-    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAX; recordIndex++)
+    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAXIMUM; recordIndex++)
     {
         dataRecord = &DataRecords[recordIndex];
 
@@ -265,7 +263,7 @@ Tests_HashTable_ThreadAction_ReadSuccess(
     // Generate a random index and look for the corresponding record in both hash tables.
     //
     ULONG recordIndex = TestsUtility_GenerateRandomNumber(0,
-                                                          BUFFER_COUNT_MAX - 1);
+                                                          BUFFER_COUNT_MAXIMUM - 1);
 
     dataRecord = &moduleContext->DataRecords[recordIndex];
 
@@ -665,7 +663,8 @@ Return Value:
     //
     DMF_CONFIG_HashTable_AND_ATTRIBUTES_INIT(&moduleConfigHashTable,
                                               &moduleAttributes);
-    moduleConfigHashTable.MaximumTableSize = BUFFER_COUNT_MAX;
+    moduleAttributes.ClientModuleInstanceName = "HastTable.Default";
+    moduleConfigHashTable.MaximumTableSize = BUFFER_COUNT_MAXIMUM;
     moduleConfigHashTable.MaximumValueLength = BUFFER_SIZE;
     moduleConfigHashTable.MaximumKeyLength = KEY_SIZE;
     moduleConfigHashTable.EvtHashTableHashCalculate = NULL;
@@ -679,7 +678,8 @@ Return Value:
     //
     DMF_CONFIG_HashTable_AND_ATTRIBUTES_INIT(&moduleConfigHashTable,
                                               &moduleAttributes);
-    moduleConfigHashTable.MaximumTableSize = BUFFER_COUNT_MAX;
+    moduleAttributes.ClientModuleInstanceName = "HastTable.Custom";
+    moduleConfigHashTable.MaximumTableSize = BUFFER_COUNT_MAXIMUM;
     moduleConfigHashTable.MaximumValueLength = BUFFER_SIZE;
     moduleConfigHashTable.MaximumKeyLength = KEY_SIZE;
     moduleConfigHashTable.EvtHashTableHashCalculate = HashTable_HashCalculate;
