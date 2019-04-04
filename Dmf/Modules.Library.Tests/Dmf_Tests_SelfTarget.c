@@ -51,7 +51,8 @@ typedef struct
 {
     // Module under test.
     //
-    DMFMODULE DmfModuleSelfTarget;
+    DMFMODULE DmfModuleSelfTargetDispatch;
+    DMFMODULE DmfModuleSelfTargetPassive;
     // Work threads that perform actions on the SelfTarget Module.
     //
     DMFMODULE DmfModuleThread[THREAD_COUNT];
@@ -97,7 +98,23 @@ Tests_SelfTarget_ThreadAction_Synchronous(
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  15000);
     bytesWritten = 0;
-    ntStatus = DMF_SelfTarget_SendSynchronously(moduleContext->DmfModuleSelfTarget,
+    ntStatus = DMF_SelfTarget_SendSynchronously(moduleContext->DmfModuleSelfTargetDispatch,
+                                                &sleepIoctlBuffer,
+                                                sizeof(sleepIoctlBuffer),
+                                                NULL,
+                                                NULL,
+                                                ContinuousRequestTarget_RequestType_Ioctl,
+                                                IOCTL_Tests_IoctlHandler_SLEEP,
+                                                0,
+                                                &bytesWritten);
+    ASSERT(NT_SUCCESS(ntStatus));
+    // TODO: Get time and compare with send time.
+    //
+
+    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 15000);
+    bytesWritten = 0;
+    ntStatus = DMF_SelfTarget_SendSynchronously(moduleContext->DmfModuleSelfTargetPassive,
                                                 &sleepIoctlBuffer,
                                                 sizeof(sleepIoctlBuffer),
                                                 NULL,
@@ -159,7 +176,22 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  15000);
     bytesWritten = 0;
-    ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTarget,
+    ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetDispatch,
+                                   &sleepIoctlBuffer,
+                                   sizeof(sleepIoctlBuffer),
+                                   NULL,
+                                   NULL,
+                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                   IOCTL_Tests_IoctlHandler_SLEEP,
+                                   0,
+                                   Tests_SelfTarget_SendCompletion,
+                                   NULL);
+    ASSERT(NT_SUCCESS(ntStatus));
+
+    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 15000);
+    bytesWritten = 0;
+    ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetPassive,
                                    &sleepIoctlBuffer,
                                    sizeof(sleepIoctlBuffer),
                                    NULL,
@@ -173,6 +205,8 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
 }
 #pragma code_seg()
 
+// TODO: Module does not support cancellation of individual requests.
+//
 #pragma code_seg("PAGE")
 static
 void
@@ -195,7 +229,23 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  15000);
     bytesWritten = 0;
-    ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTarget,
+    ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetDispatch,
+                                   &sleepIoctlBuffer,
+                                   sizeof(sleepIoctlBuffer),
+                                   NULL,
+                                   NULL,
+                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                   IOCTL_Tests_IoctlHandler_SLEEP,
+                                   0,
+                                   Tests_SelfTarget_SendCompletion,
+                                   NULL);
+    ASSERT(NT_SUCCESS(ntStatus));
+    DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+
+    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 15000);
+    bytesWritten = 0;
+    ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetPassive,
                                    &sleepIoctlBuffer,
                                    sizeof(sleepIoctlBuffer),
                                    NULL,
@@ -425,13 +475,22 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // SelfTarget
+    // SelfTarget (DISPATCH_LEVEL)
     //
     DMF_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
                         &moduleAttributes,
                         WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleSelfTarget);
+                        &moduleContext->DmfModuleSelfTargetDispatch);
+
+    // SelfTarget (PASSIVE_LEVEL)
+    //
+    DMF_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
+    moduleAttributes.PassiveLevel = TRUE;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleSelfTargetPassive);
 
     // Thread
     // ------
