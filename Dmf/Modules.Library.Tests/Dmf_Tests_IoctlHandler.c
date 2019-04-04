@@ -88,6 +88,7 @@ Test_IoctlHandler_BufferPool_TimerCallback(
     DMFMODULE dmfModuleParent;
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
     SleepContext* sleepContext;
+    NTSTATUS ntStatus;
 
     UNREFERENCED_PARAMETER(ClientBufferContext);
     UNREFERENCED_PARAMETER(ClientDriverCallbackContext);
@@ -96,8 +97,13 @@ Test_IoctlHandler_BufferPool_TimerCallback(
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
     sleepContext = (SleepContext*)ClientBuffer;
-    WdfRequestComplete(sleepContext->Request,
-                       STATUS_SUCCESS);
+    
+    ntStatus = WdfRequestUnmarkCancelable(sleepContext->Request);
+    if (ntStatus != STATUS_CANCELLED)
+    {
+        WdfRequestComplete(sleepContext->Request,
+                           STATUS_SUCCESS);
+    }
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolFree,
                        ClientBuffer);
@@ -128,8 +134,11 @@ Test_IoctlHandler_BufferPool_Enumeration(
 
     if (sleepContext->Request == (WDFREQUEST)ClientBufferContext)
     {
+        // Since this is called from Cancel Callback, it is not necessary to
+        // "unmark" cancelable.
+        //
         WdfRequestComplete(sleepContext->Request,
-                           STATUS_CANCELLED);
+                            STATUS_CANCELLED);
         enumerationDispositionType = BufferPool_EnumerationDisposition_RemoveAndStopEnumeration;
     }
     else
@@ -224,7 +233,6 @@ Return Value:
             SleepContext* sleepContext;
             WDF_OBJECT_ATTRIBUTES objectAttributes;
             REQUEST_CONTEXT* requestContext;
-            VOID* clientBufferContext;
 
             WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
                                                     REQUEST_CONTEXT);
@@ -241,7 +249,7 @@ Return Value:
 
             ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolFree,
                                           &clientBuffer,
-                                          &clientBufferContext);
+                                          NULL);
             ASSERT(NT_SUCCESS(ntStatus));
 
             sleepContext = (SleepContext*)clientBuffer;
@@ -251,7 +259,6 @@ Return Value:
             RtlCopyMemory(&sleepContext->SleepRequest,
                           sleepRequestBuffer,
                           sizeof(Tests_IoctlHandler_Sleep));
-            *(DMFMODULE*)clientBufferContext = DmfModule;
 
             DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
                                               clientBuffer,

@@ -54,6 +54,9 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler_Public.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c">
@@ -81,6 +84,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
