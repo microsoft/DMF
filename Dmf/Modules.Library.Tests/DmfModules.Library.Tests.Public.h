@@ -31,6 +31,7 @@ extern "C"
 //
 #include "..\Modules.Library\DmfModules.Library.Public.h"
 
+#include "Dmf_Tests_IoctlHandler_Public.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.

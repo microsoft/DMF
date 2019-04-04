@@ -47,6 +47,7 @@ extern "C"
 #include "Dmf_Tests_PingPongBuffer.h"
 #include "Dmf_Tests_ScheduledTask.h"
 #include "Dmf_Tests_HashTable.h"
+#include "Dmf_Tests_IoctlHandler.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.

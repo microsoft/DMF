@@ -281,6 +281,8 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler_Public.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.h" />
@@ -291,6 +293,7 @@
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.c" />
