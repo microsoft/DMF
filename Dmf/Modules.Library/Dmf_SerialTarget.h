@@ -82,6 +82,10 @@ typedef struct
     // Share Access.
     //
     ULONG ShareAccess;
+    // Module is opened when system power state transitions from SX to S0.
+    // Module is closed when system power state transitions from S0 to SX.
+    //
+    BOOLEAN CloseOnHibernate;
     // Child Request Stream Module.
     //
     DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;

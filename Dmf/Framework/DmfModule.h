@@ -566,6 +566,9 @@ typedef enum
     // Call DMF_Module_RegisterNotification() in EvtPrepareHardware.
     //
     DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware,
+    // Call DMF_ModuleOpen() in EvtD0Entry during system power up.
+    //
+    DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp,
     // Call DMF_ModuleOpen() in EvtD0Entry.
     //
     DMF_MODULE_OPEN_OPTION_OPEN_D0Entry,

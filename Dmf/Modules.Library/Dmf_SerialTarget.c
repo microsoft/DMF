@@ -692,6 +692,7 @@ SerialTarget_IoTargetDestroy(
     if (ModuleContext->IoTarget != NULL)
     {
         WdfIoTargetClose(ModuleContext->IoTarget);
+        DMF_ContinuousRequestTarget_IoTargetClear(ModuleContext->DmfModuleContinuousRequestTarget);
         WdfObjectDelete(ModuleContext->IoTarget);
         ModuleContext->IoTarget = NULL;
     }
@@ -977,10 +978,14 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_CONFIG_SerialTarget* moduleConfig;
+    DmfModuleOpenOption openOption;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
+
+    moduleConfig = (DMF_CONFIG_SerialTarget*)DmfModuleAttributes->ModuleConfigPointer;
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SerialTarget);
     DmfCallbacksDmf_SerialTarget.DeviceOpen = DMF_SerialTarget_Open;
@@ -988,11 +993,20 @@ Return Value:
     DmfCallbacksDmf_SerialTarget.DeviceResourcesAssign = DMF_SerialTarget_ResourcesAssign;
     DmfCallbacksDmf_SerialTarget.ChildModulesAdd = DMF_SerialTarget_ChildModulesAdd;
 
+    if (moduleConfig->CloseOnHibernate == TRUE)
+    {
+        openOption = DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp;
+    }
+    else
+    {
+        openOption = DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware;
+    }
+
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SerialTarget,
                                             SerialTarget,
                                             DMF_CONTEXT_SerialTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            openOption);
 
     DmfModuleDescriptor_SerialTarget.CallbacksDmf = &DmfCallbacksDmf_SerialTarget;
 

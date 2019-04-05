@@ -133,6 +133,9 @@ typedef enum
     // Allow access to Administrator on a per-IOCTL basis.
     //
     IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl,
+    // Restrict to Kernel-mode access only.
+    //
+    IoctlHandler_AccessModeFilterKernelModeOnly
 } IoctlHandler_AccessModeFilterType;
 
 // Client uses this structure to configure the Module specific parameters.
