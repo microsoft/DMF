@@ -228,30 +228,37 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 
-    // Tests_IoctlHandler
-    // ------------------
-    //
-    DMF_Tests_IoctlHandler_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
-    // Tests_SelfTarget
-    // ----------------
-    //
-    DMF_Tests_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
     if (isFunctionDriver)
     {
-
+        // Tests_DeviceInterfaceTarget
+        // ---------------------------
+        //
+        DMF_Tests_DeviceInterfaceTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
     }
     else
     {
+        // Tests_IoctlHandler
+        // ------------------
+        //
+        DMF_Tests_IoctlHandler_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
+        // Tests_SelfTarget
+        // ----------------
+        //
+        DMF_Tests_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
         // Tests_Pdo
         // ---------
         //
