@@ -80,7 +80,6 @@ DECLARE_DMF_MODULE(LiveKernelDump)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-_Must_inspect_result_
 NTSTATUS
 DMF_LiveKernelDump_DataBufferSourceAdd(
     _In_ DMFMODULE DmfModule,

@@ -1410,8 +1410,8 @@ DMF_Portable_Rundown_Completed(
 NTSTATUS
 DMF_Invoke_DeviceCallbacksCreate(
     _In_ WDFDEVICE Device,
-    _In_ WDFCMRESLIST ResourcesRaw,
-    _In_ WDFCMRESLIST ResourcesTranslated,
+    _In_opt_ WDFCMRESLIST ResourcesRaw,
+    _In_opt_ WDFCMRESLIST ResourcesTranslated,
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     );
 

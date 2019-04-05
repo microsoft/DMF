@@ -57,7 +57,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
 
@@ -105,7 +104,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
 
@@ -153,7 +151,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
@@ -199,7 +196,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
 
@@ -244,7 +240,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
 
@@ -288,7 +283,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
@@ -332,7 +326,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
@@ -380,7 +373,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -430,7 +422,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -485,7 +476,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -542,7 +532,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -588,7 +577,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -628,7 +616,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -669,7 +656,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -712,7 +698,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -755,7 +740,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -797,7 +781,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -838,7 +821,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -881,7 +863,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -926,7 +907,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -970,7 +950,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1015,7 +994,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1057,7 +1035,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1097,7 +1074,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1143,7 +1119,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1187,7 +1162,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1227,7 +1201,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1275,7 +1248,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Request=0x%p", DmfModule, dmfObject->ClientModuleInstanceName, Request);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1324,7 +1296,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1371,7 +1342,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
@@ -1421,7 +1391,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     // NOTE: In the case where there is no handler, allow "Opened".
     // NOTE: In the cases where Modules are Opened, Closed and Opened again, allow "Closed" state.
@@ -1470,7 +1439,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     // NOTE: In the cases where Modules are Opened, Closed and Opened again, allow "Closed" state.
     //
@@ -1514,7 +1482,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
@@ -1553,7 +1520,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_Open(dmfObject);
     dmfObject->ModuleState = ModuleState_Opening;
@@ -1633,7 +1599,6 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_Close(dmfObject);
 

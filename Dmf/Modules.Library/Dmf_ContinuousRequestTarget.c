@@ -194,7 +194,7 @@ Return Value:
     result = InterlockedDecrement(&ModuleContext->StreamingRequestCount);
     ASSERT(result >= 0);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, 
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "[%d -> %d]", 
                 result + 1, 
                 result);
@@ -454,7 +454,7 @@ Return Value:
     dmfModule = singleAsynchronousRequestContext->DmfModule;
     ASSERT(dmfModule != NULL);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [Completion Request]", Request);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Completion Request]", Request);
 
     ContinuousRequestTarget_ProcessAsynchronousRequestSingle(dmfModule,
                                                              Request,
@@ -517,7 +517,7 @@ Return Value:
     workitemContext.RequestCompletionParams = *CompletionParams;
     workitemContext.SingleAsynchronousRequestContext = singleAsynchronousRequestContext;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [Enqueue Completion]", Request);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Enqueue Completion]", Request);
 
     DMF_QueuedWorkItem_Enqueue(moduleContext->DmfModuleQueuedWorkitemSingle,
                                (VOID*)&workitemContext,
@@ -613,7 +613,7 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [Not Stopped]", Request);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Not Stopped]", Request);
         // Call the Client's callback function to give the Client Buffer a chance to use the output buffer.
         // The Client returns TRUE if Client expects this Module to return the buffer to its own list.
         // Otherwise, the Client will take ownership of the buffer and return it later using a Module Methods.
@@ -655,7 +655,7 @@ Return Value:
         (bufferDisposition == ContinuousRequestTarget_BufferDisposition_ClientAndContinueStreaming))
         )
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p Send again", Request);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p Send again", Request);
 
         ntStatus = ContinuousRequestTarget_StreamRequestSend(DmfModule,
                                                              Request);
@@ -665,7 +665,7 @@ Return Value:
         }
         else
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ContinuousRequestTarget_StreamRequestSend success: ntStatus=%!STATUS! Request=0x%p", ntStatus, Request);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "ContinuousRequestTarget_StreamRequestSend success: ntStatus=%!STATUS! Request=0x%p", ntStatus, Request);
         }
     }
     else
@@ -689,7 +689,7 @@ Return Value:
     else
     {
 #if ! defined(DMF_USER_MODE)
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [No decrement]", Request);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [No decrement]", Request);
 #endif
     }
 
@@ -1437,7 +1437,7 @@ Return Value:
 
     workitemContext = (ContinuousRequestTarget_QueuedWorkitemContext*)ClientBuffer;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [Queued Callback]", workitemContext->Request);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Queued Callback]", workitemContext->Request);
 
     ContinuousRequestTarget_ProcessAsynchronousRequestStream(dmfModuleParent,
                                                              workitemContext->Request,
@@ -1500,7 +1500,7 @@ Return Value:
     //
     LONG requestsToCancel = (LONG)moduleConfig->ContinuousRequestCount;
     ASSERT(moduleContext->StreamingRequestCount <= requestsToCancel);
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Cancel Pending Requests: START requestsToCancel=%d", requestsToCancel);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cancel Pending Requests: START requestsToCancel=%d", requestsToCancel);
     for (LONG requestIndex = 0; requestIndex < requestsToCancel; requestIndex++)
     {
         request = (WDFREQUEST)WdfCollectionGetItem(moduleContext->CreatedStreamRequestsCollection,
@@ -1508,7 +1508,7 @@ Return Value:
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestCancelSentRequest Request[%d]=0x%p", requestIndex, request);
         WdfRequestCancelSentRequest(request);
     }
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Cancel Pending Requests: END");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cancel Pending Requests: END");
 
     FuncExitVoid(DMF_TRACE);
 }

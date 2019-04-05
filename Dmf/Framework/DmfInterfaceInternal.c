@@ -364,6 +364,13 @@ Return Value:
     interfaceFound = FALSE;
     dmfObject = DMF_ModuleToObject(ModuleWithBindings);
 
+    // For SAL.
+    //
+    if (DmfInterfaceObject != NULL)
+    {
+        *DmfInterfaceObject = NULL;
+    }
+
     WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
 
     for (interfaceIndex = 0; interfaceIndex < WdfCollectionGetCount(dmfObject->InterfaceBindings); interfaceIndex++)
@@ -441,6 +448,13 @@ Return Value:
     interfaceFound = FALSE;
     dmfInterface = NULL;
     dmfObject = DMF_ModuleToObject(ModuleWithBindings);
+
+    // For SAL.
+    //
+    if (DmfInterfaceObject != NULL)
+    {
+        *DmfInterfaceObject = NULL;
+    }
 
     WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
 

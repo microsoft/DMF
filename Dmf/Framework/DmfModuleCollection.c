@@ -442,7 +442,6 @@ Return Value:
     LONG driverModuleIndex;
 
     FuncEntryArguments(DMF_TRACE, "ModuleCollectionHandle=0x%p ModuleOpenedDuring=%d", ModuleCollectionHandle, ModuleOpenedDuring);
-    TraceInformation(DMF_TRACE, "ModuleCollectionHandle=0x%p ModuleOpenedDuring=%d", ModuleCollectionHandle, ModuleOpenedDuring);
 
     // NumberOfClientDriverDmfModules may be zero in cases where all elements of structure
     // have not been allocated (usually due to fault injection).
@@ -503,7 +502,6 @@ Return Value:
     dmfCollection = (DMFCOLLECTION)Object;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", dmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", dmfCollection);
 
     if (NULL == dmfCollection)
     {
@@ -523,6 +521,9 @@ Return Value:
     if (moduleCollectionHandle->ManualDestroyCallbackIsPending)
     {
         moduleCollectionHandle->ManualDestroyCallbackIsPending = FALSE;
+        // '_Param_(2)' could be '0':  this does not adhere to the specification for the function 'DMF_Invoke_DeviceCallbacksDestroy'
+        //
+        #pragma warning(suppress:6387)
         DMF_Invoke_DeviceCallbacksDestroy(moduleCollectionHandle->ClientDevice,
                                           NULL,
                                           WdfPowerDeviceD0);
@@ -616,7 +617,6 @@ Return Value:
     NTSTATUS ntStatus;
 
     FuncEntryArguments(DMF_TRACE, "ModuleCollectionHandle=0x%p", ModuleCollectionHandle);
-    TraceInformation(DMF_TRACE, "ModuleCollectionHandle=0x%p", ModuleCollectionHandle);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -671,7 +671,6 @@ Return Value:
     LONG driverModuleIndex;
 
     FuncEntryArguments(DMF_TRACE, "ModuleCollectionHandle=0x%p", ModuleCollectionHandle);
-    TraceInformation(DMF_TRACE, "ModuleCollectionHandle=0x%p", ModuleCollectionHandle);
 
     for (driverModuleIndex = 0; driverModuleIndex < ModuleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
@@ -729,7 +728,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -744,7 +742,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModulePrepareHardwareImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModulePrepareHardware ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModulePrepareHardware ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -818,7 +816,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -841,7 +838,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleReleaseHardwareImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleReleaseHardware ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleReleaseHardware ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -912,7 +909,6 @@ Return Value:
     LONG driverModuleIndex;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p PreviousState=%d", DmfCollection, PreviousState);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p PreviousState=%d", DmfCollection, PreviousState);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -927,7 +923,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleD0EntryImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleD0Entry ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleD0Entry ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -997,7 +993,6 @@ Return Value:
     LONG driverModuleIndex;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p PreviousState=%d", DmfCollection, PreviousState);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p PreviousState=%d", DmfCollection, PreviousState);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1012,7 +1007,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleD0EntryPostInterruptsEnabledImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleD0EntryPostInterruptsEnabled ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleD0EntryPostInterruptsEnabled ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1065,7 +1060,6 @@ Return Value:
 --*/
 {
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1104,7 +1098,6 @@ Return Value:
     LONG driverModuleIndex;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p TargetState=%d", DmfCollection, TargetState);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p TargetState=%d", DmfCollection, TargetState);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1119,7 +1112,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleD0ExitPreInterruptsDisabledImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleD0ExitPreInterruptsDisabled ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleD0ExitPreInterruptsDisabled ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1179,7 +1172,6 @@ Return Value:
     LONG driverModuleIndex;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p TargetState=%d", DmfCollection, TargetState);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p TargetState=%d", DmfCollection, TargetState);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1194,7 +1186,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleD0ExitImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleD0Exit ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleD0Exit ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1259,7 +1251,6 @@ Return Value:
     BOOLEAN handled;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1274,7 +1265,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleQueueIoReadImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleQueueIoRead handled=%d", handled);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleQueueIoRead handled=%d", handled);
         goto Exit;
     }
 
@@ -1340,7 +1331,6 @@ Return Value:
     BOOLEAN handled;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1355,7 +1345,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleQueueIoWriteImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleQueueIoWrite handled=%d", handled);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleQueueIoWrite handled=%d", handled);
         goto Exit;
     }
 
@@ -1425,7 +1415,6 @@ Return Value:
     BOOLEAN handled;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1440,7 +1429,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleDeviceIoControlImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleDeviceIoControl handled=%d", handled);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleDeviceIoControl handled=%d", handled);
         goto Exit;
     }
 
@@ -1512,7 +1501,6 @@ Return Value:
     BOOLEAN handled;
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1527,7 +1515,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleInternalDeviceIoControlImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleInternalDeviceIoControl handled=%d", handled);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleInternalDeviceIoControl handled=%d", handled);
         goto Exit;
     }
 
@@ -1587,7 +1575,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1600,7 +1587,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleSelfManagedIoCleanupImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoCleanup");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoCleanup");
         goto Exit;
     }
 
@@ -1639,7 +1626,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1652,7 +1638,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleSelfManagedIoFlushImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoFlush");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoFlush");
         goto Exit;
     }
 
@@ -1694,7 +1680,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1707,7 +1692,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleSelfManagedIoInitImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoInit");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoInit");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -1752,7 +1737,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1765,7 +1749,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleSelfManagedIoSuspendImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoSuspend");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoSuspend");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -1810,7 +1794,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1823,7 +1806,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleSelfManagedIoRestartImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoRestart");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleSelfManagedIoRestart");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -1865,7 +1848,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1878,7 +1860,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleSurpriseRemovalImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleSurpriseRemoval");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleSurpriseRemoval");
         goto Exit;
     }
 
@@ -1920,7 +1902,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1933,7 +1914,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleQueryRemoveImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleQueryRemove");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleQueryRemove");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -1978,7 +1959,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -1991,7 +1971,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleQueryStopImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleQueryStop");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleQueryStop");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -2036,7 +2016,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2049,7 +2028,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleRelationsQueryImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleRelationsQuery");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleRelationsQuery");
         goto Exit;
     }
 
@@ -2105,7 +2084,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2120,7 +2098,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleUsageNotificationExImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleUsageNotificationEx");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleUsageNotificationEx");
         goto Exit;
     }
 
@@ -2178,7 +2156,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2191,7 +2168,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleArmWakeFromS0Implemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleArmWakeFromS0");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleArmWakeFromS0");
         ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
@@ -2233,7 +2210,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2246,7 +2222,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleDisarmWakeFromS0Implemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleDisarmWakeFromS0");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleDisarmWakeFromS0");
         goto Exit;
     }
 
@@ -2285,7 +2261,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2298,7 +2273,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleWakeFromS0TriggeredImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleWakeFromS0Triggered");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleWakeFromS0Triggered");
         goto Exit;
     }
 
@@ -2345,7 +2320,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2360,7 +2334,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleArmWakeFromSxWithReasonImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleArmWakeFromSxWithReason");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleArmWakeFromSxWithReason");
         goto Exit;
     }
 
@@ -2415,7 +2389,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2428,7 +2401,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleDisarmWakeFromSxImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleDisarmWakeFromSx");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleDisarmWakeFromSx");
         goto Exit;
     }
 
@@ -2467,7 +2440,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2480,7 +2452,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleWakeFromSxTriggeredImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleWakeFromSxTriggered");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleWakeFromSxTriggered");
         goto Exit;
     }
 
@@ -2530,7 +2502,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p Request=0x%p", DmfCollection, Request);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2540,7 +2511,7 @@ Return Value:
     {
         // It means that none of the Modules in the Module Collection handled the request.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleFileCreate");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleFileCreate");
         goto Exit;
     }
 
@@ -2606,7 +2577,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2621,7 +2591,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleFileCleanupImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleFileCleanup");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleFileCleanup");
         goto Exit;
     }
 
@@ -2685,7 +2655,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
-    TraceInformation(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
@@ -2700,7 +2669,7 @@ Return Value:
     //
     if (! moduleCollectionHandle->DmfCallbacksWdfCheck.ModuleFileCloseImplemented)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Modules in Collection implement ModuleFileClose");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No Modules in Collection implement ModuleFileClose");
         goto Exit;
     }
 
