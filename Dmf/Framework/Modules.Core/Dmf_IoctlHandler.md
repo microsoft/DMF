@@ -76,6 +76,9 @@ typedef enum
   // Allow access to Administrator on a per-IOCTL basis.
   //
   IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl,
+  // Restrict to Kernel-mode access only.
+  //
+  IoctlHandler_AccessModeFilterKernelModeOnly
 } IoctlHandler_AccessModeFilterType;
 ````
 Member | Description
@@ -85,6 +88,7 @@ IoctlHandler_AccessModeFilterClientCallback | Indicates that a Client callback s
 IoctlHandler_AccessModeFilterDoNotAllowUserMode | Not supported.
 IoctlHandler_AccessModeFilterAdministratorOnly | Indicates that only a process running "As Administrator" has access to all the IOCTLs in the table.
 IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl | Indicates that the IOCTL's table entry indicates if only processes running "As Administrator" have access to the IOCTLs in the table.
+IoctlHandler_AccessModeFilterKernelModeOnly | Restrict to Kernel-mode access only.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

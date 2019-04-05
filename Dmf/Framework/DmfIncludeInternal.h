@@ -80,6 +80,9 @@ typedef enum
     // The Module has been opened during D0Entry (and not cleaned up).
     //
     ModuleOpenedDuringType_D0Entry,
+    // The Module has been opened during D0Entry during system power up (and not cleaned up).
+    //
+    ModuleOpenedDuringType_D0EntrySystemPowerUp,
     ModuleOpenedDuringType_Maximum
 } ModuleOpenedDuringType;
 

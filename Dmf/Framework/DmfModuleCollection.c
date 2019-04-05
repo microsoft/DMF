@@ -947,15 +947,6 @@ Return Value:
 
 Exit:
 
-    if (! NT_SUCCESS(ntStatus))
-    {
-        // If any call to D0Entry handlers fails: we need to close any modules that were 
-        // opened by THIS call.
-        //
-        DMF_ModuleCollectionCleanup(moduleCollectionHandle,
-                                    ModuleOpenedDuringType_D0Entry);
-    }
-
     FuncExit(DMF_TRACE, "DmfCollection=0x%p ntStatus=%!STATUS!", DmfCollection, ntStatus);
 
     return ntStatus;
@@ -1063,6 +1054,8 @@ Return Value:
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
+    DMF_ModuleCollectionCleanup(moduleCollectionHandle,
+                                ModuleOpenedDuringType_D0EntrySystemPowerUp);
     DMF_ModuleCollectionCleanup(moduleCollectionHandle,
                                 ModuleOpenedDuringType_D0Entry);
 

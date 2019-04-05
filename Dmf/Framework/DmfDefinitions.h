@@ -305,6 +305,7 @@ typedef VOID DMF_TransportModuleAdd(_In_ DMFMODULE DmfModule,
                                     _In_ struct _DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
                                     _In_ PVOID DmfModuleInit);
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 typedef NTSTATUS DMF_ModuleTransportMethod(_In_ DMFMODULE DmfModule,
                                            _In_ ULONG Message,
                                            _In_reads_(InputBufferSize) VOID* InputBuffer,

@@ -59,8 +59,8 @@ DMF_MODULE_DECLARE_NO_CONFIG(LegacyTransportB)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+#pragma code_seg()
+_IRQL_requires_max_(DISPATCH_LEVEL)
 static
 VOID
 LegacyTransportB_PrintString(
@@ -85,8 +85,6 @@ Return Value:
 --*/
 {
     UNREFERENCED_PARAMETER(DmfModule);
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
