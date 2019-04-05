@@ -3140,6 +3140,14 @@ Return Value:
     preparsedData = (PHIDP_PREPARSED_DATA)WdfMemoryGetBuffer(moduleContext->PreparsedDataMemory,
                                                              NULL);
 
+    if (moduleContext->HidCaps.NumberFeatureValueCaps == 0)
+    {
+        ASSERT(FALSE);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid parameter! NumberFeatureValueCaps = 0 : ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     // Find the size of the hid report based on the Feature Id (aka report id).
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);

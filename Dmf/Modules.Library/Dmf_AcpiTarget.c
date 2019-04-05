@@ -812,12 +812,15 @@ Return Value:
 
 _Must_inspect_result_
 __drv_requiresIRQL(PASSIVE_LEVEL)
+// 'ReturnBuffer' could be '0':  this does not adhere to the specification for the function 'AcpiTarget_EvaluateAcpiMethod'.
+//
+#pragma warning(disable:6387)
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethod(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG MethodName,
     _In_opt_ VOID* InputBuffer,
-    __deref_opt_out_bcount_opt(*ReturnBufferSize) VOID* *ReturnBuffer,
+    __deref_opt_out_bcount_opt(*ReturnBufferSize) VOID** ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag
     )

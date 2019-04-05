@@ -559,7 +559,8 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    if (IoctlHandler_AccessModeDefault == moduleConfig->AccessModeFilter)
+    if (IoctlHandler_AccessModeDefault == moduleConfig->AccessModeFilter ||
+        IoctlHandler_AccessModeFilterKernelModeOnly == moduleConfig->AccessModeFilter)
     {
         // Callback does nothing...just do what WDF would normally do.
         // This call supports both filter and non-filter drivers correctly.
@@ -982,6 +983,7 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_CONFIG_IoctlHandler* moduleConfig;
 
     PAGED_CODE();
 
@@ -992,7 +994,21 @@ Return Value:
     DmfCallbacksDmf_IoctlHandler.DeviceClose = DMF_IoctlHandler_Close;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_IoctlHandler);
-    DmfCallbacksWdf_IoctlHandler.ModuleDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
+
+    moduleConfig = (DMF_CONFIG_IoctlHandler*)DmfModuleAttributes->ModuleConfigPointer;
+
+    if (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterKernelModeOnly)
+    {
+        // Only allow IOCTLs to come from other Kernel-mode components.
+        //
+        DmfCallbacksWdf_IoctlHandler.ModuleInternalDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
+    }
+    else
+    {
+        // Allow IOCTLs to come from User-mode applications.
+        //
+        DmfCallbacksWdf_IoctlHandler.ModuleDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
+    }
     DmfCallbacksWdf_IoctlHandler.ModuleFileCreate = DMF_IoctlHandler_FileCreate;
     DmfCallbacksWdf_IoctlHandler.ModuleFileCleanup = DMF_IoctlHandler_FileCleanup;
     DmfCallbacksWdf_IoctlHandler.ModuleFileClose = DMF_IoctlHandler_FileClose;

@@ -551,6 +551,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_OBJECT* dmfObject;
+    WDFDEVICE device;
+    POWER_ACTION powerAction;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -560,10 +562,49 @@ Return Value:
     //
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
+    device = DMF_ParentDeviceGet(DmfModule);
+
     // NOTE: If the Module has a ResourceAssign handler, it will have been called by now.
     //
+    if (DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp == dmfObject->ModuleDescriptor.OpenOption)
+    {
+        powerAction = WdfDeviceGetSystemPowerAction(device);
 
-    if (DMF_MODULE_OPEN_OPTION_OPEN_D0Entry == dmfObject->ModuleDescriptor.OpenOption)
+        // Open the module on first boot (WdfPowerDeviceD3Final)
+        // and on wake from hibernate. 
+        // In cases where WdfDeviceGetSystemPowerAction fails to report wake from hibernate,
+        // open the Module if its in closed state. 
+        //
+        if (PreviousState == WdfPowerDeviceD3Final ||
+            ((PreviousState == WdfPowerDeviceD3) &&
+             (powerAction == PowerActionHibernate || dmfObject->ModuleState == ModuleState_Closed)
+            )
+           )
+        {
+            // This Module is automatically opened in D0Entry on power up.
+            //
+            ntStatus = DMF_Internal_Open(DmfModule);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen ntStatus=%!STATUS!", ntStatus);
+            }
+            else
+            {
+                // Indicate when the Module was opened (for clean up operations).
+                // Internal Open has set this value to Manual by default.
+                //
+                ASSERT(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
+                dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_D0EntrySystemPowerUp;
+            }
+        }
+        else
+        {
+            // Do Nothing
+            //
+            ntStatus = STATUS_SUCCESS;
+        }
+    }
+    else if (DMF_MODULE_OPEN_OPTION_OPEN_D0Entry == dmfObject->ModuleDescriptor.OpenOption)
     {
         // This Module is automatically opened in D0Entry.
         //
@@ -730,6 +771,8 @@ Return Value:
 {
     DMF_OBJECT* dmfObject;
     NTSTATUS ntStatus;
+    WDFDEVICE device;
+    POWER_ACTION powerAction;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -739,9 +782,23 @@ Return Value:
     //
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
+    device = DMF_ParentDeviceGet(DmfModule);
+
     ntStatus = STATUS_SUCCESS;
 
-    if (DMF_MODULE_OPEN_OPTION_OPEN_D0Entry == dmfObject->ModuleDescriptor.OpenOption)
+    if (DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp == dmfObject->ModuleDescriptor.OpenOption)
+    {
+        powerAction = WdfDeviceGetSystemPowerAction(device);
+
+        if (TargetState == WdfPowerDeviceD3Final ||
+            (powerAction == PowerActionHibernate && TargetState == WdfPowerDeviceD3))
+        {
+            // This Module is automatically closed in D0Exit during power down.
+            //
+            DMF_Internal_Close(DmfModule);
+        }
+    }
+    else if (DMF_MODULE_OPEN_OPTION_OPEN_D0Entry == dmfObject->ModuleDescriptor.OpenOption)
     {
         // This Module is automatically closed in D0Exit.
         //
