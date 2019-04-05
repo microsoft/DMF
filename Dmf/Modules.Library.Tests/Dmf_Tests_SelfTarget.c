@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (4)
+#define THREAD_COUNT                (2)
 
 typedef enum _TEST_ACTION
 {
@@ -108,7 +108,7 @@ Tests_SelfTarget_ThreadAction_Synchronous(
                                                 IOCTL_Tests_IoctlHandler_SLEEP,
                                                 0,
                                                 &bytesWritten);
-    ASSERT(NT_SUCCESS(ntStatus));
+    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED));
     // TODO: Get time and compare with send time.
     //
 
@@ -124,7 +124,7 @@ Tests_SelfTarget_ThreadAction_Synchronous(
                                                 IOCTL_Tests_IoctlHandler_SLEEP,
                                                 0,
                                                 &bytesWritten);
-    ASSERT(NT_SUCCESS(ntStatus));
+    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED));
     // TODO: Get time and compare with send time.
     //
 }
@@ -187,7 +187,7 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
                                    0,
                                    Tests_SelfTarget_SendCompletion,
                                    NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED));
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  15000);
@@ -202,7 +202,7 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
                                    0,
                                    Tests_SelfTarget_SendCompletion,
                                    NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED));
 }
 #pragma code_seg()
 
@@ -240,7 +240,7 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
                                    0,
                                    Tests_SelfTarget_SendCompletion,
                                    NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED));
     DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
@@ -256,7 +256,7 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
                                    0,
                                    Tests_SelfTarget_SendCompletion,
                                    NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED));
     DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
 }
 #pragma code_seg()
@@ -298,6 +298,7 @@ Tests_SelfTarget_WorkThread(
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
+
     // Execute the test action.
     //
     switch (testAction)
@@ -331,31 +332,28 @@ Tests_SelfTarget_WorkThread(
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Callbacks
+// WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
-Tests_SelfTarget_Open(
+DMF_Tests_SelfTarget_SelfManagedIoInit(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Initialize an instance of a DMF Module of type Test_SelfTarget.
+    Template callback for ModuleSelfManagedIoInit for a given DMF Module.
 
 Arguments:
 
-    DmfModule - This Module's handle.
+    DmfModule - The given DMF Module.
 
 Return Value:
 
-    STATUS_SUCCESS
+    NTSTATUS
 
 --*/
 {
@@ -366,7 +364,7 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-DbgBreakPoint();
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = STATUS_SUCCESS;
@@ -395,24 +393,21 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-Tests_SelfTarget_Close(
+DMF_Tests_SelfTarget_SelfManagedIoCleanup(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Uninitialize an instance of a DMF Module of type Tests_SelfTarget.
+    Template callback for ModuleSelfManagedIoCleanup for a given DMF Module.
 
 Arguments:
 
-    DmfModule - This Module's handle.
+    DmfModule - The given DMF Module.
 
 Return Value:
 
@@ -424,7 +419,7 @@ Return Value:
     LONG index;
 
     PAGED_CODE();
-DbgBreakPoint();
+
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -436,7 +431,11 @@ DbgBreakPoint();
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// DMF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -519,6 +518,7 @@ Return Value:
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_SelfTarget;
 static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_SelfTarget;
+static DMF_CALLBACKS_WDF DmfCallbacksWdf_Tests_SelfTarget;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -560,8 +560,10 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_SelfTarget);
     DmfCallbacksDmf_Tests_SelfTarget.ChildModulesAdd = DMF_Tests_SelfTarget_ChildModulesAdd;
-    DmfCallbacksDmf_Tests_SelfTarget.DeviceOpen = Tests_SelfTarget_Open;
-    DmfCallbacksDmf_Tests_SelfTarget.DeviceClose = Tests_SelfTarget_Close;
+
+    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Tests_SelfTarget);
+    DmfCallbacksWdf_Tests_SelfTarget.ModuleSelfManagedIoInit = DMF_Tests_SelfTarget_SelfManagedIoInit;
+    DmfCallbacksWdf_Tests_SelfTarget.ModuleSelfManagedIoCleanup = DMF_Tests_SelfTarget_SelfManagedIoCleanup;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_SelfTarget,
                                             Tests_SelfTarget,
@@ -570,6 +572,7 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
 
     DmfModuleDescriptor_Tests_SelfTarget.CallbacksDmf = &DmfCallbacksDmf_Tests_SelfTarget;
+    DmfModuleDescriptor_Tests_SelfTarget.CallbacksWdf = &DmfCallbacksWdf_Tests_SelfTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

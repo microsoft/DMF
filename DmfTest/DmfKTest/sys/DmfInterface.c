@@ -162,6 +162,15 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 
+    // Tests_Pdo
+    // ---------
+    //
+    DMF_Tests_Pdo_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+
     // Tests_IoctlHandler
     // ------------------
     //
@@ -170,20 +179,11 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
-#if 0
+
     // Tests_SelfTarget
     // ----------------
     //
     DMF_Tests_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-#endif
-    // Tests_Pdo
-    // ---------
-    //
-    DMF_Tests_Pdo_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,

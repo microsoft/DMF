@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (4)
+#define THREAD_COUNT                (2)
 
 typedef enum _TEST_ACTION
 {
@@ -88,7 +88,7 @@ Tests_Pdo_ThreadAction(
     DMF_CONTEXT_Tests_Pdo* moduleContext;
     NTSTATUS ntStatus;
     ULONG timeToSleepMilliSeconds;
-    PWSTR hardwareIds[] = { L"{}\\DmfKTestFunction" };
+    PWSTR hardwareIds[] = { L"{0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\\DmfKTestFunction" };
     USHORT serialNumber;
     WDFDEVICE device;
 
@@ -115,7 +115,7 @@ Tests_Pdo_ThreadAction(
 
     // Wait some time.
     //
-    timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
+    timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(1000, 
                                                                 MaximumTimeMilliseconds);
     DMF_Utility_DelayMilliseconds(timeToSleepMilliSeconds);
 
@@ -123,7 +123,8 @@ Tests_Pdo_ThreadAction(
     //
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
                                     device);
-    ASSERT(NT_SUCCESS(ntStatus));
+    // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
+    //
 }
 #pragma code_seg()
 
@@ -201,6 +202,11 @@ Tests_Pdo_WorkThread(
     TestsUtility_YieldExecution();
 }
 #pragma code_seg()
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// WDF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks
@@ -435,7 +441,7 @@ Return Value:
                                             Tests_Pdo,
                                             DMF_CONTEXT_Tests_Pdo,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
 
     DmfModuleDescriptor_Tests_Pdo.CallbacksDmf = &DmfCallbacksDmf_Tests_Pdo;
 
