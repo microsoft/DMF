@@ -163,6 +163,7 @@ Tests_IoctlHandler_RequestCancel(
     requestContext = (REQUEST_CONTEXT*)WdfObjectGetTypedContext(Request,
                                                                 REQUEST_CONTEXT);
 
+    ASSERT(requestContext->DmfModuleTestIoctlHandler != NULL);
     moduleContext = DMF_CONTEXT_GET(requestContext->DmfModuleTestIoctlHandler);
 
     DMF_BufferPool_Enumerate(moduleContext->DmfModuleBufferPoolPending,
@@ -243,6 +244,11 @@ Return Value:
             {
                 goto Exit;
             }
+
+            // Save the Module in private context for cancel routine.
+            // It is necessary so that it can be removed from lists.
+            //
+            requestContext->DmfModuleTestIoctlHandler = dmfModuleParent;
 
             WdfRequestMarkCancelable(Request,
                                      Tests_IoctlHandler_RequestCancel);

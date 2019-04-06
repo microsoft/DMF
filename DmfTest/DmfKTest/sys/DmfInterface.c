@@ -228,7 +228,7 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 #endif
-DbgBreakPoint();
+
     if (isFunctionDriver)
     {
         // Tests_DeviceInterfaceTarget

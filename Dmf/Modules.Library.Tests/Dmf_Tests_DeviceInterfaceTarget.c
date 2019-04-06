@@ -93,7 +93,7 @@ Tests_DeviceInterfaceTarget_BufferInput(
     UNREFERENCED_PARAMETER(ClientBuferContextInput);
 
     PAGED_CODE();
-DbgBreakPoint();
+
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  15000);
     RtlCopyMemory(InputBuffer,
@@ -114,7 +114,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
     size_t bytesWritten;
 
     PAGED_CODE();
-DbgBreakPoint();
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     RtlZeroMemory(&sleepIoctlBuffer,
@@ -190,7 +190,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
     NTSTATUS ntStatus;
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
-DbgBreakPoint();
+
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -245,7 +245,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     size_t bytesWritten;
 
     PAGED_CODE();
-DbgBreakPoint();
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     RtlZeroMemory(&sleepIoctlBuffer,
@@ -301,7 +301,7 @@ Tests_DeviceInterfaceTarget_WorkThread(
 
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
-DbgBreakPoint();
+
     // Generate a random test action Id for a current iteration.
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
@@ -365,7 +365,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-DbgBreakPoint();
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = STATUS_SUCCESS;
@@ -461,7 +460,6 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-DbgBreakPoint();
     ntStatus = Tests_DeviceInterfaceTarget_NonContinousStart(dmfModuleParent);
     ASSERT(NT_SUCCESS(ntStatus));
 
@@ -524,7 +522,6 @@ Return Value:
     DMFMODULE dmfModuleParent;
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-DbgBreakPoint();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
