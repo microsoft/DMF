@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (2)
+#define THREAD_COUNT                (1)
 
 typedef enum _TEST_ACTION
 {
@@ -55,7 +55,8 @@ typedef struct
     DMFMODULE DmfModuleDeviceInterfaceTargetPassive;
     // Work threads that perform actions on the DeviceInterfaceTarget Module.
     //
-    DMFMODULE DmfModuleThread[THREAD_COUNT];
+    DMFMODULE DmfModuleThreadAuto[THREAD_COUNT];
+    DMFMODULE DmfModuleThreadManual[THREAD_COUNT];
 } DMF_CONTEXT_Tests_DeviceInterfaceTarget;
 
 // This macro declares the following function:
@@ -338,7 +339,7 @@ Tests_DeviceInterfaceTarget_WorkThread(
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
-Tests_DeviceInterfaceTarget_NonContinousStart(
+Tests_DeviceInterfaceTarget_NonContinousStartAuto(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -374,7 +375,7 @@ Return Value:
     //
     for (index = 0; index < THREAD_COUNT; index++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[index]);
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadAuto[index]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -384,7 +385,7 @@ Return Value:
 
     for (index = 0; index < THREAD_COUNT; index++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThread[index]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadAuto[index]);
     }
 
 Exit:
@@ -396,7 +397,7 @@ Exit:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-Tests_DeviceInterfaceTarget_NonContinousStop(
+Tests_DeviceInterfaceTarget_NonContinousStopAuto(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -426,7 +427,103 @@ Return Value:
 DbgBreakPoint();
     for (index = 0; index < THREAD_COUNT; index++)
     {
-        DMF_Thread_Stop(moduleContext->DmfModuleThread[index]);
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadAuto[index]);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+Tests_DeviceInterfaceTarget_NonContinousStartManual(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoInit for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+    LONG index;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    // Create threads that read with expected success, read with expected failure
+    // and enumerate.
+    //
+    for (index = 0; index < THREAD_COUNT; index++)
+    {
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManual[index]);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
+    for (index = 0; index < THREAD_COUNT; index++)
+    {
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManual[index]);
+    }
+
+Exit:
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_NonContinousStopManual(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Template callback for ModuleSelfManagedIoCleanup for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    LONG index;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+DbgBreakPoint();
+    for (index = 0; index < THREAD_COUNT; index++)
+    {
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[index]);
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -460,7 +557,7 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    ntStatus = Tests_DeviceInterfaceTarget_NonContinousStart(dmfModuleParent);
+    ntStatus = Tests_DeviceInterfaceTarget_NonContinousStartAuto(dmfModuleParent);
     ASSERT(NT_SUCCESS(ntStatus));
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
@@ -492,7 +589,7 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 DbgBreakPoint();
-    Tests_DeviceInterfaceTarget_NonContinousStop(dmfModuleParent);
+    Tests_DeviceInterfaceTarget_NonContinousStopAuto(dmfModuleParent);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 
@@ -528,7 +625,7 @@ Return Value:
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
     {
-        Tests_DeviceInterfaceTarget_NonContinousStart(dmfModuleParent);
+        Tests_DeviceInterfaceTarget_NonContinousStartManual(dmfModuleParent);
     }
     ASSERT(NT_SUCCESS(ntStatus));
 
@@ -562,7 +659,7 @@ Return Value:
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 DbgBreakPoint();
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
-    Tests_DeviceInterfaceTarget_NonContinousStart(dmfModuleParent);
+    Tests_DeviceInterfaceTarget_NonContinousStartManual(dmfModuleParent);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 
@@ -687,7 +784,16 @@ Return Value:
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
-                         &moduleContext->DmfModuleThread[threadIndex]);
+                         &moduleContext->DmfModuleThreadAuto[threadIndex]);
+
+        DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                              &moduleAttributes);
+        moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+        moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_DeviceInterfaceTarget_WorkThread;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleThreadManual[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
