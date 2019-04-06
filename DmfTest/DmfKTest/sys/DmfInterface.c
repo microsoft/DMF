@@ -164,7 +164,7 @@ Return Value:
     PAGED_CODE();
 
     isFunctionDriver = DriverModeGet(Device);
-
+#if 0
     // Tests_BufferPool
     // ----------------
     //
@@ -227,7 +227,8 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
-
+#endif
+DbgBreakPoint();
     if (isFunctionDriver)
     {
         // Tests_DeviceInterfaceTarget

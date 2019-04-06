@@ -37,10 +37,9 @@ typedef enum _TEST_ACTION
     TEST_ACTION_SYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUSCANCEL,
-    TEST_ACTION_CONTINUOUS,
     TEST_ACTION_COUNT,
     TEST_ACTION_MINIUM      = TEST_ACTION_SYNCHRONOUS,
-    TEST_ACTION_MAXIMUM     = TEST_ACTION_CONTINUOUS
+    TEST_ACTION_MAXIMUM     = TEST_ACTION_ASYNCHRONOUSCANCEL
 } TEST_ACTION;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,22 +261,6 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-static
-void
-Tests_SelfTarget_ThreadAction_Continous(
-    _In_ DMFMODULE DmfModule
-    )
-{
-    DMF_CONTEXT_Tests_SelfTarget* moduleContext;
-
-    PAGED_CODE();
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -311,9 +294,6 @@ Tests_SelfTarget_WorkThread(
             break;
         case TEST_ACTION_ASYNCHRONOUSCANCEL:
             Tests_SelfTarget_ThreadAction_AsynchronousCancel(dmfModule);
-            break;
-        case TEST_ACTION_CONTINUOUS:
-            Tests_SelfTarget_ThreadAction_Continous(dmfModule);
             break;
         default:
             ASSERT(FALSE);

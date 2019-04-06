@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (2)
+#define THREAD_COUNT                (1)
 
 typedef enum _TEST_ACTION
 {
@@ -138,7 +138,7 @@ Tests_Pdo_ThreadAction_Fast(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           1000);
+                           100000000);
 }
 #pragma code_seg()
 
@@ -152,7 +152,7 @@ Tests_Pdo_ThreadAction_Slow(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           15000);
+                           100000000);
 }
 #pragma code_seg()
 
