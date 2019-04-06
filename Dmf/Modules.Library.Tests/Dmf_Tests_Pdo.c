@@ -138,7 +138,7 @@ Tests_Pdo_ThreadAction_Fast(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           100000000);
+                           1000);
 }
 #pragma code_seg()
 
@@ -152,7 +152,7 @@ Tests_Pdo_ThreadAction_Slow(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           100000000);
+                           1000 * 60);
 }
 #pragma code_seg()
 
@@ -177,6 +177,7 @@ Tests_Pdo_WorkThread(
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
+testAction = TEST_ACTION_SLOW;
     // Execute the test action.
     //
     switch (testAction)
