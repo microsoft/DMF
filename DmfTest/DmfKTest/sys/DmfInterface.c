@@ -164,7 +164,7 @@ Return Value:
     PAGED_CODE();
 
     isFunctionDriver = DriverModeGet(Device);
-#if 0
+
     // Tests_BufferPool
     // ----------------
     //
@@ -227,18 +227,9 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
-#endif
 
     if (isFunctionDriver)
     {
-        // Tests_DeviceInterfaceTarget
-        // ---------------------------
-        //
-        DMF_Tests_DeviceInterfaceTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
     }
     else
     {
