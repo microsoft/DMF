@@ -424,7 +424,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-DbgBreakPoint();
+
     for (index = 0; index < THREAD_COUNT; index++)
     {
         DMF_Thread_Stop(moduleContext->DmfModuleThreadAuto[index]);
@@ -520,7 +520,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-DbgBreakPoint();
+
     for (index = 0; index < THREAD_COUNT; index++)
     {
         DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[index]);
@@ -588,7 +588,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-DbgBreakPoint();
+
     Tests_DeviceInterfaceTarget_NonContinousStopAuto(dmfModuleParent);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
@@ -657,7 +657,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-DbgBreakPoint();
+
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
     Tests_DeviceInterfaceTarget_NonContinousStartManual(dmfModuleParent);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
