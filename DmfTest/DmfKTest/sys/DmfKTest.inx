@@ -34,14 +34,23 @@ DmfKTest.sys=1,,
 ; To install the driver run the following command from driver's package folder:
 ; devcon install DmfKTest.inf root\DmfKTest
 %DmfKTest%=DmfKTest.Inst, root\DmfKTest
+%DmfKTest%=DmfKTest.InstFunction, {0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\DmfKTestFunction
 
 [DmfKTest.Inst.NT]
 CopyFiles = Drivers_Dir
 
-;-------------- Service installation
-
 [DmfKTest.Inst.NT.Services]
 AddService = DmfKTest,%SERVICE_DEMAND_START%,DmfKTest_Service_Inst, DmfKTest_EventLogInst
+
+[DmfKTest.InstFunction.NT]
+CopyFiles = Drivers_Dir
+AddReg = DmfKTest.InstFunction.AddReg
+
+[DmfKTest.InstFunction.NT.Services]
+AddService = DmfKTest,%SERVICE_DEMAND_START%,DmfKTest_Service_Inst, DmfKTest_EventLogInst
+
+[DmfKTest.InstFunction.AddReg]
+HKR,,"FunctionDriver", %REG_DWORD%, 1
 
 [Drivers_Dir]
 DmfKTest.sys

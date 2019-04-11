@@ -280,19 +280,30 @@
     <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Trace.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler_Public.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\TestsUtility.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -70,6 +70,69 @@ DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfKTestEvtDeviceAdd,
 #pragma code_seg()
 
 #pragma code_seg("PAGED")
+_Check_return_
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+BOOLEAN
+DriverModeGet(
+    _In_ WDFDEVICE WdfDevice
+    )
+/*++
+
+Routine Description:
+
+    Determines the mode the driver is running in (either bus or function).
+
+Arguments:
+
+    WdfDevice - Client driver Wdf device.
+
+Return Value:
+
+    0 - Bus.
+    Otherwise - Function.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFKEY wdfSoftwareKey;
+    BOOLEAN driverMode;
+    ULONG valueData;
+    DECLARE_CONST_UNICODE_STRING(valueName, L"FunctionDriver");
+
+    driverMode = 0;
+
+    ntStatus = WdfDeviceOpenRegistryKey(WdfDevice,
+                                        PLUGPLAY_REGKEY_DRIVER,
+                                        KEY_READ,
+                                        WDF_NO_OBJECT_ATTRIBUTES,
+                                        &wdfSoftwareKey);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = WdfRegistryQueryValue(wdfSoftwareKey,
+                                     &valueName,
+                                     sizeof(valueData),
+                                     &valueData,
+                                     NULL,
+                                     NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    driverMode = (BOOLEAN)valueData;
+    
+Exit:
+
+    return driverMode;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGED")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DmfDeviceModulesAdd(
@@ -94,10 +157,13 @@ Return Value:
 --*/
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
+    BOOLEAN isFunctionDriver;
 
     UNREFERENCED_PARAMETER(Device);
 
     PAGED_CODE();
+
+    isFunctionDriver = DriverModeGet(Device);
 
     // Tests_BufferPool
     // ----------------
@@ -152,6 +218,48 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
+
+    // Tests_HashTable
+    // ---------------
+    //
+    DMF_Tests_HashTable_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+
+    if (isFunctionDriver)
+    {
+    }
+    else
+    {
+        // Tests_IoctlHandler
+        // ------------------
+        //
+        DMF_Tests_IoctlHandler_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
+        // Tests_SelfTarget
+        // ----------------
+        //
+        DMF_Tests_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
+        // Tests_Pdo
+        // ---------
+        //
+        DMF_Tests_Pdo_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+    }
 }
 #pragma code_seg()
 

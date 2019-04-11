@@ -35,7 +35,7 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Trace.h">
       <Filter>Headers</Filter>
-    </ClInclude>    
+    </ClInclude>
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -43,6 +43,24 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler_Public.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -66,6 +84,21 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

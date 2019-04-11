@@ -296,8 +296,8 @@ Return Value:
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SelfTarget,
                                             SelfTarget,
                                             DMF_CONTEXT_SelfTarget,
-                                            DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_SelfTarget.CallbacksDmf = &DmfCallbacksDmf_SelfTarget;
 
