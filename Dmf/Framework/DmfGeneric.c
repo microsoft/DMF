@@ -1953,8 +1953,12 @@ DMF_Generic_NotificationRegister(
 Routine Description:
 
     Generic callback for NotificationRegister for a given DMF Module. This call can happen if the
-    Client has not set the NotificationRegister callback. (Client may decide to open the Module
-    for any reason, possibly unrelated to PnP, and may not need to support that call.)
+    Client has not set the NotificationRegister callback. NotificationRegister callback is optional
+    only for DMF_MODULE_OPEN_OPTION_NOTIFY_Create. (Client may decide to open the Module
+    for any reason, possibly unrelated to PnP, and may not need to support that call.).
+
+    If Client decides to open the Module in post open callback of a child Module, then the Module will 
+    already be open before this call. 
 
 Arguments:
 
@@ -1974,7 +1978,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
+    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName, STATUS_SUCCESS);
 
@@ -1993,8 +1997,8 @@ DMF_Generic_NotificationUnregister(
 Routine Description:
 
     Generic callback for NotificationUnregister for a given DMF Module. This call can happen if the
-    Client has not set the NotificationUnregister callback. (Client may decide to close the Module
-    for any reason, possibly unrelated to PnP, and may not need to support this call.)
+    Client has not set the NotificationUnregister callback. NotificationUnregister is optional. 
+    (Client may decide to close the Module for any reason, possibly unrelated to PnP, and may not need to support this call.)
 
 Arguments:
 

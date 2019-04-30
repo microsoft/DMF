@@ -502,16 +502,21 @@ Return Value:
 --*/
 {
     DMF_OBJECT* dmfObjectFeature;
-    DMF_OBJECT* DmfObject;
+    DMF_OBJECT* dmfObject;
     DMFMODULE dmfModuleFeature;
 
-    DmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(DmfObject != NULL);
+    dmfObject = DMF_ModuleToObject(DmfModule);
+    ASSERT(dmfObject != NULL);
+    dmfObjectFeature = NULL;
 
-    DMFCOLLECTION dmfCollection = DMF_ObjectToCollection(DmfObject->ModuleCollection);
+    if (dmfObject->ModuleCollection != NULL)
+    {
+        DMFCOLLECTION dmfCollection = DMF_ObjectToCollection(dmfObject->ModuleCollection);
 
-    dmfObjectFeature = DMF_FeatureHandleGetFromModuleCollection(dmfCollection,
-                                                                DmfFeature);
+        dmfObjectFeature = DMF_FeatureHandleGetFromModuleCollection(dmfCollection,
+                                                                    DmfFeature);
+    }
+
     if (dmfObjectFeature != NULL)
     {
         dmfModuleFeature = DMF_ObjectToModule(dmfObjectFeature);
@@ -520,6 +525,7 @@ Return Value:
     else
     {
         // The Client Driver has not enabled this DMF Feature.
+        // Dynamic Modules do not support DMF Features.
         //
         dmfModuleFeature = NULL;
     }

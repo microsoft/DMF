@@ -2354,8 +2354,6 @@ DMF_ModuleOpen(
 Routine Description:
 
     Invoke the Open Callback for a given DMF Module.
-    First, each of the Child DMF Modules' corresponding callbacks are called.
-    Next, the given DMF Module's corresponding callback is called.
     NOTE: This call is provided for Clients that manually open the Module. In most cases,
           modules are automatically opened, so it is rare that this call be used.
           It might be used in cases where a DMF Module must be created/opened/closed/destroyed
@@ -2367,53 +2365,23 @@ Arguments:
 
 Return Value:
 
-    STATUS_SUCCESS if all children return STATUS_SUCCESS and the given DMF Module
-    does not encounter an error.
+    STATUS_SUCCESS if the given DMF Module does not encounter an error.
     If there is an error, then NTSTATUS code of the first child Module that encounters the
     error, or the NTSTATUS code of the given DMF Module.
 
 --*/
 {
     NTSTATUS ntStatus;
-    DMF_OBJECT* parentDmfObject;
-    DMF_OBJECT* childDmfObject;
-    CHILD_OBJECT_INTERATION_CONTEXT childObjectIterationContext;
+    DMF_OBJECT* dmfObject;
 
-    parentDmfObject = DMF_ModuleToObject(DmfModule);
+    dmfObject = DMF_ModuleToObject(DmfModule);
 
     ntStatus = STATUS_SUCCESS;
 
-    if (!DMF_IsObjectTypeOpenNotify(parentDmfObject))
-    {
-        // Dispatch callback to Child DMF Modules first.
-        //
-        childDmfObject = DmfChildObjectFirstGet(parentDmfObject,
-                                                &childObjectIterationContext);
-        while (childDmfObject != NULL)
-        {
-            DMFMODULE dmfModuleChild;
-
-            dmfModuleChild = DMF_ObjectToModule(childDmfObject);
-            ntStatus = DMF_ModuleOpen(dmfModuleChild);
-            if (! NT_SUCCESS(ntStatus))
-            {
-                goto Exit;
-            }
-
-            childDmfObject = DmfChildObjectNextGet(&childObjectIterationContext);
-        }
-    }
-    else
-    {
-        // Modules opened asynchronously only open themselves, not their children because the
-        // children either open due to other callbacks or also open asynchronously.
-        //
-    }
-
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
-    ntStatus = (parentDmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
+    ASSERT(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
+    ntStatus = (dmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -2677,8 +2645,6 @@ DMF_ModuleClose(
 Routine Description:
 
     Invoke the Close Callback for a given DMF Module.
-    First, the given DMF Module's corresponding callback is called.
-    Next, each of the Child DMF Modules' corresponding callbacks are called.
     NOTE: This call is provided for Clients that manually open the Module. In most cases,
           modules are automatically opened, so it is rare that this call be used.
           It might be used in cases where a DMF Module must be created/opened/closed/destroyed
@@ -2694,28 +2660,14 @@ Return Value:
 
 --*/
 {
-    DMF_OBJECT* parentDmfObject;
+    DMF_OBJECT* dmfObject;
 
-    parentDmfObject = DMF_ModuleToObject(DmfModule);
+    dmfObject = DMF_ModuleToObject(DmfModule);
 
     // Dispatch callback to this Module first.
     //
-    ASSERT(parentDmfObject->InternalCallbacksDmf.DeviceClose != NULL);
-    (parentDmfObject->InternalCallbacksDmf.DeviceClose)(DmfModule);
-
-    if (!DMF_IsObjectTypeOpenNotify(parentDmfObject))
-    {
-        // Dispatch callback to Child DMF Modules next.
-        //
-        DMF_ChildDispatchSingleParameterVoid(DmfModule,
-                                             DMF_ModuleClose);
-    }
-    else
-    {
-        // Modules close asynchronously only close themselves, not their children because the
-        // children either close due to other callbacks or also close asynchronously.
-        //
-    }
+    ASSERT(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
+    (dmfObject->InternalCallbacksDmf.DeviceClose)(DmfModule);
 }
 
 VOID

@@ -59,6 +59,19 @@ typedef struct
     ULONG SerialWaitMask;
 } SerialTarget_Configuration;
 
+typedef enum
+{
+    // Module is opened in PrepareHardware and closed in ReleaseHardware.
+    //
+    SerialTarget_OpenOption_PrepareHardware = 0,
+    // Module is opened in D0Entry when system transitions from SX to S0.
+    //
+    SerialTarget_OpenOption_D0EntrySystemPowerUp,
+    // Module is opened in D0Entry and closed in D0Exit.
+    //
+    SerialTarget_OpenOption_D0Entry
+} SerialTarget_OpenOption;
+
 // Client Driver callback function to get Configuration parameters.
 //
 typedef
@@ -82,10 +95,9 @@ typedef struct
     // Share Access.
     //
     ULONG ShareAccess;
-    // Module is opened when system power state transitions from SX to S0.
-    // Module is closed when system power state transitions from S0 to SX.
+    // Module's Open option.
     //
-    BOOLEAN CloseOnHibernate;
+    SerialTarget_OpenOption ModuleOpenOption;
     // Child Request Stream Module.
     //
     DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;

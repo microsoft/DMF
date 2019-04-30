@@ -1574,11 +1574,12 @@ DMF_Utility_EventLogEntryWriteUserMode(
 // LIST_ENTRY functions for User-Mode. (These are copied as-is from Wdm.h.
 // Some Modules use LIST_ENTRY. To make those Modules work with both Kernel-mode and User-mode, these
 // definitions are included here.)
+// LIST_ENTRY functions are defined in UMDF starting from v23
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#if defined DMF_USER_MODE
+#if defined(DMF_USER_MODE) && UMDF_VERSION_MINOR < 23
 
 FORCEINLINE
 VOID
