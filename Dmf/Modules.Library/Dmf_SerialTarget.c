@@ -993,13 +993,24 @@ Return Value:
     DmfCallbacksDmf_SerialTarget.DeviceResourcesAssign = DMF_SerialTarget_ResourcesAssign;
     DmfCallbacksDmf_SerialTarget.ChildModulesAdd = DMF_SerialTarget_ChildModulesAdd;
 
-    if (moduleConfig->CloseOnHibernate == TRUE)
+    // SerialTarget support multiple open option configurations. 
+    // Choose the open option based on Module config. 
+    //
+    switch (moduleConfig->ModuleOpenOption)
     {
-        openOption = DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp;
-    }
-    else
-    {
+    case SerialTarget_OpenOption_PrepareHardware:
         openOption = DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware;
+        break;
+    case SerialTarget_OpenOption_D0EntrySystemPowerUp:
+        openOption = DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp;
+        break;
+    case SerialTarget_OpenOption_D0Entry:
+        openOption = DMF_MODULE_OPEN_OPTION_OPEN_D0Entry;
+        break;
+    default:
+        ASSERT(FALSE);
+        openOption = DMF_MODULE_OPEN_OPTION_Invalid;
+        break;
     }
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SerialTarget,
