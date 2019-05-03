@@ -648,7 +648,8 @@ Return Value:
     }
     else
     {
-        if (!NT_SUCCESS(ntStatus))
+        if ((!NT_SUCCESS(ntStatus)) ||
+            (moduleContext->Stopped))
         {
             bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
         }

@@ -650,7 +650,6 @@ Return:
             // Found it. Remove it from list 
             //
             ASSERT(bufferPoolEntryTimer->Timer != NULL);
-            ASSERT(bufferPoolEntryTimer->TimerExpirationMilliseconds != 0);
 
             // Remove item from list.
             // (If the Client wants to use this buffer, Client has saved off the buffer in Client's Context).
@@ -2209,7 +2208,6 @@ Return Value:
                                     &DmfModuleDescriptor_BufferPool);
 
     ASSERT(TimerExpirationCallback != NULL);
-    ASSERT(TimerExpirationMilliseconds > 0);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

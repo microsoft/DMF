@@ -194,6 +194,15 @@ DMF_Pdo_DevicePlug(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_Pdo_DevicePlugEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ PDO_RECORD* PdoRecord,
+    _Out_opt_ WDFDEVICE* Device
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_Pdo_DeviceUnplug(
     _In_ DMFMODULE DmfModule,
     _In_ WDFDEVICE Device
