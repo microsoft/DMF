@@ -158,6 +158,7 @@ Return Value:
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     BOOLEAN isFunctionDriver;
+    DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
 
     UNREFERENCED_PARAMETER(Device);
 
@@ -192,15 +193,6 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 
-    // Tests_Registry
-    // --------------
-    //
-    DMF_Tests_Registry_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
     // Tests_PingPongBuffer
     // --------------------
     //
@@ -230,13 +222,46 @@ Return Value:
 
     if (isFunctionDriver)
     {
+        // Tests_DefaultTarget
+        // -------------------
+        //
+        DMF_Tests_DefaultTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
+        // Tests_DeviceInterfaceTarget
+        // ---------------------------
+        //
+        DMF_Tests_DeviceInterfaceTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
     }
     else
     {
+        // Tests_Registry
+        // --------------
+        // Only run these in a single driver since they add/delete from a single resource
+        // (the registry). Running from multiple drivers will cause sporadic errors.
+        //
+        DMF_Tests_Registry_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
         // Tests_IoctlHandler
         // ------------------
         //
-        DMF_Tests_IoctlHandler_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_CONFIG_Tests_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigTests_IoctlHandler,
+                                                          &moduleAttributes);
+        // This instance will be accessed by SelfTarget and remote targets.
+        // Create a device interface.
+        //
+        moduleConfigTests_IoctlHandler.CreateDeviceInterface = TRUE;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,

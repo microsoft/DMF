@@ -63,6 +63,9 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c">
@@ -99,6 +102,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

@@ -165,7 +165,7 @@ Arguments:
 
 Return Value:
 
-   NTSTATUS of either the given DMF Module's Open Callback or STATUS_SUCCESS.
+    NTSTATUS
 
 --*/
 {
@@ -280,7 +280,7 @@ Arguments:
 
 Return Value:
 
-    None
+    NTSTATUS
 
 --*/
 {

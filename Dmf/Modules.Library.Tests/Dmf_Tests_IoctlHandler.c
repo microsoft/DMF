@@ -65,9 +65,10 @@ typedef struct
 //
 DMF_MODULE_DECLARE_CONTEXT(Tests_IoctlHandler)
 
-// This Module has no Config.
+// This macro declares the following function:
+// DMF_CONFIG_GET()
 //
-DMF_MODULE_DECLARE_NO_CONFIG(Tests_IoctlHandler)
+DMF_MODULE_DECLARE_CONFIG(Tests_IoctlHandler)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code
@@ -125,14 +126,14 @@ Test_IoctlHandler_BufferPool_Enumeration(
     SleepContext* sleepContext;
     BufferPool_EnumerationDispositionType enumerationDispositionType;
 
-    UNREFERENCED_PARAMETER(ClientDriverCallbackContext);
+    UNREFERENCED_PARAMETER(ClientBufferContext);
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     sleepContext = (SleepContext*)ClientBuffer;
 
-    if (sleepContext->Request == (WDFREQUEST)ClientBufferContext)
+    if (sleepContext->Request == (WDFREQUEST)ClientDriverCallbackContext)
     {
         // Since this is called from Cancel Callback, it is not necessary to
         // "unmark" cancelable.
@@ -159,6 +160,7 @@ Tests_IoctlHandler_RequestCancel(
 {
     REQUEST_CONTEXT* requestContext;
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
+    SleepContext* sleepContext;
 
     requestContext = (REQUEST_CONTEXT*)WdfObjectGetTypedContext(Request,
                                                                 REQUEST_CONTEXT);
@@ -166,10 +168,14 @@ Tests_IoctlHandler_RequestCancel(
     ASSERT(requestContext->DmfModuleTestIoctlHandler != NULL);
     moduleContext = DMF_CONTEXT_GET(requestContext->DmfModuleTestIoctlHandler);
 
+    // sleepContext contains the buffer that is removed and canceled. It is not necessary
+    // for this call to use it, but it must be passed to enumerator. When it is not NULL
+    // it means the request was canceled (and should not be accessed).
+    //
     DMF_BufferPool_Enumerate(moduleContext->DmfModuleBufferPoolPending,
                              Test_IoctlHandler_BufferPool_Enumeration,
-                             requestContext,
-                             NULL,
+                             Request,
+                             (VOID**)&sleepContext,
                              NULL);
 }
 
@@ -335,6 +341,7 @@ Return Value:
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
     DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
     DMF_CONFIG_BufferPool moduleConfigBufferPool;
+    DMF_CONFIG_Tests_IoctlHandler* moduleConfig;
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
@@ -343,6 +350,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     // IoctlHandler
     // ------------
@@ -351,7 +359,10 @@ Return Value:
                                                 &moduleAttributes);
     moduleConfigIoctlHandler.IoctlRecords = Tests_IoctlHandlerTable;
     moduleConfigIoctlHandler.IoctlRecordCount = _countof(Tests_IoctlHandlerTable);
-    moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    if (moduleConfig->CreateDeviceInterface)
+    {
+        moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    }
     moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
     DMF_DmfModuleAdd(DmfModuleInit, 
                      &moduleAttributes, 

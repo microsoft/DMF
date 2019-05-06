@@ -780,7 +780,6 @@ Return Value:
     return ntStatus;
 }
 
-
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -898,7 +897,6 @@ Return Value:
     childDevice = NULL;
     ntStatus = STATUS_SUCCESS;
 
-
     WdfFdoLockStaticChildListForIteration(device);
 
     while ((childDevice = WdfFdoRetrieveNextStaticChild(device,
@@ -961,6 +959,92 @@ Return Value:
                              Device);
     }
 
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DevicePlugEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ PDO_RECORD* PdoRecord,
+    _Out_opt_ WDFDEVICE* Device
+    )
+/*++
+
+Routine Description:
+
+    Create and attach a static PDO to the Client Driver's FDO. This Method allows Client
+    to create PDO that uses DMF Modules.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    PdoRecord - The parameters used to create the PDO.
+    Device - The newly created PDO (optional).
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+    WDFDEVICE childDevice;
+    PDO_DEVICE_DATA* pdoData;
+    BOOLEAN unique;
+
+    FuncEntry(DMF_TRACE);
+
+    DMF_HandleValidate_ModuleMethod(DmfModule,
+                                    &DmfModuleDescriptor_Pdo);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    unique = TRUE;
+    childDevice = NULL;
+    ntStatus = STATUS_SUCCESS;
+
+    WdfFdoLockStaticChildListForIteration(device);
+
+    while ((childDevice = WdfFdoRetrieveNextStaticChild(device,
+                                                        childDevice,
+                                                        WdfRetrieveAddedChildren)) != NULL)
+    {
+        // WdfFdoRetrieveNextStaticChild returns reported and to be reported
+        // children (ie children who have been added but not yet reported to PNP).
+        //
+        // A surprise removed child will not be returned in this list.
+        //
+        pdoData = PdoGetData(childDevice);
+
+        // It's okay to plug in another device with the same serial number
+        // as long as the previous one is in a surprise-removed state. The
+        // previous one would be in that state after the device has been
+        // physically removed, if somebody has an handle open to it.
+        //
+        if (PdoRecord->SerialNumber == pdoData->SerialNumber)
+        {
+            unique = FALSE;
+            ntStatus = STATUS_INVALID_PARAMETER;
+            break;
+        }
+    }
+
+    WdfFdoUnlockStaticChildListFromIteration(device);
+
+    if (unique)
+    {
+        // Create a new child device.
+        //
+        ntStatus = Pdo_PdoEx(DmfModule,
+                             PdoRecord,
+                             NULL,
+                             Device);
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (1)
+#define THREAD_COUNT                (2)
 
 typedef enum _TEST_ACTION
 {
@@ -77,6 +77,32 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_Pdo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_Pdo_DmfModulesAdd(
+    _In_ WDFDEVICE Device,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
+
+    UNREFERENCED_PARAMETER(Device);
+
+    // Tests_IoctlHandler
+    // ------------------
+    //
+    DMF_CONFIG_Tests_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigTests_IoctlHandler,
+                                                      &moduleAttributes);
+    // This instance will only be access from attached targets. Do not create a device interface.
+    //
+    moduleConfigTests_IoctlHandler.CreateDeviceInterface = FALSE;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+}
+
 #pragma code_seg("PAGE")
 static
 void
@@ -88,9 +114,9 @@ Tests_Pdo_ThreadAction(
     DMF_CONTEXT_Tests_Pdo* moduleContext;
     NTSTATUS ntStatus;
     ULONG timeToSleepMilliSeconds;
-    PWSTR hardwareIds[] = { L"{0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\\DmfKTestFunction" };
     USHORT serialNumber;
     WDFDEVICE device;
+    PDO_RECORD pdoRecord;
 
     PAGED_CODE();
 
@@ -101,16 +127,21 @@ Tests_Pdo_ThreadAction(
     serialNumber = moduleContext->SerialNumber;
     DMF_ModuleUnlock(DmfModule);
 
+    RtlZeroMemory(&pdoRecord,
+                  sizeof(pdoRecord));
+
+    pdoRecord.HardwareIds[0] = L"{0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\\DmfKTestFunction";
+    pdoRecord.HardwareIdsCount = 1;
+    pdoRecord.Description = L"DMF Test Function Driver (Kernel)";
+    pdoRecord.SerialNumber = serialNumber;
+    pdoRecord.EnableDmf = TRUE;
+    pdoRecord.EvtDmfDeviceModulesAdd = Tests_Pdo_DmfModulesAdd;
+
     // Create the PDO.
     //
-    ntStatus = DMF_Pdo_DevicePlug(moduleContext->DmfModulePdo,
-                                  hardwareIds,
-                                  1,
-                                  NULL,
-                                  0,
-                                  L"DMF Test Function Driver (Kernel)",
-                                  serialNumber,
-                                  &device);
+    ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
+                                    &pdoRecord,
+                                    &device);
     ASSERT(NT_SUCCESS(ntStatus));
 
     // Wait some time.
@@ -125,6 +156,12 @@ Tests_Pdo_ThreadAction(
                                     device);
     // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
     //
+
+    // Wait some time.
+    //
+    timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(1000, 
+                                                                MaximumTimeMilliseconds);
+    DMF_Utility_DelayMilliseconds(timeToSleepMilliSeconds);
 }
 #pragma code_seg()
 
@@ -177,7 +214,7 @@ Tests_Pdo_WorkThread(
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
-testAction = TEST_ACTION_SLOW;
+
     // Execute the test action.
     //
     switch (testAction)

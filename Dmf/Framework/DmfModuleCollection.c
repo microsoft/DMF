@@ -28,6 +28,19 @@ Environment:
 
 --*/
 
+// Test Options:
+// -------------
+// NOTE: These are not to be used in production code.
+//
+
+#if defined(DEBUG)
+
+// Inject partial successful initialization of Modules in a Module Collection.
+//
+// #define USE_DMF_INJECT_FAULT_PARTIAL_OPEN
+
+#endif // defined(DEBUG)
+
 #include "DmfIncludeInternal.h"
 
 #include "DmfModuleCollection.tmh"
@@ -3675,8 +3688,8 @@ Return Value:
 #if !defined(DEBUG)
 #error You cannot inject faults in non-Debug builds.
 #endif // !defined(DEBUG)
-    // Inject fault. Open only half the modules, then return error.
-    //
+        // Inject fault. Open only half the modules, then return error.
+        //
         if (driverModuleIndex >= (moduleCollectionHandle->NumberOfClientDriverDmfModules / 2))
         {
             ntStatus = STATUS_UNSUCCESSFUL;
@@ -3684,10 +3697,11 @@ Return Value:
 #endif // defined(USE_DMF_INJECT_FAULT_PARTIAL_OPEN)
         if (! NT_SUCCESS(ntStatus))
         {
-            // Client Module has failed to open. Need to clean up Module Collection and fail this
-            // entire call.
+            // Client Module has failed to open. Fail this call. Module Collection and its 
+            // child objects will be deleted.
             //
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Module_OpenOrRegisterNotificationOnCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
         }
     }
 
@@ -3716,6 +3730,8 @@ Return Value:
         DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(moduleCollectionHandle);
     }
 #endif // !defined(DMF_USER_MODE)
+
+Exit:
 
     return ntStatus;
 }

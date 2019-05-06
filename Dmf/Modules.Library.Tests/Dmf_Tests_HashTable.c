@@ -228,9 +228,11 @@ HashTable_Find(
                                                              KeyLength);
     ASSERT(foundRecordIndex >= 0);
 
-    if ((*ValueLength == moduleContext->DataRecords[foundRecordIndex].BufferSize) &&
+    HashTable_DataRecord* foundDataRecord = &moduleContext->DataRecords[foundRecordIndex];
+
+    if ((*ValueLength == foundDataRecord->BufferSize) &&
         RtlCompareMemory(Value,
-                         moduleContext->DataRecords[foundRecordIndex].Buffer,
+                         foundDataRecord->Buffer,
                          *ValueLength) == *ValueLength)
     {
         // Success.
@@ -408,9 +410,11 @@ HashTable_Enumerate(
     }
     else
     {
-        if ((ValueLength == moduleContext->DataRecords[foundRecordIndex].BufferSize) &&
+        HashTable_DataRecord* foundDataRecord = &moduleContext->DataRecords[foundRecordIndex];
+
+        if ((ValueLength == foundDataRecord->BufferSize) &&
             RtlCompareMemory(Value,
-                             moduleContext->DataRecords[foundRecordIndex].Buffer,
+                             foundDataRecord->Buffer,
                              ValueLength) == ValueLength)
         {
             // Success.

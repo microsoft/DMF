@@ -15,6 +15,8 @@ Abstract:
 
     NOTE: Make sure to set "compile as C++" option.
     NOTE: Make sure to #define DMF_USER_MODE in UMDF Drivers.
+    NOTE: Some, but not all DMF Modules are compatible with both User-mode and Kernel-mode.
+          Module authors should "#if defined(DMF_USER_MODE)" in Modules to support both modes.
 
 Environment:
 
@@ -22,33 +24,6 @@ Environment:
     User-mode Driver Framework
 
 --*/
-
-// Compilation Options: START
-// ==========================
-//
-
-// Project File Options:
-// ---------------------
-//
-
-// Use DMF in a User-mode Driver.
-// NOTE: Some, but not all DMF Modules are compatible with both User-mode and Kernel-mode.
-//       Module authors should use this option in Modules to support both modes.
-//
-// DMF_USER_MODE
-
-// Test Options:
-// -------------
-// NOTE: These are not to be used in production code.
-//
-
-#if defined(DEBUG)
-
-// Inject partial successful initialization of Modules in a Module Collection.
-//
-// USE_DMF_INJECT_FAULT_PARTIAL_OPEN
-
-#endif // defined(DEBUG)
 
 #include "DmfIncludeInternal.h"
 
