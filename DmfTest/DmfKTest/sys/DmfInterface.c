@@ -202,15 +202,6 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 
-    // Tests_ScheduledTask
-    // --------------------
-    //
-    DMF_Tests_ScheduledTask_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
     // Tests_HashTable
     // ---------------
     //
@@ -248,6 +239,17 @@ Return Value:
         // (the registry). Running from multiple drivers will cause sporadic errors.
         //
         DMF_Tests_Registry_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
+
+        // Tests_ScheduledTask
+        // --------------------
+        // Only run these in a single driver since they add/delete from a single resource
+        // (the registry). Running from multiple drivers will cause sporadic errors.
+        //
+        DMF_Tests_ScheduledTask_ATTRIBUTES_INIT(&moduleAttributes);
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
