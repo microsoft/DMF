@@ -33,7 +33,7 @@ Environment:
 #define BUFFER_SIZE                 (32)
 #define BUFFER_COUNT_PREALLOCATED   (16)
 #define BUFFER_COUNT_MAX            (24)
-#define THREAD_COUNT                (4)
+#define THREAD_COUNT                (2)
 
 #define CLIENT_CONTEXT_SIGNATURE    'GISB'
 

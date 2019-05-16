@@ -21,24 +21,20 @@ Environment:
 // Define the tracing flags.
 //
 // DmfKTest Tracing GUID - {61C379CE-3A6B-4E34-B8B1-BEF18A0F6209}
-// SurfaceLibrary Tracing GUID - {4DA41ED6-B8E6-473E-A7DF-E9C958B86167}
+// DMF Tracing GUID - {48F112EC-38AC-417B-935D-2250A46BDC89}
 //
 
 #define WPP_CONTROL_GUIDS                                                                                                               \
+    WPP_DEFINE_CONTROL_GUID(                                                                                                            \
+        DmfTraceGuid, (48F112EC,38AC,417B,935D,2250A46BDC89),                                                                           \
+        WPP_DEFINE_BIT(DMF_TRACE)                                                                                                       \
+        )                                                                                                                               \
     WPP_DEFINE_CONTROL_GUID(                                                                                                            \
         DmfKTestDriverTraceGuid, (61C379CE,3A6B,4E34,B8B1,BEF18A0F6209),                                                                \
         WPP_DEFINE_BIT(MYDRIVER_ALL_INFO)                                                                                               \
         WPP_DEFINE_BIT(TRACE_DRIVER)                                                                                                    \
         )                                                                                                                               \
-    WPP_DEFINE_CONTROL_GUID(                                                                                                            \
-        SurfaceLibraryTraceGuid, (4DA41ED6,B8E6,473E,A7DF,E9C958B86167),                                                                \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_BufferPool)                                                                                      \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_BufferQueue)                                                                                     \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_PingPongBuffer)                                                                                  \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_Registry)                                                                                        \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_RingBuffer)                                                                                      \
-        WPP_DEFINE_BIT(DMF_TRACE_Tests_ScheduledTask)                                                                                   \
-        )                                                                                                                               \
+
 //
 // This comment block is scanned by the trace preprocessor to define our
 // Trace function.

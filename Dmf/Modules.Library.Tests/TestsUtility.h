@@ -25,7 +25,6 @@ Environment:
 
 _Must_inspect_result_
 _IRQL_requires_same_
-_IRQL_requires_max_(APC_LEVEL)
 ULONG
 TestsUtility_GenerateRandomNumber(
     _In_ ULONG Min,
@@ -33,10 +32,9 @@ TestsUtility_GenerateRandomNumber(
     );
 
 _IRQL_requires_same_
-_IRQL_requires_max_(APC_LEVEL)
 VOID
 TestsUtility_FillWithSequentialData(
-    _In_ PUINT8 Buffer,
+    _Out_writes_(Size) UINT8* Buffer,
     _In_ ULONG Size
     );
 

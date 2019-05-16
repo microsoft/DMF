@@ -41,7 +41,7 @@ Environment:
 #define BUFFER_COUNT_MAX            (24)
 // Number of working threads
 //
-#define THREAD_COUNT                (4)
+#define THREAD_COUNT                (2)
 
 #define CLIENT_CONTEXT_SIGNATURE    'GISB'
 

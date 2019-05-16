@@ -30,7 +30,11 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (2)
+#define THREAD_COUNT                            (4)
+// Don't use an ever increasing serial number because those serial numbers will be remembered
+// by Windows and will slow down the test computer eventually.
+//
+#define MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS    (16)
 
 typedef enum _TEST_ACTION
 {
@@ -51,12 +55,15 @@ typedef struct
     // Module under test.
     //
     DMFMODULE DmfModulePdo;
-    // Current Serial number of PDO.
-    //
-    USHORT SerialNumber;
     // Work threads that perform actions on the Pdo Module.
     //
-    DMFMODULE DmfModuleThread[THREAD_COUNT];
+    DMFMODULE DmfModuleThread[THREAD_COUNT + 1];
+    // Use alertable sleep to allow driver to unload faster.
+    //
+    DMFMODULE DmfModuleAlertableSleep[THREAD_COUNT + 1];
+    // Serial number in use table.
+    //
+    BOOLEAN SerialNumbersInUse[MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS];
 } DMF_CONTEXT_Tests_Pdo;
 
 // This macro declares the following function:
@@ -76,6 +83,15 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_Pdo)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+// Stores the Module threadIndex so that the corresponding alterable sleep
+// can be retrieved inside the thread's callback.
+//
+typedef struct
+{
+    ULONG ThreadIndex;
+} THREAD_INDEX_CONTEXT;
+WDF_DECLARE_CONTEXT_TYPE(THREAD_INDEX_CONTEXT);
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -108,7 +124,8 @@ static
 void
 Tests_Pdo_ThreadAction(
     _In_ DMFMODULE DmfModule,
-    _In_ ULONG MaximumTimeMilliseconds
+    _In_ ULONG MaximumTimeMilliseconds,
+    _In_ ULONG ThreadIndex
     )
 {
     DMF_CONTEXT_Tests_Pdo* moduleContext;
@@ -117,22 +134,39 @@ Tests_Pdo_ThreadAction(
     USHORT serialNumber;
     WDFDEVICE device;
     PDO_RECORD pdoRecord;
+    BOOLEAN waitAgain;
 
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    waitAgain = TRUE;
+    serialNumber = 0;
 
     DMF_ModuleLock(DmfModule);
-    moduleContext->SerialNumber++;
-    serialNumber = moduleContext->SerialNumber;
+    for (USHORT serialNumberIndex = 0; serialNumberIndex < MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS; serialNumberIndex++)
+    {
+        if (! moduleContext->SerialNumbersInUse[serialNumberIndex])
+        {
+            moduleContext->SerialNumbersInUse[serialNumberIndex] = TRUE;
+            serialNumber = serialNumberIndex + 1;
+            break;
+        }
+    }
     DMF_ModuleUnlock(DmfModule);
+
+    if (0 == serialNumber)
+    {
+        // No more serial numbers left. Just get out and retry later.
+        //
+        goto Exit;
+    }
 
     RtlZeroMemory(&pdoRecord,
                   sizeof(pdoRecord));
 
     pdoRecord.HardwareIds[0] = L"{0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\\DmfKTestFunction";
-    pdoRecord.HardwareIdsCount = 1;
     pdoRecord.Description = L"DMF Test Function Driver (Kernel)";
+    pdoRecord.HardwareIdsCount = 1;
     pdoRecord.SerialNumber = serialNumber;
     pdoRecord.EnableDmf = TRUE;
     pdoRecord.EvtDmfDeviceModulesAdd = Tests_Pdo_DmfModulesAdd;
@@ -148,7 +182,15 @@ Tests_Pdo_ThreadAction(
     //
     timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(1000, 
                                                                 MaximumTimeMilliseconds);
-    DMF_Utility_DelayMilliseconds(timeToSleepMilliSeconds);
+    ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
+                                        0,
+                                        timeToSleepMilliSeconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Continue to remove the PDO, but do not wait after removing the PDO.
+        //
+        waitAgain = FALSE;
+    }
 
     // Destroy the PDO.
     //
@@ -157,11 +199,24 @@ Tests_Pdo_ThreadAction(
     // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
     //
 
-    // Wait some time.
-    //
-    timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(1000, 
-                                                                MaximumTimeMilliseconds);
-    DMF_Utility_DelayMilliseconds(timeToSleepMilliSeconds);
+    DMF_ModuleLock(DmfModule);
+    moduleContext->SerialNumbersInUse[serialNumber - 1] = FALSE;
+    DMF_ModuleUnlock(DmfModule);
+
+Exit:
+
+    if (waitAgain)
+    {
+        // Wait some time.
+        //
+        timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(1000, 
+                                                                    MaximumTimeMilliseconds);
+        DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
+                                         0);
+        ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
+                                            0,
+                                            timeToSleepMilliSeconds);
+    }
 }
 #pragma code_seg()
 
@@ -169,13 +224,15 @@ Tests_Pdo_ThreadAction(
 static
 void
 Tests_Pdo_ThreadAction_Fast(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG ThreadIndex
     )
 {
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           1000);
+                           1000 * 1,
+                           ThreadIndex);
 }
 #pragma code_seg()
 
@@ -183,13 +240,15 @@ Tests_Pdo_ThreadAction_Fast(
 static
 void
 Tests_Pdo_ThreadAction_Slow(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG ThreadIndex
     )
 {
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           1000 * 60);
+                           1000 * 60,
+                           ThreadIndex);
 }
 #pragma code_seg()
 
@@ -204,26 +263,30 @@ Tests_Pdo_WorkThread(
     DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_Pdo* moduleContext;
     TEST_ACTION testAction;
+    THREAD_INDEX_CONTEXT* threadIndex;
 
     PAGED_CODE();
 
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
+    threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
 
     // Generate a random test action Id for a current iteration.
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
-
+testAction = TEST_ACTION_SLOW;
     // Execute the test action.
     //
     switch (testAction)
     {
         case TEST_ACTION_SLOW:
-            Tests_Pdo_ThreadAction_Slow(dmfModule);
+            Tests_Pdo_ThreadAction_Slow(dmfModule,
+                                        threadIndex->ThreadIndex);
             break;
         case TEST_ACTION_FAST:
-            Tests_Pdo_ThreadAction_Fast(dmfModule);
+            Tests_Pdo_ThreadAction_Fast(dmfModule,
+                                        threadIndex->ThreadIndex);
             break;
         default:
             ASSERT(FALSE);
@@ -241,29 +304,19 @@ Tests_Pdo_WorkThread(
 }
 #pragma code_seg()
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// WDF Module Callbacks
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Callbacks
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Tests_Pdo_Open(
+Tests_Pdo_Start(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Initialize an instance of a DMF Module of type Test_Pdo.
+    Start the threads that create and destroy PDOs.
 
 Arguments:
 
@@ -277,7 +330,7 @@ Return Value:
 {
     DMF_CONTEXT_Tests_Pdo* moduleContext;
     NTSTATUS ntStatus;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -290,9 +343,20 @@ Return Value:
     // Create threads that read with expected success, read with expected failure
     // and enumerate.
     //
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[index]);
+        THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               THREAD_INDEX_CONTEXT);
+        WdfObjectAllocateContext(moduleContext->DmfModuleThread[threadIndex],
+                                 &objectAttributes,
+                                 (PVOID*)&threadIndexContext);
+        threadIndexContext->ThreadIndex = threadIndex;
+
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -300,9 +364,9 @@ Return Value:
         }
     }
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThread[index]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThread[threadIndex]);
     }
 
 Exit:
@@ -317,7 +381,7 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
-Tests_Pdo_Close(
+Tests_Pdo_Stop(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -337,7 +401,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Tests_Pdo* moduleContext;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -345,14 +409,123 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_Stop(moduleContext->DmfModuleThread[index]);
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleep[threadIndex],
+                                 0);
+        // Stop the thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThread[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// WDF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_Tests_Pdo_SelfManagedIoInit(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Tests_Pdo callback for ModuleSelfManagedIoInit for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    ntStatus = Tests_Pdo_Start(DmfModule);
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_Tests_Pdo_SelfManagedIoSuspend(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Tests_Pdo callback for ModuleSelfManagedIoSuspend for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    Tests_Pdo_Stop(DmfModule);
+    return STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_Tests_Pdo_SelfManagedIoRestart(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Tests_Pdo callback for ModuleSelfManagedIoRestart for a given DMF Module.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    ntStatus = Tests_Pdo_Start(DmfModule);
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// DMF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -408,7 +581,7 @@ Return Value:
     // Thread
     // ------
     //
-    for (ULONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
         DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
                                               &moduleAttributes);
@@ -418,6 +591,18 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleThread[threadIndex]);
+
+        // AlertableSleep
+        // --------------
+        //
+        DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleep[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -431,6 +616,7 @@ Return Value:
 
 static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_Pdo;
 static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_Pdo;
+static DMF_CALLBACKS_WDF DmfCallbacksWdf_Tests_Pdo;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -472,8 +658,11 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_Pdo);
     DmfCallbacksDmf_Tests_Pdo.ChildModulesAdd = DMF_Tests_Pdo_ChildModulesAdd;
-    DmfCallbacksDmf_Tests_Pdo.DeviceOpen = Tests_Pdo_Open;
-    DmfCallbacksDmf_Tests_Pdo.DeviceClose = Tests_Pdo_Close;
+
+    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Tests_Pdo);
+    DmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoInit = DMF_Tests_Pdo_SelfManagedIoInit;
+    DmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoRestart = DMF_Tests_Pdo_SelfManagedIoRestart;
+    DmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoSuspend = DMF_Tests_Pdo_SelfManagedIoSuspend;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_Pdo,
                                             Tests_Pdo,
@@ -482,6 +671,7 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
 
     DmfModuleDescriptor_Tests_Pdo.CallbacksDmf = &DmfCallbacksDmf_Tests_Pdo;
+    DmfModuleDescriptor_Tests_Pdo.CallbacksWdf = &DmfCallbacksWdf_Tests_Pdo;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

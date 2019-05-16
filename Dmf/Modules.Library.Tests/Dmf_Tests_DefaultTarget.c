@@ -60,6 +60,10 @@ typedef struct
     //
     DMFMODULE DmfModuleThreadAuto[THREAD_COUNT + 1];
     DMFMODULE DmfModuleThreadManual[THREAD_COUNT + 1];
+    // Use alertable sleep to allow driver to unload faster.
+    //
+    DMFMODULE DmfModuleAlertableSleepAuto[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleAlertableSleepManual[THREAD_COUNT + 1];
 } DMF_CONTEXT_Tests_DefaultTarget;
 
 // This macro declares the following function:
@@ -80,6 +84,15 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_DefaultTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Stores the Module threadIndex so that the corresponding alterable sleep
+// can be retrieved inside the thread's callback.
+//
+typedef struct
+{
+    DMFMODULE DmfModuleAlertableSleep;
+} THREAD_INDEX_CONTEXT;
+WDF_DECLARE_CONTEXT_TYPE(THREAD_INDEX_CONTEXT);
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -96,13 +109,12 @@ Tests_DefaultTarget_BufferInput(
     UNREFERENCED_PARAMETER(InputBufferSize);
     UNREFERENCED_PARAMETER(ClientBuferContextInput);
 
-    PAGED_CODE();
-
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0,
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     RtlCopyMemory(InputBuffer,
                   &sleepIoctlBuffer,
                   sizeof(sleepIoctlBuffer));
+    *InputBufferSize = sizeof(sleepIoctlBuffer);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -134,13 +146,16 @@ Tests_DefaultTarget_BufferOutput(
 static
 void
 Tests_DefaultTarget_ThreadAction_Synchronous(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep
     )
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     NTSTATUS ntStatus;
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
     PAGED_CODE();
 
@@ -153,14 +168,14 @@ Tests_DefaultTarget_ThreadAction_Synchronous(
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendSynchronously(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                                           &sleepIoctlBuffer,
-                                                           sizeof(sleepIoctlBuffer),
-                                                           NULL,
-                                                           NULL,
-                                                           ContinuousRequestTarget_RequestType_Ioctl,
-                                                           IOCTL_Tests_IoctlHandler_SLEEP,
-                                                           0,
-                                                           &bytesWritten);
+                                                   &sleepIoctlBuffer,
+                                                   sizeof(sleepIoctlBuffer),
+                                                   NULL,
+                                                   NULL,
+                                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                                   IOCTL_Tests_IoctlHandler_SLEEP,
+                                                   0,
+                                                   &bytesWritten);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
@@ -169,14 +184,14 @@ Tests_DefaultTarget_ThreadAction_Synchronous(
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendSynchronously(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                                           &sleepIoctlBuffer,
-                                                           sizeof(sleepIoctlBuffer),
-                                                           NULL,
-                                                           NULL,
-                                                           ContinuousRequestTarget_RequestType_Ioctl,
-                                                           IOCTL_Tests_IoctlHandler_SLEEP,
-                                                           0,
-                                                           &bytesWritten);
+                                                   &sleepIoctlBuffer,
+                                                   sizeof(sleepIoctlBuffer),
+                                                   NULL,
+                                                   NULL,
+                                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                                   IOCTL_Tests_IoctlHandler_SLEEP,
+                                                   0,
+                                                   &bytesWritten);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
@@ -212,13 +227,16 @@ Tests_DefaultTarget_SendCompletion(
 static
 void
 Tests_DefaultTarget_ThreadAction_Asynchronous(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep
     )
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     NTSTATUS ntStatus;
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
     PAGED_CODE();
 
@@ -231,30 +249,30 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_Send(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                              &sleepIoctlBuffer,
-                                              sizeof(sleepIoctlBuffer),
-                                              NULL,
-                                              NULL,
-                                              ContinuousRequestTarget_RequestType_Ioctl,
-                                              IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
-                                              Tests_DefaultTarget_SendCompletion,
-                                              NULL);
+                                      &sleepIoctlBuffer,
+                                      sizeof(sleepIoctlBuffer),
+                                      NULL,
+                                      NULL,
+                                      ContinuousRequestTarget_RequestType_Ioctl,
+                                      IOCTL_Tests_IoctlHandler_SLEEP,
+                                      0,
+                                      Tests_DefaultTarget_SendCompletion,
+                                      NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_Send(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                              &sleepIoctlBuffer,
-                                              sizeof(sleepIoctlBuffer),
-                                              NULL,
-                                              NULL,
-                                              ContinuousRequestTarget_RequestType_Ioctl,
-                                              IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
-                                              Tests_DefaultTarget_SendCompletion,
-                                              NULL);
+                                      &sleepIoctlBuffer,
+                                      sizeof(sleepIoctlBuffer),
+                                      NULL,
+                                      NULL,
+                                      ContinuousRequestTarget_RequestType_Ioctl,
+                                      IOCTL_Tests_IoctlHandler_SLEEP,
+                                      0,
+                                      Tests_DefaultTarget_SendCompletion,
+                                      NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 }
 #pragma code_seg()
@@ -265,7 +283,8 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
 static
 void
 Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep
     )
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
@@ -284,33 +303,48 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_Send(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                              &sleepIoctlBuffer,
-                                              sizeof(sleepIoctlBuffer),
-                                              NULL,
-                                              NULL,
-                                              ContinuousRequestTarget_RequestType_Ioctl,
-                                              IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
-                                              Tests_DefaultTarget_SendCompletion,
-                                              NULL);
+                                      &sleepIoctlBuffer,
+                                      sizeof(sleepIoctlBuffer),
+                                      NULL,
+                                      NULL,
+                                      ContinuousRequestTarget_RequestType_Ioctl,
+                                      IOCTL_Tests_IoctlHandler_SLEEP,
+                                      0,
+                                      Tests_DefaultTarget_SendCompletion,
+                                      NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
-    DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_Send(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                              &sleepIoctlBuffer,
-                                              sizeof(sleepIoctlBuffer),
-                                              NULL,
-                                              NULL,
-                                              ContinuousRequestTarget_RequestType_Ioctl,
-                                              IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
-                                              Tests_DefaultTarget_SendCompletion,
-                                              NULL);
+                                      &sleepIoctlBuffer,
+                                      sizeof(sleepIoctlBuffer),
+                                      NULL,
+                                      NULL,
+                                      ContinuousRequestTarget_RequestType_Ioctl,
+                                      IOCTL_Tests_IoctlHandler_SLEEP,
+                                      0,
+                                      Tests_DefaultTarget_SendCompletion,
+                                      NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
-    DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+    DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
+                                     0);
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+
+Exit:
+    ;
 }
 #pragma code_seg()
 
@@ -325,10 +359,12 @@ Tests_DefaultTarget_WorkThread(
     DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     TEST_ACTION testAction;
+    THREAD_INDEX_CONTEXT* threadIndex;
 
     PAGED_CODE();
 
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
+    threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     // Generate a random test action Id for a current iteration.
@@ -341,13 +377,16 @@ Tests_DefaultTarget_WorkThread(
     switch (testAction)
     {
         case TEST_ACTION_SYNCHRONOUS:
-            Tests_DefaultTarget_ThreadAction_Synchronous(dmfModule);
+            Tests_DefaultTarget_ThreadAction_Synchronous(dmfModule,
+                                                         threadIndex->DmfModuleAlertableSleep);
             break;
         case TEST_ACTION_ASYNCHRONOUS:
-            Tests_DefaultTarget_ThreadAction_Asynchronous(dmfModule);
+            Tests_DefaultTarget_ThreadAction_Asynchronous(dmfModule,
+                                                          threadIndex->DmfModuleAlertableSleep);
             break;
         case TEST_ACTION_ASYNCHRONOUSCANCEL:
-            Tests_DefaultTarget_ThreadAction_AsynchronousCancel(dmfModule);
+            Tests_DefaultTarget_ThreadAction_AsynchronousCancel(dmfModule,
+                                                                threadIndex->DmfModuleAlertableSleep);
             break;
         default:
             ASSERT(FALSE);
@@ -365,7 +404,8 @@ Tests_DefaultTarget_WorkThread(
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Tests_DefaultTarget_NonContinousStartAuto(
     _In_ DMFMODULE DmfModule
@@ -389,7 +429,7 @@ Return Value:
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     NTSTATUS ntStatus;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -399,9 +439,9 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadAuto[index]);
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadAuto[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -409,9 +449,9 @@ Return Value:
         }
     }
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadAuto[index]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadAuto[threadIndex]);
     }
 
 Exit:
@@ -420,8 +460,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DefaultTarget_NonContinousStopAuto(
     _In_ DMFMODULE DmfModule
@@ -444,7 +486,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -452,15 +494,23 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_Stop(moduleContext->DmfModuleThreadAuto[index]);
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepAuto[threadIndex],
+                                 0);
+        // Stop the thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadAuto[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Tests_DefaultTarget_NonContinousStartManual(
     _In_ DMFMODULE DmfModule
@@ -484,7 +534,7 @@ Return Value:
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     NTSTATUS ntStatus;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -494,9 +544,9 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManual[index]);
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManual[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -504,9 +554,9 @@ Return Value:
         }
     }
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManual[index]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManual[threadIndex]);
     }
 
 Exit:
@@ -515,8 +565,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DefaultTarget_NonContinousStopManual(
     _In_ DMFMODULE DmfModule
@@ -539,7 +591,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -547,13 +599,20 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[index]);
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepManual[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -695,6 +754,7 @@ Return Value:
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     DMF_CONFIG_Thread moduleConfigThread;
     DMF_CONFIG_DefaultTarget moduleConfigDefaultTarget;
+    DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
@@ -787,9 +847,96 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleThreadManual[threadIndex]);
+
+        // AlertableSleep Auto
+        // -------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.Auto";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepAuto[threadIndex]);
+
+        // AlertableSleep Manual
+        // ---------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.Manual";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepManual[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+DMF_Tests_DefaultTarget_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type Test_DefaultTarget.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               THREAD_INDEX_CONTEXT);
+        WdfObjectAllocateContext(moduleContext->DmfModuleThreadAuto[threadIndex],
+                                 &objectAttributes,
+                                 (PVOID*)&threadIndexContext);
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepAuto[threadIndex];
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               THREAD_INDEX_CONTEXT);
+        WdfObjectAllocateContext(moduleContext->DmfModuleThreadManual[threadIndex],
+                                 &objectAttributes,
+                                 (PVOID*)&threadIndexContext);
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepManual[threadIndex];
+    }
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 #pragma code_seg()
 
@@ -842,6 +989,7 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_DefaultTarget);
     DmfCallbacksDmf_Tests_DefaultTarget.ChildModulesAdd = DMF_Tests_DefaultTarget_ChildModulesAdd;
+    DmfCallbacksDmf_Tests_DefaultTarget.DeviceOpen = DMF_Tests_DefaultTarget_Open;
 
     DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Tests_DefaultTarget);
     DmfCallbacksWdf_Tests_DefaultTarget.ModuleD0Entry = DMF_Tests_DefaultTarget_ModuleD0Entry;
@@ -851,7 +999,7 @@ Return Value:
                                             Tests_DefaultTarget,
                                             DMF_CONTEXT_Tests_DefaultTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_Tests_DefaultTarget.CallbacksDmf = &DmfCallbacksDmf_Tests_DefaultTarget;
     DmfModuleDescriptor_Tests_DefaultTarget.CallbacksWdf = &DmfCallbacksWdf_Tests_DefaultTarget;

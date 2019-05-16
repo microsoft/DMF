@@ -662,6 +662,10 @@ Return:
             timerExpirationCallback = bufferPoolEntryTimer->TimerExpirationCallback;
             BufferPool_TimerFieldsClear(dmfModule,
                                         bufferPoolEntryTimer);
+            
+            // The only matching buffer has been found.
+            //
+            break;
         }
 
         // Keep searching.
@@ -2045,8 +2049,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    // This function is called while the Module is closing as it is flushing its buffers.
+    //
+    DMF_HandleValidate_ClosingOk(DmfModule,
+                                 &DmfModuleDescriptor_BufferPool);
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 

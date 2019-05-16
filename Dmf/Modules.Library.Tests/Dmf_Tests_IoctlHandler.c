@@ -138,6 +138,9 @@ Test_IoctlHandler_BufferPool_Enumeration(
         // Since this is called from Cancel Callback, it is not necessary to
         // "unmark" cancelable.
         //
+        // ''sleepContext->Request' could be '0':  this does not adhere to the specification for the function'
+        //
+        #pragma warning(suppress:6387)
         WdfRequestComplete(sleepContext->Request,
                             STATUS_CANCELLED);
         enumerationDispositionType = BufferPool_EnumerationDisposition_RemoveAndStopEnumeration;
@@ -226,11 +229,10 @@ Return Value:
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(InputBufferSize);
 
-    PAGED_CODE();
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
     ntStatus = STATUS_NOT_SUPPORTED;
+    *BytesReturned = 0;
 
     switch(IoControlCode) 
     {
@@ -256,9 +258,6 @@ Return Value:
             //
             requestContext->DmfModuleTestIoctlHandler = dmfModuleParent;
 
-            WdfRequestMarkCancelable(Request,
-                                     Tests_IoctlHandler_RequestCancel);
-
             ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolFree,
                                           &clientBuffer,
                                           NULL);
@@ -272,12 +271,24 @@ Return Value:
                           sleepRequestBuffer,
                           sizeof(Tests_IoctlHandler_Sleep));
 
-            DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
-                                              clientBuffer,
-                                              sleepRequestBuffer->TimeToSleepMilliSeconds,
-                                              Test_IoctlHandler_BufferPool_TimerCallback,
-                                              NULL);
-            ntStatus = STATUS_PENDING;
+            // Mark cancelable after the context is set and it is in the list.
+            //
+            ntStatus = WdfRequestMarkCancelableEx(Request,
+                                                  Tests_IoctlHandler_RequestCancel);
+            if (NT_SUCCESS(ntStatus))
+            {
+                DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
+                                                  clientBuffer,
+                                                  sleepRequestBuffer->TimeToSleepMilliSeconds,
+                                                  Test_IoctlHandler_BufferPool_TimerCallback,
+                                                  NULL);
+                ntStatus = STATUS_PENDING;
+            }
+            else
+            {
+                // Cancel routine will not be called.
+                //
+            }
             break;
         }
         case IOCTL_Tests_IoctlHandler_ZEROBUFFER:
@@ -286,6 +297,9 @@ Return Value:
                           OutputBufferSize);
             ntStatus = STATUS_SUCCESS;
             *BytesReturned = OutputBufferSize;
+            // Prevent this thread from using too much CPU time.
+            //
+            DMF_Utility_DelayMilliseconds(1000);
             break;
         }
     }

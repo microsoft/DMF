@@ -68,7 +68,7 @@ typedef struct
     // Indicates that the Client has stopped streaming. This flag prevents new requests from 
     // being sent to the underlying target.
     //
-    BOOLEAN Stopped;
+    BOOLEAN Stopping;
     // Count of requests in lower driver so that Module can shutdown gracefully.
     // NOTE: This is for User-mode rundown support. Once Rundown support is unified for
     //       Kernel and user-modes, this can be removed.
@@ -407,6 +407,8 @@ Return Value:
 
     WdfObjectDelete(Request);
 
+    DMF_ModuleDereference(DmfModule);
+
     FuncExitVoid(DMF_TRACE);
 }
 
@@ -608,7 +610,7 @@ Return Value:
         // If Client has stopped streaming, then regardless of what the Client returns from the callback, return buffers
         // back to the original state and delete corresponding requests.
         //
-        if (moduleContext->Stopped)
+        if (moduleContext->Stopping)
         {
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [STOPPED]", Request);
             bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
@@ -649,7 +651,7 @@ Return Value:
     else
     {
         if ((!NT_SUCCESS(ntStatus)) ||
-            (moduleContext->Stopped))
+            (moduleContext->Stopping))
         {
             bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
         }
@@ -714,6 +716,8 @@ Return Value:
     // Request has returned. Decrement.
     //
     InterlockedDecrement(&moduleContext->PendingStreamingRequests);
+
+    DMF_ModuleDereference(DmfModule);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1079,6 +1083,7 @@ Return Value:
     // it returns.
     //
     InterlockedIncrement(&moduleContext->PendingStreamingRequests);
+    DMF_ModuleReference(DmfModule);
 
 #if !defined(DMF_USER_MODE)
     // A new request will be sent down the stack. Increase Rundown ref until 
@@ -1146,6 +1151,7 @@ Return Value:
         // Unable to send the request. Decrement to account for the increment above.
         //
         InterlockedDecrement(&moduleContext->PendingStreamingRequests);
+        DMF_ModuleDereference(DmfModule);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1498,7 +1504,7 @@ Return Value:
     // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
     // automatically.
     //
-    moduleContext->Stopped = TRUE;
+    moduleContext->Stopping = TRUE;
 
     // Cancel all requests from target. Do not wait until all pending requests have returned.
     //
@@ -1566,7 +1572,7 @@ Return Value:
     // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
     // automatically.
     //
-    moduleContext->Stopped = TRUE;
+    moduleContext->Stopping = TRUE;
 
     // Cancel all the outstanding requests.
     //
@@ -1936,7 +1942,7 @@ Return Value:
 
     // Streaming is not started yet.
     // 
-    moduleContext->Stopped = TRUE;
+    moduleContext->Stopping = TRUE;
 
 #if !defined(DMF_USER_MODE)
     DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
@@ -2063,7 +2069,7 @@ Return Value:
     //       In that case, cancellation of requests works in an undefined manner.
     //       Streaming *must* be stopped when this callback happens!
     //
-    ASSERT(moduleContext->Stopped);
+    ASSERT(moduleContext->Stopping);
 
     // There is no need to verify that IoTarget is NULL. Client may not clear it because it is
     // not necessary to do so.
@@ -2249,7 +2255,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(moduleContext->IoTarget != NULL);
-    ASSERT(moduleContext->Stopped);
+    ASSERT(moduleContext->Stopping);
 
     moduleContext->IoTarget = NULL;
 
@@ -2347,6 +2353,12 @@ Return Value:
     DMF_HandleValidate_ModuleMethod(DmfModule,
                                     &DmfModuleDescriptor_ContinuousRequestTarget);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     ntStatus = ContinuousRequestTarget_RequestCreateAndSend(DmfModule,
                                                             FALSE,
                                                             RequestBuffer,
@@ -2361,6 +2373,7 @@ Return Value:
                                                             SingleAsynchronousRequestClientContext);
     if (! NT_SUCCESS(ntStatus))
     {
+        DMF_ModuleDereference(DmfModule);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -2475,11 +2488,11 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(moduleContext->Stopped);
+    ASSERT(moduleContext->Stopping);
 
     // Clear the Stopped flag as streaming will now start.
     //
-    moduleContext->Stopped = FALSE;
+    moduleContext->Stopping = FALSE;
 
 #if !defined(DMF_USER_MODE)
     // In case it was previous stopped, re-initialize fields used for rundown.
@@ -2574,7 +2587,7 @@ Return Value:
     // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
     // automatically.
     //
-    moduleContext->Stopped = TRUE;
+    moduleContext->Stopping = TRUE;
 
     // Cancel all requests from target. Do not wait until all pending requests have returned.
     //
