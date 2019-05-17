@@ -46,10 +46,8 @@ Environment:
 
 #if !defined(DMF_USER_MODE)
 
-#pragma code_seg("PAGE")
 _Must_inspect_result_
 _IRQL_requires_same_
-_IRQL_requires_max_(APC_LEVEL)
 ULONG
 TestsUtility_GenerateRandomNumber(
     _In_ ULONG Min,
@@ -76,8 +74,6 @@ Return Value:
     ULONG random;
     ULONG range;
 
-    PAGED_CODE();
-
     ASSERT(Max >= Min);
 
     range = Max - Min + 1;
@@ -86,14 +82,11 @@ Return Value:
 
     return random;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_same_
-_IRQL_requires_max_(APC_LEVEL)
 VOID
 TestsUtility_FillWithSequentialData(
-    _In_ PUINT8 Buffer,
+    _Out_writes_(Size) UINT8* Buffer,
     _In_ ULONG Size
     )
 /*++
@@ -117,9 +110,8 @@ Return Value:
     UINT8 currentValue;
     ULONG index;
 
-    PAGED_CODE();
-    
-    currentValue = (UINT8)TestsUtility_GenerateRandomNumber(0, BYTE_MAX);
+    currentValue = (UINT8)TestsUtility_GenerateRandomNumber(0,
+                                                            BYTE_MAX);
     
     for (index = 0; index < Size; ++ index)
     {
@@ -129,7 +121,6 @@ Return Value:
         ++ currentValue;
     }
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_same_

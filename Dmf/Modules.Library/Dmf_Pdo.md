@@ -352,6 +352,43 @@ Device | The newly created PDO (optional).
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_Pdo_DevicePlugEx
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DevicePlugEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ PDO_RECORD* PdoRecord,
+    _Out_opt_ WDFDEVICE* Device
+    );
+
+````
+
+Create and attach a static PDO to the Client Driver's FDO. This version of the API allows the Client to create a
+PDO that can instantiate DMF Modules.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Pdo Module handle.
+PdoRecord | Contains the parameters that define the characteristic of the PDO.
+Device | The newly created PDO (optional).
+
+##### Remarks
+
+* This version allows the Client to create PDO that is able to instantiate Modules.
+* This API is a superset of the non-Ex version.
+* In addition to specifying the characteristics of the PDO, set the `EnableDmf` flag and the name of the callback
+function that tells DMF what Modules to instantiate (if Modules are required).
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_Pdo_DeviceUnplug
 
 ````

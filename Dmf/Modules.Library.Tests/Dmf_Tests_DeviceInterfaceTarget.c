@@ -30,8 +30,16 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (2)
-#define MAXIMUM_SLEEP_TIME_MS       (15000)
+#define THREAD_COUNT                            (2)
+#define MAXIMUM_SLEEP_TIME_MS                   (15000)
+// This timeout is necessary for causing asynchronous single requests to complete fast so that
+// driver disable works well (since it is not possible to cancel asynchronous requests at this time.
+// using DMF).
+//
+#define ASYNCHRONOUS_REQUEST_TIMEOUT_MS         (50)
+// Keep synchronous maximum time short to make driver disable faster.
+//
+#define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (1000)
 
 typedef enum _TEST_ACTION
 {
@@ -60,6 +68,10 @@ typedef struct
     //
     DMFMODULE DmfModuleThreadAuto[THREAD_COUNT + 1];
     DMFMODULE DmfModuleThreadManual[THREAD_COUNT + 1];
+    // Use alertable sleep to allow driver to unload faster.
+    //
+    DMFMODULE DmfModuleAlertableSleepAuto[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleAlertableSleepManual[THREAD_COUNT + 1];
 } DMF_CONTEXT_Tests_DeviceInterfaceTarget;
 
 // This macro declares the following function:
@@ -80,6 +92,15 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_DeviceInterfaceTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Stores the Module threadIndex so that the corresponding alterable sleep
+// can be retrieved inside the thread's callback.
+//
+typedef struct
+{
+    DMFMODULE DmfModuleAlertableSleep;
+} THREAD_INDEX_CONTEXT;
+WDF_DECLARE_CONTEXT_TYPE(THREAD_INDEX_CONTEXT);
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -96,13 +117,12 @@ Tests_DeviceInterfaceTarget_BufferInput(
     UNREFERENCED_PARAMETER(InputBufferSize);
     UNREFERENCED_PARAMETER(ClientBuferContextInput);
 
-    PAGED_CODE();
-
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0,
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     RtlCopyMemory(InputBuffer,
                   &sleepIoctlBuffer,
                   sizeof(sleepIoctlBuffer));
+    *InputBufferSize = sizeof(sleepIoctlBuffer);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -139,13 +159,16 @@ Tests_DeviceInterfaceTarget_BufferOutput(
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep
     )
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     NTSTATUS ntStatus;
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
     PAGED_CODE();
 
@@ -155,7 +178,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                   sizeof(sleepIoctlBuffer));
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                                 MAXIMUM_SLEEP_TIME_MS);
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
                                                            &sleepIoctlBuffer,
@@ -171,7 +194,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
     //
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                                 MAXIMUM_SLEEP_TIME_MS);
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
                                                            &sleepIoctlBuffer,
@@ -217,13 +240,16 @@ Tests_DeviceInterfaceTarget_SendCompletion(
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep
     )
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     NTSTATUS ntStatus;
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
     PAGED_CODE();
 
@@ -242,7 +268,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
@@ -257,7 +283,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
@@ -270,7 +296,8 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
-    _In_ DMFMODULE DmfModule
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep
     )
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
@@ -295,11 +322,19 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
-    DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
@@ -311,11 +346,18 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
-    DMF_Utility_DelayMilliseconds(sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+    DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
+                                     0);
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+
+Exit:
+    ;
 }
 #pragma code_seg()
 
@@ -330,10 +372,12 @@ Tests_DeviceInterfaceTarget_WorkThread(
     DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     TEST_ACTION testAction;
+    THREAD_INDEX_CONTEXT* threadIndex;
 
     PAGED_CODE();
 
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
+    threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     // Generate a random test action Id for a current iteration.
@@ -346,13 +390,16 @@ Tests_DeviceInterfaceTarget_WorkThread(
     switch (testAction)
     {
         case TEST_ACTION_SYNCHRONOUS:
-            Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(dmfModule);
+            Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(dmfModule,
+                                                                 threadIndex->DmfModuleAlertableSleep);
             break;
         case TEST_ACTION_ASYNCHRONOUS:
-            Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(dmfModule);
+            Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(dmfModule,
+                                                                  threadIndex->DmfModuleAlertableSleep);
             break;
         case TEST_ACTION_ASYNCHRONOUSCANCEL:
-            Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(dmfModule);
+            Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(dmfModule,
+                                                                        threadIndex->DmfModuleAlertableSleep);
             break;
         default:
             ASSERT(FALSE);
@@ -370,7 +417,8 @@ Tests_DeviceInterfaceTarget_WorkThread(
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Tests_DeviceInterfaceTarget_NonContinousStartAuto(
     _In_ DMFMODULE DmfModule
@@ -394,7 +442,7 @@ Return Value:
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     NTSTATUS ntStatus;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -404,9 +452,9 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadAuto[index]);
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadAuto[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -414,9 +462,9 @@ Return Value:
         }
     }
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadAuto[index]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadAuto[threadIndex]);
     }
 
 Exit:
@@ -425,8 +473,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_NonContinousStopAuto(
     _In_ DMFMODULE DmfModule
@@ -449,7 +499,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -457,15 +507,23 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_Stop(moduleContext->DmfModuleThreadAuto[index]);
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepAuto[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadAuto[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Tests_DeviceInterfaceTarget_NonContinousStartManual(
     _In_ DMFMODULE DmfModule
@@ -489,7 +547,7 @@ Return Value:
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     NTSTATUS ntStatus;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -499,9 +557,9 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManual[index]);
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManual[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -509,9 +567,9 @@ Return Value:
         }
     }
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManual[index]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManual[threadIndex]);
     }
 
 Exit:
@@ -520,8 +578,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_NonContinousStopManual(
     _In_ DMFMODULE DmfModule
@@ -544,7 +604,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
-    LONG index;
+    LONG threadIndex;
 
     PAGED_CODE();
 
@@ -552,14 +612,23 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    for (index = 0; index < THREAD_COUNT; index++)
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[index]);
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepManual[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_AutoContinous(
     _In_ DMFMODULE DmfModule
@@ -584,16 +653,41 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMFMODULE dmfModuleParent;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    PAGED_CODE();
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               THREAD_INDEX_CONTEXT);
+        WdfObjectAllocateContext(moduleContext->DmfModuleThreadAuto[threadIndex],
+                                 &objectAttributes,
+                                 (PVOID*)&threadIndexContext);
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepAuto[threadIndex];
+        // Reset in case target comes and goes and comes back.
+        //
+        DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
+                                         0);
+    }
 
     ntStatus = Tests_DeviceInterfaceTarget_NonContinousStartAuto(dmfModuleParent);
     ASSERT(NT_SUCCESS(ntStatus));
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_AutoContinous(
     _In_ DMFMODULE DmfModule
@@ -618,13 +712,20 @@ Return Value:
 {
     DMFMODULE dmfModuleParent;
 
+    PAGED_CODE();
+
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
     Tests_DeviceInterfaceTarget_NonContinousStopAuto(dmfModuleParent);
+
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinous(
     _In_ DMFMODULE DmfModule
@@ -650,10 +751,31 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMFMODULE dmfModuleParent;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    PAGED_CODE();
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               THREAD_INDEX_CONTEXT);
+        WdfObjectAllocateContext(moduleContext->DmfModuleThreadManual[threadIndex],
+                                 &objectAttributes,
+                                 (PVOID*)&threadIndexContext);
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepManual[threadIndex];
+        // Reset in case target comes and goes and comes back.
+        //
+        DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
+                                         0);
+    }
 
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
@@ -664,7 +786,10 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinous(
     _In_ DMFMODULE DmfModule
@@ -690,13 +815,18 @@ Return Value:
 {
     DMFMODULE dmfModuleParent;
 
+    PAGED_CODE();
+
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
     Tests_DeviceInterfaceTarget_NonContinousStopManual(dmfModuleParent);
+
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -739,6 +869,7 @@ Return Value:
     DMF_CONFIG_Thread moduleConfigThread;
     DMF_CONFIG_DeviceInterfaceTarget moduleConfigDeviceInterfaceTarget;
     DMF_MODULE_EVENT_CALLBACKS moduleEventCallbacks;
+    DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
@@ -821,7 +952,7 @@ Return Value:
     // Thread
     // ------
     //
-    for (ULONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
         DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
                                               &moduleAttributes);
@@ -840,6 +971,30 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleThreadManual[threadIndex]);
+
+        // AlertableSleep Auto
+        // -------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.Auto";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepAuto[threadIndex]);
+
+        // AlertableSleep Manual
+        // ---------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.Manual";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepManual[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);

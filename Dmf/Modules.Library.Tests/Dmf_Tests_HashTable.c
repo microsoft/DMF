@@ -30,11 +30,18 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Maximum size of the key field. Must be larger than size of UINT.
+//
 #define KEY_SIZE                    (32)
+// Size of data associated with key.
+//
 #define BUFFER_SIZE                 (32)
-#define BUFFER_COUNT_PREALLOCATED   (16)
-#define BUFFER_COUNT_MAXIMUM        (24)
-#define THREAD_COUNT                (4)
+// Maximum number of entries in the table. This value must fit in UINT.
+//
+#define BUFFER_COUNT_MAXIMUM        (1024)
+// Number of threads that access the table.
+//
+#define THREAD_COUNT                (2)
 
 // It is a table of data that is automatically generated. This data is
 // then written to the hash table. Then, this table is used to find 
@@ -132,17 +139,31 @@ Tests_HashTable_DataGenerate(
 
     // Generate the table with random data.
     //
-    for (ULONG recordIndex = 0; recordIndex < BUFFER_COUNT_MAXIMUM; recordIndex++)
+    for (UINT recordIndex = 0; recordIndex < BUFFER_COUNT_MAXIMUM; recordIndex++)
     {
         HashTable_DataRecord* dataRecord = &moduleContext->DataRecords[recordIndex];
 
-        dataRecord->KeySize = TestsUtility_GenerateRandomNumber(1,
-                                                                KEY_SIZE);
+        // Key is composed of two parts:
+        // Part1 is index of data in table.
+        // Part2 is random data.
+        // This ensures that every key is unique. (Generating random keys fully causes some keys to be the same
+        // in some cases.)
+        //
+        ULONG keyPart1Size = sizeof(UINT);
+        ULONG keyPart2SizeMaximum = KEY_SIZE - keyPart1Size;
+        ULONG keypart2Size;
+
+        keypart2Size = TestsUtility_GenerateRandomNumber(1,
+                                                         keyPart2SizeMaximum);
         dataRecord->BufferSize = TestsUtility_GenerateRandomNumber(1,
                                                                    BUFFER_SIZE);
 
-        TestsUtility_FillWithSequentialData(dataRecord->Key,
-                                            dataRecord->KeySize);
+        RtlCopyMemory(dataRecord->Key,
+                      &recordIndex,
+                      keyPart1Size);
+        TestsUtility_FillWithSequentialData(&dataRecord->Key[keyPart1Size],
+                                            keypart2Size);
+        dataRecord->KeySize = keyPart1Size + keypart2Size;
        
         TestsUtility_FillWithSequentialData(dataRecord->Buffer,
                                             dataRecord->BufferSize);
