@@ -166,51 +166,6 @@ Return Value:
 
     isFunctionDriver = DriverModeGet(Device);
 
-    // Tests_BufferPool
-    // ----------------
-    //
-    DMF_Tests_BufferPool_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
-    // Tests_BufferQueue
-    // ----------------
-    //
-    DMF_Tests_BufferQueue_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
-    // Tests_RingBuffer
-    // ----------------
-    //
-    DMF_Tests_RingBuffer_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
-    // Tests_PingPongBuffer
-    // --------------------
-    //
-    DMF_Tests_PingPongBuffer_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
-    // Tests_HashTable
-    // ---------------
-    //
-    DMF_Tests_HashTable_ATTRIBUTES_INIT(&moduleAttributes);
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     NULL);
-
     if (isFunctionDriver)
     {
         // Tests_DefaultTarget
@@ -240,9 +195,9 @@ Return Value:
         //
         DMF_Tests_Registry_ATTRIBUTES_INIT(&moduleAttributes);
         DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
 
         // Tests_ScheduledTask
         // --------------------
@@ -251,9 +206,9 @@ Return Value:
         //
         DMF_Tests_ScheduledTask_ATTRIBUTES_INIT(&moduleAttributes);
         DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
 
         // Tests_IoctlHandler
         // ------------------
@@ -286,6 +241,57 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // These tests can be in both bus and function drivers. To reduce CPU usage, just
+        // place them in the bus driver.
+        /////////////////////////////////////////////////////////////////////////////////
+        //
+
+        // Tests_BufferPool
+        // ----------------
+        //
+        DMF_Tests_BufferPool_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
+
+        // Tests_BufferQueue
+        // ----------------
+        //
+        DMF_Tests_BufferQueue_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
+
+        // Tests_RingBuffer
+        // ----------------
+        //
+        DMF_Tests_RingBuffer_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
+
+        // Tests_PingPongBuffer
+        // --------------------
+        //
+        DMF_Tests_PingPongBuffer_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
+
+        // Tests_HashTable
+        // ---------------
+        //
+        DMF_Tests_HashTable_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            NULL);
     }
 }
 #pragma code_seg()

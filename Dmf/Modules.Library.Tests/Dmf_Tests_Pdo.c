@@ -34,7 +34,7 @@ Environment:
 // Don't use an ever increasing serial number because those serial numbers will be remembered
 // by Windows and will slow down the test computer eventually.
 //
-#define MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS    (16)
+#define MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS    (THREAD_COUNT)
 
 typedef enum _TEST_ACTION
 {
@@ -275,7 +275,7 @@ Tests_Pdo_WorkThread(
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
-testAction = TEST_ACTION_SLOW;
+
     // Execute the test action.
     //
     switch (testAction)

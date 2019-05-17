@@ -99,12 +99,21 @@ Test_IoctlHandler_BufferPool_TimerCallback(
 
     sleepContext = (SleepContext*)ClientBuffer;
     
+    // Unmark cancellation, but ignore return status and *always* return
+    // the request. This is possible because the BufferPool Module has already
+    // dealt with race conditions and this code is guaranteed to own this 
+    // request now.
+    //
     ntStatus = WdfRequestUnmarkCancelable(sleepContext->Request);
-    if (ntStatus != STATUS_CANCELLED)
+    if (!NT_SUCCESS(ntStatus))
     {
-        WdfRequestComplete(sleepContext->Request,
-                           STATUS_SUCCESS);
+        // Fall through to completing the request because no
+        // other thread will be able to find this request. The
+        // Cancel routine also uses the same path.
+        //
     }
+    WdfRequestComplete(sleepContext->Request,
+                        STATUS_SUCCESS);
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolFree,
                        ClientBuffer);

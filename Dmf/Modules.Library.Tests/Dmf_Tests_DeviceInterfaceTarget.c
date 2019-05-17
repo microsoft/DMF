@@ -30,8 +30,16 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                (2)
-#define MAXIMUM_SLEEP_TIME_MS       (15000)
+#define THREAD_COUNT                            (2)
+#define MAXIMUM_SLEEP_TIME_MS                   (15000)
+// This timeout is necessary for causing asynchronous single requests to complete fast so that
+// driver disable works well (since it is not possible to cancel asynchronous requests at this time.
+// using DMF).
+//
+#define ASYNCHRONOUS_REQUEST_TIMEOUT_MS         (50)
+// Keep synchronous maximum time short to make driver disable faster.
+//
+#define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (1000)
 
 typedef enum _TEST_ACTION
 {
@@ -170,7 +178,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                   sizeof(sleepIoctlBuffer));
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                                 MAXIMUM_SLEEP_TIME_MS);
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
                                                            &sleepIoctlBuffer,
@@ -186,7 +194,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
     //
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                                 MAXIMUM_SLEEP_TIME_MS);
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
                                                            &sleepIoctlBuffer,
@@ -260,7 +268,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
@@ -275,7 +283,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
@@ -314,7 +322,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
@@ -338,7 +346,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                               NULL,
                                               ContinuousRequestTarget_RequestType_Ioctl,
                                               IOCTL_Tests_IoctlHandler_SLEEP,
-                                              0,
+                                              ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
     ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
