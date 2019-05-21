@@ -533,7 +533,7 @@ Return Value:
     // Thread
     // ------
     //
-    for (ULONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
         DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
                                               &moduleAttributes);

@@ -63,7 +63,7 @@ typedef struct
     DMFMODULE DmfModuleAlertableSleep[THREAD_COUNT + 1];
     // Serial number in use table.
     //
-    BOOLEAN SerialNumbersInUse[MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS];
+    BOOLEAN SerialNumbersInUse[MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS + 1];
 } DMF_CONTEXT_Tests_Pdo;
 
 // This macro declares the following function:
