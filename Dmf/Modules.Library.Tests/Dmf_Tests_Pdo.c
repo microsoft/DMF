@@ -429,7 +429,8 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Tests_Pdo_SelfManagedIoInit(
     _In_ DMFMODULE DmfModule
@@ -462,6 +463,7 @@ Return Value:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
@@ -488,7 +490,8 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Tests_Pdo_SelfManagedIoRestart(
     _In_ DMFMODULE DmfModule
@@ -521,6 +524,7 @@ Return Value:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks

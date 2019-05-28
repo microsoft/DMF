@@ -155,6 +155,9 @@ Test_IoctlHandler_BufferPool_EnumerationToCancel(
     sleepContext = (SleepContext*)ClientBuffer;
     enumerationContext = (ENUMERATION_CONTEXT*)ClientDriverCallbackContext;
 
+	// 'Dereferencing NULL pointer. 'enumerationContext' contains the same NULL value as 'ClientDriverCallbackContext' did. '
+	//
+	#pragma warning(suppress:28182)
     if (sleepContext->Request == enumerationContext->Request)
     {
         // Since this is called from Cancel Callback, it is not necessary to

@@ -119,7 +119,7 @@ Return Value:
 
         // Add two characters for forced double null termination.
         //
-        bufferPointer = (WCHAR*)malloc((cmListSize + 2) * sizeof(WCHAR));
+        bufferPointer = (WCHAR*)malloc((cmListSize + (size_t)2) * sizeof(WCHAR));
 
         if (bufferPointer != NULL)
         {

@@ -151,7 +151,7 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_Use_decl_annotations_
 #pragma code_seg("PAGE")
 VOID
 NonPnp_EvtDriverContextCleanup(
