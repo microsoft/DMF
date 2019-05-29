@@ -778,12 +778,6 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
-    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
-    {
-        moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
-                                                            DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
-    }
-
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
     ntStatus = WdfIoTargetOpen(IoTarget,
@@ -802,6 +796,12 @@ Return Value:
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
         }
+    }
+
+    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+    {
+        moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
+                                                            DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
     }
 
 Exit:

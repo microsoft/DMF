@@ -2120,8 +2120,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMF_HandleValidate_ClosingOk(DmfModule,
+                                 &DmfModuleDescriptor_BufferPool);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

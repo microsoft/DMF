@@ -2992,9 +2992,9 @@ Return Value:
 #endif
         // Sometimes the Thread ID of the current thread is zero. In that case, use DMF_INVALID_HANDLE_VALUE.
         //
-        if (dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread == 0)
+        if (dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread == 0)
         {
-            dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = DMF_INVALID_HANDLE_VALUE;
+            dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = DMF_INVALID_HANDLE_VALUE;
         }
     }
     else
