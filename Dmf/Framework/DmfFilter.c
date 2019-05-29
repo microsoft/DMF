@@ -95,8 +95,6 @@ Return Value:
 
     dmfDeviceInit = DMF_DmfControlDeviceInitAllocate(deviceInit);
 
-    DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit,
-                                          NULL);
     DMF_DmfControlDeviceInitSetClientDriverDevice(dmfDeviceInit,
                                                   Device);
 
