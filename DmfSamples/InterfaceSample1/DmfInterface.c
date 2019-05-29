@@ -192,7 +192,7 @@ Return Value:
     ULONG valueData;
     DECLARE_CONST_UNICODE_STRING(valueName, L"TransportSelect");
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     transportId = 1;
 
@@ -361,7 +361,7 @@ Return Value:
     UNREFERENCED_PARAMETER(ResourcesRaw);
     UNREFERENCED_PARAMETER(ResourcesTranslated);
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
 
@@ -467,9 +467,9 @@ Return Value:
 
     UNREFERENCED_PARAMETER(ResourcesTranslated);
 
-	PAGED_CODE();
-	
-	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
+    PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "-->%!FUNC!");
 
     deviceContext = DeviceContextGet(Device);
 

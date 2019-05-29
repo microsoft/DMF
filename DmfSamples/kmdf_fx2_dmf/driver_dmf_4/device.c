@@ -199,7 +199,7 @@ Return Value:
     DMF_CONFIG_Pdo moduleConfigPdo;
     DEVICE_CONTEXT* pDevContext;
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     pDevContext = GetDeviceContext(Device);
 

@@ -519,7 +519,7 @@ Return Value:
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferSize);
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     // Tell application this driver read the input buffer.
     //

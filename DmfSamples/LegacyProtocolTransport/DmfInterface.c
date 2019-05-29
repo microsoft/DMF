@@ -192,7 +192,7 @@ Return Value:
     ULONG valueData;
     DECLARE_CONST_UNICODE_STRING(valueName, L"TransportSelect");
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     transportId = 1;
 

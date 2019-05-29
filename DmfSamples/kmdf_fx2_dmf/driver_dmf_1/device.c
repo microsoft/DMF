@@ -512,7 +512,7 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(DmfModuleInit);
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     // In this sample, no Modules are instantiated.
     //

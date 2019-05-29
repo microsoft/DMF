@@ -243,7 +243,7 @@ Return Value:
     DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
     DEVICE_CONTEXT* pDevContext;
 
-	PAGED_CODE();
+    PAGED_CODE();
 
     pDevContext = GetDeviceContext(Device);
 
