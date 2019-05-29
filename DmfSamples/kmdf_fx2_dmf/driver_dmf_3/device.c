@@ -243,6 +243,8 @@ Return Value:
     DMF_CONFIG_IoctlHandler moduleConfigIoctlHandler;
     DEVICE_CONTEXT* pDevContext;
 
+    PAGED_CODE();
+
     pDevContext = GetDeviceContext(Device);
 
     // OsrFx2
@@ -286,8 +288,7 @@ Return Value:
                      &pDevContext->DmfModuleIoctlHandler);
 }
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
+_Use_decl_annotations_
 VOID
 OsrFx2_EventWriteCallback(_In_ DMFMODULE DmfModule,
                           _In_ OsrFx2_EventWriteMessage EventWriteMessage,

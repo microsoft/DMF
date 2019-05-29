@@ -222,7 +222,7 @@ _IRQL_requires_(PASSIVE_LEVEL)
 NTSTATUS
 GetSwitchState(
     _In_ PDEVICE_CONTEXT DevContext,
-    _In_ PSWITCH_STATE SwitchState
+    _Out_ PSWITCH_STATE SwitchState
     );
 
 VOID

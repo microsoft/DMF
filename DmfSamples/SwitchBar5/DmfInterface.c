@@ -337,8 +337,7 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
+_Use_decl_annotations_
 ContinuousRequestTarget_BufferDisposition
 SwitchBarSwitchChangedCallback(
     _In_ DMFMODULE DmfModuleContinuousRequestTarget,

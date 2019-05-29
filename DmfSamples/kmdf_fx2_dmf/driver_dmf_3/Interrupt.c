@@ -28,8 +28,7 @@ Environment:
 #include "interrupt.tmh"
 #endif
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
+_Use_decl_annotations_
 VOID
 OsrFx2InterruptPipeCallback(
     _In_ DMFMODULE DmfModule,

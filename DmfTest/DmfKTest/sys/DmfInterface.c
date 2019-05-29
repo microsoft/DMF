@@ -101,6 +101,8 @@ Return Value:
     ULONG valueData;
     DECLARE_CONST_UNICODE_STRING(valueName, L"FunctionDriver");
 
+    PAGED_CODE();
+
     driverMode = 0;
 
     ntStatus = WdfDeviceOpenRegistryKey(WdfDevice,

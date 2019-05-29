@@ -424,6 +424,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CALLBACK, "<--%!FUNC!");
 }
+#pragma code_seg()
 
 NTSTATUS
 SwitchBarEvtDeviceD0Entry(
@@ -470,8 +471,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
-_IRQL_requires_same_
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_Use_decl_annotations_
 VOID
 SwitchBarModuleDeviceIoControl(
     _In_ WDFQUEUE Queue,

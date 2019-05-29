@@ -192,6 +192,8 @@ Return Value:
     ULONG valueData;
     DECLARE_CONST_UNICODE_STRING(valueName, L"TransportSelect");
 
+    PAGED_CODE();
+
     transportId = 1;
 
     ntStatus = WdfDeviceOpenRegistryKey(WdfDevice,
@@ -232,6 +234,7 @@ Exit:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGED")
 VOID
 LegacyProtocolTransportModuleAdd(
     _In_ DMFMODULE DmfModuleProtocol,
@@ -298,6 +301,7 @@ Return Value:
         ASSERT(FALSE);
     }
 }
+#pragma code_seg()
 
 #pragma code_seg("PAGED")
 _IRQL_requires_max_(PASSIVE_LEVEL)

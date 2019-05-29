@@ -28,8 +28,7 @@ Environment:
 #include "interrupt.tmh"
 #endif
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
+_Use_decl_annotations_
 ScheduledTask_Result_Type 
 OsrFx2QueuedWorkitem(
     _In_ DMFMODULE DmfModule,
@@ -77,8 +76,7 @@ OsrFx2QueuedWorkitem(
     return ScheduledTask_WorkResult_Success;
 }
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
+_Use_decl_annotations_
 VOID
 OsrFx2InterruptPipeCallback(
     _In_ DMFMODULE DmfModule,

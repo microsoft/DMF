@@ -363,8 +363,7 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
+_Use_decl_annotations_
 ContinuousRequestTarget_BufferDisposition
 SwitchBarSwitchChangedCallback(
     _In_ DMFMODULE DmfModuleDefaultTarget,
@@ -519,6 +518,8 @@ Return Value:
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferSize);
+
+    PAGED_CODE();
 
     // Tell application this driver read the input buffer.
     //
