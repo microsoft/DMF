@@ -738,7 +738,7 @@ Return Value:
     // Allocate space for the list entry that holds the meta data for the buffer.
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = NULL;
+    objectAttributes.ParentObject = DmfModule;
     ntStatus = DMF_Portable_LookasideListCreateMemory(&moduleContext->LookasideList,
                                                       &memory);
     if (! NT_SUCCESS(ntStatus))
@@ -1469,6 +1469,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
 #if defined(DEBUG)
@@ -1487,6 +1488,8 @@ Return Value:
         ASSERT(DMF_ModuleLockIsPassive(*DmfModule));
     }
 #endif
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

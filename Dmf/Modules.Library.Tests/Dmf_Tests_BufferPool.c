@@ -337,7 +337,7 @@ BufferPool_Enumeration_Callback(
 
 #pragma code_seg("PAGE")
 static
-void
+NTSTATUS
 Tests_BufferPool_ThreadAction_BufferAquire(
     _In_ DMFMODULE DmfModule
     )
@@ -352,6 +352,7 @@ Tests_BufferPool_ThreadAction_BufferAquire(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    ntStatus = STATUS_SUCCESS;
     clientBuffer = NULL;
     clientBufferContext = NULL;
 
@@ -367,7 +368,10 @@ Tests_BufferPool_ThreadAction_BufferAquire(
     ntStatus = Tests_BufferPool_GetFromPool(moduleContext->DmfModuleBufferPoolSource,
                                             &clientBuffer,
                                             &clientBufferContext);
-    ASSERT(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
     ASSERT(clientBuffer != NULL);
     ASSERT(clientBufferContext != NULL);
 
@@ -407,13 +411,13 @@ Tests_BufferPool_ThreadAction_BufferAquire(
 
 Exit:
 
-    return;
+    return ntStatus;
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
 static
-void
+NTSTATUS
 Tests_BufferPool_ThreadAction_BufferReturn(
     _In_ DMFMODULE DmfModule
 )
@@ -434,6 +438,9 @@ Tests_BufferPool_ThreadAction_BufferReturn(
                                             &clientBufferContext);
     if (!NT_SUCCESS(ntStatus))
     {
+        // There is no buffer in sink pool because it has been called before acquire. 
+        //
+        ntStatus = STATUS_SUCCESS;
         goto Exit;
     }
 
@@ -444,13 +451,13 @@ Tests_BufferPool_ThreadAction_BufferReturn(
 
 Exit:
 
-    return;
+    return ntStatus;
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
 static
-void
+NTSTATUS
 Tests_BufferPool_ThreadAction_BufferEnumerate(
     _In_ DMFMODULE DmfModule
 )
@@ -460,11 +467,13 @@ Tests_BufferPool_ThreadAction_BufferEnumerate(
     PUINT8 clientBuffer;
     ULONG randomNumber;
     CLIENT_BUFFER_CONTEXT* clientBufferContext;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    ntStatus = STATUS_SUCCESS;
     clientBuffer = NULL;
     clientBufferContext = NULL;
 
@@ -499,21 +508,25 @@ Tests_BufferPool_ThreadAction_BufferEnumerate(
         DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolSource,
                            clientBuffer);
     }
+
+    return ntStatus;
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
 static
-void
+NTSTATUS
 Tests_BufferPool_ThreadAction_BufferCount(
     _In_ DMFMODULE DmfModule
     )
 {
     DMF_CONTEXT_Tests_BufferPool* moduleContext;
     ULONG currentCount;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
+    ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     // Get the current number of buffers in sink
@@ -525,6 +538,8 @@ Tests_BufferPool_ThreadAction_BufferCount(
     // So a number of acquired buffers may be up to THREAD_COUNT more, in case of a race conditions.
     //
     ASSERT(currentCount <= BUFFER_COUNT_MAX + THREAD_COUNT);
+
+    return ntStatus;
 }
 #pragma code_seg()
 
@@ -539,6 +554,7 @@ Tests_BufferPool_WorkThread(
     DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_BufferPool* moduleContext;
     TEST_ACTION testAction;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
@@ -554,21 +570,25 @@ Tests_BufferPool_WorkThread(
     switch (testAction)
     {
     case TEST_ACTION_AQUIRE:
-        Tests_BufferPool_ThreadAction_BufferAquire(dmfModule);
+        ntStatus = Tests_BufferPool_ThreadAction_BufferAquire(dmfModule);
         break;
     case TEST_ACTION_RETURN:
-        Tests_BufferPool_ThreadAction_BufferReturn(dmfModule);
+        ntStatus = Tests_BufferPool_ThreadAction_BufferReturn(dmfModule);
         break;
     case TEST_ACTION_ENUMERATE:
-        Tests_BufferPool_ThreadAction_BufferEnumerate(dmfModule);
+        ntStatus = Tests_BufferPool_ThreadAction_BufferEnumerate(dmfModule);
         break;
     case TEST_ACTION_COUNT:
-        Tests_BufferPool_ThreadAction_BufferCount(dmfModule);
+        ntStatus = Tests_BufferPool_ThreadAction_BufferCount(dmfModule);
         break;
     default:
+        ntStatus = STATUS_UNSUCCESSFUL;
         ASSERT(FALSE);
         break;
     }
+
+    ASSERT(NT_SUCCESS(ntStatus) ||
+           DMF_Thread_IsStopPending(DmfModuleThread));
 
     // Repeat the test, until stop is signaled.
     //
