@@ -1681,7 +1681,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // Delay for 5 seconds, to make sure Software hive is loaded.
+    // Delay for 10 seconds, to make sure Software hive is loaded.
     //
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
                                         0,
