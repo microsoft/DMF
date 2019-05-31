@@ -205,6 +205,77 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleConfigRetrieve(
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(ModuleConfigSize) PVOID ModuleConfigPointer,
+    _In_ size_t ModuleConfigSize
+    )
+/*++
+
+Routine Description:
+
+    Returns a copy of the given Module's Config for use by the Client.
+
+Arguments:
+
+    DmfModule: The given DMF Module.
+    ModuleConfigPointer: Address where the Module's config is copied to.
+    ModuleConfigSize: Size of Module config. Used for validation.
+
+Return Value:
+
+    None.
+
+--*/
+{
+    // NOTE: No FuncEntry/Exit logging. It is too much and it is not necessary for this
+    // simple function.
+    //
+    NTSTATUS ntStatus;
+    DMF_OBJECT* dmfObject;
+    size_t configSize;
+    PVOID moduleConfig;
+
+    dmfObject = DMF_ModuleToObject(DmfModule);
+    ntStatus = STATUS_SUCCESS;
+
+    DMF_HandleValidate_IsAvailable(dmfObject);
+
+    ASSERT(dmfObject != NULL);
+
+    if (dmfObject->ModuleConfigMemory != NULL)
+    {
+        moduleConfig = WdfMemoryGetBuffer(dmfObject->ModuleConfigMemory,
+                                          &configSize);
+
+        ASSERT (dmfObject->ModuleConfig == moduleConfig);
+    
+        if (configSize != ModuleConfigSize)
+        {
+            ntStatus = STATUS_INVALID_BUFFER_SIZE;
+        }
+        else
+        {
+            RtlCopyMemory(ModuleConfigPointer,
+                          moduleConfig,
+                          configSize);
+        }
+    }
+    else
+    {
+        // This API should not be called in this case
+        // because Client should know that no Config was set.
+        //
+        ASSERT(FALSE);
+        ntStatus = STATUS_NOT_FOUND;
+    }
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 LONG
 DMF_ModuleReferenceAdd(
     _In_ DMFMODULE DmfModule

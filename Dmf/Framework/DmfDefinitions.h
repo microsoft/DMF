@@ -1234,6 +1234,15 @@ DMF_ModulesCreate(
     _In_ PDMFDEVICE_INIT* DmfDeviceInit
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleConfigRetrieve(
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(ModuleConfigSize) PVOID ModuleConfigPointer,
+    _In_ size_t ModuleConfigSize
+    );
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Filter Driver Support (FilterControl API)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

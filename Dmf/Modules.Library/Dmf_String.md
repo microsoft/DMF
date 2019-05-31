@@ -127,7 +127,34 @@ LookFor | The given string to search for in the list.
 * None
 
 -----------------------------------------------------------------------------------------------------------------------------------
+````
+LONG
+DMF_String_FindInListExactGuid(
+    _In_ GUID* GuidList,
+    _In_ ULONG NumberOfGuidsInGuidList,
+    _In_ GUID* LookFor
+    );
+````
+Given a list of GUIDs and a GUID to find, find the GUID in the list.
+The comparison made is: Full GUID, exact match.
 
+##### Returns
+
+-1 indicates the GUID to look for was not found.
+Otherwise the index of the matching GUID in the list of strings is returned.
+
+##### Parameters
+Parameter | Description
+----|----
+GuidList | The given list of GUIDs to search.
+NumberOfGuidsInGuidList | The number of GUIDs in GuidList.
+LookFor | The given GUID to search for in the list.
+
+##### Remarks
+
+* None
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_String_FindInListLookForLeftMatchChar
 ````
 LONG
