@@ -391,6 +391,53 @@ Return Value:
 }
 
 LONG
+DMF_String_FindInListExactGuid(
+    _In_ GUID* GuidList,
+    _In_ ULONG NumberOfGuidsInGuidList,
+    _In_ GUID* LookFor
+    )
+/*++
+
+Routine Description:
+
+    Given a list of GUIDs, find the index of a given GUID.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    GuidList - List of strings to search.
+    NumberOfGuidsInGuidList - Number of GUIDs in GuidList.
+    LookFor - GUID to look for.
+
+Return Value:
+
+    -1 - LookFor is not found in GuidList.
+    non-negative: Index of GUID in GuidList that matches LookFor.
+
+--*/
+{
+    LONG returnValue;
+
+    ASSERT(GuidList != NULL);
+
+    // -1 indicates "not found int list".
+    //
+    returnValue = -1;
+
+    for (ULONG guidIndex = 0; guidIndex < NumberOfGuidsInGuidList; guidIndex++)
+    {
+        if (DMF_Utility_IsEqualGUID((LPGUID)&GuidList[guidIndex],
+                                    (LPGUID)LookFor))
+        {
+            returnValue = guidIndex;
+            break;
+        }
+    }
+
+    return returnValue;
+}
+
+LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
     _In_ CHAR** StringList,

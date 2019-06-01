@@ -926,13 +926,12 @@ Return Value:
     DmfCallbacksDmf_ScheduledTask.DeviceOpen = DMF_ScheduledTask_Open;
     DmfCallbacksDmf_ScheduledTask.DeviceClose = DMF_ScheduledTask_Close;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ScheduledTask);
-
     // Allow Module to be created Dynamically when possible.
     //
     if ((moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_PrepareHardware) ||
         (moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_D0Entry))
     {
+        DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ScheduledTask);
         DmfCallbacksWdf_ScheduledTask.ModulePrepareHardware = DMF_ScheduledTask_ModulePrepareHardware;
         DmfCallbacksWdf_ScheduledTask.ModuleReleaseHardware = DMF_ScheduledTask_ModuleReleaseHardware;
         DmfCallbacksWdf_ScheduledTask.ModuleD0Entry = DMF_ScheduledTask_ModuleD0Entry;
@@ -946,7 +945,13 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     DmfModuleDescriptor_ScheduledTask.CallbacksDmf = &DmfCallbacksDmf_ScheduledTask;
-    DmfModuleDescriptor_ScheduledTask.CallbacksWdf = &DmfCallbacksWdf_ScheduledTask;
+    // Allow Module to be created Dynamically when possible.
+    //
+    if ((moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_PrepareHardware) ||
+        (moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_D0Entry))
+    {
+        DmfModuleDescriptor_ScheduledTask.CallbacksWdf = &DmfCallbacksWdf_ScheduledTask;
+    }
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,

@@ -273,6 +273,9 @@ typedef struct
     // This is the Child Module to be returned at the next iteration.
     //
     LIST_ENTRY* NextChildObjectListEntry;
+    // This is the Child Module to be returned at the next iteration.
+    //
+    LIST_ENTRY* PreviousChildObjectListEntry;
 } CHILD_OBJECT_INTERATION_CONTEXT;
 
 // The DMF Module Collection contains information about all the instantiated

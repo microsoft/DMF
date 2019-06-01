@@ -57,6 +57,13 @@ DMF_String_FindInListExactChar(
     );
 
 LONG
+DMF_String_FindInListExactGuid(
+    _In_ GUID* GuidList,
+    _In_ ULONG NumberOfGuidsInGuidList,
+    _In_ GUID* LookFor
+    );
+
+LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
     _In_ CHAR** StringList,

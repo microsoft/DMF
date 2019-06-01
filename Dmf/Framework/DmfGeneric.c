@@ -2016,29 +2016,9 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    // NeedtoCallPreClose is set when the Module has not been closed.
-    // DMF does not use ModuleState for decision making purposes, only
-    // for debug and assertions. NeedToCallPreClose used to make a check
-    // to determine if the Module has been closed instead. This flag is
-    // cleared when the Module is closed.
-    // TODO: Perhaps rename this variable to "HasModuleBeenClosed".
-    //
-    if (dmfObject->NeedToCallPreClose)
-    {
-        // The Module was successfully opened and now we are closing it.
-        // No asynchronous notification will close the Module, so close it now
-        // (as if this was the asynchronous notification).
-        //
-        // This eliminates the need to for the Module to handle this callback just
-        // to close the Module in cases where OPEN_NOTIFY_* is used and the Client
-        // does not need to actually register for a notification.
-        //
-        DMF_ModuleClose(DmfModule);
-    }
-
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
+    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
 }
