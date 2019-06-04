@@ -742,13 +742,6 @@ Exit:
 //
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_AcpiTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -782,12 +775,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_AcpiTarget;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_AcpiTarget,
+    DMF_MODULE_DESCRIPTOR_INIT(dmfModuleDescriptor_AcpiTarget,
                                AcpiTarget,
                                DMF_MODULE_OPTIONS_PASSIVE,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
@@ -795,7 +789,7 @@ Return Value:
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_AcpiTarget,
+                                &dmfModuleDescriptor_AcpiTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -905,8 +899,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_AcpiTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiTarget);
 
     outputBuffer = NULL;
     outputBufferSize = 0;
@@ -1045,8 +1039,8 @@ Return Value:
         *ReturnBufferSize = 0;
     }
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_AcpiTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiTarget);
 
     ntStatus = AcpiTarget_InvokeDsm(DmfModule,
                                     FunctionIndex,
@@ -1101,8 +1095,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_AcpiTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiTarget);
 
     ntStatus = AcpiTarget_InvokeDsm(DmfModule,
                                     FunctionIndex,

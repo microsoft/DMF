@@ -811,14 +811,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_HashTable;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_HashTable;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -853,27 +845,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_HashTable;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_HashTable;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HashTable);
-    DmfCallbacksDmf_HashTable.DeviceOpen = DMF_HashTable_Open;
-    DmfCallbacksDmf_HashTable.DeviceClose = DMF_HashTable_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_HashTable);
+    dmfCallbacksDmf_HashTable.DeviceOpen = DMF_HashTable_Open;
+    dmfCallbacksDmf_HashTable.DeviceClose = DMF_HashTable_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_HashTable,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_HashTable,
                                             HashTable,
                                             DMF_CONTEXT_HashTable,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_HashTable.CallbacksDmf = &DmfCallbacksDmf_HashTable;
+    dmfModuleDescriptor_HashTable.CallbacksDmf = &dmfCallbacksDmf_HashTable;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_HashTable,
+                                &dmfModuleDescriptor_HashTable,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -919,8 +913,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HashTable);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HashTable);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -981,8 +975,8 @@ Return Value:
     NTSTATUS ntStatus;
     DATA_ENTRY* dataEntry;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HashTable);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HashTable);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1055,8 +1049,8 @@ Return Value:
     NTSTATUS ntStatus;
     DATA_ENTRY* dataEntry;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HashTable);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HashTable);
 
     DMF_ModuleLock(DmfModule);
 
@@ -1130,8 +1124,8 @@ Return Value:
     NTSTATUS ntStatus;
     DATA_ENTRY* dataEntry;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HashTable);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HashTable);
 
     DMF_ModuleLock(DmfModule);
 

@@ -899,6 +899,9 @@ Return Value:
         //
     }
 
+    dmfObject->ModuleDescriptor.WdfAddCustomType = ModuleDescriptor->WdfAddCustomType;
+    ASSERT(dmfObject->ModuleDescriptor.WdfAddCustomType != NULL);
+
     // Handlers are always set. We don't need to check pointers everywhere.
     //
     ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
@@ -1207,6 +1210,13 @@ Exit:
         }
         if (DmfModule != NULL)
         {
+            // Add Module name as a custom type for the newly created Module handle.
+            // Data and callbacks are not used as part of the custom type. 
+            //
+            dmfObject->ModuleDescriptor.WdfAddCustomType(dmfModule,
+                                                         0,
+                                                         NULL,
+                                                         NULL);
             // Give Client the resultant Module Handle.
             //
             *DmfModule = dmfModule;

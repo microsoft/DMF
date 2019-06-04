@@ -739,14 +739,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_HashTable;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_HashTable;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -781,26 +773,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_HashTable;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_HashTable;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_HashTable);
-    DmfCallbacksDmf_Tests_HashTable.ChildModulesAdd = DMF_Tests_HashTable_ChildModulesAdd;
-    DmfCallbacksDmf_Tests_HashTable.DeviceOpen = Tests_HashTable_Open;
-    DmfCallbacksDmf_Tests_HashTable.DeviceClose = Tests_HashTable_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_HashTable);
+    dmfCallbacksDmf_Tests_HashTable.ChildModulesAdd = DMF_Tests_HashTable_ChildModulesAdd;
+    dmfCallbacksDmf_Tests_HashTable.DeviceOpen = Tests_HashTable_Open;
+    dmfCallbacksDmf_Tests_HashTable.DeviceClose = Tests_HashTable_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_HashTable,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_HashTable,
                                             Tests_HashTable,
                                             DMF_CONTEXT_Tests_HashTable,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Tests_HashTable.CallbacksDmf = &DmfCallbacksDmf_Tests_HashTable;
+    dmfModuleDescriptor_Tests_HashTable.CallbacksDmf = &dmfCallbacksDmf_Tests_HashTable;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_HashTable,
+                                &dmfModuleDescriptor_Tests_HashTable,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

@@ -798,14 +798,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_BufferPool;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_BufferPool;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -840,26 +832,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_BufferPool;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_BufferPool;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_BufferPool);
-    DmfCallbacksDmf_Tests_BufferPool.ChildModulesAdd = DMF_Tests_BufferPool_ChildModulesAdd;
-    DmfCallbacksDmf_Tests_BufferPool.DeviceOpen = Tests_BufferPool_Open;
-    DmfCallbacksDmf_Tests_BufferPool.DeviceClose = Tests_BufferPool_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_BufferPool);
+    dmfCallbacksDmf_Tests_BufferPool.ChildModulesAdd = DMF_Tests_BufferPool_ChildModulesAdd;
+    dmfCallbacksDmf_Tests_BufferPool.DeviceOpen = Tests_BufferPool_Open;
+    dmfCallbacksDmf_Tests_BufferPool.DeviceClose = Tests_BufferPool_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_BufferPool,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_BufferPool,
                                             Tests_BufferPool,
                                             DMF_CONTEXT_Tests_BufferPool,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Tests_BufferPool.CallbacksDmf = &DmfCallbacksDmf_Tests_BufferPool;
+    dmfModuleDescriptor_Tests_BufferPool.CallbacksDmf = &dmfCallbacksDmf_Tests_BufferPool;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_BufferPool,
+                                &dmfModuleDescriptor_Tests_BufferPool,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

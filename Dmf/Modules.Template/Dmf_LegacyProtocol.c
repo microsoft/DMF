@@ -108,14 +108,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_LegacyProtocol;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_LegacyProtocol;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -150,27 +142,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_LegacyProtocol;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_LegacyProtocol;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_LegacyProtocol);
-    DmfCallbacksDmf_LegacyProtocol.DeviceOpen = DMF_LegacyProtocol_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_LegacyProtocol);
+    dmfCallbacksDmf_LegacyProtocol.DeviceOpen = DMF_LegacyProtocol_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_LegacyProtocol,
+    DMF_MODULE_DESCRIPTOR_INIT(dmfModuleDescriptor_LegacyProtocol,
                                LegacyProtocol,
                                DMF_MODULE_OPTIONS_PASSIVE |
                                    DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_LegacyProtocol.CallbacksDmf = &DmfCallbacksDmf_LegacyProtocol;
-    DmfModuleDescriptor_LegacyProtocol.RequiredTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
+    dmfModuleDescriptor_LegacyProtocol.CallbacksDmf = &dmfCallbacksDmf_LegacyProtocol;
+    dmfModuleDescriptor_LegacyProtocol.RequiredTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_LegacyProtocol,
+                                &dmfModuleDescriptor_LegacyProtocol,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -215,8 +209,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_LegacyProtocol);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 LegacyProtocol);
 
     ntStatus = DMF_ModuleTransportCall(DmfModule,
                                        LegacyProtocol_TransportMessage_StringPrint,

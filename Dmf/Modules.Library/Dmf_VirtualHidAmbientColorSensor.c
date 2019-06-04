@@ -678,14 +678,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_VirtualHidAmbientColorSensor;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_VirtualHidAmbientColorSensor;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -720,27 +712,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidAmbientColorSensor;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidAmbientColorSensor;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_VirtualHidAmbientColorSensor);
-    DmfCallbacksDmf_VirtualHidAmbientColorSensor.DeviceOpen = DMF_VirtualHidAmbientColorSensor_Open;
-    DmfCallbacksDmf_VirtualHidAmbientColorSensor.ChildModulesAdd = DMF_VirtualHidAmbientColorSensor_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_VirtualHidAmbientColorSensor);
+    dmfCallbacksDmf_VirtualHidAmbientColorSensor.DeviceOpen = DMF_VirtualHidAmbientColorSensor_Open;
+    dmfCallbacksDmf_VirtualHidAmbientColorSensor.ChildModulesAdd = DMF_VirtualHidAmbientColorSensor_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_VirtualHidAmbientColorSensor,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualHidAmbientColorSensor,
                                             VirtualHidAmbientColorSensor,
                                             DMF_CONTEXT_VirtualHidAmbientColorSensor,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_VirtualHidAmbientColorSensor.CallbacksDmf = &DmfCallbacksDmf_VirtualHidAmbientColorSensor;
+    dmfModuleDescriptor_VirtualHidAmbientColorSensor.CallbacksDmf = &dmfCallbacksDmf_VirtualHidAmbientColorSensor;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_VirtualHidAmbientColorSensor,
+                                &dmfModuleDescriptor_VirtualHidAmbientColorSensor,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -791,8 +785,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_VirtualHidAmbientColorSensor);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualHidAmbientColorSensor);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

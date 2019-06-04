@@ -341,14 +341,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_CmApi;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_CmApi;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -383,22 +375,24 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_CmApi;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_CmApi;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_CmApi);
-    DmfCallbacksDmf_CmApi.DeviceOpen = DMF_CmApi_Open;
-    DmfCallbacksDmf_CmApi.DeviceClose = DMF_CmApi_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_CmApi);
+    dmfCallbacksDmf_CmApi.DeviceOpen = DMF_CmApi_Open;
+    dmfCallbacksDmf_CmApi.DeviceClose = DMF_CmApi_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_CmApi,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_CmApi,
                                             CmApi,
                                             DMF_CONTEXT_CmApi,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_CmApi.CallbacksDmf = &DmfCallbacksDmf_CmApi;
+    dmfModuleDescriptor_CmApi.CallbacksDmf = &dmfCallbacksDmf_CmApi;
 
     // ObjectAttributes must be initialized and
     // ParentObject attribute must be set to either WDFDEVICE or DMFMODULE.
@@ -406,7 +400,7 @@ Return Value:
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_CmApi,
+                                &dmfModuleDescriptor_CmApi,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -462,8 +456,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_CmApi);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 CmApi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(DeviceInstanceId != NULL);

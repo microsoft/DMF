@@ -778,14 +778,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_DefaultTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_DefaultTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -820,30 +812,32 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_DefaultTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_DefaultTarget;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_DefaultTarget);
-    DmfCallbacksDmf_DefaultTarget.DeviceNotificationRegister = DMF_DefaultTarget_NotificationRegister;
-    DmfCallbacksDmf_DefaultTarget.DeviceNotificationUnregister = DMF_DefaultTarget_NotificationUnregister;
-    DmfCallbacksDmf_DefaultTarget.DeviceOpen = DMF_DefaultTarget_Open;
-    DmfCallbacksDmf_DefaultTarget.DeviceClose = DMF_DefaultTarget_Close;
-    DmfCallbacksDmf_DefaultTarget.ChildModulesAdd = DMF_DefaultTarget_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_DefaultTarget);
+    dmfCallbacksDmf_DefaultTarget.DeviceNotificationRegister = DMF_DefaultTarget_NotificationRegister;
+    dmfCallbacksDmf_DefaultTarget.DeviceNotificationUnregister = DMF_DefaultTarget_NotificationUnregister;
+    dmfCallbacksDmf_DefaultTarget.DeviceOpen = DMF_DefaultTarget_Open;
+    dmfCallbacksDmf_DefaultTarget.DeviceClose = DMF_DefaultTarget_Close;
+    dmfCallbacksDmf_DefaultTarget.ChildModulesAdd = DMF_DefaultTarget_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_DefaultTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_DefaultTarget,
                                             DefaultTarget,
                                             DMF_CONTEXT_DefaultTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
-    DmfModuleDescriptor_DefaultTarget.CallbacksDmf = &DmfCallbacksDmf_DefaultTarget;
+    dmfModuleDescriptor_DefaultTarget.CallbacksDmf = &dmfCallbacksDmf_DefaultTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_DefaultTarget,
+                                &dmfModuleDescriptor_DefaultTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -889,8 +883,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DefaultTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -945,8 +939,8 @@ Return Value:
     ASSERT(IoTarget != NULL);
     *IoTarget = NULL;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DefaultTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -1015,8 +1009,8 @@ Return Value:
     // This Module Method can be called when SSH is removed or being removed. The code in this function is 
     // protected due to call to ModuleAcquire.
     //
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DefaultTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -1094,8 +1088,8 @@ Return Value:
     // This Module Method can be called when SSH is removed or being removed. The code in this function is 
     // protected due to call to ModuleAcquire.
     //
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DefaultTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -1154,8 +1148,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DefaultTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -1206,8 +1200,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DefaultTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))

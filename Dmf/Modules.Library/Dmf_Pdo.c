@@ -663,14 +663,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Pdo;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Pdo;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -705,23 +697,25 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Pdo;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Pdo;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Pdo);
-    DmfCallbacksDmf_Pdo.ChildModulesAdd = DMF_Pdo_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Pdo);
+    dmfCallbacksDmf_Pdo.ChildModulesAdd = DMF_Pdo_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_Pdo,
+    DMF_MODULE_DESCRIPTOR_INIT(dmfModuleDescriptor_Pdo,
                                Pdo,
                                DMF_MODULE_OPTIONS_PASSIVE,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Pdo.CallbacksDmf = &DmfCallbacksDmf_Pdo;
+    dmfModuleDescriptor_Pdo.CallbacksDmf = &dmfCallbacksDmf_Pdo;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Pdo,
+                                &dmfModuleDescriptor_Pdo,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -765,8 +759,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Pdo);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -813,8 +807,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Pdo);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -888,8 +882,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Pdo);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -999,8 +993,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Pdo);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -1081,8 +1075,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Pdo);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -1137,8 +1131,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Pdo);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
 
     device = DMF_ParentDeviceGet(DmfModule);
 

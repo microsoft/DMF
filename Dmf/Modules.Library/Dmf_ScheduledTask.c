@@ -871,15 +871,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ScheduledTask;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ScheduledTask;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_ScheduledTask;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -914,6 +905,9 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ScheduledTask;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ScheduledTask;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_ScheduledTask;
     DMF_CONFIG_ScheduledTask* moduleConfig;
 
     PAGED_CODE();
@@ -922,41 +916,41 @@ Return Value:
 
     moduleConfig = (DMF_CONFIG_ScheduledTask*)DmfModuleAttributes->ModuleConfigPointer;
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ScheduledTask);
-    DmfCallbacksDmf_ScheduledTask.DeviceOpen = DMF_ScheduledTask_Open;
-    DmfCallbacksDmf_ScheduledTask.DeviceClose = DMF_ScheduledTask_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ScheduledTask);
+    dmfCallbacksDmf_ScheduledTask.DeviceOpen = DMF_ScheduledTask_Open;
+    dmfCallbacksDmf_ScheduledTask.DeviceClose = DMF_ScheduledTask_Close;
 
     // Allow Module to be created Dynamically when possible.
     //
     if ((moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_PrepareHardware) ||
         (moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_D0Entry))
     {
-        DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ScheduledTask);
-        DmfCallbacksWdf_ScheduledTask.ModulePrepareHardware = DMF_ScheduledTask_ModulePrepareHardware;
-        DmfCallbacksWdf_ScheduledTask.ModuleReleaseHardware = DMF_ScheduledTask_ModuleReleaseHardware;
-        DmfCallbacksWdf_ScheduledTask.ModuleD0Entry = DMF_ScheduledTask_ModuleD0Entry;
-        DmfCallbacksWdf_ScheduledTask.ModuleD0Exit = DMF_ScheduledTask_ModuleD0Exit;
+        DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ScheduledTask);
+        dmfCallbacksWdf_ScheduledTask.ModulePrepareHardware = DMF_ScheduledTask_ModulePrepareHardware;
+        dmfCallbacksWdf_ScheduledTask.ModuleReleaseHardware = DMF_ScheduledTask_ModuleReleaseHardware;
+        dmfCallbacksWdf_ScheduledTask.ModuleD0Entry = DMF_ScheduledTask_ModuleD0Entry;
+        dmfCallbacksWdf_ScheduledTask.ModuleD0Exit = DMF_ScheduledTask_ModuleD0Exit;
     }
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ScheduledTask,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ScheduledTask,
                                             ScheduledTask,
                                             DMF_CONTEXT_ScheduledTask,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_ScheduledTask.CallbacksDmf = &DmfCallbacksDmf_ScheduledTask;
+    dmfModuleDescriptor_ScheduledTask.CallbacksDmf = &dmfCallbacksDmf_ScheduledTask;
     // Allow Module to be created Dynamically when possible.
     //
     if ((moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_PrepareHardware) ||
         (moduleConfig->ExecuteWhen == ScheduledTask_ExecuteWhen_D0Entry))
     {
-        DmfModuleDescriptor_ScheduledTask.CallbacksWdf = &DmfCallbacksWdf_ScheduledTask;
+        dmfModuleDescriptor_ScheduledTask.CallbacksWdf = &dmfCallbacksWdf_ScheduledTask;
     }
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ScheduledTask,
+                                &dmfModuleDescriptor_ScheduledTask,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1118,8 +1112,8 @@ Return Value:
     ASSERT(TimesRun != NULL);
     *TimesRun = 0;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ScheduledTask);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ScheduledTask);
 
     wdfKey = NULL;
     device = DMF_ParentDeviceGet(DmfModule);
@@ -1197,8 +1191,8 @@ Return Value:
 
     PAGED_CODE();
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ScheduledTask);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ScheduledTask);
 
     DMF_ModuleLock(DmfModule);
 
@@ -1269,8 +1263,8 @@ Return Value:
 
     PAGED_CODE();
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ScheduledTask);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ScheduledTask);
 
     wdfKey = NULL;
     device = DMF_ParentDeviceGet(DmfModule);

@@ -2329,15 +2329,6 @@ Exit:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_OsrFx2;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_OsrFx2;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_OsrFx2;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -2374,33 +2365,36 @@ Returns:
     DMF_CONFIG_OsrFx2* moduleConfig;
     WDFDEVICE device;
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_OsrFx2;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_OsrFx2;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_OsrFx2;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_OsrFx2);
-    DmfCallbacksDmf_OsrFx2.ChildModulesAdd = DMF_OsrFx2_ChildModulesAdd;
-    DmfCallbacksDmf_OsrFx2.DeviceOpen = DMF_OsrFx2_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_OsrFx2);
+    dmfCallbacksDmf_OsrFx2.ChildModulesAdd = DMF_OsrFx2_ChildModulesAdd;
+    dmfCallbacksDmf_OsrFx2.DeviceOpen = DMF_OsrFx2_Open;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_OsrFx2);
-    DmfCallbacksWdf_OsrFx2.ModuleD0Entry = DMF_OsrFx2_ModuleD0Entry;
-    DmfCallbacksWdf_OsrFx2.ModuleD0Exit = DMF_OsrFx2_ModuleD0Exit;
-    DmfCallbacksWdf_OsrFx2.ModuleSelfManagedIoFlush = DMF_OsrFx2_SelfManagedIoFlush;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_OsrFx2);
+    dmfCallbacksWdf_OsrFx2.ModuleD0Entry = DMF_OsrFx2_ModuleD0Entry;
+    dmfCallbacksWdf_OsrFx2.ModuleD0Exit = DMF_OsrFx2_ModuleD0Exit;
+    dmfCallbacksWdf_OsrFx2.ModuleSelfManagedIoFlush = DMF_OsrFx2_SelfManagedIoFlush;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_OsrFx2,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_OsrFx2,
                                             OsrFx2,
                                             DMF_CONTEXT_OsrFx2,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_OsrFx2.CallbacksDmf = &DmfCallbacksDmf_OsrFx2;
-    DmfModuleDescriptor_OsrFx2.CallbacksWdf = &DmfCallbacksWdf_OsrFx2;
+    dmfModuleDescriptor_OsrFx2.CallbacksDmf = &dmfCallbacksDmf_OsrFx2;
+    dmfModuleDescriptor_OsrFx2.CallbacksWdf = &dmfCallbacksWdf_OsrFx2;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_OsrFx2,
+                                &dmfModuleDescriptor_OsrFx2,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -2552,8 +2546,8 @@ Returns:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_OsrFx2);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 OsrFx2);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

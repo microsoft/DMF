@@ -203,14 +203,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_AlertableSleep;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_AlertableSleep;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -245,27 +237,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_AlertableSleep;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_AlertableSleep;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_AlertableSleep);
-    DmfCallbacksDmf_AlertableSleep.DeviceOpen = DMF_AlertableSleep_Open;
-    DmfCallbacksDmf_AlertableSleep.DeviceClose = DMF_AlertableSleep_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_AlertableSleep);
+    dmfCallbacksDmf_AlertableSleep.DeviceOpen = DMF_AlertableSleep_Open;
+    dmfCallbacksDmf_AlertableSleep.DeviceClose = DMF_AlertableSleep_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_AlertableSleep,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_AlertableSleep,
                                             AlertableSleep,
                                             DMF_CONTEXT_AlertableSleep,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_AlertableSleep.CallbacksDmf = &DmfCallbacksDmf_AlertableSleep;
+    dmfModuleDescriptor_AlertableSleep.CallbacksDmf = &dmfCallbacksDmf_AlertableSleep;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_AlertableSleep,
+                                &dmfModuleDescriptor_AlertableSleep,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -314,8 +308,8 @@ Return Value:
 
     // By design this Method can be called by Close callback.
     //
-    DMF_HandleValidate_ClosingOk(DmfModule,
-                                 &DmfModuleDescriptor_AlertableSleep);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            AlertableSleep);
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -379,8 +373,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_AlertableSleep);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AlertableSleep);
 
     if (EventIndex >= moduleContext->EventCount)
     {
@@ -442,8 +436,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_AlertableSleep);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AlertableSleep);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

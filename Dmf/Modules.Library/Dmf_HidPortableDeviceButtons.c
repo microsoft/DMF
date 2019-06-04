@@ -821,15 +821,6 @@ Return Value:
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_HidPortableDeviceButtons;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_HidPortableDeviceButtons;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_HidPortableDeviceButtons;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -864,32 +855,35 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_HidPortableDeviceButtons;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_HidPortableDeviceButtons;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_HidPortableDeviceButtons;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HidPortableDeviceButtons);
-    DmfCallbacksDmf_HidPortableDeviceButtons.DeviceOpen = DMF_HidPortableDeviceButtons_Open;
-    DmfCallbacksDmf_HidPortableDeviceButtons.DeviceClose = DMF_HidPortableDeviceButtons_Close;
-    DmfCallbacksDmf_HidPortableDeviceButtons.ChildModulesAdd = DMF_HidPortableDeviceButtons_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_HidPortableDeviceButtons);
+    dmfCallbacksDmf_HidPortableDeviceButtons.DeviceOpen = DMF_HidPortableDeviceButtons_Open;
+    dmfCallbacksDmf_HidPortableDeviceButtons.DeviceClose = DMF_HidPortableDeviceButtons_Close;
+    dmfCallbacksDmf_HidPortableDeviceButtons.ChildModulesAdd = DMF_HidPortableDeviceButtons_ChildModulesAdd;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_HidPortableDeviceButtons);
-    DmfCallbacksWdf_HidPortableDeviceButtons.ModuleD0Entry = DMF_HidPortableDeviceButtons_ModuleD0Entry;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_HidPortableDeviceButtons);
+    dmfCallbacksWdf_HidPortableDeviceButtons.ModuleD0Entry = DMF_HidPortableDeviceButtons_ModuleD0Entry;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_HidPortableDeviceButtons,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_HidPortableDeviceButtons,
                                             HidPortableDeviceButtons,
                                             DMF_CONTEXT_HidPortableDeviceButtons,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_HidPortableDeviceButtons.CallbacksDmf = &DmfCallbacksDmf_HidPortableDeviceButtons;
-    DmfModuleDescriptor_HidPortableDeviceButtons.CallbacksWdf = &DmfCallbacksWdf_HidPortableDeviceButtons;
+    dmfModuleDescriptor_HidPortableDeviceButtons.CallbacksDmf = &dmfCallbacksDmf_HidPortableDeviceButtons;
+    dmfModuleDescriptor_HidPortableDeviceButtons.CallbacksWdf = &dmfCallbacksWdf_HidPortableDeviceButtons;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_HidPortableDeviceButtons,
+                                &dmfModuleDescriptor_HidPortableDeviceButtons,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -934,8 +928,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HidPortableDeviceButtons);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidPortableDeviceButtons);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1033,8 +1027,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HidPortableDeviceButtons);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidPortableDeviceButtons);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1174,8 +1168,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_HidPortableDeviceButtons);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidPortableDeviceButtons);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

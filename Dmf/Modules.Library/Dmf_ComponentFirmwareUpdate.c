@@ -5279,14 +5279,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ComponentFirmwareUpdate;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ComponentFirmwareUpdate;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -5321,6 +5313,8 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ComponentFirmwareUpdate;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ComponentFirmwareUpdate;
     DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
 
     PAGED_CODE();
@@ -5346,23 +5340,23 @@ Return Value:
         goto Exit;
     }
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ComponentFirmwareUpdate);
-    DmfCallbacksDmf_ComponentFirmwareUpdate.ChildModulesAdd = DMF_ComponentFirmwareUpdate_ChildModulesAdd;
-    DmfCallbacksDmf_ComponentFirmwareUpdate.DeviceOpen = DMF_ComponentFirmwareUpdate_Open;
-    DmfCallbacksDmf_ComponentFirmwareUpdate.DeviceClose = DMF_ComponentFirmwareUpdate_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ComponentFirmwareUpdate);
+    dmfCallbacksDmf_ComponentFirmwareUpdate.ChildModulesAdd = DMF_ComponentFirmwareUpdate_ChildModulesAdd;
+    dmfCallbacksDmf_ComponentFirmwareUpdate.DeviceOpen = DMF_ComponentFirmwareUpdate_Open;
+    dmfCallbacksDmf_ComponentFirmwareUpdate.DeviceClose = DMF_ComponentFirmwareUpdate_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ComponentFirmwareUpdate,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ComponentFirmwareUpdate,
                                             ComponentFirmwareUpdate,
                                             DMF_CONTEXT_ComponentFirmwareUpdate,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
 
-    DmfModuleDescriptor_ComponentFirmwareUpdate.CallbacksDmf = &DmfCallbacksDmf_ComponentFirmwareUpdate;
+    dmfModuleDescriptor_ComponentFirmwareUpdate.CallbacksDmf = &dmfCallbacksDmf_ComponentFirmwareUpdate;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ComponentFirmwareUpdate,
+                                &dmfModuleDescriptor_ComponentFirmwareUpdate,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -5414,8 +5408,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ComponentFirmwareUpdate);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ComponentFirmwareUpdate);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -5498,8 +5492,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ComponentFirmwareUpdate);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ComponentFirmwareUpdate);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

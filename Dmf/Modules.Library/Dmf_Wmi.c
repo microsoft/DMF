@@ -156,14 +156,6 @@ Exit:
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Wmi;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Wmi;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -197,15 +189,17 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Wmi;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Wmi;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Wmi);
-    DmfCallbacksDmf_Wmi.DeviceOpen = DMF_Wmi_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Wmi);
+    dmfCallbacksDmf_Wmi.DeviceOpen = DMF_Wmi_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_Wmi,
+    DMF_MODULE_DESCRIPTOR_INIT(dmfModuleDescriptor_Wmi,
                                Wmi,
                                DMF_MODULE_OPTIONS_PASSIVE,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
@@ -213,7 +207,7 @@ Return Value:
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Wmi,
+                                &dmfModuleDescriptor_Wmi,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

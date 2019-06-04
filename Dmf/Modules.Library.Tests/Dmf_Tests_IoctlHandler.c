@@ -464,14 +464,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_IoctlHandler;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_IoctlHandler;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -506,24 +498,26 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_IoctlHandler;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_IoctlHandler;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_IoctlHandler);
-    DmfCallbacksDmf_Tests_IoctlHandler.ChildModulesAdd = DMF_Tests_IoctlHandler_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_IoctlHandler);
+    dmfCallbacksDmf_Tests_IoctlHandler.ChildModulesAdd = DMF_Tests_IoctlHandler_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_IoctlHandler,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_IoctlHandler,
                                             Tests_IoctlHandler,
                                             DMF_CONTEXT_Tests_IoctlHandler,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Tests_IoctlHandler.CallbacksDmf = &DmfCallbacksDmf_Tests_IoctlHandler;
+    dmfModuleDescriptor_Tests_IoctlHandler.CallbacksDmf = &dmfCallbacksDmf_Tests_IoctlHandler;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_IoctlHandler,
+                                &dmfModuleDescriptor_Tests_IoctlHandler,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

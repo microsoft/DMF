@@ -708,14 +708,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_VirtualHidKeyboard;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_VirtualHidKeyboard;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -750,28 +742,30 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidKeyboard;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidKeyboard;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_VirtualHidKeyboard);
-    DmfCallbacksDmf_VirtualHidKeyboard.DeviceOpen = DMF_VirtualHidKeyboard_Open;
-    DmfCallbacksDmf_VirtualHidKeyboard.DeviceClose = DMF_VirtualHidKeyboard_Close;
-    DmfCallbacksDmf_VirtualHidKeyboard.ChildModulesAdd = DMF_VirtualHidKeyboard_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_VirtualHidKeyboard);
+    dmfCallbacksDmf_VirtualHidKeyboard.DeviceOpen = DMF_VirtualHidKeyboard_Open;
+    dmfCallbacksDmf_VirtualHidKeyboard.DeviceClose = DMF_VirtualHidKeyboard_Close;
+    dmfCallbacksDmf_VirtualHidKeyboard.ChildModulesAdd = DMF_VirtualHidKeyboard_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_VirtualHidKeyboard,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualHidKeyboard,
                                             VirtualHidKeyboard,
                                             DMF_CONTEXT_VirtualHidKeyboard,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_VirtualHidKeyboard.CallbacksDmf = &DmfCallbacksDmf_VirtualHidKeyboard;
+    dmfModuleDescriptor_VirtualHidKeyboard.CallbacksDmf = &dmfCallbacksDmf_VirtualHidKeyboard;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_VirtualHidKeyboard,
+                                &dmfModuleDescriptor_VirtualHidKeyboard,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -830,8 +824,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_VirtualHidKeyboard);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualHidKeyboard);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -889,8 +883,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_VirtualHidKeyboard);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualHidKeyboard);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

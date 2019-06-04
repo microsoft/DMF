@@ -614,15 +614,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_Pdo;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_Pdo;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_Tests_Pdo;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -657,30 +648,33 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_Pdo;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_Pdo;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_Tests_Pdo;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_Pdo);
-    DmfCallbacksDmf_Tests_Pdo.ChildModulesAdd = DMF_Tests_Pdo_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_Pdo);
+    dmfCallbacksDmf_Tests_Pdo.ChildModulesAdd = DMF_Tests_Pdo_ChildModulesAdd;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Tests_Pdo);
-    DmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoInit = DMF_Tests_Pdo_SelfManagedIoInit;
-    DmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoRestart = DMF_Tests_Pdo_SelfManagedIoRestart;
-    DmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoSuspend = DMF_Tests_Pdo_SelfManagedIoSuspend;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_Tests_Pdo);
+    dmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoInit = DMF_Tests_Pdo_SelfManagedIoInit;
+    dmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoRestart = DMF_Tests_Pdo_SelfManagedIoRestart;
+    dmfCallbacksWdf_Tests_Pdo.ModuleSelfManagedIoSuspend = DMF_Tests_Pdo_SelfManagedIoSuspend;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_Pdo,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_Pdo,
                                             Tests_Pdo,
                                             DMF_CONTEXT_Tests_Pdo,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
 
-    DmfModuleDescriptor_Tests_Pdo.CallbacksDmf = &DmfCallbacksDmf_Tests_Pdo;
-    DmfModuleDescriptor_Tests_Pdo.CallbacksWdf = &DmfCallbacksWdf_Tests_Pdo;
+    dmfModuleDescriptor_Tests_Pdo.CallbacksDmf = &dmfCallbacksDmf_Tests_Pdo;
+    dmfModuleDescriptor_Tests_Pdo.CallbacksWdf = &dmfCallbacksWdf_Tests_Pdo;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_Pdo,
+                                &dmfModuleDescriptor_Tests_Pdo,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

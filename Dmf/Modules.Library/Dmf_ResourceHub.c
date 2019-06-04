@@ -1257,15 +1257,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ResourceHub;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ResourceHub;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_ResourceHub;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1300,32 +1291,35 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ResourceHub;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ResourceHub;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_ResourceHub;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ResourceHub);
-    DmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
-    DmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
-    DmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ResourceHub);
+    dmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
+    dmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
+    dmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ResourceHub);
-    DmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ResourceHub);
+    dmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ResourceHub,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ResourceHub,
                                             ResourceHub,
                                             DMF_CONTEXT_ResourceHub,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_ResourceHub.CallbacksDmf = &DmfCallbacksDmf_ResourceHub;
-    DmfModuleDescriptor_ResourceHub.CallbacksWdf = &DmfCallbacksWdf_ResourceHub;
+    dmfModuleDescriptor_ResourceHub.CallbacksDmf = &dmfCallbacksDmf_ResourceHub;
+    dmfModuleDescriptor_ResourceHub.CallbacksWdf = &dmfCallbacksWdf_ResourceHub;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ResourceHub,
+                                &dmfModuleDescriptor_ResourceHub,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

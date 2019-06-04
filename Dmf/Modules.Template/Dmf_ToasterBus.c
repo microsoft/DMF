@@ -761,14 +761,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ToasterBus;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ToasterBus;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -803,27 +795,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ToasterBus;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ToasterBus;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ToasterBus);
-    DmfCallbacksDmf_ToasterBus.ChildModulesAdd = DMF_ToasterBus_ChildModulesAdd;
-    DmfCallbacksDmf_ToasterBus.DeviceOpen = DMF_ToasterBus_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ToasterBus);
+    dmfCallbacksDmf_ToasterBus.ChildModulesAdd = DMF_ToasterBus_ChildModulesAdd;
+    dmfCallbacksDmf_ToasterBus.DeviceOpen = DMF_ToasterBus_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ToasterBus,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ToasterBus,
                                             ToasterBus,
                                             DMF_CONTEXT_ToasterBus,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_ToasterBus.CallbacksDmf = &DmfCallbacksDmf_ToasterBus;
+    dmfModuleDescriptor_ToasterBus.CallbacksDmf = &dmfCallbacksDmf_ToasterBus;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ToasterBus,
+                                &dmfModuleDescriptor_ToasterBus,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

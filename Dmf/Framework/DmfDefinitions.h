@@ -101,7 +101,7 @@ extern "C"
             #if defined(ASSERT)
                 #undef ASSERT
             #endif // defined(ASSERT)
-            #define ASSERT(X)   if (! (X)) {DebugBreak();};
+            #define ASSERT(X)   ((! (X)) ? DebugBreak() : TRUE)
         #else
             #if !defined(ASSERT)
                 // It means, use native assert().
@@ -114,7 +114,7 @@ extern "C"
         #if !defined(ASSERT)
             // It means, do not assert at all.
             //
-            #define ASSERT(X)
+            #define ASSERT(X) (VOID(0))
         #endif // !defined(ASSERT)
     #endif // defined(DEBUG)
     #include <windows.h>
@@ -239,6 +239,8 @@ typedef struct
 
 #define DECLARE_DMF_MODULE(ModuleName)                                                          \
                                                                                                 \
+WDF_DECLARE_CUSTOM_TYPE(ModuleName);                                                            \
+                                                                                                \
 _IRQL_requires_max_(PASSIVE_LEVEL)                                                              \
 _Must_inspect_result_                                                                           \
 NTSTATUS                                                                                        \
@@ -274,6 +276,8 @@ DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT(                                  
 }                                                                                               \
 
 #define DECLARE_DMF_MODULE_NO_CONFIG(ModuleName)                                                \
+                                                                                                \
+WDF_DECLARE_CUSTOM_TYPE(ModuleName);                                                            \
                                                                                                 \
 _IRQL_requires_max_(PASSIVE_LEVEL)                                                              \
 _Must_inspect_result_                                                                           \

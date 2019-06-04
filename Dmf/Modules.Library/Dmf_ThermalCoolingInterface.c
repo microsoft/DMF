@@ -264,14 +264,6 @@ Exit:
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ThermalCoolingInterface;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ThermalCoolingInterface;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -306,25 +298,27 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ThermalCoolingInterface;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ThermalCoolingInterface;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ThermalCoolingInterface);
-    DmfCallbacksDmf_ThermalCoolingInterface.DeviceOpen = DMF_ThermalCoolingInterface_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ThermalCoolingInterface);
+    dmfCallbacksDmf_ThermalCoolingInterface.DeviceOpen = DMF_ThermalCoolingInterface_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_ThermalCoolingInterface,
+    DMF_MODULE_DESCRIPTOR_INIT(dmfModuleDescriptor_ThermalCoolingInterface,
                                ThermalCoolingInterface,
                                DMF_MODULE_OPTIONS_DISPATCH,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_ThermalCoolingInterface.CallbacksDmf = &DmfCallbacksDmf_ThermalCoolingInterface;
+    dmfModuleDescriptor_ThermalCoolingInterface.CallbacksDmf = &dmfCallbacksDmf_ThermalCoolingInterface;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ThermalCoolingInterface,
+                                &dmfModuleDescriptor_ThermalCoolingInterface,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

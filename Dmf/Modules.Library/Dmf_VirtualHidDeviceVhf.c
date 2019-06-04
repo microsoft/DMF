@@ -271,14 +271,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_VirtualHidDeviceVhf;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_VirtualHidDeviceVhf;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -313,27 +305,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidDeviceVhf;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidDeviceVhf;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_VirtualHidDeviceVhf);
-    DmfCallbacksDmf_VirtualHidDeviceVhf.DeviceOpen = DMF_VirtualHidDeviceVhf_Open;
-    DmfCallbacksDmf_VirtualHidDeviceVhf.DeviceClose = DMF_VirtualHidDeviceVhf_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_VirtualHidDeviceVhf);
+    dmfCallbacksDmf_VirtualHidDeviceVhf.DeviceOpen = DMF_VirtualHidDeviceVhf_Open;
+    dmfCallbacksDmf_VirtualHidDeviceVhf.DeviceClose = DMF_VirtualHidDeviceVhf_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_VirtualHidDeviceVhf,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualHidDeviceVhf,
                                             VirtualHidDeviceVhf,
                                             DMF_CONTEXT_VirtualHidDeviceVhf,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_VirtualHidDeviceVhf.CallbacksDmf = &DmfCallbacksDmf_VirtualHidDeviceVhf;
+    dmfModuleDescriptor_VirtualHidDeviceVhf.CallbacksDmf = &dmfCallbacksDmf_VirtualHidDeviceVhf;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_VirtualHidDeviceVhf,
+                                &dmfModuleDescriptor_VirtualHidDeviceVhf,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -381,8 +375,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_VirtualHidDeviceVhf);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualHidDeviceVhf);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -423,8 +417,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_VirtualHidDeviceVhf);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualHidDeviceVhf);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

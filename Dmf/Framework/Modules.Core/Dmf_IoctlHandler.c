@@ -940,15 +940,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_IoctlHandler;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_IoctlHandler;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_IoctlHandler;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -983,17 +974,20 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_IoctlHandler;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_IoctlHandler;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_IoctlHandler;
     DMF_CONFIG_IoctlHandler* moduleConfig;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_IoctlHandler);
-    DmfCallbacksDmf_IoctlHandler.DeviceOpen = DMF_IoctlHandler_Open;
-    DmfCallbacksDmf_IoctlHandler.DeviceClose = DMF_IoctlHandler_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_IoctlHandler);
+    dmfCallbacksDmf_IoctlHandler.DeviceOpen = DMF_IoctlHandler_Open;
+    dmfCallbacksDmf_IoctlHandler.DeviceClose = DMF_IoctlHandler_Close;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_IoctlHandler);
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_IoctlHandler);
 
     moduleConfig = (DMF_CONFIG_IoctlHandler*)DmfModuleAttributes->ModuleConfigPointer;
 
@@ -1001,31 +995,31 @@ Return Value:
     {
         // Only allow IOCTLs to come from other Kernel-mode components.
         //
-        DmfCallbacksWdf_IoctlHandler.ModuleInternalDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
+        dmfCallbacksWdf_IoctlHandler.ModuleInternalDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
     }
     else
     {
         // Allow IOCTLs to come from User-mode applications.
         //
-        DmfCallbacksWdf_IoctlHandler.ModuleDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
+        dmfCallbacksWdf_IoctlHandler.ModuleDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
     }
-    DmfCallbacksWdf_IoctlHandler.ModuleFileCreate = DMF_IoctlHandler_FileCreate;
-    DmfCallbacksWdf_IoctlHandler.ModuleFileCleanup = DMF_IoctlHandler_FileCleanup;
-    DmfCallbacksWdf_IoctlHandler.ModuleFileClose = DMF_IoctlHandler_FileClose;
+    dmfCallbacksWdf_IoctlHandler.ModuleFileCreate = DMF_IoctlHandler_FileCreate;
+    dmfCallbacksWdf_IoctlHandler.ModuleFileCleanup = DMF_IoctlHandler_FileCleanup;
+    dmfCallbacksWdf_IoctlHandler.ModuleFileClose = DMF_IoctlHandler_FileClose;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_IoctlHandler,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_IoctlHandler,
                                             IoctlHandler,
                                             DMF_CONTEXT_IoctlHandler,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_IoctlHandler.CallbacksDmf = &DmfCallbacksDmf_IoctlHandler;
-    DmfModuleDescriptor_IoctlHandler.CallbacksWdf = &DmfCallbacksWdf_IoctlHandler;
+    dmfModuleDescriptor_IoctlHandler.CallbacksDmf = &dmfCallbacksDmf_IoctlHandler;
+    dmfModuleDescriptor_IoctlHandler.CallbacksWdf = &dmfCallbacksWdf_IoctlHandler;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_IoctlHandler,
+                                &dmfModuleDescriptor_IoctlHandler,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1072,8 +1066,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_IoctlHandler);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 IoctlHandler);
 
     FuncEntry(DMF_TRACE);
 

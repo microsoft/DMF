@@ -709,14 +709,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_InterruptResource;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_InterruptResource;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -751,26 +743,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_InterruptResource;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_InterruptResource;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_InterruptResource);
-    DmfCallbacksDmf_InterruptResource.DeviceResourcesAssign = DMF_InterruptResource_ResourcesAssign;
-    DmfCallbacksDmf_InterruptResource.DeviceOpen = DMF_InterruptResource_Open;
-    DmfCallbacksDmf_InterruptResource.DeviceClose = DMF_InterruptResource_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_InterruptResource);
+    dmfCallbacksDmf_InterruptResource.DeviceResourcesAssign = DMF_InterruptResource_ResourcesAssign;
+    dmfCallbacksDmf_InterruptResource.DeviceOpen = DMF_InterruptResource_Open;
+    dmfCallbacksDmf_InterruptResource.DeviceClose = DMF_InterruptResource_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_InterruptResource,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_InterruptResource,
                                             InterruptResource,
                                             DMF_CONTEXT_InterruptResource,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_InterruptResource.CallbacksDmf = &DmfCallbacksDmf_InterruptResource;
+    dmfModuleDescriptor_InterruptResource.CallbacksDmf = &dmfCallbacksDmf_InterruptResource;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_InterruptResource,
+                                &dmfModuleDescriptor_InterruptResource,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -812,8 +806,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_InterruptResource);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 InterruptResource);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -847,8 +841,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_InterruptResource);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 InterruptResource);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -889,8 +883,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_InterruptResource);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 InterruptResource);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -933,8 +927,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_InterruptResource);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 InterruptResource);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

@@ -2092,15 +2092,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ContinuousRequestTarget;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_ContinuousRequestTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ContinuousRequestTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -2135,6 +2126,9 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ContinuousRequestTarget;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_ContinuousRequestTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ContinuousRequestTarget;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
 
     PAGED_CODE();
@@ -2143,31 +2137,31 @@ Return Value:
 
     moduleConfig = (DMF_CONFIG_ContinuousRequestTarget*)DmfModuleAttributes->ModuleConfigPointer;
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ContinuousRequestTarget);
-    DmfCallbacksDmf_ContinuousRequestTarget.ChildModulesAdd = DMF_ContinuousRequestTarget_ChildModulesAdd;
-    DmfCallbacksDmf_ContinuousRequestTarget.DeviceOpen = DMF_ContinuousRequestTarget_Open;
-    DmfCallbacksDmf_ContinuousRequestTarget.DeviceClose = DMF_ContinuousRequestTarget_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ContinuousRequestTarget);
+    dmfCallbacksDmf_ContinuousRequestTarget.ChildModulesAdd = DMF_ContinuousRequestTarget_ChildModulesAdd;
+    dmfCallbacksDmf_ContinuousRequestTarget.DeviceOpen = DMF_ContinuousRequestTarget_Open;
+    dmfCallbacksDmf_ContinuousRequestTarget.DeviceClose = DMF_ContinuousRequestTarget_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ContinuousRequestTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ContinuousRequestTarget,
                                             ContinuousRequestTarget,
                                             DMF_CONTEXT_ContinuousRequestTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_ContinuousRequestTarget.CallbacksDmf = &DmfCallbacksDmf_ContinuousRequestTarget;
+    dmfModuleDescriptor_ContinuousRequestTarget.CallbacksDmf = &dmfCallbacksDmf_ContinuousRequestTarget;
 
     if (moduleConfig->PurgeAndStartTargetInD0Callbacks)
     {
-        DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ContinuousRequestTarget);
-        DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
-        DmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
-        DmfModuleDescriptor_ContinuousRequestTarget.CallbacksWdf = &DmfCallbacksWdf_ContinuousRequestTarget;
+        DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ContinuousRequestTarget);
+        dmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
+        dmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
+        dmfModuleDescriptor_ContinuousRequestTarget.CallbacksWdf = &dmfCallbacksWdf_ContinuousRequestTarget;
     }
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ContinuousRequestTarget,
+                                &dmfModuleDescriptor_ContinuousRequestTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -2211,8 +2205,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2247,8 +2241,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(moduleContext->IoTarget != NULL);
@@ -2287,8 +2281,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -2347,8 +2341,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -2422,8 +2416,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     ntStatus = ContinuousRequestTarget_RequestCreateAndSend(DmfModule,
                                                             TRUE,
@@ -2476,8 +2470,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -2567,8 +2561,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -2624,8 +2618,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ContinuousRequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

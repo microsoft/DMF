@@ -1402,14 +1402,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_BufferPool;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_BufferPool;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1444,27 +1436,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_BufferPool;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_BufferPool;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_BufferPool);
-    DmfCallbacksDmf_BufferPool.DeviceOpen = DMF_BufferPool_Open;
-    DmfCallbacksDmf_BufferPool.DeviceClose = DMF_BufferPool_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_BufferPool);
+    dmfCallbacksDmf_BufferPool.DeviceOpen = DMF_BufferPool_Open;
+    dmfCallbacksDmf_BufferPool.DeviceClose = DMF_BufferPool_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_BufferPool,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_BufferPool,
                                             BufferPool,
                                             DMF_CONTEXT_BufferPool,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_BufferPool.CallbacksDmf = &DmfCallbacksDmf_BufferPool;
+    dmfModuleDescriptor_BufferPool.CallbacksDmf = &dmfCallbacksDmf_BufferPool;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_BufferPool,
+                                &dmfModuleDescriptor_BufferPool,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1529,8 +1523,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 
@@ -1572,8 +1566,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1628,8 +1622,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1843,8 +1837,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     clientBuffer = BufferPool_BufferGet(DmfModule);
     if (NULL == clientBuffer)
@@ -1918,8 +1912,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     clientBuffer = BufferPool_BufferGet(DmfModule);
     if (NULL == clientBuffer)
@@ -1985,8 +1979,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     clientBuffer = BufferPool_BufferGet(DmfModule);
     if (NULL == clientBuffer)
@@ -2054,8 +2048,8 @@ Return Value:
 
     // This function is called while the Module is closing as it is flushing its buffers.
     //
-    DMF_HandleValidate_ClosingOk(DmfModule,
-                                 &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            BufferPool);
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 
@@ -2123,8 +2117,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ClosingOk(DmfModule,
-                                 &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            BufferPool);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2213,8 +2207,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BufferPool);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferPool);
 
     ASSERT(TimerExpirationCallback != NULL);
 
