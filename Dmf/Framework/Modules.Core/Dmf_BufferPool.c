@@ -674,18 +674,23 @@ Return:
 
     DMF_ModuleUnlock(dmfModule);
 
-    // Search loop above must have succeeded.
+    // Due to race conditions with cancel routines, it is possible the buffer was removed from the list
+    // during timer expiration.
     //
-    ASSERT(timerExpirationCallback != NULL);
-    // 'Dereferencing NULL pointer'
-    //
-    #pragma warning(suppress: 6011)
-    // Call the client driver's timer callback function.
-    //
-    timerExpirationCallback(dmfModule,
-                            bufferPoolEntryTimer->ClientBuffer,
-                            bufferPoolEntryTimer->ClientBufferContext,
-                            bufferPoolEntryTimer->TimerExpirationCallbackContext);
+    if (timerExpirationCallback != NULL)
+    {
+        // Call the client driver's timer callback function.
+        //
+        timerExpirationCallback(dmfModule,
+                                bufferPoolEntryTimer->ClientBuffer,
+                                bufferPoolEntryTimer->ClientBufferContext,
+                                bufferPoolEntryTimer->TimerExpirationCallbackContext);
+    }
+    else
+    {
+        // Buffer was removed from the list while timer was expiring.
+        //
+    }
 
     FuncExitVoid(DMF_TRACE);
 }
