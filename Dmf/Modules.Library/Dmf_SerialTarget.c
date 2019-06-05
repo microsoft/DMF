@@ -936,14 +936,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_SerialTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_SerialTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -978,6 +970,8 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SerialTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_SerialTarget;
     DMF_CONFIG_SerialTarget* moduleConfig;
     DmfModuleOpenOption openOption;
 
@@ -987,11 +981,11 @@ Return Value:
 
     moduleConfig = (DMF_CONFIG_SerialTarget*)DmfModuleAttributes->ModuleConfigPointer;
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SerialTarget);
-    DmfCallbacksDmf_SerialTarget.DeviceOpen = DMF_SerialTarget_Open;
-    DmfCallbacksDmf_SerialTarget.DeviceClose = DMF_SerialTarget_Close;
-    DmfCallbacksDmf_SerialTarget.DeviceResourcesAssign = DMF_SerialTarget_ResourcesAssign;
-    DmfCallbacksDmf_SerialTarget.ChildModulesAdd = DMF_SerialTarget_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_SerialTarget);
+    dmfCallbacksDmf_SerialTarget.DeviceOpen = DMF_SerialTarget_Open;
+    dmfCallbacksDmf_SerialTarget.DeviceClose = DMF_SerialTarget_Close;
+    dmfCallbacksDmf_SerialTarget.DeviceResourcesAssign = DMF_SerialTarget_ResourcesAssign;
+    dmfCallbacksDmf_SerialTarget.ChildModulesAdd = DMF_SerialTarget_ChildModulesAdd;
 
     // SerialTarget support multiple open option configurations. 
     // Choose the open option based on Module config. 
@@ -1013,18 +1007,18 @@ Return Value:
         break;
     }
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SerialTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_SerialTarget,
                                             SerialTarget,
                                             DMF_CONTEXT_SerialTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             openOption);
 
-    DmfModuleDescriptor_SerialTarget.CallbacksDmf = &DmfCallbacksDmf_SerialTarget;
+    dmfModuleDescriptor_SerialTarget.CallbacksDmf = &dmfCallbacksDmf_SerialTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_SerialTarget,
+                                &dmfModuleDescriptor_SerialTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1068,8 +1062,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SerialTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SerialTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1106,8 +1100,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SerialTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SerialTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1164,8 +1158,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SerialTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SerialTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1230,8 +1224,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SerialTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SerialTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1279,8 +1273,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SerialTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SerialTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1318,8 +1312,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SerialTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SerialTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

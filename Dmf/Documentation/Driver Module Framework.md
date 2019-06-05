@@ -2548,31 +2548,7 @@ Return Value:
 }
 #pragma code_seg()
 ```
-### Section 10: Module Descriptors
-
-This section contains the Module descriptor buffers. They are global to
-this Module for two reasons:
-
-1.  To reduce stack space usage. This may be important when Modules
-    contain many layers of Child Modules (especially if the sizes of
-    these structures increase later).
-
-2.  So that the descriptor can be used by Methods to validate the formal
-    **DMFMODULE** to verify the appropriate **DMFMODULE** is sent to the
-    Module Methods by the Client.
-
-> Note the naming convention where the Module name is at the end of the name.
-```
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ResourceHub;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ResourceHub;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_ResourceHub;
-```
-### Section 11: Public Calls by Client (Includes Module Create Function)
+### Section 10: Public Calls by Client (Includes Module Create Function)
 
 This section contains all the code that is callable by Clients:
 
@@ -2620,34 +2596,37 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ResourceHub;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ResourceHub;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_ResourceHub;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE_ResourceHub);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ResourceHub);
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ResourceHub);
 
-    DmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
-    DmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
-    DmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
+    dmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
+    dmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
+    dmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ResourceHub);
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ResourceHub);
 
-    DmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
+    dmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ResourceHub,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ResourceHub,
                                             ResourceHub,
                                             DMF_CONTEXT_ResourceHub,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_ResourceHub.CallbacksDmf = &DmfCallbacksDmf_ResourceHub;
-    DmfModuleDescriptor_ResourceHub.CallbacksWdf = &DmfCallbacksWdf_ResourceHub;
+    dmfModuleDescriptor_ResourceHub.CallbacksDmf = &dmfCallbacksDmf_ResourceHub;
+    dmfModuleDescriptor_ResourceHub.CallbacksWdf = &dmfCallbacksWdf_ResourceHub;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ResourceHub,
+                                &dmfModuleDescriptor_ResourceHub,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -2830,32 +2809,32 @@ Return Value:
     // Step 1: Define Module's DMF callbacks.
     //
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ResourceHub);
-    DmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
-    DmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
-    DmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ResourceHub);
+    dmfCallbacksDmf_ResourceHub.DeviceOpen = DMF_ResourceHub_Open;
+    dmfCallbacksDmf_ResourceHub.DeviceClose = DMF_ResourceHub_Close;
+    dmfCallbacksDmf_ResourceHub.ChildModulesAdd = DMF_ResourceHub_ChildModulesAdd;
 
     // Step 2: Define Module's WDF callbacks.
     //
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_ResourceHub);
-    DmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ResourceHub);
+    dmfCallbacksWdf_ResourceHub.ModuleFileCreate = DMF_ResourceHub_ModuleFileCreate;
 
     // Steps 3 and 4: Define Module's Descriptor.
     //
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ResourceHub,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ResourceHub,
                                             ResourceHub,
                                             DMF_CONTEXT_ResourceHub,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
-    DmfModuleDescriptor_ResourceHub.CallbacksDmf = &DmfCallbacksDmf_ResourceHub;
-    DmfModuleDescriptor_ResourceHub.CallbacksWdf = &DmfCallbacksWdf_ResourceHub;
+    dmfModuleDescriptor_ResourceHub.CallbacksDmf = &dmfCallbacksDmf_ResourceHub;
+    dmfModuleDescriptor_ResourceHub.CallbacksWdf = &dmfCallbacksWdf_ResourceHub;
 
     // Step 5: Tell DMF to create the Module.
     //
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ResourceHub,
+                                &dmfModuleDescriptor_ResourceHub,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

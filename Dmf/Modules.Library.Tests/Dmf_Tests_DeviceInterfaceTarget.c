@@ -1002,14 +1002,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_DeviceInterfaceTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_DeviceInterfaceTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1044,24 +1036,26 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_DeviceInterfaceTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_DeviceInterfaceTarget;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_DeviceInterfaceTarget);
-    DmfCallbacksDmf_Tests_DeviceInterfaceTarget.ChildModulesAdd = DMF_Tests_DeviceInterfaceTarget_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_DeviceInterfaceTarget);
+    dmfCallbacksDmf_Tests_DeviceInterfaceTarget.ChildModulesAdd = DMF_Tests_DeviceInterfaceTarget_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_DeviceInterfaceTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_DeviceInterfaceTarget,
                                             Tests_DeviceInterfaceTarget,
                                             DMF_CONTEXT_Tests_DeviceInterfaceTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
 
-    DmfModuleDescriptor_Tests_DeviceInterfaceTarget.CallbacksDmf = &DmfCallbacksDmf_Tests_DeviceInterfaceTarget;
+    dmfModuleDescriptor_Tests_DeviceInterfaceTarget.CallbacksDmf = &dmfCallbacksDmf_Tests_DeviceInterfaceTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_DeviceInterfaceTarget,
+                                &dmfModuleDescriptor_Tests_DeviceInterfaceTarget,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

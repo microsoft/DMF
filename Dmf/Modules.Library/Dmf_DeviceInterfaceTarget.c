@@ -1797,14 +1797,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_DeviceInterfaceTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_DeviceInterfaceTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1839,35 +1831,37 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_DeviceInterfaceTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_DeviceInterfaceTarget;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_DeviceInterfaceTarget);
-    DmfCallbacksDmf_DeviceInterfaceTarget.DeviceOpen = DMF_DeviceInterfaceTarget_Open;
-    DmfCallbacksDmf_DeviceInterfaceTarget.DeviceClose = DMF_DeviceInterfaceTarget_Close;
-    DmfCallbacksDmf_DeviceInterfaceTarget.ChildModulesAdd = DMF_DeviceInterfaceTarget_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_DeviceInterfaceTarget);
+    dmfCallbacksDmf_DeviceInterfaceTarget.DeviceOpen = DMF_DeviceInterfaceTarget_Open;
+    dmfCallbacksDmf_DeviceInterfaceTarget.DeviceClose = DMF_DeviceInterfaceTarget_Close;
+    dmfCallbacksDmf_DeviceInterfaceTarget.ChildModulesAdd = DMF_DeviceInterfaceTarget_ChildModulesAdd;
 #if defined(DMF_USER_MODE)
-    DmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationRegister = DMF_DeviceInterfaceTarget_NotificationRegisterUser;
-    DmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationUnregister = DMF_DeviceInterfaceTarget_NotificationUnregisterUser;
+    dmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationRegister = DMF_DeviceInterfaceTarget_NotificationRegisterUser;
+    dmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationUnregister = DMF_DeviceInterfaceTarget_NotificationUnregisterUser;
 #else
-    DmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationRegister = DMF_DeviceInterfaceTarget_NotificationRegister;
-    DmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationUnregister = DMF_DeviceInterfaceTarget_NotificationUnregister;
+    dmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationRegister = DMF_DeviceInterfaceTarget_NotificationRegister;
+    dmfCallbacksDmf_DeviceInterfaceTarget.DeviceNotificationUnregister = DMF_DeviceInterfaceTarget_NotificationUnregister;
 #endif // defined(DMF_USER_MODE)
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_DeviceInterfaceTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_DeviceInterfaceTarget,
                                             DeviceInterfaceTarget,
                                             DMF_CONTEXT_DeviceInterfaceTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
-    DmfModuleDescriptor_DeviceInterfaceTarget.CallbacksDmf = &DmfCallbacksDmf_DeviceInterfaceTarget;
+    dmfModuleDescriptor_DeviceInterfaceTarget.CallbacksDmf = &dmfCallbacksDmf_DeviceInterfaceTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_DeviceInterfaceTarget,
+                                &dmfModuleDescriptor_DeviceInterfaceTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1913,8 +1907,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DeviceInterfaceTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -1969,8 +1963,8 @@ Return Value:
     ASSERT(IoTarget != NULL);
     *IoTarget = NULL;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DeviceInterfaceTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -2039,8 +2033,8 @@ Return Value:
     // This Module Method can be called when SSH is removed or being removed. The code in this function is 
     // protected due to call to ModuleAcquire.
     //
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DeviceInterfaceTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -2118,8 +2112,8 @@ Return Value:
     // This Module Method can be called when SSH is removed or being removed. The code in this function is 
     // protected due to call to ModuleAcquire.
     //
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DeviceInterfaceTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -2178,8 +2172,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DeviceInterfaceTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -2230,8 +2224,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_DeviceInterfaceTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))

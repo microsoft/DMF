@@ -813,14 +813,6 @@ Exit:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_GpioTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_GpioTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -855,27 +847,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_GpioTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_GpioTarget;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_GpioTarget);
-    DmfCallbacksDmf_GpioTarget.DeviceResourcesAssign = DMF_GpioTarget_ResourcesAssign;
-    DmfCallbacksDmf_GpioTarget.ChildModulesAdd = DMF_GpioTarget_ChildModulesAdd;
-    DmfCallbacksDmf_GpioTarget.DeviceOpen = DMF_GpioTarget_Open;
-    DmfCallbacksDmf_GpioTarget.DeviceClose = DMF_GpioTarget_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_GpioTarget);
+    dmfCallbacksDmf_GpioTarget.DeviceResourcesAssign = DMF_GpioTarget_ResourcesAssign;
+    dmfCallbacksDmf_GpioTarget.ChildModulesAdd = DMF_GpioTarget_ChildModulesAdd;
+    dmfCallbacksDmf_GpioTarget.DeviceOpen = DMF_GpioTarget_Open;
+    dmfCallbacksDmf_GpioTarget.DeviceClose = DMF_GpioTarget_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_GpioTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_GpioTarget,
                                             GpioTarget,
                                             DMF_CONTEXT_GpioTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_GpioTarget.CallbacksDmf = &DmfCallbacksDmf_GpioTarget;
+    dmfModuleDescriptor_GpioTarget.CallbacksDmf = &dmfCallbacksDmf_GpioTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_GpioTarget,
+                                &dmfModuleDescriptor_GpioTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -914,8 +908,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_GpioTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 GpioTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -949,8 +943,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_GpioTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 GpioTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -991,8 +985,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_GpioTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 GpioTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1037,8 +1031,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_GpioTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 GpioTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1085,8 +1079,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_GpioTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 GpioTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1140,8 +1134,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_GpioTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 GpioTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

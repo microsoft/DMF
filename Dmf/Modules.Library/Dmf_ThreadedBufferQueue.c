@@ -389,14 +389,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ThreadedBufferQueue;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_ThreadedBufferQueue;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -431,26 +423,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ThreadedBufferQueue;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_ThreadedBufferQueue;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_ThreadedBufferQueue);
-    DmfCallbacksDmf_ThreadedBufferQueue.ChildModulesAdd = DMF_ThreadedBufferQueue_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ThreadedBufferQueue);
+    dmfCallbacksDmf_ThreadedBufferQueue.ChildModulesAdd = DMF_ThreadedBufferQueue_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ThreadedBufferQueue,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ThreadedBufferQueue,
                                             ThreadedBufferQueue,
                                             DMF_CONTEXT_ThreadedBufferQueue,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_ThreadedBufferQueue.CallbacksDmf = &DmfCallbacksDmf_ThreadedBufferQueue;
+    dmfModuleDescriptor_ThreadedBufferQueue.CallbacksDmf = &dmfCallbacksDmf_ThreadedBufferQueue;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ThreadedBufferQueue,
+                                &dmfModuleDescriptor_ThreadedBufferQueue,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -492,8 +486,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -533,8 +527,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -587,8 +581,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -652,8 +646,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -704,8 +698,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -760,8 +754,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -801,8 +795,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -841,8 +835,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
 
     workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
 

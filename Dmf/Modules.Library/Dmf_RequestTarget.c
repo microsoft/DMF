@@ -879,14 +879,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_RequestTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_RequestTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -921,26 +913,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_RequestTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_RequestTarget;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_RequestTarget);
-    DmfCallbacksDmf_RequestTarget.ChildModulesAdd = DMF_RequestTarget_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_RequestTarget);
+    dmfCallbacksDmf_RequestTarget.ChildModulesAdd = DMF_RequestTarget_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_RequestTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_RequestTarget,
                                             RequestTarget,
                                             DMF_CONTEXT_RequestTarget,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_RequestTarget.CallbacksDmf = &DmfCallbacksDmf_RequestTarget;
+    dmfModuleDescriptor_RequestTarget.CallbacksDmf = &dmfCallbacksDmf_RequestTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_RequestTarget,
+                                &dmfModuleDescriptor_RequestTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -981,8 +975,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     
@@ -1023,8 +1017,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ASSERT(IoTarget != NULL);
@@ -1079,8 +1073,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RequestTarget);
 
     ntStatus = RequestTarget_RequestCreateAndSend(DmfModule,
                                                   FALSE,
@@ -1147,8 +1141,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RequestTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RequestTarget);
 
     ntStatus = RequestTarget_RequestCreateAndSend(DmfModule,
                                                   TRUE,

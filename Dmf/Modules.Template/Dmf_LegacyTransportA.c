@@ -188,16 +188,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_LegacyTransportA;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_LegacyTransportA;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_LegacyTransportA;
-static DMF_ModuleTransportMethod DMF_LegacyTransportA_TransportMethod;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -232,35 +222,39 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_LegacyTransportA;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_LegacyTransportA;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_LegacyTransportA;
+    DMF_ModuleTransportMethod DMF_LegacyTransportA_TransportMethod;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_LegacyTransportA);
-    DmfCallbacksDmf_LegacyTransportA.DeviceOpen = DMF_LegacyTransportA_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_LegacyTransportA);
+    dmfCallbacksDmf_LegacyTransportA.DeviceOpen = DMF_LegacyTransportA_Open;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_LegacyTransportA);
-    DmfCallbacksWdf_LegacyTransportA.ModuleD0Entry = DMF_LegacyTransportA_ModuleD0Entry;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_LegacyTransportA);
+    dmfCallbacksWdf_LegacyTransportA.ModuleD0Entry = DMF_LegacyTransportA_ModuleD0Entry;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_LegacyTransportA,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_LegacyTransportA,
                                             LegacyTransportA,
                                             DMF_CONTEXT_LegacyTransportA,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_LegacyTransportA.CallbacksDmf = &DmfCallbacksDmf_LegacyTransportA;
-    DmfModuleDescriptor_LegacyTransportA.CallbacksWdf = &DmfCallbacksWdf_LegacyTransportA;
+    dmfModuleDescriptor_LegacyTransportA.CallbacksDmf = &dmfCallbacksDmf_LegacyTransportA;
+    dmfModuleDescriptor_LegacyTransportA.CallbacksWdf = &dmfCallbacksWdf_LegacyTransportA;
 
     // NOTE: This is only used for Transport Modules.
     //
-    DmfModuleDescriptor_LegacyTransportA.ModuleTransportMethod = DMF_LegacyTransportA_TransportMethod;
-    DmfModuleDescriptor_LegacyTransportA.SupportedTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
+    dmfModuleDescriptor_LegacyTransportA.ModuleTransportMethod = DMF_LegacyTransportA_TransportMethod;
+    dmfModuleDescriptor_LegacyTransportA.SupportedTransportInterfaceGuid = LegacyProtocol_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_LegacyTransportA,
+                                &dmfModuleDescriptor_LegacyTransportA,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

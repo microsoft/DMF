@@ -1484,15 +1484,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_BranchTrack;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_BranchTrack;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_BranchTrack;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1527,32 +1518,35 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_BranchTrack;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_BranchTrack;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_BranchTrack;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_BranchTrack);
-    DmfCallbacksDmf_BranchTrack.DeviceOpen = DMF_BranchTrack_Open;
-    DmfCallbacksDmf_BranchTrack.DeviceClose = DMF_BranchTrack_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_BranchTrack);
+    dmfCallbacksDmf_BranchTrack.DeviceOpen = DMF_BranchTrack_Open;
+    dmfCallbacksDmf_BranchTrack.DeviceClose = DMF_BranchTrack_Close;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_BranchTrack);
-    DmfCallbacksDmf_BranchTrack.ChildModulesAdd = DMF_BranchTrack_ChildModulesAdd;
-    DmfCallbacksWdf_BranchTrack.ModuleDeviceIoControl = DMF_BranchTrack_ModuleDeviceIoControl;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_BranchTrack);
+    dmfCallbacksDmf_BranchTrack.ChildModulesAdd = DMF_BranchTrack_ChildModulesAdd;
+    dmfCallbacksWdf_BranchTrack.ModuleDeviceIoControl = DMF_BranchTrack_ModuleDeviceIoControl;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_BranchTrack,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_BranchTrack,
                                             BranchTrack,
                                             DMF_CONTEXT_BranchTrack,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_BranchTrack.CallbacksDmf = &DmfCallbacksDmf_BranchTrack;
-    DmfModuleDescriptor_BranchTrack.CallbacksWdf = &DmfCallbacksWdf_BranchTrack;
+    dmfModuleDescriptor_BranchTrack.CallbacksDmf = &dmfCallbacksDmf_BranchTrack;
+    dmfModuleDescriptor_BranchTrack.CallbacksWdf = &dmfCallbacksWdf_BranchTrack;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_BranchTrack,
+                                &dmfModuleDescriptor_BranchTrack,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1628,8 +1622,8 @@ Return Value:
     // use the DMF_ModuleBranchTrack_DmfModuleInitializationTableCreate() and the legacy API will be removed.
     //
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_BranchTrack);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BranchTrack);
 
     if (Condition)
     {
@@ -1703,8 +1697,8 @@ Return Value:
     // Open handler will call a callback in the Client that will call this function.
     // It is expected and correct.
     //
-    DMF_HandleValidate_OpeningOk(DmfModule,
-                                 &DmfModuleDescriptor_BranchTrack);
+    DMFMODULE_VALIDATE_IN_METHOD_OPENING_OK(DmfModule,
+                                            BranchTrack);
 
     if (Condition)
     {

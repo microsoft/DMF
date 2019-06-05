@@ -1235,14 +1235,6 @@ Exit:
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_ComponentFirmwareUpdateHidTransport;
-static DMF_CALLBACKS_DMF DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1277,6 +1269,8 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ComponentFirmwareUpdateHidTransport;
+    DMF_CALLBACKS_DMF DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport;
 
     PAGED_CODE();
 
@@ -1286,18 +1280,18 @@ Return Value:
     DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport.ChildModulesAdd = DMF_ComponentFirmwareUpdateHidTransport_ChildModulesAdd;
     DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport.DeviceOpen = DMF_ComponentFirmwareUpdateHidTransport_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_ComponentFirmwareUpdateHidTransport,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_ComponentFirmwareUpdateHidTransport,
                                             ComponentFirmwareUpdateHidTransport,
                                             DMF_CONTEXT_ComponentFirmwareUpdateHidTransport,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
 
-    DmfModuleDescriptor_ComponentFirmwareUpdateHidTransport.CallbacksDmf = &DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport;
+    dmfModuleDescriptor_ComponentFirmwareUpdateHidTransport.CallbacksDmf = &DmfEntrypointsDmf_ComponentFirmwareUpdateHidTransport;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_ComponentFirmwareUpdateHidTransport,
+                                &dmfModuleDescriptor_ComponentFirmwareUpdateHidTransport,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

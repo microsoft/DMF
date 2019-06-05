@@ -724,15 +724,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_ScheduledTask;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_ScheduledTask;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_Tests_ScheduledTask;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -767,33 +758,36 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_ScheduledTask;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_ScheduledTask;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_Tests_ScheduledTask;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_ScheduledTask);
-    DmfCallbacksDmf_Tests_ScheduledTask.DeviceOpen = Tests_ScheduledTask_Open;
-    DmfCallbacksDmf_Tests_ScheduledTask.DeviceClose = Tests_ScheduledTask_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_ScheduledTask);
+    dmfCallbacksDmf_Tests_ScheduledTask.DeviceOpen = Tests_ScheduledTask_Open;
+    dmfCallbacksDmf_Tests_ScheduledTask.DeviceClose = Tests_ScheduledTask_Close;
 
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Tests_ScheduledTask);
-    DmfCallbacksDmf_Tests_ScheduledTask.ChildModulesAdd = DMF_Tests_ScheduledTask_ChildModulesAdd;
-    DmfCallbacksWdf_Tests_ScheduledTask.ModulePrepareHardware = Tests_ScheduledTask_ModulePrepareHardware;
-    DmfCallbacksWdf_Tests_ScheduledTask.ModuleD0Entry = Tests_ScheduledTask_ModuleD0Entry;
-    DmfCallbacksWdf_Tests_ScheduledTask.ModuleD0Exit = Tests_ScheduledTask_ModuleD0Exit;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_Tests_ScheduledTask);
+    dmfCallbacksDmf_Tests_ScheduledTask.ChildModulesAdd = DMF_Tests_ScheduledTask_ChildModulesAdd;
+    dmfCallbacksWdf_Tests_ScheduledTask.ModulePrepareHardware = Tests_ScheduledTask_ModulePrepareHardware;
+    dmfCallbacksWdf_Tests_ScheduledTask.ModuleD0Entry = Tests_ScheduledTask_ModuleD0Entry;
+    dmfCallbacksWdf_Tests_ScheduledTask.ModuleD0Exit = Tests_ScheduledTask_ModuleD0Exit;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_ScheduledTask,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_ScheduledTask,
                                             Tests_ScheduledTask,
                                             DMF_CONTEXT_Tests_ScheduledTask,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Tests_ScheduledTask.CallbacksDmf = &DmfCallbacksDmf_Tests_ScheduledTask;
-    DmfModuleDescriptor_Tests_ScheduledTask.CallbacksWdf = &DmfCallbacksWdf_Tests_ScheduledTask;
+    dmfModuleDescriptor_Tests_ScheduledTask.CallbacksDmf = &dmfCallbacksDmf_Tests_ScheduledTask;
+    dmfModuleDescriptor_Tests_ScheduledTask.CallbacksWdf = &dmfCallbacksWdf_Tests_ScheduledTask;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_ScheduledTask,
+                                &dmfModuleDescriptor_Tests_ScheduledTask,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

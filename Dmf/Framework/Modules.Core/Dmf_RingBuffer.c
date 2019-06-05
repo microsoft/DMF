@@ -778,14 +778,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_RingBuffer;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_RingBuffer;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -820,25 +812,27 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_RingBuffer;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_RingBuffer;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_RingBuffer);
-    DmfCallbacksDmf_RingBuffer.DeviceOpen = DMF_RingBuffer_Open;
-    DmfCallbacksDmf_RingBuffer.DeviceClose = DMF_RingBuffer_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_RingBuffer);
+    dmfCallbacksDmf_RingBuffer.DeviceOpen = DMF_RingBuffer_Open;
+    dmfCallbacksDmf_RingBuffer.DeviceClose = DMF_RingBuffer_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_RingBuffer,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_RingBuffer,
                                             RingBuffer,
                                             DMF_CONTEXT_RingBuffer,
                                             DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_RingBuffer.CallbacksDmf = &DmfCallbacksDmf_RingBuffer;
+    dmfModuleDescriptor_RingBuffer.CallbacksDmf = &dmfCallbacksDmf_RingBuffer;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_RingBuffer,
+                                &dmfModuleDescriptor_RingBuffer,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -886,8 +880,8 @@ Return Value:
     UCHAR* readPointer;
     UCHAR* writePointer;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -977,8 +971,8 @@ Return Value:
     BUFFER_TO_FIND bufferToFind;
     DMF_CONTEXT_RingBuffer* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1024,8 +1018,8 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_RingBuffer* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1077,8 +1071,8 @@ Return Value:
 
     UNREFERENCED_PARAMETER(TargetBufferSize);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1151,8 +1145,8 @@ Return Value:
     ULONG swapsNeeded;
     RING_BUFFER* ringBuffer;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     // When this Method is executed from a Crash Dump Handler, it must not lock since
     // the lock may already be held.
@@ -1283,8 +1277,8 @@ Return Value:
     DMF_CONTEXT_RingBuffer* moduleContext;
     RingBuffer_CustomItemProcessContext customItemProcessContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1340,8 +1334,8 @@ Return Value:
     DMF_CONTEXT_RingBuffer* moduleContext;
     RingBuffer_CustomItemProcessContext customItemProcessContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1388,8 +1382,8 @@ Return Value:
 {
     DMF_CONTEXT_RingBuffer* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1428,8 +1422,8 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_RingBuffer* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_RingBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RingBuffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

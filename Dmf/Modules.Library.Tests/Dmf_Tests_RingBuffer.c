@@ -506,14 +506,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_RingBuffer;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_RingBuffer;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -548,26 +540,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_RingBuffer;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_RingBuffer;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_RingBuffer);
-    DmfCallbacksDmf_Tests_RingBuffer.ChildModulesAdd = DMF_Tests_RingBuffer_ChildModulesAdd;
-    DmfCallbacksDmf_Tests_RingBuffer.DeviceOpen = Tests_RingBuffer_Open;
-    DmfCallbacksDmf_Tests_RingBuffer.DeviceClose = Tests_RingBuffer_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_RingBuffer);
+    dmfCallbacksDmf_Tests_RingBuffer.ChildModulesAdd = DMF_Tests_RingBuffer_ChildModulesAdd;
+    dmfCallbacksDmf_Tests_RingBuffer.DeviceOpen = Tests_RingBuffer_Open;
+    dmfCallbacksDmf_Tests_RingBuffer.DeviceClose = Tests_RingBuffer_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_RingBuffer,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_RingBuffer,
                                             Tests_RingBuffer,
                                             DMF_CONTEXT_Tests_RingBuffer,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Tests_RingBuffer.CallbacksDmf = &DmfCallbacksDmf_Tests_RingBuffer;
+    dmfModuleDescriptor_Tests_RingBuffer.CallbacksDmf = &dmfCallbacksDmf_Tests_RingBuffer;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_RingBuffer,
+                                &dmfModuleDescriptor_Tests_RingBuffer,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

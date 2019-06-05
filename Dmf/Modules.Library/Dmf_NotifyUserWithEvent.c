@@ -365,14 +365,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_NotifyUserWithEvent;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_NotifyUserWithEvent;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -407,27 +399,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_NotifyUserWithEvent;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_NotifyUserWithEvent;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_NotifyUserWithEvent);
-    DmfCallbacksDmf_NotifyUserWithEvent.DeviceOpen = DMF_NotifyUserWithEvent_Open;
-    DmfCallbacksDmf_NotifyUserWithEvent.DeviceClose = DMF_NotifyUserWithEvent_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_NotifyUserWithEvent);
+    dmfCallbacksDmf_NotifyUserWithEvent.DeviceOpen = DMF_NotifyUserWithEvent_Open;
+    dmfCallbacksDmf_NotifyUserWithEvent.DeviceClose = DMF_NotifyUserWithEvent_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_NotifyUserWithEvent,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_NotifyUserWithEvent,
                                             NotifyUserWithEvent,
                                             DMF_CONTEXT_NotifyUserWithEvent,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_NotifyUserWithEvent.CallbacksDmf = &DmfCallbacksDmf_NotifyUserWithEvent;
+    dmfModuleDescriptor_NotifyUserWithEvent.CallbacksDmf = &dmfCallbacksDmf_NotifyUserWithEvent;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_NotifyUserWithEvent,
+                                &dmfModuleDescriptor_NotifyUserWithEvent,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -473,8 +467,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithEvent);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithEvent);
 
     ntStatus = Dmf_NotifyUserWithEvent_NotifyByIndex(DmfModule,
                                                      NotifyUserWithEvent_DefaultIndex);
@@ -519,8 +513,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithEvent);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithEvent);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

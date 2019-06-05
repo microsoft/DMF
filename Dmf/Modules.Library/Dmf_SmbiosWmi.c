@@ -678,14 +678,6 @@ Exit:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_SmbiosWmi;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_SmbiosWmi;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -720,24 +712,26 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SmbiosWmi;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_SmbiosWmi;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SmbiosWmi);
-    DmfCallbacksDmf_SmbiosWmi.DeviceOpen = DMF_SmbiosWmi_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_SmbiosWmi);
+    dmfCallbacksDmf_SmbiosWmi.DeviceOpen = DMF_SmbiosWmi_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SmbiosWmi,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_SmbiosWmi,
                                             SmbiosWmi,
                                             DMF_CONTEXT_SmbiosWmi,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_SmbiosWmi.CallbacksDmf = &DmfCallbacksDmf_SmbiosWmi;
+    dmfModuleDescriptor_SmbiosWmi.CallbacksDmf = &dmfCallbacksDmf_SmbiosWmi;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_SmbiosWmi,
+                                &dmfModuleDescriptor_SmbiosWmi,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -783,8 +777,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SmbiosWmi);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SmbiosWmi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -863,8 +857,8 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SmbiosWmi* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SmbiosWmi);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SmbiosWmi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -921,8 +915,8 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_SmbiosWmi* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SmbiosWmi);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SmbiosWmi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -980,8 +974,8 @@ Return Value:
 {
     DMF_CONTEXT_SmbiosWmi* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SmbiosWmi);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SmbiosWmi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1020,8 +1014,8 @@ Return Value:
 {
     DMF_CONTEXT_SmbiosWmi* moduleContext;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_SmbiosWmi);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SmbiosWmi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

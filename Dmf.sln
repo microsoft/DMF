@@ -37,6 +37,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		Dmf\Documentation\Driver Module Framework.md = Dmf\Documentation\Driver Module Framework.md
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKTest", "DmfTest\DmfKTest\sys\DmfKTest.vcxproj", "{ADBA2F9D-D994-4691-838F-927D55DF7C74}"
+	ProjectSection(ProjectDependencies) = postProject
+		{241252E8-4ADE-42E5-B34B-AEFD33B9698E} = {241252E8-4ADE-42E5-B34B-AEFD33B9698E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -209,6 +214,18 @@ Global
 		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}.Release|x64.ActiveCfg = Release|x64
 		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}.Release|x64.Build.0 = Release|x64
 		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}.Release|x64.Deploy.0 = Release|x64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|ARM64.Build.0 = Debug|ARM64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|Win32.Build.0 = Debug|Win32
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|x64.ActiveCfg = Debug|x64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|x64.Build.0 = Debug|x64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|ARM64.ActiveCfg = Release|ARM64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|ARM64.Build.0 = Release|ARM64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|Win32.ActiveCfg = Release|Win32
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|Win32.Build.0 = Release|Win32
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|x64.ActiveCfg = Release|x64
+		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

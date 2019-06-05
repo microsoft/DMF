@@ -396,14 +396,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_AcpiNotification;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_AcpiNotification;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -438,25 +430,27 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_AcpiNotification;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_AcpiNotification;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_AcpiNotification);
-    DmfCallbacksDmf_AcpiNotification.DeviceOpen = DMF_AcpiNotification_Open;
-    DmfCallbacksDmf_AcpiNotification.DeviceClose = DMF_AcpiNotification_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_AcpiNotification);
+    dmfCallbacksDmf_AcpiNotification.DeviceOpen = DMF_AcpiNotification_Open;
+    dmfCallbacksDmf_AcpiNotification.DeviceClose = DMF_AcpiNotification_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_AcpiNotification,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_AcpiNotification,
                                             AcpiNotification,
                                             DMF_CONTEXT_AcpiNotification,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_AcpiNotification.CallbacksDmf = &DmfCallbacksDmf_AcpiNotification;
+    dmfModuleDescriptor_AcpiNotification.CallbacksDmf = &dmfCallbacksDmf_AcpiNotification;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_AcpiNotification,
+                                &dmfModuleDescriptor_AcpiNotification,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

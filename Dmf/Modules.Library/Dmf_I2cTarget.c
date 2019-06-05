@@ -851,14 +851,6 @@ Exit:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_I2cTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_I2cTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -894,26 +886,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_I2cTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_I2cTarget;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_I2cTarget);
-    DmfCallbacksDmf_I2cTarget.DeviceOpen = DMF_I2cTarget_Open;
-    DmfCallbacksDmf_I2cTarget.DeviceClose = DMF_I2cTarget_Close;
-    DmfCallbacksDmf_I2cTarget.DeviceResourcesAssign = DMF_I2cTarget_ResourcesAssign;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_I2cTarget);
+    dmfCallbacksDmf_I2cTarget.DeviceOpen = DMF_I2cTarget_Open;
+    dmfCallbacksDmf_I2cTarget.DeviceClose = DMF_I2cTarget_Close;
+    dmfCallbacksDmf_I2cTarget.DeviceResourcesAssign = DMF_I2cTarget_ResourcesAssign;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_I2cTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_I2cTarget,
                                             I2cTarget,
                                             DMF_CONTEXT_I2cTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
 
-    DmfModuleDescriptor_I2cTarget.CallbacksDmf = &DmfCallbacksDmf_I2cTarget;
+    dmfModuleDescriptor_I2cTarget.CallbacksDmf = &dmfCallbacksDmf_I2cTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_I2cTarget,
+                                &dmfModuleDescriptor_I2cTarget,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -1158,8 +1152,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_I2cTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 I2cTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

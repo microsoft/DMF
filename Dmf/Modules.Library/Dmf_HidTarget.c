@@ -2490,14 +2490,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Hid;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_HidTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -2532,27 +2524,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Hid;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_HidTarget;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_HidTarget);
-    DmfCallbacksDmf_HidTarget.ModuleInstanceDestroy = DMF_HidTarget_Destroy;
-    DmfCallbacksDmf_HidTarget.DeviceClose = DMF_HidTarget_Close;
-    DmfCallbacksDmf_HidTarget.DeviceNotificationRegister = DMF_HidTarget_NotificationRegister;
-    DmfCallbacksDmf_HidTarget.DeviceNotificationUnregister = DMF_HidTarget_NotificationUnregister;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_HidTarget);
+    dmfCallbacksDmf_HidTarget.ModuleInstanceDestroy = DMF_HidTarget_Destroy;
+    dmfCallbacksDmf_HidTarget.DeviceClose = DMF_HidTarget_Close;
+    dmfCallbacksDmf_HidTarget.DeviceNotificationRegister = DMF_HidTarget_NotificationRegister;
+    dmfCallbacksDmf_HidTarget.DeviceNotificationUnregister = DMF_HidTarget_NotificationUnregister;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Hid,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Hid,
                                             HidTarget,
                                             DMF_CONTEXT_HidTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
-    DmfModuleDescriptor_Hid.CallbacksDmf = &DmfCallbacksDmf_HidTarget;
+    dmfModuleDescriptor_Hid.CallbacksDmf = &dmfCallbacksDmf_HidTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Hid,
+                                &dmfModuleDescriptor_Hid,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -2610,8 +2604,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -2689,8 +2683,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -2774,8 +2768,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     preparsedData = NULL;
     report = NULL;
@@ -2937,8 +2931,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     preparsedData = NULL;
     report = NULL;
@@ -3112,8 +3106,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     preparsedData = NULL;
     report = NULL;
@@ -3343,8 +3337,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -3467,8 +3461,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -3567,8 +3561,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -3654,8 +3648,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
@@ -3749,8 +3743,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_Hid);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
 
     preparsedData = NULL;
     reportLength = 0;

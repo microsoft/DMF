@@ -296,14 +296,6 @@ Exit:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_NonPnp;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_NonPnp;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -338,27 +330,29 @@ Returns:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_NonPnp;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_NonPnp;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_NonPnp);
-    DmfCallbacksDmf_NonPnp.ChildModulesAdd = DMF_NonPnp_ChildModulesAdd;
-    DmfCallbacksDmf_NonPnp.DeviceOpen = DMF_NonPnp_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_NonPnp);
+    dmfCallbacksDmf_NonPnp.ChildModulesAdd = DMF_NonPnp_ChildModulesAdd;
+    dmfCallbacksDmf_NonPnp.DeviceOpen = DMF_NonPnp_Open;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_NonPnp,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_NonPnp,
                                             NonPnp,
                                             DMF_CONTEXT_NonPnp,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_NonPnp.CallbacksDmf = &DmfCallbacksDmf_NonPnp;
+    dmfModuleDescriptor_NonPnp.CallbacksDmf = &dmfCallbacksDmf_NonPnp;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_NonPnp,
+                                &dmfModuleDescriptor_NonPnp,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

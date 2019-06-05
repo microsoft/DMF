@@ -326,14 +326,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_QueuedWorkItem;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_QueuedWorkItem;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -368,26 +360,28 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_QueuedWorkItem;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_QueuedWorkItem;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_QueuedWorkItem);
-    DmfCallbacksDmf_QueuedWorkItem.ChildModulesAdd = DMF_QueuedWorkItem_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_QueuedWorkItem);
+    dmfCallbacksDmf_QueuedWorkItem.ChildModulesAdd = DMF_QueuedWorkItem_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_QueuedWorkItem,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_QueuedWorkItem,
                                             QueuedWorkItem,
                                             DMF_CONTEXT_QueuedWorkItem,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_QueuedWorkItem.CallbacksDmf = &DmfCallbacksDmf_QueuedWorkItem;
+    dmfModuleDescriptor_QueuedWorkItem.CallbacksDmf = &dmfCallbacksDmf_QueuedWorkItem;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_QueuedWorkItem,
+                                &dmfModuleDescriptor_QueuedWorkItem,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -439,8 +433,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_QueuedWorkItem);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 QueuedWorkItem);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -531,8 +525,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_QueuedWorkItem);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 QueuedWorkItem);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

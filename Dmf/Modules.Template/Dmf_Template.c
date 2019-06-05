@@ -975,21 +975,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-// TEMPLATE: Update this table to override default DMF Module Handlers.
-//           Make sure to update the size of the PRIVATE_CONTEXT and OPEN_CONTEXT.
-// TEMPLATE: Replace "_Template_" with "_GENERIC_" for all callbacks that are not implemented
-//           in this Module.
-//
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Template;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Template;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_Template;
-static DMF_ModuleTransportMethod DMF_Template_TransportMethod;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1024,52 +1009,61 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+// TEMPLATE: Update this table to override default DMF Module Handlers.
+//           Make sure to update the size of the PRIVATE_CONTEXT and OPEN_CONTEXT.
+// TEMPLATE: Replace "_Template_" with "_GENERIC_" for all callbacks that are not implemented
+//           in this Module.
+//
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Template;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Template;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_Template;
+    DMF_ModuleTransportMethod DMF_Template_TransportMethod;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Template);
-    DmfCallbacksDmf_Template.ChildModulesAdd = DMF_Template_ChildModulesAdd;
-    DmfCallbacksDmf_Template.DeviceResourcesAssign = DMF_Template_ResourcesAssign;
-    DmfCallbacksDmf_Template.DeviceOpen = DMF_Template_Open;
-    DmfCallbacksDmf_Template.DeviceClose = DMF_Template_Close;
-    DmfCallbacksDmf_Template.DeviceNotificationRegister = DMF_Template_NotificationRegister;
-    DmfCallbacksDmf_Template.DeviceNotificationUnregister = DMF_Template_NotificationUnregister;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Template);
+    dmfCallbacksDmf_Template.ChildModulesAdd = DMF_Template_ChildModulesAdd;
+    dmfCallbacksDmf_Template.DeviceResourcesAssign = DMF_Template_ResourcesAssign;
+    dmfCallbacksDmf_Template.DeviceOpen = DMF_Template_Open;
+    dmfCallbacksDmf_Template.DeviceClose = DMF_Template_Close;
+    dmfCallbacksDmf_Template.DeviceNotificationRegister = DMF_Template_NotificationRegister;
+    dmfCallbacksDmf_Template.DeviceNotificationUnregister = DMF_Template_NotificationUnregister;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Template);
-    DmfCallbacksWdf_Template.ModuleSelfManagedIoInit = DMF_Template_SelfManagedIoInit;
-    DmfCallbacksWdf_Template.ModuleSelfManagedIoSuspend = DMF_Template_SelfManagedIoSuspend;
-    DmfCallbacksWdf_Template.ModuleSelfManagedIoRestart = DMF_Template_SelfManagedIoRestart;
-    DmfCallbacksWdf_Template.ModuleSelfManagedIoFlush = DMF_Template_SelfManagedIoFlush;
-    DmfCallbacksWdf_Template.ModuleSelfManagedIoCleanup = DMF_Template_SelfManagedIoCleanup;
-    DmfCallbacksWdf_Template.ModuleSurpriseRemoval = DMF_Template_SurpriseRemoval;
-    DmfCallbacksWdf_Template.ModuleD0Entry = DMF_Template_ModuleD0Entry;
-    DmfCallbacksWdf_Template.ModuleD0EntryPostInterruptsEnabled = DMF_Template_ModuleD0EntryPostInterruptsEnabled;
-    DmfCallbacksWdf_Template.ModuleD0ExitPreInterruptsDisabled = DMF_Template_ModuleD0ExitPreInterruptsDisabled;
-    DmfCallbacksWdf_Template.ModuleD0Exit = DMF_Template_ModuleD0Exit;
-    DmfCallbacksWdf_Template.ModuleFileCreate = DMF_Template_ModuleFileCreate;
-    DmfCallbacksWdf_Template.ModuleFileCleanup = DMF_Template_ModuleFileCleanup;
-    DmfCallbacksWdf_Template.ModuleFileClose = DMF_Template_ModuleFileClose;
-    DmfCallbacksWdf_Template.ModuleDeviceIoControl = DMF_Template_ModuleDeviceIoControl;
-    DmfCallbacksWdf_Template.ModuleInternalDeviceIoControl = DMF_Template_ModuleInternalDeviceIoControl;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_Template);
+    dmfCallbacksWdf_Template.ModuleSelfManagedIoInit = DMF_Template_SelfManagedIoInit;
+    dmfCallbacksWdf_Template.ModuleSelfManagedIoSuspend = DMF_Template_SelfManagedIoSuspend;
+    dmfCallbacksWdf_Template.ModuleSelfManagedIoRestart = DMF_Template_SelfManagedIoRestart;
+    dmfCallbacksWdf_Template.ModuleSelfManagedIoFlush = DMF_Template_SelfManagedIoFlush;
+    dmfCallbacksWdf_Template.ModuleSelfManagedIoCleanup = DMF_Template_SelfManagedIoCleanup;
+    dmfCallbacksWdf_Template.ModuleSurpriseRemoval = DMF_Template_SurpriseRemoval;
+    dmfCallbacksWdf_Template.ModuleD0Entry = DMF_Template_ModuleD0Entry;
+    dmfCallbacksWdf_Template.ModuleD0EntryPostInterruptsEnabled = DMF_Template_ModuleD0EntryPostInterruptsEnabled;
+    dmfCallbacksWdf_Template.ModuleD0ExitPreInterruptsDisabled = DMF_Template_ModuleD0ExitPreInterruptsDisabled;
+    dmfCallbacksWdf_Template.ModuleD0Exit = DMF_Template_ModuleD0Exit;
+    dmfCallbacksWdf_Template.ModuleFileCreate = DMF_Template_ModuleFileCreate;
+    dmfCallbacksWdf_Template.ModuleFileCleanup = DMF_Template_ModuleFileCleanup;
+    dmfCallbacksWdf_Template.ModuleFileClose = DMF_Template_ModuleFileClose;
+    dmfCallbacksWdf_Template.ModuleDeviceIoControl = DMF_Template_ModuleDeviceIoControl;
+    dmfCallbacksWdf_Template.ModuleInternalDeviceIoControl = DMF_Template_ModuleInternalDeviceIoControl;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Template,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Template,
                                             Template,
                                             DMF_CONTEXT_Template,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_Template.CallbacksDmf = &DmfCallbacksDmf_Template;
-    DmfModuleDescriptor_Template.CallbacksWdf = &DmfCallbacksWdf_Template;
+    dmfModuleDescriptor_Template.CallbacksDmf = &dmfCallbacksDmf_Template;
+    dmfModuleDescriptor_Template.CallbacksWdf = &dmfCallbacksWdf_Template;
     // NOTE: This is only used for Transport Modules.
     //
-    DmfModuleDescriptor_Template.ModuleTransportMethod = DMF_Template_TransportMethod;
+    dmfModuleDescriptor_Template.ModuleTransportMethod = DMF_Template_TransportMethod;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Template,
+                                &dmfModuleDescriptor_Template,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

@@ -603,14 +603,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_PingPongBuffer;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_PingPongBuffer;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -645,27 +637,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_PingPongBuffer;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_PingPongBuffer;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_PingPongBuffer);
-    DmfCallbacksDmf_PingPongBuffer.DeviceOpen = DMF_PingPongBuffer_Open;
-    DmfCallbacksDmf_PingPongBuffer.DeviceClose = DMF_PingPongBuffer_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_PingPongBuffer);
+    dmfCallbacksDmf_PingPongBuffer.DeviceOpen = DMF_PingPongBuffer_Open;
+    dmfCallbacksDmf_PingPongBuffer.DeviceClose = DMF_PingPongBuffer_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_PingPongBuffer,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_PingPongBuffer,
                                             PingPongBuffer,
                                             DMF_CONTEXT_PingPongBuffer,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_PingPongBuffer.CallbacksDmf = &DmfCallbacksDmf_PingPongBuffer;
+    dmfModuleDescriptor_PingPongBuffer.CallbacksDmf = &dmfCallbacksDmf_PingPongBuffer;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_PingPongBuffer,
+                                &dmfModuleDescriptor_PingPongBuffer,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -731,8 +725,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_PingPongBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 PingPongBuffer);
 
     DMF_ModuleLock(DmfModule);
 
@@ -806,8 +800,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_PingPongBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 PingPongBuffer);
 
     DMF_ModuleLock(DmfModule);
 
@@ -846,8 +840,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_PingPongBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 PingPongBuffer);
 
     DMF_ModuleLock(DmfModule);
 
@@ -897,8 +891,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_PingPongBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 PingPongBuffer);
 
     DMF_ModuleLock(DmfModule);
 
@@ -988,8 +982,8 @@ Return Value:
     //
     ntStatus = STATUS_SUCCESS;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_PingPongBuffer);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 PingPongBuffer);
 
     DMF_ModuleLock(DmfModule);
 

@@ -949,15 +949,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_Tests_DefaultTarget;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_Tests_DefaultTarget;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_Tests_DefaultTarget;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -992,30 +983,33 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Tests_DefaultTarget;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_Tests_DefaultTarget;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_Tests_DefaultTarget;
 
     PAGED_CODE();
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_Tests_DefaultTarget);
-    DmfCallbacksDmf_Tests_DefaultTarget.ChildModulesAdd = DMF_Tests_DefaultTarget_ChildModulesAdd;
-    DmfCallbacksDmf_Tests_DefaultTarget.DeviceOpen = DMF_Tests_DefaultTarget_Open;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_DefaultTarget);
+    dmfCallbacksDmf_Tests_DefaultTarget.ChildModulesAdd = DMF_Tests_DefaultTarget_ChildModulesAdd;
+    dmfCallbacksDmf_Tests_DefaultTarget.DeviceOpen = DMF_Tests_DefaultTarget_Open;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_Tests_DefaultTarget);
-    DmfCallbacksWdf_Tests_DefaultTarget.ModuleD0Entry = DMF_Tests_DefaultTarget_ModuleD0Entry;
-    DmfCallbacksWdf_Tests_DefaultTarget.ModuleD0Exit = DMF_Tests_DefaultTarget_ModuleD0Exit;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_Tests_DefaultTarget);
+    dmfCallbacksWdf_Tests_DefaultTarget.ModuleD0Entry = DMF_Tests_DefaultTarget_ModuleD0Entry;
+    dmfCallbacksWdf_Tests_DefaultTarget.ModuleD0Exit = DMF_Tests_DefaultTarget_ModuleD0Exit;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_Tests_DefaultTarget,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_DefaultTarget,
                                             Tests_DefaultTarget,
                                             DMF_CONTEXT_Tests_DefaultTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_Tests_DefaultTarget.CallbacksDmf = &DmfCallbacksDmf_Tests_DefaultTarget;
-    DmfModuleDescriptor_Tests_DefaultTarget.CallbacksWdf = &DmfCallbacksWdf_Tests_DefaultTarget;
+    dmfModuleDescriptor_Tests_DefaultTarget.CallbacksDmf = &dmfCallbacksDmf_Tests_DefaultTarget;
+    dmfModuleDescriptor_Tests_DefaultTarget.CallbacksWdf = &dmfCallbacksWdf_Tests_DefaultTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_Tests_DefaultTarget,
+                                &dmfModuleDescriptor_Tests_DefaultTarget,
                                 DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {

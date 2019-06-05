@@ -219,13 +219,6 @@ Exit:
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_String;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -260,12 +253,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_String;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_MODULE_DESCRIPTOR_INIT(DmfModuleDescriptor_String,
+    DMF_MODULE_DESCRIPTOR_INIT(dmfModuleDescriptor_String,
                                String,
                                DMF_MODULE_OPTIONS_DISPATCH,
                                DMF_MODULE_OPEN_OPTION_OPEN_Create);
@@ -273,7 +267,7 @@ Return Value:
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_String,
+                                &dmfModuleDescriptor_String,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -321,8 +315,8 @@ Return Value:
 {
     LONG returnValue;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_String);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
 
     ASSERT(StringList != NULL);
 
@@ -380,8 +374,8 @@ Return Value:
 
 --*/
 {
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_String);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
 
     return DMF_String_FindInListChar(DmfModule,
                                      StringList,
@@ -465,8 +459,8 @@ Return Value:
 
 --*/
 {
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_String);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
 
     return DMF_String_FindInListChar(DmfModule,
                                      StringList,

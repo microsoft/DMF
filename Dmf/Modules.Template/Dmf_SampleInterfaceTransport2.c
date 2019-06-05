@@ -455,15 +455,6 @@ DMF_SampleInterfaceTransport2_Method1(
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_SampleInterfaceTransport2;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_SampleInterfaceTransport2;
-static DMF_CALLBACKS_WDF DmfCallbacksWdf_SampleInterfaceTransport2;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Protocol
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -499,32 +490,35 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_INTERFACE_TRANSPORT_SampleInterface_DECLARATION_DATA transportDeclarationData;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SampleInterfaceTransport2;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_SampleInterfaceTransport2;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_SampleInterfaceTransport2;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_SampleInterfaceTransport2);
-    DmfCallbacksDmf_SampleInterfaceTransport2.DeviceOpen = DMF_SampleInterfaceTransport2_Open;
-    DmfCallbacksDmf_SampleInterfaceTransport2.DeviceClose = DMF_SampleInterfaceTransport2_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_SampleInterfaceTransport2);
+    dmfCallbacksDmf_SampleInterfaceTransport2.DeviceOpen = DMF_SampleInterfaceTransport2_Open;
+    dmfCallbacksDmf_SampleInterfaceTransport2.DeviceClose = DMF_SampleInterfaceTransport2_Close;
 
-    DMF_CALLBACKS_WDF_INIT(&DmfCallbacksWdf_SampleInterfaceTransport2);
-    DmfCallbacksWdf_SampleInterfaceTransport2.ModuleD0Entry = DMF_SampleInterfaceTransport2_ModuleD0Entry;
-    DmfCallbacksWdf_SampleInterfaceTransport2.ModuleD0Exit = DMF_SampleInterfaceTransport2_ModuleD0Exit;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_SampleInterfaceTransport2);
+    dmfCallbacksWdf_SampleInterfaceTransport2.ModuleD0Entry = DMF_SampleInterfaceTransport2_ModuleD0Entry;
+    dmfCallbacksWdf_SampleInterfaceTransport2.ModuleD0Exit = DMF_SampleInterfaceTransport2_ModuleD0Exit;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_SampleInterfaceTransport2,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_SampleInterfaceTransport2,
                                             SampleInterfaceTransport2,
                                             DMF_CONTEXT_SampleInterfaceTransport2,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_SampleInterfaceTransport2.CallbacksDmf = &DmfCallbacksDmf_SampleInterfaceTransport2;
-    DmfModuleDescriptor_SampleInterfaceTransport2.CallbacksWdf = &DmfCallbacksWdf_SampleInterfaceTransport2;
+    dmfModuleDescriptor_SampleInterfaceTransport2.CallbacksDmf = &dmfCallbacksDmf_SampleInterfaceTransport2;
+    dmfModuleDescriptor_SampleInterfaceTransport2.CallbacksWdf = &dmfCallbacksWdf_SampleInterfaceTransport2;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_SampleInterfaceTransport2,
+                                &dmfModuleDescriptor_SampleInterfaceTransport2,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {

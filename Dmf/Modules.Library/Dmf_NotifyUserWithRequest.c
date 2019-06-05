@@ -567,14 +567,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_NotifyUserWithRequest;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_NotifyUserWithRequest;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -609,28 +601,30 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_NotifyUserWithRequest;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_NotifyUserWithRequest;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_NotifyUserWithRequest);
-    DmfCallbacksDmf_NotifyUserWithRequest.ChildModulesAdd = DMF_NotifyUserWithRequest_ChildModulesAdd;
-    DmfCallbacksDmf_NotifyUserWithRequest.DeviceOpen = DMF_NotifyUserWithRequest_Open;
-    DmfCallbacksDmf_NotifyUserWithRequest.DeviceClose = DMF_NotifyUserWithRequest_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_NotifyUserWithRequest);
+    dmfCallbacksDmf_NotifyUserWithRequest.ChildModulesAdd = DMF_NotifyUserWithRequest_ChildModulesAdd;
+    dmfCallbacksDmf_NotifyUserWithRequest.DeviceOpen = DMF_NotifyUserWithRequest_Open;
+    dmfCallbacksDmf_NotifyUserWithRequest.DeviceClose = DMF_NotifyUserWithRequest_Close;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_NotifyUserWithRequest,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_NotifyUserWithRequest,
                                             NotifyUserWithRequest,
                                             DMF_CONTEXT_NotifyUserWithRequest,
                                             DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    DmfModuleDescriptor_NotifyUserWithRequest.CallbacksDmf = &DmfCallbacksDmf_NotifyUserWithRequest;
+    dmfModuleDescriptor_NotifyUserWithRequest.CallbacksDmf = &dmfCallbacksDmf_NotifyUserWithRequest;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_NotifyUserWithRequest,
+                                &dmfModuleDescriptor_NotifyUserWithRequest,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -692,8 +686,8 @@ Return Value:
     ntStatus = STATUS_SUCCESS;
     isLocked = FALSE;
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithRequest);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -812,8 +806,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithRequest);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -882,8 +876,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithRequest);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
 
     // Store the request.
     //
@@ -949,8 +943,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithRequest);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
 
     numberOfRequestsCompleted = NotifyUserWithRequest_EventRequestReturn(DmfModule,
                                                                          EventCallbackFunction,
@@ -1010,8 +1004,8 @@ Return Value:
     // By design this Method can be called by Close callback.
     // (This Method is called to flush any remaining requests when Module is closed.)
     //
-    DMF_HandleValidate_ClosingOk(DmfModule,
-                                 &DmfModuleDescriptor_NotifyUserWithRequest);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            NotifyUserWithRequest);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1083,8 +1077,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_NotifyUserWithRequest);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
 
     numberOfRequestsCompleted = NotifyUserWithRequest_EventRequestReturn(DmfModule,
                                                                          EventCallbackFunction,

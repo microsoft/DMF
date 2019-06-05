@@ -658,14 +658,6 @@ Return Value:
 #pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DMF Module Descriptor
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-static DMF_MODULE_DESCRIPTOR DmfModuleDescriptor_VirtualHidAmbientLightSensor;
-static DMF_CALLBACKS_DMF DmfCallbacksDmf_VirtualHidAmbientLightSensor;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -700,27 +692,29 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidAmbientLightSensor;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidAmbientLightSensor;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&DmfCallbacksDmf_VirtualHidAmbientLightSensor);
-    DmfCallbacksDmf_VirtualHidAmbientLightSensor.DeviceOpen = DMF_VirtualHidAmbientLightSensor_Open;
-    DmfCallbacksDmf_VirtualHidAmbientLightSensor.ChildModulesAdd = DMF_VirtualHidAmbientLightSensor_ChildModulesAdd;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_VirtualHidAmbientLightSensor);
+    dmfCallbacksDmf_VirtualHidAmbientLightSensor.DeviceOpen = DMF_VirtualHidAmbientLightSensor_Open;
+    dmfCallbacksDmf_VirtualHidAmbientLightSensor.ChildModulesAdd = DMF_VirtualHidAmbientLightSensor_ChildModulesAdd;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(DmfModuleDescriptor_VirtualHidAmbientLightSensor,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualHidAmbientLightSensor,
                                             VirtualHidAmbientLightSensor,
                                             DMF_CONTEXT_VirtualHidAmbientLightSensor,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
-    DmfModuleDescriptor_VirtualHidAmbientLightSensor.CallbacksDmf = &DmfCallbacksDmf_VirtualHidAmbientLightSensor;
+    dmfModuleDescriptor_VirtualHidAmbientLightSensor.CallbacksDmf = &dmfCallbacksDmf_VirtualHidAmbientLightSensor;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &DmfModuleDescriptor_VirtualHidAmbientLightSensor,
+                                &dmfModuleDescriptor_VirtualHidAmbientLightSensor,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -767,8 +761,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMF_HandleValidate_ModuleMethod(DmfModule,
-                                    &DmfModuleDescriptor_VirtualHidAmbientLightSensor);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualHidAmbientLightSensor);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

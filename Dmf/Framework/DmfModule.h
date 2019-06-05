@@ -586,6 +586,10 @@ typedef enum
     DMF_MODULE_OPEN_OPTION_LAST,
 } DmfModuleOpenOption;
 
+typedef NTSTATUS DMF_WdfAddCustomType(_In_ WDFOBJECT Handle,
+                                      _In_opt_ ULONG_PTR Data,
+                                      _In_opt_ PFN_WDF_OBJECT_CONTEXT_CLEANUP EvtCleanupCallback,
+                                      _In_opt_ PFN_WDF_OBJECT_CONTEXT_DESTROY EvtDestroyCallback);
 // Module Descriptor.
 //
 typedef struct
@@ -638,6 +642,10 @@ typedef struct
     // (This field is mandatory when DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED is set.)
     //
     GUID RequiredTransportInterfaceGuid;
+    // When a Module is created, a custom type is assigned to the handle using
+    // this method.
+    //
+    DMF_WdfAddCustomType* WdfAddCustomType;
 } DMF_MODULE_DESCRIPTOR;
 
 #define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)           \
@@ -656,26 +664,15 @@ Descriptor.CallbacksDmf                    = NULL;                              
 Descriptor.CallbacksWdf                    = NULL;                                          \
 Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;         \
 Descriptor.ModuleContextAttributes         = WDF_NO_OBJECT_ATTRIBUTES;                      \
+Descriptor.WdfAddCustomType                = WDF_ADD_CUSTOM_TYPE_FUNCTION_NAME(Name);       \
                                                                                             \
 
 #define DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(Descriptor, Name, ModuleContext, Module_Options, Open_Option)         \
                                                                                                                       \
 WDF_OBJECT_ATTRIBUTES moduleContextAttributes;                                                                        \
-RtlZeroMemory(&Descriptor,                                                                                            \
-              sizeof(DMF_MODULE_DESCRIPTOR));                                                                         \
+DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)                                             \
 WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&moduleContextAttributes,                                                     \
                                         ModuleContext);                                                               \
-                                                                                                                      \
-Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);                                           \
-Descriptor.ModuleName                      = ""#Name;                                                                 \
-Descriptor.ModuleOptions                   = Module_Options;                                                          \
-Descriptor.OpenOption                      = Open_Option;                                                             \
-Descriptor.ModuleConfigSize                = sizeof(DMF_CONFIG_##Name##);                                             \
-Descriptor.ModuleBranchTrackInitialize     = NULL;                                                                    \
-Descriptor.NumberOfAuxiliaryLocks          = 0;                                                                       \
-Descriptor.CallbacksDmf                    = NULL;                                                                    \
-Descriptor.CallbacksWdf                    = NULL;                                                                    \
-Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;                                   \
 Descriptor.ModuleContextAttributes         = &moduleContextAttributes;                                                \
                                                                                                                       \
 
@@ -866,24 +863,39 @@ DMF_ObjectValidate(
 
 VOID
 DMF_HandleValidate_ModuleMethod(
-    _In_ DMFMODULE DmfModule,
-    _In_ DMF_MODULE_DESCRIPTOR* DmfModuleDescriptor
+    _In_ DMFMODULE DmfModule
     );
 
+#define DMFMODULE_VALIDATE_IN_METHOD(ModuleHandle, ModuleType)                                  \
+                                                                                                \
+     (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                      \
+              (ASSERT(FALSE)) :                                                                 \
+              (DMF_HandleValidate_ModuleMethod(ModuleHandle))                                   \
+			  
 // These two validation functions are deprecated
 // Do not use it.
 //
 VOID
 DMF_HandleValidate_OpeningOk(
-    _In_ DMFMODULE DmfModule,
-    _In_ DMF_MODULE_DESCRIPTOR* DmfModuleDescriptor
+    _In_ DMFMODULE DmfModule
     );
 
+#define DMFMODULE_VALIDATE_IN_METHOD_OPENING_OK(ModuleHandle, ModuleType)                       \
+                                                                                                \
+    (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                       \
+              (ASSERT(FALSE)) :                                                                 \
+              (DMF_HandleValidate_OpeningOk(ModuleHandle))                                      \
+			  
 VOID
 DMF_HandleValidate_ClosingOk(
-    _In_ DMFMODULE DmfModule,
-    _In_ DMF_MODULE_DESCRIPTOR* DmfModuleDescriptor
+    _In_ DMFMODULE DmfModule
     );
+	
+#define DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(ModuleHandle, ModuleType)                       \
+                                                                                                \
+    (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                       \
+              (ASSERT(FALSE)) :                                                                 \
+              (DMF_HandleValidate_ClosingOk(ModuleHandle))                                      \
 
 __forceinline
 DMFMODULE

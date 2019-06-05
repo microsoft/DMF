@@ -533,8 +533,7 @@ Return Value:
 
 VOID
 DMF_HandleValidate_ModuleMethod(
-    _In_ DMFMODULE DmfModule,
-    _In_ DMF_MODULE_DESCRIPTOR* DmfModuleDescriptor
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
@@ -557,7 +556,6 @@ Return Value:
 --*/
 {
     UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(DmfModuleDescriptor);
 
 #if defined(DEBUG)
     DMF_OBJECT* dmfObject;
@@ -570,7 +568,6 @@ Return Value:
     {
         DMF_HandleValidate_IsOpened(dmfObject);
     }
-    ASSERT(dmfObject->ModuleName == DmfModuleDescriptor->ModuleName);
 #endif // defined(DEBUG)
 }
 
@@ -612,8 +609,7 @@ Return Value:
 
 VOID
 DMF_HandleValidate_OpeningOk(
-    _In_ DMFMODULE DmfModule,
-    _In_ DMF_MODULE_DESCRIPTOR* DmfModuleDescriptor
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
@@ -633,7 +629,6 @@ Return Value:
 --*/
 {
     UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(DmfModuleDescriptor);
 
 #if defined(DEBUG)
     DMF_OBJECT* dmfObject;
@@ -643,14 +638,12 @@ Return Value:
     ASSERT(DMF_OBJECT_SIGNATURE == dmfObject->Signature);
     ASSERT((ModuleState_Opened == dmfObject->ModuleState) ||
            (ModuleState_Opening == dmfObject->ModuleState));
-    ASSERT(dmfObject->ModuleName == DmfModuleDescriptor->ModuleName);
 #endif // defined(DEBUG)
 }
 
 VOID
 DMF_HandleValidate_ClosingOk(
-    _In_ DMFMODULE DmfModule,
-    _In_ DMF_MODULE_DESCRIPTOR* DmfModuleDescriptor
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
@@ -670,7 +663,6 @@ Return Value:
 --*/
 {
     UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(DmfModuleDescriptor);
 
 #if defined(DEBUG)
     DMF_OBJECT* dmfObject;
@@ -679,7 +671,6 @@ Return Value:
     DMF_ObjectValidate((DMFMODULE)dmfObject->MemoryDmfObject);
     ASSERT((ModuleState_Opened == dmfObject->ModuleState) ||
         (ModuleState_Closing == dmfObject->ModuleState));
-    ASSERT(dmfObject->ModuleName == DmfModuleDescriptor->ModuleName);
 #endif // defined(DEBUG)
 }
 
