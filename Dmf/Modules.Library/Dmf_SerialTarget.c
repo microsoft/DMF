@@ -42,6 +42,9 @@ typedef struct
     // Underlying Device Target.
     //
     WDFIOTARGET IoTarget;
+    // Indicates the mode of ContinuousRequestTarget.
+    //
+    ContinuousRequestTarget_ModeType ContinuousRequestTargetMode;
     // Connection ID for serial peripheral.
     //
     LARGE_INTEGER PeripheralId;
@@ -732,8 +735,27 @@ DMF_SerialTarget_Open(
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = SerialTarget_InitializeSerialPort(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SerialTarget_InitializeSerialPort fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        // By calling this function here, callbacks at the Client will happen only after the Module is open.
+        //
+        ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+        ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+        }
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+Exit:
 
     return ntStatus;
 }
@@ -755,9 +777,20 @@ DMF_SerialTarget_Close(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // Close the associated target.
-    //
-    SerialTarget_IoTargetDestroy(moduleContext);
+    if (moduleContext->IoTarget != NULL)
+    {
+        if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+        {
+            // By calling this function here, callbacks at the Client will happen only before the Module is closed.
+            //
+            ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+            DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+        }
+
+        // Close the associated target.
+        //
+        SerialTarget_IoTargetDestroy(moduleContext);
+    }
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -930,6 +963,10 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleContinuousRequestTarget);
+    
+    // Remember Client's choice so this Module can start/stop streaming appropriately.
+    //
+    moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode;
 
     FuncExitVoid(DMF_TRACE);
 }

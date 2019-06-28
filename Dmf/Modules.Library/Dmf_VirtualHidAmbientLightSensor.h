@@ -46,7 +46,8 @@ typedef struct
     UCHAR ReportingState;
     UCHAR PowerState;
     UCHAR SensorState;
-    USHORT ChangeSensitivity;
+    USHORT ChangeSensitivityRelativePercentage;
+    USHORT ChangeSensitivityAbsolute;
     ULONG ReportInterval;
     UCHAR MinimumReportInterval;
     SHORT AlrResponseCurve[VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS][2];

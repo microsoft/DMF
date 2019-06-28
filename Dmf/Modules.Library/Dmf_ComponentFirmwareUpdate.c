@@ -85,7 +85,7 @@ typedef struct _PAYLOAD_RESPONSE
 
 // This context associated with the plugged in protocol Module.
 //
-typedef struct _CONTEXT_ComponentFirmwareUpdateTransport
+typedef struct _CONTEXT_ComponentFirmwareUpdateTransaction
 {
     // Asynchronous Response Handling Contexts.
     // ----------------------------------------
@@ -109,6 +109,29 @@ typedef struct _CONTEXT_ComponentFirmwareUpdateTransport
     DMF_PORTABLE_EVENT DmfProtocolTransactionCancelEvent;
     // Asynchronous Response Handling Contexts.
     // ----------------------------------------
+} CONTEXT_ComponentFirmwareUpdateTransaction;
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_ComponentFirmwareUpdateTransaction, ComponentFirmwareUpdateTransactionContextGet)
+
+// Private context the Protocol Module associates with an Interface.
+//
+typedef struct _CONTEXT_ComponentFirmwareUpdateTransport
+{
+    // Wait Time out in Ms for response from transport.
+    //
+    ULONG TransportWaitTimeout;
+    // Size of TransportHeader in bytes.
+    // The protocol module will allocate header block at the beginning of the buffer for to transport to use.
+    //
+    ULONG TransportHeaderSize;
+    // Required size of Firmware Payload Buffer this transport needs (excluding the TransportHeaderSize above).
+    //
+    ULONG TransportFirmwarePayloadBufferRequiredSize;
+    // Required size of Offer Buffer this transport needs (excluding the TransportHeaderSize above).
+    //
+    ULONG TransportOfferBufferRequiredSize;
+    // Required size of FirmwareVersion Buffer this transport needs (excluding the TransportHeaderSize above).
+    //
+    ULONG TransportFirmwareVersionBufferRequiredSize;
 } CONTEXT_ComponentFirmwareUpdateTransport;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_ComponentFirmwareUpdateTransport, ComponentFirmwareUpdateTransportContextGet)
 
@@ -118,9 +141,9 @@ typedef struct
     //
     DMFMODULE DmfModuleThread;
 
-    // Transport Handle.
+    // Interface Handle.
     //
-    DMFMODULE DmfTransportModule;
+    DMFINTERFACE DmfInterfaceComponentFirmwareUpdate;
 
     // Firmware blob containing the firmware data (offers & payloads) that this Module needs to send to device.
     //
@@ -284,380 +307,6 @@ ComponentFirmwareUpdateOfferResponseRejectString(
     }
 }
 
-// Callback Implementation
-// --------START----------
-//
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-VOID
-ComponentFirmwareUpdate_FirmwareVersionResponseEvt(
-    _In_ DMFMODULE DmfComponentFirmwareUpdateModule,
-    _In_ DMFMODULE DmfComponentFirmwareUpdateTransportModule,
-    _In_ UCHAR* FirmwareVersionsBuffer,
-    _In_ size_t FirmwareVersionsBufferSize,
-    _In_ NTSTATUS ntStatusCallback
-    )
-/*++
-
-Routine Description:
-
-    Callback to indicate the firmware versions. 
-    This unpacks the message and store the response in a context and signal event
-    to wakeup the thread that is waiting for response.
-
-Parameters:
-
-    DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
-    FirmwareVersionsBuffer - Buffer with firmware information.
-    FirmwareVersionsBufferSize - size of the above in bytes.
-    ntStatusCallback -  NTSTATUS for the FirmwareVersionGet.
-
-Return:
-
-    NTSTATUS
-
---*/
-{
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-
-    FuncEntry(DMF_TRACE);
-
-    UNREFERENCED_PARAMETER(FirmwareVersionsBufferSize);
-
-    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateModule);
-
-    ASSERT(moduleContext->DmfTransportModule == DmfComponentFirmwareUpdateTransportModule);
-
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(DmfComponentFirmwareUpdateTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
-
-    componentFirmwareUpdateTransportContext->ntStatus = ntStatusCallback;
-    if (!NT_SUCCESS(ntStatusCallback))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "FirmwareVersionGet fails: ntStatus=%!STATUS!", 
-                    ntStatusCallback);
-        goto Exit;
-    }
-
-    ASSERT(FirmwareVersionsBuffer != NULL);
-
-    // Parse and store the response data.
-    //
-    BYTE componentCount;
-    BYTE firmwareUpdateProtocolRevision;
-    
-    // Byte 0 is Component Count.
-    //
-    componentCount = (BYTE)FirmwareVersionsBuffer[0];
-    if (componentCount == 0)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Invalid Response from Device. ComponentCount == 0.");
-        componentFirmwareUpdateTransportContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    // We have a limitation on the number of components (16).
-    //
-    ASSERT(componentFirmwareUpdateTransportContext->FirmwareVersions.componentCount < MAX_NUMBER_OF_IMAGE_PAIRS);
-
-    componentFirmwareUpdateTransportContext->FirmwareVersions.componentCount = componentCount;
-
-    firmwareUpdateProtocolRevision = FirmwareVersionsBuffer[3] & 0xF;
-    TraceEvents(TRACE_LEVEL_ERROR, 
-                DMF_TRACE, 
-                "Device is using FW Update Protocol Revision %d", 
-                firmwareUpdateProtocolRevision);
-
-    DWORD* firmwareVersion = NULL;
-    if (firmwareUpdateProtocolRevision == PROTOCOL_VERSION_2)
-    {
-        // Header is 4 bytes.
-        //
-        const UINT versionTableOffset = 4;
-        // Component ID is 6th byte.
-        //
-        const UINT componentIDOffset = 5;
-        // Each component takes up 8 bytes.
-        //
-        const UINT componentDataSize = 8;
-
-        ASSERT(FirmwareVersionsBufferSize >= versionTableOffset + componentCount * componentDataSize);
-        for (int i = 0; i < componentCount; ++i)
-        {
-            componentFirmwareUpdateTransportContext->FirmwareVersions.ComponentIdentifiers[i] = (BYTE)FirmwareVersionsBuffer[versionTableOffset + i * componentDataSize + componentIDOffset];
-            firmwareVersion = &componentFirmwareUpdateTransportContext->FirmwareVersions.FirmwareVersion[i];
-            *firmwareVersion = 0;
-            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + i * componentDataSize + 0] & 0xFF) << 0);
-            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + i * componentDataSize + 1] & 0xFF) << 8);
-            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + i * componentDataSize + 2] & 0xFF) << 16);
-            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + i * componentDataSize + 3] & 0xFF) << 24);
-            TraceEvents(TRACE_LEVEL_VERBOSE, 
-                        DMF_TRACE, 
-                        "Component%02x has version 0x%x (%d)", 
-                        componentFirmwareUpdateTransportContext->FirmwareVersions.ComponentIdentifiers[i],
-                        *firmwareVersion,
-                        *firmwareVersion);
-        }
-    }
-    else
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Unrecognized FW Update Protocol Revision %d", 
-                    firmwareUpdateProtocolRevision);
-        componentFirmwareUpdateTransportContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-Exit:
-
-    // Set Event the event so that the sending thread gets the response.
-    //
-    DMF_Portable_EventSet(&componentFirmwareUpdateTransportContext->DmfResponseCompletionEvent);
-
-    FuncExitVoid(DMF_TRACE);
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-VOID
-ComponentFirmwareUpdate_OfferResponseEvt(
-    _In_ DMFMODULE DmfComponentFirmwareUpdateModule,
-    _In_ DMFMODULE DmfComponentFirmwareUpdateTransportModule,
-    _In_ UCHAR* ResponseBuffer,
-    _In_ size_t ResponseBufferSize,
-    _In_ NTSTATUS ntStatusCallback
-    )
-/*++
-
-Routine Description:
-
-    Callback to indicate the response to an offer that was sent to device.
-
-Parameters:
-
-    DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
-    ResponseBuffer - Buffer with response information.
-    ResponseBufferSize - size of the above in bytes.
-    ntStatusCallback -  NTSTATUS for the command that was sent down.
-
-Return:
-
-    NTSTATUS
-
---*/
-{
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-
-    ULONG numberOfUlongsInResponse = 4;
-    const BYTE outputToken = FWUPDATE_DRIVER_TOKEN;
-
-    UNREFERENCED_PARAMETER(DmfComponentFirmwareUpdateTransportModule);
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateModule);
-
-    ASSERT(moduleContext->DmfTransportModule == DmfComponentFirmwareUpdateTransportModule);
-
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(DmfComponentFirmwareUpdateTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
-
-    componentFirmwareUpdateTransportContext->ntStatus = ntStatusCallback;
-    if (!NT_SUCCESS(ntStatusCallback))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE,
-                    "Offer send fails: ntStatus=%!STATUS!", 
-                    ntStatusCallback);
-        goto Exit;
-    }
-
-    // Offer response size is 4 * ULONG .
-    //
-    if (numberOfUlongsInResponse * sizeof(ULONG) > ResponseBufferSize)
-    {
-        componentFirmwareUpdateTransportContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE,
-                    "Return Buffer size (%Id) insufficient", 
-                    ResponseBufferSize);
-        goto Exit;
-    }
-
-    ULONG* offerResponseLocal = (ULONG*)ResponseBuffer;
-
-    // Get Token and Validate it. (Byte 3)
-    //
-    BYTE tokenResponse = (offerResponseLocal[0] >> 24) & 0xFF;
-    if (outputToken != tokenResponse)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Output Token(%d) did not match Returned Token(%d)", 
-                    outputToken, 
-                    tokenResponse);
-        componentFirmwareUpdateTransportContext->ntStatus = STATUS_INVALID_DEVICE_STATE;
-        goto Exit;
-    }
-
-    // Get Offer Response Reason. (Byte 0)
-    //
-    COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON offerResponseReason = (COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON)((offerResponseLocal[2]) & 0xFF);
-
-    // Get Offer Response Status. (Byte 0)
-    //
-    COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE offerResponseStatus = (COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE)((offerResponseLocal[3]) & 0xFF);
-
-
-    componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus = offerResponseStatus;
-    componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason = offerResponseReason;
-    componentFirmwareUpdateTransportContext->ntStatus = STATUS_SUCCESS;
-
-Exit:
-
-    // Set Event the event so that the sending thread gets the response.
-    //
-    DMF_Portable_EventSet(&componentFirmwareUpdateTransportContext->DmfResponseCompletionEvent);
-
-    FuncExitVoid(DMF_TRACE);
-}
-
-// Callback to response to payload that is sent to device.
-//
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-VOID
-ComponentFirmwareUpdate_PayloadResponseEvt(
-    _In_ DMFMODULE DmfComponentFirmwareUpdateModule,
-    _In_ DMFMODULE DmfComponentFirmwareUpdateTransportModule,
-    _In_ UCHAR* ResponseBuffer,
-    _In_ size_t ResponseBufferSize,
-    _In_ NTSTATUS ntStatusCallback
-    )
-/*++
-
-Routine Description:
-
-    Callback to indicate the response to an payload that was sent to device.
-
-Parameters:
-
-    DmfComponentFirmwareUpdateModule - Protocol Module's DMF Object.
-    DmfComponentFirmwareUpdateTransportModule - Transport Module’s DMF Object.
-    ResponseBuffer - Buffer with response information.
-    ResponseBufferSize - size of the above in bytes.
-    ntStatusCallback - NTSTATUS for the command that was sent down.
-
-Return:
-
-    NTSTATUS
-
---*/
-{
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-
-    ULONG numberOfUlongsInResponse = 4;
-    VOID* clientBuffer= NULL;
-    VOID* clientBufferContext = NULL;
-
-    UNREFERENCED_PARAMETER(DmfComponentFirmwareUpdateTransportModule);
-
-    FuncEntry(DMF_TRACE);
-
-
-    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateModule);
-
-    ASSERT(moduleContext->DmfTransportModule == DmfComponentFirmwareUpdateTransportModule);
-
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(DmfComponentFirmwareUpdateTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
-
-    ASSERT(ResponseBuffer != NULL);
-
-    componentFirmwareUpdateTransportContext->ntStatus = ntStatusCallback;
-    if (!NT_SUCCESS(ntStatusCallback))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "PayloadSend fails: ntStatus=%!STATUS!",
-                    ntStatusCallback);
-        goto Exit;
-    }
-
-    // Payload response size is 4 * ULONG.
-    //
-    if (numberOfUlongsInResponse * sizeof(ULONG) > ResponseBufferSize)
-    {
-        componentFirmwareUpdateTransportContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "Return Buffer size (%Id) in sufficient",
-                    ResponseBufferSize);
-        goto Exit;
-    }
-
-    ULONG* payloadResponseLocal = (ULONG*)ResponseBuffer;
-
-    // Get Response Sequence Number. (Bytes 0-1)
-    //
-    ULONG responseSequenceNumber = (ULONG)((payloadResponseLocal[0] >> 0) & 0xFFFF);
-
-    // Get Payload Response Status. (Byte 0)
-    //
-    COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE responseSequenceStatus = (COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE)((payloadResponseLocal[1] >> 0) & 0xFF);
-
-    // Get a buffer from Producer for feature Report.
-    //
-    componentFirmwareUpdateTransportContext->ntStatus = DMF_BufferQueue_Fetch(componentFirmwareUpdateTransportContext->DmfModuleBufferQueue,
-                                                                              &clientBuffer,
-                                                                              &clientBufferContext);
-    if (!NT_SUCCESS(componentFirmwareUpdateTransportContext->ntStatus))
-    {
-        // There is no data buffer to save the response.
-        //
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "DMF_BufferQueue_ClientBufferGetProducer fails: ntStatus=%!STATUS!",
-                    componentFirmwareUpdateTransportContext->ntStatus);
-        goto Exit;
-    }
-
-    ASSERT(clientBuffer != NULL);
-    ASSERT(clientBufferContext != NULL);
-
-    PAYLOAD_RESPONSE* payloadResponse = (PAYLOAD_RESPONSE*)clientBuffer;
-    ULONG* payloadResponseSize = (ULONG*)clientBufferContext;
-
-    payloadResponse->SequenceNumber = responseSequenceNumber;
-    payloadResponse->ResponseStatus = responseSequenceStatus;
-
-    // put this to the consumer.
-    //
-    *payloadResponseSize = sizeof(PAYLOAD_RESPONSE);
-    DMF_BufferQueue_Enqueue(componentFirmwareUpdateTransportContext->DmfModuleBufferQueue,
-                            clientBuffer);
-
-Exit:
-
-    // Set Event the event so that the sending thread gets the response.
-    //
-    DMF_Portable_EventSet(&componentFirmwareUpdateTransportContext->DmfResponseCompletionEvent);
-
-    FuncExitVoid(DMF_TRACE);
-}
-// Callback Implementation
-// --------END------------
-
 //-- Helper functions ---
 //--------START----------
 //
@@ -686,7 +335,7 @@ Return:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
 
     DMF_PORTABLE_EVENT* waitObjects[Thread_NumberOfWaitObjects];
     NTSTATUS waitStatus;
@@ -695,13 +344,13 @@ Return:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
     // Wait for response.
     //
-    waitObjects[0] = &componentFirmwareUpdateTransportContext->DmfResponseCompletionEvent;
-    waitObjects[1] = &componentFirmwareUpdateTransportContext->DmfProtocolTransactionCancelEvent;
+    waitObjects[0] = &componentFirmwareUpdateTransactionContext->DmfResponseCompletionEvent;
+    waitObjects[1] = &componentFirmwareUpdateTransactionContext->DmfProtocolTransactionCancelEvent;
     waitStatus = DMF_Portable_EventWaitForMultiple(ARRAYSIZE(waitObjects),
                                                    waitObjects,
                                                    FALSE,
@@ -776,8 +425,8 @@ Return:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportConfig;
 
     const UINT maxSequenceNumberMatchAttempts = 3;
     UINT sequenceNumberMatchAttempts;
@@ -792,11 +441,11 @@ Return:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    componentFirmwareUpdateTransportConfig = ComponentFirmwareUpdateTransportConfigGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportConfig != NULL);
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransportContext != NULL);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -810,7 +459,7 @@ Return:
         // Wait for response.
         //
         ntStatus = ComponentFirmwareUpdate_WaitForResponse(DmfModule,
-                                                           componentFirmwareUpdateTransportConfig->WaitTimeout);
+                                                           componentFirmwareUpdateTransportContext->TransportWaitTimeout);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR,
@@ -829,7 +478,7 @@ Return:
 
             // Process the response.
             //
-            ntStatus = DMF_BufferQueue_Dequeue(componentFirmwareUpdateTransportContext->DmfModuleBufferQueue,
+            ntStatus = DMF_BufferQueue_Dequeue(componentFirmwareUpdateTransactionContext->DmfModuleBufferQueue,
                                                &clientBuffer,
                                                &clientBufferContext);
             if (!NT_SUCCESS(ntStatus))
@@ -893,7 +542,7 @@ Return:
 
             // We are done with the buffer from consumer; put it back to producer.
             //
-            DMF_BufferQueue_Reuse(componentFirmwareUpdateTransportContext->DmfModuleBufferQueue,
+            DMF_BufferQueue_Reuse(componentFirmwareUpdateTransactionContext->DmfModuleBufferQueue,
                                   clientBuffer);
             clientBuffer = NULL;
 
@@ -946,12 +595,12 @@ Routine Description:
 
 Arguments:
 
-    SequenceNumber - sequence number to be used in this payload.
-    PayloadBufferTotal - payload data from the blob. This is the whole payload.
-    payloadBufferTotalSize - size of the above buffer.
-    PayloadBufferIndex - index into PayloadBufferTotal.
-    PayloadBuffer - buffer where the data will be written. This is the current payload chunk.
-    PayloadBufferSize - size of PayloadBuffer
+    SequenceNumber - Sequence number to be used in this payload.
+    PayloadBufferTotal - Payload data from the blob. This is the whole payload.
+    payloadBufferTotalSize - Size of the above buffer.
+    PayloadBufferIndex - Index into PayloadBufferTotal.
+    PayloadBuffer - Buffer where the data will be written. This is the current payload chunk.
+    PayloadBufferSize - Size of PayloadBuffer
 
 Return Value:
 
@@ -1186,96 +835,6 @@ Exit:
 //--------END------------
 
 #pragma code_seg("PAGE")
-static
-VOID 
-ComponentFirmwareUpdate_TransportPostOpen_Callback(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    This is callback to indicate that transport is opened (Post Open)
-
-Arguments:
-
-    DmfModule - The Module from which the callback is called.
-
-Return Value:
-
-    None.
-
---*/
-{
-    NTSTATUS ntStatus;
-    DMFMODULE dmfModuleComponentFirmwareUpdate;
-
-    FuncEntry(DMF_TRACE);
-
-    dmfModuleComponentFirmwareUpdate = DMF_ParentModuleGet(DmfModule);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, 
-                DMF_TRACE, 
-                "TransportOpened_Callback");
-
-    // The attached transport has been opened. Open the protocol Module now.
-    //
-    ntStatus = DMF_ModuleOpen(dmfModuleComponentFirmwareUpdate);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "DMF_Module_Open fails: ntStatus=%!STATUS!",
-                    ntStatus);
-        goto Exit;
-    }
-
-Exit:
-
-    FuncExitVoid(DMF_TRACE);
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-static
-VOID 
-ComponentFirmwareUpdate_TransportPreClose_Callback(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    This is callback to indicate that transport is about to be closed (Pre Close)
-
-Arguments:
-
-    DmfModule - The Module from which the callback is called.
-
-Return Value:
-
-    None.
-
---*/
-{
-    DMFMODULE dmfModuleComponentFirmwareUpdate;
-
-    FuncEntry(DMF_TRACE);
-
-    dmfModuleComponentFirmwareUpdate = DMF_ParentModuleGet(DmfModule);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, 
-                DMF_TRACE, 
-                "TransportClosed_Callback");
-
-    // Close the protocol Module.
-    //
-    DMF_ModuleClose(dmfModuleComponentFirmwareUpdate);
-
-    FuncExitVoid(DMF_TRACE);
-}
-
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 ComponentFirmwareUpdate_ComponentFirmwareUpdateDeinitialize(
@@ -1289,7 +848,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -1340,7 +899,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -1682,14 +1241,14 @@ ComponentFirmwareUpdate_RegistryComponentValueNameGet(
 
 Routine Description:
 
-    Build a registry Name value string based on the provided Component Indentifier and ValueName.
+    Build a registry Name value string based on the provided Component Identifier and ValueName.
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
-    RegistryValueName - Registry Value Name.
-    ComponentIdentifier - Component Identifier.
-    RegistryValueNameString- A Unicode string that return the generated registry value name string.
+    DmfModule - This Module's DMF Object.
+    RegistryValueName - Value Name to be used while generating the registry value name string.
+    ComponentIdentifier - Component Identifier to be used to uniquely identify registry entry.
+    RegistryValueNameString- A Unicode string that returns the generated registry value name string.
 
 Return Value:
 
@@ -1800,9 +1359,9 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
-    ValueName - Registry Value Name.
-    ComponentIdentifier - Component Identifier.
+    DmfModule - This Module's DMF Object.
+    ValueName - Name of the Registry Value to be removed.
+    ComponentIdentifier - Component Identifier for identifying the unique registry entry.
 
 Return Value:
 
@@ -1880,10 +1439,10 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
-    RegistryValueName - Registry Value Name
-    ComponentIdentifier -- Component Identifier
-    RegistryValue - value to be written
+    DmfModule - This Module's DMF Object.
+    RegistryValueName - Name of the Registry Value to be assigned.
+    ComponentIdentifier - Component Identifier for identifying the unique registry entry.
+    RegistryValue - Registry value to be assigned to.
 
 Return Value:
 
@@ -1957,10 +1516,10 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
-    RegistryValueName - Registry Value Name
-    ComponentIdentifier -- Component Identifier
-    RegistryValue - value returned.
+    DmfModule - This Module's DMF Object.
+    RegistryValueName - Name of the Registry Value to be assigned.
+    ComponentIdentifier - Component Identifier for identifying the unique registry entry.
+    RegistryValue - Registry value returned.
 
 Return Value:
 
@@ -2043,7 +1602,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     OfferCommandCode - Offer Command to Send.
     OfferResponseStatus - Response received for the command.
     OfferResponseReason - Reason for the response.
@@ -2056,8 +1615,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportConfig;
 
     ULONG waitTimeout;
     ULONG offerCommand;
@@ -2079,10 +1638,10 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    componentFirmwareUpdateTransportConfig = ComponentFirmwareUpdateTransportConfigGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportConfig != NULL);
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransportContext != NULL);
 
-    size_t allocatedSize = componentFirmwareUpdateTransportConfig->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportConfig->TransportHeaderSize;
+    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     offerCommandMemory = WDF_NO_HANDLE;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
@@ -2111,21 +1670,20 @@ Return Value:
     offerCommand |= (informationPacketMarker << 16);
     offerCommand |= (outputToken << 24);
 
-    offerCommandBuffer = bufferHeader + componentFirmwareUpdateTransportConfig->TransportHeaderSize;
+    offerCommandBuffer = bufferHeader + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     RtlCopyMemory(offerCommandBuffer,
                   &offerCommand,
                   sizeof(offerCommand));
 
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_OfferCommandSend(moduleContext->DmfTransportModule,
-                                                                     DmfModule,
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportOfferCommandSend(moduleContext->DmfInterfaceComponentFirmwareUpdate,
                                                                      bufferHeader,
                                                                      allocatedSize,
-                                                                     componentFirmwareUpdateTransportConfig->TransportHeaderSize);
+                                                                     componentFirmwareUpdateTransportContext->TransportHeaderSize);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "DMF_ComponentFirmwareUpdateTransport_OfferInformationSend fails: ntStatus=%!STATUS!",
+                    "DMF_ComponentFirmwareUpdate_TransportOfferCommandSend fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -2140,7 +1698,7 @@ Return Value:
     }
     else
     {
-        waitTimeout = componentFirmwareUpdateTransportConfig->WaitTimeout;
+        waitTimeout = componentFirmwareUpdateTransportContext->TransportWaitTimeout;
     }
 
     // Wait for response.
@@ -2160,10 +1718,10 @@ Return Value:
                 DMF_TRACE, 
                 "Offer Response Received.");
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    ntStatus = componentFirmwareUpdateTransportContext->ntStatus;
+    ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, 
@@ -2173,22 +1731,22 @@ Return Value:
         goto Exit;
     }
 
-    *OfferResponseStatus = componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus;
-    *OfferResponseReason = componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason;
+    *OfferResponseStatus = componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus;
+    *OfferResponseReason = componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason;
 
     TraceEvents(TRACE_LEVEL_VERBOSE, 
                 DMF_TRACE, 
                 "Offer Command for %s(%d) returned response status %s(%d)", 
                 ComponentFirmwareUpdateOfferCommandCodeString(OfferCommandCode), 
                 OfferCommandCode, 
-                ComponentFirmwareUpdateOfferResponseString(componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus),
-                componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus);
+                ComponentFirmwareUpdateOfferResponseString(componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus),
+                componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus);
 
     // Decide the next course of actions based on the response status.
     // 
     // In the absence of a formal state machine implementation, decisions are done in a switch case.
     //
-    switch (componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus)
+    switch (componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus)
     {
         case COMPONENT_FIRMWARE_UPDATE_OFFER_ACCEPT:
         {
@@ -2197,7 +1755,7 @@ Return Value:
             ;
             break;
         }
-        case COMPONENT_FIRMWARE_UPDATE_OFFER_SKIP:    
+        case COMPONENT_FIRMWARE_UPDATE_OFFER_SKIP:
             // Fall through.
             //
         case COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT:
@@ -2209,8 +1767,8 @@ Return Value:
             TraceEvents(TRACE_LEVEL_WARNING,
                         DMF_TRACE,
                         "Offer Reject Reason Code %s(%d)",
-                        ComponentFirmwareUpdateOfferResponseRejectString(componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason),
-                        componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason);
+                        ComponentFirmwareUpdateOfferResponseRejectString(componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason),
+                        componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason);
             goto Exit;
         }
         case COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_READY:
@@ -2242,7 +1800,7 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, 
                         DMF_TRACE, 
                         "Received unknown offerResponseStatus %d", 
-                        componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus);
+                        componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus);
             goto Exit;
         }
     }
@@ -2277,7 +1835,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     OfferInformationCode - Offer Information Code to Send.
     OfferResponseStatus - Response to the command.
     OfferResponseReason - Reason for the response.
@@ -2291,7 +1849,7 @@ Return Value:
     NTSTATUS ntStatus;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
 
     ULONG offerInformation;
     const BYTE informationPacketMarker = FWUPDATE_INFORMATION_TOKEN;
@@ -2310,11 +1868,11 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportConfig;
-    componentFirmwareUpdateTransportConfig = ComponentFirmwareUpdateTransportConfigGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportConfig != NULL);
+    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransportContext != NULL);
 
-    size_t allocatedSize = componentFirmwareUpdateTransportConfig->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportConfig->TransportHeaderSize;
+    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     offerInformationMemory = WDF_NO_HANDLE;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2344,16 +1902,15 @@ Return Value:
     offerInformation |= (informationPacketMarker << 16);
     offerInformation |= (outputToken << 24);
 
-    offerInformationBuffer = bufferHeader + componentFirmwareUpdateTransportConfig->TransportHeaderSize;
+    offerInformationBuffer = bufferHeader + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     RtlCopyMemory(offerInformationBuffer,
                   &offerInformation, 
                   sizeof(offerInformation));
 
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_OfferInformationSend(moduleContext->DmfTransportModule,
-                                                                         DmfModule,
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportOfferInformationSend(moduleContext->DmfInterfaceComponentFirmwareUpdate,
                                                                          bufferHeader,
                                                                          allocatedSize,
-                                                                         componentFirmwareUpdateTransportConfig->TransportHeaderSize);
+                                                                         componentFirmwareUpdateTransportContext->TransportHeaderSize);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -2366,7 +1923,7 @@ Return Value:
     // Wait for response.
     //
     ntStatus = ComponentFirmwareUpdate_WaitForResponse(DmfModule,
-                                                       componentFirmwareUpdateTransportConfig->WaitTimeout);
+                                                       componentFirmwareUpdateTransportContext->TransportWaitTimeout);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -2380,10 +1937,10 @@ Return Value:
                 DMF_TRACE, 
                 "Offer Response Received.");
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    ntStatus = componentFirmwareUpdateTransportContext->ntStatus;
+    ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, 
@@ -2393,16 +1950,16 @@ Return Value:
         goto Exit;
     }
 
-    *OfferResponseStatus = componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus;
-    *OfferResponseReason = componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason;
+    *OfferResponseStatus = componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus;
+    *OfferResponseReason = componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason;
 
     TraceEvents(TRACE_LEVEL_VERBOSE, 
                 DMF_TRACE, 
                 "Offer Information for %s(%d) returned response status %s(%d)", 
                 ComponentFirmwareUpdateOfferInformationCodeString(OfferInformationCode), 
                 OfferInformationCode, 
-                ComponentFirmwareUpdateOfferResponseString(componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus),
-                componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus);
+                ComponentFirmwareUpdateOfferResponseString(componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus),
+                componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus);
 
     // Decide the next course of actions based on the response status.
     // 
@@ -2429,8 +1986,8 @@ Return Value:
             TraceEvents(TRACE_LEVEL_VERBOSE, 
                         DMF_TRACE, 
                         "Offer Reject Reason Code %s(%d)", 
-                        ComponentFirmwareUpdateOfferResponseRejectString(componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason),
-                        componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason);
+                        ComponentFirmwareUpdateOfferResponseRejectString(componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason),
+                        componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason);
             goto Exit;
         }
         default:
@@ -2442,7 +1999,7 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, 
                         DMF_TRACE, 
                         "Received unknown offerResponseStatus %d", 
-                        componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus);
+                        componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus);
             goto Exit;
         }
     };
@@ -2478,7 +2035,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     OfferBuffer -- offer data to be sent to the device.
     OfferBufferSize - offer data size.
     OfferResponseStatus -- response received from device.
@@ -2494,8 +2051,8 @@ Return Value:
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
     DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
 
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportConfig;
 
     const UINT numberOfUlongsInOffer = 4;
     const ULONG offerSize = sizeof(ULONG) * numberOfUlongsInOffer;
@@ -2522,10 +2079,10 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    componentFirmwareUpdateTransportConfig = ComponentFirmwareUpdateTransportConfigGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportConfig != NULL);
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransportContext != NULL);
 
-    size_t allocatedSize = componentFirmwareUpdateTransportConfig->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportConfig->TransportHeaderSize;
+    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -2546,12 +2103,12 @@ Return Value:
     RtlZeroMemory(bufferHeader,
                   allocatedSize);
 
-    offerBuffer = (ULONG*) (bufferHeader + componentFirmwareUpdateTransportConfig->TransportHeaderSize);
+    offerBuffer = (ULONG*) (bufferHeader + componentFirmwareUpdateTransportContext->TransportHeaderSize);
     ULONG* offersFromBlob = (ULONG*)OfferBuffer;
 
-    for (USHORT i = 0; i < numberOfUlongsInOffer; ++i)
+    for (USHORT blobIndex = 0; blobIndex < numberOfUlongsInOffer; ++blobIndex)
     {
-        offerBuffer[i] = offersFromBlob[i];
+        offerBuffer[blobIndex] = offersFromBlob[blobIndex];
     }
 
     // Update Component info field of offer as needed.
@@ -2580,16 +2137,15 @@ Return Value:
         offerBuffer[0] |= (1 << 15);
     }
 
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_OfferSend(moduleContext->DmfTransportModule,
-                                                              DmfModule,
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportOfferSend(moduleContext->DmfInterfaceComponentFirmwareUpdate,
                                                               bufferHeader,
                                                               allocatedSize,
-                                                              componentFirmwareUpdateTransportConfig->TransportHeaderSize);
+                                                              componentFirmwareUpdateTransportContext->TransportHeaderSize);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "DMF_ComponentFirmwareUpdateTransport_OfferInformationSend fails: ntStatus=%!STATUS!",
+                    "DMF_ComponentFirmwareUpdate_TransportOfferSend fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -2597,7 +2153,7 @@ Return Value:
     // Wait for response.
     //
     ntStatus = ComponentFirmwareUpdate_WaitForResponse(DmfModule,
-                                                       componentFirmwareUpdateTransportConfig->WaitTimeout);
+                                                       componentFirmwareUpdateTransportContext->TransportWaitTimeout);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -2611,10 +2167,10 @@ Return Value:
                 DMF_TRACE, 
                 "Offer Response Received.");
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    ntStatus = componentFirmwareUpdateTransportContext->ntStatus;
+    ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, 
@@ -2624,8 +2180,8 @@ Return Value:
         goto Exit;
     }
 
-    *OfferResponseStatus = componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseStatus;
-    *OfferResponseReason = componentFirmwareUpdateTransportContext->OfferResponse.OfferResponseReason;
+    *OfferResponseStatus = componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus;
+    *OfferResponseReason = componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason;
 
 Exit:
 
@@ -2657,7 +2213,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     PayloadIndex - Index of this payload in the payload collection.
     ComponentIdentifier - Component Indentifier that uniquely identifies this component being updated.
     PayloadResponse - Response received from the device.
@@ -2671,7 +2227,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
     DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
 
     FIRMWARE_INFORMATION* firmwareInformation;
     WDFMEMORY firmwareInformationMemory;
@@ -2725,18 +2281,18 @@ Return Value:
                                                 &payloadSizeFromCollection);
 
     ASSERT(payloadSizeFromCollection == firmwareInformation->PayloadSize);
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportConfig;
-    componentFirmwareUpdateTransportConfig = ComponentFirmwareUpdateTransportConfigGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportConfig != NULL);
+    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransportContext != NULL);
 
     payloadChunkMemory = WDF_NO_HANDLE;
 
     // Allocate memory for payload chunk, and reuse it for the sending the whole payload.
     //
-    size_t allocatedSize = componentFirmwareUpdateTransportConfig->TransportFirmwarePayloadBufferRequiredSize + componentFirmwareUpdateTransportConfig->TransportHeaderSize;
+    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportFirmwarePayloadBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -2759,7 +2315,7 @@ Return Value:
 
     // Ensure the driver is packing 60 bytes of payload every time.
     //
-    payloadBuffer = (UCHAR*)(bufferHeader + componentFirmwareUpdateTransportConfig->TransportHeaderSize);
+    payloadBuffer = (UCHAR*)(bufferHeader + componentFirmwareUpdateTransportContext->TransportHeaderSize);
     payloadBufferLength = SizeOfPayload;
 
     // Check whether the update should resume from a previously interrupted update.
@@ -2913,11 +2469,10 @@ Return Value:
             goto Exit;
         }
 
-        ntStatus = DMF_ComponentFirmwareUpdateTransport_PayloadSend(moduleContext->DmfTransportModule,
-                                                                    DmfModule,
+        ntStatus = DMF_ComponentFirmwareUpdate_TransportPayloadSend(moduleContext->DmfInterfaceComponentFirmwareUpdate,
                                                                     bufferHeader,
                                                                     allocatedSize,
-                                                                    componentFirmwareUpdateTransportConfig->TransportHeaderSize);
+                                                                    componentFirmwareUpdateTransportContext->TransportHeaderSize);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR,
@@ -3039,7 +2594,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     VersionsOfFirmware - returned version information from the device.
 
 Return Value:
@@ -3050,8 +2605,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportConfig;
 
     PAGED_CODE();
 
@@ -3062,8 +2617,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_FirmwareVersionGet(moduleContext->DmfTransportModule,
-                                                                       DmfModule);
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportFirmwareVersionGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -3073,13 +2627,13 @@ Return Value:
         goto Exit;
     }
 
-    componentFirmwareUpdateTransportConfig = ComponentFirmwareUpdateTransportConfigGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportConfig != NULL);
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransportContext != NULL);
 
     // Wait for response.
     //
     ntStatus = ComponentFirmwareUpdate_WaitForResponse(DmfModule,
-                                                       componentFirmwareUpdateTransportConfig->WaitTimeout);
+                                                       componentFirmwareUpdateTransportContext->TransportWaitTimeout);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -3093,10 +2647,10 @@ Return Value:
                 DMF_TRACE, 
                 "Firmware version Response Received.");
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    ntStatus = componentFirmwareUpdateTransportContext->ntStatus;
+    ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, 
@@ -3109,8 +2663,8 @@ Return Value:
     // Copy Firmware Information.
     //
     RtlCopyMemory(VersionsOfFirmware,
-                  &componentFirmwareUpdateTransportContext->FirmwareVersions,
-                  sizeof(componentFirmwareUpdateTransportContext->FirmwareVersions));
+                  &componentFirmwareUpdateTransactionContext->FirmwareVersions,
+                  sizeof(componentFirmwareUpdateTransactionContext->FirmwareVersions));
  
 Exit:
 
@@ -3133,18 +2687,17 @@ Routine Description:
 
 Parameters:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return:
 
     NTSTATUS
 
 --*/
-
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -3152,22 +2705,21 @@ Return:
 
     FuncEntry(DMF_TRACE);
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    //Set Cancel Event so that any pending wait for responses are returned.
+    // Set Cancel Event so that any pending wait for responses are returned.
     //
-    DMF_Portable_EventSet(&componentFirmwareUpdateTransportContext->DmfProtocolTransactionCancelEvent);
+    DMF_Portable_EventSet(&componentFirmwareUpdateTransactionContext->DmfProtocolTransactionCancelEvent);
 
-    // let the specific action be done at the interface implementation.
+    // Let the specific action be done at the interface implementation.
     //
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_ProtocolStop(moduleContext->DmfTransportModule,
-                                                                 DmfModule);
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportProtocolStop(moduleContext->DmfInterfaceComponentFirmwareUpdate);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "DMF_ComponentFirmwareUpdateTransport_ProtocolStop fails: ntStatus=%!STATUS!",
+                    "DMF_ComponentFirmwareUpdate_TransportProtocolStop fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -3193,7 +2745,7 @@ Routine Description:
 
 Parameters:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return:
 
@@ -3204,7 +2756,7 @@ Return:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -3212,17 +2764,16 @@ Return:
 
     FuncEntry(DMF_TRACE);
 
-    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfTransportModule);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
 
-    //Clear the Cancel Event that may have been set and not cleared.
+    // Clear the Cancel Event that may have been set and not cleared.
     //
-    DMF_Portable_EventReset(&componentFirmwareUpdateTransportContext->DmfProtocolTransactionCancelEvent);
+    DMF_Portable_EventReset(&componentFirmwareUpdateTransactionContext->DmfProtocolTransactionCancelEvent);
 
-    // let the specific action be done at the interface implementation.
+    // Let the specific action be done at the interface implementation.
     //
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_ProtocolStart(moduleContext->DmfTransportModule,
-                                                                  DmfModule);
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportProtocolStart(moduleContext->DmfInterfaceComponentFirmwareUpdate);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -3257,7 +2808,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -3287,7 +2838,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -3313,20 +2864,6 @@ Return Value:
     valueNameMemory = WDF_NO_HANDLE;
     handle = WdfRegistryWdmGetHandle(moduleContext->DeviceRegistryKey);
 
-    // Arguments:
-    //handle                           key handle 
-    //NULL                             buffer for class name 
-    //0                                size of class string 
-    //NULL                             reserved 
-    //NULL                             number of subkeys ()
-    //NULL                             largest number of Unicode chars
-    //NULL                             longest class string 
-    //&valueNameCount                  number of values for this key 
-    //&valueNameElementCountMaximum    largest number of Unicode chars in value name 
-    //NULL                             longest value data 
-    //NULL                             security descriptor 
-    //NULL                             last write time 
-    //
     ntStatus = RegQueryInfoKey((HKEY)handle,
                                 NULL,
                                 0,
@@ -3513,7 +3050,7 @@ Routine Description:
 
 Arguments:
 
-    ClientContext - The client context. This Module’s DMF Object.
+    ClientContext - The client context. This Module's DMF Object.
     OfferString - Value name string to save.
 
 Return Value:
@@ -3563,7 +3100,7 @@ Routine Description:
 
 Arguments:
 
-    ClientContext - The client context. This Module’s DMF Object.
+    ClientContext - The client context. This Module's DMF Object.
     OfferString - value name string to query.
 
 Return Value:
@@ -3614,7 +3151,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     OfferVersionsEnumerationFunction - The function that does the actual work with the enumerated offer.
 
 Return Value:
@@ -3770,7 +3307,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     StoreOfferVersions - Indicates whether to update the new set of offer versions or not.
 
 Return Value:
@@ -3833,7 +3370,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -3882,7 +3419,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -3940,7 +3477,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     OfferIndex - Index of the offerlist in {offerlist,payload} pairs.
     ComponentIdentifier - Component identifier from the offer data.
     OfferAccepted - Indicates whether any of the offer is accepted or not.
@@ -4607,7 +4144,6 @@ ComponentFirmwareUpdate_FirmwareUpdatePost(
 Routine Description:
 
     Callback function for Child DMF Module Thread Post.
-    Closes the transport.
 
 Arguments:
 
@@ -4636,7 +4172,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_VERBOSE,
                 DMF_TRACE,
-                "Sending a Close command to transport");
+                "CFU Transaction finished");
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -4930,6 +4466,686 @@ Exit:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// Protocol Generic Callbacks.
+// (Implementation of publicly accessible callbacks required by the Interface.)
+//
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_ComponentFirmwareUpdate_PostBind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    This callback tells the given Protocol Module that it is bound to the given
+    Transport Module.
+
+Arguments:
+
+    DmfInterface - Interface handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfInterface);
+
+    FuncEntry(DMF_TRACE);
+
+    // NOP.
+
+    // It is now possible to use Methods provided by the Transport.
+    //
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_ComponentFirmwareUpdate_PreUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    This callback tells the given Protocol Module that it is about to be unbound from
+    the given Transport Module.
+
+Arguments:
+
+    DmfInterface - Interface handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfInterface);
+
+    FuncEntry(DMF_TRACE);
+
+    // NOP.
+    //
+
+    // Stop using Methods provided by Transport after this callback completes (except for Unbind).
+    //
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_ComponentFirmwareUpdate_Bind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Binds the given Protocol Module to the given Transport Module.
+
+Arguments:
+
+    DmfInterface - Interface handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+    WDF_OBJECT_ATTRIBUTES attributes;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA protocolBindData;
+    DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA transportBindData;
+    DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
+    DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
+    CONTEXT_ComponentFirmwareUpdateTransport* configComponentFirmwareUpdateTransport;
+    DMFMODULE protocolModule;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    protocolModule = DMF_InterfaceProtocolModuleGet(DmfInterface);
+
+    moduleContext = DMF_CONTEXT_GET(protocolModule);
+    moduleConfig = DMF_CONFIG_GET(protocolModule);
+
+    RtlZeroMemory(&protocolBindData,
+                  sizeof(protocolBindData));
+
+    // Call the Interface's Bind function.
+    //
+    ntStatus = DMF_ComponentFirmwareUpdate_TransportBind(DmfInterface,
+                                                         &protocolBindData,
+                                                         &transportBindData);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "DMF_ComponentFirmwareUpdate_TransportBind fails: ntStatus=%!STATUS!", 
+                    ntStatus);
+        goto Exit;
+    }
+
+    // Save the Interface handle representing the interface binding.
+    //
+    moduleContext->DmfInterfaceComponentFirmwareUpdate = DmfInterface;
+
+    // Check the TransportPayloadRequiredSize to ensure that it meets minimal packet size requirement.
+    // Driver needs the following size per specification.
+    // Offer Command is 16 bytes.
+    // Offer Information is 16 bytes.
+    // Offer is 16 bytes. 
+    // Payload Chunk size is variable; The maximum driver can send is 60 bytes.
+    //
+    if (transportBindData.TransportFirmwarePayloadBufferRequiredSize < SizeOfPayload)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Transport payload size (%Id) is insufficient",
+                    transportBindData.TransportFirmwarePayloadBufferRequiredSize);
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    // Check for Overflow.
+    //
+    if (transportBindData.TransportFirmwarePayloadBufferRequiredSize > transportBindData.TransportFirmwarePayloadBufferRequiredSize + transportBindData.TransportHeaderSize)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Payload size Overflow (%d)+(%d)",
+                    transportBindData.TransportFirmwarePayloadBufferRequiredSize,
+                    transportBindData.TransportHeaderSize);
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    if (transportBindData.TransportFirmwareVersionBufferRequiredSize < SizeOfFirmwareVersion)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Transport Firmware Version size (%Id) is insufficient",
+                    transportBindData.TransportFirmwareVersionBufferRequiredSize);
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    // Check for Overflow.
+    //
+    if (transportBindData.TransportFirmwareVersionBufferRequiredSize > transportBindData.TransportFirmwareVersionBufferRequiredSize + transportBindData.TransportHeaderSize)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Payload size Overflow (%d)+(%d)",
+                    transportBindData.TransportFirmwareVersionBufferRequiredSize,
+                    transportBindData.TransportHeaderSize);
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    if (transportBindData.TransportOfferBufferRequiredSize < SizeOfOffer)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Transport Offer size (%Id) is insufficient",
+                    transportBindData.TransportOfferBufferRequiredSize);
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    // Check for Overflow.
+    //
+    if (transportBindData.TransportOfferBufferRequiredSize > transportBindData.TransportOfferBufferRequiredSize + transportBindData.TransportHeaderSize)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Payload size Overflow (%d)+(%d)",
+                    transportBindData.TransportOfferBufferRequiredSize,
+                    transportBindData.TransportHeaderSize);
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    configComponentFirmwareUpdateTransport = ComponentFirmwareUpdateTransportContextGet(DmfInterface);
+    configComponentFirmwareUpdateTransport->TransportHeaderSize = transportBindData.TransportHeaderSize;
+    configComponentFirmwareUpdateTransport->TransportFirmwarePayloadBufferRequiredSize = transportBindData.TransportFirmwarePayloadBufferRequiredSize;
+    configComponentFirmwareUpdateTransport->TransportFirmwareVersionBufferRequiredSize = transportBindData.TransportFirmwareVersionBufferRequiredSize;
+    configComponentFirmwareUpdateTransport->TransportOfferBufferRequiredSize = transportBindData.TransportOfferBufferRequiredSize;
+    configComponentFirmwareUpdateTransport->TransportWaitTimeout = transportBindData.TransportWaitTimeout;
+
+    // Allocate a Context to keep items for transaction response response specific processing.
+    //
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes,
+                                            CONTEXT_ComponentFirmwareUpdateTransaction);
+    ntStatus = WdfObjectAllocateContext(DmfInterface,
+                                        &attributes,
+                                        (VOID**) &componentFirmwareUpdateTransactionContext);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
+                    ntStatus);
+        goto Exit;
+    }
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = protocolModule;
+    device = DMF_ParentDeviceGet(protocolModule);
+
+    // BufferQueue
+    // -----------
+    //
+    DMF_CONFIG_BufferQueue bufferQueueModuleConfig;
+    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&bufferQueueModuleConfig,
+                                               &moduleAttributes);
+    bufferQueueModuleConfig.SourceSettings.EnableLookAside = TRUE;
+    bufferQueueModuleConfig.SourceSettings.BufferCount = 5;
+    bufferQueueModuleConfig.SourceSettings.BufferSize = sizeof(PAYLOAD_RESPONSE);
+    bufferQueueModuleConfig.SourceSettings.BufferContextSize = sizeof(ULONG);
+    bufferQueueModuleConfig.SourceSettings.PoolType = NonPagedPoolNx;
+    ntStatus = DMF_BufferQueue_Create(device,
+                                      &moduleAttributes,
+                                      &attributes,
+                                      &componentFirmwareUpdateTransactionContext->DmfModuleBufferQueue);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    // Create the Work Ready Event.
+    //
+    DMF_Portable_EventCreate(&componentFirmwareUpdateTransactionContext->DmfResponseCompletionEvent,
+                             SynchronizationEvent,
+                             FALSE);
+
+    // Create the Protocol Transaction Cancel Event.
+    //
+    DMF_Portable_EventCreate(&componentFirmwareUpdateTransactionContext->DmfProtocolTransactionCancelEvent,
+                             SynchronizationEvent,
+                             FALSE);
+
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_ComponentFirmwareUpdate_Bind success");
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_ComponentFirmwareUpdate_Unbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Unbinds the given Protocol Module from the given Transport Module.
+
+Arguments:
+
+    DmfInterface - Interface handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    // Call the Interface's Unbind function.
+    //
+    DMF_ComponentFirmwareUpdate_TransportUnbind(DmfInterface);
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+// Callback Implementation
+// --------START----------
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_ComponentFirmwareUpdate_FirmwareVersionResponseEvt(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ UCHAR* FirmwareVersionsBuffer,
+    _In_ size_t FirmwareVersionsBufferSize,
+    _In_ NTSTATUS ntStatusCallback
+    )
+/*++
+
+Routine Description:
+
+    Callback to indicate the firmware versions. 
+    This unpacks the message and store the response in a context and signal event
+    to wakeup the thread that is waiting for response.
+
+Parameters:
+
+    DmfInterface - Interface handle.
+    FirmwareVersionsBuffer - Buffer with firmware information.
+    FirmwareVersionsBufferSize - size of the above in bytes.
+    ntStatusCallback -  NTSTATUS for the FirmwareVersionGet.
+
+Return:
+
+    NTSTATUS
+
+--*/
+{
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
+
+    FuncEntry(DMF_TRACE);
+
+    UNREFERENCED_PARAMETER(FirmwareVersionsBufferSize);
+
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+
+    componentFirmwareUpdateTransactionContext->ntStatus = ntStatusCallback;
+    if (!NT_SUCCESS(ntStatusCallback))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "FirmwareVersionGet fails: ntStatus=%!STATUS!", 
+                    ntStatusCallback);
+        goto Exit;
+    }
+
+    ASSERT(FirmwareVersionsBuffer != NULL);
+
+    // Parse and store the response data.
+    //
+    BYTE componentCount;
+    BYTE firmwareUpdateProtocolRevision;
+    
+    // Byte 0 is Component Count.
+    //
+    componentCount = (BYTE)FirmwareVersionsBuffer[0];
+    if (componentCount == 0)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "Invalid Response from Device. ComponentCount == 0.");
+        componentFirmwareUpdateTransactionContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+    // We have a limitation on the number of components (16).
+    //
+    ASSERT(componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount < MAX_NUMBER_OF_IMAGE_PAIRS);
+
+    componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount = componentCount;
+
+    firmwareUpdateProtocolRevision = FirmwareVersionsBuffer[3] & 0xF;
+    TraceEvents(TRACE_LEVEL_INFORMATION, 
+                DMF_TRACE, 
+                "Device is using FW Update Protocol Revision %d", 
+                firmwareUpdateProtocolRevision);
+
+    DWORD* firmwareVersion = NULL;
+    if (firmwareUpdateProtocolRevision == PROTOCOL_VERSION_2)
+    {
+        // Header is 4 bytes.
+        //
+        const UINT versionTableOffset = 4;
+        // Component ID is 6th byte.
+        //
+        const UINT componentIDOffset = 5;
+        // Each component takes up 8 bytes.
+        //
+        const UINT componentDataSize = 8;
+
+        ASSERT(FirmwareVersionsBufferSize >= versionTableOffset + componentCount * componentDataSize);
+        for (int componentIndex = 0; componentIndex < componentCount; ++componentIndex)
+        {
+            componentFirmwareUpdateTransactionContext->FirmwareVersions.ComponentIdentifiers[componentIndex] = (BYTE)FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + componentIDOffset];
+            firmwareVersion = &componentFirmwareUpdateTransactionContext->FirmwareVersions.FirmwareVersion[componentIndex];
+            *firmwareVersion = 0;
+            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + 0] & 0xFF) << 0);
+            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + 1] & 0xFF) << 8);
+            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + 2] & 0xFF) << 16);
+            *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + 3] & 0xFF) << 24);
+            TraceEvents(TRACE_LEVEL_VERBOSE, 
+                        DMF_TRACE, 
+                        "Component%02x has version 0x%x (%d)", 
+                        componentFirmwareUpdateTransactionContext->FirmwareVersions.ComponentIdentifiers[componentIndex],
+                        *firmwareVersion,
+                        *firmwareVersion);
+        }
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "Unrecognized FW Update Protocol Revision %d", 
+                    firmwareUpdateProtocolRevision);
+        componentFirmwareUpdateTransactionContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
+Exit:
+
+    // Set Event the event so that the sending thread gets the response.
+    //
+    DMF_Portable_EventSet(&componentFirmwareUpdateTransactionContext->DmfResponseCompletionEvent);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_ComponentFirmwareUpdate_OfferResponseEvt(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ UCHAR* ResponseBuffer,
+    _In_ size_t ResponseBufferSize,
+    _In_ NTSTATUS ntStatusCallback
+    )
+/*++
+
+Routine Description:
+
+    Callback to indicate the response to an offer that was sent to device.
+
+Parameters:
+
+    DmfInterface - Interface handle.
+    ResponseBuffer - Buffer with response information.
+    ResponseBufferSize - size of the above in bytes.
+    ntStatusCallback -  NTSTATUS for the command that was sent down.
+
+Return:
+
+    NTSTATUS
+
+--*/
+{
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
+
+    ULONG numberOfUlongsInResponse = 4;
+    const BYTE outputToken = FWUPDATE_DRIVER_TOKEN;
+
+    FuncEntry(DMF_TRACE);
+
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+
+    componentFirmwareUpdateTransactionContext->ntStatus = ntStatusCallback;
+    if (!NT_SUCCESS(ntStatusCallback))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE,
+                    "Offer send fails: ntStatus=%!STATUS!", 
+                    ntStatusCallback);
+        goto Exit;
+    }
+
+    // Offer response size is 4 * ULONG .
+    //
+    if (numberOfUlongsInResponse * sizeof(ULONG) > ResponseBufferSize)
+    {
+        componentFirmwareUpdateTransactionContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE,
+                    "Return Buffer size (%Id) insufficient", 
+                    ResponseBufferSize);
+        goto Exit;
+    }
+
+    ULONG* offerResponseLocal = (ULONG*)ResponseBuffer;
+
+    // Get Token and Validate it. (Byte 3)
+    //
+    BYTE tokenResponse = (offerResponseLocal[0] >> 24) & 0xFF;
+    if (outputToken != tokenResponse)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "Output Token(%d) did not match Returned Token(%d)", 
+                    outputToken, 
+                    tokenResponse);
+        componentFirmwareUpdateTransactionContext->ntStatus = STATUS_INVALID_DEVICE_STATE;
+        goto Exit;
+    }
+
+    // Get Offer Response Reason. (Byte 0)
+    //
+    COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON offerResponseReason = (COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON)((offerResponseLocal[2]) & 0xFF);
+
+    // Get Offer Response Status. (Byte 0)
+    //
+    COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE offerResponseStatus = (COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE)((offerResponseLocal[3]) & 0xFF);
+
+    componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseStatus = offerResponseStatus;
+    componentFirmwareUpdateTransactionContext->OfferResponse.OfferResponseReason = offerResponseReason;
+    componentFirmwareUpdateTransactionContext->ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    // Set Event the event so that the sending thread gets the response.
+    //
+    DMF_Portable_EventSet(&componentFirmwareUpdateTransactionContext->DmfResponseCompletionEvent);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+// Callback to response to payload that is sent to device.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_ComponentFirmwareUpdate_PayloadResponseEvt(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ UCHAR* ResponseBuffer,
+    _In_ size_t ResponseBufferSize,
+    _In_ NTSTATUS ntStatusCallback
+    )
+/*++
+
+Routine Description:
+
+    Callback to indicate the response to an payload that was sent to device.
+
+Parameters:
+
+    DmfInterface - Interface handle.
+    ResponseBuffer - Buffer with response information.
+    ResponseBufferSize - size of the above in bytes.
+    ntStatusCallback - NTSTATUS for the command that was sent down.
+
+Return:
+
+    NTSTATUS
+
+--*/
+{
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
+
+    ULONG numberOfUlongsInResponse = 4;
+    VOID* clientBuffer= NULL;
+    VOID* clientBufferContext = NULL;
+
+    FuncEntry(DMF_TRACE);
+
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
+    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+
+    ASSERT(ResponseBuffer != NULL);
+
+    componentFirmwareUpdateTransactionContext->ntStatus = ntStatusCallback;
+    if (!NT_SUCCESS(ntStatusCallback))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "PayloadSend fails: ntStatus=%!STATUS!",
+                    ntStatusCallback);
+        goto Exit;
+    }
+
+    // Payload response size is 4 * ULONG.
+    //
+    if (numberOfUlongsInResponse * sizeof(ULONG) > ResponseBufferSize)
+    {
+        componentFirmwareUpdateTransactionContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Return Buffer size (%Id) in sufficient",
+                    ResponseBufferSize);
+        goto Exit;
+    }
+
+    ULONG* payloadResponseLocal = (ULONG*)ResponseBuffer;
+
+    // Get Response Sequence Number. (Bytes 0-1)
+    //
+    ULONG responseSequenceNumber = (ULONG)((payloadResponseLocal[0] >> 0) & 0xFFFF);
+
+    // Get Payload Response Status. (Byte 0)
+    //
+    COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE responseSequenceStatus = (COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE)((payloadResponseLocal[1] >> 0) & 0xFF);
+
+    // Get a buffer from Producer for feature Report.
+    //
+    componentFirmwareUpdateTransactionContext->ntStatus = DMF_BufferQueue_Fetch(componentFirmwareUpdateTransactionContext->DmfModuleBufferQueue,
+                                                                                &clientBuffer,
+                                                                                &clientBufferContext);
+    if (!NT_SUCCESS(componentFirmwareUpdateTransactionContext->ntStatus))
+    {
+        // There is no data buffer to save the response.
+        //
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "DMF_BufferQueue_ClientBufferGetProducer fails: ntStatus=%!STATUS!",
+                    componentFirmwareUpdateTransactionContext->ntStatus);
+        goto Exit;
+    }
+
+    ASSERT(clientBuffer != NULL);
+    ASSERT(clientBufferContext != NULL);
+
+    PAYLOAD_RESPONSE* payloadResponse = (PAYLOAD_RESPONSE*)clientBuffer;
+    ULONG* payloadResponseSize = (ULONG*)clientBufferContext;
+
+    payloadResponse->SequenceNumber = responseSequenceNumber;
+    payloadResponse->ResponseStatus = responseSequenceStatus;
+
+    // put this to the consumer.
+    //
+    *payloadResponseSize = sizeof(PAYLOAD_RESPONSE);
+    DMF_BufferQueue_Enqueue(componentFirmwareUpdateTransactionContext->DmfModuleBufferQueue,
+                            clientBuffer);
+
+Exit:
+
+    // Set Event the event so that the sending thread gets the response.
+    //
+    DMF_Portable_EventSet(&componentFirmwareUpdateTransactionContext->DmfResponseCompletionEvent);
+
+    FuncExitVoid(DMF_TRACE);
+}
+// Callback Implementation
+// --------END------------
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -4960,9 +5176,7 @@ Return Value:
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     DMF_CONFIG_Thread threadModuleConfig;
-    DMF_CONFIG_ComponentFirmwareUpdateHidTransport transportModuleConfig;
-    DMF_MODULE_EVENT_CALLBACKS hidTransportCallbacks;
-    
+
     PAGED_CODE();
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
@@ -4990,25 +5204,6 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleThread);
 
-    // ComponentFirmwareUpdateHidTransport
-    // -----------------------------------
-    //
-    DMF_CONFIG_ComponentFirmwareUpdateHidTransport_AND_ATTRIBUTES_INIT(&transportModuleConfig,
-                                                                       &moduleAttributes);
-
-    transportModuleConfig.Protocol = moduleConfig->TransportConfig.SelectedTransportConfig.HidTransportConfig.Protocol;
-    transportModuleConfig.NumberOfInputReportReadsPended = moduleConfig->TransportConfig.SelectedTransportConfig.HidTransportConfig.NumberOfInputReportReadsPended;
-    moduleAttributes.ClientModuleInstanceName = "ComponentFirmwareUpdateHidTransport";
-
-    DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
-                                               &hidTransportCallbacks);
-    hidTransportCallbacks.EvtModuleOnDeviceNotificationPostOpen = ComponentFirmwareUpdate_TransportPostOpen_Callback;
-    hidTransportCallbacks.EvtModuleOnDeviceNotificationPreClose = ComponentFirmwareUpdate_TransportPreClose_Callback;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfTransportModule);
-
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
@@ -5029,7 +5224,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -5040,8 +5235,6 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    DMF_MODULE_ATTRIBUTES moduleAttributes;
 
     PAGED_CODE();
 
@@ -5049,183 +5242,6 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    // Plug the protocol specific to the transport.
-    //
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport transportConfig;
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdate componentFirmwareUpdatePlugInConfig;
-    componentFirmwareUpdatePlugInConfig.Callbacks.Evt_ComponentFirmwareUpdate_FirmwareVersionResponse = ComponentFirmwareUpdate_FirmwareVersionResponseEvt;
-    componentFirmwareUpdatePlugInConfig.Callbacks.Evt_ComponentFirmwareUpdate_OfferResponse = ComponentFirmwareUpdate_OfferResponseEvt;
-    componentFirmwareUpdatePlugInConfig.Callbacks.Evt_ComponentFirmwareUpdate_PayloadResponse = ComponentFirmwareUpdate_PayloadResponseEvt;
-
-    ntStatus = DMF_ComponentFirmwareUpdateTransport_Bind(moduleContext->DmfTransportModule,
-                                                         DmfModule,
-                                                         &componentFirmwareUpdatePlugInConfig,
-                                                         &transportConfig);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "DMF_ComponentFirmwareUpdateTransport_Plugin fails: ntStatus=%!STATUS!", 
-                    ntStatus);
-        goto Exit;
-    }
-
-    // Check the TransportPayloadRequiredSize to ensure that it meets minimal packet size requirement.
-    // Driver needs the following size per specification.
-    // Offer Command is 16 bytes.
-    // Offer Information is 16 bytes.
-    // Offer is 16 bytes. 
-    // Payload Chunk size is variable; The maximum driver can send is 60 bytes.
-    //
-    if (transportConfig.TransportFirmwarePayloadBufferRequiredSize < SizeOfPayload)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Transport payload size (%Id) is insufficient", 
-                    transportConfig.TransportFirmwarePayloadBufferRequiredSize);
-        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    // Check for Overflow.
-    //
-    if (transportConfig.TransportFirmwarePayloadBufferRequiredSize > transportConfig.TransportFirmwarePayloadBufferRequiredSize + transportConfig.TransportHeaderSize)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Payload size Overflow (%d)+(%d)", 
-                    transportConfig.TransportFirmwarePayloadBufferRequiredSize,
-                    transportConfig.TransportHeaderSize);
-        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    if (transportConfig.TransportFirmwareVersionBufferRequiredSize < SizeOfFirmwareVersion)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Transport Firmware Version size (%Id) is insufficient", 
-                    transportConfig.TransportFirmwareVersionBufferRequiredSize);
-        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    // Check for Overflow.
-    //
-    if (transportConfig.TransportFirmwareVersionBufferRequiredSize > transportConfig.TransportFirmwareVersionBufferRequiredSize + transportConfig.TransportHeaderSize)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Payload size Overflow (%d)+(%d)", 
-                    transportConfig.TransportFirmwareVersionBufferRequiredSize,
-                    transportConfig.TransportHeaderSize);
-        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    if (transportConfig.TransportOfferBufferRequiredSize < SizeOfOffer)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Transport Offer size (%Id) is insufficient", 
-                    transportConfig.TransportOfferBufferRequiredSize);
-        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    // Check for Overflow.
-    //
-    if (transportConfig.TransportOfferBufferRequiredSize > transportConfig.TransportOfferBufferRequiredSize + transportConfig.TransportHeaderSize)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "Payload size Overflow (%d)+(%d)", 
-                    transportConfig.TransportOfferBufferRequiredSize,
-                    transportConfig.TransportHeaderSize);
-        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
-        goto Exit;
-    }
-
-    INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport* configComponentFirmwareUpdateTransport;
-    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes,
-                                            INTF_TRANSPORT_CONFIG_ComponentFirmwareUpdateTransport);
-    ntStatus = WdfObjectAllocateContext(moduleContext->DmfTransportModule,
-                                        &attributes, 
-                                        (VOID**) &configComponentFirmwareUpdateTransport);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
-                    ntStatus);
-        goto Exit;
-    }
-
-    configComponentFirmwareUpdateTransport->TransportHeaderSize = transportConfig.TransportHeaderSize;
-    configComponentFirmwareUpdateTransport->TransportFirmwarePayloadBufferRequiredSize = transportConfig.TransportFirmwarePayloadBufferRequiredSize;
-    configComponentFirmwareUpdateTransport->TransportFirmwareVersionBufferRequiredSize = transportConfig.TransportFirmwareVersionBufferRequiredSize;
-    configComponentFirmwareUpdateTransport->TransportOfferBufferRequiredSize = transportConfig.TransportOfferBufferRequiredSize;
-    configComponentFirmwareUpdateTransport->WaitTimeout = transportConfig.WaitTimeout;
-
-    // Allocate a Context to keep items for transport response specific processing.
-    //
-    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
-    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes,
-                                            CONTEXT_ComponentFirmwareUpdateTransport);
-    ntStatus = WdfObjectAllocateContext(moduleContext->DmfTransportModule,
-                                        &attributes,
-                                        (VOID**) &componentFirmwareUpdateTransportContext);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
-                    ntStatus);
-        goto Exit;
-    }
-
-    WDFDEVICE device;
-    device = DMF_ParentDeviceGet(DmfModule);
-
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = DmfModule;
-
-    // BufferQueue
-    // -----------
-    //
-    DMF_CONFIG_BufferQueue bufferQueueModuleConfig;
-    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&bufferQueueModuleConfig,
-                                               &moduleAttributes);
-    bufferQueueModuleConfig.SourceSettings.EnableLookAside = TRUE;
-    bufferQueueModuleConfig.SourceSettings.BufferCount = 5;
-    bufferQueueModuleConfig.SourceSettings.BufferSize = sizeof(PAYLOAD_RESPONSE);
-    bufferQueueModuleConfig.SourceSettings.BufferContextSize = sizeof(ULONG);
-    bufferQueueModuleConfig.SourceSettings.PoolType = NonPagedPoolNx;
-    ntStatus = DMF_BufferQueue_Create(device,
-                                      &moduleAttributes,
-                                      &attributes,
-                                      &componentFirmwareUpdateTransportContext->DmfModuleBufferQueue);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR,
-            DMF_TRACE,
-            "DMF_BufferQueue_Create fails: ntStatus=%!STATUS!",
-            ntStatus);
-        goto Exit;
-    }
-
-    // Create the Work Ready Event.
-    //
-    DMF_Portable_EventCreate(&componentFirmwareUpdateTransportContext->DmfResponseCompletionEvent,
-                             SynchronizationEvent,
-                             FALSE);
-
-    // Create the Protocol Transaction Cancel Event.
-    //
-    DMF_Portable_EventCreate(&componentFirmwareUpdateTransportContext->DmfProtocolTransactionCancelEvent,
-                             SynchronizationEvent,
-                             FALSE);
 
     ntStatus = ComponentFirmwareUpdate_ComponentFirmwareUpdateInitialize(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -5260,7 +5276,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -5315,30 +5331,11 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ComponentFirmwareUpdate;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_ComponentFirmwareUpdate;
-    DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
+    DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DECLARATION_DATA protocolDeclarationData;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-
-    moduleConfig = (DMF_CONFIG_ComponentFirmwareUpdate*)DmfModuleAttributes->ModuleConfigPointer;
-
-    // Transport should be HID.
-    //
-    if ((moduleConfig->TransportConfig.TransportType != ComponentFirmwareUpdate_HidTransportType) ||
-        (moduleConfig->TransportConfig.Size != sizeof(DMF_CONFIG_ComponentFirmwareUpdateHidTransport)))
-    {
-       TraceEvents(TRACE_LEVEL_ERROR, 
-                   DMF_TRACE, 
-                   "Invalid Transport Configuration %d %Id", 
-                   moduleConfig->TransportConfig.TransportType,
-                   moduleConfig->TransportConfig.Size);
-
-        ASSERT(FALSE);
-        ntStatus = STATUS_INVALID_PARAMETER;
-        *DmfModule = NULL;
-        goto Exit;
-    }
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_ComponentFirmwareUpdate);
     dmfCallbacksDmf_ComponentFirmwareUpdate.ChildModulesAdd = DMF_ComponentFirmwareUpdate_ChildModulesAdd;
@@ -5349,7 +5346,7 @@ Return Value:
                                             ComponentFirmwareUpdate,
                                             DMF_CONTEXT_ComponentFirmwareUpdate,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_NOTIFY_Create);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     dmfModuleDescriptor_ComponentFirmwareUpdate.CallbacksDmf = &dmfCallbacksDmf_ComponentFirmwareUpdate;
 
@@ -5366,6 +5363,34 @@ Return Value:
                     ntStatus);
     }
 
+    // Initialize Protocol's declaration data.
+    //
+    DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DESCRIPTOR_INIT(&protocolDeclarationData,
+                                                                   DMF_ComponentFirmwareUpdate_Bind,
+                                                                   DMF_ComponentFirmwareUpdate_Unbind,
+                                                                   DMF_ComponentFirmwareUpdate_PostBind,
+                                                                   DMF_ComponentFirmwareUpdate_PreUnbind,
+                                                                   DMF_ComponentFirmwareUpdate_FirmwareVersionResponseEvt,
+                                                                   DMF_ComponentFirmwareUpdate_OfferResponseEvt,
+                                                                   DMF_ComponentFirmwareUpdate_PayloadResponseEvt);
+
+    // An optional context can be set by the Protocol module on the bind instance
+    // This is a unique context for each instance of Protocol Transport binding. 
+    // E.g. in case a protocol module is bound to multiple modules, the protocol 
+    // module will get a unique instance of this context each bidning. 
+    // 
+    DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE(&protocolDeclarationData, 
+                                              CONTEXT_ComponentFirmwareUpdateTransport);
+
+    // Add the interface to the Protocol Module.
+    //
+    ntStatus = DMF_ModuleInterfaceDescriptorAdd(*DmfModule,
+                                                (DMF_INTERFACE_DESCRIPTOR*)&protocolDeclarationData);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleInterfaceDescriptorAdd fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
 
 Exit:
 
@@ -5393,7 +5418,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 
@@ -5477,7 +5502,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
 
 Return Value:
 

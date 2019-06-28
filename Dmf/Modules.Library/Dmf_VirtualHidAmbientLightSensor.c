@@ -170,12 +170,22 @@ g_VirtualHidAmbientLightSensor_HidReportDescriptor[] =
         HID_FEATURE(Data_Arr_Abs),
         HID_END_COLLECTION,
 
-    // Change Sensitivity
+    // Change Sensitivity Relative Percentage
     // (Divide by 100 to get actual value.)
     //
     HID_USAGE_SENSOR_DATA(HID_USAGE_SENSOR_DATA_LIGHT_ILLUMINANCE,HID_USAGE_SENSOR_DATA_MOD_CHANGE_SENSITIVITY_REL_PCT),
     HID_LOGICAL_MIN_8(0),
-    HID_LOGICAL_MAX_16(0x10,0x27),
+    HID_LOGICAL_MAX_16(0xFF,0xFF),
+    HID_REPORT_SIZE(16),
+    HID_REPORT_COUNT(1),
+    HID_UNIT_EXPONENT(0x0E),
+    HID_FEATURE(Data_Var_Abs),
+
+    // Change Sensitivity Absolute
+    //
+    HID_USAGE_SENSOR_DATA(HID_USAGE_SENSOR_DATA_LIGHT_ILLUMINANCE, HID_USAGE_SENSOR_DATA_MOD_CHANGE_SENSITIVITY_ABS),
+    HID_LOGICAL_MIN_8(0),
+    HID_LOGICAL_MAX_16(0xFF, 0xFF),
     HID_REPORT_SIZE(16),
     HID_REPORT_COUNT(1),
     HID_UNIT_EXPONENT(0x0E),

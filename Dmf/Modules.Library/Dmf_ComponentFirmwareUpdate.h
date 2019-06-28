@@ -34,42 +34,10 @@ EVT_DMF_ComponentFirmwareUpdate_FirmwareGet(_In_ DMFMODULE DmfModule,
 //
 #define MAX_INSTANCE_IDENTIFIER_LENGTH 256
 
-typedef enum
-{
-    ComponentFirmwareUpdate_InvalidTransportType,
-    ComponentFirmwareUpdate_HidTransportType,
-    ComponentFirmwareUpdate_BtleTransportType,
-    ComponentFirmwareUpdate_MaximumTransportType
-} ComponentFirmwareUpdate_TransportType;
-
-typedef union _TRANSPORT_CONFIG_SELECTOR
-{
-    DMF_CONFIG_ComponentFirmwareUpdateHidTransport HidTransportConfig;
-} TRANSPORT_CONFIG_SELECTOR;
-
-// Configurations for Transport
-//
-typedef struct
-{
-    // Underlying Size of the Transport Config {for validation}
-    //
-    size_t Size;
-    // Transport Type.
-    //
-    ComponentFirmwareUpdate_TransportType TransportType;
-    // Currently Selected Transport.
-    //
-    TRANSPORT_CONFIG_SELECTOR SelectedTransportConfig;
-} ComponentFirmwareUpdate_TRANSPORT_CONFIG;
-
 // Configuration of the module
 //
 typedef struct
 {
-    // Transport Config.
-    //
-    ComponentFirmwareUpdate_TRANSPORT_CONFIG TransportConfig;
-
     //-----START: Firmware binary related ---------
     //
     //Number of Firmware binary pairs that this component needs to work with.
@@ -133,21 +101,6 @@ typedef struct
 // DMF_ComponentFirmwareUpdate_Create()
 //
 DECLARE_DMF_MODULE(ComponentFirmwareUpdate)
-
-VOID
-FORCEINLINE
-DMF_COMPONENT_FIRMWARE_UPDATE_CONFIG_INIT_TRANSPORT_HID(
-    _Inout_ DMF_CONFIG_ComponentFirmwareUpdate* ProtocolConfig,
-    _Out_ DMF_CONFIG_ComponentFirmwareUpdateHidTransport** HidTransportConfig
-    )
-{
-    RtlZeroMemory(&ProtocolConfig->TransportConfig,
-                  sizeof(ComponentFirmwareUpdate_TRANSPORT_CONFIG));
-
-    ProtocolConfig->TransportConfig.Size = sizeof(DMF_CONFIG_ComponentFirmwareUpdateHidTransport);
-    ProtocolConfig->TransportConfig.TransportType = ComponentFirmwareUpdate_HidTransportType;
-    *HidTransportConfig = &ProtocolConfig->TransportConfig.SelectedTransportConfig.HidTransportConfig;
-}
 
 // Module Methods
 //
