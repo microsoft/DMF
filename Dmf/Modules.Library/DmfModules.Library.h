@@ -39,8 +39,8 @@ extern "C"
 #include "DmfModules.Library.Public.h"
 
 // Interfaces in this Library.
-// (None at this time.)
 //
+#include "Dmf_Interface_ComponentFirmwareUpdate.h"
 
 // All the Modules in this Library.
 //
@@ -83,10 +83,6 @@ extern "C"
 #include "Dmf_VirtualHidAmbientLightSensor.h"
 #include "Dmf_VirtualHidAmbientColorSensor.h"
 #include "Dmf_String.h"
-
-// Transport Related Definitions.
-//
-#include "Dmf_Transport_ComponentFirmwareUpdate.h"
 
 #if defined(__cplusplus)
 }

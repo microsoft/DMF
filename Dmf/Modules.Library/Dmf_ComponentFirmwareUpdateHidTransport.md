@@ -6,14 +6,14 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-This Module is a child module of DMF_ComponentFirmwareUpdate. Other clients are not expected to use this module directly.
+This is a transport Module of DMF_ComponentFirmwareUpdate.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### DMF_CONFIG_HidTarget
+##### DMF_CONFIG_ComponentFirmwareUpdateHidTransport
 ````
 // Configuration of the module.
 //
@@ -75,7 +75,7 @@ NumberOfInputReportReadsPended | Number of simultaneous input report reads that 
 
 #### Module Children
 
-* None
+* DMF_HidTarget
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

@@ -169,6 +169,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HidTarget.h" />
@@ -190,6 +191,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HidTarget.c" />
@@ -211,12 +213,14 @@
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Modules.Library\Dmf_CmApi.md" />
     <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.md" />
     <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.md" />
     <None Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_HidTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.md" />
     <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.md" />
     <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md" />
     <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />

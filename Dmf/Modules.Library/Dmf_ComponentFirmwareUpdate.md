@@ -20,10 +20,6 @@ internal details. Clients can customize the behavior of the module through the c
 //
 typedef struct
 {
-    // Transport Config.
-    //
-    ComponentFirmwareUpdate_TRANSPORT_CONFIG TransportConfig;
-
     //-----START: Firmware binary related ---------
     //
     // Number of Firmware binary pairs that this component needs to work with.
@@ -83,7 +79,6 @@ typedef struct
 ````
 Member | Description
 ----|----
-TransportConfig | Transport Configuration for this module that the Client wants to associate with this module.
 NumberOfFirmwareComponents | Number of Firmware binary (Offer,Payload) pairs that this module needs to work with.
 EvtComponentFirmwareUpdateFirmwareOfferGet | Clients should specify this callback function to provide each firmware offer bits to this module. 
 EvtComponentFirmwareUpdateFirmwarePayloadGet | Clients should specify this callback function to provide each firmware payload bits to this module.
@@ -205,7 +200,7 @@ DmfModule | An opened DMF_ComponentFirmwareUpdate Module handle.
 
 #### Module Children
 
-DMF_ComponentFirmwareUpdateHidTransport
+DMF_Thread
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

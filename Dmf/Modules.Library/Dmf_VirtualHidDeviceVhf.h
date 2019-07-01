@@ -724,6 +724,8 @@ Environment:
 //
 #define HID_USAGE_SENSOR_PROPERTY_LIGHT                                                 0x0A,0xE0,0x04
 #define HID_USAGE_SENSOR_PROPERTY_LIGHT_CONSUMER_IR_SENTENCE_SEND                       0x0A,0xE1,0x04
+#define HID_USAGE_SENSOR_PROPERTY_AUTO_BRIGHTNESS_PREFERRED                             0x0A,0xE2,0x04
+#define HID_USAGE_SENSOR_PROPERTY_AUTO_COLOR_PREFERRED                                  0x0A,0xE3,0x04
 
 // Data type scanner:
 // ------------------

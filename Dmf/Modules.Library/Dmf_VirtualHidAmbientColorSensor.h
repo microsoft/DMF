@@ -61,10 +61,14 @@ typedef struct
     UCHAR ReportingState;
     UCHAR PowerState;
     UCHAR SensorState;
-    USHORT ChangeSensitivity;
     ULONG ReportInterval;
     UINT32 MinimumReportInterval;
-    SHORT AcsResponseCurve[VirtualHidAmbientColorSensor_MAXIMUM_NUMBER_OF_ACS_CURVE_RECORDS][2];
+    USHORT SensitivityRelativePercentage;
+    USHORT IlluminanceSensitivityAbsolute;
+    USHORT ChromaSensitivityAbsolute;
+    UCHAR AutoBrightnessPreferred;
+    UCHAR AutoColorPreferred;
+    SHORT UniqueId[32];
 } VirtualHidAmbientColorSensor_ACS_FEATURE_REPORT_DATA;
 #pragma pack()
 
