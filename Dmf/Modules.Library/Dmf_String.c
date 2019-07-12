@@ -88,40 +88,6 @@ Return Value:
 }
 
 LONG
-String_FindInListLeftListMatchCharCallback(
-    _In_ DMFMODULE DmfModule,
-    _In_ CHAR* StringInList,
-    _In_ CHAR* LookFor
-    )
-/*++
-
-Routine Description:
-
-    Perform LEFT case sensitive comparison between string in list and the given string.
-    Comparison is made between the full string in list and left of the given string.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    StringInList - The string in the list.
-    LookFor - The given string.
-
-Return Value:
-
-    0 - Match
-    -1 - String in list comes before the given string.
-    1 - String in list comes after the given string.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfModule);
-
-    return strncmp(StringInList,
-                   LookFor,
-                   strlen(StringInList));
-}
-
-LONG
 String_FindInListLeftLookForMatchCharCallback(
     _In_ DMFMODULE DmfModule,
     _In_ CHAR* StringInList,
@@ -148,15 +114,118 @@ Return Value:
 
 --*/
 {
+    LONG returnValue;
+    size_t comparisonLength;
+
     UNREFERENCED_PARAMETER(DmfModule);
 
-    return strncmp(StringInList,
-                   LookFor,
-                   strlen(LookFor));
+    // Always check full length of given string.
+    //
+    comparisonLength = strlen(LookFor);
+
+    if (0 == comparisonLength)
+    {
+        // Special case because strncmp always returns 0 in this case. It happens if
+        // either string is "".
+        //
+        if (*StringInList)
+        {
+            // Given string is smaller.
+            //
+            returnValue = -1;
+        }
+        else
+        {
+            // They are both equal.
+            //
+            returnValue = 0;
+        }
+        goto Exit;
+    }
+
+    returnValue = strncmp(StringInList,
+                          LookFor,
+                          comparisonLength);
+
+Exit:
+
+    return returnValue;
 }
 
-
 #if defined(DMF_USER_MODE)
+
+static
+WCHAR* 
+String_MultiStringToWideString(
+    _In_ CHAR* NarrowString
+    )
+/*++
+
+Routine Description:
+
+    Allocate a buffer for a Wide string and copy into it a converted version of a given
+    Narrow string. Caller must free the returned buffer.
+
+Arguments:
+
+    NarrowString - The given Narrow string to convert.
+
+Return Value:
+
+    The allocated buffer containing the Wide version of the given Narrow string.
+    NULL if a buffer could not be allocated.
+
+--*/
+{
+    ULONG numberOfCharacters;
+    WCHAR* wideString;
+
+    wideString = NULL;
+
+    // Get the length of the converted string
+    //
+    numberOfCharacters = MultiByteToWideChar(CP_ACP,
+                                             0,
+                                             NarrowString,
+                                             -1,
+                                             NULL,
+                                             0);
+    if (0 == numberOfCharacters)
+    {
+        goto Exit;
+    }
+
+    // Allocate space to hold the converted string
+    //
+    size_t sizeOfBufer = numberOfCharacters * sizeof(WCHAR);
+    wideString = (WCHAR*)malloc(sizeOfBufer);
+    if (NULL == wideString)
+    {
+        goto Exit;
+    }
+
+    ZeroMemory(wideString, 
+               sizeOfBufer);
+
+    // Convert the string
+    //
+    numberOfCharacters = MultiByteToWideChar(CP_ACP,
+                                             0,
+                                             NarrowString,
+                                             -1,
+                                             wideString,
+                                             numberOfCharacters);
+    if (0 == numberOfCharacters)
+    {
+        free(wideString);
+        wideString = NULL;
+        goto Exit;
+    }
+
+Exit:
+
+    return wideString;
+}
 
 static
 CHAR* 
@@ -165,11 +234,13 @@ String_WideStringToMultiString(
     )
 {
     ULONG numberOfBytes;
-    PCHAR multiString;
+    CHAR* multiString;
 
     multiString = NULL;
 
     // Get the length of the converted string
+    // NOTE: This function returns the number of bytes needed to hold
+    //       the result (not the number of characters).
     //
     numberOfBytes = WideCharToMultiByte(CP_ACP,
                                         0,
@@ -186,7 +257,7 @@ String_WideStringToMultiString(
 
     // Allocate space to hold the converted string
     //
-    multiString = (PCHAR)malloc(numberOfBytes);
+    multiString = (CHAR*)malloc(numberOfBytes);
     if (NULL == multiString)
     {
         goto Exit;
@@ -216,7 +287,201 @@ Exit:
 
     return multiString;
 }
+
+#pragma code_seg("PAGE")
+static
+NTSTATUS
+String_NarrowStringCopyAsUnicode(
+    _Out_ UNICODE_STRING* UnicodeString,
+    _In_z_ CHAR* NarrowString
+    )
+/*++
+
+Routine Description:
+
+    Copy a Narrow string as a Unicode string.
+
+Arguments:
+
+    UnicodeString - Target Unicode string.
+    NarrowString - Source Narrow string.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    ASSERT(UnicodeString != NULL);
+    ASSERT(NarrowString != NULL);
+
+    WCHAR* wideString;
+
+    // Create a converted string.
+    //
+    wideString = String_MultiStringToWideString(NarrowString);
+    if (NULL == wideString)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "String_MultiStringToWideString");
+        goto Exit;
+    }
+
+    // Get length of converted string.
+    //
+    size_t stringLength = wcslen(wideString);
+
+    // Check to make sure that destinations ANSI string's buffer is big enough for 
+    // the string and zero terminator.
+    //
+    if (stringLength + sizeof(WCHAR) > UnicodeString->MaximumLength)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "UnicodeString's buffer is too small");
+        goto Exit;
+    }
+
+    // Copy the converted string to the destination buffer.
+    //
+    wcscpy_s(UnicodeString->Buffer,
+             UnicodeString->MaximumLength,
+             wideString);
+
+    // Zero-terminate the destination string.
+    //
+    UnicodeString->Buffer[stringLength] = L'\0';
+
+    // Update the length of the new Unicode string.
+    //
+    UnicodeString->Length = (USHORT)(stringLength * sizeof(WCHAR));
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    // Free temporary converted string if it could be allocated.
+    //
+    if (wideString != NULL)
+    {
+        free(wideString);
+    }
+
+    // AnsiString has the converted string.
+    //
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+#pragma code_seg("PAGE")
+static
+NTSTATUS
+String_WideStringCopyAsAnsi(
+    _Out_ ANSI_STRING* AnsiString,
+    _In_z_ WCHAR* WideString
+    )
+/*++
+
+Routine Description:
+
+    Copy a Wide String as an Ansi String.
+
+Arguments:
+
+    AnsiString - Target Ansi String.
+    WideString - Source Wide String.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    ASSERT(AnsiString != NULL);
+    ASSERT(WideString != NULL);
+
+    char* multibyteString;
+
+    // Create a converted string.
+    //
+    multibyteString = String_WideStringToMultiString(WideString);
+    if (NULL == multibyteString)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "String_WideStringToMultiString");
+        goto Exit;
+    }
+
+    // Get length of converted string.
+    //
+    size_t stringLength = strlen(multibyteString);
+
+    // Check to make sure that destinations ANSI string's buffer is big enough for 
+    // the string and zero terminator.
+    //
+    if (stringLength + sizeof(CHAR) > AnsiString->MaximumLength)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AnsiString's buffer is too small");
+        goto Exit;
+    }
+
+    // Copy the converted string to the destination buffer.
+    //
+    strncpy_s(AnsiString->Buffer,
+              AnsiString->MaximumLength,
+              multibyteString,
+              stringLength);
+    // Zero-terminate the destination string.
+    //
+    AnsiString->Buffer[stringLength] = '\0';
+
+    // Update the length of new Ansi string.
+    //
+    AnsiString->Length = (USHORT)(stringLength * sizeof(CHAR));
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    // Free temporary converted string if it could be allocated.
+    //
+    if (multibyteString != NULL)
+    {
+        free(multibyteString);
+    }
+
+    // AnsiString has the converted string.
+    //
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
 #endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// WDF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// DMF Module Callbacks
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -386,6 +651,7 @@ Return Value:
 
 LONG
 DMF_String_FindInListExactGuid(
+    _In_ DMFMODULE DmfModule,
     _In_ GUID* GuidList,
     _In_ ULONG NumberOfGuidsInGuidList,
     _In_ GUID* LookFor
@@ -412,6 +678,7 @@ Return Value:
 {
     LONG returnValue;
 
+    UNREFERENCED_PARAMETER(DmfModule);
     ASSERT(GuidList != NULL);
 
     // -1 indicates "not found int list".
@@ -443,7 +710,8 @@ DMF_String_FindInListLookForLeftMatchChar(
 Routine Description:
 
     Given a list of strings, find a given string by matching the beginning of the given string
-    with a string in the list.
+    with a string in the list. if the either string matches the left side of the other string,
+    the result is match.
 
 Arguments:
 
@@ -471,26 +739,26 @@ Return Value:
 
 #pragma code_seg("PAGE")
 NTSTATUS
-DMF_String_WideStringCopyAsAnsi(
-    _Out_writes_(BufferSize) CHAR* AnsiString,
-    _In_z_ WCHAR* WideString,
-    _In_ ULONG BufferSize
+DMF_String_RtlAnsiStringToUnicodeString(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PUNICODE_STRING DestinationString,
+    _In_ PCANSI_STRING SourceString
     )
 /*++
 
 Routine Description:
 
-    Copy a Wide String as an Ansi String.
+    Copy an Ansi string as a Unicode string.
 
 Arguments:
 
-    AnsiString - Target Ansi String.
-    WideString - Source Wide String.
-    BufferSize - Total size of output buffer.
+    DmfModule - This Module's handle.
+    DestinationString - Destination Unicode string.
+    SourceString - Source Ansi string.
 
 Return Value:
 
-    None
+    NTSTATUS
 
 --*/
 {
@@ -498,58 +766,251 @@ Return Value:
 
     PAGED_CODE();
 
-    UNREFERENCED_PARAMETER(BufferSize);
+    UNREFERENCED_PARAMETER(DmfModule);
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(AnsiString != NULL);
-    ASSERT(WideString != NULL);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
 
-    *AnsiString = '\0';
+    ASSERT(DestinationString != NULL);
+    ASSERT(SourceString != NULL);
 
 #if !defined(DMF_USER_MODE)
-    ANSI_STRING ansiString;
-    UNICODE_STRING unicodeString;
-
-    RtlInitAnsiString(&ansiString,
-                      AnsiString);
-    ansiString.MaximumLength = (USHORT)BufferSize;
-
-    RtlInitUnicodeString(&unicodeString,
-                         WideString);
-    ASSERT(unicodeString.Length <= BufferSize);
-
-    // Since this function does not allocate memory it will always succeed.
+    // Kernel-mode directly supports the conversion.
     //
-    ntStatus = RtlUnicodeStringToAnsiString(&ansiString,
-                                            &unicodeString,
+    ntStatus = RtlAnsiStringToUnicodeString(DestinationString,
+                                            SourceString,
                                             FALSE);
-    ASSERT(NT_SUCCESS(ntStatus));
 #else
-    char* string;
+    // User-mode drivers do not support this API directly (even using GetProceAddress()).
+    // So, use the Win32 functions to do that work.
+    //
 
-    string = String_WideStringToMultiString(WideString);
-    if (NULL == string)
+    // Unicode string may not be zero terminated so create a copy of it zero terminated.
+    //
+    CHAR* zeroTerminatedNarrowString;
+    WDFMEMORY zeroTerminatedNarrowStringMemory;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               SourceString->Length + sizeof(WCHAR),
+                               &zeroTerminatedNarrowStringMemory,
+                               (VOID**)&zeroTerminatedNarrowString);
+    if (!NT_SUCCESS(ntStatus))
     {
-        ntStatus = STATUS_UNSUCCESSFUL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "String_WideStringToMultiString");
         goto Exit;
     }
 
-    strcpy_s(AnsiString, 
-             BufferSize,
-             string);
-    free(string);
+    // Create the zero terminated source string.
+    //
+    size_t numberOfElementsTotal = (SourceString->Length + sizeof(CHAR)) / sizeof(CHAR);
+    size_t numberOfElementsToCopy = numberOfElementsTotal - 1;
+    strncpy_s(zeroTerminatedNarrowString,
+              numberOfElementsTotal,
+              SourceString->Buffer,
+              numberOfElementsToCopy);
+    zeroTerminatedNarrowString[numberOfElementsToCopy] = L'\0';
 
-    ntStatus = STATUS_SUCCESS;
+    // Perform the conversion and write to destination buffer.
+    //
+    ntStatus = String_NarrowStringCopyAsUnicode(DestinationString,
+                                                zeroTerminatedNarrowString);
+    
+    // Free the temporary buffer.
+    //
+    WdfObjectDelete(zeroTerminatedNarrowStringMemory);
 
 Exit:
     ;
-
 #endif
 
     // AnsiString has the converted string.
     //
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+NTSTATUS
+DMF_String_RtlUnicodeStringToAnsiString(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PANSI_STRING DestinationString,
+    _In_ PCUNICODE_STRING SourceString
+    )
+/*++
+
+Routine Description:
+
+    Copy a Unicode string as an Ansi string.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DestinationString - Destination Ansi string.
+    SourceString - Source Unicode string.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
+
+    ASSERT(DestinationString != NULL);
+    ASSERT(SourceString != NULL);
+
+#if !defined(DMF_USER_MODE)
+    // Kernel-mode directly supports the conversion.
+    //
+    ntStatus = RtlUnicodeStringToAnsiString(DestinationString,
+                                            SourceString,
+                                            FALSE);
+#else
+    // User-mode drivers do not support this API directly (even using GetProceAddress()).
+    // So, use the Win32 functions to do that work.
+    //
+
+    // Unicode string may not be zero terminated so create a copy of it zero terminated.
+    //
+    WCHAR* zeroTerminatedWideString;
+    WDFMEMORY zeroTerminatedWideStringMemory;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               SourceString->Length + sizeof(WCHAR),
+                               &zeroTerminatedWideStringMemory,
+                               (VOID**)&zeroTerminatedWideString);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Create the zero terminated source string.
+    //
+    size_t numberOfElementsTotal = (SourceString->Length + sizeof(WCHAR)) / sizeof(WCHAR);
+    size_t numberOfElementsToCopy = numberOfElementsTotal - 1;
+    wcsncpy_s(zeroTerminatedWideString,
+              numberOfElementsTotal,
+              SourceString->Buffer,
+              numberOfElementsToCopy);
+    zeroTerminatedWideString[numberOfElementsToCopy] = L'\0';
+
+    // Perform the conversion and write to destination buffer.
+    //
+    ntStatus = String_WideStringCopyAsAnsi(DestinationString,
+                                           zeroTerminatedWideString);
+    
+    // Free the temporary buffer.
+    //
+    WdfObjectDelete(zeroTerminatedWideStringMemory);
+
+Exit:
+    ;
+#endif
+
+    // AnsiString has the converted string.
+    //
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+NTSTATUS
+DMF_String_WideStringCopyAsNarrow(
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(BufferSize) CHAR* NarrowString,
+    _In_ ULONG BufferSize,
+    _In_z_ WCHAR* WideString
+    )
+/*++
+
+Routine Description:
+
+    Copy a Wide String as an Narrow String.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    NarrowString - Target Narrow string.
+    BufferSize - Size of buffer pointed to by NarrowString.
+    WideString - Source Wide String.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    ANSI_STRING ansiString;
+    UNICODE_STRING unicodeString;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
+
+    ASSERT(NarrowString != NULL);
+    ASSERT(WideString != NULL);
+
+    if (BufferSize < sizeof(CHAR))
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    *NarrowString = '\0';
+
+    RtlZeroMemory(&ansiString,
+                  sizeof(ansiString));
+    ansiString.Buffer = NarrowString;
+    ansiString.Length = (USHORT)strlen(NarrowString);
+    ansiString.MaximumLength = (USHORT)BufferSize;
+
+    RtlInitUnicodeString(&unicodeString,
+                         WideString);
+
+    if (unicodeString.Length / sizeof(WCHAR) > BufferSize)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    ntStatus = DMF_String_RtlUnicodeStringToAnsiString(DmfModule,
+                                                       &ansiString,
+                                                       &unicodeString);
+
+Exit:
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;

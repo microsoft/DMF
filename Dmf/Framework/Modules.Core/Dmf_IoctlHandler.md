@@ -33,6 +33,14 @@ typedef struct
   // The number of records in the above table.
   //
   ULONG IoctlRecordCount;
+  // FALSE (Default) means that the corresponding device interface is created when this Module opens.
+  // TRUE requires that the Client call DMF_IoctlHandler_IoctlsEnable() to enable the corresponding device interface.
+  //
+  BOOLEAN ManualMode;
+  // FALSE (Default) means that the corresponding device interface will handle all IOCTL types.
+  // TRUE means that the module allows only requests from kernel mode clients.
+  //
+  BOOLEAN KernelModeRequestsOnly;
   // Windows Store App access settings.
   //
   WCHAR* CustomCapabilities;
@@ -48,6 +56,8 @@ DeviceInterfaceGuid | The GUID of the Device Interface to expose.
 AccessModeFilter | Indicates what kind of access control mechanism is used, if any. Use IoctlHandler_AccessModeDefault in most cases.
 EvtIoctlHandlerAccessModeFilter | A callback that allows the Client to filter the IOCTL with Client specific logic.
 IoctlRecords | A table of records that specify information about each supported IOCTL.
+ManualMode | Module open configuration.
+KernelModeRequestsOnly | This allows the module to handle only requests from kernel mode clients.
 CustomCapabilities | Windows Store App access capabilities string.
 IsRestricted | If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.
 PostDeviceInterfaceCreate | Allows Client to perform actions after the Device Interface is created.

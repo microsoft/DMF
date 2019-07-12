@@ -258,6 +258,7 @@ NTSTATUS
 DMF_CmApi_ParentTargetInterfacesEnumerate(
     _In_ DMFMODULE DmfModule,
     _In_ EVT_DMF_CmApi_ParentTargetSymbolicLinkName ParentTargetCallback,
+    _In_ GUID* GuidDevicePropertyInterface,
     _Inout_ VOID* ClientContext
     );
 ````
@@ -273,6 +274,7 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_CmApi Module handle.
 ParentTargetCallback | Callback to Client for each interface instance enumerated.
+GuidDevicePropertyInterface | The device interface GUID to find.
 ClientContext | Client context passed to ParentTargetCallback.
 
 ##### Remarks

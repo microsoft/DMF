@@ -134,6 +134,9 @@ typedef struct _DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA
     // Required size of FirmwareVersion Buffer this transport needs (excluding the TransportHeaderSize above).
     //
     ULONG TransportFirmwareVersionBufferRequiredSize;
+    // Payload buffer fill alignment this transport needs.
+    //
+    UINT TransportPayloadFillAlignment;
 } DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA;
 
 // Declaration Time Data.

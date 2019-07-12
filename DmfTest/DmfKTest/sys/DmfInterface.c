@@ -219,6 +219,15 @@ Return Value:
                         WDF_NO_OBJECT_ATTRIBUTES,
                         NULL);
 
+    // Tests_String
+    // -------------
+    //
+    DMF_Tests_String_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        NULL);
+
     if (isFunctionDriver)
     {
         // Tests_DefaultTarget

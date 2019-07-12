@@ -94,6 +94,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_CmApi_ParentTargetCreateAndOpen(
     _In_ DMFMODULE DmfModule,
+    _In_ GUID* GuidDevicePropertyInterface,
     _Out_ WDFIOTARGET* ParentWdfIoTarget
     );
 
@@ -102,6 +103,7 @@ NTSTATUS
 DMF_CmApi_ParentTargetInterfacesEnumerate(
     _In_ DMFMODULE DmfModule,
     _In_ EVT_DMF_CmApi_ParentTargetSymbolicLinkName ParentTargetCallback,
+    _In_ GUID* GuidDevicePropertyInterface,
     _Inout_ VOID* ClientContext
     );
 
