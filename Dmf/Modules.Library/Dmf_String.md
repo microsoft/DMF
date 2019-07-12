@@ -127,9 +127,13 @@ LookFor | The given string to search for in the list.
 * None
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_String_FindInListExactGuid
+
 ````
 LONG
 DMF_String_FindInListExactGuid(
+    _In_ DMFMODULE DmfModule,
     _In_ GUID* GuidList,
     _In_ ULONG NumberOfGuidsInGuidList,
     _In_ GUID* LookFor
@@ -146,6 +150,7 @@ Otherwise the index of the matching GUID in the list of strings is returned.
 ##### Parameters
 Parameter | Description
 ----|----
+DmfModule | An open DMF_String Module handle.
 GuidList | The given list of GUIDs to search.
 NumberOfGuidsInGuidList | The number of GUIDs in GuidList.
 LookFor | The given GUID to search for in the list.
@@ -180,6 +185,96 @@ DmfModule | An open DMF_String Module handle.
 StringList | The given list of strings to search. Do not pass any NULL strings.
 NumberOfStringsInStringList | The number of strings in StringList.
 LookFor | The given string to search for in the list.
+
+##### Remarks
+
+* None
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_String_RtlAnsiStringToUnicodeString
+
+````
+NTSTATUS
+DMF_String_RtlAnsiStringToUnicodeString(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PUNICODE_STRING DestinationString,
+    _In_ PCANSI_STRING SourceString
+    );
+````
+
+Provides support similar to RtlAnsiSTringToUnicodeString API. This version is compatible with both Kernel and User-mode.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_String Module handle.
+DestinationString | Target UNICODE String.
+SourceString | Source ANSI String.
+
+##### Remarks
+
+* This version has no option for allocating the target string on behalf of the caller.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_String_RtlAnsiStringToUnicodeString
+
+````
+NTSTATUS
+DMF_String_RtlUnicodeStringToAnsiString(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PANSI_STRING DestinationString,
+    _In_ PCUNICODE_STRING SourceString
+    );
+````
+
+Provides support similar to DMF_String_RtlUnicodeStringToAnsiString API. This version is compatible with both Kernel and User-mode.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_String Module handle.
+DestinationString | Target ANSI String.
+SourceString | Source UNICODE String.
+
+##### Remarks
+
+* This version has no option for allocating the target string on behalf of the caller.
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_String_WideStringCopyAsNarrow
+
+````
+NTSTATUS
+DMF_String_WideStringCopyAsNarrow(
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(BufferSize) CHAR* NarrowString,
+    _In_z_ WCHAR* WideString,
+    _In_ ULONG BufferSize
+    )
+````
+
+Copy a Wide String as an Narrow String.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_String Module handle.
+AnsiString | Target Ansi String.
+WideString | Source Wide String.
 
 ##### Remarks
 

@@ -490,7 +490,7 @@ Return Value:
                                             CmApi,
                                             DMF_CONTEXT_CmApi,
                                             DMF_MODULE_OPTIONS_DISPATCH,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     dmfModuleDescriptor_CmApi.CallbacksDmf = &dmfCallbacksDmf_CmApi;
 
@@ -786,6 +786,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_CmApi_ParentTargetCreateAndOpen(
     _In_ DMFMODULE DmfModule,
+    _In_ GUID* GuidDevicePropertyInterface,
     _Out_ WDFIOTARGET* ParentWdfIoTarget
     )
 /*++
@@ -798,6 +799,7 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
+    GuidDevicePropertyInterface - The device interface GUID to use.
     ParentWdfIoTarget - The returned WDFIOTARGET.
 
 Return Value:
@@ -820,6 +822,7 @@ Return Value:
     #pragma warning(suppress:6001)
     ntStatus = DMF_CmApi_ParentTargetInterfacesEnumerate(DmfModule,
                                                          CmApi_FirstParentInterfaceOpen,
+                                                         GuidDevicePropertyInterface,
                                                          ParentWdfIoTarget);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -848,6 +851,7 @@ NTSTATUS
 DMF_CmApi_ParentTargetInterfacesEnumerate(
     _In_ DMFMODULE DmfModule,
     _In_ EVT_DMF_CmApi_ParentTargetSymbolicLinkName ParentTargetCallback,
+    _In_ GUID* GuidDevicePropertyInterface,
     _Inout_ VOID* ClientContext
     )
 /*++
@@ -860,6 +864,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     ParentTargetCallback - Callback to Client for each interface instance enumerated.
+    GuidDevicePropertyInterface - The device interface GUID to find.
     ClientContext - Client context passed to ParentTargetCallback.
 
 Return Value:
@@ -970,7 +975,7 @@ Return Value:
     do
     {
         configRet = CM_Get_Device_Interface_List_Size(&deviceInterfaceListLength,
-                                                      (LPGUID)&GUID_DEVINTERFACE_DISK,
+                                                      (LPGUID)GuidDevicePropertyInterface,
                                                       parentDeviceInstanceId,
                                                       CM_GET_DEVICE_INTERFACE_LIST_ALL_DEVICES);
         if (configRet != CR_SUCCESS)
@@ -1016,7 +1021,7 @@ Return Value:
             goto Exit;
         }
 
-        configRet = CM_Get_Device_Interface_List((LPGUID)&GUID_DEVINTERFACE_DISK,
+        configRet = CM_Get_Device_Interface_List((LPGUID)GuidDevicePropertyInterface,
                                                  parentDeviceInstanceId,
                                                  deviceInterfaceList,
                                                  deviceInterfaceListLength,

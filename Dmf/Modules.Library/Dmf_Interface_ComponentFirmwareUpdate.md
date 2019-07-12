@@ -17,9 +17,6 @@ Defines Interfaces for all Component Firmware Update Transports.
 ````
 typedef struct _DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA
 {
-    // Stores this Protocol's Id.
-    //
-    ULONG ProtocolId;
 } DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA;
 
 ````
@@ -49,6 +46,9 @@ typedef struct _DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA
     // Required size of FirmwareVersion Buffer this transport needs (excluding the TransportHeaderSize above).
     //
     ULONG TransportFirmwareVersionBufferRequiredSize;
+    // Payload buffer fill alignment this transport needs.
+    //
+    UINT TransportPayloadFillAlignment;
 } DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA;
 
 ````
@@ -66,7 +66,7 @@ Data provided by the Transport to the Protocol during Bind Operation.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
-NTSTATUS
+VOID
 EVT_ComponentFirmwareUpdate_FirmwareVersionResponse(
     _In_ DMFINTERFACE DmfInterface,
     _In_reads_bytes_(FirmwareVersionBufferSize) UCHAR* FirmwareVersionBuffer,
@@ -80,7 +80,7 @@ Retrieves the firmware versions from the device.
 
 ##### Returns
 
-NTSTATUS.
+None.
 
 ##### Parameters
 Parameter | Description

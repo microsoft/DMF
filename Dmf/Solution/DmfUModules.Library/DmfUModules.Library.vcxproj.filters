@@ -70,6 +70,9 @@
     <Filter Include="Headers\Interfaces">
       <UniqueIdentifier>{e0858aee-721f-4bcf-b3d9-333550f2ec86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Documentation\Interfaces">
+      <UniqueIdentifier>{c79a811d-46a2-4cc5-ba71-cab21bf0cecb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h">
@@ -138,6 +141,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h">
       <Filter>Headers\Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_File.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -193,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.c">
       <Filter>Modules\Protocols</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_File.c">
+      <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -251,10 +260,16 @@
     <None Include="..\..\Modules.Library\Dmf_String.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
+    <None Include="..\..\Modules.Library\Dmf_CmApi.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
     <None Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.md">
-      <Filter>Documentation\Modules\Protocols</Filter>
+      <Filter>Documentation\Interfaces</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_CmApi.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_File.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>

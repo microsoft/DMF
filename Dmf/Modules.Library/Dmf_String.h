@@ -20,6 +20,40 @@ Environment:
 
 #pragma once
 
+#if defined(DMF_USER_MODE)
+
+__forceinline
+NTSTATUS
+DMF_String_AnsiStringInitialize(
+    _In_ ANSI_STRING* AnsiString,
+    _In_ CHAR* String
+    )
+{
+    size_t size;
+
+    size = strlen(String);
+
+    RtlZeroMemory(AnsiString,
+                  sizeof(ANSI_STRING));
+
+    AnsiString->Buffer = String;
+
+    // Size in bytes of the string not including NULL terminator.
+    //
+    AnsiString->Length = ((USHORT)size * sizeof(CHAR));
+    // It is the maximum number of characters that can be stored in Buffer including the final zero.
+    //
+    AnsiString->MaximumLength = (USHORT)(((size)*sizeof(CHAR)) + sizeof(CHAR));
+    
+    return STATUS_SUCCESS;
+}
+
+// This function is not available in User-mode drivers.
+//
+#define RtlInitAnsiString DMF_String_AnsiStringInitialize
+
+#endif
+
 typedef
 _Function_class_(EVT_DMF_String_CompareCharCallback)
 _Must_inspect_result_
@@ -58,6 +92,7 @@ DMF_String_FindInListExactChar(
 
 LONG
 DMF_String_FindInListExactGuid(
+    _In_ DMFMODULE DmfModule,
     _In_ GUID* GuidList,
     _In_ ULONG NumberOfGuidsInGuidList,
     _In_ GUID* LookFor
@@ -72,10 +107,25 @@ DMF_String_FindInListLookForLeftMatchChar(
     );
 
 NTSTATUS
-DMF_String_WideStringCopyAsAnsi(
-    _Out_writes_(BufferSize) CHAR* AnsiString,
-    _In_z_ WCHAR* WideString,
-    _In_ ULONG BufferSize
+DMF_String_RtlAnsiStringToUnicodeString(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PUNICODE_STRING DestinationString,
+    _In_ PCANSI_STRING SourceString
+    );
+
+NTSTATUS
+DMF_String_RtlUnicodeStringToAnsiString(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PANSI_STRING DestinationString,
+    _In_ PCUNICODE_STRING SourceString
+    );
+
+NTSTATUS
+DMF_String_WideStringCopyAsNarrow(
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(BufferSize) CHAR* NarrowString,
+    _In_ ULONG BufferSize,
+    _In_z_ WCHAR* WideString
     );
 
 // eof: Dmf_String.h

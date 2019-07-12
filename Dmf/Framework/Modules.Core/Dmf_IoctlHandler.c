@@ -331,6 +331,7 @@ Return Value:
     size_t bytesReturned;
     NTSTATUS ntStatus;
     DMF_CONFIG_IoctlHandler* moduleConfig;
+    KPROCESSOR_MODE requestSenderMode;
 
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(InputBufferLength);
@@ -345,6 +346,19 @@ Return Value:
     handled = FALSE;
     bytesReturned = 0;
     ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+
+    // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
+    // 
+    requestSenderMode = WdfRequestGetRequestorMode(Request);
+
+    if (moduleConfig->KernelModeRequestsOnly &&
+        requestSenderMode != KernelMode)
+    {
+        handled = TRUE;
+        ntStatus = STATUS_ACCESS_DENIED;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "User mode access detected on kernel mode only queue.");
+        goto Exit;
+    }
 
     for (ULONG tableIndex = 0; tableIndex < moduleConfig->IoctlRecordCount; tableIndex++)
     {
@@ -475,6 +489,8 @@ Return Value:
         }
     }
 
+Exit:
+
     if (handled)
     {
         if (STATUS_PENDING == ntStatus)
@@ -566,9 +582,12 @@ Return Value:
         // This call supports both filter and non-filter drivers correctly.
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IoctlHandler_AccessModeDefault");
-        handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
-                                                     Request,
-                                                     STATUS_SUCCESS);
+        if (DMF_ModuleIsInFilterDriver(DmfModule))
+        {
+            handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
+                                                         Request,
+                                                         STATUS_SUCCESS);
+        }
     }
     else if ((IoctlHandler_AccessModeFilterAdministratorOnly == moduleConfig->AccessModeFilter) ||
              (IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl == moduleConfig->AccessModeFilter))
@@ -645,12 +664,15 @@ RequestComplete:
 
 #endif // !defined(DMF_USER_MODE)
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministratorOnly ntStatus=%!STATUS!", ntStatus);
-        // This call completes the request correctly for both filter and non-filter drivers.
-        //
-        handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
-                                                     Request,
-                                                     ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministrator* ntStatus=%!STATUS!", ntStatus);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            // This call completes the request correctly for both filter and non-filter drivers.
+            //
+            handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
+                                                         Request,
+                                                         ntStatus);
+        }
     }
     else if (IoctlHandler_AccessModeFilterClientCallback == moduleConfig->AccessModeFilter)
     {
@@ -658,8 +680,8 @@ RequestComplete:
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         ASSERT(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
-        // NOTE: This callback must use DMF_ModuleRequestCompleteOrForward() to complete the request
-        //       or return FALSE.
+        // NOTE: This callback must use DMF_ModuleRequestCompleteOrForward() to complete the request if the 
+        //       return status is not STATUS_SUCCESS; or, return FALSE.
         //
         handled = moduleConfig->EvtIoctlHandlerAccessModeFilter(DmfModule,
                                                                 Device,
@@ -672,8 +694,7 @@ RequestComplete:
         //
         ASSERT(FALSE);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_AccessModeInvalid");
-        // WARNING: Request is not completed.
-        // This code should not run,
+        // WARNING: Request is not completed. This code should not run.
         //
     }
 
