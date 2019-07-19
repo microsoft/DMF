@@ -106,6 +106,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -225,6 +228,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -309,9 +315,6 @@
     <Text Include="..\..\Modules.Library\Dmf_CrashDump.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
     <Text Include="..\..\Modules.Library\Dmf_NotifyUserWithEvent.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </Text>
@@ -331,9 +334,6 @@
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </Text>
     <Text Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.md">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </Text>
     <Text Include="..\..\Modules.Library\Dmf_AcpiTarget.md">
@@ -381,6 +381,12 @@
     <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
       <Filter>Documentation\Modules\Hid</Filter>
     </Text>
+    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md">
@@ -402,6 +408,9 @@
       <Filter>Documentation\Modules\Hid</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_String.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
