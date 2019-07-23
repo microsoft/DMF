@@ -247,8 +247,11 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG reportSize;
     HIDMINI_OUTPUT_REPORT* outputReport;
+    DMFMODULE dmfModuleParent;
 
     KdPrint(("WriteReport\n"));
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
     if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
     {
@@ -277,7 +280,7 @@ Return Value:
 
     // Store the device data in the Module Context.
     //
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
     moduleContext->DeviceData = outputReport->Data;
 
     *ReportSize = reportSize;
@@ -316,8 +319,10 @@ Return Value:
     ULONG reportSize;
     MY_DEVICE_ATTRIBUTES* myAttributes;
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
+    DMFMODULE dmfModuleParent;
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
     PHID_DEVICE_ATTRIBUTES  hidAttributes = &moduleContext->HidDeviceAttributes;
 
@@ -407,9 +412,11 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG reportSize;
     HIDMINI_CONTROL_INFO* controlInfo;
-
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    DMFMODULE dmfModuleParent;
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
     
     PHID_DEVICE_ATTRIBUTES  hidAttributes = &moduleContext->HidDeviceAttributes;
 
@@ -504,9 +511,11 @@ Return Value:
     NTSTATUS                ntStatus;
     ULONG                   reportSize;
     HIDMINI_INPUT_REPORT*   reportBuffer;
-
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    DMFMODULE dmfModuleParent;
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
     KdPrint(("GetInputReport\n"));
 
@@ -572,9 +581,11 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG reportSize;
     HIDMINI_OUTPUT_REPORT* reportBuffer;
-
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    DMFMODULE dmfModuleParent;
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
     KdPrint(("SetOutputReport\n"));
 
