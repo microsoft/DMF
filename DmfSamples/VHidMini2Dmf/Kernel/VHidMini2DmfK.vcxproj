@@ -234,10 +234,10 @@
     <ClInclude Include="trace.h" />
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="VHidMini2Dmf.inx" />
+    <Inf Include="VHidMini2DmfK.inx" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VHidMini2Dmf.rc" />
+    <ResourceCompile Include="VHidMini2DmfK.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

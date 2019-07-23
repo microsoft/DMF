@@ -32,12 +32,12 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VHidMini2Dmf.rc">
+    <ResourceCompile Include="VHidMini2DmfK.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="VHidMini2Dmf.inx">
+    <Inf Include="VHidMini2DmfK.inx">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
