@@ -170,6 +170,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_File.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDefinitions.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />

@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDefinitions.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />

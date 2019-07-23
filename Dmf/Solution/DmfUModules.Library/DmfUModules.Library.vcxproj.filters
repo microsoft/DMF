@@ -156,6 +156,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.h">
       <Filter>Headers\Modules\Hid</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDefinitions.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">

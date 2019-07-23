@@ -20,6 +20,8 @@ Environment:
 
 #pragma once
 
+#include "Dmf_HidDefinitions.h"
+
 // TODO: HACK
 //
 #if defined(DMF_USER_MODE)

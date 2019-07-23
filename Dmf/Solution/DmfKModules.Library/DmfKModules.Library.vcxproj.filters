@@ -231,6 +231,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.h">
       <Filter>Headers\Hid</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDefinitions.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
