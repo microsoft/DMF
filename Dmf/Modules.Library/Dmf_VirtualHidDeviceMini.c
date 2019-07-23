@@ -41,10 +41,9 @@ typedef struct
 {
     WDFQUEUE DefaultQueue;
     WDFQUEUE ManualQueue;
-    HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
-    BYTE DeviceData;
-    HID_DESCRIPTOR HidDescriptor;
-    VirtualHidDeviceMini_HID_REPORT_DESCRIPTOR* ReportDescriptor;
+    //HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
+    //HID_DESCRIPTOR HidDescriptor;
+    //VirtualHidDeviceMini_HID_REPORT_DESCRIPTOR* ReportDescriptor;
 } DMF_CONTEXT_VirtualHidDeviceMini;
 
 // This macro declares the following function:
@@ -66,6 +65,7 @@ DMF_MODULE_DECLARE_CONFIG(VirtualHidDeviceMini)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#if 0
 typedef struct _QUEUE_CONTEXT
 {
     WDFQUEUE Queue;
@@ -73,6 +73,7 @@ typedef struct _QUEUE_CONTEXT
     UCHAR OutputReport;
 } QUEUE_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(QUEUE_CONTEXT, QueueContextGet);
+#endif
 
 typedef struct _MANUAL_QUEUE_CONTEXT
 {
@@ -82,11 +83,270 @@ typedef struct _MANUAL_QUEUE_CONTEXT
 } MANUAL_QUEUE_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(MANUAL_QUEUE_CONTEXT, ManualQueueContextGet);
 
+#if !defined(DMF_USER_MODE)
+
+//
+// First let's review Buffer Descriptions for I/O Control Codes
+//
+//   METHOD_BUFFERED
+//    - Input buffer:  Irp->AssociatedIrp.SystemBuffer
+//    - Output buffer: Irp->AssociatedIrp.SystemBuffer
+//
+//   METHOD_IN_DIRECT or METHOD_OUT_DIRECT
+//    - Input buffer:  Irp->AssociatedIrp.SystemBuffer
+//    - Second buffer: Irp->MdlAddress
+//
+//   METHOD_NEITHER
+//    - Input buffer:  Parameters.DeviceIoControl.Type3InputBuffer;
+//    - Output buffer: Irp->UserBuffer
+//
+// HID minidriver IOCTL stores a pointer to HID_XFER_PACKET in Irp->UserBuffer.
+// For IOCTLs like IOCTL_HID_GET_FEATURE (which is METHOD_OUT_DIRECT) this is
+// not the expected buffer location. So we cannot retrieve UserBuffer from the
+// IRP using WdfRequestXxx functions. Instead, we have to escape to WDM.
+//
+
+NTSTATUS
+RequestGetHidXferPacket_ToReadFromDevice(
+    _In_  WDFREQUEST        Request,
+    _Out_ HID_XFER_PACKET  *Packet
+    )
+{
+    NTSTATUS                status;
+    WDF_REQUEST_PARAMETERS  params;
+
+    WDF_REQUEST_PARAMETERS_INIT(&params);
+    WdfRequestGetParameters(Request, &params);
+
+    if (params.Parameters.DeviceIoControl.OutputBufferLength < sizeof(HID_XFER_PACKET)) {
+        status = STATUS_BUFFER_TOO_SMALL;
+        KdPrint(("RequestGetHidXferPacket: invalid HID_XFER_PACKET\n"));
+        return status;
+    }
+
+    RtlCopyMemory(Packet, WdfRequestWdmGetIrp(Request)->UserBuffer, sizeof(HID_XFER_PACKET));
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS
+RequestGetHidXferPacket_ToWriteToDevice(
+    _In_  WDFREQUEST        Request,
+    _Out_ HID_XFER_PACKET  *Packet
+    )
+{
+    NTSTATUS                status;
+    WDF_REQUEST_PARAMETERS  params;
+
+    WDF_REQUEST_PARAMETERS_INIT(&params);
+    WdfRequestGetParameters(Request, &params);
+
+    if (params.Parameters.DeviceIoControl.InputBufferLength < sizeof(HID_XFER_PACKET)) {
+        status = STATUS_BUFFER_TOO_SMALL;
+        KdPrint(("RequestGetHidXferPacket: invalid HID_XFER_PACKET\n"));
+        return status;
+    }
+
+    RtlCopyMemory(Packet, WdfRequestWdmGetIrp(Request)->UserBuffer, sizeof(HID_XFER_PACKET));
+    return STATUS_SUCCESS;
+}
+
+#else
+
+//
+// HID minidriver IOCTL uses HID_XFER_PACKET which contains an embedded pointer.
+//
+//   typedef struct _HID_XFER_PACKET {
+//     PUCHAR reportBuffer;
+//     ULONG  reportBufferLen;
+//     UCHAR  reportId;
+//   } HID_XFER_PACKET, *PHID_XFER_PACKET;
+//
+// UMDF cannot handle embedded pointers when marshalling buffers between processes.
+// Therefore a special driver mshidumdf.sys is introduced to convert such IRPs to
+// new IRPs (with new IOCTL name like IOCTL_UMDF_HID_Xxxx) where:
+//
+//   reportBuffer - passed as one buffer inside the IRP
+//   reportId     - passed as a second buffer inside the IRP
+//
+// The new IRP is then passed to UMDF host and driver for further processing.
+//
+
+NTSTATUS
+RequestGetHidXferPacket_ToReadFromDevice(
+    _In_  WDFREQUEST        Request,
+    _Out_ HID_XFER_PACKET  *Packet
+    )
+{
+    //
+    // Driver need to write to the output buffer (so that App can read from it)
+    //
+    //   Report Buffer: Output Buffer
+    //   Report Id    : Input Buffer
+    //
+
+    NTSTATUS                status;
+    WDFMEMORY               inputMemory;
+    WDFMEMORY               outputMemory;
+    size_t                  inputBufferLength;
+    size_t                  outputBufferLength;
+    PVOID                   inputBuffer;
+    PVOID                   outputBuffer;
+
+    //
+    // Get report Id from input buffer
+    //
+    status = WdfRequestRetrieveInputMemory(Request, &inputMemory);
+    if( !NT_SUCCESS(status) ) {
+        KdPrint(("WdfRequestRetrieveInputMemory failed 0x%x\n",status));
+        return status;
+    }
+    inputBuffer = WdfMemoryGetBuffer(inputMemory, &inputBufferLength);
+
+    if (inputBufferLength < sizeof(UCHAR)) {
+        status = STATUS_INVALID_BUFFER_SIZE;
+        KdPrint(("WdfRequestRetrieveInputMemory: invalid input buffer. size %d, expect %d\n",
+                            (int)inputBufferLength, (int)sizeof(UCHAR)));
+        return status;
+    }
+
+    Packet->reportId        = *(PUCHAR)inputBuffer;
+
+    //
+    // Get report buffer from output buffer
+    //
+    status = WdfRequestRetrieveOutputMemory(Request, &outputMemory);
+    if( !NT_SUCCESS(status) ) {
+        KdPrint(("WdfRequestRetrieveOutputMemory failed 0x%x\n",status));
+        return status;
+    }
+
+    outputBuffer = WdfMemoryGetBuffer(outputMemory, &outputBufferLength);
+
+    Packet->reportBuffer    = (PUCHAR) outputBuffer;
+    Packet->reportBufferLen = (ULONG)  outputBufferLength;
+
+    return status;
+}
+
+NTSTATUS
+RequestGetHidXferPacket_ToWriteToDevice(
+    _In_  WDFREQUEST        Request,
+    _Out_ HID_XFER_PACKET  *Packet
+    )
+{
+    //
+    // Driver need to read from the input buffer (which was written by App)
+    //
+    //   Report Buffer: Input Buffer
+    //   Report Id    : Output Buffer Length
+    //
+    // Note that the report id is not stored inside the output buffer, as the
+    // driver has no read-access right to the output buffer, and trying to read
+    // from the buffer will cause an access violation error.
+    //
+    // The workaround is to store the report id in the OutputBufferLength field,
+    // to which the driver does have read-access right.
+    //
+
+    NTSTATUS                status;
+    WDFMEMORY               inputMemory;
+    WDFMEMORY               outputMemory;
+    size_t                  inputBufferLength;
+    size_t                  outputBufferLength;
+    PVOID                   inputBuffer;
+
+    //
+    // Get report Id from output buffer length
+    //
+    status = WdfRequestRetrieveOutputMemory(Request, &outputMemory);
+    if( !NT_SUCCESS(status) ) {
+        KdPrint(("WdfRequestRetrieveOutputMemory failed 0x%x\n",status));
+        return status;
+    }
+    WdfMemoryGetBuffer(outputMemory, &outputBufferLength);
+    Packet->reportId        = (UCHAR) outputBufferLength;
+
+    //
+    // Get report buffer from input buffer
+    //
+    status = WdfRequestRetrieveInputMemory(Request, &inputMemory);
+    if( !NT_SUCCESS(status) ) {
+        KdPrint(("WdfRequestRetrieveInputMemory failed 0x%x\n",status));
+        return status;
+    }
+    inputBuffer = WdfMemoryGetBuffer(inputMemory, &inputBufferLength);
+
+    Packet->reportBuffer    = (PUCHAR) inputBuffer;
+    Packet->reportBufferLen = (ULONG)  inputBufferLength;
+
+    return status;
+}
+
+#endif
+
+NTSTATUS
+RequestCopyFromBuffer(
+    _In_  WDFREQUEST        Request,
+    _In_  PVOID             SourceBuffer,
+    _When_(NumBytesToCopyFrom == 0, __drv_reportError(NumBytesToCopyFrom cannot be zero))
+    _In_  size_t            NumBytesToCopyFrom
+    )
+/*++
+
+Routine Description:
+
+    A helper function to copy specified bytes to the request's output memory
+
+Arguments:
+
+    Request - A handle to a framework request object.
+
+    SourceBuffer - The buffer to copy data from.
+
+    NumBytesToCopyFrom - The length, in bytes, of data to be copied.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS                status;
+    WDFMEMORY               memory;
+    size_t                  outputBufferLength;
+DbgBreakPoint();
+    status = WdfRequestRetrieveOutputMemory(Request, &memory);
+    if( !NT_SUCCESS(status) ) {
+        KdPrint(("WdfRequestRetrieveOutputMemory failed 0x%x\n",status));
+        return status;
+    }
+
+    WdfMemoryGetBuffer(memory, &outputBufferLength);
+    if (outputBufferLength < NumBytesToCopyFrom) {
+        status = STATUS_INVALID_BUFFER_SIZE;
+        KdPrint(("RequestCopyFromBuffer: buffer too small. Size %d, expect %d\n",
+                (int)outputBufferLength, (int)NumBytesToCopyFrom));
+        return status;
+    }
+
+    status = WdfMemoryCopyFromBuffer(memory,
+                                    0,
+                                    SourceBuffer,
+                                    NumBytesToCopyFrom);
+    if( !NT_SUCCESS(status) ) {
+        KdPrint(("WdfMemoryCopyFromBuffer failed 0x%x\n",status));
+        return status;
+    }
+
+    WdfRequestSetInformation(Request, NumBytesToCopyFrom);
+    return status;
+}
+
 EVT_WDF_TIMER VirtualHidDeviceMini_EvtTimerHandler;
 
 void
 VirtualHidDeviceMini_EvtTimerHandler(
-    _In_  WDFTIMER          Timer
+    _In_ WDFTIMER Timer
     )
 /*++
 Routine Description:
@@ -105,31 +365,35 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDFQUEUE queue;
-    MANUAL_QUEUE_CONTEXT* queueContext;
     WDFREQUEST request;
-#if 0
-    HIDMINI_INPUT_REPORT readReport;
-#endif
-
-    queue = (WDFQUEUE)WdfTimerGetParentObject(Timer);
-    queueContext = ManualQueueContextGet(queue);
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
+    UCHAR* readReport;
+    ULONG readReportSize;
+DbgBreakPoint();
+    dmfModule = (DMFMODULE)WdfTimerGetParentObject(Timer);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModule);
 
     // See if we have a request in manual queue.
     //
-    ntStatus = WdfIoQueueRetrieveNextRequest(queueContext->Queue,
+    ntStatus = WdfIoQueueRetrieveNextRequest(moduleContext->ManualQueue,
                                              &request);
     if (NT_SUCCESS(ntStatus))
     {
-#if 0
-        readReport.ReportId = CONTROL_FEATURE_REPORT_ID;
-        readReport.Data     = queueContext->DeviceContext->DeviceData;
+        ntStatus = moduleConfig->RetrieveNextInputReport(dmfModule,
+                                                         &readReport,
+                                                         &readReportSize);
+        if (NT_SUCCESS(ntStatus))
+        {
+            ntStatus = RequestCopyFromBuffer(request,
+                                             readReport,
+                                             readReportSize);
+        }
 
-        ntStatus = RequestCopyFromBuffer(request,
-                            &readReport,
-                            sizeof(readReport));
-#endif
-        WdfRequestComplete(request, ntStatus);
+        WdfRequestComplete(request,
+                           ntStatus);
     }
 }
 
@@ -187,7 +451,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES timerAttributes;
     ULONG timerPeriodInSeconds = 5;
     WDFDEVICE device;
-
+DbgBreakPoint();
     device = DMF_ParentDeviceGet(DmfModule);
 
     WDF_IO_QUEUE_CONFIG_INIT(
@@ -218,7 +482,7 @@ Return Value:
                             timerPeriodInSeconds * 1000);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&timerAttributes);
-    timerAttributes.ParentObject = queue;
+    timerAttributes.ParentObject = DmfModule;
     ntStatus = WdfTimerCreate(&timerConfig,
                               &timerAttributes,
                               &queueContext->Timer);
@@ -237,70 +501,6 @@ Return Value:
 Exit:
 
     return ntStatus;
-}
-
-
-
-
-
-
-
-NTSTATUS
-RequestCopyFromBuffer(
-    _In_  WDFREQUEST        Request,
-    _In_  PVOID             SourceBuffer,
-    _When_(NumBytesToCopyFrom == 0, __drv_reportError(NumBytesToCopyFrom cannot be zero))
-    _In_  size_t            NumBytesToCopyFrom
-    )
-/*++
-
-Routine Description:
-
-    A helper function to copy specified bytes to the request's output memory
-
-Arguments:
-
-    Request - A handle to a framework request object.
-
-    SourceBuffer - The buffer to copy data from.
-
-    NumBytesToCopyFrom - The length, in bytes, of data to be copied.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS                status;
-    WDFMEMORY               memory;
-    size_t                  outputBufferLength;
-
-    status = WdfRequestRetrieveOutputMemory(Request, &memory);
-    if( !NT_SUCCESS(status) ) {
-        KdPrint(("WdfRequestRetrieveOutputMemory failed 0x%x\n",status));
-        return status;
-    }
-
-    WdfMemoryGetBuffer(memory, &outputBufferLength);
-    if (outputBufferLength < NumBytesToCopyFrom) {
-        status = STATUS_INVALID_BUFFER_SIZE;
-        KdPrint(("RequestCopyFromBuffer: buffer too small. Size %d, expect %d\n",
-                (int)outputBufferLength, (int)NumBytesToCopyFrom));
-        return status;
-    }
-
-    status = WdfMemoryCopyFromBuffer(memory,
-                                    0,
-                                    SourceBuffer,
-                                    NumBytesToCopyFrom);
-    if( !NT_SUCCESS(status) ) {
-        KdPrint(("WdfMemoryCopyFromBuffer failed 0x%x\n",status));
-        return status;
-    }
-
-    WdfRequestSetInformation(Request, NumBytesToCopyFrom);
-    return status;
 }
 
 NTSTATUS
@@ -337,14 +537,15 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
-
+DbgBreakPoint();
     KdPrint(("ReadReport\n"));
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
     //
     // forward the request to manual queue
     //
     ntStatus = WdfRequestForwardToIoQueue(Request,
-                                        moduleContext->ManualQueue);
+                                          moduleContext->ManualQueue);
     if (! NT_SUCCESS(ntStatus)) 
     {
         KdPrint(("WdfRequestForwardToIoQueue failed with 0x%x\n", ntStatus));
@@ -359,9 +560,9 @@ Return Value:
 }
 
 NTSTATUS
-WriteReport(
-    _In_  PQUEUE_CONTEXT    QueueContext,
-    _In_  WDFREQUEST        Request
+VirtualHidDeviceMini_WriteReport(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
     )
 /*++
 
@@ -377,65 +578,51 @@ Arguments:
 
 Return Value:
 
-    NT status code.
+    NT ntStatus code.
 
 --*/
 
 {
-    NTSTATUS                status;
-    HID_XFER_PACKET         packet;
-    ULONG                   reportSize;
-    PHIDMINI_OUTPUT_REPORT  outputReport;
-
+    NTSTATUS ntStatus;
+    HID_XFER_PACKET packet;
+    ULONG reportSize;
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
+DbgBreakPoint();
     KdPrint(("WriteReport\n"));
 
-    status = RequestGetHidXferPacket_ToWriteToDevice(
-                            Request,
-                            &packet);
-    if( !NT_SUCCESS(status) ) {
-        return status;
+    ntStatus = RequestGetHidXferPacket_ToWriteToDevice(Request,
+                                                       &packet);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        return ntStatus;
     }
 
-    if (packet.reportId != CONTROL_COLLECTION_REPORT_ID) {
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ntStatus = moduleConfig->WriteReport(DmfModule,
+                                        &packet,
+                                        &reportSize);
+    if (STATUS_PENDING == ntStatus)
+    {
+        // The Client will complete the request asynchronously.
         //
-        // Return error for unknown collection
+    }
+    else
+    {
+        // Complete the request on behalf of the Client.
         //
-        status = STATUS_INVALID_PARAMETER;
-        KdPrint(("WriteReport: unkown report id %d\n", packet.reportId));
-        return status;
+        WdfRequestSetInformation(Request,
+                                 reportSize);
     }
 
-    //
-    // before touching buffer make sure buffer is big enough.
-    //
-    reportSize = sizeof(HIDMINI_OUTPUT_REPORT);
-
-    if (packet.reportBufferLen < reportSize) {
-        status = STATUS_INVALID_BUFFER_SIZE;
-        KdPrint(("WriteReport: invalid input buffer. size %d, expect %d\n",
-                            packet.reportBufferLen, reportSize));
-        return status;
-    }
-
-    outputReport = (PHIDMINI_OUTPUT_REPORT)packet.reportBuffer;
-
-    //
-    // Store the device data in device extension.
-    //
-    QueueContext->DeviceContext->DeviceData = outputReport->Data;
-
-    //
-    // set status and information
-    //
-    WdfRequestSetInformation(Request, reportSize);
-    return status;
+    return ntStatus;
 }
 
 
 HRESULT
-GetFeature(
-    _In_  PQUEUE_CONTEXT    QueueContext,
-    _In_  WDFREQUEST        Request
+VirtualHidDeviceMini_GetFeature(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
     )
 /*++
 
@@ -451,79 +638,51 @@ Arguments:
 
 Return Value:
 
-    NT status code.
+    NT ntStatus code.
 
 --*/
 {
-    NTSTATUS                status;
-    HID_XFER_PACKET         packet;
-    ULONG                   reportSize;
-    PMY_DEVICE_ATTRIBUTES   myAttributes;
-    PHID_DEVICE_ATTRIBUTES  hidAttributes = &QueueContext->DeviceContext->HidDeviceAttributes;
-
+    NTSTATUS ntStatus;
+    HID_XFER_PACKET packet;
+    ULONG reportSize;
+    DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
+DbgBreakPoint();
     KdPrint(("GetFeature\n"));
 
-    status = RequestGetHidXferPacket_ToReadFromDevice(
-                            Request,
-                            &packet);
-    if( !NT_SUCCESS(status) ) {
-        return status;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ntStatus = RequestGetHidXferPacket_ToReadFromDevice(Request,
+                                                     &packet);
+    if (!NT_SUCCESS(ntStatus)) 
+    {
+        return ntStatus;
     }
 
-    if (packet.reportId != CONTROL_COLLECTION_REPORT_ID) {
+    ntStatus = moduleConfig->GetFeature(DmfModule,
+                                      &packet,
+                                      &reportSize);
+    if (STATUS_PENDING == ntStatus)
+    {
+        // The Client will complete the request asynchronously.
         //
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
+    }
+    else
+    {
+        // Complete the request on behalf of the Client.
         //
-        status = STATUS_INVALID_PARAMETER;
-        KdPrint(("GetFeature: invalid report id %d\n", packet.reportId));
-        return status;
+        WdfRequestSetInformation(Request,
+                                 reportSize);
     }
 
-    //
-    // Since output buffer is for write only (no read allowed by UMDF in output
-    // buffer), any read from output buffer would be reading garbage), so don't
-    // let app embed custom control code in output buffer. The minidriver can
-    // support multiple features using separate report ID instead of using
-    // custom control code. Since this is targeted at report ID 1, we know it
-    // is a request for getting attributes.
-    //
-    // While KMDF does not enforce the rule (disallow read from output buffer),
-    // it is good practice to not do so.
-    //
-
-    reportSize = sizeof(MY_DEVICE_ATTRIBUTES) + sizeof(packet.reportId);
-    if (packet.reportBufferLen < reportSize) {
-        status = STATUS_INVALID_BUFFER_SIZE;
-        KdPrint(("GetFeature: output buffer too small. Size %d, expect %d\n",
-                            packet.reportBufferLen, reportSize));
-        return status;
-    }
-
-    //
-    // Since this device has one report ID, hidclass would pass on the report
-    // ID in the buffer (it wouldn't if report descriptor did not have any report
-    // ID). However, since UMDF allows only writes to an output buffer, we can't
-    // "read" the report ID from "output" buffer. There is no need to read the
-    // report ID since we get it other way as shown above, however this is
-    // something to keep in mind.
-    //
-    myAttributes = (PMY_DEVICE_ATTRIBUTES)(packet.reportBuffer + sizeof(packet.reportId));
-    myAttributes->ProductID     = hidAttributes->ProductID;
-    myAttributes->VendorID      = hidAttributes->VendorID;
-    myAttributes->VersionNumber = hidAttributes->VersionNumber;
-
-    //
-    // Report how many bytes were copied
-    //
-    WdfRequestSetInformation(Request, reportSize);
-    return status;
+    return ntStatus;
 }
 
 NTSTATUS
-SetFeature(
-    _In_  PQUEUE_CONTEXT    QueueContext,
-    _In_  WDFREQUEST        Request
+VirtualHidDeviceMini_SetFeature(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
     )
 /*++
 
@@ -541,89 +700,51 @@ Arguments:
 
 Return Value:
 
-    NT status code.
+    NT ntStatus code.
 
 --*/
 {
-    NTSTATUS                status;
-    HID_XFER_PACKET         packet;
-    ULONG                   reportSize;
-    PHIDMINI_CONTROL_INFO   controlInfo;
-    PHID_DEVICE_ATTRIBUTES  hidAttributes = &QueueContext->DeviceContext->HidDeviceAttributes;
-
+    NTSTATUS ntStatus;
+    HID_XFER_PACKET packet;
+    ULONG reportSize;
+    DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
+DbgBreakPoint();
     KdPrint(("SetFeature\n"));
 
-    status = RequestGetHidXferPacket_ToWriteToDevice(
-                            Request,
-                            &packet);
-    if( !NT_SUCCESS(status) ) {
-        return status;
-    }
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    if (packet.reportId != CONTROL_COLLECTION_REPORT_ID) {
-        //
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
-        //
-        status = STATUS_INVALID_PARAMETER;
-        KdPrint(("SetFeature: invalid report id %d\n", packet.reportId));
-        return status;
-    }
-
-    //
-    // before touching control code make sure buffer is big enough.
-    //
-    reportSize = sizeof(HIDMINI_CONTROL_INFO);
-
-    if (packet.reportBufferLen < reportSize) {
-        status = STATUS_INVALID_BUFFER_SIZE;
-        KdPrint(("SetFeature: invalid input buffer. size %d, expect %d\n",
-                            packet.reportBufferLen, reportSize));
-        return status;
-    }
-
-    controlInfo = (PHIDMINI_CONTROL_INFO)packet.reportBuffer;
-
-    switch(controlInfo->ControlCode)
+    ntStatus = RequestGetHidXferPacket_ToWriteToDevice(Request,
+                                                     &packet);
+    if( !NT_SUCCESS(ntStatus) ) 
     {
-    case HIDMINI_CONTROL_CODE_SET_ATTRIBUTES:
-        //
-        // Store the device attributes in device extension
-        //
-        hidAttributes->ProductID     = controlInfo->u.Attributes.ProductID;
-        hidAttributes->VendorID      = controlInfo->u.Attributes.VendorID;
-        hidAttributes->VersionNumber = controlInfo->u.Attributes.VersionNumber;
-
-        //
-        // set status and information
-        //
-        WdfRequestSetInformation(Request, reportSize);
-        break;
-
-    case HIDMINI_CONTROL_CODE_DUMMY1:
-        status = STATUS_NOT_IMPLEMENTED;
-        KdPrint(("SetFeature: HIDMINI_CONTROL_CODE_DUMMY1\n"));
-        break;
-
-    case HIDMINI_CONTROL_CODE_DUMMY2:
-        status = STATUS_NOT_IMPLEMENTED;
-        KdPrint(("SetFeature: HIDMINI_CONTROL_CODE_DUMMY2\n"));
-        break;
-
-    default:
-        status = STATUS_NOT_IMPLEMENTED;
-        KdPrint(("SetFeature: Unknown control Code 0x%x\n",
-                            controlInfo->ControlCode));
-        break;
+        return ntStatus;
     }
 
-    return status;
+    ntStatus = moduleConfig->SetFeature(DmfModule,
+                                      &packet,
+                                      &reportSize);
+    if (STATUS_PENDING == ntStatus)
+    {
+        // The Client will complete the request asynchronously.
+        //
+    }
+    else
+    {
+        // Complete the request on behalf of the Client.
+        //
+        WdfRequestSetInformation(Request,
+                                 reportSize);
+    }
+
+    return ntStatus;
 }
 
 NTSTATUS
-GetInputReport(
-    _In_  PQUEUE_CONTEXT    QueueContext,
-    _In_  WDFREQUEST        Request
+VirtualHidDeviceMini_GetInputReport(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
     )
 /*++
 
@@ -639,59 +760,52 @@ Arguments:
 
 Return Value:
 
-    NT status code.
+    NT ntStatus code.
 
 --*/
 {
-    NTSTATUS                status;
-    HID_XFER_PACKET         packet;
-    ULONG                   reportSize;
-    PHIDMINI_INPUT_REPORT   reportBuffer;
-
+    NTSTATUS ntStatus;
+    HID_XFER_PACKET packet;
+    ULONG reportSize;
+    DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
+DbgBreakPoint();
     KdPrint(("GetInputReport\n"));
 
-    status = RequestGetHidXferPacket_ToReadFromDevice(
-                            Request,
-                            &packet);
-    if( !NT_SUCCESS(status) ) {
-        return status;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ntStatus = RequestGetHidXferPacket_ToReadFromDevice(Request,
+                                                      &packet);
+    if( !NT_SUCCESS(ntStatus) )
+    {
+        return ntStatus;
     }
 
-    if (packet.reportId != CONTROL_COLLECTION_REPORT_ID) {
+    ntStatus = moduleConfig->GetInputReport(DmfModule,
+                                          &packet,
+                                          &reportSize);
+    if (STATUS_PENDING == ntStatus)
+    {
+        // The Client will complete the request asynchronously.
         //
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
+    }
+    else
+    {
+        // Complete the request on behalf of the Client.
         //
-        status = STATUS_INVALID_PARAMETER;
-        KdPrint(("GetInputReport: invalid report id %d\n", packet.reportId));
-        return status;
+        WdfRequestSetInformation(Request,
+                                 reportSize);
     }
 
-    reportSize = sizeof(HIDMINI_INPUT_REPORT);
-    if (packet.reportBufferLen < reportSize) {
-        status = STATUS_INVALID_BUFFER_SIZE;
-        KdPrint(("GetInputReport: output buffer too small. Size %d, expect %d\n",
-                            packet.reportBufferLen, reportSize));
-        return status;
-    }
-
-    reportBuffer = (PHIDMINI_INPUT_REPORT)(packet.reportBuffer);
-
-    reportBuffer->ReportId = CONTROL_COLLECTION_REPORT_ID;
-    reportBuffer->Data     = QueueContext->OutputReport;
-
-    //
-    // Report how many bytes were copied
-    //
-    WdfRequestSetInformation(Request, reportSize);
-    return status;
+    return ntStatus;
 }
 
 
 NTSTATUS
-SetOutputReport(
-    _In_  PQUEUE_CONTEXT    QueueContext,
-    _In_  WDFREQUEST        Request
+VirtualHidDeviceMini_SetOutputReport(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
     )
 /*++
 
@@ -707,57 +821,46 @@ Arguments:
 
 Return Value:
 
-    NT status code.
+    NT ntStatus code.
 
 --*/
 {
-    NTSTATUS                status;
+    NTSTATUS                ntStatus;
     HID_XFER_PACKET         packet;
     ULONG                   reportSize;
-    PHIDMINI_OUTPUT_REPORT  reportBuffer;
-
+    DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
+DbgBreakPoint();
     KdPrint(("SetOutputReport\n"));
 
-    status = RequestGetHidXferPacket_ToWriteToDevice(
-                            Request,
-                            &packet);
-    if( !NT_SUCCESS(status) ) {
-        return status;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ntStatus = RequestGetHidXferPacket_ToWriteToDevice(Request,
+                                                     &packet);
+    if ( !NT_SUCCESS(ntStatus) )
+    {
+        return ntStatus;
     }
 
-    if (packet.reportId != CONTROL_COLLECTION_REPORT_ID) {
+    ntStatus = moduleConfig->SetOutputReport(DmfModule,
+                                             &packet,
+                                             &reportSize);
+    if (STATUS_PENDING == ntStatus)
+    {
+        // The Client will complete the request asynchronously.
         //
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
+    }
+    else
+    {
+        // Complete the request on behalf of the Client.
         //
-        status = STATUS_INVALID_PARAMETER;
-        KdPrint(("SetOutputReport: unkown report id %d\n", packet.reportId));
-        return status;
+        WdfRequestSetInformation(Request,
+                                 reportSize);
     }
 
-    //
-    // before touching buffer make sure buffer is big enough.
-    //
-    reportSize = sizeof(HIDMINI_OUTPUT_REPORT);
-
-    if (packet.reportBufferLen < reportSize) {
-        status = STATUS_INVALID_BUFFER_SIZE;
-        KdPrint(("SetOutputReport: invalid input buffer. size %d, expect %d\n",
-                            packet.reportBufferLen, reportSize));
-        return status;
-    }
-
-    reportBuffer = (PHIDMINI_OUTPUT_REPORT)packet.reportBuffer;
-
-    QueueContext->OutputReport = reportBuffer->Data;
-
-    //
-    // Report how many bytes were copied
-    //
-    WdfRequestSetInformation(Request, reportSize);
-    return status;
+    return ntStatus;
 }
-
 
 NTSTATUS
 GetStringId(
@@ -783,7 +886,7 @@ Return Value:
 {
     NTSTATUS                status;
     ULONG                   inputValue;
-
+DbgBreakPoint();
 #ifdef _KERNEL_MODE
 
     WDF_REQUEST_PARAMETERS  requestParameters;
@@ -862,7 +965,6 @@ Return Value:
     return status;
 }
 
-
 NTSTATUS
 VirtualHidDeviceMini_IndexedStringGet(
     _In_ DMFMODULE DmfModule,
@@ -887,7 +989,7 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG languageId, stringIndex;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-
+DbgBreakPoint();
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ntStatus = GetStringId(Request,
@@ -919,7 +1021,6 @@ Exit:
     return ntStatus;
 }
 
-
 NTSTATUS
 VirtualHidDeviceMini_StringGet(
     _In_ DMFMODULE DmfModule,
@@ -947,7 +1048,7 @@ Return Value:
     size_t stringSizeCb;
     PWSTR string;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-
+DbgBreakPoint();
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ntStatus = GetStringId(Request,
@@ -1027,11 +1128,11 @@ Return Value:
 {
     BOOLEAN handled;
     NTSTATUS ntStatus;
-    BOOLEAN completeRequest = TRUE;
-    WDFDEVICE device = WdfIoQueueGetDevice(Queue);
+    BOOLEAN completeRequest;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
-    //QUEUE_CONTEXT* queueContext = QueueContextGet(Queue);
+    DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
 
+DbgBreakPoint();
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(Request);
@@ -1041,12 +1142,14 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    handled = FALSE;
+    handled = TRUE;
+    completeRequest = TRUE;
 
     UNREFERENCED_PARAMETER  (OutputBufferLength);
     UNREFERENCED_PARAMETER  (InputBufferLength);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     switch (IoControlCode)
     {
@@ -1056,8 +1159,8 @@ Return Value:
         //
         _Analysis_assume_(moduleContext->HidDescriptor.bLength != 0);
         ntStatus = RequestCopyFromBuffer(Request,
-                                         &moduleContext->HidDescriptor,
-                                         moduleContext->HidDescriptor.bLength);
+                                         (VOID*)moduleConfig->HidDescriptor,
+                                         moduleConfig->HidDescriptor->bLength);
         break;
 
     case IOCTL_HID_GET_DEVICE_ATTRIBUTES:   // METHOD_NEITHER
@@ -1065,7 +1168,7 @@ Return Value:
         //Retrieves a device's attributes in a HID_DEVICE_ATTRIBUTES structure.
         //
         ntStatus = RequestCopyFromBuffer(Request,
-                                         &moduleContext->HidDeviceAttributes,
+                                         &moduleConfig->HidDeviceAttributes,
                                          sizeof(HID_DEVICE_ATTRIBUTES));
         break;
 
@@ -1074,8 +1177,8 @@ Return Value:
         //Obtains the report descriptor for the HID device.
         //
         ntStatus = RequestCopyFromBuffer(Request,
-                                         moduleContext->ReportDescriptor,
-                                         moduleContext->HidDescriptor.DescriptorList[0].wReportLength);
+                                         (VOID*)moduleConfig->HidReportDescriptor,
+                                         moduleConfig->HidDescriptor->DescriptorList[0].wReportLength);
         break;
 
     case IOCTL_HID_READ_REPORT:             // METHOD_NEITHER
@@ -1089,32 +1192,36 @@ Return Value:
         break;
 
     case IOCTL_HID_WRITE_REPORT:            // METHOD_NEITHER
-        //
         // Transmits a class driver-supplied report to the device.
         //
-        ntStatus = WriteReport(moduleContext, Request);
+        ntStatus = VirtualHidDeviceMini_WriteReport(DmfModule,
+                                                    Request);
         break;
 
 #ifdef _KERNEL_MODE
 
     case IOCTL_HID_GET_FEATURE:             // METHOD_OUT_DIRECT
 
-        ntStatus = GetFeature(moduleContext, Request);
+        ntStatus = VirtualHidDeviceMini_GetFeature(DmfModule,
+                                                   Request);
         break;
 
     case IOCTL_HID_SET_FEATURE:             // METHOD_IN_DIRECT
 
-        ntStatus = SetFeature(moduleContext, Request);
+        ntStatus = VirtualHidDeviceMini_SetFeature(DmfModule,
+                                                   Request);
         break;
 
     case IOCTL_HID_GET_INPUT_REPORT:        // METHOD_OUT_DIRECT
 
-        ntStatus = GetInputReport(moduleContext, Request);
+        ntStatus = VirtualHidDeviceMini_GetInputReport(DmfModule,
+                                                       Request);
         break;
 
     case IOCTL_HID_SET_OUTPUT_REPORT:       // METHOD_IN_DIRECT
 
-        ntStatus = SetOutputReport(moduleContext, Request);
+        ntStatus = VirtualHidDeviceMini_SetOutputReport(DmfModule,
+                                                        Request);
         break;
 
 #else // UMDF specific
@@ -1140,22 +1247,26 @@ Return Value:
 
     case IOCTL_UMDF_HID_GET_FEATURE:        // METHOD_NEITHER
 
-        status = GetFeature(queueContext, Request);
+        ntStatus = VirtualHidDeviceMini_GetFeature(DmfModule,
+                                                   Request);
         break;
 
     case IOCTL_UMDF_HID_SET_FEATURE:        // METHOD_NEITHER
 
-        status = SetFeature(queueContext, Request);
+        ntStatus = VirtualHidDeviceMini_SetFeature(DmfModule,
+                                                   Request);
         break;
 
     case IOCTL_UMDF_HID_GET_INPUT_REPORT:  // METHOD_NEITHER
 
-        status = GetInputReport(queueContext, Request);
+        ntStatus = VirtualHidDeviceMini_GetInputReport(DmfModule,
+                                                       Request);
         break;
 
     case IOCTL_UMDF_HID_SET_OUTPUT_REPORT: // METHOD_NEITHER
 
-        status = SetOutputReport(queueContext, Request);
+        ntStatus = VirtualHidDeviceMini_SetOutputReport(DmfModule,
+                                                        Request);
         break;
 
 #endif // _KERNEL_MODE
@@ -1193,8 +1304,13 @@ Return Value:
         //
         // TODO: Callback Client
         //
-    default:
         ntStatus = STATUS_NOT_IMPLEMENTED;
+        break;
+    default:
+        // Let other Modules handle the IOCTL.
+        //
+        handled = FALSE;
+        ntStatus = STATUS_NOT_SUPPORTED;
         break;
     }
 
@@ -1202,7 +1318,7 @@ Return Value:
     // Complete the request. Information value has already been set by request
     // handlers.
     //
-    if (completeRequest) 
+    if (handled && completeRequest) 
     {
         WdfRequestComplete(Request,
                            ntStatus);
@@ -1253,7 +1369,7 @@ Return Value:
     WDFDEVICE device;
 
     PAGED_CODE();
-
+DbgBreakPoint();
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1262,7 +1378,8 @@ Return Value:
 
     device = DMF_ParentDeviceGet(DmfModule);
 
-Exit:
+
+    ntStatus = STATUS_SUCCESS;
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1295,6 +1412,8 @@ Return Value:
 {
     PAGED_CODE();
 
+    UNREFERENCED_PARAMETER(DmfModule);
+DbgBreakPoint();
     FuncEntry(DMF_TRACE);
 
     FuncExitVoid(DMF_TRACE);
@@ -1339,7 +1458,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidDeviceMini;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidDeviceMini;
     DMF_CALLBACKS_WDF dmfCallbacksWdf_VirtualHidDeviceMini;
-
+DbgBreakPoint();
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
@@ -1349,8 +1468,8 @@ Return Value:
     dmfCallbacksDmf_VirtualHidDeviceMini.DeviceClose = DMF_VirtualHidDeviceMini_Close;
 
     DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_VirtualHidDeviceMini);
-#if defined(DMF_USER+MODE)
-    dmfCallbacksWdf_VirtualHidDeviceMini.ModuleDeviceIoControl = DMF_VirtualHidDeviceMIni_ModuleDeviceIoControl;
+#if defined(DMF_USER_MODE)
+    dmfCallbacksWdf_VirtualHidDeviceMini.ModuleDeviceIoControl = DMF_VirtualHidDeviceMini_ModuleDeviceIoControl;
 #else
     dmfCallbacksWdf_VirtualHidDeviceMini.ModuleInternalDeviceIoControl = DMF_VirtualHidDeviceMini_ModuleDeviceIoControl;
 #endif

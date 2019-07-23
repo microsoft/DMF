@@ -186,6 +186,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Trace.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c" />
@@ -207,6 +208,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.c" />
   </ItemGroup>
   <ItemGroup>
     <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc" />
@@ -233,6 +235,7 @@
     <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_Thread.md" />
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

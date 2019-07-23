@@ -73,6 +73,15 @@
     <Filter Include="Documentation\Interfaces">
       <UniqueIdentifier>{c79a811d-46a2-4cc5-ba71-cab21bf0cecb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\Hid">
+      <UniqueIdentifier>{f0d36889-937a-43bf-93e7-025f74658c89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Hid">
+      <UniqueIdentifier>{a62a8d05-e647-4911-8ad1-c45e1f6fc526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Hid">
+      <UniqueIdentifier>{582b9131-0552-4ef9-b918-6feb48c4e820}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h">
@@ -144,6 +153,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_File.h">
       <Filter>Headers\Modules\Driver Patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -202,6 +214,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_File.c">
       <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.c">
+      <Filter>Modules\Hid</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -271,6 +286,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_File.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidDeviceMini.md">
+      <Filter>Documentation\Modules\Hid</Filter>
     </None>
   </ItemGroup>
 </Project>

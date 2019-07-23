@@ -294,6 +294,7 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_OsrFx2_Public.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportA.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportB.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidDeviceMiniSample.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.c" />
@@ -307,12 +308,14 @@
     <ClCompile Include="..\..\Modules.Template\Dmf_OsrFx2.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyTransportA.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyTransportB.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidDeviceMiniSample.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Template\Dmf_LegacyProtocol.md" />
     <None Include="..\..\Modules.Template\Dmf_LegacyTransportA.md" />
     <None Include="..\..\Modules.Template\Dmf_LegacyTransportB.md" />
     <None Include="..\..\Modules.Template\Dmf_NonPnp.md" />
+    <None Include="..\..\Modules.Template\Dmf_VirtualHidDeviceMiniSample.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
