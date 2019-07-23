@@ -247,7 +247,7 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG reportSize;
     HIDMINI_OUTPUT_REPORT* outputReport;
-DbgBreakPoint();
+
     KdPrint(("WriteReport\n"));
 
     if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
@@ -316,7 +316,7 @@ Return Value:
     ULONG reportSize;
     MY_DEVICE_ATTRIBUTES* myAttributes;
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
-DbgBreakPoint();
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     PHID_DEVICE_ATTRIBUTES  hidAttributes = &moduleContext->HidDeviceAttributes;
@@ -407,7 +407,7 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG reportSize;
     HIDMINI_CONTROL_INFO* controlInfo;
-DbgBreakPoint();
+
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     
@@ -504,7 +504,7 @@ Return Value:
     NTSTATUS                ntStatus;
     ULONG                   reportSize;
     HIDMINI_INPUT_REPORT*   reportBuffer;
-DbgBreakPoint();
+
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -572,7 +572,7 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG reportSize;
     HIDMINI_OUTPUT_REPORT* reportBuffer;
-DbgBreakPoint();
+
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -685,7 +685,7 @@ Return Value:
     DMF_CONFIG_VirtualHidDeviceMini virtualHidDeviceMiniModuleConfig;
 
     PAGED_CODE();
-DbgBreakPoint();
+
     FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
@@ -776,7 +776,7 @@ Return Value:
     DMF_CONTEXT_VirtualHidDeviceMiniSample* moduleContext;
 
     PAGED_CODE();
-DbgBreakPoint();
+
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -819,7 +819,7 @@ Return Value:
 --*/
 {
     PAGED_CODE();
-DbgBreakPoint();
+
     UNREFERENCED_PARAMETER(DmfModule);
 
     FuncEntry(DMF_TRACE);
@@ -865,7 +865,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidDeviceMiniSample;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidDeviceMiniSample;
-DbgBreakPoint();
+
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);

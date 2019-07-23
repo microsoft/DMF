@@ -314,7 +314,7 @@ Return Value:
     NTSTATUS                status;
     WDFMEMORY               memory;
     size_t                  outputBufferLength;
-DbgBreakPoint();
+
     status = WdfRequestRetrieveOutputMemory(Request, &memory);
     if( !NT_SUCCESS(status) ) {
         KdPrint(("WdfRequestRetrieveOutputMemory failed 0x%x\n",status));
@@ -371,7 +371,7 @@ Return Value:
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
     UCHAR* readReport;
     ULONG readReportSize;
-DbgBreakPoint();
+
     dmfModule = (DMFMODULE)WdfTimerGetParentObject(Timer);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
@@ -451,7 +451,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES timerAttributes;
     ULONG timerPeriodInSeconds = 5;
     WDFDEVICE device;
-DbgBreakPoint();
+
     device = DMF_ParentDeviceGet(DmfModule);
 
     WDF_IO_QUEUE_CONFIG_INIT(
@@ -537,7 +537,7 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
-DbgBreakPoint();
+
     KdPrint(("ReadReport\n"));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -587,7 +587,7 @@ Return Value:
     HID_XFER_PACKET packet;
     ULONG reportSize;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+
     KdPrint(("WriteReport\n"));
 
     ntStatus = RequestGetHidXferPacket_ToWriteToDevice(Request,
@@ -647,7 +647,7 @@ Return Value:
     ULONG reportSize;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+
     KdPrint(("GetFeature\n"));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -709,7 +709,7 @@ Return Value:
     ULONG reportSize;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+
     KdPrint(("SetFeature\n"));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -769,7 +769,7 @@ Return Value:
     ULONG reportSize;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+
     KdPrint(("GetInputReport\n"));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -830,7 +830,7 @@ Return Value:
     ULONG                   reportSize;
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+;
     KdPrint(("SetOutputReport\n"));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -886,7 +886,7 @@ Return Value:
 {
     NTSTATUS                status;
     ULONG                   inputValue;
-DbgBreakPoint();
+
 #ifdef _KERNEL_MODE
 
     WDF_REQUEST_PARAMETERS  requestParameters;
@@ -989,7 +989,7 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG languageId, stringIndex;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ntStatus = GetStringId(Request,
@@ -1048,7 +1048,7 @@ Return Value:
     size_t stringSizeCb;
     PWSTR string;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
-DbgBreakPoint();
+
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ntStatus = GetStringId(Request,
@@ -1132,7 +1132,6 @@ Return Value:
     DMF_CONTEXT_VirtualHidDeviceMini* moduleContext;
     DMF_CONFIG_VirtualHidDeviceMini* moduleConfig;
 
-DbgBreakPoint();
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(Request);
@@ -1369,7 +1368,7 @@ Return Value:
     WDFDEVICE device;
 
     PAGED_CODE();
-DbgBreakPoint();
+
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1413,7 +1412,7 @@ Return Value:
     PAGED_CODE();
 
     UNREFERENCED_PARAMETER(DmfModule);
-DbgBreakPoint();
+
     FuncEntry(DMF_TRACE);
 
     FuncExitVoid(DMF_TRACE);
@@ -1458,7 +1457,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_VirtualHidDeviceMini;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_VirtualHidDeviceMini;
     DMF_CALLBACKS_WDF dmfCallbacksWdf_VirtualHidDeviceMini;
-DbgBreakPoint();
+
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
