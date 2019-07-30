@@ -89,6 +89,26 @@ extern "C"
 #include <stdlib.h>
 #include <sal.h>
 #if defined(DMF_USER_MODE)
+    #include <windows.h>
+    #include <stdio.h>
+    #include <wdf.h>
+    #include <Objbase.h>
+    // NOTE: This file includes poclass.h. Do not include that again
+    //       otherwise, redefinition errors will occur.
+    //
+    #include <batclass.h>
+    #include <hidclass.h>
+    #include <powrprof.h>
+    #include <usbiodef.h>
+    #include <cguid.h>
+    #include <guiddef.h>
+    #include <wdmguid.h>
+    #include <cfgmgr32.h>
+    #include <ndisguid.h>
+    #include <strsafe.h>
+    #include <ndisguid.h>
+    // TODO: Add support for USB in User Mode drivers.
+    //
     // Turn this on to debug asserts in UMDF.
     // Normal assert() causes a crash in UMDF which causes UMDF to just disable the driver
     // without showing what assert failed.
@@ -117,26 +137,6 @@ extern "C"
             #define ASSERT(X) (VOID(0))
         #endif // !defined(ASSERT)
     #endif // defined(DEBUG)
-    #include <windows.h>
-    #include <stdio.h>
-    #include <wdf.h>
-    #include <Objbase.h>
-    // NOTE: This file includes poclass.h. Do not include that again
-    //       otherwise, redefinition errors will occur.
-    //
-    #include <batclass.h>
-    #include <hidclass.h>
-    #include <powrprof.h>
-    #include <usbiodef.h>
-    #include <cguid.h>
-    #include <guiddef.h>
-    #include <wdmguid.h>
-    #include <cfgmgr32.h>
-    #include <ndisguid.h>
-    #include <strsafe.h>
-    #include <ndisguid.h>
-    // TODO: Add support for USB in User Mode drivers.
-    //
 #else
     #include <ntifs.h>
     #include <wdm.h>
@@ -254,7 +254,7 @@ DMF_##ModuleName##_Create(                                                      
 __forceinline                                                                                   \
 VOID                                                                                            \
 DMF_##ModuleName##_ATTRIBUTES_INIT(                                                             \
-    _Out_ DMF_MODULE_ATTRIBUTES* Attributes                                                     \
+    _Out_ volatile DMF_MODULE_ATTRIBUTES* Attributes                                            \
     )                                                                                           \
 {                                                                                               \
     DMF_MODULE_ATTRIBUTES_INIT(Attributes,                                                      \
@@ -266,7 +266,7 @@ __forceinline                                                                   
 VOID                                                                                            \
 DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT(                                                  \
     _Out_ DMF_CONFIG_##ModuleName##* ModuleConfig,                                              \
-    _Out_ DMF_MODULE_ATTRIBUTES* ModuleAttributes                                               \
+    _Out_ volatile DMF_MODULE_ATTRIBUTES* ModuleAttributes                                      \
     )                                                                                           \
 {                                                                                               \
     RtlZeroMemory(ModuleConfig,                                                                 \
@@ -349,6 +349,9 @@ typedef struct _DMF_MODULE_ATTRIBUTES
     // are not part of a Module Collection.
     // Dynamic Modules have special code paths so this flag is necessary.
     //
+    BOOLEAN DynamicModuleImmediate;
+    // A flag to indicate if the a Module in the parent path was created dynamically. 
+    //
     BOOLEAN DynamicModule;
     // When a Module Transport is required, this callback must be set so that the 
     // Client can attach Transport Modules.
@@ -366,15 +369,16 @@ typedef struct _DMF_MODULE_ATTRIBUTES
 __forceinline
 VOID
 DMF_MODULE_ATTRIBUTES_INIT(
-    _Out_ DMF_MODULE_ATTRIBUTES* Attributes,
+    _Out_ volatile DMF_MODULE_ATTRIBUTES* Attributes,
     _In_ ULONG SizeOfModuleSpecificConfig
     ) 
 {
-    RtlZeroMemory(Attributes, 
+    RtlZeroMemory((void*)Attributes, 
                   sizeof(DMF_MODULE_ATTRIBUTES));
     Attributes->SizeOfHeader = sizeof(DMF_MODULE_ATTRIBUTES);
     Attributes->SizeOfModuleSpecificConfig = SizeOfModuleSpecificConfig;
     Attributes->ClientModuleInstanceName = DMF_CLIENT_MODULE_INSTANCE_NAME_DEFAULT;
+    Attributes->DynamicModuleImmediate = TRUE;
     Attributes->DynamicModule = TRUE;
     Attributes->ClientCallbacks = NULL;
 }

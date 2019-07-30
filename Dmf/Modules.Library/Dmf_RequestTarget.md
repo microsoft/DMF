@@ -186,6 +186,51 @@ SingleAsynchronousRequestClientContext | A Client specific context that is sent 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_RequestTarget_SendEx
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_RequestTarget_SendEx(
+  _In_ DMFMODULE DmfModule,
+  _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+  _In_ size_t RequestLength,
+  _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+  _In_ size_t ResponseLength,
+  _In_ ContinuousRequestTarget_RequestType RequestType,
+  _In_ ULONG RequestIoctl,
+  _In_ ULONG RequestTimeoutMilliseconds,
+  _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+  _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
+  _In_opt_ VOID* SingleAsynchronousRequestClientContext
+  );
+````
+
+Creates a WDFREQUEST and asynchronously sends it to the DMF_RequestTarget Module instance's WDFIOTARGET.
+Ex version of DMF_RequestTarget_Send, allows the clients to specify ContinuousRequestTarget_CompletionOptions, which controls how completion routine will be called. 
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_RequestTarget Module handle.
+RequestBuffer | The input buffer.
+RequestLength | The size in bytes of the input buffer.
+ResponseBuffer | The output buffer.
+ResponseLength | The size in bytes of the output buffer.
+RequestType | Indicates the type of request to send to the underlying WDFIOTARGET.
+RequestIoctl | The IOCTL code to send to the underlying WDFIOTARGET.
+RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
+CompletionOption | Indicates the completion option associated with the completion routine.
+EvtRequestTargetSingleAsynchronousRequest | The Client callback that is called when request completes.
+SingleAsynchronousRequestClientContext | A Client specific context that is sent to the Client callback that is called when the request completes.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_RequestTarget_SendSynchronously
 
 ````

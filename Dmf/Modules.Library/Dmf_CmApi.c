@@ -1111,5 +1111,256 @@ Exit:
     return ntStatus;
 }
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_CmApi_PropertyUint32Get(
+    _In_  DMFMODULE DmfModule,
+    _In_  GUID* PropertyInterfaceGuid,
+    _In_  PDEVPROPKEY PropertyKey,
+    _Out_ UINT32* Value
+    )
+/*++
+
+Routine Description:
+
+    Gets the specified property value on the property interface.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    PropertyInterfaceGuid - The GUID of the requested property interface.
+    PropertyKey - The device's property key.
+    Value - The property value if found.
+
+Return Value:
+
+    NTSTATUS -- STATUS_SUCCESS on a successfull query, and a CONFIGRET error
+                converted to an NTSTATUS code on failure.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    CONFIGRET configRet;
+    PWSTR deviceInterfaceList;
+    ULONG deviceInterfaceListLength;
+    PWSTR currentInterface;
+    DEVPROPTYPE propertyType;
+    ULONG propertySize;
+    WCHAR currentDevice[MAX_DEVICE_ID_LEN];
+    DEVINST deviceInstance;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    PAGED_CODE();
+
+
+    // Device interfaces can come and go, so we will look a few times for the requested interface.
+    // This also will break us out of the below loop if the interface GUID is not found.
+    //
+    const int MAX_SEARCH_COUNT = 5;
+    int searchLoopCount  = 0;
+    deviceInterfaceList = NULL;
+    configRet = CR_FAILURE;
+    
+    if (PropertyInterfaceGuid == NULL || 
+        PropertyKey == NULL || 
+        Value == NULL)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
+    *Value = 0;
+    do 
+    {
+        configRet = CM_Get_Device_Interface_List_Size(&deviceInterfaceListLength,
+                                                      PropertyInterfaceGuid,
+                                                      NULL,
+                                                      CM_GET_DEVICE_INTERFACE_LIST_ALL_DEVICES);
+        if (CR_SUCCESS != configRet)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "CM_Get_Device_Interface_List_Size fails: 0x%x",
+                        configRet);
+            break;
+        }
+
+        if (NULL != deviceInterfaceList) 
+        {
+            free(deviceInterfaceList);
+            deviceInterfaceList = NULL;
+        }
+
+        deviceInterfaceList = (PWSTR)malloc(deviceInterfaceListLength * sizeof(WCHAR));
+
+        if (NULL == deviceInterfaceList)
+        {
+            configRet = CR_OUT_OF_MEMORY;
+            break;
+        }
+
+        configRet = CM_Get_Device_Interface_List(PropertyInterfaceGuid,
+                                                 NULL,
+                                                 deviceInterfaceList,
+                                                 deviceInterfaceListLength,
+                                                 CM_GET_DEVICE_INTERFACE_LIST_ALL_DEVICES);
+        searchLoopCount++;
+    } while (configRet == CR_BUFFER_SMALL && searchLoopCount <= MAX_SEARCH_COUNT);
+    
+    if (searchLoopCount >= MAX_SEARCH_COUNT)
+    {
+        configRet = CR_INVALID_DATA;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Did not find requested interface, config return: 0x%x",
+                    configRet);
+        goto Exit;
+    }
+
+    if (CR_SUCCESS != configRet)
+    {
+        goto Exit;
+    }
+
+    ntStatus = STATUS_NOT_FOUND;
+
+    // Take the first interface found.
+    // 
+    currentInterface = deviceInterfaceList;
+    if (!*currentInterface)
+    {
+        configRet = CR_INVALID_DATA;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Did not find requested interface: 0x%x",
+                     configRet);
+        goto Exit;
+    }
+
+   propertySize = sizeof(currentDevice);
+   configRet = CM_Get_Device_Interface_Property(currentInterface,
+                                                &DEVPKEY_Device_InstanceId,
+                                                &propertyType,
+                                                (PBYTE)currentDevice,
+                                                &propertySize,
+                                                0);
+   if (CR_SUCCESS != configRet)
+   {
+       TraceEvents(TRACE_LEVEL_ERROR,
+                   DMF_TRACE,
+                   "CM_Get_Device_Interface_Property fails: 0x%x",
+                   configRet);
+       goto Exit;
+   }
+   
+   if (DEVPROP_TYPE_STRING != propertyType)
+   {
+       configRet = CR_INVALID_DATA;
+       goto Exit;
+   }
+
+   // Get the device instance, and then the device.
+   // 
+   propertySize = sizeof(currentDevice);
+   configRet = CM_Get_Device_Interface_Property(currentInterface,
+                                                &DEVPKEY_Device_InstanceId,
+                                                &propertyType,
+                                                (PBYTE)currentDevice,
+                                                &propertySize,
+                                                0);
+   if (CR_SUCCESS != configRet)
+   {
+
+       TraceEvents(TRACE_LEVEL_ERROR,
+                   DMF_TRACE,
+                   "CM_Get_Device_Interface_Property fails: 0x%x",
+                   configRet);
+       goto Exit;
+   }
+   
+   configRet = CM_Locate_DevNode(&deviceInstance,
+                                 currentDevice,
+                                 CM_LOCATE_DEVNODE_NORMAL);
+
+   if (configRet != CR_SUCCESS)
+   {
+       TraceEvents(TRACE_LEVEL_ERROR,
+                   DMF_TRACE,
+                   "CM_Locate_DevNode fails: 0x%x",
+                   configRet);
+       goto Exit;
+   }
+
+   // Now we can query the property.
+   //
+   configRet = CM_Get_DevNode_Property(deviceInstance,
+                                       PropertyKey,
+                                       &propertyType,
+                                       (BYTE*)Value,
+                                       &propertySize,
+                                       0);
+
+   if (CR_SUCCESS != configRet)
+   {
+       TraceEvents(TRACE_LEVEL_ERROR,
+                   DMF_TRACE,
+                   "CM_Get_Device_Interface_Property fails: 0x%x",
+                   configRet);
+       goto Exit;
+   }
+
+   // Verify that the type and size is correct.
+   //
+   if (DEVPROP_TYPE_UINT32 != propertyType)
+   {
+       configRet = CR_INVALID_DATA;
+       TraceEvents(TRACE_LEVEL_ERROR,
+                   DMF_TRACE,
+                   "Expected type : 'DEVPROP_TYPE_UINT32'");
+       goto Exit;
+   }
+   if (sizeof(UINT32) != propertySize)
+   {
+       configRet = CR_INVALID_DATA;
+       TraceEvents(TRACE_LEVEL_ERROR,
+                   DMF_TRACE,
+                   "Expected size of UINT32");
+       goto Exit;
+   }
+
+   TraceEvents(TRACE_LEVEL_INFORMATION,
+               DMF_TRACE,
+               "Found requested property value: %d",
+               *Value);
+
+
+Exit:
+
+    // Cleanup.
+    //
+    if (deviceInterfaceList != NULL)
+    {
+        free(deviceInterfaceList);
+    }
+    
+    if (configRet == CR_SUCCESS)
+    {
+        ntStatus = STATUS_SUCCESS;
+    }
+    else
+    {
+        ntStatus = NTSTATUS_FROM_WIN32(configRet);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+
 // eof: Dmf_CmApi.c
 //

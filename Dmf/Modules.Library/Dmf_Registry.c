@@ -784,11 +784,11 @@ Routine Description:
 
 Arguments:
 
-    Name - path name of the key relative to handle
+    Name - Path name of the key relative to handle.
 
 Return Value:
 
-    Handle - handle to open registry key or NULL for error.
+    Handle - Handle to open registry key or NULL in case of error.
 
 --*/
 {
@@ -831,8 +831,9 @@ Exit:
 }
 
 NTSTATUS
-Registry_HandleOpenByDevice(
+Registry_HandleOpenByPredefinedKey(
     _In_ WDFDEVICE Device,
+    _In_ ULONG PredefinedKeyId,
     _In_ ULONG AccessMask,
     _Out_ HANDLE* RegistryHandle
     )
@@ -845,8 +846,8 @@ Routine Description:
 Arguments:
 
     Device - Handle to Device object.
-    AccessMask - The access mask to pass
-    RegistryHandle - Handle to open registry key or NULL for error.
+    AccessMask - The access mask to pass.
+    RegistryHandle - Handle to open registry key or NULL in case of error.
 
 Return Value:
 
@@ -866,7 +867,7 @@ Return Value:
     // Open the device registry key of the instance of the device.
     //
     ntStatus = IoOpenDeviceRegistryKey(deviceObject,
-                                       PLUGPLAY_REGKEY_DEVICE,
+                                       PredefinedKeyId,
                                        AccessMask,
                                        RegistryHandle);
     if (! NT_SUCCESS(ntStatus))
@@ -897,10 +898,10 @@ Routine Description:
 
 Arguments:
 
-    Name - path name of the key relative to handle
-    AccessMask - The access mask to pass
+    Name - Path name of the key relative to handle.
+    AccessMask - The access mask to pass.
     Create - Creates the key if it cannot be opened.
-    RegistryHandle - Handle to open registry key or NULL for error.
+    RegistryHandle - Handle to open registry key or NULL in case of error.
 
 Return Value:
 
@@ -978,13 +979,13 @@ Routine Description:
 
 Arguments:
 
-    Handle - handle to open registry key.
-    Name - path name of the key relative to handle
-    TryToCreate - indicates if the function should call create instead of open
+    Handle - Handle to open registry key.
+    Name - Path name of the key relative to handle.
+    TryToCreate - Indicates if the function should call create instead of open.
 
 Return Value:
 
-    Handle - handle to open registry key or NULL for error.
+    Handle - Handle to open registry key or NULL in case of error.
 
 --*/
 {
@@ -2474,7 +2475,7 @@ Arguments:
 
 Return Value:
 
-    Handle - handle to open registry key or NULL for error.
+    Handle - Handle to open registry key or NULL in case of error.
 
 --*/
 {
@@ -2516,13 +2517,13 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    Handle - handle to open registry key.
-    Name - path name of the key relative to handle
-    TryToCreate - indicates if the function should call create instead of open
+    Handle - Handle to open registry key.
+    Name - Path name of the key relative to handle.
+    TryToCreate - Indicates if the function should call create instead of open.
 
 Return Value:
 
-    Handle - handle to open registry key or NULL for error.
+    Handle - Handle to open registry key or NULL in case of error.
 
 --*/
 {
@@ -2548,6 +2549,59 @@ Return Value:
 
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenById(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG PredefinedKeyId,
+    _In_ ULONG AccessMask,
+    _Out_ HANDLE* RegistryHandle
+    )
+/*++
+
+Routine Description:
+
+    Open a predefined registry key.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    PredefinedKeyId - The Id of the predefined key to open.
+                      See IoOpenDeviceRegistryKey documentation for a list of Ids.
+    AccessMask - Access mask to use to open the handle.
+    RegistryHandle - Handle to open registry key or NULL in case of error.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Registry);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    ntStatus = Registry_HandleOpenByPredefinedKey(device,
+                                                  PredefinedKeyId,
+                                                  AccessMask,
+                                                  RegistryHandle);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 HANDLE
 DMF_Registry_HandleOpenByName(
     _In_ DMFMODULE DmfModule,
@@ -2562,11 +2616,11 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    Name - path name of the key relative to handle
+    Name - Path name of the key relative to handle.
 
 Return Value:
 
-    Handle - handle to open registry key or NULL for error.
+    Handle - Handle to open registry key or NULL in case of error.
 
 --*/
 {
@@ -2607,10 +2661,11 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    Name - path name of the key relative to handle. NULL to open the device instance registry key.
+    Name - Path name of the key relative to handle. NULL to open the device instance registry key.
+           Note: Use DMF_Registry_HandleOpenById() instead to open the Device Key.
     AccessMask - Access mask to use to open the handle.
     Create - Creates the key if it cannot be opened.
-    RegistryHandle - Handle to open registry key or NULL for error.
+    RegistryHandle - Handle to open registry key or NULL in case of error.
 
 Return Value:
 
@@ -2641,9 +2696,12 @@ Return Value:
     }
     else
     {
-        ntStatus = Registry_HandleOpenByDevice(device,
-                                               AccessMask,
-                                               RegistryHandle);
+        // Deprecated path. Use DMF_Registry_HandleOpenById() instead.
+        //
+        ntStatus = Registry_HandleOpenByPredefinedKey(device,
+                                                      PLUGPLAY_REGKEY_DEVICE,
+                                                      AccessMask,
+                                                      RegistryHandle);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -3636,11 +3694,11 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    Name - Path name of the key relative to handle
+    Name - Path name of the key relative to handle.
 
 Return Value:
 
-    Handle - handle to open registry key or NULL for error.
+    Handle - Handle to open registry key or NULL in case of error.
 
 --*/
 {

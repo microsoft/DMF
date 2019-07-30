@@ -197,6 +197,9 @@ struct _DMF_OBJECT_
     // DMF Module Descriptor.
     //
     DMF_MODULE_DESCRIPTOR ModuleDescriptor;
+    // DMF Module Attributes.
+    //
+    DMF_MODULE_ATTRIBUTES ModuleAttributes;
     // DMF Module Callbacks (optional, set by Client).
     //
     DMF_MODULE_EVENT_CALLBACKS Callbacks;
@@ -212,7 +215,7 @@ struct _DMF_OBJECT_
     // Remember this Module is created directly by the Client, not part of a Collection.
     // It is important because it needs to be automatically closed prior to being destroyed.
     //
-    BOOLEAN DynamicModule;
+    BOOLEAN DynamicModuleImmediate;
     // List of this Module's Child Modules.
     //
     LIST_ENTRY ChildObjectList;
@@ -221,7 +224,7 @@ struct _DMF_OBJECT_
     ULONG NumberOfChildModules;
     // Collection of Interface Bindings where this Module is either the Transport or the Protocol.
     //
-    // sweana: do we need a lock to protect this?
+    // TODO: Check if a lock is needed to protect this?
     //
     WDFCOLLECTION InterfaceBindings;
     // Spin Lock to protect access to InterfaceBindings.
@@ -247,7 +250,7 @@ struct _DMF_OBJECT_
     // Client Cleanup Callback (chained).
     //
     PFN_WDF_OBJECT_CONTEXT_CLEANUP ClientEvtCleanupCallback;
-    // indicates this Module is a Transport.
+    // Indicates this Module is a Transport.
     //
     BOOLEAN IsTransport;
     // Transport Interface GUID for validation.
@@ -541,8 +544,6 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_SynchronizationCreate(
     _In_ DMF_OBJECT* DmfObject,
-    _In_ WDFDEVICE ParentDevice,
-    _In_ DMF_MODULE_DESCRIPTOR* ModuleDescriptor,
     _In_ BOOLEAN PassiveLevel
     );
 

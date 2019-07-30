@@ -2787,7 +2787,7 @@ Return Value:
 
     // Module is created as part of a collection. It is not a DynamicModule.
     //
-    ModuleAttributes->DynamicModule = FALSE;
+    ModuleAttributes->DynamicModuleImmediate = FALSE;
 
     WDFMEMORY memoryConfigAndAttributes;
     VOID* memoryConfigAndAttributesBuffer;
@@ -3465,10 +3465,12 @@ Return Value:
         if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
         {
             moduleObjectAttributesPointer->ParentObject = ModuleCollectionConfig->DmfPrivate.ParentDmfModule;
+            moduleAttributesPointer->DynamicModule = DMF_IsModuleDynamic(ModuleCollectionConfig->DmfPrivate.ParentDmfModule);
         }
         else
         {
             moduleObjectAttributesPointer->ParentObject = ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice;
+            moduleAttributesPointer->DynamicModule = FALSE;
         }
         ntStatus = moduleAttributesPointer->InstanceCreator(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice,
                                                             moduleAttributesPointer,

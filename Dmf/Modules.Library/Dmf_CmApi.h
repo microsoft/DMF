@@ -107,6 +107,16 @@ DMF_CmApi_ParentTargetInterfacesEnumerate(
     _Inout_ VOID* ClientContext
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_CmApi_PropertyUint32Get(
+    _In_ DMFMODULE DmfModule,
+    _In_ GUID* PropertyInterfaceGuid,
+    _In_ PDEVPROPKEY PropertyKey,
+    _Out_ UINT32* Value
+    );
+
+
 #endif // defined(DMF_USER_MODE)
 
 // eof: Dmf_CmApi.h

@@ -497,7 +497,7 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
     ASSERT(dmfObject != NULL);
 
-    ASSERT(! dmfObject->DynamicModule);
+    ASSERT(! dmfObject->DynamicModuleImmediate);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -563,7 +563,7 @@ Return Value:
     // Since  it is a Dynamic Module automatically close it before it is destroyed.
     // (Client has no access to the Close API.)
     //
-    ASSERT(dmfObject->DynamicModule);
+    ASSERT(dmfObject->DynamicModuleImmediate);
     DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
 
     // Dispatch callback to Child DMF Modules first.

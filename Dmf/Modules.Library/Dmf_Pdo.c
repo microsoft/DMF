@@ -69,6 +69,96 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(PDO_DEVICE_DATA, PdoGetData)
 _Check_return_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
+Pdo_DevicePropertyTableWrite(
+    _In_ DMFMODULE DmfModule,
+    _In_ Pdo_DeviceProperty_Table* DevicePropertyTable
+    )
+/*++
+
+Routine Description:
+
+    This routine writes a given table of device properties to the devices's 
+    proptery store.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DevicePropertyTable - The given table.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+    Pdo_DevicePropertyEntry* entry;
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    ASSERT(DevicePropertyTable);
+
+    FuncEntry(DMF_TRACE);
+
+    PAGED_CODE();
+
+    // Assign the properties for this device.
+    //
+    ntStatus = STATUS_SUCCESS;
+    device = DMF_ParentDeviceGet(DmfModule);
+    for (ULONG propertyIndex = 0; propertyIndex < DevicePropertyTable->ItemCount; propertyIndex++)
+    {
+        entry = &DevicePropertyTable->TableEntries[propertyIndex];
+
+        // First register the device interface GUID if requested.
+        //
+        if (entry->RegisterDeviceInterface)
+        {
+            // Complain if the client requested us to register the device interface,
+            // but did not provide a device interface GUID.
+            //
+            ASSERT(entry->DeviceInterfaceGuid != NULL);
+            if (NULL == entry->DeviceInterfaceGuid)
+            {
+                ntStatus = STATUS_INVALID_PARAMETER;
+                goto Exit;
+            }
+
+            ntStatus = WdfDeviceCreateDeviceInterface(device, 
+                                                      entry->DeviceInterfaceGuid,
+                                                      NULL);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
+        }
+
+        // Now set the properties.
+        //
+        ntStatus = WdfDeviceAssignProperty(device,
+                                           &entry->DevicePropertyData,
+                                           entry->ValueType,
+                                           entry->ValueSize,
+                                           entry->ValueData);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            goto Exit;
+        }
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Check_return_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
 Pdo_PdoEx(
     _In_ DMFMODULE DmfModule,
     _In_ PDO_RECORD* PdoRecord,
@@ -366,8 +456,22 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         child = NULL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreate failed %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
+    }
+
+    // If the product has specified optional product specific properties, add them here.
+    // This allows different products to specify what is supported on their platform.
+    //
+    if (PdoRecord->DeviceProperties != NULL)
+    {
+        ntStatus = Pdo_DevicePropertyTableWrite(DmfModule, 
+                                                PdoRecord->DeviceProperties);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Pdo_DevicePropertyTableWrite fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
 
     if (PdoRecord->EnableDmf)
@@ -591,7 +695,6 @@ Exit:
     return returnValue;
 }
 #pragma code_seg()
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
