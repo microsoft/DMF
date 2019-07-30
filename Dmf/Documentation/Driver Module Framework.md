@@ -6391,6 +6391,32 @@ None
     **DMF_ModuleNotificationClose()** is used by the Module from the
     Module's notification callback.
 
+
+### DMF_ModuleIsDynamic
+```
+VOID
+DMF_ModuleIsDynamic(
+    _In_ DMFMODULE DmfModule
+    )
+```
+This function allows the caller to determine if the given Module has been instantiated as a Dynamic Module.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **DMFMODULE DmfModule** |  The handle of the given Module.
+
+#### Returns
+
+TRUE indicates the given Module has been instantiated as a Dynamic Module.
+
+FALSE indicates the given Module has not been instantiated as a Dynamic Module.
+
+#### Remarks
+
+-  Dynamic Modules cannot use WDF callbacks. So, Modules that can be instantiated as Dynamic use this function to determine if WDF callbacks should be set.
+
 ### DMF_ModuleIsInFilterDriver
 ```
 VOID
@@ -6427,6 +6453,31 @@ FALSE indicates the Module is not executing in a filter driver.
 
 -   DMF knows the Client driver is a filter driver because such drivers
     must call **DMF_DmfFdoSetFilter()**.
+
+### DMF_ModuleIsPassivelevel
+```
+VOID
+DMF_ModuleIsPassiveLevel(
+    _In_ DMFMODULE DmfModule
+    )
+```
+This function allows the caller to determine if the given Module has been instantiated with the `PassiveLevel = TRUE` setting.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **DMFMODULE DmfModule** |  The handle of the given Module.
+
+#### Returns
+
+TRUE indicates the given Module has been instantiated with `PassiveLevel = TRUE`.
+
+FALSE indicates the given Module has been instantiated with `PassiveLevel = FALSE`.
+
+#### Remarks
+
+-   In some cases, a Module will execute different paths depending on its `PassiveLevel` setting.
 
 ### DMF_ModuleRequestCompleteOrForward
 ```
