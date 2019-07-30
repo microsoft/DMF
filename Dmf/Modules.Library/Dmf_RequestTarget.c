@@ -1076,12 +1076,24 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    ContinuousRequestTarget_CompletionOptions completionOption;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  RequestTarget);
+
+    ntStatus = STATUS_SUCCESS;
+
+    if (DMF_IsModulePassive(DmfModule))
+    {
+        completionOption = ContinuousRequestTarget_CompletionOptions_Passive;
+    }
+    else
+    {
+        completionOption = ContinuousRequestTarget_CompletionOptions_Dispatch;
+    }
 
     ntStatus = RequestTarget_RequestCreateAndSend(DmfModule,
                                                   FALSE,
@@ -1092,7 +1104,7 @@ Return Value:
                                                   RequestType,
                                                   RequestIoctl,
                                                   RequestTimeoutMilliseconds,
-                                                  ContinuousRequestTarget_CompletionOptions_Default,
+                                                  completionOption,
                                                   NULL,
                                                   EvtRequestTargetSingleAsynchronousRequest,
                                                   SingleAsynchronousRequestClientContext);
