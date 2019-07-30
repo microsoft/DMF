@@ -800,7 +800,7 @@ DMF_IsModuleDynamic(
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
-DMF_IsModulePassive(
+DMF_IsModulePassiveLevel(
     _In_ DMFMODULE DmfModule
     );
 

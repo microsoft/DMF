@@ -2412,7 +2412,7 @@ Return Value:
         goto Exit;
     }
 
-    if (DMF_IsModulePassive(DmfModule))
+    if (DMF_IsModulePassiveLevel(DmfModule))
     {
         completionOption = ContinuousRequestTarget_CompletionOptions_Passive;
     }

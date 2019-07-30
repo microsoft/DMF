@@ -1646,7 +1646,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    if (DMF_IsModulePassive(DmfModule))
+    if (DMF_IsModulePassiveLevel(DmfModule))
     {
         moduleContext->DefaultCompletionOption = ContinuousRequestTarget_CompletionOptions_Passive;
     }
