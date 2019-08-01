@@ -205,6 +205,82 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_IsModuleDynamic(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Returns TRUE if 
+        - the given DMF Module was created dynamically. or
+        - the given DMF Module is part of a dynamic Module tree.
+    FALSE if the given DMF Module is part of Module Collection. 
+
+Arguments:
+
+    DmfModule: The given DMF Module.
+
+Return Value:
+
+    TRUE if 
+        - the given DMF Module was created dynamically. or
+        - the given DMF Module is part of a dynamic Module tree.
+    FALSE if the given DMF Module is part of Module Collection.
+
+--*/
+{
+    // NOTE: No FuncEntry/Exit logging. It is too much and it is not necessary for this
+    // simple function.
+    //
+    DMF_OBJECT* DmfObject;
+
+    DmfObject = DMF_ModuleToObject(DmfModule);
+
+    DMF_HandleValidate_IsAvailable(DmfObject);
+
+    ASSERT(DmfObject != NULL);
+
+    return DmfObject->ModuleAttributes.DynamicModule;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_IsModulePassiveLevel(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Allows caller to access PassiveLevel field of a given Module's Attributes.
+
+Arguments:
+
+    DmfModule: The given DMF Module.
+
+Return Value:
+
+    Returns TRUE if the given DMF Module was created with PassiveLevel = TRUE; otherwise returns FALSE.
+
+--*/
+{
+    // NOTE: No FuncEntry/Exit logging. It is too much and it is not necessary for this
+    // simple function.
+    //
+    DMF_OBJECT* DmfObject;
+
+    DmfObject = DMF_ModuleToObject(DmfModule);
+
+    DMF_HandleValidate_IsAvailable(DmfObject);
+
+    ASSERT(DmfObject != NULL);
+
+    return DmfObject->ModuleAttributes.PassiveLevel;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_ModuleConfigRetrieve(
@@ -405,8 +481,6 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_SynchronizationCreate(
     _In_ DMF_OBJECT* DmfObject,
-    _In_ WDFDEVICE ParentDevice,
-    _In_ DMF_MODULE_DESCRIPTOR* ModuleDescriptor,
     _In_ BOOLEAN PassiveLevel
     )
 /*++
@@ -414,14 +488,12 @@ DMF_SynchronizationCreate(
 Routine Description:
 
     Create a set of Locks for a given DMF Module.
+    PassiveLevel - TRUE if Client wants the Module options to be set to MODULE_OPTIONS_PASSIVE.
+                   NOTE: Module Options must be set to MODULE_OPTIONS_DISPATCH_MAXIMUM. 
 
 Arguments:
 
     DmfModule - The given DMF Module.
-    ParentDevice - The Parent Device for the Module
-    ModuleDescriptor - The given DMF Module's descriptor.
-    PassiveLevel - TRUE if Client wants the Module options to be set to MODULE_OPTIONS_PASSIVE.
-                   NOTE: Module Options must be set to MODULE_OPTIONS_DISPATCH_MAXIMUM. 
 
 Return Value:
 
@@ -433,48 +505,57 @@ Return Value:
     NTSTATUS ntStatus;
     WDF_OBJECT_ATTRIBUTES attributes;
     ULONG lockIndex;
+    DMF_MODULE_DESCRIPTOR* moduleDescriptor;
 
     PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfObject=0x%p [%s]", DmfObject, DmfObject->ClientModuleInstanceName);
 
-    ASSERT(ModuleDescriptor->NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    moduleDescriptor = &DmfObject->ModuleDescriptor;
 
-    if (ModuleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM)
+    ASSERT(moduleDescriptor->NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+
+    if (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM)
     {
         if (PassiveLevel)
         {
-            ModuleDescriptor->ModuleOptions |= DMF_MODULE_OPTIONS_PASSIVE;
+            moduleDescriptor->ModuleOptions |= DMF_MODULE_OPTIONS_PASSIVE;
         }
         else
         {
-            ModuleDescriptor->ModuleOptions |= DMF_MODULE_OPTIONS_DISPATCH;
+            moduleDescriptor->ModuleOptions |= DMF_MODULE_OPTIONS_DISPATCH;
         }
     }
     else
     {
-        ASSERT(FALSE == PassiveLevel);
+        if ((moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH) &&
+            PassiveLevel)
+        {
+            ASSERT(FALSE);
+            ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+            goto Exit;
+        }
     }
 
     // Create the locking mechanism based on Module Options.
     //
-    if (ModuleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE)
+    if (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE)
     {
         TraceInformation(DMF_TRACE, "DMF_MODULE_OPTIONS_PASSIVE");
 
-        ASSERT(! (ModuleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
+        ASSERT(! (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
 
         // Create the Generic PASSIVE_LEVEL Lock for the Auxiliary Synchronization and one device lock.
         //
-        for (lockIndex = 0; lockIndex < ModuleDescriptor->NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS; lockIndex++)
+        for (lockIndex = 0; lockIndex < moduleDescriptor->NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS; lockIndex++)
         {
             WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-            attributes.ParentObject = ParentDevice;
+            attributes.ParentObject = DmfObject->ParentDevice;
             ntStatus = WdfWaitLockCreate(&attributes,
                                          &DmfObject->Synchronizations[lockIndex].SynchronizationPassiveWaitLock);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to create locks");
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfSpinLockCreate fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }
@@ -485,15 +566,15 @@ Return Value:
 
         // Create the Generic DISPATCH_LEVEL Lock for the Auxiliary Synchronization and one device lock.
         //
-        for (lockIndex = 0; lockIndex < ModuleDescriptor->NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS; lockIndex++)
+        for (lockIndex = 0; lockIndex < moduleDescriptor->NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS; lockIndex++)
         {
             WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-            attributes.ParentObject = ParentDevice;
+            attributes.ParentObject = DmfObject->ParentDevice;
             ntStatus = WdfSpinLockCreate(&attributes,
                                          &DmfObject->Synchronizations[lockIndex].SynchronizationDispatchSpinLock);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to create locks");
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfSpinLockCreate fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
         }

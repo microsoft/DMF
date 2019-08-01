@@ -283,6 +283,41 @@ ClientContext | Client context passed to ParentTargetCallback.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_CmApi_PropertyUint32Get
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_CmApi_PropertyUint32Get(
+    _In_ DMFMODULE DmfModule,
+    _In_ GUID* PropertyInterfaceGuid,
+    _In_ PDEVPROPKEY PropertyKey,
+    _Out_ UINT32* Value
+    );
+````
+
+Given a device interface GUID, return the UINT32 value of the specified device property key.
+
+##### Returns
+
+* STATUS_SUCCESS - on a successfull query, and a CONFIGRET error converted to an NTSTATUS code on failure.
+
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_CmApi Module handle.
+PropertyInterfaceGuid | The GUID specifying the device interface to query.
+PropertyKey | The property key to query the value of.
+Value | The UINT32 value of this property if found.
+
+##### Remarks
+
+* None
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
 #### Module Children
 
 * None

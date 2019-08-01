@@ -224,6 +224,16 @@ DMF_Registry_HandleOpenByHandle(
 
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenById(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG PredefinedKeyId,
+    _In_ ULONG AccessMask,
+    _Out_ HANDLE* RegistryHandle
+    );
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 HANDLE
 DMF_Registry_HandleOpenByName(
     _In_ DMFMODULE DmfModule,

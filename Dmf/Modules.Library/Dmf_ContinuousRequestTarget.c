@@ -59,9 +59,6 @@ typedef struct
     // Completion routine for stream asynchronous requests.
     //
     EVT_WDF_REQUEST_COMPLETION_ROUTINE* CompletionRoutineStream;
-    // Completion routine for single asynchronous requests.
-    //
-    EVT_WDF_REQUEST_COMPLETION_ROUTINE* CompletionRoutineSingle;
     // IO Target to Send Requests to.
     //
     WDFIOTARGET IoTarget;
@@ -164,6 +161,36 @@ Return Value:
     }
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "BufferEnd");
 #endif // defined(DEBUG)
+}
+
+static
+VOID
+ContinuousRequestTarget_DeleteStreamRequestsFromCollection(
+    _In_ DMF_CONTEXT_ContinuousRequestTarget* ModuleContext
+)
+/*++
+
+Routine Description:
+
+    Remove and delete requests collected in CreatedStreamRequestsCollection.
+
+Arguments:
+
+    ModuleContext - This Module's context.
+
+Return Value:
+
+    None
+
+--*/
+{
+    WDFREQUEST request;
+    while ((request = (WDFREQUEST)WdfCollectionGetFirstItem(ModuleContext->CreatedStreamRequestsCollection)) != NULL)
+    {
+        WdfCollectionRemoveItem(ModuleContext->CreatedStreamRequestsCollection,
+                                0);
+        WdfObjectDelete(request);
+    }
 }
 
 #if !defined(DMF_USER_MODE)
@@ -1174,6 +1201,7 @@ ContinuousRequestTarget_RequestCreateAndSend(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _Out_opt_ size_t* BytesWritten,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
@@ -1193,7 +1221,10 @@ Arguments:
     ResponseLength - Size of Response Buffer in bytes.
     RequestIoctl - The given IOCTL.
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
+    CompletionOption - Completion option associated with the completion routine. 
     BytesWritten - Bytes returned by the transaction.
+    EvtContinuousRequestTargetSingleAsynchronousRequest - Completion routine. 
+    SingleAsynchronousRequestClientContext - Client context returned in completion routine. 
 
 Return Value:
 
@@ -1214,6 +1245,7 @@ Return Value:
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
     WDFDEVICE device;
+    EVT_WDF_REQUEST_COMPLETION_ROUTINE* completionRoutineSingle;
     ContinuousRequestTarget_SingleAsynchronousRequestContext* singleAsynchronousRequestContext;
     VOID* singleBufferContext;
 
@@ -1234,7 +1266,7 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&requestAttributes);
-    requestAttributes.ParentObject = DmfModule;
+    requestAttributes.ParentObject = device;
     request = NULL;
     ntStatus = WdfRequestCreate(&requestAttributes,
                                 moduleContext->IoTarget,
@@ -1316,6 +1348,20 @@ Return Value:
             goto Exit;
         }
 
+        if (CompletionOption == ContinuousRequestTarget_CompletionOptions_Default)
+        {
+            completionRoutineSingle = ContinuousRequestTarget_CompletionRoutine;
+        }
+        else if (CompletionOption == ContinuousRequestTarget_CompletionOptions_Passive)
+        {
+            completionRoutineSingle = ContinuousRequestTarget_CompletionRoutinePassive;
+        }
+        else
+        {
+            completionRoutineSingle = ContinuousRequestTarget_CompletionRoutine;
+            ASSERT(FALSE);
+        }
+
         singleAsynchronousRequestContext->DmfModule = DmfModule;
         singleAsynchronousRequestContext->SingleAsynchronousCallbackClientContext = SingleAsynchronousRequestClientContext;
         singleAsynchronousRequestContext->EvtContinuousRequestTargetSingleAsynchronousRequest = EvtContinuousRequestTargetSingleAsynchronousRequest;
@@ -1324,7 +1370,7 @@ Return Value:
         // Set the completion routine to internal completion routine of this Module.
         //
         WdfRequestSetCompletionRoutine(request,
-                                       moduleContext->CompletionRoutineSingle,
+                                       completionRoutineSingle,
                                        singleAsynchronousRequestContext);
     }
 
@@ -1771,8 +1817,11 @@ Return Value:
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
-    DMF_CONFIG_BufferPool moduleConfigBufferPool;
-    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkItem;
+    DMF_CONFIG_BufferPool moduleConfigBufferPoolInput;
+    DMF_CONFIG_BufferPool moduleConfigBufferPoolOutput;
+    DMF_CONFIG_BufferPool moduleConfigBufferPoolContext;
+    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkItemStream;
+    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkItemSingle;
 
     PAGED_CODE();
 
@@ -1788,14 +1837,14 @@ Return Value:
         // BufferPoolInput
         // ---------------
         //
-        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPoolInput,
                                                   &moduleAttributes);
-        moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-        moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = FALSE;
-        moduleConfigBufferPool.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountInput;
-        moduleConfigBufferPool.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeInput;
-        moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfig->BufferInputSize;
-        moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextInputSize;
+        moduleConfigBufferPoolInput.BufferPoolMode = BufferPool_Mode_Source;
+        moduleConfigBufferPoolInput.Mode.SourceSettings.EnableLookAside = FALSE;
+        moduleConfigBufferPoolInput.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountInput;
+        moduleConfigBufferPoolInput.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeInput;
+        moduleConfigBufferPoolInput.Mode.SourceSettings.BufferSize = moduleConfig->BufferInputSize;
+        moduleConfigBufferPoolInput.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextInputSize;
         moduleAttributes.ClientModuleInstanceName = "BufferPoolInput";
         moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
         DMF_DmfModuleAdd(DmfModuleInit,
@@ -1813,14 +1862,14 @@ Return Value:
         // BufferPoolOutput
         // ----------------
         //
-        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPoolOutput,
                                                   &moduleAttributes);
-        moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-        moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = moduleConfig->EnableLookAsideOutput;
-        moduleConfigBufferPool.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountOutput;
-        moduleConfigBufferPool.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeOutput;
-        moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleConfig->BufferOutputSize;
-        moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextOutputSize;
+        moduleConfigBufferPoolOutput.BufferPoolMode = BufferPool_Mode_Source;
+        moduleConfigBufferPoolOutput.Mode.SourceSettings.EnableLookAside = moduleConfig->EnableLookAsideOutput;
+        moduleConfigBufferPoolOutput.Mode.SourceSettings.BufferCount = moduleConfig->BufferCountOutput;
+        moduleConfigBufferPoolOutput.Mode.SourceSettings.PoolType = moduleConfig->PoolTypeOutput;
+        moduleConfigBufferPoolOutput.Mode.SourceSettings.BufferSize = moduleConfig->BufferOutputSize;
+        moduleConfigBufferPoolOutput.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextOutputSize;
         moduleAttributes.ClientModuleInstanceName = "BufferPoolOutput";
         moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
         DMF_DmfModuleAdd(DmfModuleInit,
@@ -1836,16 +1885,16 @@ Return Value:
     // BufferPoolContext
     // -----------------
     //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPoolContext,
                                               &moduleAttributes);
-    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = 1;
+    moduleConfigBufferPoolContext.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigBufferPoolContext.Mode.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferPoolContext.Mode.SourceSettings.BufferCount = 1;
     // NOTE: BufferPool context must always be NonPagedPool because it is accessed in the
     //       completion routine running at DISPATCH_LEVEL.
     //
-    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(ContinuousRequestTarget_SingleAsynchronousRequestContext);
+    moduleConfigBufferPoolContext.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigBufferPoolContext.Mode.SourceSettings.BufferSize = sizeof(ContinuousRequestTarget_SingleAsynchronousRequestContext);
     moduleAttributes.ClientModuleInstanceName = "BufferPoolContext";
     moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
     DMF_DmfModuleAdd(DmfModuleInit,
@@ -1853,47 +1902,45 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleBufferPoolContext);
 
+    // QueuedWorkItemSingle
+    // --------------------
+    //
+    DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItemSingle,
+                                                  &moduleAttributes);
+    moduleConfigQueuedWorkItemSingle.BufferQueueConfig.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES;
+    moduleConfigQueuedWorkItemSingle.BufferQueueConfig.SourceSettings.BufferSize = sizeof(ContinuousRequestTarget_QueuedWorkitemContext);
+    // This has to be NonPagedPoolNx because completion routine runs at dispatch level.
+    //
+    moduleConfigQueuedWorkItemSingle.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigQueuedWorkItemSingle.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigQueuedWorkItemSingle.EvtQueuedWorkitemFunction = ContinuousRequestTarget_QueuedWorkitemCallbackSingle;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleQueuedWorkitemSingle);
+
     if (DmfParentModuleAttributes->PassiveLevel)
     {
-        moduleContext->CompletionRoutineSingle = ContinuousRequestTarget_CompletionRoutinePassive;
         moduleContext->CompletionRoutineStream = ContinuousRequestTarget_StreamCompletionRoutinePassive;
         // QueuedWorkItemStream
         // --------------------
         //
-        DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItem,
+        DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItemStream,
                                                       &moduleAttributes);
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES;
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(ContinuousRequestTarget_QueuedWorkitemContext);
+        moduleConfigQueuedWorkItemStream.BufferQueueConfig.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES;
+        moduleConfigQueuedWorkItemStream.BufferQueueConfig.SourceSettings.BufferSize = sizeof(ContinuousRequestTarget_QueuedWorkitemContext);
         // This has to be NonPagedPoolNx because completion routine runs at dispatch level.
         //
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
-        moduleConfigQueuedWorkItem.EvtQueuedWorkitemFunction = ContinuousRequestTarget_QueuedWorkitemCallbackStream;
+        moduleConfigQueuedWorkItemStream.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
+        moduleConfigQueuedWorkItemStream.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
+        moduleConfigQueuedWorkItemStream.EvtQueuedWorkitemFunction = ContinuousRequestTarget_QueuedWorkitemCallbackStream;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleQueuedWorkitemStream);
-
-        // QueuedWorkItemSingle
-        // --------------------
-        //
-        DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItem,
-                                                      &moduleAttributes);
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES;
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(ContinuousRequestTarget_QueuedWorkitemContext);
-        // This has to be NonPagedPoolNx because completion routine runs at dispatch level.
-        //
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
-        moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
-        moduleConfigQueuedWorkItem.EvtQueuedWorkitemFunction = ContinuousRequestTarget_QueuedWorkitemCallbackSingle;
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         &moduleContext->DmfModuleQueuedWorkitemSingle);
     }
     else
     {
-        moduleContext->CompletionRoutineSingle = ContinuousRequestTarget_CompletionRoutine;
         moduleContext->CompletionRoutineStream = ContinuousRequestTarget_StreamCompletionRoutine;
     }
 
@@ -1929,11 +1976,13 @@ Return Value:
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
     DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDFDEVICE device;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
+    device = DMF_ParentDeviceGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1981,7 +2030,14 @@ Return Value:
             WDFREQUEST request;
 
             WDF_OBJECT_ATTRIBUTES_INIT(&requestAttributes);
-            requestAttributes.ParentObject = DmfModule;
+            // The request is being parented to the device explicitly to handle deletion.
+            // When a dynamic module tree is deleted, the child objects are deleted first before the parent.
+            // So, if request is a child of this module and this module gets implicitly deleted, 
+            // the requests get the delete operation first. And if the reqeust is already sent to an IO Target, 
+            // WDF verifier complains about it.
+            // Thus request is parented to device, and are deleted when the collection is deleted in DMF close callback. 
+            //
+            requestAttributes.ParentObject = device;
 
             ntStatus = WdfRequestCreate(&requestAttributes,
                                         moduleContext->IoTarget,
@@ -2015,6 +2071,7 @@ Exit:
     {
         if(moduleContext->CreatedStreamRequestsCollection != NULL)
         {
+            ContinuousRequestTarget_DeleteStreamRequestsFromCollection(moduleContext);
             WdfObjectDelete(moduleContext->CreatedStreamRequestsCollection);
             moduleContext->CreatedStreamRequestsCollection = NULL;
         }
@@ -2083,6 +2140,7 @@ Return Value:
 
     if (moduleContext->CreatedStreamRequestsCollection != NULL)
     {
+        ContinuousRequestTarget_DeleteStreamRequestsFromCollection(moduleContext);
         WdfObjectDelete(moduleContext->CreatedStreamRequestsCollection);
         moduleContext->CreatedStreamRequestsCollection = NULL;
     }
@@ -2152,6 +2210,7 @@ Return Value:
 
     if (moduleConfig->PurgeAndStartTargetInD0Callbacks)
     {
+        ASSERT(DmfModuleAttributes->DynamicModule == FALSE);
         DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ContinuousRequestTarget);
         dmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
         dmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
@@ -2337,6 +2396,98 @@ Return Value:
 
 --*/
 {
+    NTSTATUS ntStatus;
+    ContinuousRequestTarget_CompletionOptions completionOption;
+
+    FuncEntry(DMF_TRACE);
+
+    ntStatus = STATUS_SUCCESS;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ContinuousRequestTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    if (DMF_IsModulePassiveLevel(DmfModule))
+    {
+        completionOption = ContinuousRequestTarget_CompletionOptions_Passive;
+    }
+    else
+    {
+        completionOption = ContinuousRequestTarget_CompletionOptions_Dispatch;
+    }
+
+    ntStatus = ContinuousRequestTarget_RequestCreateAndSend(DmfModule,
+                                                            FALSE,
+                                                            RequestBuffer,
+                                                            RequestLength,
+                                                            ResponseBuffer,
+                                                            ResponseLength,
+                                                            RequestType,
+                                                            RequestIoctl,
+                                                            RequestTimeoutMilliseconds,
+                                                            completionOption,
+                                                            NULL,
+                                                            EvtContinuousRequestTargetSingleAsynchronousRequest,
+                                                            SingleAsynchronousRequestClientContext);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_ContinuousRequestTarget_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    )
+/*++
+
+Routine Description:
+
+    Creates and sends a Asynchronous request to the IoTarget given a buffer, IOCTL and other information.
+    Once the request is complete, EvtContinuousRequestTargetSingleAsynchronousRequest will be called at passive level. 
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    RequestBuffer - Buffer of data to attach to request to be sent.
+    RequestLength - Number of bytes to in RequestBuffer to send.
+    ResponseBuffer - Buffer of data that is returned by the request.
+    ResponseLength - Size of Response Buffer in bytes.
+    RequestType - Read or Write or Ioctl
+    RequestIoctl - The given IOCTL.
+    RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
+    EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
+    SingleAsynchronousRequestClientContext - Client context sent in callback
+
+Return Value:
+
+    STATUS_SUCCESS if a buffer is added to the list.
+    Other NTSTATUS if there is an error.
+
+--*/
+{
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
     FuncEntry(DMF_TRACE);
@@ -2359,6 +2510,7 @@ Return Value:
                                                             RequestType,
                                                             RequestIoctl,
                                                             RequestTimeoutMilliseconds,
+                                                            CompletionOption,
                                                             NULL,
                                                             EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                             SingleAsynchronousRequestClientContext);
@@ -2428,6 +2580,7 @@ Return Value:
                                                             RequestType,
                                                             RequestIoctl,
                                                             RequestTimeoutMilliseconds,
+                                                            ContinuousRequestTarget_CompletionOptions_Default,
                                                             BytesWritten,
                                                             NULL,
                                                             NULL);

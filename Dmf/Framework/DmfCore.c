@@ -407,38 +407,36 @@ Return Value:
         // Client is not creating a Child Module.
         //
 
-        // Don't create Dynamic Module if the Module supports WDF callbacks since those
-        // callbacks might not happen and the Module will not execute as originally planned.
-        //
-        if ((DmfModuleAttributes->DynamicModule) &&
-            (NULL != ModuleDescriptor->CallbacksWdf))
-        {
-            // TODO: Verify same condition for all Child Modules.
-            //
-            ASSERT(FALSE);
-            ntStatus = STATUS_UNSUCCESSFUL;
-            goto Exit;
-        }
-
-        // Don't create Dynamic Module if the Module's Open Option depends on WDF callbacks since
-        // those callbacks might not happen and the Module will not execute as originally planned.
-        //
-        if (DmfModuleAttributes->DynamicModule &&
-            (ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_OPEN_Create &&
-             ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_NOTIFY_Create))
-        {
-            ASSERT(FALSE);
-            ntStatus = STATUS_UNSUCCESSFUL;
-            goto Exit;
-        }
-
         // Use CleanUp callback for Dynamic Modules so that caller can call
         // WdfObjectDelete() or delete automatically via Parent.
         //
-        if (DmfModuleAttributes->DynamicModule)
+        if (DmfModuleAttributes->DynamicModuleImmediate)
         {
             chainClientCleanupCallback = TRUE;
         }
+    }
+
+    // Don't create Dynamic Module if the Module supports WDF callbacks since those
+    // callbacks might not happen and the Module will not execute as originally planned.
+    //
+    if ((DmfModuleAttributes->DynamicModule) &&
+        (NULL != ModuleDescriptor->CallbacksWdf))
+    {
+        ASSERT(FALSE);
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+
+    // Don't create Dynamic Module if the Module's Open Option depends on WDF callbacks since
+    // those callbacks might not happen and the Module will not execute as originally planned.
+    //
+    if ((DmfModuleAttributes->DynamicModule) &&
+        (ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_OPEN_Create &&
+         ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_NOTIFY_Create))
+    {
+        ASSERT(FALSE);
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
     }
 
     // Chain the Client's clean up callback.
@@ -492,6 +490,10 @@ Return Value:
     dmfObject->NeedToCallPreClose = FALSE;
     dmfObject->ClientEvtCleanupCallback = clientEvtCleanupCallback;
     dmfObject->IsTransport = DmfModuleAttributes->IsTransportModule;
+
+    RtlCopyMemory(&dmfObject->ModuleAttributes,
+                  DmfModuleAttributes,
+                  sizeof(DMF_MODULE_ATTRIBUTES));
 
     // Create space for the Client Module Instance Name. It needs to be allocated because
     // the name that is passed in may not be statically allocated. A copy needs to be made
@@ -678,12 +680,10 @@ Return Value:
     // Create the auxiliary locks based on Module Options.
     //
     ntStatus = DMF_SynchronizationCreate(dmfObject,
-                                         Device,
-                                         &dmfObject->ModuleDescriptor,
                                          DmfModuleAttributes->PassiveLevel);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to create locks");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SynchronizationCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -999,7 +999,7 @@ Return Value:
         // if its not a Dynamic Module. The lifetime of the Dynamic Module is
         // managed by the Client. 
         //
-        if (!DmfModuleAttributes->DynamicModule)
+        if (!DmfModuleAttributes->DynamicModuleImmediate)
         {
             // NOTE: These values are expected to be NULL because the Parent
             //       has not initialized the ModuleCollection yet. (It cannot
@@ -1188,16 +1188,16 @@ Exit:
 
     if (dmfObject != NULL)
     {
-        ASSERT(! dmfObject->DynamicModule);
+        ASSERT(! dmfObject->DynamicModuleImmediate);
         // If this Module is a Dynamic Module or it is an immediate or non-immediate Child
         // of a Dynamic Module, open it now if it should be opened during Create.
         //
-        if (DmfModuleAttributes->DynamicModule)
+        if (DmfModuleAttributes->DynamicModuleImmediate)
         {
             // Remember it is Dynamic Module so it can be automatically closed prior to destruction.
             // (Client no longer has access to Open/Close API.)
             //
-            dmfObject->DynamicModule = TRUE;
+            dmfObject->DynamicModuleImmediate = TRUE;
             // Since it is a Dynamic Module, Open or register for Notification as specified by the Module's
             // Open Option.
             //

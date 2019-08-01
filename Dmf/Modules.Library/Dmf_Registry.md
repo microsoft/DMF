@@ -418,7 +418,6 @@ Handle | The given registry handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-
 ##### DMF_Registry_HandleOpenByHandle
 
 ````
@@ -446,6 +445,38 @@ DmfModule | An open DMF_Registry Module handle.
 Handle | The given registry handle.
 Name | The given registry path name.
 TryToCreate | Creates the path specified by Name if the path does not exist.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_Registry_HandleOpenById
+
+````
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenById(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG PredefinedKeyId,
+    _In_ ULONG AccessMask,
+    _Out_ HANDLE* RegistryHandle
+    );
+````
+
+Open a predefined registry key.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Registry Module handle.
+PredefinedKeyId | The Id of the predefined key to open. See IoOpenDeviceRegistryKey documentation for a list of Ids.
+AccessMask | The desired access mask. See MSDN.
+RegistryHandle | The address of the handle that is returned to the Client.
 
 ##### Remarks
 

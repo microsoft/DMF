@@ -793,6 +793,18 @@ DMF_ModuleConfigGet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_IsModuleDynamic(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_IsModulePassiveLevel(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_ModuleReference(

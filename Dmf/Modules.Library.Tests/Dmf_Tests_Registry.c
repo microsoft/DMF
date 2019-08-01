@@ -13,7 +13,6 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -1747,66 +1746,111 @@ Return Value:
     Tests_Registry_Path_ReadNonExistent(moduleContext->DmfModuleRegistry);
     Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
 
-    // Path and Value Tests
-    // Do same as above, but this time open the path and operate only on the values, reusing the path handle.
+    // Path/Predefined Id key open and Value Tests
+    // Do same as above, but this time open the predefined key by id and operate only on the values, reusing the path handle.
     // --------------------
     //
-
-    ntStatus = DMF_Registry_HandleOpenByNameEx(moduleContext->DmfModuleRegistry,
-                                               REGISTRY_PATH_NAME,
-                                               GENERIC_ALL,
-                                               TRUE,
-                                               &registryHandle);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(registryHandle != NULL);
-
-    if (registryHandle != NULL)
+    ULONG predefinedIds[] =
     {
-        // Delete values.
+        // This is just dummy entry to cause path API to be used.
         //
-        Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry, registryHandle);
-
-        // Now, try to read some non-existent values.
+        0,
+        // These are the predefined Ids.
         //
-        Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry, registryHandle);
-
-        // Write the values.
+        PLUGPLAY_REGKEY_DEVICE,
+        PLUGPLAY_REGKEY_DRIVER,
+        // Note: PLUGPLAY_REGKEY_CURRENT_HWPROFILE may not be used alone.
         //
-        Tests_Registry_Handle_WriteValues(moduleContext->DmfModuleRegistry, registryHandle);
+        PLUGPLAY_REGKEY_DEVICE | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
+        PLUGPLAY_REGKEY_DRIVER | PLUGPLAY_REGKEY_CURRENT_HWPROFILE
+    };
 
-        // Get sizes of values to read.
-        //
-        Tests_Registry_Handle_ReadAndValidateBytesRead(moduleContext->DmfModuleRegistry, registryHandle);
+    for (ULONG predefinedIdIndex = 0; predefinedIdIndex < ARRAYSIZE(predefinedIds); predefinedIdIndex++)
+    {
+        if (0 == predefinedIdIndex)
+        {
+            // Zero means open from the hard coded path.
+            //
+            ntStatus = DMF_Registry_HandleOpenByNameEx(moduleContext->DmfModuleRegistry,
+                                                       REGISTRY_PATH_NAME,
+                                                       GENERIC_ALL,
+                                                       TRUE,
+                                                       &registryHandle);
+        }
+        else
+        {
+            // Open the predefined key.
+            //
+            ntStatus = DMF_Registry_HandleOpenById(moduleContext->DmfModuleRegistry,
+                                                   predefinedIds[predefinedIdIndex],
+                                                   GENERIC_ALL,
+                                                   &registryHandle);
+        }
+        ASSERT(NT_SUCCESS(ntStatus));
+        ASSERT(registryHandle != NULL);
+        if (registryHandle != NULL)
+        {
+            // Delete values.
+            //
+            Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry,
+                                               registryHandle);
 
-        // Read values and compare to original with NULL bytesRead.
-        //
-        Tests_Registry_Handle_ReadAndValidateData(moduleContext->DmfModuleRegistry, registryHandle);
+            // Now, try to read some non-existent values.
+            //
+            Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry,
+                                                  registryHandle);
 
-        // Read values and compare to original with bytesRead.
-        //
-        Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(moduleContext->DmfModuleRegistry, registryHandle);
+            // Write the values.
+            //
+            Tests_Registry_Handle_WriteValues(moduleContext->DmfModuleRegistry,
+                                              registryHandle);
 
-        // Try to read to small buffers with NULL bytesRead.
-        //
-        Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(moduleContext->DmfModuleRegistry, registryHandle);
+            // Get sizes of values to read.
+            //
+            Tests_Registry_Handle_ReadAndValidateBytesRead(moduleContext->DmfModuleRegistry,
+                                                           registryHandle);
 
-        // Try to read to small buffers with bytesRead.
-        //
-        Tests_Registry_Handle_ReadSmallBufferWithBytesRead(moduleContext->DmfModuleRegistry, registryHandle);
+            // Read values and compare to original with NULL bytesRead.
+            //
+            Tests_Registry_Handle_ReadAndValidateData(moduleContext->DmfModuleRegistry,
+                                                      registryHandle);
 
-        // Delete everything we wrote and make sure it was deleted
-        //
-        Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry, registryHandle);
-        Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry, registryHandle);
+            // Read values and compare to original with bytesRead.
+            //
+            Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(moduleContext->DmfModuleRegistry,
+                                                                  registryHandle);
 
-        Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry, registryHandle);
-        Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
+            // Try to read to small buffers with NULL bytesRead.
+            //
+            Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(moduleContext->DmfModuleRegistry,
+                                                                  registryHandle);
 
-        DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
-                                 registryHandle);
-        registryHandle = NULL;
+            // Try to read to small buffers with bytesRead.
+            //
+            Tests_Registry_Handle_ReadSmallBufferWithBytesRead(moduleContext->DmfModuleRegistry,
+                                                               registryHandle);
+
+            // Delete everything we wrote and make sure it was deleted.
+            //
+            Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry,
+                                               registryHandle);
+            Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry,
+                                                  registryHandle);
+
+            // Driver is not allowed to delete predefined keys.
+            //
+            if (0 == predefinedIdIndex)
+            {
+                Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry,
+                                                 registryHandle);
+                Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
+            }
+
+            DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
+                                     registryHandle);
+            registryHandle = NULL;
+        }
     }
-
 
     // Tree Tests
     // ----------

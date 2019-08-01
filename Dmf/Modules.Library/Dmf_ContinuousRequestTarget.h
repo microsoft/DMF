@@ -92,6 +92,18 @@ EVT_DMF_ContinuousRequestTarget_SendCompletion(_In_ DMFMODULE DmfModule,
                                                _In_ size_t OutputBufferBytesRead,
                                                _In_ NTSTATUS CompletionStatus);
 
+typedef enum
+{
+    // EVT_DMF_ContinuousRequestTarget_SendCompletion will be called at dispatch level.
+    //
+    ContinuousRequestTarget_CompletionOptions_Dispatch = 0,
+    ContinuousRequestTarget_CompletionOptions_Default = 0,
+    // EVT_DMF_ContinuousRequestTarget_SendCompletion will be called at passive level.
+    //
+    ContinuousRequestTarget_CompletionOptions_Passive,
+    ContinuousRequestTarget_CompletionOptions_Maximum,
+} ContinuousRequestTarget_CompletionOptions;
+
 // These definitions indicate the mode of ContinuousRequestTarget.
 // Indicates how and when the Requests start and stop streaming.
 //
@@ -212,6 +224,22 @@ DMF_ContinuousRequestTarget_Send(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_ContinuousRequestTarget_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     );

@@ -158,6 +158,24 @@ ContinuousRequestTarget_Mode_Automatic | DMF_ContinuousRequestTarget_Start invok
 ContinuousRequestTarget_Mode_Manual | DMF_ContinuousRequestTarget_Start and DMF_ContinuousRequestTarget_Stop must be called explicitly by the Client when needed.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### ContinuousRequestTarget_CompletionOptions
+These definitions indicate the completion options associated with Completion routine.
+Indicates how and when the completion routine should be called.
+
+````
+typedef enum
+{
+    ContinuousRequestTarget_CompletionOptions_Default = 0,
+    ContinuousRequestTarget_CompletionOptions_Passive,
+    ContinuousRequestTarget_CompletionOptions_Maximum,
+} ContinuousRequestTarget_CompletionOptions;
+````
+Member | Description
+----|----
+ContinuousRequestTarget_CompletionOptions_Default | EVT_DMF_ContinuousRequestTarget_SendCompletion will be called at dispatch level.
+ContinuousRequestTarget_Mode_Manual | EVT_DMF_ContinuousRequestTarget_SendCompletion will be called at passive level.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
@@ -388,6 +406,51 @@ SingleAsynchronousRequestClientContext | The Client specific context that is sen
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_ContinuousRequestTarget_SendEx
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_ContinuousRequestTarget_SendEx(
+  _In_ DMFMODULE DmfModule,
+  _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+  _In_ size_t RequestLength,
+  _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+  _In_ size_t ResponseLength,
+  _In_ ContinuousRequestTarget_RequestType RequestType,
+  _In_ ULONG RequestIoctl,
+  _In_ ULONG RequestTimeoutMilliseconds,
+  _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+  _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+  _In_opt_ VOID* SingleAsynchronousRequestClientContext
+  );
+````
+
+This Method uses the given parameters to create a Request and send it asynchronously to the Module's underlying WDFIOTARGET.
+Ex version of DMF_RequestTarget_Send, allows the clients to specify ContinuousRequestTarget_CompletionOptions, which controls how completion routine will be called. 
+
+##### Returns
+
+NTSTATUS. Fails if the Request cannot be sent to the Modules internal WDFIOTARGET.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ContinuousRequestTarget Module handle.
+RequestBuffer | The Client buffer that is sent to this Module's underlying WDFIOTARGET.
+RequestLength | The size in bytes of RequestBuffer.
+ResponseBuffer | The Client buffer that receives data from this Module's underlying WDFIOTARGET.
+ResponseLength | The size in bytes of ResponseBuffer.
+RequestType | The type of Request to send to this Module's underlying WDFIOTARGET.
+RequestIoctl | The IOCTL that tells the Module's underlying WDFIOTARGET the purpose of the associated Request that is sent.
+RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
+CompletionOption | Completion option associated with the completion routine.
+EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
+SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ContinuousRequestTarget_SendSynchronously
 
 ````
