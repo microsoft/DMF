@@ -14,6 +14,7 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -796,7 +797,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "I2C resources not found");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        ASSERT(FALSE);
         goto Exit;
     }
 
@@ -838,7 +839,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "I2C Resources not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        ASSERT(FALSE);
         goto Exit;
     }
 

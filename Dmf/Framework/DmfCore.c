@@ -1268,6 +1268,7 @@ Return Value:
 
     ASSERT(dmfObject->ClientModuleInstanceNameMemory != NULL);
     WdfObjectDelete(dmfObject->ClientModuleInstanceNameMemory);
+    dmfObject->ClientModuleInstanceNameMemory = NULL;
 
 #if !defined(DMF_USER_MODE)
     if (dmfObject->InFlightRecorder != NULL)
@@ -1295,6 +1296,9 @@ Return Value:
     if (DeleteMemory)
     {
         WdfObjectDelete(dmfObject->MemoryDmfObject);
+        // Memory associated with dmfObject is deleted here.
+        // Thus, dmfObject->MemoryDmfObject is not set to NULL.
+        //
         dmfObject = NULL;
     }
 

@@ -250,6 +250,39 @@ ParentWdfIoTarget | The returned WDFIOTARGET of the parent ready for use.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_CmApi_ParentTargetDevNodeGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_CmApi_ParentTargetDevNodeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DEVINST* ParentDevNode,
+    _Out_ WCHAR* ParentDeviceInstanceId,
+    _In_ ULONG ParentDeviceInstanceIdBufferSize
+    );
+````
+
+Given a DMFMODULE, retrieve its corresponding DEVINST and Instance Id.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | The given open DMF_CmApi Module handle.
+ParentDevNode | The returned DEVINST.
+ParentDeviceInstanceId | The buffer where the corresponding Instance Id is written.
+ParentDeviceInstanceIdBufferSize | The size of ParentDeviceInstanceId in bytes.
+
+##### Remarks
+
+* This Method is useful in cases where caller needs to know which specific parent it is attached to.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_CmApi_ParentTargetInterfacesEnumerate
 
 ````

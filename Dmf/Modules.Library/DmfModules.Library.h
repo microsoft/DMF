@@ -83,6 +83,7 @@ extern "C"
 #include "Dmf_VirtualHidAmbientLightSensor.h"
 #include "Dmf_VirtualHidAmbientColorSensor.h"
 #include "Dmf_String.h"
+#include "Dmf_Rundown.h"
 #include "Dmf_File.h"
 
 #if defined(__cplusplus)

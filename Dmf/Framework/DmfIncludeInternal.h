@@ -158,7 +158,7 @@ struct _DMF_OBJECT_
     VOID* ModuleContext;
     // Reference counter for DMF Object references.
     //
-    LONG ReferenceCount;
+    volatile LONG ReferenceCount;
     // Associated WDF Device.
     //
     WDFDEVICE ParentDevice;

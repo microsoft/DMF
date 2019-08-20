@@ -345,7 +345,7 @@ Return Value:
             *BytesReturned = OutputBufferSize;
             // Prevent this thread from using too much CPU time.
             //
-            DMF_Utility_DelayMilliseconds(1000);
+            DMF_Utility_DelayMilliseconds(10);
             break;
         }
     }
