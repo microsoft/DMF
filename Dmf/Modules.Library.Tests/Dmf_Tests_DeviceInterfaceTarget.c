@@ -67,11 +67,13 @@ typedef struct
     // +1 makes it easy to set THREAD_COUNT = 0 for test purposes.
     //
     DMFMODULE DmfModuleThreadAuto[THREAD_COUNT + 1];
-    DMFMODULE DmfModuleThreadManual[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleThreadManualInput[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleThreadManualOutput[THREAD_COUNT + 1];
     // Use alertable sleep to allow driver to unload faster.
     //
     DMFMODULE DmfModuleAlertableSleepAuto[THREAD_COUNT + 1];
-    DMFMODULE DmfModuleAlertableSleepManual[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleAlertableSleepManualInput[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleAlertableSleepManualOutput[THREAD_COUNT + 1];
 } DMF_CONTEXT_Tests_DeviceInterfaceTarget;
 
 // This macro declares the following function:
@@ -525,7 +527,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-Tests_DeviceInterfaceTarget_NonContinousStartManual(
+Tests_DeviceInterfaceTarget_NonContinousStartManualInput(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -559,7 +561,7 @@ Return Value:
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManual[threadIndex]);
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManualInput[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
@@ -569,7 +571,65 @@ Return Value:
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManual[threadIndex]);
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManualInput[threadIndex]);
+    }
+
+Exit:
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Tests_DeviceInterfaceTarget_NonContinousStartManualOutput(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Starts the threads that send asynchronous data to the manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadManualOutput[threadIndex]);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadManualOutput[threadIndex]);
     }
 
 Exit:
@@ -583,7 +643,7 @@ Exit:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-Tests_DeviceInterfaceTarget_NonContinousStopManual(
+Tests_DeviceInterfaceTarget_NonContinousStopManualInput(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -616,11 +676,58 @@ Return Value:
     {
         // Interrupt any long sleeps.
         //
-        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepManual[threadIndex],
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepManualInput[threadIndex],
                                  0);
         // Stop thread.
         //
-        DMF_Thread_Stop(moduleContext->DmfModuleThreadManual[threadIndex]);
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadManualInput[threadIndex]);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_NonContinousStopManualOutput(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Stops the threads that send asynchronous data to the manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepManualOutput[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadManualOutput[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -727,7 +834,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinous(
+Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousInput(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -767,10 +874,10 @@ Return Value:
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
         WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
                                                THREAD_INDEX_CONTEXT);
-        WdfObjectAllocateContext(moduleContext->DmfModuleThreadManual[threadIndex],
+        WdfObjectAllocateContext(moduleContext->DmfModuleThreadManualInput[threadIndex],
                                  &objectAttributes,
                                  (PVOID*)&threadIndexContext);
-        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepManual[threadIndex];
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepManualInput[threadIndex];
         // Reset in case target comes and goes and comes back.
         //
         DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
@@ -780,7 +887,7 @@ Return Value:
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
     {
-        Tests_DeviceInterfaceTarget_NonContinousStartManual(dmfModuleParent);
+        Tests_DeviceInterfaceTarget_NonContinousStartManualInput(dmfModuleParent);
     }
     ASSERT(NT_SUCCESS(ntStatus));
 
@@ -791,7 +898,71 @@ Return Value:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinous(
+Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousOutput(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Arrival Notification.
+    Manually starts the manual DMF_DeviceInterfaceTarget Module.
+    This function starts the threads that send asynchronous data to manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleParent;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               THREAD_INDEX_CONTEXT);
+        WdfObjectAllocateContext(moduleContext->DmfModuleThreadManualOutput[threadIndex],
+                                 &objectAttributes,
+                                 (PVOID*)&threadIndexContext);
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepManualOutput[threadIndex];
+        // Reset in case target comes and goes and comes back.
+        //
+        DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
+                                         0);
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
+    if (NT_SUCCESS(ntStatus))
+    {
+        Tests_DeviceInterfaceTarget_NonContinousStartManualOutput(dmfModuleParent);
+    }
+    ASSERT(NT_SUCCESS(ntStatus));
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousInput(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -822,7 +993,47 @@ Return Value:
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
-    Tests_DeviceInterfaceTarget_NonContinousStopManual(dmfModuleParent);
+    Tests_DeviceInterfaceTarget_NonContinousStopManualInput(dmfModuleParent);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousOutput(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Removal Notification.
+    Manually stops the manual DMF_DeviceInterfaceTarget Module.
+    This function stops the threads that send asynchronous data to manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    DMFMODULE dmfModuleParent;
+
+    PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+
+    DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    Tests_DeviceInterfaceTarget_NonContinousStopManualOutput(dmfModuleParent);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
@@ -920,8 +1131,8 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
 
     moduleAttributes.PassiveLevel = TRUE;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinous;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinous;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousInput;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousInput;
     moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -944,6 +1155,9 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
     moduleAttributes.PassiveLevel = TRUE;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousOutput;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousOutput;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
@@ -970,7 +1184,16 @@ Return Value:
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
-                         &moduleContext->DmfModuleThreadManual[threadIndex]);
+                         &moduleContext->DmfModuleThreadManualInput[threadIndex]);
+
+        DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                              &moduleAttributes);
+        moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+        moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_DeviceInterfaceTarget_WorkThread;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleThreadManualOutput[threadIndex]);
 
         // AlertableSleep Auto
         // -------------------
@@ -984,7 +1207,7 @@ Return Value:
                             WDF_NO_OBJECT_ATTRIBUTES,
                             &moduleContext->DmfModuleAlertableSleepAuto[threadIndex]);
 
-        // AlertableSleep Manual
+        // AlertableSleep Manual (Input)
         // ---------------------
         //
         DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
@@ -994,7 +1217,19 @@ Return Value:
         DMF_DmfModuleAdd(DmfModuleInit,
                             &moduleAttributes,
                             WDF_NO_OBJECT_ATTRIBUTES,
-                            &moduleContext->DmfModuleAlertableSleepManual[threadIndex]);
+                            &moduleContext->DmfModuleAlertableSleepManualInput[threadIndex]);
+
+        // AlertableSleep Manual (Output)
+        // ---------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.Manual";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepManualOutput[threadIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);

@@ -575,6 +575,7 @@ Return Value:
     {
         ASSERT(NT_SUCCESS(ntStatus));
         WdfObjectDelete(moduleContext->Target);
+        moduleContext->Target = NULL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }

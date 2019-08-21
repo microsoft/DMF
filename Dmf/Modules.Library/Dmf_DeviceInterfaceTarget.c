@@ -727,6 +727,8 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
+    ASSERT(moduleContext->IoTarget == IoTarget);
+
     if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
     {
         moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
@@ -738,7 +740,7 @@ Return Value:
         DMF_DeviceInterfaceTarget_StreamStop(*dmfModuleAddress);
     }
 
-    WdfIoTargetCloseForQueryRemove(IoTarget);
+    WdfIoTargetCloseForQueryRemove(moduleContext->IoTarget);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -782,14 +784,17 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
+    ASSERT(moduleContext->IoTarget == IoTarget);
+
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
-    ntStatus = WdfIoTargetOpen(IoTarget,
+    ntStatus = WdfIoTargetOpen(moduleContext->IoTarget,
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open serial target - %!STATUS!", ntStatus);
-        WdfObjectDelete(IoTarget);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open io target - %!STATUS!", ntStatus);
+        WdfObjectDelete(moduleContext->IoTarget);
+        moduleContext->IoTarget = NULL;
         goto Exit;
     }
 

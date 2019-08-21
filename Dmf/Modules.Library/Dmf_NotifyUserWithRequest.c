@@ -494,6 +494,7 @@ Return Value:
                                                STATUS_CANCELLED);
 
     WdfObjectDelete(moduleContext->EventRequestQueue);
+    moduleContext->EventRequestQueue = NULL;
 
     FuncExitVoid(DMF_TRACE);
 }

@@ -144,6 +144,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_File.h">
       <Filter>Headers\Modules\Driver Patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_I2cTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -202,6 +205,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_File.c">
       <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_I2cTarget.c">
+      <Filter>Modules\Targets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

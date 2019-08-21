@@ -84,6 +84,15 @@ DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_CmApi_ParentDevNodeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DEVINST* ParentDevNode,
+    _Out_ WCHAR* ParentDeviceInstanceId,
+    _In_ ULONG ParentDeviceInstanceIdBufferSize
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_CmApi_ParentTargetCloseAndDestroy(
     _In_ DMFMODULE DmfModule,

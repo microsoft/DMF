@@ -9,7 +9,7 @@ Module Name:
 
 Abstract:
 
-    Support for Cm Apis.
+    Support for Cm Api.
 
 Environment:
 
@@ -628,6 +628,7 @@ Exit:
 
     return returnValue;
 }
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -644,7 +645,7 @@ DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
 
 Routine Description:
 
-    Given the Id of an instance of a given device interface, return the list of hardware ids accociated with
+    Given the Id of an instance of a given device interface, return the list of hardware ids associated with
     with that instance.
 
 Arguments:
@@ -744,6 +745,138 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_CmApi_ParentDevNodeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DEVINST* ParentDevNode,
+    _Out_ WCHAR* ParentDeviceInstanceId,
+    _In_ ULONG ParentDeviceInstanceIdBufferSize
+    )
+/*++
+
+Routine Description:
+
+    Given a DMFMODULE, retrieve its corresponding DEVINST and Instance Id.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ParentDevNode - The returned DEVINST.
+    ParentDeviceInstanceId - The buffer where the corresponding Instance Id is written.
+    ParentDeviceInstanceIdBufferSize - The size of ParentDeviceInstanceId in bytes.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    CONFIGRET configRet;
+    DWORD lastError;
+    WDF_DEVICE_PROPERTY_DATA property;
+    DEVPROPTYPE propertyType;
+    WCHAR deviceInstanceId[MAX_DEVICE_ID_LEN];
+    ULONG requiredLength;
+    DEVINST devInst;
+    DEVINST parentDevInst;
+    PWSTR deviceInterfaceList;
+    ULONG deviceInterfaceListLength;
+    WDFDEVICE device;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 CmApi);
+
+    deviceInterfaceList = NULL;
+    deviceInterfaceListLength = 0;
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    WDF_DEVICE_PROPERTY_DATA_INIT(&property, 
+                                  &DEVPKEY_Device_InstanceId);
+    propertyType = DEVPROP_TYPE_STRING;
+    ntStatus = WdfDeviceQueryPropertyEx(device,
+                                        &property,
+                                        sizeof(deviceInstanceId),
+                                        (PVOID)&deviceInstanceId,
+                                        &requiredLength,
+                                        &propertyType);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "WdfDeviceQueryPropertyEx fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    configRet = CM_Locate_DevNodeW(&devInst,
+                                   deviceInstanceId,
+                                   CM_LOCATE_DEVNODE_NORMAL);
+    if (CR_SUCCESS != configRet)
+    {
+        lastError = GetLastError();
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "CM_Locate_DevNodeW fails: Result=%d lastError=%!WINERROR!",
+                    configRet,
+                    lastError);
+        ntStatus = NTSTATUS_FROM_WIN32(lastError);
+        goto Exit;
+    }
+
+    configRet = CM_Get_Parent(&parentDevInst,
+                              devInst, 
+                              CM_LOCATE_DEVNODE_NORMAL);
+    if (CR_SUCCESS != configRet)
+    {
+        lastError = GetLastError();
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "CM_Get_Parent fails: Result=%d lastError=%!WINERROR!",
+                    configRet,
+                    lastError);
+        ntStatus = NTSTATUS_FROM_WIN32(lastError);
+        goto Exit;
+    }
+
+    *ParentDevNode = parentDevInst;
+
+    ULONG size = ParentDeviceInstanceIdBufferSize;
+    configRet = CM_Get_DevNode_PropertyW(parentDevInst,
+                                         &DEVPKEY_Device_InstanceId,
+                                         &propertyType,
+                                         (PBYTE)ParentDeviceInstanceId,
+                                         &size,
+                                         0);
+    if (CR_SUCCESS != configRet)
+    {
+        lastError = GetLastError();
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "CM_Get_DevNode_PropertyW fails: Result=%d lastError=%!WINERROR!",
+                    configRet,
+                    lastError);
+        ntStatus = NTSTATUS_FROM_WIN32(lastError);
+        goto Exit;
+    }
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -844,6 +977,7 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1110,6 +1244,7 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1135,7 +1270,7 @@ Arguments:
 
 Return Value:
 
-    NTSTATUS -- STATUS_SUCCESS on a successfull query, and a CONFIGRET error
+    NTSTATUS -- STATUS_SUCCESS on a successful query, and a CONFIGRET error
                 converted to an NTSTATUS code on failure.
 
 --*/
@@ -1155,7 +1290,6 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     PAGED_CODE();
-
 
     // Device interfaces can come and go, so we will look a few times for the requested interface.
     // This also will break us out of the below loop if the interface GUID is not found.
@@ -1337,7 +1471,6 @@ Return Value:
                "Found requested property value: %d",
                *Value);
 
-
 Exit:
 
     // Cleanup.
@@ -1360,7 +1493,7 @@ Exit:
 
     return ntStatus;
 }
-
+#pragma code_seg()
 
 // eof: Dmf_CmApi.c
 //

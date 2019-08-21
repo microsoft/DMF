@@ -30,7 +30,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                            (4)
+#define THREAD_COUNT                            (2)
 // Don't use an ever increasing serial number because those serial numbers will be remembered
 // by Windows and will slow down the test computer eventually.
 //

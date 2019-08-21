@@ -106,6 +106,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Rundown.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -223,6 +226,9 @@
       <Filter>Headers\Hid</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Rundown.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
   </ItemGroup>
@@ -402,6 +408,9 @@
       <Filter>Documentation\Modules\Hid</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_String.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Rundown.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>

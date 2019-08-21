@@ -420,7 +420,7 @@ Return Value:
 typedef
 NTSTATUS
 (*PFN_IO_GET_ACTIVITY_ID_IRP) (
-    _In_ PIRP   Irp,
+    _In_ IRP* Irp,
     _Out_ LPGUID Guid
     );
 
