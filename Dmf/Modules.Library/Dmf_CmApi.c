@@ -102,7 +102,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-    ASSERT(moduleContext != NULL);
+    DmfAssert(moduleContext != NULL);
 
     do
     {
@@ -202,7 +202,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     if ((Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL ||
          Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
@@ -299,7 +299,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(ioTarget != NULL);
+    DmfAssert(ioTarget != NULL);
     *wdfIoTarget = ioTarget;
 
 Exit:
@@ -560,10 +560,10 @@ Return Value:
                                  CmApi);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(DeviceInstanceId != NULL);
-    ASSERT(DevNodeStatus != NULL);
+    DmfAssert(DeviceInstanceId != NULL);
+    DmfAssert(DevNodeStatus != NULL);
     *DevNodeStatus = 0;
-    ASSERT(ProblemCode != NULL);
+    DmfAssert(ProblemCode != NULL);
     *ProblemCode = 0;
 
     returnValue = FALSE;
@@ -679,7 +679,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(DeviceHardwareIds != NULL);
+    DmfAssert(DeviceHardwareIds != NULL);
 
     ntStatus = STATUS_SUCCESS;
 

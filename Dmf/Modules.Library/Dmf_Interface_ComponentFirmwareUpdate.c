@@ -171,7 +171,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    ASSERT(transportData != NULL);
+    DmfAssert(transportData != NULL);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_ComponentFirmwareUpdate_TransportBind");
 
@@ -206,7 +206,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    ASSERT(transportData != NULL);
+    DmfAssert(transportData != NULL);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ComponentFirmwareUpdate_UnbindComponentFirmwareUpdate_Unbind");
 

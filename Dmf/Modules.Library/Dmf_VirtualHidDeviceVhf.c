@@ -97,8 +97,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->VhfHandle != NULL);
-    ASSERT(! moduleContext->Started);
+    DmfAssert(moduleContext->VhfHandle != NULL);
+    DmfAssert(! moduleContext->Started);
     ntStatus = VhfStart(moduleContext->VhfHandle);
     if (NT_SUCCESS(ntStatus))
     {
@@ -223,7 +223,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(NULL != moduleContext->VhfHandle);
+    DmfAssert(NULL != moduleContext->VhfHandle);
     if (moduleConfig->StartOnOpen)
     {
         ntStatus = VirtualHidDeviceVhf_Start(DmfModule);
@@ -380,8 +380,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->VhfHandle != NULL);
-    ASSERT(moduleContext->Started);
+    DmfAssert(moduleContext->VhfHandle != NULL);
+    DmfAssert(moduleContext->Started);
 
     VhfAsyncOperationComplete(VhfOperationHandle,
                               NtStatus);
@@ -422,8 +422,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->VhfHandle != NULL);
-    ASSERT(moduleContext->Started);
+    DmfAssert(moduleContext->VhfHandle != NULL);
+    DmfAssert(moduleContext->Started);
     ntStatus = VhfReadReportSubmit(moduleContext->VhfHandle,
                                    HidTransferPacket);
     if (! NT_SUCCESS(ntStatus))

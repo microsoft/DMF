@@ -130,8 +130,8 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(RootHubIoTarget != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(RootHubIoTarget != NULL);
 
     // Create an IO target to the controller driver via the resource hub.
     //
@@ -218,7 +218,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     // Create connection-less target to resource hub for querying connection 
@@ -300,7 +300,7 @@ Return Value:
                     "BiosDescriptorLength=%d sizeof(PNP_SERIAL_BUS_DESCRIPTOR)=%d",
                     (int)BiosDescriptorLength,
                     (int)sizeof(PNP_SERIAL_BUS_DESCRIPTOR));
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         goto Exit;
     }
@@ -314,7 +314,7 @@ Return Value:
                     "type=%d SERIAL_BUS_DESCRIPTOR=%d",
                     type,
                     SERIAL_BUS_DESCRIPTOR);
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -334,7 +334,7 @@ Return Value:
         (BiosDescriptorLength - sizeof(PNP_SERIAL_BUS_DESCRIPTOR))))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -408,14 +408,14 @@ Return Value:
                     "TypeSpecificDataLength=%d [%d]",
                     TypeSpecificDataLength,
                     RTL_SIZEOF_THROUGH_FIELD(DIRECTFW_I2C_CONNECTION_DESCRIPTOR_SUBTYPE, SecondaryDeviceAddress));
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
 
     i2CSubDescriptor = (DIRECTFW_I2C_CONNECTION_DESCRIPTOR_SUBTYPE*)TypeSpecificData;
 
-    ASSERT(SecondaryDeviceAddress != NULL);
+    DmfAssert(SecondaryDeviceAddress != NULL);
     *SecondaryDeviceAddress = i2CSubDescriptor->SecondaryDeviceAddress;
 
 Exit:
@@ -482,7 +482,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->ResourceHubTarget != NULL);
+    DmfAssert(moduleContext->ResourceHubTarget != NULL);
 
     registrationMemory = NULL;
     registrationBuffer = NULL;
@@ -490,7 +490,7 @@ Return Value:
     resultsQuery = NULL;
     resultsBufferMemory = NULL;
     resultsBuffer = NULL;
-    ASSERT(ConnectionProperties != NULL);
+    DmfAssert(ConnectionProperties != NULL);
     *ConnectionProperties = NULL;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
@@ -693,7 +693,7 @@ Return Value:
                     "TransferBufferLength=%d sizeof(SPB_TRANSFER_LIST)=%d",
                     (int)TransferBufferLength,
                     (int)sizeof(SPB_TRANSFER_LIST));
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -706,7 +706,7 @@ Return Value:
                     "list->Size=%d sizeof(SPB_TRANSFER_LIST)=%d",
                     list->Size,
                     sizeof(SPB_TRANSFER_LIST));
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -720,7 +720,7 @@ Return Value:
     if (list->TransferCount != 1 && list->TransferCount != 2)
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "list->TransferCount=%d", list->TransferCount);
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -739,7 +739,7 @@ Return Value:
                         "buffer->Format=%d SpbTransferBufferFormatSimple=%d",
                         buffer->Format,
                         SpbTransferBufferFormatSimple);
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_INVALID_PARAMETER;
             goto Exit;
         }
@@ -758,7 +758,7 @@ Return Value:
                                 "listEntry->Direction=%d SpbTransferDirectionToDevice=%d",
                                 listEntry->Direction,
                                 SpbTransferDirectionToDevice);
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit;
                 }
@@ -776,7 +776,7 @@ Return Value:
                                 "listEntry->Direction=%d SpbTransferDirectionToDevice=%d SpbTransferDirectionFromDevice=%d",
                                 listEntry->Direction, SpbTransferDirectionToDevice,
                                 SpbTransferDirectionFromDevice);
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit;
                 }
@@ -784,7 +784,7 @@ Return Value:
                 if (listEntry->Direction == previousDataListEntryDirection)
                 {
                     TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "listEntry->Direction=%d previousDataListEntryDirection=%d", listEntry->Direction, previousDataListEntryDirection);
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit;
                 }
@@ -967,9 +967,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(Device == DMF_ParentDeviceGet(DmfModule));
-    ASSERT(Request != NULL);
-    ASSERT(FileObject != NULL);
+    DmfAssert(Device == DMF_ParentDeviceGet(DmfModule));
+    DmfAssert(Request != NULL);
+    DmfAssert(FileObject != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

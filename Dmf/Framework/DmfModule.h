@@ -881,9 +881,9 @@ DMF_HandleValidate_ModuleMethod(
 #define DMFMODULE_VALIDATE_IN_METHOD(ModuleHandle, ModuleType)                                  \
                                                                                                 \
      (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                      \
-              (ASSERT(FALSE)) :                                                                 \
+              (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_ModuleMethod(ModuleHandle))                                   \
-			  
+
 // These two validation functions are deprecated
 // Do not use it.
 //
@@ -895,9 +895,9 @@ DMF_HandleValidate_OpeningOk(
 #define DMFMODULE_VALIDATE_IN_METHOD_OPENING_OK(ModuleHandle, ModuleType)                       \
                                                                                                 \
     (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                       \
-              (ASSERT(FALSE)) :                                                                 \
+              (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_OpeningOk(ModuleHandle))                                      \
-			  
+
 VOID
 DMF_HandleValidate_ClosingOk(
     _In_ DMFMODULE DmfModule
@@ -906,7 +906,7 @@ DMF_HandleValidate_ClosingOk(
 #define DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(ModuleHandle, ModuleType)                       \
                                                                                                 \
     (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                       \
-              (ASSERT(FALSE)) :                                                                 \
+              (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_ClosingOk(ModuleHandle))                                      \
 
 __forceinline

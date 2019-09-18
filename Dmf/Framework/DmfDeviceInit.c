@@ -130,7 +130,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return DmfDeviceInit->BridgeEnabled;
 }
 #pragma code_seg()
@@ -160,7 +160,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return (DMF_CONFIG_Bridge*)DmfDeviceInit->DmfBridgeConfig;
 }
 #pragma code_seg()
@@ -190,7 +190,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return DmfDeviceInit->ClientImplementsDeviceAdd;
 }
 #pragma code_seg()
@@ -220,7 +220,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return DmfDeviceInit->IsControlDevice;
 }
 #pragma code_seg()
@@ -250,7 +250,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return DmfDeviceInit->IsFilterDevice;
 }
 #pragma code_seg()
@@ -280,7 +280,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return DmfDeviceInit->ClientDriverDevice;
 }
 #pragma code_seg()
@@ -310,7 +310,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return DmfDeviceInit->QueueConfigHooked;
 }
 #pragma code_seg()
@@ -342,7 +342,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
 
     branchTrackConfig = (DMF_CONFIG_BranchTrack*)DmfDeviceInit->DmfBranchTrackModuleConfig;
 
@@ -378,7 +378,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
 
     liveKernelDumpConfig = (DMF_CONFIG_LiveKernelDump*)DmfDeviceInit->DmfLiveKernelDumpModuleConfig;
 
@@ -413,7 +413,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(DmfDeviceInit != NULL);
+    DmfAssert(DmfDeviceInit != NULL);
     return (DMF_EVENT_CALLBACKS*)DmfDeviceInit->DmfEventCallbacks;
 }
 #pragma code_seg()
@@ -694,7 +694,7 @@ Return Value:
     {
         // This API should only be called for Control device.
         //
-        ASSERT(DmfDeviceInit->IsControlDevice);
+        DmfAssert(DmfDeviceInit->IsControlDevice);
 
         DmfDeviceInit->ClientDriverDevice = Device;
     }
@@ -823,7 +823,7 @@ Return Value:
     PDMFDEVICE_INIT dmfDeviceInit;
     WDFMEMORY dmfDeviceInitMemory;
 
-    ASSERT(DmfDeviceInitPointer != NULL);
+    DmfAssert(DmfDeviceInitPointer != NULL);
 
     dmfDeviceInit = *DmfDeviceInitPointer;
     if (NULL == dmfDeviceInit)
@@ -833,12 +833,12 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(dmfDeviceInit != NULL);
+    DmfAssert(dmfDeviceInit != NULL);
 
     dmfDeviceInitMemory = dmfDeviceInit->DmfDeviceInitMemory;
-    ASSERT(dmfDeviceInitMemory != NULL);
-    ASSERT(dmfDeviceInit->BridgeEnabled == TRUE);
-    ASSERT(dmfDeviceInit->DmfBridgeConfigMemory != NULL);
+    DmfAssert(dmfDeviceInitMemory != NULL);
+    DmfAssert(dmfDeviceInit->BridgeEnabled == TRUE);
+    DmfAssert(dmfDeviceInit->DmfBridgeConfigMemory != NULL);
 
     WdfObjectDelete(dmfDeviceInit->DmfBridgeConfigMemory);
     dmfDeviceInit->DmfBridgeConfigMemory = NULL;
@@ -889,15 +889,15 @@ Return Value:
     {
         // Hook APIs should be called only once per device instance.
         //
-        ASSERT(DmfDeviceInit->PnpPowerCallbacksHooked != TRUE);
+        DmfAssert(DmfDeviceInit->PnpPowerCallbacksHooked != TRUE);
         // DMF_DmfDeviceInitHookPnpPowerEventCallbacks should not be called for Control device.
         //
-        ASSERT(DmfDeviceInit->IsControlDevice != TRUE);
+        DmfAssert(DmfDeviceInit->IsControlDevice != TRUE);
 
         if (PnpPowerEventCallbacks != NULL)
         {
             bridgeModuleConfig = (DMF_CONFIG_Bridge*)DmfDeviceInit->DmfBridgeConfig;
-            ASSERT(bridgeModuleConfig != NULL);
+            DmfAssert(bridgeModuleConfig != NULL);
 
             bridgeModuleConfig->EvtDevicePrepareHardware = PnpPowerEventCallbacks->EvtDevicePrepareHardware;
             bridgeModuleConfig->EvtDeviceReleaseHardware = PnpPowerEventCallbacks->EvtDeviceReleaseHardware;
@@ -960,12 +960,12 @@ Return Value:
     {
         // Hook APIs should be called only once per device instance.
         //
-        ASSERT(DmfDeviceInit->FileObjectConfigHooked != TRUE);
+        DmfAssert(DmfDeviceInit->FileObjectConfigHooked != TRUE);
 
         if (FileObjectConfig != NULL)
         {
             bridgeModuleConfig = (DMF_CONFIG_Bridge*)DmfDeviceInit->DmfBridgeConfig;
-            ASSERT(bridgeModuleConfig != NULL);
+            DmfAssert(bridgeModuleConfig != NULL);
 
             bridgeModuleConfig->EvtFileCreate = FileObjectConfig->EvtDeviceFileCreate;
             bridgeModuleConfig->EvtFileCleanup = FileObjectConfig->EvtFileCleanup;
@@ -1020,15 +1020,15 @@ Return Value:
     {
         // Hook APIs should be called only once per device instance.
         //
-        ASSERT(DmfDeviceInit->PowerPolicyCallbacksHooked != TRUE);
+        DmfAssert(DmfDeviceInit->PowerPolicyCallbacksHooked != TRUE);
         // DMF_DmfDeviceInitHookPowerPolicyEventCallbacks should not be called for Control device.
         //
-        ASSERT(DmfDeviceInit->IsControlDevice != TRUE);
+        DmfAssert(DmfDeviceInit->IsControlDevice != TRUE);
 
         if (PowerPolicyEventCallbacks != NULL)
         {
             bridgeModuleConfig = (DMF_CONFIG_Bridge*)DmfDeviceInit->DmfBridgeConfig;
-            ASSERT(bridgeModuleConfig != NULL);
+            DmfAssert(bridgeModuleConfig != NULL);
 
             bridgeModuleConfig->EvtDeviceArmWakeFromS0 = PowerPolicyEventCallbacks->EvtDeviceArmWakeFromS0;
             bridgeModuleConfig->EvtDeviceDisarmWakeFromS0 = PowerPolicyEventCallbacks->EvtDeviceDisarmWakeFromS0;
@@ -1083,7 +1083,7 @@ Return Value:
             DMF_CONFIG_Bridge* bridgeModuleConfig;
 
             bridgeModuleConfig = (DMF_CONFIG_Bridge*)DmfDeviceInit->DmfBridgeConfig;
-            ASSERT(bridgeModuleConfig != NULL);
+            DmfAssert(bridgeModuleConfig != NULL);
 #if !defined(DMF_USER_MODE)
             bridgeModuleConfig->EvtInternalDeviceIoControl = QueueConfig->EvtIoInternalDeviceControl;
 #endif // !defined(DMF_USER_MODE)
@@ -1129,7 +1129,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(! DmfDeviceInit->IsFilterDevice);
+    DmfAssert(! DmfDeviceInit->IsFilterDevice);
     if (DmfDeviceInit != &g_DmfDefaultDeviceInit)
     {
         DmfDeviceInit->IsFilterDevice = TRUE;
@@ -1169,7 +1169,7 @@ Return Value:
     //
     if (DmfDeviceInit != &g_DmfDefaultDeviceInit)
     {
-        ASSERT(DmfEventCallbacks != NULL);
+        DmfAssert(DmfEventCallbacks != NULL);
 
         DmfDeviceInit->DmfEventCallbacks = DmfEventCallbacks;
     }
@@ -1215,7 +1215,7 @@ Return Value:
     //
     if (DmfDeviceInit != &g_DmfDefaultDeviceInit)
     {
-        ASSERT(DmfBranchTrackModuleConfig != NULL);
+        DmfAssert(DmfBranchTrackModuleConfig != NULL);
 
         DmfDeviceInit->DmfBranchTrackModuleConfig = DmfBranchTrackModuleConfig;
     }
@@ -1254,7 +1254,7 @@ Return Value:
     //
     if (DmfDeviceInit != &g_DmfDefaultDeviceInit)
     {
-        ASSERT(DmfLiveKernelDumpModuleConfig != NULL);
+        DmfAssert(DmfLiveKernelDumpModuleConfig != NULL);
 
         DmfDeviceInit->DmfLiveKernelDumpModuleConfig = DmfLiveKernelDumpModuleConfig;
 

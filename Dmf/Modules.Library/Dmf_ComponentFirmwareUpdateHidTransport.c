@@ -213,7 +213,7 @@ Return:
     dmfModuleComponentFirmwareUpdateTransport = DMF_ParentModuleGet(DmfModuleHid);
     moduleContext = DMF_CONTEXT_GET(dmfModuleComponentFirmwareUpdateTransport);
 
-    ASSERT(Buffer != NULL);
+    DmfAssert(Buffer != NULL);
 
     ntStatus = STATUS_SUCCESS;
     USHORT reportId = Buffer[0];
@@ -590,7 +590,7 @@ Return:
     DmfComponentFirmwareUpdateTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
     UCHAR reportId = REPORT_ID_OFFER_CONTENT_OUTPUT;
-    ASSERT(HeaderSize == sizeof(reportId));
+    DmfAssert(HeaderSize == sizeof(reportId));
     Buffer[0] = reportId;
 
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
@@ -658,7 +658,7 @@ Return:
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
 
     UCHAR reportId = REPORT_ID_OFFER_CONTENT_OUTPUT;
-    ASSERT(HeaderSize == sizeof(reportId));
+    DmfAssert(HeaderSize == sizeof(reportId));
     Buffer[0] = reportId;
 
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
@@ -727,7 +727,7 @@ Return:
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
 
     UCHAR reportId = REPORT_ID_OFFER_CONTENT_OUTPUT;
-    ASSERT(HeaderSize == sizeof(reportId));
+    DmfAssert(HeaderSize == sizeof(reportId));
     Buffer[0] = reportId;
 
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
@@ -909,7 +909,7 @@ Return:
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
 
     UCHAR reportId = REPORT_ID_PAYLOAD_CONTENT_OUTPUT;
-    ASSERT(HeaderSize == sizeof(reportId));
+    DmfAssert(HeaderSize == sizeof(reportId));
     Buffer[0] = reportId;
 
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,

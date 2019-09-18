@@ -101,8 +101,8 @@ Return Value:
     {
         callPassiveLevelCallback = moduleConfig->DispatchCallback(dmfModule,
                                                                   NotifyCode);
-        ASSERT((! callPassiveLevelCallback) ||
-               (moduleConfig->PassiveCallback != NULL));
+        DmfAssert((! callPassiveLevelCallback) ||
+                  (moduleConfig->PassiveCallback != NULL));
     }
     else
     {
@@ -116,7 +116,7 @@ Return Value:
     {
         if (moduleConfig->PassiveCallback != NULL)
         {
-            ASSERT(moduleContext->Workitem != NULL);
+            DmfAssert(moduleContext->Workitem != NULL);
             WdfWorkItemEnqueue(moduleContext->Workitem);
         }
     }
@@ -158,7 +158,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
-    ASSERT(moduleConfig->PassiveCallback != NULL);
+    DmfAssert(moduleConfig->PassiveCallback != NULL);
     moduleConfig->PassiveCallback(dmfModule);
 }
 #pragma code_seg()
@@ -265,7 +265,7 @@ Return Value:
 
     // Dereference the interface.
     //
-    ASSERT(moduleContext->AcpiInterface.InterfaceDereference != NULL);
+    DmfAssert(moduleContext->AcpiInterface.InterfaceDereference != NULL);
     moduleContext->AcpiInterface.InterfaceDereference(moduleContext->AcpiInterface.Context);
 }
 #pragma code_seg()

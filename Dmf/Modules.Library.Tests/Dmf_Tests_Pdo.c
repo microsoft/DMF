@@ -176,7 +176,7 @@ Tests_Pdo_ThreadAction(
     ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
                                     &pdoRecord,
                                     &device);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     // Wait some time.
     //
@@ -289,7 +289,7 @@ Tests_Pdo_WorkThread(
                                         threadIndex->ThreadIndex);
             break;
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
     }
 

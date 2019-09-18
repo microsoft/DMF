@@ -73,7 +73,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                     sizeof(data));                        \
     if (!NT_SUCCESS(ntStatus))                                            \
     {                                                                     \
-        ASSERT(FALSE);                                                    \
+        DmfAssert(FALSE);                                                    \
         goto Exit;                                                        \
     }                                                                     
                                                                           
@@ -84,7 +84,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
     if (!NT_SUCCESS(ntStatus) ||                                          \
         data != Value)                                                    \
     {                                                                     \
-        ASSERT(FALSE);                                                    \
+        DmfAssert(FALSE);                                                    \
         goto Exit;                                                        \
     }                                                                     
                                                                           
@@ -94,7 +94,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                    sizeof(data));                         \
     if (NT_SUCCESS(ntStatus))                                             \
     {                                                                     \
-        ASSERT(FALSE);                                                    \
+        DmfAssert(FALSE);                                                    \
         goto Exit;                                                        \
     }
 
@@ -110,7 +110,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                              TRUE,                                        \
                              Tests_RingBuffer_Enumeration,                \
                              &enumContext);                               \
-    ASSERT(enumContext.ItemsFound == (NumberOfItems));                    \
+    DmfAssert(enumContext.ItemsFound == (NumberOfItems));                    \
 }                                                                         
 
 #define FIND_AND_VERIFY(Value)                                            \
@@ -126,7 +126,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                        &enumContext,                      \
                                        (UCHAR*)&Value,                    \
                                        sizeof(Value));                    \
-    ASSERT(enumContext.ItemsFound == 1);                                  \
+    DmfAssert(enumContext.ItemsFound == 1);                                  \
 }
 
 BOOLEAN
@@ -144,11 +144,11 @@ Tests_RingBuffer_Enumeration(
     UNREFERENCED_PARAMETER(BufferSize);
 
     enumContext = (PENUM_CONTEXT_Tests_RingBuffer)CallbackContext;
-    ASSERT(enumContext != NULL);
+    DmfAssert(enumContext != NULL);
 
-    ASSERT(sizeof(ULONG) == BufferSize);
+    DmfAssert(sizeof(ULONG) == BufferSize);
     data = *(ULONG*)Buffer;
-    ASSERT(enumContext->ValueExpected == data);
+    DmfAssert(enumContext->ValueExpected == data);
     
     // 'Dereferencing NULL pointer. 'dataSource' contains the same NULL value as 'CallbackContext' did.'
     //

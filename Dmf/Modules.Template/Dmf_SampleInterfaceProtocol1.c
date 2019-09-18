@@ -624,7 +624,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->SampleInterfaceHandle != NULL);
+    DmfAssert(moduleContext->SampleInterfaceHandle != NULL);
 
     // Call the Interface's Method1.
     //

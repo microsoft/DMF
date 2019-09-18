@@ -116,9 +116,9 @@ Tests_PingPongBuffer_CheckIntegrity(
 
     // Make sure ping-pong buffer content matches the corresponding sample data fragment.
     //
-    ASSERT(bytesToCheck == RtlCompareMemory(moduleContext->SampleBuffer + moduleContext->SampleReadOffset,
-                                            buffer,
-                                            bytesToCheck));
+    DmfAssert(bytesToCheck == RtlCompareMemory(moduleContext->SampleBuffer + moduleContext->SampleReadOffset,
+                                               buffer,
+                                               bytesToCheck));
 
     DMF_ModuleUnlock(DmfModule);
 
@@ -155,8 +155,8 @@ Tests_PingPongBuffer_ActionReset(
     buffer = DMF_PingPongBuffer_Get(moduleContext->DmfModulePingPongBuffer,
                                     &size);
 
-    ASSERT(NULL != buffer);
-    ASSERT(0 == size);
+    DmfAssert(NULL != buffer);
+    DmfAssert(0 == size);
 
     DMF_ModuleUnlock(DmfModule);
 
@@ -248,10 +248,10 @@ Tests_PingPongBuffer_ActionConsume(
 
     // Check if the consumed data matches the corresponding sample data fragment.
     //
-    ASSERT(bufferConsumed != NULL);
-    ASSERT(bytesToConsume == RtlCompareMemory(moduleContext->SampleBuffer + moduleContext->SampleReadOffset + offsetToConsume,
-                                              bufferConsumed,
-                                              bytesToConsume));
+    DmfAssert(bufferConsumed != NULL);
+    DmfAssert(bytesToConsume == RtlCompareMemory(moduleContext->SampleBuffer + moduleContext->SampleReadOffset + offsetToConsume,
+                                                 bufferConsumed,
+                                                 bytesToConsume));
 
     // Adjust the sample data read offset.
     //
@@ -307,7 +307,7 @@ Tests_PingPongBuffer_ReadThreadWork(
         break;
 
     default:
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         break;
     }
 
@@ -363,7 +363,7 @@ Tests_PingPongBuffer_WriteThreadWork(
                                         &currentSize);
     if (!NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_PingPongBuffer_PingWrite fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }

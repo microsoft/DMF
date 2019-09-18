@@ -2041,8 +2041,8 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(RootHubIoTarget != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(RootHubIoTarget != NULL);
 
     // Create an IO target to the controller driver via the resource hub.
     //
@@ -2243,9 +2243,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE_ResourceHub);
 
-    ASSERT(Device == DMF_AttachedDeviceGet(DmfModule));
-    ASSERT(Request != NULL);
-    ASSERT(FileObject != NULL);
+    DmfAssert(Device == DMF_AttachedDeviceGet(DmfModule));
+    DmfAssert(Request != NULL);
+    DmfAssert(FileObject != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -5506,7 +5506,7 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(NT_SUCCESS(ntStatus));
+        DmfAssert(NT_SUCCESS(ntStatus));
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE_I2cTarget,
                     "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -5696,13 +5696,13 @@ Return Value:
 
     // This function should not be not called twice.
     //
-    ASSERT(NULL == moduleContext->DeviceInterfaceNotification);
+    DmfAssert(NULL == moduleContext->DeviceInterfaceNotification);
 
     parentDevice = DMF_AttachedDeviceGet(DmfModule);
-    ASSERT(parentDevice != NULL);
+    DmfAssert(parentDevice != NULL);
 
     deviceObject = WdfDeviceWdmGetDeviceObject(parentDevice);
-    ASSERT(deviceObject != NULL);
+    DmfAssert(deviceObject != NULL);
 
     driverObject = deviceObject->DriverObject;
     ntStatus = IoRegisterPlugPlayNotification(EventCategoryDeviceInterfaceChange,
@@ -5799,7 +5799,7 @@ Return Value:
         ntStatus = IoUnregisterPlugPlayNotificationEx(moduleContext->DeviceInterfaceNotification);
         if (! NT_SUCCESS(ntStatus))
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_VERBOSE,
                         DMF_TRACE_DeviceInterfaceTarget,
                         "IoUnregisterPlugPlayNotificationEx fails: ntStatus=%!STATUS!",

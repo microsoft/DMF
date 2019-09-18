@@ -62,9 +62,9 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(ModuleState_Invalid == DmfObject->ModuleState);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(ModuleState_Invalid == DmfObject->ModuleState);
 }
 
 VOID
@@ -92,10 +92,10 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(((ModuleState_Created == DmfObject->ModuleState) || (ModuleState_Closed == DmfObject->ModuleState)) ||
-           ((DmfObject->DmfObjectParent != NULL) && (DmfObject->ModuleState == ModuleState_Opened)));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(((ModuleState_Created == DmfObject->ModuleState) || (ModuleState_Closed == DmfObject->ModuleState)) ||
+              ((DmfObject->DmfObjectParent != NULL) && (DmfObject->ModuleState == ModuleState_Opened)));
 }
 
 VOID
@@ -122,10 +122,10 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Created == DmfObject->ModuleState) ||
-           (ModuleState_Opening == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
+              (ModuleState_Opening == DmfObject->ModuleState));
 }
 
 VOID
@@ -152,9 +152,9 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(ModuleState_Opening == DmfObject->ModuleState);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(ModuleState_Opening == DmfObject->ModuleState);
 }
 
 VOID
@@ -186,11 +186,11 @@ Return Value:
     // Then they are all closed. In this case, modules that are created but not closed
     // will have the close callback called.
     //
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(((ModuleState_Opened == DmfObject->ModuleState) || (ModuleState_Created == DmfObject->ModuleState)) ||
-           ((DmfObject->DmfObjectParent != NULL) && (DmfObject->ModuleState == ModuleState_Closed))
-          );
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(((ModuleState_Opened == DmfObject->ModuleState) || (ModuleState_Created == DmfObject->ModuleState)) ||
+              ((DmfObject->DmfObjectParent != NULL) && (DmfObject->ModuleState == ModuleState_Closed))
+              );
 }
 
 VOID
@@ -217,9 +217,9 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(ModuleState_Closing == DmfObject->ModuleState);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(ModuleState_Closing == DmfObject->ModuleState);
 }
 
 VOID
@@ -246,10 +246,10 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Opened == DmfObject->ModuleState) ||
-           (ModuleState_Closing == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Opened == DmfObject->ModuleState) ||
+              (ModuleState_Closing == DmfObject->ModuleState));
 }
 
 VOID
@@ -277,10 +277,10 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Closed == DmfObject->ModuleState) ||
-           (ModuleState_Created == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Closed == DmfObject->ModuleState) ||
+              (ModuleState_Created == DmfObject->ModuleState));
 }
 
 VOID
@@ -307,11 +307,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Opening == DmfObject->ModuleState) ||
-           (ModuleState_Opened == DmfObject->ModuleState) ||
-           (ModuleState_Closing == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Opening == DmfObject->ModuleState) ||
+              (ModuleState_Opened == DmfObject->ModuleState) ||
+              (ModuleState_Closing == DmfObject->ModuleState));
 }
 
 VOID
@@ -338,9 +338,9 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(ModuleState_Created == DmfObject->ModuleState);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(ModuleState_Created == DmfObject->ModuleState);
 }
 
 VOID
@@ -368,13 +368,13 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Created == DmfObject->ModuleState) ||
-           (DMF_IsObjectTypeOpenNotify(DmfObject) &&
-            ((ModuleState_Opened == DmfObject->ModuleState) ||
-             (ModuleState_Closed == DmfObject->ModuleState))
-           ));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
+              (DMF_IsObjectTypeOpenNotify(DmfObject) &&
+              ((ModuleState_Opened == DmfObject->ModuleState) ||
+              (ModuleState_Closed == DmfObject->ModuleState))
+              ));
 }
 
 VOID
@@ -401,9 +401,9 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT(ModuleState_Opened == DmfObject->ModuleState);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert(ModuleState_Opened == DmfObject->ModuleState);
 }
 
 VOID
@@ -430,10 +430,10 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Created == DmfObject->ModuleState) ||
-           (ModuleState_Opened == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
+              (ModuleState_Opened == DmfObject->ModuleState));
 }
 
 VOID
@@ -460,10 +460,10 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Created == DmfObject->ModuleState) ||
-           (ModuleState_Closed == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
+              (ModuleState_Closed == DmfObject->ModuleState));
 }
 
 VOID
@@ -490,11 +490,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Created == DmfObject->ModuleState) ||
-           (ModuleState_Opened == DmfObject->ModuleState) ||
-           (ModuleState_Closed == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
+              (ModuleState_Opened == DmfObject->ModuleState) ||
+              (ModuleState_Closed == DmfObject->ModuleState));
 }
 
 VOID
@@ -522,13 +522,13 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfObject);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    ASSERT((ModuleState_Created == DmfObject->ModuleState) ||
-           (ModuleState_Opening == DmfObject->ModuleState) ||
-           (ModuleState_Opened == DmfObject->ModuleState) ||
-           (ModuleState_Closing == DmfObject->ModuleState) ||
-           (ModuleState_Closed == DmfObject->ModuleState));
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
+    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
+              (ModuleState_Opening == DmfObject->ModuleState) ||
+              (ModuleState_Opened == DmfObject->ModuleState) ||
+              (ModuleState_Closing == DmfObject->ModuleState) ||
+              (ModuleState_Closed == DmfObject->ModuleState));
 }
 
 VOID
@@ -597,11 +597,11 @@ Return Value:
 #if defined(DEBUG)
     DMF_OBJECT* dmfObject;
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == dmfObject->Signature);
-    ASSERT((dmfObject->ModuleState > ModuleState_Invalid) &&
-           (dmfObject->ModuleState < ModuleState_Last));
-    ASSERT(dmfObject->ModuleName != NULL);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == dmfObject->Signature);
+    DmfAssert((dmfObject->ModuleState > ModuleState_Invalid) &&
+              (dmfObject->ModuleState < ModuleState_Last));
+    DmfAssert(dmfObject->ModuleName != NULL);
     // TODO: Verify other fields.
     //
 #endif // defined(DEBUG)
@@ -634,10 +634,10 @@ Return Value:
     DMF_OBJECT* dmfObject;
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    ASSERT(dmfObject != NULL);
-    ASSERT(DMF_OBJECT_SIGNATURE == dmfObject->Signature);
-    ASSERT((ModuleState_Opened == dmfObject->ModuleState) ||
-           (ModuleState_Opening == dmfObject->ModuleState));
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(DMF_OBJECT_SIGNATURE == dmfObject->Signature);
+    DmfAssert((ModuleState_Opened == dmfObject->ModuleState) ||
+              (ModuleState_Opening == dmfObject->ModuleState));
 #endif // defined(DEBUG)
 }
 
@@ -669,8 +669,8 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     DMF_ObjectValidate((DMFMODULE)dmfObject->MemoryDmfObject);
-    ASSERT((ModuleState_Opened == dmfObject->ModuleState) ||
-        (ModuleState_Closing == dmfObject->ModuleState));
+    DmfAssert((ModuleState_Opened == dmfObject->ModuleState) ||
+              (ModuleState_Closing == dmfObject->ModuleState));
 #endif // defined(DEBUG)
 }
 

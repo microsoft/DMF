@@ -115,7 +115,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -172,7 +172,7 @@ Return Value:
     ntStatus = STATUS_SUCCESS;
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -222,7 +222,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -272,7 +272,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -321,7 +321,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -371,7 +371,7 @@ Return Value:
     ntStatus = STATUS_SUCCESS;
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -424,7 +424,7 @@ Return Value:
 
     device = WdfIoQueueGetDevice(Queue);
     dmfDeviceContext = DmfDeviceContextGet(device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -490,7 +490,7 @@ Return Value:
 
     device = WdfIoQueueGetDevice(Queue);
     dmfDeviceContext = DmfDeviceContextGet(device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -563,7 +563,7 @@ Return Value:
 
     device = WdfIoQueueGetDevice(Queue);
     dmfDeviceContext = DmfDeviceContextGet(device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -639,7 +639,7 @@ Return Value:
 
     device = WdfIoQueueGetDevice(Queue);
     dmfDeviceContext = DmfDeviceContextGet(device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -703,7 +703,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -742,7 +742,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -782,7 +782,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -824,7 +824,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -866,7 +866,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -907,7 +907,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -947,7 +947,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -989,7 +989,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1032,7 +1032,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1075,7 +1075,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1119,7 +1119,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1160,7 +1160,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1199,7 +1199,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1241,7 +1241,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1284,7 +1284,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1323,7 +1323,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
@@ -1415,11 +1415,11 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
-    ASSERT(dmfDeviceContext->DmfCollection != NULL);
+    DmfAssert(dmfDeviceContext->DmfCollection != NULL);
     handled = DMF_ModuleCollectionFileCreate(dmfDeviceContext->DmfCollection,
                                              Device,
                                              Request,
@@ -1499,11 +1499,11 @@ Return Value:
 
     device = WdfFileObjectGetDevice(FileObject);
     dmfDeviceContext = DmfDeviceContextGet(device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
-    ASSERT(dmfDeviceContext->DmfCollection != NULL);
+    DmfAssert(dmfDeviceContext->DmfCollection != NULL);
     handled = DMF_ModuleCollectionFileCleanup(dmfDeviceContext->DmfCollection,
                                               FileObject);
 
@@ -1555,11 +1555,11 @@ Return Value:
 
     device = WdfFileObjectGetDevice(FileObject);
     dmfDeviceContext = DmfDeviceContextGet(device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     // Dispatch to the Module Collection.
     //
-    ASSERT(dmfDeviceContext->DmfCollection != NULL);
+    DmfAssert(dmfDeviceContext->DmfCollection != NULL);
     handled = DMF_ModuleCollectionFileClose(dmfDeviceContext->DmfCollection,
                                             FileObject);
 
@@ -1608,7 +1608,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(PnpPowerEventCallbacks != NULL);
+    DmfAssert(PnpPowerEventCallbacks != NULL);
 
     PnpPowerEventCallbacks->EvtDevicePrepareHardware = DmfContainerEvtDevicePrepareHardware;
     PnpPowerEventCallbacks->EvtDeviceReleaseHardware = DmfContainerEvtDeviceReleaseHardware;
@@ -1656,7 +1656,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(FileObjectConfig != NULL);
+    DmfAssert(FileObjectConfig != NULL);
 
     WDF_FILEOBJECT_CONFIG_INIT(FileObjectConfig,
                                DmfContainerEvtFileCreate,
@@ -1701,7 +1701,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(PowerPolicyCallbacks != NULL);
+    DmfAssert(PowerPolicyCallbacks != NULL);
 
     PowerPolicyCallbacks->EvtDeviceArmWakeFromS0 = DmfContainerEvtDeviceArmWakeFromS0;
     PowerPolicyCallbacks->EvtDeviceDisarmWakeFromS0 = DmfContainerEvtDeviceDisarmWakeFromS0;
@@ -1737,7 +1737,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(IoQueueConfig != NULL);
+    DmfAssert(IoQueueConfig != NULL);
 
     IoQueueConfig->EvtIoRead = DmfContainerEvtQueueIoRead;
     IoQueueConfig->EvtIoWrite = DmfContainerEvtQueueIoWrite;
@@ -1796,7 +1796,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     if (dmfDeviceContext->ClientImplementsEvtWdfDriverDeviceAdd)
     {
@@ -1882,7 +1882,7 @@ Return Value:
     PAGED_CODE();
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     if (dmfDeviceContext->ClientImplementsEvtWdfDriverDeviceAdd)
     {

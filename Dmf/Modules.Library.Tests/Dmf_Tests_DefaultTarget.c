@@ -143,9 +143,9 @@ Tests_DefaultTarget_BufferOutput(
     UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(OutputBuffer);
 
-    ASSERT(NT_SUCCESS(CompletionStatus));
-    ASSERT(OutputBufferSize == sizeof(DWORD));
-    ASSERT(OutputBuffer != NULL);
+    DmfAssert(NT_SUCCESS(CompletionStatus));
+    DmfAssert(OutputBufferSize == sizeof(DWORD));
+    DmfAssert(OutputBuffer != NULL);
 
     return ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
 }
@@ -184,7 +184,7 @@ Tests_DefaultTarget_ThreadAction_Synchronous(
                                                    IOCTL_Tests_IoctlHandler_SLEEP,
                                                    0,
                                                    &bytesWritten);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
 
@@ -200,7 +200,7 @@ Tests_DefaultTarget_ThreadAction_Synchronous(
                                                    IOCTL_Tests_IoctlHandler_SLEEP,
                                                    0,
                                                    &bytesWritten);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
 }
@@ -266,7 +266,7 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
                                       ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                       Tests_DefaultTarget_SendCompletion,
                                       NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
@@ -281,7 +281,7 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
                                       ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                       Tests_DefaultTarget_SendCompletion,
                                       NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 }
 #pragma code_seg()
 
@@ -320,7 +320,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                       ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                       Tests_DefaultTarget_SendCompletion,
                                       NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
                                         sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
@@ -344,7 +344,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                       ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                       Tests_DefaultTarget_SendCompletion,
                                       NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
                                      0);
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
@@ -397,7 +397,7 @@ Tests_DefaultTarget_WorkThread(
                                                                 threadIndex->DmfModuleAlertableSleep);
             break;
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
     }
 
@@ -664,15 +664,15 @@ Return Value:
     // The PASSIVE_LEVEL targets are manually started (although they don't need to be).
     //
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveInput);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveOutput);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     ntStatus = Tests_DefaultTarget_NonContinousStartAuto(DmfModule);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     ntStatus = Tests_DefaultTarget_NonContinousStartManual(DmfModule);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

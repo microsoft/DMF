@@ -318,8 +318,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(UnicodeString != NULL);
-    ASSERT(NarrowString != NULL);
+    DmfAssert(UnicodeString != NULL);
+    DmfAssert(NarrowString != NULL);
 
     WCHAR* wideString;
 
@@ -409,8 +409,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(AnsiString != NULL);
-    ASSERT(WideString != NULL);
+    DmfAssert(AnsiString != NULL);
+    DmfAssert(WideString != NULL);
 
     char* multibyteString;
 
@@ -472,6 +472,50 @@ Exit:
 #pragma code_seg()
 
 #endif
+
+typedef struct
+{
+    WCHAR* LastString;
+} String_MultiSzFindLastContext;
+
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+String_MultiSzFindLastCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ WCHAR* String,
+    _In_ VOID* CallbackContext
+    )
+/*++
+
+Routine Description:
+
+    Performs an assignment operation to the context using the given multi string.
+
+    NOTE: Alternative implementations of the callback could include a specific index demand and would need to have a context that contains a counter.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    String - The given MULTI_SZ string.
+    CallbackContext - The given context.
+
+Return Value:
+
+    TRUE - The callback only assigns the given MULTI_SZ string to the given context.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    String_MultiSzFindLastContext* callbackContext;
+
+    callbackContext = (String_MultiSzFindLastContext*)CallbackContext;
+    callbackContext->LastString = String;
+
+    return TRUE;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -583,7 +627,7 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  String);
 
-    ASSERT(StringList != NULL);
+    DmfAssert(StringList != NULL);
 
     // -1 indicates "not found int list".
     //
@@ -591,7 +635,7 @@ Return Value:
 
     for (ULONG stringIndex = 0; stringIndex < NumberOfStringsInStringList; stringIndex++)
     {
-        ASSERT(StringList[stringIndex] != NULL);
+        DmfAssert(StringList[stringIndex] != NULL);
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Compare StringList[%u]=[%s] with [%s]", 
                     stringIndex,
                     StringList[stringIndex],
@@ -679,7 +723,7 @@ Return Value:
     LONG returnValue;
 
     UNREFERENCED_PARAMETER(DmfModule);
-    ASSERT(GuidList != NULL);
+    DmfAssert(GuidList != NULL);
 
     // -1 indicates "not found int list".
     //
@@ -739,6 +783,152 @@ Return Value:
 
 #pragma code_seg("PAGE")
 NTSTATUS
+DMF_String_MultiSzEnumerate(
+    _In_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* MultiSzWideString,
+    _In_ EVT_DMF_String_MultiSzCallback Callback,
+    _In_ VOID* CallbackContext
+    )
+/*++
+
+Routine Description:
+
+    Calls a given enumeration callback for every string found in the given MULTI_SZ string.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    MultiSzWideString - The given MULTI_SZ string.
+    Callback - The given enumeration callback.
+    CallbackContext - The context passed to the enumeration callback.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    BOOLEAN continueEnumeration;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
+
+    // Set an offset pointer to the front of the incoming multi string.
+    // 
+    PWSTR stringOffset = MultiSzWideString;
+
+    // NOTE: Support zero length strings within MULTI_SZ strings such as L"\0Last\0\0".
+    //
+    BOOLEAN searching = TRUE;
+    while (searching)
+    {
+        if (*stringOffset == L'\0' &&
+            *(stringOffset + 1) == L'\0')
+        {
+            // The end of MULTI_SZ string has been reached.
+            //
+            break;
+        }
+
+        continueEnumeration = Callback(DmfModule,
+                                       stringOffset,
+                                       CallbackContext);
+        if (!continueEnumeration)
+        {
+            break;
+        }
+
+        // Run to the end of the current string terminator.
+        // 
+        while (*stringOffset != L'\0') 
+        {
+            stringOffset++;
+        }
+
+        // Check if the next character is another null
+        // 
+        stringOffset++;
+        if (*stringOffset == L'\0')
+        {
+            break;
+        }
+    }
+
+    ntStatus = STATUS_SUCCESS;
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+WCHAR*
+DMF_String_MultiSzFindLast(
+    _In_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* MultiSzWideString
+    )
+/*++
+
+Routine Description:
+
+    Returns the last found string in the given MULTI_SZ string.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    MultiSzWideString - The given MULTI_SZ string.
+
+Return Value:
+
+    WCHAR*
+
+--*/
+{
+    NTSTATUS ntStatus;
+    String_MultiSzFindLastContext context;
+ 
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
+
+    RtlZeroMemory(&context,
+                  sizeof(context));
+    
+    ntStatus = DMF_String_MultiSzEnumerate(DmfModule, 
+                                           MultiSzWideString,
+                                           String_MultiSzFindLastCallback, 
+                                           &context);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Last string is already NULL.
+        //
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return context.LastString;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+NTSTATUS
 DMF_String_RtlAnsiStringToUnicodeString(
     _In_ DMFMODULE DmfModule,
     _Out_ PUNICODE_STRING DestinationString,
@@ -773,8 +963,8 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  String);
 
-    ASSERT(DestinationString != NULL);
-    ASSERT(SourceString != NULL);
+    DmfAssert(DestinationString != NULL);
+    DmfAssert(SourceString != NULL);
 
 #if !defined(DMF_USER_MODE)
     // Kernel-mode directly supports the conversion.
@@ -874,8 +1064,8 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  String);
 
-    ASSERT(DestinationString != NULL);
-    ASSERT(SourceString != NULL);
+    DmfAssert(DestinationString != NULL);
+    DmfAssert(SourceString != NULL);
 
 #if !defined(DMF_USER_MODE)
     // Kernel-mode directly supports the conversion.
@@ -979,8 +1169,8 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  String);
 
-    ASSERT(NarrowString != NULL);
-    ASSERT(WideString != NULL);
+    DmfAssert(NarrowString != NULL);
+    DmfAssert(WideString != NULL);
 
     if (BufferSize < sizeof(CHAR))
     {

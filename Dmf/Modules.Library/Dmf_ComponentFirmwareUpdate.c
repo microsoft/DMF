@@ -231,7 +231,7 @@ ComponentFirmwareUpdatePayloadResponseString(
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_ERROR_NO_OFFER);
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_ERROR_INVALID);
         default: 
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             return "Unknown";
     }
 }
@@ -247,7 +247,7 @@ ComponentFirmwareUpdateOfferInformationCodeString(
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_INFO_START_OFFER_LIST);
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_INFO_END_OFFER_LIST);
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             return "Unknown";
     }
 }
@@ -261,7 +261,7 @@ ComponentFirmwareUpdateOfferCommandCodeString(
     {
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_NOTIFY_ON_READY);
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             return "Unknown";
     }
 }
@@ -280,7 +280,7 @@ ComponentFirmwareUpdateOfferResponseString(
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_READY);
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_NOT_SUPPORTED);
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             return "Unknown";
     }
 }
@@ -302,7 +302,7 @@ ComponentFirmwareUpdateOfferResponseRejectString(
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_PCOL_REV);
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VARIANT);
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             return "Unknown";
     }
 }
@@ -345,7 +345,7 @@ Return:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     // Wait for response.
     //
@@ -384,7 +384,7 @@ Return:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_INVALID_DEVICE_STATE;
             goto Exit;
         }
@@ -442,10 +442,10 @@ Return:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -491,17 +491,17 @@ Return:
 
                 // We dont expect to hit this first time in this loop.
                 //
-                ASSERT(sequenceNumberMatchAttempts != 0);
+                DmfAssert(sequenceNumberMatchAttempts != 0);
                 break;
             }
 
-            ASSERT(clientBuffer != NULL);
-            ASSERT(clientBufferContext != NULL);
+            DmfAssert(clientBuffer != NULL);
+            DmfAssert(clientBufferContext != NULL);
 
             PAYLOAD_RESPONSE* payloadResponse = (PAYLOAD_RESPONSE*)clientBuffer;
 #if defined(DEBUG)
             ULONG* payloadResponseLength = (ULONG*)clientBufferContext;
-            ASSERT(*payloadResponseLength == sizeof(PAYLOAD_RESPONSE));
+            DmfAssert(*payloadResponseLength == sizeof(PAYLOAD_RESPONSE));
 #endif // defined(DEBUG)
             if (ExpectedSequenceNumber > payloadResponse->SequenceNumber)
             {
@@ -624,8 +624,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(PayloadBufferTotal != NULL);
-    ASSERT(PayloadBuffer != NULL);
+    DmfAssert(PayloadBufferTotal != NULL);
+    DmfAssert(PayloadBuffer != NULL);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1263,8 +1263,8 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(RegistryValueNameString != NULL);
-    ASSERT(RegistryValueNameString->MaximumLength != 0);
+    DmfAssert(RegistryValueNameString != NULL);
+    DmfAssert(RegistryValueNameString->MaximumLength != 0);
 
     RegistryValueNameString->Length = 0;
 
@@ -1379,7 +1379,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(RegistryValueName != NULL);
+    DmfAssert(RegistryValueName != NULL);
 
     RtlInitUnicodeString(&registryValueNameString,
                          combinedValueNameBuffer);
@@ -1462,7 +1462,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(RegistryValueName != NULL);
+    DmfAssert(RegistryValueName != NULL);
     RtlInitUnicodeString(&registryValueNameString,
                          combinedValueNameBuffer);
     registryValueNameString.MaximumLength = (USHORT)combinedValueNameMaxLength;
@@ -1539,8 +1539,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(RegistryValueName != NULL);
-    ASSERT(RegistryValue != NULL);
+    DmfAssert(RegistryValueName != NULL);
+    DmfAssert(RegistryValue != NULL);
 
     RtlInitUnicodeString(&registryValueNameString,
                          combinedValueNameBuffer);
@@ -1633,13 +1633,13 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(OfferResponseStatus != NULL);
-    ASSERT(OfferResponseReason != NULL);
+    DmfAssert(OfferResponseStatus != NULL);
+    DmfAssert(OfferResponseReason != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
     size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     offerCommandMemory = WDF_NO_HANDLE;
@@ -1719,7 +1719,7 @@ Return Value:
                 "Offer Response Received.");
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
@@ -1863,14 +1863,14 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(OfferResponseStatus != NULL);
-    ASSERT(OfferResponseReason != NULL);
+    DmfAssert(OfferResponseStatus != NULL);
+    DmfAssert(OfferResponseReason != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
     size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     offerInformationMemory = WDF_NO_HANDLE;
@@ -1938,7 +1938,7 @@ Return Value:
                 "Offer Response Received.");
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
@@ -2067,9 +2067,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(OfferBuffer != NULL);
-    ASSERT(OfferResponseStatus != NULL);
-    ASSERT(OfferResponseReason != NULL);
+    DmfAssert(OfferBuffer != NULL);
+    DmfAssert(OfferResponseStatus != NULL);
+    DmfAssert(OfferResponseReason != NULL);
 
     UNREFERENCED_PARAMETER(OfferBufferSize);
 
@@ -2080,7 +2080,7 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
     size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2168,7 +2168,7 @@ Return Value:
                 "Offer Response Received.");
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
@@ -2264,12 +2264,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(PayloadResponse != NULL);
+    DmfAssert(PayloadResponse != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(PayloadIndex < WdfCollectionGetCount(moduleContext->FirmwareBlobCollection));
+    DmfAssert(PayloadIndex < WdfCollectionGetCount(moduleContext->FirmwareBlobCollection));
 
     firmwareInformationMemory = (WDFMEMORY)WdfCollectionGetItem(moduleContext->FirmwareBlobCollection, 
                                                                 PayloadIndex);
@@ -2280,13 +2280,13 @@ Return Value:
     payloadContent = (ULONG*)WdfMemoryGetBuffer(firmwareInformation->PayloadContentMemory,
                                                 &payloadSizeFromCollection);
 
-    ASSERT(payloadSizeFromCollection == firmwareInformation->PayloadSize);
+    DmfAssert(payloadSizeFromCollection == firmwareInformation->PayloadSize);
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
     payloadChunkMemory = WDF_NO_HANDLE;
 
@@ -2612,7 +2612,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(VersionsOfFirmware != NULL);
+    DmfAssert(VersionsOfFirmware != NULL);
     ZeroMemory(VersionsOfFirmware, sizeof(*VersionsOfFirmware));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -2628,7 +2628,7 @@ Return Value:
     }
 
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransportContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
     // Wait for response.
     //
@@ -2648,7 +2648,7 @@ Return Value:
                 "Firmware version Response Received.");
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     ntStatus = componentFirmwareUpdateTransactionContext->ntStatus;
     if (!NT_SUCCESS(ntStatus))
@@ -2706,7 +2706,7 @@ Return:
     FuncEntry(DMF_TRACE);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     // Set Cancel Event so that any pending wait for responses are returned.
     //
@@ -2765,7 +2765,7 @@ Return:
     FuncEntry(DMF_TRACE);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     // Clear the Cancel Event that may have been set and not cleared.
     //
@@ -3202,7 +3202,7 @@ Return Value:
 
         offerContent = (ULONG*)WdfMemoryGetBuffer(firmwareInformation->OfferContentMemory,
                                                   &offerSizeFromCollection);
-        ASSERT(offerSizeFromCollection == firmwareInformation->OfferSize);
+        DmfAssert(offerSizeFromCollection == firmwareInformation->OfferSize);
 
         offerListData = (ULONG*)offerContent;
         offerListDataSize = firmwareInformation->OfferSize;
@@ -3519,10 +3519,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(ComponentIdentifier != NULL);
-    ASSERT(OfferAccepted != NULL);
-    ASSERT(OfferSkipped != NULL);
-    ASSERT(OfferUpToDate != NULL);
+    DmfAssert(ComponentIdentifier != NULL);
+    DmfAssert(OfferAccepted != NULL);
+    DmfAssert(OfferSkipped != NULL);
+    DmfAssert(OfferUpToDate != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -3540,7 +3540,7 @@ Return Value:
 
     offerContent = (ULONG*)WdfMemoryGetBuffer(firmwareInformation->OfferContentMemory,
                                               &offerSizeFromCollection);
-    ASSERT(offerSizeFromCollection == firmwareInformation->OfferSize);
+    DmfAssert(offerSizeFromCollection == firmwareInformation->OfferSize);
 
     offerListData = (ULONG*)offerContent;
     offerListDataSize = firmwareInformation->OfferSize;
@@ -3843,9 +3843,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(AnyAccepted != NULL);
-    ASSERT(AnySkipped != NULL);
-    ASSERT(AllUpToDate != NULL);
+    DmfAssert(AnyAccepted != NULL);
+    DmfAssert(AnySkipped != NULL);
+    DmfAssert(AllUpToDate != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -3943,7 +3943,7 @@ Return Value:
 
         if (currentOfferAccepted)
         {
-            ASSERT(allUpToDate == FALSE);
+            DmfAssert(allUpToDate == FALSE);
 
             // The device wants the driver to deliver the payload.
             // Mark the download status in the registry while delivering the payload.
@@ -4787,6 +4787,8 @@ Return Value:
 
 --*/
 {
+    CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
+
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
@@ -4794,6 +4796,10 @@ Return Value:
     // Call the Interface's Unbind function.
     //
     DMF_ComponentFirmwareUpdate_TransportUnbind(DmfInterface);
+
+    componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
+    DMF_Portable_EventClose(&componentFirmwareUpdateTransactionContext->DmfResponseCompletionEvent);
+    DMF_Portable_EventClose(&componentFirmwareUpdateTransactionContext->DmfProtocolTransactionCancelEvent);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -4839,7 +4845,7 @@ Return:
     UNREFERENCED_PARAMETER(FirmwareVersionsBufferSize);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     componentFirmwareUpdateTransactionContext->ntStatus = ntStatusCallback;
     if (!NT_SUCCESS(ntStatusCallback))
@@ -4851,7 +4857,7 @@ Return:
         goto Exit;
     }
 
-    ASSERT(FirmwareVersionsBuffer != NULL);
+    DmfAssert(FirmwareVersionsBuffer != NULL);
 
     // Parse and store the response data.
     //
@@ -4872,7 +4878,7 @@ Return:
 
     // We have a limitation on the number of components (16).
     //
-    ASSERT(componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount < MAX_NUMBER_OF_IMAGE_PAIRS);
+    DmfAssert(componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount < MAX_NUMBER_OF_IMAGE_PAIRS);
 
     componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount = componentCount;
 
@@ -4895,7 +4901,7 @@ Return:
         //
         const UINT componentDataSize = 8;
 
-        ASSERT(FirmwareVersionsBufferSize >= versionTableOffset + componentCount * componentDataSize);
+        DmfAssert(FirmwareVersionsBufferSize >= versionTableOffset + componentCount * componentDataSize);
         for (int componentIndex = 0; componentIndex < componentCount; ++componentIndex)
         {
             componentFirmwareUpdateTransactionContext->FirmwareVersions.ComponentIdentifiers[componentIndex] = (BYTE)FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + componentIDOffset];
@@ -4968,7 +4974,7 @@ Return:
     FuncEntry(DMF_TRACE);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
     componentFirmwareUpdateTransactionContext->ntStatus = ntStatusCallback;
     if (!NT_SUCCESS(ntStatusCallback))
@@ -5068,9 +5074,9 @@ Return:
     FuncEntry(DMF_TRACE);
 
     componentFirmwareUpdateTransactionContext = ComponentFirmwareUpdateTransactionContextGet(DmfInterface);
-    ASSERT(componentFirmwareUpdateTransactionContext != NULL);
+    DmfAssert(componentFirmwareUpdateTransactionContext != NULL);
 
-    ASSERT(ResponseBuffer != NULL);
+    DmfAssert(ResponseBuffer != NULL);
 
     componentFirmwareUpdateTransactionContext->ntStatus = ntStatusCallback;
     if (!NT_SUCCESS(ntStatusCallback))
@@ -5120,8 +5126,8 @@ Return:
         goto Exit;
     }
 
-    ASSERT(clientBuffer != NULL);
-    ASSERT(clientBufferContext != NULL);
+    DmfAssert(clientBuffer != NULL);
+    DmfAssert(clientBufferContext != NULL);
 
     PAYLOAD_RESPONSE* payloadResponse = (PAYLOAD_RESPONSE*)clientBuffer;
     ULONG* payloadResponseSize = (ULONG*)clientBufferContext;

@@ -137,15 +137,15 @@ Return Value:
 
 --*/
 {
-    ASSERT(RingBuffer != NULL);
-    ASSERT(RingBuffer->ItemSize > 0);
+    DmfAssert(RingBuffer != NULL);
+    DmfAssert(RingBuffer->ItemSize > 0);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
                 "ReadPointer=%d", (LONG)((RingBuffer->ReadPointer - RingBuffer->Items) / RingBuffer->ItemSize));
 
     RingBuffer->ReadPointer += RingBuffer->ItemSize;
-    ASSERT(RingBuffer->ReadPointer <= RingBuffer->BufferEnd);
-    ASSERT(RingBuffer->ReadPointer >= RingBuffer->Items);
+    DmfAssert(RingBuffer->ReadPointer <= RingBuffer->BufferEnd);
+    DmfAssert(RingBuffer->ReadPointer >= RingBuffer->Items);
     if (RingBuffer->ReadPointer == RingBuffer->BufferEnd)
     {
         RingBuffer->ReadPointer = RingBuffer->Items;
@@ -155,7 +155,7 @@ Return Value:
     // An item has been read. There is now one less item.
     //
     RingBuffer->ItemsPresentCount--;
-    ASSERT(RingBuffer->ItemsPresentCount < RingBuffer->ItemsCount);
+    DmfAssert(RingBuffer->ItemsPresentCount < RingBuffer->ItemsCount);
 }
 
 // Callback that allows client to copy into the Ring Buffer item in a way that
@@ -285,7 +285,7 @@ Return Value:
     UNREFERENCED_PARAMETER(ItemSize);
 
     writeContext = (RingBuffer_CustomItemProcessContext*)Context;
-    ASSERT(writeContext->DataCopy != NULL);
+    DmfAssert(writeContext->DataCopy != NULL);
 
     for (bufferIndex = 0; bufferIndex < writeContext->NumberOfSegments; bufferIndex++)
     {
@@ -295,7 +295,7 @@ Return Value:
         // Offset in the Ring Buffer entry that where data transfer happens.
         //
         ULONG segmentOffset = writeContext->SegmentOffsets[bufferIndex];
-        ASSERT(segmentOffset < ItemSize);
+        DmfAssert(segmentOffset < ItemSize);
         // Address in Ring Buffer entry where the transfer happens.
         //
         UCHAR* ringBufferSegmentBuffer = &Item[segmentOffset];
@@ -303,8 +303,8 @@ Return Value:
         //
         ULONG segmentSize = writeContext->SegmentSizes[bufferIndex];
 
-        ASSERT(segmentSize > 0);
-        ASSERT(segmentOffset + segmentSize <= ItemSize);
+        DmfAssert(segmentSize > 0);
+        DmfAssert(segmentOffset + segmentSize <= ItemSize);
 
         // Transfer the data to/from the Ring Buffer.
         //
@@ -347,14 +347,14 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(RingBuffer != NULL);
-    ASSERT(Buffer != NULL);
-    ASSERT(RingBuffer->ItemSize > 0);
-    ASSERT(RingBuffer->ItemsPresentCount <= RingBuffer->ItemsCount);
+    DmfAssert(RingBuffer != NULL);
+    DmfAssert(Buffer != NULL);
+    DmfAssert(RingBuffer->ItemSize > 0);
+    DmfAssert(RingBuffer->ItemsPresentCount <= RingBuffer->ItemsCount);
 
     if (RingBuffer->ItemsPresentCount == RingBuffer->ItemsCount)
     {
-        ASSERT(RingBuffer->ReadPointer == RingBuffer->WritePointer);
+        DmfAssert(RingBuffer->ReadPointer == RingBuffer->WritePointer);
         // It means the buffer is full.
         //
         if (RingBuffer->Mode == RingBuffer_Mode_FailIfFullOnWrite)
@@ -373,7 +373,7 @@ Return Value:
         }
         else
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
         }
     }
 
@@ -388,7 +388,7 @@ Return Value:
     //
     if (BufferSize != RingBuffer->ItemSize)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -399,7 +399,7 @@ Return Value:
     //
     if ((RingBuffer->WritePointer + BufferSize) > RingBuffer->BufferEnd)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -413,8 +413,8 @@ Return Value:
     // Move the Write Pointer to the next proper location.
     //
     RingBuffer->WritePointer += RingBuffer->ItemSize;
-    ASSERT(RingBuffer->WritePointer <= RingBuffer->BufferEnd);
-    ASSERT(RingBuffer->WritePointer >= RingBuffer->Items);
+    DmfAssert(RingBuffer->WritePointer <= RingBuffer->BufferEnd);
+    DmfAssert(RingBuffer->WritePointer >= RingBuffer->Items);
     if (RingBuffer->WritePointer == RingBuffer->BufferEnd)
     {
         RingBuffer->WritePointer = RingBuffer->Items;
@@ -424,7 +424,7 @@ Return Value:
     // An item has just been written (added), so increment the number of items in the buffer.
     //
     RingBuffer->ItemsPresentCount++;
-    ASSERT(RingBuffer->ItemsPresentCount <= RingBuffer->ItemsCount);
+    DmfAssert(RingBuffer->ItemsPresentCount <= RingBuffer->ItemsCount);
 
 Exit:
 
@@ -464,10 +464,10 @@ Return Value:
 
     UNREFERENCED_PARAMETER(BufferSize);
 
-    ASSERT(RingBuffer != NULL);
-    ASSERT(RingBuffer->ItemSize > 0);
-    ASSERT(Buffer != NULL);
-    ASSERT(RingBuffer->ItemsPresentCount <= RingBuffer->ItemsCount);
+    DmfAssert(RingBuffer != NULL);
+    DmfAssert(RingBuffer->ItemSize > 0);
+    DmfAssert(Buffer != NULL);
+    DmfAssert(RingBuffer->ItemsPresentCount <= RingBuffer->ItemsCount);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -475,7 +475,7 @@ Return Value:
     {
         // There are no items in the buffer to read.
         //
-        ASSERT(RingBuffer->ReadPointer == RingBuffer->WritePointer);
+        DmfAssert(RingBuffer->ReadPointer == RingBuffer->WritePointer);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -483,7 +483,7 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
                 "ReadPointer=%d", (LONG)((RingBuffer->ReadPointer - RingBuffer->Items) / RingBuffer->ItemSize));
 
-    ASSERT(BufferSize == RingBuffer->ItemSize);
+    DmfAssert(BufferSize == RingBuffer->ItemSize);
 
     // Read from the Ring Buffer entry in a caller specific manner.
     // Suppress 6001: "*Buffer not initialized." It is because Buffer is either pointer or table to callback.
@@ -496,7 +496,7 @@ Return Value:
     // Now, increment the read pointer.
     //
     RingBuffer_ReadPointerIncrement(RingBuffer);
-    ASSERT(RingBuffer->ItemsPresentCount < RingBuffer->ItemsCount);
+    DmfAssert(RingBuffer->ItemsPresentCount < RingBuffer->ItemsCount);
 
 Exit:
 
@@ -540,20 +540,20 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(RingBuffer != NULL);
-    ASSERT(NULL == RingBuffer->Items);
+    DmfAssert(RingBuffer != NULL);
+    DmfAssert(NULL == RingBuffer->Items);
 
     if (0 == ItemSize)
     {
         ntStatus = STATUS_INVALID_PARAMETER;
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
     if (0 == ItemCount)
     {
         ntStatus = STATUS_INVALID_PARAMETER;
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -574,8 +574,8 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(RingBuffer->MemoryRing != NULL);
-    ASSERT(RingBuffer->Items != NULL);
+    DmfAssert(RingBuffer->MemoryRing != NULL);
+    DmfAssert(RingBuffer->Items != NULL);
 
     // Initialize the space to zero in case not all space is used up.
     //
@@ -624,11 +624,11 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(RingBuffer != NULL);
+    DmfAssert(RingBuffer != NULL);
 
     if (RingBuffer->MemoryRing != NULL)
     {
-        ASSERT(RingBuffer->Items != NULL);
+        DmfAssert(RingBuffer->Items != NULL);
         WdfObjectDelete(RingBuffer->MemoryRing);
         RingBuffer->MemoryRing = NULL;
         RingBuffer->Items = NULL;
@@ -668,7 +668,7 @@ Return Value:
 
     bufferToFind = (BUFFER_TO_FIND*)BufferToFind;
 
-    ASSERT(bufferToFind->ItemSize <= BufferSize);
+    DmfAssert(bufferToFind->ItemSize <= BufferSize);
 
     // Check if this Buffer matches the bufferToFind.
     //
@@ -900,14 +900,14 @@ Return Value:
 
     // Check if ring buffer is empty.
     //
-    ASSERT(ringBuffer->ItemsPresentCount <= ringBuffer->ItemsCount);
+    DmfAssert(ringBuffer->ItemsPresentCount <= ringBuffer->ItemsCount);
     if (0 == ringBuffer->ItemsPresentCount)
     {
-        ASSERT(readPointer == writePointer);
+        DmfAssert(readPointer == writePointer);
         goto Exit;
     }
 
-    ASSERT(ringBuffer->ItemSize > 0);
+    DmfAssert(ringBuffer->ItemSize > 0);
 
     BOOLEAN continueEnumeration;
 
@@ -981,7 +981,7 @@ Return Value:
     bufferToFind.CallbackIfFound = RingBufferItemCallback;
     bufferToFind.CallbackContextIfFound = RingBufferItemCallbackContext;
 
-    ASSERT(bufferToFind.ItemSize <= moduleContext->RingBuffer.ItemSize);
+    DmfAssert(bufferToFind.ItemSize <= moduleContext->RingBuffer.ItemSize);
 
     DMF_RingBuffer_Enumerate(DmfModule,
                              TRUE,
@@ -1025,7 +1025,7 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    ASSERT(TargetBufferSize == moduleContext->RingBuffer.ItemSize);
+    DmfAssert(TargetBufferSize == moduleContext->RingBuffer.ItemSize);
     ntStatus = RingBuffer_Read(&moduleContext->RingBuffer,
                                TargetBuffer,
                                TargetBufferSize,
@@ -1076,9 +1076,9 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext != NULL);
-    ASSERT(NULL != TargetBuffer);
-    ASSERT(TargetBufferSize >= moduleContext->RingBuffer.TotalSize);
+    DmfAssert(moduleContext != NULL);
+    DmfAssert(NULL != TargetBuffer);
+    DmfAssert(TargetBufferSize >= moduleContext->RingBuffer.TotalSize);
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -1086,7 +1086,7 @@ Return Value:
 
     entriesRead = 0;
     sizeOfEachItem = moduleContext->RingBuffer.ItemSize;
-    ASSERT(sizeOfEachItem > 0);
+    DmfAssert(sizeOfEachItem > 0);
     do
     {
         ntStatus = RingBuffer_Read(&moduleContext->RingBuffer,
@@ -1101,7 +1101,7 @@ Return Value:
         entriesRead++;
     } while (NT_SUCCESS(ntStatus));
 
-    ASSERT(BytesWritten != NULL);
+    DmfAssert(BytesWritten != NULL);
     *BytesWritten = entriesRead * sizeOfEachItem;
 
     DMF_ModuleUnlock(DmfModule);
@@ -1171,12 +1171,12 @@ Return Value:
     endOfRingBuffer = ringBuffer->BufferEnd;
     addressForSwap = endOfRingBuffer;
 
-    ASSERT(ringBuffer->ItemsPresentCount <= ringBuffer->ItemsCount);
+    DmfAssert(ringBuffer->ItemsPresentCount <= ringBuffer->ItemsCount);
     if (ringBuffer->ItemsPresentCount == 0)
     {
         // The buffer is empty. Nothing to reorder.
         //
-        ASSERT(ringBuffer->ReadPointer == ringBuffer->WritePointer);
+        DmfAssert(ringBuffer->ReadPointer == ringBuffer->WritePointer);
         goto Exit;
     }
 
@@ -1429,7 +1429,7 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    ASSERT(SourceBufferSize <= moduleContext->RingBuffer.ItemSize);
+    DmfAssert(SourceBufferSize <= moduleContext->RingBuffer.ItemSize);
     ntStatus = RingBuffer_Write(&moduleContext->RingBuffer,
                                 SourceBuffer,
                                 SourceBufferSize,

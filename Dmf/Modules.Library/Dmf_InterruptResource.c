@@ -126,7 +126,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
-    ASSERT(moduleConfig->EvtInterruptResourceInterruptPassive != NULL);
+    DmfAssert(moduleConfig->EvtInterruptResourceInterruptPassive != NULL);
 
     // It is possible attempts to enqueue fail, so make sure to execute exactly the number
     // of times ISR attempted to enqueue.
@@ -184,13 +184,13 @@ Return Value:
 
     // This is just a sanity check.
     //
-    ASSERT(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
+    DmfAssert(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
 
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
     // Call the optional PASSIVE_LEVEL Client Driver callback.
     //
-    ASSERT(moduleConfig->EvtInterruptResourceInterruptPassive != NULL);
+    DmfAssert(moduleConfig->EvtInterruptResourceInterruptPassive != NULL);
 
     moduleConfig->EvtInterruptResourceInterruptPassive(*dmfModuleAddress);
 
@@ -238,15 +238,15 @@ Return Value:
 
     // This is just a sanity check.
     //
-    ASSERT(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
+    DmfAssert(WdfDevice == DMF_ParentDeviceGet(*dmfModuleAddress));
 
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
     // Call the DISPATCH_LEVEL Client callback.
     //
-    ASSERT(moduleConfig->EvtInterruptResourceInterruptDpc != NULL);
-    ASSERT(! moduleConfig->PassiveHandling);
+    DmfAssert(moduleConfig->EvtInterruptResourceInterruptDpc != NULL);
+    DmfAssert(! moduleConfig->PassiveHandling);
 
     // It is possible attempts to enqueue fail, so make sure to execute exactly the number
     // of times ISR attempted to enqueue.
@@ -263,9 +263,9 @@ Return Value:
         if (InterruptResource_QueuedWorkItem_WorkItem == queuedWorkItem)
         {
             moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-            ASSERT(moduleContext != NULL);
+            DmfAssert(moduleContext != NULL);
 
-            ASSERT(moduleContext->Workitem != NULL);
+            DmfAssert(moduleContext->Workitem != NULL);
             WdfInterruptAcquireLock(moduleContext->Interrupt);
             moduleContext->NumberOfTimesWorkitemMustExecute++;
             WdfInterruptReleaseLock(moduleContext->Interrupt);
@@ -321,9 +321,9 @@ InterruptResource_Isr(
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
-    ASSERT((moduleConfig->EvtInterruptResourceInterruptDpc != NULL) || 
-           (moduleConfig->EvtInterruptResourceInterruptPassive != NULL)  ||
-           (moduleConfig->EvtInterruptResourceInterruptIsr != NULL));
+    DmfAssert((moduleConfig->EvtInterruptResourceInterruptDpc != NULL) || 
+              (moduleConfig->EvtInterruptResourceInterruptPassive != NULL)  ||
+              (moduleConfig->EvtInterruptResourceInterruptIsr != NULL));
 
     // Option 1: Caller wants to do work in ISR at DIRQL (and optionally, at DPC or PASSIVE
     //           levels.)
@@ -341,7 +341,7 @@ InterruptResource_Isr(
         {
             if (InterruptResource_QueuedWorkItem_Dpc == queuedWorkItem)
             {
-                ASSERT(moduleConfig->EvtInterruptResourceInterruptDpc != NULL);
+                DmfAssert(moduleConfig->EvtInterruptResourceInterruptDpc != NULL);
                 // Interrupt SpinLock is held.
                 //
                 moduleContext->NumberOfTimesDpcMustExecute++;
@@ -349,7 +349,7 @@ InterruptResource_Isr(
             }
             else if (InterruptResource_QueuedWorkItem_WorkItem == queuedWorkItem)
             {
-                ASSERT(moduleConfig->EvtInterruptResourceInterruptPassive != NULL);
+                DmfAssert(moduleConfig->EvtInterruptResourceInterruptPassive != NULL);
                 // Interrupt SpinLock is held.
                 //
                 moduleContext->NumberOfTimesWorkitemMustExecute++;
@@ -379,7 +379,7 @@ InterruptResource_Isr(
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         interruptHandled = TRUE;
     }
 
@@ -445,17 +445,17 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(ResourcesRaw != NULL);
-    ASSERT(ResourcesTranslated != NULL);
+    DmfAssert(ResourcesRaw != NULL);
+    DmfAssert(ResourcesTranslated != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT((FALSE == moduleConfig->InterruptMandatory) ||
-           (moduleConfig->EvtInterruptResourceInterruptDpc != NULL) ||
-           (moduleConfig->EvtInterruptResourceInterruptPassive != NULL) ||
-           (moduleConfig->EvtInterruptResourceInterruptIsr != NULL));
+    DmfAssert((FALSE == moduleConfig->InterruptMandatory) ||
+              (moduleConfig->EvtInterruptResourceInterruptDpc != NULL) ||
+              (moduleConfig->EvtInterruptResourceInterruptPassive != NULL) ||
+              (moduleConfig->EvtInterruptResourceInterruptIsr != NULL));
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -605,7 +605,7 @@ Return Value:
         }
         else
         {
-            ASSERT(moduleContext->Workitem == NULL);
+            DmfAssert(moduleContext->Workitem == NULL);
         }
     }
 

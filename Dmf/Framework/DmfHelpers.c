@@ -66,8 +66,8 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject != NULL);
-    ASSERT(dmfObject->ParentDevice != NULL);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(dmfObject->ParentDevice != NULL);
 
     return dmfObject->ParentDevice;
 }
@@ -104,8 +104,8 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject != NULL);
-    ASSERT(dmfObject->ParentDevice != NULL);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(dmfObject->ParentDevice != NULL);
 
     // ParentDevice can be either Client Driver device or the Control device 
     // (in the case when the Client Driver is a filter driver and DmfModule is added 
@@ -115,8 +115,8 @@ Return Value:
     //
     dmfDeviceContext = DmfDeviceContextGet(dmfObject->ParentDevice);
 
-    ASSERT(dmfDeviceContext != NULL);
-    ASSERT(dmfDeviceContext->WdfClientDriverDevice != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext->WdfClientDriverDevice != NULL);
 
     return dmfDeviceContext->WdfClientDriverDevice;
 }
@@ -199,7 +199,7 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(DmfObject);
 
-    ASSERT(DmfObject != NULL);
+    DmfAssert(DmfObject != NULL);
 
     return DmfObject->ModuleConfig;
 }
@@ -240,7 +240,7 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(DmfObject);
 
-    ASSERT(DmfObject != NULL);
+    DmfAssert(DmfObject != NULL);
 
     return DmfObject->ModuleAttributes.DynamicModule;
 }
@@ -275,7 +275,7 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(DmfObject);
 
-    ASSERT(DmfObject != NULL);
+    DmfAssert(DmfObject != NULL);
 
     return DmfObject->ModuleAttributes.PassiveLevel;
 }
@@ -319,14 +319,14 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     if (dmfObject->ModuleConfigMemory != NULL)
     {
         moduleConfig = WdfMemoryGetBuffer(dmfObject->ModuleConfigMemory,
                                           &configSize);
 
-        ASSERT (dmfObject->ModuleConfig == moduleConfig);
+        DmfAssert(dmfObject->ModuleConfig == moduleConfig);
     
         if (configSize != ModuleConfigSize)
         {
@@ -344,7 +344,7 @@ Return Value:
         // This API should not be called in this case
         // because Client should know that no Config was set.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_NOT_FOUND;
     }
 
@@ -384,7 +384,7 @@ Return Value:
 
     // This routine must always be called in locked state.
     //
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     returnValue = InterlockedIncrement(&DmfObject->ReferenceCount);
 
@@ -424,10 +424,10 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(DmfObject);
 
-    ASSERT(DmfObject->ReferenceCount > 0);
+    DmfAssert(DmfObject->ReferenceCount > 0);
     // This routine must always be called in locked state.
     //
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     returnValue = InterlockedDecrement(&DmfObject->ReferenceCount);
 
@@ -513,7 +513,7 @@ Return Value:
 
     moduleDescriptor = &DmfObject->ModuleDescriptor;
 
-    ASSERT(moduleDescriptor->NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(moduleDescriptor->NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
 
     if (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM)
     {
@@ -531,7 +531,7 @@ Return Value:
         if ((moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH) &&
             PassiveLevel)
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_INVALID_DEVICE_REQUEST;
             goto Exit;
         }
@@ -543,7 +543,7 @@ Return Value:
     {
         TraceInformation(DMF_TRACE, "DMF_MODULE_OPTIONS_PASSIVE");
 
-        ASSERT(! (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
+        DmfAssert(! (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
 
         // Create the Generic PASSIVE_LEVEL Lock for the Auxiliary Synchronization and one device lock.
         //
@@ -619,11 +619,11 @@ Return Value:
     DMF_MODULE_COLLECTION* moduleCollectionHandle;
     DMF_OBJECT* dmfObjectFeature;
 
-    ASSERT(DmfCollection != NULL);
+    DmfAssert(DmfCollection != NULL);
 
     moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
-    ASSERT(DmfFeature < DmfFeature_NumberOfFeatures);
+    DmfAssert(DmfFeature < DmfFeature_NumberOfFeatures);
     dmfObjectFeature = moduleCollectionHandle->DmfObjectFeature[DmfFeature];
     // It can be NULL if this feature is not running.
     //
@@ -658,7 +658,7 @@ Return Value:
     DMFMODULE dmfModuleFeature;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
     dmfObjectFeature = NULL;
 
     if (dmfObject->ModuleCollection != NULL)
@@ -711,10 +711,10 @@ Return Value:
     DMFMODULE dmfModuleFeature;
     DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
-    ASSERT(Device != NULL);
+    DmfAssert(Device != NULL);
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
-    ASSERT(dmfDeviceContext != NULL);
+    DmfAssert(dmfDeviceContext != NULL);
 
     dmfObjectFeature = DMF_FeatureHandleGetFromModuleCollection(dmfDeviceContext->DmfCollection,
                                                                 DmfFeature);

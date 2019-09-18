@@ -52,7 +52,7 @@ Return Value:
 {
     DMF_OBJECT* dmfObject;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -60,7 +60,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
     (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -99,7 +99,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -107,7 +107,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware)(DmfModule,
                                                                                  ResourcesRaw,
                                                                                  ResourcesTranslated);
@@ -146,7 +146,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -154,7 +154,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware)(DmfModule,
                                                                                  ResourcesTranslated);
 
@@ -191,7 +191,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_OBJECT* dmfObject;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -199,7 +199,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry)(DmfModule,
                                                                          PreviousState);
 
@@ -235,7 +235,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_OBJECT* dmfObject;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -243,7 +243,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled)(DmfModule,
                                                                                               PreviousState);
 
@@ -278,7 +278,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     NTSTATUS ntStatus;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -286,7 +286,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled)(DmfModule,
                                                                                              TargetState);
 
@@ -321,7 +321,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     NTSTATUS ntStatus;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -329,7 +329,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit)(DmfModule,
                                                                         TargetState);
 
@@ -368,7 +368,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     BOOLEAN handled;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -376,7 +376,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead)(DmfModule,
                                                                             Queue,
                                                                             Request,
@@ -417,7 +417,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     BOOLEAN handled;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -425,7 +425,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite)(DmfModule,
                                                                              Queue,
                                                                              Request,
@@ -471,7 +471,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     BOOLEAN handled;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -479,7 +479,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl)(DmfModule,
                                                                                 Queue,
                                                                                 Request,
@@ -527,7 +527,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     BOOLEAN handled;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -535,7 +535,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl)(DmfModule,
                                                                                         Queue,
                                                                                         Request,
@@ -580,7 +580,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -619,7 +619,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -659,7 +659,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -701,7 +701,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -743,7 +743,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -784,7 +784,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -824,7 +824,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -866,7 +866,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -910,7 +910,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery)(DmfModule,
                                                                      RelationType);
 
@@ -953,7 +953,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx)(DmfModule,
                                                                                      NotificationType,
                                                                                      IsInNotificationPath);
@@ -997,7 +997,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -1038,7 +1038,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -1077,7 +1077,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -1122,7 +1122,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason)(DmfModule,
                                                                                          DeviceWakeEnabled,
                                                                                          ChildrenArmedForWake);
@@ -1165,7 +1165,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -1204,7 +1204,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -1251,7 +1251,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate)(DmfModule,
                                                                            Device,
                                                                            Request,
@@ -1299,7 +1299,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup)(DmfModule,
                                                                             FileObject);
 
@@ -1345,7 +1345,7 @@ Return Value:
 
     DMF_HandleValidate_IsOpen(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
     handled = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose)(DmfModule,
                                                                           FileObject);
 
@@ -1397,7 +1397,7 @@ Return Value:
     //
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign)(DmfModule,
                                                                                  ResourcesRaw,
                                                                                  ResourcesTranslated);
@@ -1444,7 +1444,7 @@ Return Value:
     //
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -1485,7 +1485,7 @@ Return Value:
 
     DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
     (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister)(DmfModule);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -1526,7 +1526,7 @@ Return Value:
 
     // Open the Module.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen)(DmfModule);
 
     if (NT_SUCCESS(ntStatus))
@@ -1537,13 +1537,13 @@ Return Value:
 
         // Allow DMF_ModuleReference to succeed only after the Module is completely open. 
         //
-        ASSERT(dmfObject->ReferenceCount == 0);
+        DmfAssert(dmfObject->ReferenceCount == 0);
         dmfObject->ReferenceCount = 1;
 
         // This may be overwritten by DMF if the Module is automatically opened.
         // Otherwise, it means the Client opened the Module.
         //
-        ASSERT(dmfObject->ModuleOpenedDuring == ModuleOpenedDuringType_Invalid);
+        DmfAssert(dmfObject->ModuleOpenedDuring == ModuleOpenedDuringType_Invalid);
         dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_Manual;
 
         // We will need to call PreClose when this Module is being closed.
@@ -1552,7 +1552,7 @@ Return Value:
 
         // Allow client to call Module Methods if necessary.
         //
-        ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
+        DmfAssert(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
         // Client notifications always get the Client Context. The Client decides what the
         // context means.
         //
@@ -1607,7 +1607,7 @@ Return Value:
         // The Module was successfully opened and now we are closing it.
         // Allow client to call Module Methods if necessary.
         //
-        ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
+        DmfAssert(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
         // Client notifications always get the Client Context. The Client decides what the
         // context means.
         //
@@ -1622,13 +1622,13 @@ Return Value:
 
     dmfObject->ModuleState = ModuleState_Closing;
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
     (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose)(DmfModule);
 
     dmfObject->ModuleState = ModuleState_Closed;
 
-    ASSERT(dmfObject->ModuleOpenedDuring < ModuleOpenedDuringType_Maximum);
-    ASSERT(dmfObject->ModuleOpenedDuring != ModuleOpenedDuringType_Invalid);
+    DmfAssert(dmfObject->ModuleOpenedDuring < ModuleOpenedDuringType_Maximum);
+    DmfAssert(dmfObject->ModuleOpenedDuring != ModuleOpenedDuringType_Invalid);
     dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_Invalid;
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);

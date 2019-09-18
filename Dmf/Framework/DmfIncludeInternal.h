@@ -1331,11 +1331,11 @@ Routine Description:
 {
     DMF_OBJECT* dmfObject;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = (DMF_OBJECT*)WdfMemoryGetBuffer((WDFMEMORY)DmfModule,
                                                 NULL);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     return dmfObject;
 }
@@ -1353,7 +1353,7 @@ Routine Description:
 
 --*/
 {
-    ASSERT(DmfObject != NULL);
+    DmfAssert(DmfObject != NULL);
     return (DMFMODULE)DmfObject->MemoryDmfObject;
 }
 
@@ -1373,11 +1373,11 @@ Routine Description:
 {
     DMF_INTERFACE_OBJECT* dmfInterfaceObject;
 
-    ASSERT(DmfInterface != NULL);
+    DmfAssert(DmfInterface != NULL);
 
     dmfInterfaceObject = (DMF_INTERFACE_OBJECT*)WdfMemoryGetBuffer((WDFMEMORY)DmfInterface,
                                                                     NULL);
-    ASSERT(dmfInterfaceObject != NULL);
+    DmfAssert(dmfInterfaceObject != NULL);
 
     return dmfInterfaceObject;
 }
@@ -1395,7 +1395,7 @@ Routine Description:
 
 --*/
 {
-    ASSERT(DmfInterfaceObject != NULL);
+    DmfAssert(DmfInterfaceObject != NULL);
     return (DMFINTERFACE)DmfInterfaceObject->DmfInterface;
 }
 
@@ -1452,7 +1452,7 @@ Routine Description:
 {
     DMF_MODULE_COLLECTION* dmfModuleCollection;
 
-    ASSERT(DmfCollection != NULL);
+    DmfAssert(DmfCollection != NULL);
 
     dmfModuleCollection = (DMF_MODULE_COLLECTION*)WdfMemoryGetBuffer((WDFMEMORY)DmfCollection,
                                                                      NULL);
@@ -1473,7 +1473,7 @@ Routine Description:
 
 --*/
 {
-    ASSERT(DmfModuleCollection != NULL);
+    DmfAssert(DmfModuleCollection != NULL);
     return (DMFCOLLECTION)DmfModuleCollection->ModuleCollectionHandleMemory;
 }
 

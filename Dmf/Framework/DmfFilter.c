@@ -79,7 +79,7 @@ Return Value:
 
     // DMF_FilterControl_DeviceCreate should be called only once per WdfDevice instance.
     //
-    ASSERT(dmfDeviceContext->WdfControlDevice == NULL);
+    DmfAssert(dmfDeviceContext->WdfControlDevice == NULL);
 
     // In order to create a control device, we first need to allocate a
     // WDFDEVICE_INIT structure and set all properties.
@@ -106,7 +106,7 @@ Return Value:
     // It is mandatory that Filter Control Devices have this name assigned, otherwise the
     // symbolic link cannot be created.
     //
-    ASSERT(ControlDeviceName != NULL);
+    DmfAssert(ControlDeviceName != NULL);
     RtlUnicodeStringInit(&controlDeviceName,
                          ControlDeviceName);
     ntStatus = WdfDeviceInitAssignName(deviceInit,

@@ -378,8 +378,8 @@ Return Value:
 
             // AdministratorAccessOnly can only be TRUE in the EVT_DMF_IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl mode.
             //
-            ASSERT((ioctlRecord->AdministratorAccessOnly && (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl)) ||
-                   (! (ioctlRecord->AdministratorAccessOnly)));
+            DmfAssert((ioctlRecord->AdministratorAccessOnly && (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl)) ||
+                      (! (ioctlRecord->AdministratorAccessOnly)));
 
             // Deny access if the IOCTLs are granted access on per-IOCTL basis.
             //
@@ -610,8 +610,8 @@ Return Value:
         ioSecurityContext = requestParameters.Parameters.Create.SecurityContext;
         if (NULL == ioSecurityContext)
         {
-            ASSERT(FALSE);
-            ASSERT(! NT_SUCCESS(ntStatus));
+            DmfAssert(FALSE);
+            DmfAssert(! NT_SUCCESS(ntStatus));
             goto RequestComplete;
         }
 
@@ -620,8 +620,8 @@ Return Value:
         accessToken = ioSecurityContext->AccessState->SubjectSecurityContext.PrimaryToken;
         if (NULL == accessToken)
         {
-            ASSERT(FALSE);
-            ASSERT(! NT_SUCCESS(ntStatus));
+            DmfAssert(FALSE);
+            DmfAssert(! NT_SUCCESS(ntStatus));
             goto RequestComplete;
         }
 
@@ -651,7 +651,7 @@ Return Value:
         }
         else
         {
-            ASSERT(! NT_SUCCESS(ntStatus));
+            DmfAssert(! NT_SUCCESS(ntStatus));
             if (IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl == moduleConfig->AccessModeFilter)
             {
                 // Always allow open, access is checked on per-IOCTL bases later.
@@ -679,7 +679,7 @@ RequestComplete:
         // Allow the Client to determine if the connection to User-mode should be allowed.
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
-        ASSERT(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
+        DmfAssert(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
         // NOTE: This callback must use DMF_ModuleRequestCompleteOrForward() to complete the request if the 
         //       return status is not STATUS_SUCCESS; or, return FALSE.
         //
@@ -692,7 +692,7 @@ RequestComplete:
     {
         // There are no other valid cases.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_AccessModeInvalid");
         // WARNING: Request is not completed. This code should not run.
         //
@@ -1094,7 +1094,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(moduleConfig->ManualMode);
+    DmfAssert(moduleConfig->ManualMode);
 
     // Register a device interface so applications/drivers can find and open this device.
     // Perform additional optional tasks per the Client. Allow Client to also perform

@@ -368,7 +368,7 @@ Return Value:
     // (Module callbacks always receive the Child Module's handle.)
     //
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -481,7 +481,7 @@ Return Value:
     // (Module callbacks always receive the Child Module's handle.)
     //
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -571,7 +571,7 @@ Return Value:
     // (Module callbacks always receive the Child Module's handle.)
     //
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 

@@ -296,8 +296,8 @@ Return Value:
     DMF_OBJECT* childDmfObject;
     CHILD_OBJECT_INTERATION_CONTEXT childObjectIterationIndex;
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DmfObject->ModuleCollection != NULL);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DmfObject->ModuleCollection != NULL);
 
     PAGED_CODE();
 
@@ -314,9 +314,9 @@ Return Value:
         //       if checks other places. Also, this handle may be used for other purposes in
         //       the future.
         //
-        ASSERT(NULL == childDmfObject->ModuleCollection);
+        DmfAssert(NULL == childDmfObject->ModuleCollection);
         childDmfObject->ModuleCollection = DmfObject->ModuleCollection;
-        ASSERT(childDmfObject->ModuleCollection != NULL);
+        DmfAssert(childDmfObject->ModuleCollection != NULL);
         DMF_ModuleCollectionHandleSet(childDmfObject);
         childDmfObject = DmfChildObjectNextGet(&childObjectIterationIndex);
     }
@@ -358,7 +358,7 @@ Return Value:
     {
         dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
 
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
 
         switch (DmfFeature)
         {
@@ -380,7 +380,7 @@ Return Value:
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 break;
             }
         }
@@ -422,7 +422,7 @@ Return Value:
     {
         DMF_OBJECT* dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
 
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         DMF_ModuleCollectionHandleSet(dmfObject);
     }
 }
@@ -464,7 +464,7 @@ Return Value:
         DMF_OBJECT* dmfObject;
 
         dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         DMFMODULE dmfModule = DMF_ObjectToModule(dmfObject);
         if (dmfObject->ModuleOpenedDuring == ModuleOpenedDuring)
         {
@@ -549,7 +549,7 @@ Return Value:
          driverModuleIndex--)
     {
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         DMFMODULE dmfModule = DMF_ObjectToModule(dmfObject);
 
         DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
@@ -562,7 +562,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         DMF_ModuleTreeDestroy(dmfModule);
         moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex] = NULL;
@@ -570,7 +570,7 @@ Return Value:
 
     if (moduleCollectionHandle->ClientDriverDmfModules != NULL)
     {
-        ASSERT(moduleCollectionHandle->ClientDriverDmfModulesMemory != NULL);
+        DmfAssert(moduleCollectionHandle->ClientDriverDmfModulesMemory != NULL);
         WdfObjectDelete(moduleCollectionHandle->ClientDriverDmfModulesMemory);
         moduleCollectionHandle->ClientDriverDmfModules = NULL;
         moduleCollectionHandle->NumberOfClientDriverDmfModules = 0;
@@ -639,7 +639,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         // NOTE: By design, this function will exit as soon as a Module returns an error.
         //
@@ -691,7 +691,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ModuleCollectionDispatchFunction(dmfModule);
     }
@@ -765,7 +765,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_PrepareHardware(dmfModule,
                                               ResourcesRaw,
@@ -871,7 +871,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_ReleaseHardware(dmfModule,
                                               ResourcesTranslated);
@@ -940,14 +940,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_D0Entry(dmfModule,
                                       PreviousState);
@@ -1015,14 +1015,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_D0EntryPostInterruptsEnabled(dmfModule,
                                                            PreviousState);
@@ -1124,14 +1124,14 @@ Return Value:
 
     // Destroy Modules in reverse way they were created.
     //
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = moduleCollectionHandle->NumberOfClientDriverDmfModules - 1; driverModuleIndex >= 0; driverModuleIndex--)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_D0ExitPreInterruptsDisabled(dmfModule,
                                                           TargetState);
@@ -1198,14 +1198,14 @@ Return Value:
 
     // Destroy Modules in reverse way they were created.
     //
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = moduleCollectionHandle->NumberOfClientDriverDmfModules - 1; driverModuleIndex >= 0; driverModuleIndex--)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_D0Exit(dmfModule,
                                      TargetState);
@@ -1275,14 +1275,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_QueueIoRead(dmfModule,
                                          Queue,
@@ -1355,14 +1355,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_QueueIoWrite(dmfModule,
                                           Queue,
@@ -1439,14 +1439,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_DeviceIoControl(dmfModule,
                                              Queue,
@@ -1525,14 +1525,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_InternalDeviceIoControl(dmfModule,
                                                      Queue,
@@ -2044,7 +2044,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         DMF_Module_RelationsQuery(dmfModule,
                                   RelationType);
@@ -2114,7 +2114,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_UsageNotificationEx(dmfModule,
                                                   NotificationType,
@@ -2350,7 +2350,7 @@ Return Value:
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         ntStatus = DMF_Module_ArmWakeFromSxWithReason(dmfModule,
                                                       DeviceWakeEnabled,
@@ -2521,14 +2521,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_FileCreate(dmfModule,
                                         Device,
@@ -2601,14 +2601,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_FileCleanup(dmfModule,
                                          FileObject);
@@ -2679,14 +2679,14 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules > 0);
     for (driverModuleIndex = 0; driverModuleIndex < moduleCollectionHandle->NumberOfClientDriverDmfModules; driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject;
         DMFMODULE dmfModule;
 
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         dmfModule = DMF_ObjectToModule(dmfObject);
         handled = DMF_Module_FileClose(dmfModule,
                                        FileObject);
@@ -2770,7 +2770,7 @@ Return Value:
         {
             // Error code is set in the above function.
             //
-            ASSERT(ntStatus == ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus);
+            DmfAssert(ntStatus == ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus);
             goto Exit;
         }
     }
@@ -2778,7 +2778,7 @@ Return Value:
     // This is the address where Framework will give Client the DMFMODULE.
     // (It is OK if it is NULL because Client may not need the Module handle.)
     //
-    ASSERT(NULL == ModuleAttributes->ResultantDmfModule);
+    DmfAssert(NULL == ModuleAttributes->ResultantDmfModule);
     ModuleAttributes->ResultantDmfModule = ResultantDmfModule;
 
     // This flag is set before the Client callback. Set it on a per Module basis now.
@@ -2880,7 +2880,7 @@ Return Value:
     }
     else
     {
-        ASSERT(moduleAttributes->ModuleConfigPointer == NULL);
+        DmfAssert(moduleAttributes->ModuleConfigPointer == NULL);
     }
 
     // TODO: Use LIST_ENTRY structures.
@@ -2939,7 +2939,7 @@ Return Value:
     // ListOfConfigs is the parent of all the memory allocated and added to ListOfConfigs.
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    ASSERT(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice != NULL);
+    DmfAssert(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice != NULL);
     if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
     {
         objectAttributes.ParentObject = ModuleCollectionConfig->DmfPrivate.ParentDmfModule;
@@ -3030,10 +3030,10 @@ Return Value:
     PAGED_CODE();
 
     moduleCollectionHandle = ModuleHandle->ModuleCollection;
-    ASSERT(moduleCollectionHandle != NULL);
+    DmfAssert(moduleCollectionHandle != NULL);
 
     wdfCallbacks = ModuleHandle->ModuleDescriptor.CallbacksWdf;
-    ASSERT(wdfCallbacks != NULL);
+    DmfAssert(wdfCallbacks != NULL);
 
     returnValue = TRUE;
 
@@ -3203,7 +3203,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
     TraceInformation(DMF_TRACE, "%!FUNC!");
 
-    ASSERT(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice != NULL);
+    DmfAssert(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice != NULL);
 
     ntStatus = STATUS_UNSUCCESSFUL;
     moduleCollectionHandle = NULL;
@@ -3217,7 +3217,7 @@ Return Value:
     {
         createChildModuleCollection = FALSE;
         dmfBridgeEnabled = DMF_DmfDeviceInitIsBridgeEnabled(DmfDeviceInit);
-        ASSERT(dmfBridgeEnabled == TRUE);
+        DmfAssert(dmfBridgeEnabled == TRUE);
     }
     else
     {
@@ -3244,7 +3244,7 @@ Return Value:
             (NULL == ModuleCollectionConfig->LiveKernelDumpModuleConfig) &&
             (! dmfBridgeEnabled))
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             goto Exit;
         }
 
@@ -3253,7 +3253,7 @@ Return Value:
         ntStatus = DMF_ModuleCollectionConfigListInitialize(ModuleCollectionConfig);
         if (! NT_SUCCESS(ntStatus))
         {
-            ASSERT(ntStatus == ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus);
+            DmfAssert(ntStatus == ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus);
             goto Exit;
         }
     }
@@ -3268,8 +3268,8 @@ Return Value:
     //    be instantiated.
     //
     firstModuleToInstantiate = 0;
-    ASSERT(! ModuleCollectionConfig->DmfPrivate.BranchTrackEnabled);
-    ASSERT(ModuleCollectionConfig->DmfPrivate.ListOfConfigs != NULL);
+    DmfAssert(! ModuleCollectionConfig->DmfPrivate.BranchTrackEnabled);
+    DmfAssert(ModuleCollectionConfig->DmfPrivate.ListOfConfigs != NULL);
     // 'ModuleCollectionConfig->DmfPrivate.ListOfConfigs' could be '0'.
     //
     #pragma warning(suppress:6387)
@@ -3312,10 +3312,10 @@ Return Value:
     }
     else
     {
-        ASSERT(! ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled);
+        DmfAssert(! ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled);
     }
 #else
-    ASSERT(! ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled);
+    DmfAssert(! ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled);
 #endif // !defined(DMF_USER_MODE)
 
     if (! createChildModuleCollection)
@@ -3323,7 +3323,7 @@ Return Value:
         // Add Bridge Module to the end of ModuleCollection's Config List.
         //
         bridgeModuleConfig = (DMF_CONFIG_Bridge*)DMF_DmfDeviceInitBridgeModuleConfigGet(DmfDeviceInit);
-        ASSERT(bridgeModuleConfig != NULL);
+        DmfAssert(bridgeModuleConfig != NULL);
 
         DMF_Bridge_ATTRIBUTES_INIT(&moduleAttributes);
         moduleAttributes.ModuleConfigPointer = bridgeModuleConfig;
@@ -3442,7 +3442,7 @@ Return Value:
         // This buffer contains the Module Attributes followed by the Module Config.
         // 'ModuleCollectionConfig->DmfPrivate.ListOfConfigs' could be '0'.
         //
-        ASSERT(ModuleCollectionConfig->DmfPrivate.ListOfConfigs != NULL);
+        DmfAssert(ModuleCollectionConfig->DmfPrivate.ListOfConfigs != NULL);
         #pragma warning(suppress:6387)
         moduleConfigAndAttributesMemory = (WDFMEMORY)WdfCollectionGetItem(ModuleCollectionConfig->DmfPrivate.ListOfConfigs,
                                                                           driverModuleIndex);
@@ -3459,8 +3459,8 @@ Return Value:
 
         // Create an instance of the DMF Module on behalf of the Client Driver.
         //
-        ASSERT(moduleAttributesPointer->InstanceCreator != NULL);
-        ASSERT(moduleAttributesPointer->ClientModuleInstanceName != NULL);
+        DmfAssert(moduleAttributesPointer->InstanceCreator != NULL);
+        DmfAssert(moduleAttributesPointer->ClientModuleInstanceName != NULL);
 
         if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
         {
@@ -3510,7 +3510,7 @@ Return Value:
 
         // Save the DMF Module Handle in the collection list.
         //
-        ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules < numberOfClientModulesToCreate);
+        DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules < numberOfClientModulesToCreate);
         // 'warning C6386: Buffer overrun while writing to 'moduleCollectionHandle->ClientDriverDmfModules''
         //
         #pragma warning(suppress:6386)
@@ -3523,9 +3523,9 @@ Return Value:
         {
             // Save the Parent Module Collection handle in the DMF Object.
             //
-            ASSERT(NULL == dmfObject->ModuleCollection);
+            DmfAssert(NULL == dmfObject->ModuleCollection);
             dmfObject->ModuleCollection = moduleCollectionHandle;
-            ASSERT(dmfObject->ModuleCollection != NULL);
+            DmfAssert(dmfObject->ModuleCollection != NULL);
             // Check if the Module just added to the Collection follows all the 
             // rules of DMFCOLLECTION object.
             //
@@ -3556,25 +3556,25 @@ Return Value:
     {
         moduleCollectionHandle->DmfObjectFeature[DmfFeature_BranchTrack] = DMF_ModuleCollectionFeatureHandleGet(moduleCollectionHandle,
                                                                                                                 DmfFeature_BranchTrack);
-        ASSERT(moduleCollectionHandle->DmfObjectFeature[DmfFeature_BranchTrack] != NULL);
+        DmfAssert(moduleCollectionHandle->DmfObjectFeature[DmfFeature_BranchTrack] != NULL);
     }
     else
     {
-        ASSERT(NULL == moduleCollectionHandle->DmfObjectFeature[DmfFeature_BranchTrack]);
+        DmfAssert(NULL == moduleCollectionHandle->DmfObjectFeature[DmfFeature_BranchTrack]);
     }
 
     if (ModuleCollectionConfig->DmfPrivate.LiveKernelDumpEnabled)
     {
         moduleCollectionHandle->DmfObjectFeature[DmfFeature_LiveKernelDump] = DMF_ModuleCollectionFeatureHandleGet(moduleCollectionHandle,
                                                                                                                    DmfFeature_LiveKernelDump);
-        ASSERT(moduleCollectionHandle->DmfObjectFeature[DmfFeature_LiveKernelDump] != NULL);
+        DmfAssert(moduleCollectionHandle->DmfObjectFeature[DmfFeature_LiveKernelDump] != NULL);
     }
     else
     {
-        ASSERT(NULL == moduleCollectionHandle->DmfObjectFeature[DmfFeature_LiveKernelDump]);
+        DmfAssert(NULL == moduleCollectionHandle->DmfObjectFeature[DmfFeature_LiveKernelDump]);
     }
 
-    ASSERT(moduleCollectionHandle->NumberOfClientDriverDmfModules == numberOfClientModulesToCreate);
+    DmfAssert(moduleCollectionHandle->NumberOfClientDriverDmfModules == numberOfClientModulesToCreate);
 
 Exit:
 
@@ -3603,7 +3603,7 @@ Exit:
     // The Client Driver stores this handle so that the it can be passed to the DMF Library's
     // Dispatchers. These Dispatchers will make sure each Module can do work as needed.
     //
-    ASSERT(DmfCollection != NULL);
+    DmfAssert(DmfCollection != NULL);
     if (NT_SUCCESS(ntStatus))
     {
         // Give the caller the DMFCOLLECTION so that Client can use it to dispatch WDF callbacks
@@ -3677,12 +3677,12 @@ Return Value:
     {
         DMF_OBJECT* dmfObject;
 
-        ASSERT(moduleCollectionHandle != NULL);
+        DmfAssert(moduleCollectionHandle != NULL);
         // 'warning C6385: Reading invalid data from 'moduleCollectionHandle->ClientDriverDmfModules''
         //
         #pragma warning(suppress:6385)
         dmfObject = moduleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         DMFMODULE dmfModule = DMF_ObjectToModule(dmfObject);
 
         ntStatus = DMF_Module_OpenOrRegisterNotificationOnCreate(dmfModule);
@@ -3795,8 +3795,8 @@ Return Value:
     FuncEntry(DMF_TRACE);
     TraceInformation(DMF_TRACE, "%!FUNC!");
 
-    ASSERT(Device != NULL);
-    ASSERT(DmfDeviceInitPointer != NULL);
+    DmfAssert(Device != NULL);
+    DmfAssert(DmfDeviceInitPointer != NULL);
 
     dmfDeviceInit = *DmfDeviceInitPointer;
     liveKernelDumpModuleConfig = NULL;

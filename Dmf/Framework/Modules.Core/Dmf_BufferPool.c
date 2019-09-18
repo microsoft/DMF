@@ -179,7 +179,7 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     BufferPoolEntry->TimerExpirationMilliseconds = 0;
     BufferPoolEntry->TimerExpirationAbsoluteTime100ns = 0;
@@ -214,11 +214,11 @@ Return Value:
 {
     UNREFERENCED_PARAMETER(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
-    ASSERT(BufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
-    ASSERT(BufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
-    ASSERT(ModuleContext->NumberOfBuffersInList > 0);
+    DmfAssert(BufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
+    DmfAssert(BufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
+    DmfAssert(ModuleContext->NumberOfBuffersInList > 0);
 
     RemoveEntryList(&BufferPoolEntry->ListEntry);
     ModuleContext->NumberOfBuffersInList--;
@@ -260,7 +260,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     bufferPoolEntry = NULL;
 
@@ -301,12 +301,12 @@ Return Value:
             
         }
 
-        ASSERT(ModuleContext->NumberOfBuffersInList > 0);
+        DmfAssert(ModuleContext->NumberOfBuffersInList > 0);
         RemoveEntryList(listEntry);
 
         ModuleContext->NumberOfBuffersInList--;
-        ASSERT(bufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
-        ASSERT(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
+        DmfAssert(bufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
+        DmfAssert(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
         bufferPoolEntry->CurrentlyInsertedList = NULL;
         bufferPoolEntry->CurrentlyInsertedDmfModule = NULL;
 
@@ -348,7 +348,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     if (IsListEmpty(&ModuleContext->BufferList))
     {
@@ -356,17 +356,17 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(ModuleContext->NumberOfBuffersInList > 0);
+    DmfAssert(ModuleContext->NumberOfBuffersInList > 0);
     listEntry = ModuleContext->BufferList.Flink;
 
     bufferPoolEntry = CONTAINING_RECORD(listEntry,
                                         BUFFERPOOL_ENTRY,
                                         ListEntry);
 
-    ASSERT(bufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
-    ASSERT(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
-    ASSERT(bufferPoolEntry->ListEntry.Blink != NULL);
-    ASSERT(bufferPoolEntry->ListEntry.Flink != NULL);
+    DmfAssert(bufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
+    DmfAssert(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
+    DmfAssert(bufferPoolEntry->ListEntry.Blink != NULL);
+    DmfAssert(bufferPoolEntry->ListEntry.Flink != NULL);
 
 Exit:
 
@@ -398,15 +398,15 @@ Return Value:
 
 --*/
 {
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     // Verify that this buffer is not in any other list. Inserting the buffer into
     // more than one list is a fatal error.
     //
-    ASSERT(BufferPoolEntry->ListEntry.Blink == NULL);
-    ASSERT(BufferPoolEntry->ListEntry.Flink == NULL);
-    ASSERT(BufferPoolEntry->CurrentlyInsertedList == NULL);
-    ASSERT(BufferPoolEntry->CurrentlyInsertedDmfModule == NULL);
+    DmfAssert(BufferPoolEntry->ListEntry.Blink == NULL);
+    DmfAssert(BufferPoolEntry->ListEntry.Flink == NULL);
+    DmfAssert(BufferPoolEntry->CurrentlyInsertedList == NULL);
+    DmfAssert(BufferPoolEntry->CurrentlyInsertedDmfModule == NULL);
 
     // Add to end of list and increment the number of buffers in the list.
     //
@@ -414,9 +414,9 @@ Return Value:
                    &BufferPoolEntry->ListEntry);
     ModuleContext->NumberOfBuffersInList++;
 
-    ASSERT(((ModuleContext->NumberOfBuffersSpecifiedByClient > 0) && 
-            (ModuleContext->NumberOfBuffersInList <= ModuleContext->NumberOfBuffersSpecifiedByClient)) ||
-            (0 == ModuleContext->NumberOfBuffersSpecifiedByClient));
+    DmfAssert(((ModuleContext->NumberOfBuffersSpecifiedByClient > 0) && 
+              (ModuleContext->NumberOfBuffersInList <= ModuleContext->NumberOfBuffersSpecifiedByClient)) ||
+              (0 == ModuleContext->NumberOfBuffersSpecifiedByClient));
 
     // Remember this for validation purposes.
     //
@@ -450,16 +450,16 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(ClientBuffer != NULL);
+    DmfAssert(ClientBuffer != NULL);
 
     // Given the Client Buffer, get the associated meta data.
     // NOTE: The meta data is located sizeof(BUFFERPOOL_ENTRY) bytes before the Client buffer.
     //
     bufferPoolEntry = ((BUFFERPOOL_ENTRY*)ClientBuffer) - 1;
 
-    ASSERT(bufferPoolEntry->Signature == BufferPool_Signature);
-    ASSERT(*(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
-    ASSERT(*(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
+    DmfAssert(bufferPoolEntry->Signature == BufferPool_Signature);
+    DmfAssert(*(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
+    DmfAssert(*(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
 
     return bufferPoolEntry;
 }
@@ -496,7 +496,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     bufferPoolEntryMemory = BufferPoolEntry->BufferPoolEntryMemory;
 
@@ -568,11 +568,11 @@ Return Value:
 {
     BUFFERPOOL_TIMER_CONTEXT* bufferPoolTimerContext;
 
-    ASSERT(BufferPoolEntry != NULL);
-    ASSERT(BufferPoolEntry->Timer != NULL);
+    DmfAssert(BufferPoolEntry != NULL);
+    DmfAssert(BufferPoolEntry->Timer != NULL);
 
     bufferPoolTimerContext = WdfObjectGet_BUFFERPOOL_TIMER_CONTEXT(BufferPoolEntry->Timer);
-    ASSERT(bufferPoolTimerContext->BufferPoolEntry == BufferPoolEntry);
+    DmfAssert(bufferPoolTimerContext->BufferPoolEntry == BufferPoolEntry);
 
     bufferPoolTimerContext->DmfModuleInsertedList = DmfModule;
 }
@@ -614,10 +614,10 @@ Return:
     // Get the BUFFERPOOL_TIMER_CONTEXT from the WDF Object.
     //
     bufferPoolTimerContext = WdfObjectGet_BUFFERPOOL_TIMER_CONTEXT(WdfTimer);
-    ASSERT(bufferPoolTimerContext != NULL);
+    DmfAssert(bufferPoolTimerContext != NULL);
     bufferPoolEntryTimer = bufferPoolTimerContext->BufferPoolEntry;
     dmfModule = bufferPoolTimerContext->DmfModuleInsertedList;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -649,7 +649,7 @@ Return:
         {
             // Found it. Remove it from list 
             //
-            ASSERT(bufferPoolEntryTimer->Timer != NULL);
+            DmfAssert(bufferPoolEntryTimer->Timer != NULL);
 
             // Remove item from list.
             // (If the Client wants to use this buffer, Client has saved off the buffer in Client's Context).
@@ -734,7 +734,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -866,9 +866,9 @@ Return Value:
 
 Exit:
 
-    ASSERT(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) &&
-            (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
-           (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
+    DmfAssert(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) &&
+              (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
+              (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -911,19 +911,19 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(BufferPoolEntry != NULL);
+    DmfAssert(BufferPoolEntry != NULL);
 
     DMF_ModuleLock(DmfModule);
 
-    ASSERT(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
-            (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
-            (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
+    DmfAssert(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
+              (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
+              (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
 
     bufferPoolEntryLocal = BufferPool_FirstBufferPeek(DmfModule,
                                                       moduleContext);
     if (NULL == bufferPoolEntryLocal)
     {
-        ASSERT(moduleContext->NumberOfBuffersInList == 0);
+        DmfAssert(moduleContext->NumberOfBuffersInList == 0);
         // If the Client instantiated the Module with EnableLookAside = TRUE,
         // then create a new buffer and add it to the list.
         //
@@ -943,9 +943,9 @@ Return Value:
 
             TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Add Additional Buffer NumberOfAdditionalBuffersAllocated=%d", moduleContext->NumberOfAdditionalBuffersAllocated);
 
-            ASSERT(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
-                    (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
-                    (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
+            DmfAssert(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
+                      (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
+                      (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
 
             // We just created and added a new buffer. Now get it from the list.
             //
@@ -956,7 +956,7 @@ Return Value:
         {
             // Return no buffer because there is no buffer in the list.
             //
-            ASSERT(NULL == bufferPoolEntryLocal);
+            DmfAssert(NULL == bufferPoolEntryLocal);
         }
     }
     else
@@ -977,9 +977,9 @@ Exit:
         returnValue = NULL;
     }
 
-    ASSERT(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
-            (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
-           (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
+    DmfAssert(((moduleContext->NumberOfBuffersSpecifiedByClient > 0) && 
+              (moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient)) ||
+              (0 == moduleContext->NumberOfBuffersSpecifiedByClient));
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Remove Entry: MemoryHandle=0x%p", returnValue);
 
@@ -1031,13 +1031,13 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(bufferPoolEntry != NULL);
-    ASSERT(bufferPoolEntry->Signature == BufferPool_Signature);
-    ASSERT(*(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
-    ASSERT(*(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
-    ASSERT(bufferPoolEntry->BufferPoolEntryMemory == bufferPoolEntryMemory);
-    ASSERT(bufferPoolEntry->ClientBuffer != NULL);
-    ASSERT(sizeof(BUFFERPOOL_ENTRY) == bufferPoolEntry->SizeOfBufferPoolEntry);
+    DmfAssert(bufferPoolEntry != NULL);
+    DmfAssert(bufferPoolEntry->Signature == BufferPool_Signature);
+    DmfAssert(*(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
+    DmfAssert(*(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
+    DmfAssert(bufferPoolEntry->BufferPoolEntryMemory == bufferPoolEntryMemory);
+    DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
+    DmfAssert(sizeof(BUFFERPOOL_ENTRY) == bufferPoolEntry->SizeOfBufferPoolEntry);
 
     returnValue = bufferPoolEntry->ClientBuffer;
 
@@ -1086,20 +1086,20 @@ Return Value:
     // Populate Module Context.
     //
     moduleContext->EnableLookAside = moduleConfig->Mode.SourceSettings.EnableLookAside;
-    ASSERT((moduleConfig->BufferPoolMode == BufferPool_Mode_Source && 
-            ((! moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
-             moduleConfig->Mode.SourceSettings.EnableLookAside)) ||
-           (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && 
-            (! moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount == 0))
-          );
-    ASSERT((moduleConfig->Mode.SourceSettings.CreateWithTimer && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
-           (! moduleConfig->Mode.SourceSettings.CreateWithTimer));
+    DmfAssert((moduleConfig->BufferPoolMode == BufferPool_Mode_Source && 
+              ((! moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
+              moduleConfig->Mode.SourceSettings.EnableLookAside)) ||
+              (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && 
+              (! moduleConfig->Mode.SourceSettings.EnableLookAside && moduleConfig->Mode.SourceSettings.BufferCount == 0))
+              );
+    DmfAssert((moduleConfig->Mode.SourceSettings.CreateWithTimer && moduleConfig->Mode.SourceSettings.BufferCount > 0) ||
+              (! moduleConfig->Mode.SourceSettings.CreateWithTimer));
     moduleContext->BufferPoolMode = moduleConfig->BufferPoolMode;
     // NOTE: Allow Source Mode to have zero buffers for cases where no buffers are needed. (For example, an 
     //       input/output stream where input is not used sometimes.)
     //
-    ASSERT((moduleConfig->BufferPoolMode == BufferPool_Mode_Source) ||
-           (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && moduleConfig->Mode.SourceSettings.BufferCount == 0));
+    DmfAssert((moduleConfig->BufferPoolMode == BufferPool_Mode_Source) ||
+              (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && moduleConfig->Mode.SourceSettings.BufferCount == 0));
     moduleContext->NumberOfBuffersSpecifiedByClient = moduleConfig->Mode.SourceSettings.BufferCount;
 
     // Create the list that holds all the buffers.
@@ -1113,7 +1113,7 @@ Return Value:
 
     if (moduleConfig->BufferPoolMode == BufferPool_Mode_Source)
     {
-        ASSERT(moduleConfig->Mode.SourceSettings.BufferSize > 0);
+        DmfAssert(moduleConfig->Mode.SourceSettings.BufferSize > 0);
         sizeOfEachAllocation = sizeof(BUFFERPOOL_ENTRY) +
                                moduleConfig->Mode.SourceSettings.BufferSize +
                                moduleConfig->Mode.SourceSettings.BufferContextSize +
@@ -1211,8 +1211,8 @@ Return:
     //       (For example, a Consumer List is created with zero entries but may have had entries
     //       added to it.)
     //
-    ASSERT((moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient) ||
-           (moduleContext->NumberOfBuffersSpecifiedByClient == 0));
+    DmfAssert((moduleContext->NumberOfBuffersInList <= moduleContext->NumberOfBuffersSpecifiedByClient) ||
+              (moduleContext->NumberOfBuffersSpecifiedByClient == 0));
 
     listEntry = moduleContext->BufferList.Flink;
     while (listEntry != &moduleContext->BufferList)
@@ -1268,8 +1268,8 @@ Return:
 
     // For debug purposes, make sure the list is empty.
     //
-    ASSERT(moduleContext->BufferList.Blink == &moduleContext->BufferList);
-    ASSERT(moduleContext->BufferList.Flink == &moduleContext->BufferList);
+    DmfAssert(moduleContext->BufferList.Blink == &moduleContext->BufferList);
+    DmfAssert(moduleContext->BufferList.Flink == &moduleContext->BufferList);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1361,7 +1361,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     ntStatus = BufferPool_BufferPoolCreate(DmfModule);
 
@@ -1398,7 +1398,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     BufferPool_BufferPoolDestroy(DmfModule);
 
@@ -1484,7 +1484,7 @@ Return Value:
     if ((moduleConfig->BufferPoolMode == BufferPool_Mode_Source) &&
         (DMF_IsPoolTypePassiveLevel(moduleConfig->Mode.SourceSettings.PoolType)))
     {
-        ASSERT(DMF_ModuleLockIsPassive(*DmfModule));
+        DmfAssert(DMF_ModuleLockIsPassive(*DmfModule));
     }
 #endif
 
@@ -1535,11 +1535,11 @@ Return Value:
 
     // For consistency, the Module from which the pool was created must be passed in.
     //
-    ASSERT(bufferPoolEntry->CreatedByDmfModule == DmfModule);
+    DmfAssert(bufferPoolEntry->CreatedByDmfModule == DmfModule);
 
-    ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) +
-                                                   BufferPool_SentinelSize);
-    ASSERT(ClientBufferContext != NULL);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+
+    DmfAssert(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
 
     FuncExitVoid(DMF_TRACE);
@@ -1632,7 +1632,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
+    DmfAssert(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
 
     DMF_ModuleLock(DmfModule);
 
@@ -1646,7 +1646,7 @@ Return Value:
     {
         *ClientBufferContext = NULL;
     }
-    ASSERT(! moduleContext->BufferPoolEnumerating);
+    DmfAssert(! moduleContext->BufferPoolEnumerating);
     moduleContext->BufferPoolEnumerating = TRUE;
     listEntry = moduleContext->BufferList.Flink;
     while (! doneEnumerating)
@@ -1695,8 +1695,8 @@ Return Value:
             }
         }
 
-        ASSERT(bufferPoolEntry->CurrentlyInsertedList != NULL);
-        ASSERT(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
+        DmfAssert(bufferPoolEntry->CurrentlyInsertedList != NULL);
+        DmfAssert(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
 
         // Call the Caller's Enumeration function.
         //
@@ -1724,7 +1724,7 @@ Return Value:
                 {
                     timerWasInQueue = WdfTimerStart(bufferPoolEntry->Timer,
                                                     differenceInTime100ns);
-                    ASSERT(! timerWasInQueue);
+                    DmfAssert(! timerWasInQueue);
                 }
                 break;
             }
@@ -1733,7 +1733,7 @@ Return Value:
                 // Remove the buffer if possible and stop enumerating.
                 //
                 doneEnumerating = TRUE;
-                ASSERT(ClientBuffer != NULL);
+                DmfAssert(ClientBuffer != NULL);
 
                 // The timer has been stopped. Clear the associated fields.
                 //
@@ -1744,7 +1744,7 @@ Return Value:
                                            moduleContext,
                                            bufferPoolEntry);
 
-                ASSERT(bufferPoolEntry->ClientBuffer != NULL);
+                DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
                 // 'Dereferencing NULL pointer'
                 // If Client specifies BufferPool_EnumerationDisposition_RemoveAndStop, Client owns the buffer
                 // so Client has to pass a valid ClientBuffer pointer.
@@ -1754,8 +1754,8 @@ Return Value:
 
                 if (ClientBufferContext != NULL)
                 {
-                    ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
-                    ASSERT(ClientBufferContext != NULL);
+                    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+                    DmfAssert(ClientBufferContext != NULL);
                     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
                 }
                 break;
@@ -1788,19 +1788,19 @@ Return Value:
                 {
                     timerWasInQueue = WdfTimerStart(bufferPoolEntry->Timer,
                                                     WDF_REL_TIMEOUT_IN_MS(bufferPoolEntry->TimerExpirationMilliseconds));
-                    ASSERT(! timerWasInQueue);
+                    DmfAssert(! timerWasInQueue);
                 }
                 break;
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 break;
             }
         }
     }
 
-    ASSERT(moduleContext->BufferPoolEnumerating);
+    DmfAssert(moduleContext->BufferPoolEnumerating);
     moduleContext->BufferPoolEnumerating = FALSE;
 
     DMF_ModuleUnlock(DmfModule);
@@ -1854,10 +1854,10 @@ Return Value:
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(clientBuffer);
 
-    ASSERT(bufferPoolEntry->ClientBuffer != NULL);
+    DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
-    ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
     if (ClientBufferContext != NULL)
     {
         if (bufferPoolEntry->BufferContextSize > 0)
@@ -1929,14 +1929,14 @@ Return Value:
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(clientBuffer);
 
-    ASSERT(bufferPoolEntry->ClientBuffer != NULL);
+    DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
-    ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
-    ASSERT(ClientBufferContext != NULL);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
 
-    ASSERT(ClientBufferMemory != NULL);
+    DmfAssert(ClientBufferMemory != NULL);
     *ClientBufferMemory = bufferPoolEntry->ClientBufferMemory;
 
     ntStatus = STATUS_SUCCESS;
@@ -1996,14 +1996,14 @@ Return Value:
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(clientBuffer);
 
-    ASSERT(bufferPoolEntry->ClientBuffer != NULL);
+    DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
-    ASSERT(MemoryDescriptor != NULL);
+    DmfAssert(MemoryDescriptor != NULL);
     *MemoryDescriptor = bufferPoolEntry->MemoryDescriptor;
 
-    ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
-    ASSERT(ClientBufferContext != NULL);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
 
     ntStatus = STATUS_SUCCESS;
@@ -2060,7 +2060,7 @@ Return Value:
 
     // For consistency, the Module from which the pool was created must be passed in.
     //
-    ASSERT(bufferPoolEntry->CreatedByDmfModule == DmfModule);
+    DmfAssert(bufferPoolEntry->CreatedByDmfModule == DmfModule);
 
     if (MemoryDescriptor != NULL)
     {
@@ -2069,7 +2069,7 @@ Return Value:
 
     if (ClientBufferMemory != NULL)
     {
-        ASSERT(bufferPoolEntry->ClientBufferMemory != NULL);
+        DmfAssert(bufferPoolEntry->ClientBufferMemory != NULL);
         *ClientBufferMemory = bufferPoolEntry->ClientBufferMemory;
     }
 
@@ -2080,7 +2080,7 @@ Return Value:
 
     if (ClientBufferContext != NULL)
     {
-        ASSERT(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->ClientBuffer) + bufferPoolEntry->SizeOfClientBuffer + sizeof(BufferPool_SentinelType));
+        DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->ClientBuffer) + bufferPoolEntry->SizeOfClientBuffer + sizeof(BufferPool_SentinelType));
         *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
     }
 
@@ -2131,9 +2131,9 @@ Return Value:
     //
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 
-    ASSERT(((moduleContext->BufferPoolMode == BufferPool_Mode_Source) && 
-            (bufferPoolEntry->CreatedByDmfModule == DmfModule)) ||
-           (moduleContext->BufferPoolMode == BufferPool_Mode_Sink));
+    DmfAssert(((moduleContext->BufferPoolMode == BufferPool_Mode_Source) && 
+              (bufferPoolEntry->CreatedByDmfModule == DmfModule)) ||
+              (moduleContext->BufferPoolMode == BufferPool_Mode_Sink));
 
     // In Source mode, clear out the buffer before inserting into buffer list.
     // This ensures stale data is removed from the buffer and does not appear when the buffer is re-used.
@@ -2149,14 +2149,14 @@ Return Value:
         //
         if (bufferPoolEntry->BufferContextSize > 0)
         {
-            ASSERT(bufferPoolEntry->ClientBufferContext != NULL);
+            DmfAssert(bufferPoolEntry->ClientBufferContext != NULL);
             RtlZeroMemory(bufferPoolEntry->ClientBufferContext,
                           bufferPoolEntry->BufferContextSize);
         }
-        ASSERT(NULL == bufferPoolEntry->TimerExpirationCallback);
-        ASSERT(0 == bufferPoolEntry->TimerExpirationAbsoluteTime100ns);
-        ASSERT(0 == bufferPoolEntry->TimerExpirationMilliseconds);
-        ASSERT(NULL == bufferPoolEntry->TimerExpirationCallbackContext);
+        DmfAssert(NULL == bufferPoolEntry->TimerExpirationCallback);
+        DmfAssert(0 == bufferPoolEntry->TimerExpirationAbsoluteTime100ns);
+        DmfAssert(0 == bufferPoolEntry->TimerExpirationMilliseconds);
+        DmfAssert(NULL == bufferPoolEntry->TimerExpirationCallbackContext);
     }
 
     DMF_ModuleLock(DmfModule);
@@ -2215,17 +2215,17 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  BufferPool);
 
-    ASSERT(TimerExpirationCallback != NULL);
+    DmfAssert(TimerExpirationCallback != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
+    DmfAssert(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
 
     // Given the Client Buffer, get the associated meta data.
     // NOTE: Client Driver (caller) owns the buffer at this time.
     //
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
-    ASSERT(bufferPoolEntry->Timer != NULL);
+    DmfAssert(bufferPoolEntry->Timer != NULL);
 
     // NOTE: The timer is guaranteed to be not running,
     //       since it was stop or expired when Client got the buffer.
@@ -2235,8 +2235,8 @@ Return Value:
 
     // Set the timer parameters in buffer context.
     //
-    ASSERT(bufferPoolEntry->TimerExpirationCallback == NULL);
-    ASSERT(! moduleContext->BufferPoolEnumerating);
+    DmfAssert(bufferPoolEntry->TimerExpirationCallback == NULL);
+    DmfAssert(! moduleContext->BufferPoolEnumerating);
     bufferPoolEntry->TimerExpirationCallback = TimerExpirationCallback;
     bufferPoolEntry->TimerExpirationMilliseconds = TimerExpirationMilliseconds;
 #if defined(DMF_USER_MODE)
@@ -2263,7 +2263,7 @@ Return Value:
     //
     timerWasInQueue = WdfTimerStart(bufferPoolEntry->Timer,
                                     WDF_REL_TIMEOUT_IN_MS(TimerExpirationMilliseconds));
-    ASSERT(! timerWasInQueue);
+    DmfAssert(! timerWasInQueue);
 
     DMF_ModuleUnlock(DmfModule);
 

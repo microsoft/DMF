@@ -134,7 +134,7 @@ Return:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(! moduleContext->TimerIsStarted);
+    DmfAssert(! moduleContext->TimerIsStarted);
 
     switch (moduleConfig->PersistenceType)
     {
@@ -160,7 +160,7 @@ Return:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
         }
     }
@@ -199,13 +199,13 @@ Return:
                 // Remember for duration of driver load by writing to memory.
                 //
                 TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_NotPersistentAcrossReboots Set WorkIsCompleted");
-                ASSERT(! moduleContext->WorkIsCompleted);
+                DmfAssert(! moduleContext->WorkIsCompleted);
                 moduleContext->WorkIsCompleted = TRUE;
                 break;
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 break;
             }
             }
@@ -245,7 +245,7 @@ Return:
 
             // In immediate mode, retry is not possible because the caller will unload the client because an error status is returned.
             //
-            ASSERT(moduleConfig->ExecutionMode != ScheduledTask_ExecutionMode_Immediate);
+            DmfAssert(moduleConfig->ExecutionMode != ScheduledTask_ExecutionMode_Immediate);
 
             if (! moduleContext->ModuleClosing)
             {
@@ -262,7 +262,7 @@ Return:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             // For SAL.
             //
             break;
@@ -309,7 +309,7 @@ Return:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask timer expires");
 
     dmfModule = (DMFMODULE)WdfTimerGetParentObject(WdfTimer);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -317,7 +317,7 @@ Return:
 
     // Timer has executed. Remember this.
     //
-    ASSERT(moduleContext->TimerIsStarted);
+    DmfAssert(moduleContext->TimerIsStarted);
     moduleContext->TimerIsStarted = FALSE;
 
     // Deferred operations do not return the result.
@@ -360,8 +360,8 @@ Return:
 
     FuncEntry(DMF_TRACE);
 
-    dmfModule = (DMFMODULE)WdfWorkItemGetParentObject(WdfWorkitem);
-    ASSERT(dmfModule != NULL);
+    dmfModule = *WdfObjectGet_DMFMODULE(WdfWorkitem);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -369,7 +369,7 @@ Return:
 
     LONG pendingCalls;
 
-    ASSERT(moduleContext->NumberOfPendingCalls > 0);
+    DmfAssert(moduleContext->NumberOfPendingCalls > 0);
     do
     {
         // Deferred operations do not return the result.
@@ -492,7 +492,7 @@ Return Value:
                 }
                 default:
                 {
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     break;
                 }
             }
@@ -645,7 +645,7 @@ Return Value:
                 }
                 default:
                 {
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     break;
                 }
             }
@@ -734,6 +734,7 @@ Return Value:
     DMF_CONFIG_ScheduledTask* moduleConfig;
     WDF_TIMER_CONFIG timerConfig;
     WDF_WORKITEM_CONFIG workitemConfig;
+    WDFDEVICE device;
 
     PAGED_CODE();
 
@@ -742,6 +743,8 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    device = DMF_ParentDeviceGet(DmfModule);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -776,7 +779,13 @@ Return Value:
                              ScheduledTask_DeferredHandlerOnDemand);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = DmfModule;
+    WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                           DMFMODULE);
+
+    // Use WdfDevice instead of DmfModule as a parent, so that the work item is not disposed 
+    // prematurely when this module is deleted as a part of a dynamic module tree.
+    //
+    objectAttributes.ParentObject = device;
 
     ntStatus = WdfWorkItemCreate(&workitemConfig,
                                  &objectAttributes,
@@ -786,6 +795,9 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
+
+    DMF_ModuleInContextSave(moduleContext->DeferredOnDemand,
+                            DmfModule);
 
 Exit:
 
@@ -843,7 +855,7 @@ Return Value:
     //
     WdfWorkItemFlush(moduleContext->DeferredOnDemand);
 
-    ASSERT(0 == moduleContext->NumberOfPendingCalls);
+    DmfAssert(0 == moduleContext->NumberOfPendingCalls);
 
     WdfObjectDelete(moduleContext->DeferredOnDemand);
     moduleContext->DeferredOnDemand = NULL;
@@ -859,7 +871,7 @@ Return Value:
 
     // Stop the timer and wait for any pending call to finish.
     //
-    ASSERT(moduleContext->ModuleClosing);
+    DmfAssert(moduleContext->ModuleClosing);
     WdfTimerStop(moduleContext->Timer,
                  TRUE);
     WdfObjectDelete(moduleContext->Timer);
@@ -1039,7 +1051,7 @@ Return Value:
     DMF_CONTEXT_ScheduledTask* moduleContext;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(!moduleContext->ModuleClosing);
+    DmfAssert(!moduleContext->ModuleClosing);
 
     // If the workitem has already been enqueued, just increment the number of times the
     // ScheduledTask routine must be called.
@@ -1109,7 +1121,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(TimesRun != NULL);
+    DmfAssert(TimesRun != NULL);
     *TimesRun = 0;
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,

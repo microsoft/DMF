@@ -157,7 +157,7 @@ RegistryKeyEnumerationFunction(
     UNREFERENCED_PARAMETER(RootHandle);
 
     callbackContext = (EnumCallbackContext*)ClientContext;
-    ASSERT(callbackContext != NULL);
+    DmfAssert(callbackContext != NULL);
 
     for (index = 0; index < ARRAYSIZE(subkeys); ++index)
     {
@@ -189,7 +189,7 @@ RegistryValueComparisonFunction_IfEqual(
 
     sizeToCompare = min(ValueDataInRegistrySize, ClientDataInRegistrySize);
 
-    ASSERT(ValueDataInRegistrySize == ClientDataInRegistrySize);
+    DmfAssert(ValueDataInRegistrySize == ClientDataInRegistrySize);
 
     //''ClientDataInRegistry' could be '0':  this does not adhere to the specification for the function 'RtlCompareMemor'
     //
@@ -218,12 +218,12 @@ RegistryValueComparisonFunction_IfEqualToContext(
     UNREFERENCED_PARAMETER(ClientDataInRegistrySize);
 
     callbackContext = (CompareCallbackContext*)ClientContext;
-    ASSERT(NULL != callbackContext);
+    DmfAssert(NULL != callbackContext);
 
     #pragma warning(suppress:28182)
     sizeToCompare = min(ValueDataInRegistrySize, callbackContext->ClientDataSize);
 
-    ASSERT(ValueDataInRegistrySize == callbackContext->ClientDataSize);
+    DmfAssert(ValueDataInRegistrySize == callbackContext->ClientDataSize);
 
     return (RtlCompareMemory(ValueDataInRegistry,
                              callbackContext->ClientData,
@@ -250,8 +250,8 @@ RegistryValueComparisonFunction_IfDefault(
 
     sizeToCompare = min(ValueDataInRegistrySize, sizeof(ulongOriginal));
 
-    ASSERT(ValueDataInRegistrySize == ClientDataInRegistrySize);
-    ASSERT(ValueDataInRegistrySize == sizeof(ulongOriginal));
+    DmfAssert(ValueDataInRegistrySize == ClientDataInRegistrySize);
+    DmfAssert(ValueDataInRegistrySize == sizeof(ulongOriginal));
 
     return (RtlCompareMemory(ValueDataInRegistry,
                              &ulongOriginal,
@@ -276,8 +276,8 @@ Tests_Registry_ValidatePathDeleted(
                                                0,
                                                FALSE,
                                                &keyHandle);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
-    ASSERT(NULL == keyHandle);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(NULL == keyHandle);
 
     if (NULL != keyHandle)
     {
@@ -301,23 +301,23 @@ Tests_Registry_Path_DeleteValues(
     ntStatus = DMF_Registry_PathAndValueDelete(DmfModuleRegistry,
                                                REGISTRY_PATH_NAME,
                                                VALUENAME_STRING);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_PathAndValueDelete(DmfModuleRegistry,
                                                REGISTRY_PATH_NAME,
                                                VALUENAME_MULTISTRING);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_PathAndValueDelete(DmfModuleRegistry,
                                                REGISTRY_PATH_NAME,
                                                VALUENAME_BINARY);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_PathAndValueDelete(DmfModuleRegistry,
                                                REGISTRY_PATH_NAME,
                                                VALUENAME_DWORD);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_PathAndValueDelete(DmfModuleRegistry,
                                                REGISTRY_PATH_NAME,
                                                VALUENAME_QWORD);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
 }
 #pragma code_seg()
 
@@ -334,7 +334,7 @@ Tests_Registry_Path_DeletePath(
 
     ntStatus = DMF_Registry_RegistryPathDelete(DmfModuleRegistry,
                                                REGISTRY_PATH_NAME);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
 }
 #pragma code_seg()
 
@@ -361,7 +361,7 @@ Tests_Registry_Path_ReadNonExistent(
                                                    string,
                                                    ARRAYSIZE(string),
                                                    NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(multiString);
     ntStatus = DMF_Registry_PathAndValueReadMultiString(DmfModuleRegistry,
                                                         REGISTRY_PATH_NAME,
@@ -369,7 +369,7 @@ Tests_Registry_Path_ReadNonExistent(
                                                         multiString,
                                                         ARRAYSIZE(multiString),
                                                         NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(binary);
     ntStatus = DMF_Registry_PathAndValueReadBinary(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
@@ -377,19 +377,19 @@ Tests_Registry_Path_ReadNonExistent(
                                                    (UCHAR*)binary,
                                                    sizeof(binary),
                                                    NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(ulong);
     ntStatus = DMF_Registry_PathAndValueReadDword(DmfModuleRegistry,
                                                   REGISTRY_PATH_NAME,
                                                   VALUENAME_DWORD,
                                                   &ulong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_PathAndValueReadQword(DmfModuleRegistry,
                                                   REGISTRY_PATH_NAME,
                                                   VALUENAME_QWORD,
                                                   &ulonglong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 }
 #pragma code_seg()
 
@@ -409,29 +409,29 @@ Tests_Registry_Path_WriteValues(
                                                     VALUENAME_STRING,
                                                     stringOriginal,
                                                     ARRAYSIZE(stringOriginal));
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_PathAndValueWriteMultiString(DmfModuleRegistry,
                                                          REGISTRY_PATH_NAME,
                                                          VALUENAME_MULTISTRING,
                                                          multiStringOriginal,
                                                          ARRAYSIZE(multiStringOriginal));
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_PathAndValueWriteBinary(DmfModuleRegistry,
                                                     REGISTRY_PATH_NAME,
                                                     VALUENAME_BINARY,
                                                     (UCHAR*)binaryOriginal,
                                                     sizeof(binaryOriginal));
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_PathAndValueWriteDword(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
                                                    VALUENAME_DWORD,
                                                    ulongOriginal);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_PathAndValueWriteQword(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
                                                    VALUENAME_QWORD,
                                                    ulonglongOriginal);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 }
 #pragma code_seg()
 
@@ -458,24 +458,24 @@ Tests_Registry_Path_ReadAndValidateBytesRead(
                                                    NULL,
                                                    0,
                                                    &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(stringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(stringOriginal));
     ntStatus = DMF_Registry_PathAndValueReadMultiString(DmfModuleRegistry,
                                                         REGISTRY_PATH_NAME,
                                                         VALUENAME_MULTISTRING,
                                                         NULL,
                                                         0,
                                                         &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(multiStringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(multiStringOriginal));
     ntStatus = DMF_Registry_PathAndValueReadBinary(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
                                                    VALUENAME_BINARY,
                                                    NULL,
                                                    0,
                                                    &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(binaryOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(binaryOriginal));
     #pragma warning(pop)
 }
 #pragma code_seg()
@@ -503,10 +503,10 @@ Tests_Registry_Path_ReadAndValidateData(
                                                    string,
                                                    ARRAYSIZE(string),
                                                    NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(string,
-                            stringOriginal,
-                            sizeof(stringOriginal)) == sizeof(stringOriginal));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(string,
+                               stringOriginal,
+                               sizeof(stringOriginal)) == sizeof(stringOriginal));
     ZERO_BUFFER(multiString);
     ntStatus = DMF_Registry_PathAndValueReadMultiString(DmfModuleRegistry,
                                                         REGISTRY_PATH_NAME,
@@ -514,10 +514,10 @@ Tests_Registry_Path_ReadAndValidateData(
                                                         multiString,
                                                         ARRAYSIZE(multiString),
                                                         NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(multiString,
-                            multiStringOriginal,
-                            sizeof(multiStringOriginal)) == sizeof(multiStringOriginal));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(multiString,
+                               multiStringOriginal,
+                               sizeof(multiStringOriginal)) == sizeof(multiStringOriginal));
     ZERO_BUFFER(binary);
     ntStatus = DMF_Registry_PathAndValueReadBinary(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
@@ -525,17 +525,17 @@ Tests_Registry_Path_ReadAndValidateData(
                                                    (UCHAR*)binary,
                                                    sizeof(binary),
                                                    NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(binary,
-                            binaryOriginal,
-                            sizeof(binaryOriginal)) == sizeof(binaryOriginal));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(binary,
+                               binaryOriginal,
+                               sizeof(binaryOriginal)) == sizeof(binaryOriginal));
     ZERO_BUFFER(ulong);
     ntStatus = DMF_Registry_PathAndValueReadDword(DmfModuleRegistry,
                                                   REGISTRY_PATH_NAME,
                                                   VALUENAME_DWORD,
                                                   &ulong);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulong == ulongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulong == ulongOriginal);
     ZERO_BUFFER(ulong);
 
     ntStatus = DMF_Registry_PathAndValueReadDwordAndValidate(DmfModuleRegistry,
@@ -544,7 +544,7 @@ Tests_Registry_Path_ReadAndValidateData(
                                                              &ulong,
                                                              0,
                                                              1);
-    ASSERT(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
+    DmfAssert(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
     ZERO_BUFFER(ulong);
     ntStatus = DMF_Registry_PathAndValueReadDwordAndValidate(DmfModuleRegistry,
                                                              REGISTRY_PATH_NAME,
@@ -552,15 +552,15 @@ Tests_Registry_Path_ReadAndValidateData(
                                                              &ulong,
                                                              0x00000000,
                                                              0xFFFFFFFF);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulong == ulongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulong == ulongOriginal);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_PathAndValueReadQword(DmfModuleRegistry,
                                                   REGISTRY_PATH_NAME,
                                                   VALUENAME_QWORD,
                                                   &ulonglong);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulonglong == ulonglongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulonglong == ulonglongOriginal);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_PathAndValueReadQwordAndValidate(DmfModuleRegistry,
                                                              REGISTRY_PATH_NAME,
@@ -568,7 +568,7 @@ Tests_Registry_Path_ReadAndValidateData(
                                                              &ulonglong,
                                                              0,
                                                              1);
-    ASSERT(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
+    DmfAssert(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_PathAndValueReadQwordAndValidate(DmfModuleRegistry,
                                                              REGISTRY_PATH_NAME,
@@ -576,8 +576,8 @@ Tests_Registry_Path_ReadAndValidateData(
                                                              &ulonglong,
                                                              0x0000000000000000,
                                                              0xFFFFFFFFFFFFFFFF);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulonglong == ulonglongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulonglong == ulonglongOriginal);
 }
 #pragma code_seg()
 
@@ -603,10 +603,10 @@ Tests_Registry_Path_ReadAndValidateDataAndBytesRead(
                                                    string,
                                                    ARRAYSIZE(string),
                                                    &bytesRead);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(string,
-                            stringOriginal,
-                            sizeof(stringOriginal)) == bytesRead);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(string,
+                               stringOriginal,
+                               sizeof(stringOriginal)) == bytesRead);
     ZERO_BUFFER(multiString);
     ntStatus = DMF_Registry_PathAndValueReadMultiString(DmfModuleRegistry,
                                                         REGISTRY_PATH_NAME,
@@ -614,10 +614,10 @@ Tests_Registry_Path_ReadAndValidateDataAndBytesRead(
                                                         multiString,
                                                         ARRAYSIZE(multiString),
                                                         &bytesRead);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(multiString,
-                            multiStringOriginal,
-                            sizeof(multiStringOriginal)) == bytesRead);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(multiString,
+                               multiStringOriginal,
+                               sizeof(multiStringOriginal)) == bytesRead);
     ZERO_BUFFER(binary);
     ntStatus = DMF_Registry_PathAndValueReadBinary(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
@@ -625,10 +625,10 @@ Tests_Registry_Path_ReadAndValidateDataAndBytesRead(
                                                    (UCHAR*)binary,
                                                    sizeof(binary),
                                                    &bytesRead);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(binary,
-                            binaryOriginal,
-                            sizeof(binaryOriginal)) == bytesRead);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(binary,
+                               binaryOriginal,
+                               sizeof(binaryOriginal)) == bytesRead);
 }
 #pragma code_seg()
 
@@ -657,7 +657,7 @@ Tests_Registry_Path_ReadSmallBufferWithoutBytesRead(
                                                    (PWCHAR)smallBuffer,
                                                    ARRAYSIZE(smallBuffer),
                                                    NULL);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_PathAndValueReadMultiString(DmfModuleRegistry,
                                                         REGISTRY_PATH_NAME,
@@ -665,7 +665,7 @@ Tests_Registry_Path_ReadSmallBufferWithoutBytesRead(
                                                         (PWCHAR)smallBuffer,
                                                         ARRAYSIZE(smallBuffer),
                                                         NULL);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_PathAndValueReadBinary(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
@@ -673,7 +673,7 @@ Tests_Registry_Path_ReadSmallBufferWithoutBytesRead(
                                                    (UCHAR*)smallBuffer,
                                                    sizeof(smallBuffer),
                                                    NULL);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
 
     #pragma warning(pop)
 
@@ -706,8 +706,8 @@ Tests_Registry_Path_ReadSmallBufferWithBytesRead(
                                                    (PWCHAR)smallBuffer,
                                                    ARRAYSIZE(smallBuffer),
                                                    &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(stringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(stringOriginal));
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_PathAndValueReadMultiString(DmfModuleRegistry,
                                                         REGISTRY_PATH_NAME,
@@ -715,8 +715,8 @@ Tests_Registry_Path_ReadSmallBufferWithBytesRead(
                                                         (PWCHAR)smallBuffer,
                                                         ARRAYSIZE(smallBuffer),
                                                         &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(multiStringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(multiStringOriginal));
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_PathAndValueReadBinary(DmfModuleRegistry,
                                                    REGISTRY_PATH_NAME,
@@ -724,8 +724,8 @@ Tests_Registry_Path_ReadSmallBufferWithBytesRead(
                                                    (UCHAR*)smallBuffer,
                                                    sizeof(smallBuffer),
                                                    &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(binaryOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(binaryOriginal));
 
     #pragma warning(pop)
 }
@@ -749,8 +749,8 @@ Tests_Registry_Path_Enumerate(
                                                 REGISTRY_PATH_NAME,
                                                 RegistryKeyEnumerationFunction,
                                                 &callbackContext);
-    ASSERT(TRUE == result);
-    ASSERT(ARRAYSIZE(subkeys) == callbackContext.NumberOfKeys);
+    DmfAssert(TRUE == result);
+    DmfAssert(ARRAYSIZE(subkeys) == callbackContext.NumberOfKeys);
 }
 #pragma code_seg()
 
@@ -774,8 +774,8 @@ Tests_Registry_Path_NameContainingStringEnumerate(
                                                                        SUBKEYNAME_1,
                                                                        RegistryKeyEnumerationFunction, 
                                                                        &callbackContext);
-    ASSERT(TRUE == result);
-    ASSERT(1 == callbackContext.NumberOfKeys);
+    DmfAssert(TRUE == result);
+    DmfAssert(1 == callbackContext.NumberOfKeys);
 
     // Make sure SUBKEYNAME_2 can be found.
     //
@@ -785,8 +785,8 @@ Tests_Registry_Path_NameContainingStringEnumerate(
                                                                        SUBKEYNAME_2,
                                                                        RegistryKeyEnumerationFunction, 
                                                                        &callbackContext);
-    ASSERT(TRUE == result);
-    ASSERT(1 == callbackContext.NumberOfKeys);
+    DmfAssert(TRUE == result);
+    DmfAssert(1 == callbackContext.NumberOfKeys);
 
     // Make sure not existing keys reported as not found.
     //
@@ -796,8 +796,8 @@ Tests_Registry_Path_NameContainingStringEnumerate(
                                                                        L"DoesNotExist",
                                                                        RegistryKeyEnumerationFunction, 
                                                                        &callbackContext);
-    ASSERT(TRUE == result);
-    ASSERT(0 == callbackContext.NumberOfKeys);
+    DmfAssert(TRUE == result);
+    DmfAssert(0 == callbackContext.NumberOfKeys);
 }
 #pragma code_seg()
 
@@ -816,23 +816,23 @@ Tests_Registry_Handle_DeleteValues(
     ntStatus = DMF_Registry_ValueDelete(DmfModuleRegistry,
                                         Handle,
                                         VALUENAME_STRING);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_ValueDelete(DmfModuleRegistry,
                                         Handle,
                                         VALUENAME_MULTISTRING);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_ValueDelete(DmfModuleRegistry,
                                         Handle,
                                         VALUENAME_BINARY);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_ValueDelete(DmfModuleRegistry,
                                         Handle,
                                         VALUENAME_DWORD);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
     ntStatus = DMF_Registry_ValueDelete(DmfModuleRegistry,
                                         Handle,
                                         VALUENAME_QWORD);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
 }
 #pragma code_seg()
 
@@ -856,11 +856,11 @@ Tests_Registry_Handle_DeleteSubkeys(
                                                        Handle,
                                                        subkeys[index],
                                                        FALSE);
-        ASSERT(NULL != subkeyHandle);
+        DmfAssert(NULL != subkeyHandle);
 
         ntStatus = DMF_Registry_HandleDelete(DmfModuleRegistry,
                                              subkeyHandle);
-        ASSERT(NT_SUCCESS(ntStatus));
+        DmfAssert(NT_SUCCESS(ntStatus));
 
         DMF_Registry_HandleClose(DmfModuleRegistry,
                                  subkeyHandle);
@@ -882,7 +882,7 @@ Tests_Registry_Handle_DeletePath(
 
     ntStatus = DMF_Registry_HandleDelete(DmfModuleRegistry,
                                          Handle);
-    ASSERT(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
 }
 #pragma code_seg()
 
@@ -910,7 +910,7 @@ Tests_Registry_Handle_ReadNonExistent(
                                             string,
                                             ARRAYSIZE(string),
                                             NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(multiString);
     ntStatus = DMF_Registry_ValueReadMultiString(DmfModuleRegistry,
                                                  Handle,
@@ -918,7 +918,7 @@ Tests_Registry_Handle_ReadNonExistent(
                                                  multiString,
                                                  ARRAYSIZE(multiString),
                                                  NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(binary);
     ntStatus = DMF_Registry_ValueReadBinary(DmfModuleRegistry,
                                             Handle,
@@ -926,19 +926,19 @@ Tests_Registry_Handle_ReadNonExistent(
                                             (UCHAR*)binary,
                                             sizeof(binary),
                                             NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(ulong);
     ntStatus = DMF_Registry_ValueReadDword(DmfModuleRegistry,
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_ValueReadQword(DmfModuleRegistry,
                                            Handle,
                                            VALUENAME_QWORD,
                                            &ulonglong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 }
 #pragma code_seg()
 
@@ -959,29 +959,29 @@ Tests_Registry_Handle_WriteValues(
                                              VALUENAME_STRING,
                                              stringOriginal,
                                              ARRAYSIZE(stringOriginal));
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_ValueWriteMultiString(DmfModuleRegistry,
                                                   Handle,
                                                   VALUENAME_MULTISTRING,
                                                   multiStringOriginal,
                                                   ARRAYSIZE(multiStringOriginal));
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_ValueWriteBinary(DmfModuleRegistry,
                                              Handle,
                                              VALUENAME_BINARY,
                                              binaryOriginal,
                                              sizeof(binaryOriginal));
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_ValueWriteDword(DmfModuleRegistry,
                                             Handle,
                                             VALUENAME_DWORD,
                                             ulongOriginal);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     ntStatus = DMF_Registry_ValueWriteQword(DmfModuleRegistry,
                                             Handle,
                                             VALUENAME_QWORD,
                                             ulonglongOriginal);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 }
 #pragma code_seg()
 
@@ -1004,7 +1004,7 @@ Tests_Registry_Handle_WriteSubkeys(
                                                        Handle,
                                                        subkeys[index],
                                                        TRUE);
-        ASSERT(NULL != subkeyHandle);
+        DmfAssert(NULL != subkeyHandle);
         DMF_Registry_HandleClose(DmfModuleRegistry,
                                  subkeyHandle);
     }
@@ -1036,24 +1036,24 @@ Tests_Registry_Handle_ReadAndValidateBytesRead(
                                             NULL,
                                             0,
                                             &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(stringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(stringOriginal));
     ntStatus = DMF_Registry_ValueReadMultiString(DmfModuleRegistry,
                                                  Handle,
                                                  VALUENAME_MULTISTRING,
                                                  NULL,
                                                  0,
                                                  &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(multiStringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(multiStringOriginal));
     ntStatus = DMF_Registry_ValueReadBinary(DmfModuleRegistry,
                                             Handle,
                                             VALUENAME_BINARY,
                                             NULL,
                                             0,
                                             &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(binaryOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(binaryOriginal));
     #pragma warning(pop)
 }
 #pragma code_seg()
@@ -1082,10 +1082,10 @@ Tests_Registry_Handle_ReadAndValidateData(
                                             string,
                                             ARRAYSIZE(string),
                                             NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(string,
-                            stringOriginal,
-                            sizeof(stringOriginal)) == sizeof(stringOriginal));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(string,
+                               stringOriginal,
+                               sizeof(stringOriginal)) == sizeof(stringOriginal));
     ZERO_BUFFER(multiString);
     ntStatus = DMF_Registry_ValueReadMultiString(DmfModuleRegistry,
                                                  Handle,
@@ -1093,10 +1093,10 @@ Tests_Registry_Handle_ReadAndValidateData(
                                                  multiString,
                                                  ARRAYSIZE(multiString),
                                                  NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(multiString,
-                            multiStringOriginal,
-                            sizeof(multiStringOriginal)) == sizeof(multiStringOriginal));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(multiString,
+                               multiStringOriginal,
+                               sizeof(multiStringOriginal)) == sizeof(multiStringOriginal));
     ZERO_BUFFER(binary);
     ntStatus = DMF_Registry_ValueReadBinary(DmfModuleRegistry,
                                             Handle,
@@ -1104,17 +1104,17 @@ Tests_Registry_Handle_ReadAndValidateData(
                                             (UCHAR*)binary,
                                             sizeof(binary),
                                             NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(binary,
-                            binaryOriginal,
-                            sizeof(binaryOriginal)) == sizeof(binaryOriginal));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(binary,
+                               binaryOriginal,
+                               sizeof(binaryOriginal)) == sizeof(binaryOriginal));
     ZERO_BUFFER(ulong);
     ntStatus = DMF_Registry_ValueReadDword(DmfModuleRegistry,
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulong == ulongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulong == ulongOriginal);
 
     ntStatus = DMF_Registry_ValueReadDwordAndValidate(DmfModuleRegistry,
                                                       Handle,
@@ -1122,22 +1122,22 @@ Tests_Registry_Handle_ReadAndValidateData(
                                                       &ulong,
                                                       0,
                                                       1);
-    ASSERT(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
+    DmfAssert(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
     ntStatus = DMF_Registry_ValueReadDwordAndValidate(DmfModuleRegistry,
                                                       Handle,
                                                       VALUENAME_DWORD,
                                                       &ulong,
                                                       0x00000000,
                                                       0xFFFFFFFF);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulong == ulongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulong == ulongOriginal);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_ValueReadQword(DmfModuleRegistry,
                                            Handle,
                                            VALUENAME_QWORD,
                                            &ulonglong);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulonglong == ulonglongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulonglong == ulonglongOriginal);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_ValueReadQwordAndValidate(DmfModuleRegistry,
                                                       Handle,
@@ -1145,7 +1145,7 @@ Tests_Registry_Handle_ReadAndValidateData(
                                                       &ulonglong,
                                                       0,
                                                       1);
-    ASSERT(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
+    DmfAssert(STATUS_INVALID_DEVICE_REQUEST == ntStatus);
     ZERO_BUFFER(ulonglong);
     ntStatus = DMF_Registry_ValueReadQwordAndValidate(DmfModuleRegistry,
                                                       Handle,
@@ -1153,8 +1153,8 @@ Tests_Registry_Handle_ReadAndValidateData(
                                                       &ulonglong,
                                                       0x0000000000000000,
                                                       0xFFFFFFFFFFFFFFFF);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(ulong == ulongOriginal);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(ulong == ulongOriginal);
 }
 #pragma code_seg()
 
@@ -1181,10 +1181,10 @@ Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(
                                             string,
                                             ARRAYSIZE(string),
                                             &bytesRead);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(string,
-                            stringOriginal,
-                            sizeof(stringOriginal)) == bytesRead);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(string,
+                               stringOriginal,
+                               sizeof(stringOriginal)) == bytesRead);
     ZERO_BUFFER(multiString);
     ntStatus = DMF_Registry_ValueReadMultiString(DmfModuleRegistry,
                                                  Handle,
@@ -1192,10 +1192,10 @@ Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(
                                                  multiString,
                                                  ARRAYSIZE(multiString),
                                                  &bytesRead);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(multiString,
-                            multiStringOriginal,
-                            sizeof(multiStringOriginal)) == bytesRead);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(multiString,
+                               multiStringOriginal,
+                               sizeof(multiStringOriginal)) == bytesRead);
     ZERO_BUFFER(binary);
     ntStatus = DMF_Registry_ValueReadBinary(DmfModuleRegistry,
                                             Handle,
@@ -1203,10 +1203,10 @@ Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(
                                             (UCHAR*)binary,
                                             sizeof(binary),
                                             &bytesRead);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(RtlCompareMemory(binary,
-                            binaryOriginal,
-                            sizeof(binaryOriginal)) == bytesRead);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(RtlCompareMemory(binary,
+                               binaryOriginal,
+                               sizeof(binaryOriginal)) == bytesRead);
 }
 #pragma code_seg()
 
@@ -1236,7 +1236,7 @@ Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(
                                             (PWCHAR)smallBuffer,
                                             ARRAYSIZE(smallBuffer),
                                             NULL);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_ValueReadMultiString(DmfModuleRegistry,
                                                  Handle,
@@ -1244,7 +1244,7 @@ Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(
                                                  (PWCHAR)smallBuffer,
                                                  ARRAYSIZE(smallBuffer),
                                                  NULL);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_ValueReadBinary(DmfModuleRegistry,
                                             Handle,
@@ -1252,7 +1252,7 @@ Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(
                                             (UCHAR*)smallBuffer,
                                             sizeof(smallBuffer),
                                             NULL);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
 
     #pragma warning(pop)
 
@@ -1286,8 +1286,8 @@ Tests_Registry_Handle_ReadSmallBufferWithBytesRead(
                                             (PWCHAR)smallBuffer,
                                             ARRAYSIZE(smallBuffer),
                                             &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(stringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(stringOriginal));
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_ValueReadMultiString(DmfModuleRegistry,
                                                  Handle,
@@ -1295,8 +1295,8 @@ Tests_Registry_Handle_ReadSmallBufferWithBytesRead(
                                                  (PWCHAR)smallBuffer,
                                                  ARRAYSIZE(smallBuffer),
                                                  &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(multiStringOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(multiStringOriginal));
     ZERO_BUFFER(smallBuffer);
     ntStatus = DMF_Registry_ValueReadBinary(DmfModuleRegistry,
                                             Handle,
@@ -1304,8 +1304,8 @@ Tests_Registry_Handle_ReadSmallBufferWithBytesRead(
                                             (UCHAR*)smallBuffer,
                                             sizeof(smallBuffer),
                                             &bytesRead);
-    ASSERT(STATUS_BUFFER_TOO_SMALL == ntStatus);
-    ASSERT(bytesRead == sizeof(binaryOriginal));
+    DmfAssert(STATUS_BUFFER_TOO_SMALL == ntStatus);
+    DmfAssert(bytesRead == sizeof(binaryOriginal));
 
     #pragma warning(pop)
 
@@ -1331,16 +1331,16 @@ Tests_Registry_Handle_Enumerate(
                                                      Handle,
                                                      RegistryKeyEnumerationFunction,
                                                      &callbackContext);
-    ASSERT(TRUE == result);
-    ASSERT(ARRAYSIZE(subkeys) == callbackContext.NumberOfKeys);
+    DmfAssert(TRUE == result);
+    DmfAssert(ARRAYSIZE(subkeys) == callbackContext.NumberOfKeys);
 
     callbackContext.NumberOfKeys = 0;
     result = DMF_Registry_AllSubKeysFromHandleEnumerate(DmfModuleRegistry,
                                                         Handle,
                                                         RegistryKeyEnumerationFunction,
                                                         &callbackContext);
-    ASSERT(TRUE == result);
-    ASSERT(ARRAYSIZE(subkeys) == callbackContext.NumberOfKeys);
+    DmfAssert(TRUE == result);
+    DmfAssert(ARRAYSIZE(subkeys) == callbackContext.NumberOfKeys);
 }
 #pragma code_seg()
 
@@ -1366,8 +1366,8 @@ Tests_Registry_Handle_ConditionalDelete(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD == ulong);
 
     // Delete with failing condition, the value should remain.
     //
@@ -1379,7 +1379,7 @@ Tests_Registry_Handle_ConditionalDelete(
                                                 sizeof(ulong),
                                                 RegistryValueComparisonFunction_IfEqual,
                                                 NULL);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Delete with failing condition, using callback context to pass the values. The value should remain.
     //
@@ -1392,7 +1392,7 @@ Tests_Registry_Handle_ConditionalDelete(
                                                 0,
                                                 RegistryValueComparisonFunction_IfEqualToContext,
                                                 &callbackContext);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the value still exists
     //
@@ -1400,8 +1400,8 @@ Tests_Registry_Handle_ConditionalDelete(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD == ulong);
 
     // Delete with succeeding condition, the value should be removed.
     //
@@ -1413,7 +1413,7 @@ Tests_Registry_Handle_ConditionalDelete(
                                                 sizeof(ulong),
                                                 RegistryValueComparisonFunction_IfEqual,
                                                 NULL);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the value was removed
     //
@@ -1421,7 +1421,7 @@ Tests_Registry_Handle_ConditionalDelete(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 
     // Delete a non-existing value.
     //
@@ -1433,7 +1433,7 @@ Tests_Registry_Handle_ConditionalDelete(
                                                 sizeof(ulong),
                                                 RegistryValueComparisonFunction_IfEqual,
                                                 NULL);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 }
 #pragma code_seg()
 
@@ -1463,7 +1463,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 
     // Non-existing value, don't write if does not exist. The value should not be written.
     //
@@ -1477,7 +1477,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                                RegistryValueComparisonFunction_IfDefault,
                                                NULL,
                                                FALSE);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 
     // Make sure the value still does not exist
     //
@@ -1485,7 +1485,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
+    DmfAssert(STATUS_OBJECT_NAME_NOT_FOUND == ntStatus);
 
     // Non-existing value, write if does not exist. The value should be written.
     //
@@ -1499,7 +1499,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                                RegistryValueComparisonFunction_IfDefault,
                                                NULL,
                                                TRUE);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the value was written
     //
@@ -1507,8 +1507,8 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD == ulong);
 
     // Overwrite default value, new value should be written.
     //
@@ -1522,7 +1522,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                                RegistryValueComparisonFunction_IfDefault,
                                                NULL,
                                                FALSE);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the new value was written
     //
@@ -1530,8 +1530,8 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD + 1 == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD + 1 == ulong);
 
     // Overwrite non-default value, new value should not be written.
     //
@@ -1545,7 +1545,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                                RegistryValueComparisonFunction_IfDefault,
                                                NULL,
                                                FALSE);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the new value was not written
     //
@@ -1553,8 +1553,8 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD + 1 == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD + 1 == ulong);
 
     // Reset back to the default value.
     //
@@ -1562,7 +1562,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                             Handle,
                                             VALUENAME_DWORD,
                                             VALUEDATA_DWORD);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Overwrite the value passing non-matching data in callback context, new value should not be written.
     //
@@ -1577,7 +1577,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                                RegistryValueComparisonFunction_IfEqualToContext,
                                                &callbackContext,
                                                FALSE);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the new value was not written
     //
@@ -1585,8 +1585,8 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD == ulong);
 
     // Overwrite the value passing non-matching data in callback context, new value should not be written.
     //
@@ -1601,7 +1601,7 @@ Tests_Registry_Handle_ConditionalWrite(
                                                RegistryValueComparisonFunction_IfEqualToContext,
                                                &callbackContext,
                                                FALSE);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     // Make sure the new value was written
     //
@@ -1609,8 +1609,8 @@ Tests_Registry_Handle_ConditionalWrite(
                                            Handle,
                                            VALUENAME_DWORD,
                                            &ulong);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(VALUEDATA_DWORD + 1 == ulong);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(VALUEDATA_DWORD + 1 == ulong);
 }
 #pragma code_seg()
 
@@ -1628,7 +1628,7 @@ Tests_Registry_TreeWrite(
     ntStatus = DMF_Registry_TreeWriteEx(DmfModuleRegistry,
                                         RegistryTree,
                                         ARRAYSIZE(RegistryTree));
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 }
 #pragma code_seg()
 
@@ -1646,7 +1646,7 @@ Tests_Registry_TreeWriteDeferred(
     ntStatus = DMF_Registry_TreeWriteDeferred(DmfModuleRegistry,
                                               RegistryTree,
                                               ARRAYSIZE(RegistryTree));
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 }
 #pragma code_seg()
 
@@ -1685,7 +1685,7 @@ Return Value:
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
                                         0,
                                         10000);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep,
                                      0);
@@ -1786,8 +1786,8 @@ Return Value:
                                                    GENERIC_ALL,
                                                    &registryHandle);
         }
-        ASSERT(NT_SUCCESS(ntStatus));
-        ASSERT(registryHandle != NULL);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        DmfAssert(registryHandle != NULL);
         if (registryHandle != NULL)
         {
             // Delete values.
@@ -1888,7 +1888,7 @@ Return Value:
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
                                         0,
                                         5000);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep,
                                      0);
@@ -1921,8 +1921,8 @@ Return Value:
                                                GENERIC_ALL,
                                                TRUE,
                                                &registryHandle);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(registryHandle != NULL);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(registryHandle != NULL);
 
     if (registryHandle != NULL)
     {

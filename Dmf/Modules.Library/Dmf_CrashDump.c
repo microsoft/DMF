@@ -211,7 +211,7 @@ Return Value:
     // This is a bit unclean, but the system will crash immediately afterward.
     //
     
-    ASSERT(NULL == dataSource->RingBufferData);
+    DmfAssert(NULL == dataSource->RingBufferData);
     // 'Dereferencing NULL pointer. 'dataSource' contains the same NULL value as 'CallbackContext' did.'
     //
     #pragma warning(suppress:28182)
@@ -316,15 +316,15 @@ Return Value:
 
     secondaryDumpData = (KBUGCHECK_SECONDARY_DUMP_DATA*)ReasonSpecificData;
     moduleContext = DMF_CONTEXT_GET(g_DmfModuleCrashDump);
-    ASSERT(moduleContext != NULL);
+    DmfAssert(moduleContext != NULL);
 
     moduleConfig = DMF_CONFIG_GET(g_DmfModuleCrashDump);
-    ASSERT(moduleConfig != NULL);
+    DmfAssert(moduleConfig != NULL);
 
     // Get the Ring Buffer information to be output.
     //
     dataSourceIndex = (ULONG)(Record - moduleContext->BugCheckCallbackRecordRingBuffer);
-    ASSERT(dataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(dataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[dataSourceIndex];
     dmfModuleRingBuffer = dataSource->DmfModuleDataSourceRingBuffer;
     ringBufferGuid = dataSource->RingBufferGuid;
@@ -367,9 +367,9 @@ Return Value:
     {
         // Copy over the Ring Buffer data.
         //
-        ASSERT(dataSource->RingBufferData != NULL);
+        DmfAssert(dataSource->RingBufferData != NULL);
         secondaryDumpData->OutBuffer = dataSource->RingBufferData;
-        ASSERT(dataSource->RingBufferSize != 0);
+        DmfAssert(dataSource->RingBufferSize != 0);
         totalLength = dataSource->RingBufferSize;
 
         if (totalLength > secondaryDumpData->MaximumAllowed)
@@ -428,16 +428,16 @@ Return Value:
 
     secondaryDumpData = (KBUGCHECK_SECONDARY_DUMP_DATA*)ReasonSpecificData;
     moduleContext = DMF_CONTEXT_GET(g_DmfModuleCrashDump);
-    ASSERT(moduleContext != NULL);
+    DmfAssert(moduleContext != NULL);
 
     moduleConfig = DMF_CONFIG_GET(g_DmfModuleCrashDump);
-    ASSERT(moduleConfig != NULL);
+    DmfAssert(moduleConfig != NULL);
 
     if (NULL == secondaryDumpData->OutBuffer)
     {
         // Tell caller how much additional data will be copied.
         //
-        ASSERT(moduleConfig->EvtCrashDumpQuery != NULL);
+        DmfAssert(moduleConfig->EvtCrashDumpQuery != NULL);
         moduleConfig->EvtCrashDumpQuery(g_DmfModuleCrashDump,
                                         &secondaryDumpData->OutBuffer,
                                         &secondaryDumpData->OutBufferLength);
@@ -458,7 +458,7 @@ Return Value:
         // Tell the client driver to copy over its data.
         //
         totalLength = secondaryDumpData->MaximumAllowed;
-        ASSERT(moduleConfig->EvtCrashDumpWrite != NULL);
+        DmfAssert(moduleConfig->EvtCrashDumpWrite != NULL);
         moduleConfig->EvtCrashDumpWrite(g_DmfModuleCrashDump,
                                         &secondaryDumpData->OutBuffer,
                                         &totalLength);
@@ -508,12 +508,12 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];
 
     // Only a trusted caller makes this call.
     //
-    ASSERT(BufferLength <= dataSource->RingBufferSizeOfEachEntry);
+    DmfAssert(BufferLength <= dataSource->RingBufferSizeOfEachEntry);
 
     // Write the data to the data source.
     //
@@ -565,12 +565,12 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];
 
     // Only a trusted caller makes this call.
     //
-    ASSERT(BufferLength <= dataSource->RingBufferSizeOfEachEntry);
+    DmfAssert(BufferLength <= dataSource->RingBufferSizeOfEachEntry);
 
     // Read the Ring Buffer data entry to the Buffer.
     //
@@ -621,16 +621,16 @@ Return Value:
     DMF_CONTEXT_CrashDump* moduleContext;
     DATA_SOURCE* dataSource;
 
-    ASSERT(NULL != Buffer);
+    DmfAssert(NULL != Buffer);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];
 
     // Only a trusted caller makes this call.
     //
-    ASSERT(BufferLength <= dataSource->RingBufferSize);
+    DmfAssert(BufferLength <= dataSource->RingBufferSize);
 
     // Write the Ring Buffer data array to the Buffer.
     //
@@ -680,7 +680,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -739,7 +739,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -851,7 +851,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -930,7 +930,7 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1008,7 +1008,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     // Make sure this handle is not already in use.
     //
@@ -1081,7 +1081,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     // Find a slot that has the FileObject open for either read or write.
     //
@@ -1093,7 +1093,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(fileHandleIndex < moduleContext->DataSourceCount);
+    DmfAssert(fileHandleIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[fileHandleIndex];
     // NOTE: Update for additional modes.
     //
@@ -1191,7 +1191,7 @@ Return Value:
         ULONG ringBufferSize;
 
         ringBufferSize = ItemCount * ItemSize;
-        ASSERT(moduleConfig->RingBufferMaximumSize > 0);
+        DmfAssert(moduleConfig->RingBufferMaximumSize > 0);
         if (ringBufferSize > moduleConfig->RingBufferMaximumSize)
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ringBufferSize=%d RingBufferMaximumSize=%d", ringBufferSize, moduleConfig->RingBufferMaximumSize);
@@ -1206,9 +1206,9 @@ Return Value:
 
     device = DMF_ParentDeviceGet(DmfModule);
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];
-    ASSERT(NULL == dataSource->DmfModuleDataSourceRingBuffer);
+    DmfAssert(NULL == dataSource->DmfModuleDataSourceRingBuffer);
 
     // RingBuffer
     // ----------
@@ -1232,7 +1232,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(NULL != dataSource->DmfModuleDataSourceRingBuffer);
+    DmfAssert(NULL != dataSource->DmfModuleDataSourceRingBuffer);
 
     // Get the size of the Ring Buffer to be written.
     //
@@ -1278,23 +1278,23 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];
 
     // Close and Destroy the DMF Module for the associated Ring Buffer.
     //
     if (dataSource->DmfModuleDataSourceRingBuffer != NULL)
     {
-        ASSERT(dataSource->DmfModuleDataSourceRingBuffer != NULL);
+        DmfAssert(dataSource->DmfModuleDataSourceRingBuffer != NULL);
         WdfObjectDelete(dataSource->DmfModuleDataSourceRingBuffer);
         dataSource->DmfModuleDataSourceRingBuffer = NULL;
 
-        ASSERT((NULL == dataSource->FileObject[DataSourceModeRead]) && 
-               (NULL == dataSource->FileObject[DataSourceModeWrite]));
+        DmfAssert((NULL == dataSource->FileObject[DataSourceModeRead]) && 
+                  (NULL == dataSource->FileObject[DataSourceModeWrite]));
     }
 
     RtlZeroMemory(&dataSource->RingBufferGuid,
@@ -1345,16 +1345,16 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[DataSourceIndex];
     if (dataSource->DmfModuleDataSourceRingBuffer != NULL)
     {
         // Do not assert here because untrusted components can call. Only assert for
         // trusted index.
         //
-        ASSERT(DataSourceIndex != RINGBUFFER_INDEX_SELF);
+        DmfAssert(DataSourceIndex != RINGBUFFER_INDEX_SELF);
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DataSourceIndex=%d Handle already open", DataSourceIndex);
         goto Exit;
@@ -1397,7 +1397,7 @@ Return Value:
               dataSource->RingBufferGuid.Data4[6],
               dataSource->RingBufferGuid.Data4[7]);
 
-    ASSERT(strlen(dataSource->RingBufferEncryptionKey) <= ENCRYPTION_KEY_STRING_SIZE);
+    DmfAssert(strlen(dataSource->RingBufferEncryptionKey) <= ENCRYPTION_KEY_STRING_SIZE);
 
     // Register the callback function that is called for all the Ring Buffers.
     //
@@ -1418,7 +1418,7 @@ Return Value:
         ntStatus = STATUS_INVALID_PARAMETER;
         // It should not happen.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -1462,9 +1462,9 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(DataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(DataSourceIndex < moduleContext->DataSourceCount);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     // Unregister the callback for the Ring Buffer. This Bug Check Callback is unregistered while the Ring Buffer used by
     // the callback is still allocated.
@@ -1523,7 +1523,7 @@ Return Value:
 
     // It is called by a trusted component.
     //
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     // Deallocate the slot so it can be used by another client.
     //
@@ -1540,7 +1540,7 @@ Return Value:
     //
     ntStatus = CrashDump_DataSourceDestroyInternal(DmfModule,
                                                    dataSourceIndex);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
 
@@ -1626,7 +1626,7 @@ Return Value:
         //
         dataSourceIndex = CrashDump_FileHandleSlotFree(DmfModule,
                                                        FileObject);
-        ASSERT(dataSourceIndex != RINGBUFFER_INDEX_INVALID);
+        DmfAssert(dataSourceIndex != RINGBUFFER_INDEX_INVALID);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_DataSourceCreateInternal ntStatus=%!STATUS!", ntStatus);
     }
 
@@ -1843,7 +1843,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
+    DmfAssert(KeGetCurrentIrql() == PASSIVE_LEVEL);
 
     // This call is from untrusted PASSIVE_LEVEL component. This object's lock must be acquired.
     //
@@ -1863,12 +1863,12 @@ Return Value:
     // Write the data from the Data Source to its respective Ring Buffer. If it does not fit, an error 
     // is returned from the Ring Buffer.
     //
-    ASSERT(dataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(dataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[dataSourceIndex];
 
     // If the file object is valid, then this handle must be open.
     //
-    ASSERT(dataSource->DmfModuleDataSourceRingBuffer != NULL);
+    DmfAssert(dataSource->DmfModuleDataSourceRingBuffer != NULL);
 
     // This call may be made by an untrusted caller. Validate the size of the write.
     //
@@ -1929,7 +1929,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
+    DmfAssert(KeGetCurrentIrql() == PASSIVE_LEVEL);
 
     // This call is from untrusted PASSIVE_LEVEL component. This object's lock must be acquired.
     //
@@ -1949,12 +1949,12 @@ Return Value:
     // Read the data from its respective Ring Buffer. If it does not fit, an error 
     // is returned from the Ring Buffer.
     //
-    ASSERT(dataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(dataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[dataSourceIndex];
 
     // If the file object is valid, then this handle must be open.
     //
-    ASSERT(dataSource->DmfModuleDataSourceRingBuffer != NULL);
+    DmfAssert(dataSource->DmfModuleDataSourceRingBuffer != NULL);
 
     // This call may be made by an untrusted caller. Validate the size of the buffer for the read data size.
     //
@@ -2016,9 +2016,9 @@ Return Value:
 
     *BytesWritten = 0;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(Buffer != NULL);
+    DmfAssert(Buffer != NULL);
 
-    ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
+    DmfAssert(KeGetCurrentIrql() == PASSIVE_LEVEL);
 
     // This call is from untrusted PASSIVE_LEVEL component. This object's lock must be acquired.
     //
@@ -2038,12 +2038,12 @@ Return Value:
     // From the respective Ring Buffer,capture the Ring Buffer. If it does not fit, an error 
     // is returned from the Ring Buffer.
     //
-    ASSERT(dataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(dataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[dataSourceIndex];
 
     // If the file object is valid, then this handle must be open.
     //
-    ASSERT(dataSource->DmfModuleDataSourceRingBuffer != NULL);
+    DmfAssert(dataSource->DmfModuleDataSourceRingBuffer != NULL);
 
     // This call may be made by an untrusted caller. Validate the size of the buffer for the read data size.
     //
@@ -2103,7 +2103,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
+    DmfAssert(KeGetCurrentIrql() == PASSIVE_LEVEL);
 
     // This call is from untrusted PASSIVE_LEVEL component. This object's lock must be acquired.
     //
@@ -2119,10 +2119,10 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(dataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(dataSourceIndex < moduleContext->DataSourceCount);
     dataSource = &moduleContext->DataSource[dataSourceIndex];
 
-    ASSERT(dataSource->DmfModuleDataSourceRingBuffer != NULL);
+    DmfAssert(dataSource->DmfModuleDataSourceRingBuffer != NULL);
 
     if (dataSource->FileObject[DataSourceModeRead] == FileObject)
     {
@@ -2354,11 +2354,11 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(dataSourceIndex < moduleContext->DataSourceCount);
+    DmfAssert(dataSourceIndex < moduleContext->DataSourceCount);
 
     dataSource = &moduleContext->DataSource[dataSourceIndex];
     dataSourceReturn->EntrySize = dataSource->RingBufferSizeOfEachEntry;
-    ASSERT(dataSource->RingBufferSizeOfEachEntry != 0);
+    DmfAssert(dataSource->RingBufferSizeOfEachEntry != 0);
     dataSourceReturn->EntriesCount = dataSource->RingBufferSize / dataSource->RingBufferSizeOfEachEntry;
     dataSourceReturn->Guid = dataSourceCreate->Guid;
 
@@ -2737,7 +2737,7 @@ Return Value:
     // (Module callbacks always receive the Child Module's handle.)
     //
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -2834,7 +2834,7 @@ Return Value:
 #endif // defined(DEBUG)
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_NOT_SUPPORTED;
             break;
         }
@@ -3024,7 +3024,7 @@ Return Value:
     if (moduleConfig->DataSourceCount > CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES)
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "moduleConfig->DataSourceCount=%d > %d", moduleConfig->DataSourceCount, CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES);
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -3036,7 +3036,7 @@ Return Value:
     {
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -3049,7 +3049,7 @@ Return Value:
     {
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -3063,7 +3063,7 @@ Return Value:
         {
             ntStatus = STATUS_INVALID_PARAMETER;
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Either both or no Callbacks must be specified ntStatus=%!STATUS!", ntStatus);
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             goto Exit;
         }
     }
@@ -3116,7 +3116,7 @@ Return Value:
 
     if (moduleConfig->BufferCount > 0)
     {
-        ASSERT(moduleConfig->BufferSize > 0);
+        DmfAssert(moduleConfig->BufferSize > 0);
 
         // Ring Buffer Index 0 is reserved for this driver. Allocate it now.
         //
@@ -3134,7 +3134,7 @@ Return Value:
     {
         // The client has specified that a Ring Buffer callback is not needed.
         //
-        ASSERT(0 == moduleConfig->BufferSize);
+        DmfAssert(0 == moduleConfig->BufferSize);
     }
 
     // If the Client Driver has specified an Additional Bug Check Callback in addition to or instead of the Ring Buffer
@@ -3142,7 +3142,7 @@ Return Value:
     //
     if (moduleConfig->EvtCrashDumpWrite != NULL)
     {
-        ASSERT(moduleConfig->EvtCrashDumpQuery != NULL);
+        DmfAssert(moduleConfig->EvtCrashDumpQuery != NULL);
 
         // Register the callback function that is called for the driver that instantiates this object.
         //
@@ -3240,7 +3240,7 @@ Return Value:
     DMF_ModuleLock(DmfModule);
     ntStatus = CrashDump_DataSourceDestroyInternal(DmfModule,
                                                    RINGBUFFER_INDEX_SELF);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
     DMF_ModuleUnlock(DmfModule);
 
     return ntStatus;
@@ -3290,7 +3290,7 @@ Return Value:
     {
         // The Client Driver registered an Additional Bug Check Callback.
         //
-        ASSERT(moduleConfig->EvtCrashDumpQuery != NULL);
+        DmfAssert(moduleConfig->EvtCrashDumpQuery != NULL);
         if (! KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbacRecordAdditional))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback");
@@ -3308,11 +3308,11 @@ Return Value:
     //
     if (moduleContext->DataSource != NULL)
     {
-        ASSERT(RINGBUFFER_INDEX_SELF < moduleContext->DataSourceCount);
+        DmfAssert(RINGBUFFER_INDEX_SELF < moduleContext->DataSourceCount);
         if (moduleContext->DataSource[RINGBUFFER_INDEX_SELF].DmfModuleDataSourceRingBuffer != NULL)
         {
-            ASSERT(moduleConfig->BufferCount > 0);
-            ASSERT(moduleConfig->BufferSize > 0);
+            DmfAssert(moduleConfig->BufferCount > 0);
+            DmfAssert(moduleConfig->BufferSize > 0);
 
             // Close the SELF Ring Buffer.
             //
@@ -3364,14 +3364,14 @@ Return Value:
             {
                 ntStatus = CrashDump_DataSourceDestroyAuxiliaryInternal(DmfModule,
                                                                         dataSource->FileObject[DataSourceModeWrite]);
-                ASSERT(NT_SUCCESS(ntStatus));
+                DmfAssert(NT_SUCCESS(ntStatus));
             }
 
             if (dataSource->FileObject[DataSourceModeRead] != NULL)
             {
                 ntStatus = CrashDump_DataSourceDestroyAuxiliaryInternal(DmfModule,
                                                                         dataSource->FileObject[DataSourceModeRead]);
-                ASSERT(NT_SUCCESS(ntStatus));
+                DmfAssert(NT_SUCCESS(ntStatus));
             }
         }
     }
@@ -3387,7 +3387,7 @@ Return Value:
     //
     if (moduleContext->BugCheckCallbackRecordRingBuffer != NULL)
     {
-        ASSERT(moduleContext->DataSourceCount > 0);
+        DmfAssert(moduleContext->DataSourceCount > 0);
         ExFreePoolWithTag(moduleContext->BugCheckCallbackRecordRingBuffer,
                           MemoryTag);
         moduleContext->BugCheckCallbackRecordRingBuffer = NULL;
@@ -3400,7 +3400,7 @@ Return Value:
 
     if (moduleContext->DataSource != NULL)
     {
-        ASSERT(moduleContext->DataSourceCount > 0);
+        DmfAssert(moduleContext->DataSourceCount > 0);
         ExFreePoolWithTag(moduleContext->DataSource,
                           MemoryTag);
         moduleContext->DataSource = NULL;
@@ -3701,7 +3701,7 @@ Return Value:
     DMF_CONTEXT_CrashDump* moduleContext;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(moduleContext->m_SystemTelemetryDevice != NULL);
+    DmfAssert(moduleContext->m_SystemTelemetryDevice != NULL);
     moduleContext->m_SystemTelemetryDevice->DataSourceWrite(Buffer,
                                                             BufferLength);
     ntStatus = STATUS_SUCCESS;

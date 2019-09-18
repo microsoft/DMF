@@ -264,7 +264,7 @@ Start:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 
     goto Start;

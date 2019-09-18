@@ -131,10 +131,10 @@ Return Value:
                                                      narrowBufferBig,
                                                      ARRAYSIZE(narrowBufferBig),
                                                      wideStrings[stringIndex]);
-        ASSERT(NT_SUCCESS(ntStatus));
-        ASSERT(strncmp(narrowBufferBig,
-                       narrowStrings[stringIndex],
-                       strlen(narrowStrings[stringIndex])) == 0);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        DmfAssert(strncmp(narrowBufferBig,
+                          narrowStrings[stringIndex],
+                          strlen(narrowStrings[stringIndex])) == 0);
 
         // Expected Failure.
         //
@@ -142,8 +142,8 @@ Return Value:
                                                      narrowBufferSmall,
                                                      ARRAYSIZE(narrowBufferSmall),
                                                      wideStrings[stringIndex]);
-        ASSERT(! NT_SUCCESS(ntStatus) || 
-               (wcslen(wideStrings[stringIndex]) == 0));
+        DmfAssert(! NT_SUCCESS(ntStatus) || 
+                 (wcslen(wideStrings[stringIndex]) == 0));
 
         // Test DMF_String_RtlUnicodeStringToAnsiString
         // --------------------------------------------
@@ -161,10 +161,10 @@ Return Value:
         ntStatus = DMF_String_RtlUnicodeStringToAnsiString(DmfModule,
                                                            &ansiString,
                                                            &unicodeString);
-        ASSERT(NT_SUCCESS(ntStatus));
-        ASSERT(strncmp(ansiString.Buffer,
-                       narrowStrings[stringIndex],
-                       strlen(narrowStrings[stringIndex])) == 0);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        DmfAssert(strncmp(ansiString.Buffer,
+                          narrowStrings[stringIndex],
+                          strlen(narrowStrings[stringIndex])) == 0);
 
         // Expected Success.
         //
@@ -176,10 +176,10 @@ Return Value:
         ntStatus = DMF_String_RtlUnicodeStringToAnsiString(DmfModule,
                                                            &ansiString,
                                                            &unicodeStrings[stringIndex]);
-        ASSERT(NT_SUCCESS(ntStatus));
-        ASSERT(strncmp(ansiString.Buffer,
-                       narrowStrings[stringIndex],
-                       strlen(narrowStrings[stringIndex])) == 0);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        DmfAssert(strncmp(ansiString.Buffer,
+                          narrowStrings[stringIndex],
+                          strlen(narrowStrings[stringIndex])) == 0);
 
         // Expected Failure.
         //
@@ -193,8 +193,8 @@ Return Value:
         ntStatus = DMF_String_RtlUnicodeStringToAnsiString(DmfModule,
                                                            &ansiString,
                                                            &unicodeString);
-        ASSERT(!NT_SUCCESS(ntStatus) || 
-               (unicodeString.Length == 0));
+        DmfAssert(!NT_SUCCESS(ntStatus) || 
+                  (unicodeString.Length == 0));
 
         // Expected Failure.
         //
@@ -208,8 +208,8 @@ Return Value:
         ntStatus = DMF_String_RtlUnicodeStringToAnsiString(DmfModule,
                                                            &ansiString,
                                                            &unicodeStrings[stringIndex]);
-        ASSERT(!NT_SUCCESS(ntStatus) || 
-               (unicodeStrings[stringIndex].Length == 0));
+        DmfAssert(!NT_SUCCESS(ntStatus) || 
+                  (unicodeStrings[stringIndex].Length == 0));
 
         // Test DMF_String_RtlAnsiStringToUnicodeString
         // --------------------------------------------
@@ -227,10 +227,10 @@ Return Value:
         ntStatus = DMF_String_RtlAnsiStringToUnicodeString(DmfModule,
                                                            &unicodeString,
                                                            &ansiString);
-        ASSERT(NT_SUCCESS(ntStatus));
-        ASSERT(wcsncmp(unicodeString.Buffer,
-                       wideStrings[stringIndex],
-                       wcslen(wideStrings[stringIndex])) == 0);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        DmfAssert(wcsncmp(unicodeString.Buffer,
+                          wideStrings[stringIndex],
+                          wcslen(wideStrings[stringIndex])) == 0);
 
         // Expected Failure.
         //
@@ -244,8 +244,73 @@ Return Value:
         ntStatus = DMF_String_RtlAnsiStringToUnicodeString(DmfModule,
                                                            &unicodeString,
                                                            &ansiString);
-        ASSERT(! NT_SUCCESS(ntStatus) ||
-               (wcslen(wideStrings[stringIndex]) == 0));
+        DmfAssert(! NT_SUCCESS(ntStatus) ||
+                  (wcslen(wideStrings[stringIndex]) == 0));
+
+        // Test DMF_String_MultiSzFindLast
+        // -------------------------------
+        //
+
+        WCHAR* testString;
+        WCHAR* lastString;
+
+        testString = L"first\0last\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        if (wcscmp(lastString, L"last"))
+        {
+            DmfAssert(FALSE);
+        }
+
+        testString = L"only\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        if (wcscmp(lastString, L"only"))
+        {
+            DmfAssert(FALSE);
+        }
+
+        testString = L"\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        DmfAssert(lastString == NULL);
+
+        testString = L"first\0middle\0last\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        if (wcscmp(lastString, L"last"))
+        {
+            DmfAssert(FALSE);
+        }
+
+        testString = L"\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        DmfAssert(lastString == NULL);
+
+        testString = L"\0last\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        if (wcscmp(lastString, L"last"))
+        {
+            DmfAssert(FALSE);
+        }
+
+        testString = L"\0middle\0last\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        if (wcscmp(lastString, L"last"))
+        {
+            DmfAssert(FALSE);
+        }
+
+        testString = L"first\0middle\0\0\0";
+        lastString = DMF_String_MultiSzFindLast(DmfModule,
+                                                testString);
+        if (wcscmp(lastString, L"middle"))
+        {
+            DmfAssert(FALSE);
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -400,13 +465,13 @@ Return Value:
                                                            emptyTable,
                                                            0,
                                                            stringsTable0[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
 
         result = DMF_String_FindInListExactChar(DmfModule,
                                                 emptyTable,
                                                 0,
                                                 stringsTable0[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
     }
 
     for (LONG stringIndex = 0; stringIndex < ARRAYSIZE(stringsTable0); stringIndex++)
@@ -418,7 +483,7 @@ Return Value:
                                                            stringsTable0,
                                                            ARRAYSIZE(stringsTable0),
                                                            stringsTable0[stringIndex]);
-        ASSERT(result == stringIndex);
+        DmfAssert(result == stringIndex);
 
         // Look for strings that are not present in the table being searched.
         // None should be found. (Left comparison).
@@ -427,7 +492,7 @@ Return Value:
                                                            stringsTable1,
                                                            ARRAYSIZE(stringsTable1),
                                                            stringsTable0[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
     }
 
     for (LONG stringIndex = 0; stringIndex < ARRAYSIZE(stringsTable1); stringIndex++)
@@ -439,7 +504,7 @@ Return Value:
                                                            stringsTable1,
                                                            ARRAYSIZE(stringsTable1),
                                                            stringsTable1[stringIndex]);
-        ASSERT(result == stringIndex);
+        DmfAssert(result == stringIndex);
 
         // Look for strings that are not present in the table being searched.
         // None should be found. (Left comparison).
@@ -448,7 +513,7 @@ Return Value:
                                                            stringsTable0,
                                                            ARRAYSIZE(stringsTable0),
                                                            stringsTable1[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
     }
 
     for (LONG stringIndex = 0; stringIndex < ARRAYSIZE(stringsTable0); stringIndex++)
@@ -460,7 +525,7 @@ Return Value:
                                                 stringsTable0,
                                                 ARRAYSIZE(stringsTable0),
                                                 stringsTable0[stringIndex]);
-        ASSERT(result == stringIndex);
+        DmfAssert(result == stringIndex);
 
         // Look for strings that are not present in the table being searched.
         // None should be found. (Full comparison).
@@ -469,7 +534,7 @@ Return Value:
                                                 stringsTable1,
                                                 ARRAYSIZE(stringsTable1),
                                                 stringsTable0[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
     }
 
     for (LONG stringIndex = 0; stringIndex < ARRAYSIZE(stringsTable3); stringIndex++)
@@ -480,7 +545,7 @@ Return Value:
                                                            stringsTable2,
                                                            ARRAYSIZE(stringsTable2),
                                                            stringsTable3[stringIndex]);
-        ASSERT(result == answersTable3[stringIndex]);
+        DmfAssert(result == answersTable3[stringIndex]);
     }
 
     for (LONG stringIndex = 0; stringIndex < ARRAYSIZE(stringsTable3); stringIndex++)
@@ -491,7 +556,7 @@ Return Value:
                                                 stringsTable2,
                                                 ARRAYSIZE(stringsTable2),
                                                 stringsTable3[stringIndex]);
-        ASSERT(result == answersTable4[stringIndex]);
+        DmfAssert(result == answersTable4[stringIndex]);
     }
 
     // Verify that if left sides of EITHER string match, result is FOUND.
@@ -504,8 +569,8 @@ Return Value:
                                                            stringsTable6[stringIndex]);
         // Only the last string should fail.
         //
-        ASSERT((result >= 0) ||
-               (stringIndex == 5));
+        DmfAssert((result >= 0) ||
+                  (stringIndex == 5));
     }
 
     // Verify that if left sides of either string match, result is FOUND.
@@ -518,7 +583,7 @@ Return Value:
                                                            stringsTable5[stringIndex]);
         // String only matches the last two records.
         //
-        ASSERT((result == -1) || (result == 4) || (result == 5));
+        DmfAssert((result == -1) || (result == 4) || (result == 5));
     }
 
     // Verify that if left sides of either string don't match, result is not FOUND.
@@ -529,7 +594,7 @@ Return Value:
                                                            stringsTable1,
                                                            ARRAYSIZE(stringsTable1),
                                                            stringsTable5[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
     }
 
     // Verify that if left sides of either string don't match, result is not FOUND.
@@ -540,7 +605,7 @@ Return Value:
                                                            stringsTable5,
                                                            ARRAYSIZE(stringsTable5),
                                                            stringsTable1[stringIndex]);
-        ASSERT(result == -1);
+        DmfAssert(result == -1);
     }
 
     // Search a table of GUIDs for all its own entries.
@@ -552,7 +617,7 @@ Return Value:
                                                 guidsTable,
                                                 ARRAYSIZE(guidsTable),
                                                 &guidsTable[guidIndex]);
-        ASSERT(result == guidIndex);
+        DmfAssert(result == guidIndex);
     }
 
     // Search a table of GUIDs for a GUID that should not be found.
@@ -561,7 +626,7 @@ Return Value:
                                             guidsTable,
                                             ARRAYSIZE(guidsTable),
                                             &guid5);
-    ASSERT(-1 == result);
+    DmfAssert(-1 == result);
 
     // Search an empty table of GUIDs.
     //
@@ -569,7 +634,7 @@ Return Value:
                                             guidsTableEmpty,
                                             0,
                                             &guid5);
-    ASSERT(-1 == result);
+    DmfAssert(-1 == result);
 
     FuncExitVoid(DMF_TRACE);
 }

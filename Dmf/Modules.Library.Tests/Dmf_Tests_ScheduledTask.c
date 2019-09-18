@@ -242,9 +242,9 @@ Tests_ScheduledTask_TaskCallback(
     PAGED_CODE();
 
     taskContext = (Tests_ScheduledTask_TaskContext*)CallbackContext;
-    ASSERT(taskContext != NULL);
+    DmfAssert(taskContext != NULL);
     
-    ASSERT(taskContext->DescriptionIndex < TASK_COUNT);
+    DmfAssert(taskContext->DescriptionIndex < TASK_COUNT);
     taskDescription = &TaskDescriptionArray[taskContext->DescriptionIndex];
 
     firstCall = (1 == InterlockedIncrement(&taskContext->TimesExecuted));
@@ -276,7 +276,7 @@ Tests_ScheduledTask_ValidationTimerCallback(
     PAGED_CODE();
 
     dmfModule = (DMFMODULE)WdfTimerGetParentObject(WdfTimer);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -285,11 +285,11 @@ Tests_ScheduledTask_ValidationTimerCallback(
         taskDescription = &TaskDescriptionArray[index];
         taskContext = &moduleContext->TaskContext[index];
 
-        ASSERT(taskContext->DescriptionIndex == index);
+        DmfAssert(taskContext->DescriptionIndex == index);
 
         // All the tasks should execute the specified amount of times at this point.
         //
-        ASSERT(taskDescription->TimesShouldExecute == taskContext->TimesExecuted);
+        DmfAssert(taskDescription->TimesShouldExecute == taskContext->TimesExecuted);
     }
 }
 #pragma code_seg()
@@ -311,44 +311,44 @@ Tests_ScheduledTask_TestTimesRun(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(TASK_COUNT > 0);
+    DmfAssert(TASK_COUNT > 0);
 
     scheduledTaskModule = moduleContext->DmfModuleScheduledTask[0];
-    ASSERT(scheduledTaskModule != NULL);
+    DmfAssert(scheduledTaskModule != NULL);
 
     // Set to zero, validate results.
     //
     ntStatus = DMF_ScheduledTask_TimesRunSet(scheduledTaskModule,
                                              0);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     ntStatus = DMF_ScheduledTask_TimesRunGet(scheduledTaskModule,
                                              &timesRun);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(0 == timesRun);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(0 == timesRun);
 
     // Increment, validate results.
     //
     ntStatus = DMF_ScheduledTask_TimesRunIncrement(scheduledTaskModule,
                                                    &timesRun);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(0 == timesRun);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(0 == timesRun);
 
     ntStatus = DMF_ScheduledTask_TimesRunGet(scheduledTaskModule,
                                              &timesRun);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(1 == timesRun);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(1 == timesRun);
 
     // Set to zero again, so that persistent tasks can run. Validate results.
     //
     ntStatus = DMF_ScheduledTask_TimesRunSet(scheduledTaskModule,
                                              0);
-    ASSERT(STATUS_SUCCESS == ntStatus);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     ntStatus = DMF_ScheduledTask_TimesRunGet(scheduledTaskModule,
                                              &timesRun);
-    ASSERT(STATUS_SUCCESS == ntStatus);
-    ASSERT(0 == timesRun);
+    DmfAssert(STATUS_SUCCESS == ntStatus);
+    DmfAssert(0 == timesRun);
 }
 #pragma code_seg()
 
@@ -385,7 +385,7 @@ Tests_ScheduledTask_RunManualTasks(
             //
             ntStatus = DMF_ScheduledTask_ExecuteNowDeferred(moduleContext->DmfModuleScheduledTask[index],
                                                             &moduleContext->TaskContext[index]);
-            ASSERT(STATUS_SUCCESS == ntStatus);
+            DmfAssert(STATUS_SUCCESS == ntStatus);
 
             // Schedule immediate execution
             //
@@ -429,7 +429,7 @@ Tests_ScheduledTask_ModulePrepareHardware(
         taskDescription = &TaskDescriptionArray[index];
         taskContext = &moduleContext->TaskContext[index];
 
-        ASSERT(taskContext->DescriptionIndex == index);
+        DmfAssert(taskContext->DescriptionIndex == index);
 
         if (taskDescription->ExecutionMode != ScheduledTask_ExecutionMode_Immediate)
         {
@@ -442,14 +442,14 @@ Tests_ScheduledTask_ModulePrepareHardware(
             // Each immediate PrepareHardware task 
             // should execute at least once by this time.
             //
-            ASSERT((taskDescription->TimesShouldExecute == 0) && (taskContext->TimesExecuted == 0) ||
-                   (taskDescription->TimesShouldExecute > 0) && (taskContext->TimesExecuted > 0));
+            DmfAssert((taskDescription->TimesShouldExecute == 0) && (taskContext->TimesExecuted == 0) ||
+                      (taskDescription->TimesShouldExecute > 0) && (taskContext->TimesExecuted > 0));
             break;
 
         case ScheduledTask_ExecuteWhen_D0Entry:
             // No immediate D0Enty tasks should be executed yet.
             //
-            ASSERT(0 == taskContext->TimesExecuted);
+            DmfAssert(0 == taskContext->TimesExecuted);
             break;
 
         default:
@@ -484,7 +484,7 @@ Tests_ScheduledTask_ModuleD0Entry(
         taskDescription = &TaskDescriptionArray[index];
         taskContext = &moduleContext->TaskContext[index];
 
-        ASSERT(taskContext->DescriptionIndex == index);
+        DmfAssert(taskContext->DescriptionIndex == index);
 
         if (taskDescription->ExecutionMode != ScheduledTask_ExecutionMode_Immediate)
         {
@@ -498,8 +498,8 @@ Tests_ScheduledTask_ModuleD0Entry(
             // Each immediate PrepareHardware and D0Entry task 
             // should execute at least once by this time.
             //
-            ASSERT((taskDescription->TimesShouldExecute == 0) && (taskContext->TimesExecuted == 0) ||
-                   (taskDescription->TimesShouldExecute > 0) && (taskContext->TimesExecuted > 0));
+            DmfAssert((taskDescription->TimesShouldExecute == 0) && (taskContext->TimesExecuted == 0) ||
+                      (taskDescription->TimesShouldExecute > 0) && (taskContext->TimesExecuted > 0));
             break;
 
         default:

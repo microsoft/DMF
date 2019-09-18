@@ -383,8 +383,8 @@ Return Value:
 
         dmfInterfaceObject = DMF_InterfaceToObject(dmfInterface);
 
-        ASSERT((ModuleWithBindings == dmfInterfaceObject->ProtocolModule) ||
-               (ModuleWithBindings == dmfInterfaceObject->TransportModule));
+        DmfAssert((ModuleWithBindings == dmfInterfaceObject->ProtocolModule) ||
+                  (ModuleWithBindings == dmfInterfaceObject->TransportModule));
 
         if (((dmfInterfaceObject->ProtocolModule == ModuleWithBindings) && (dmfInterfaceObject->TransportModule == ModuleToFind)) ||
             ((dmfInterfaceObject->TransportModule == ModuleWithBindings) && (dmfInterfaceObject->ProtocolModule == ModuleToFind)))
@@ -465,8 +465,8 @@ Return Value:
 
         dmfInterfaceObject = DMF_InterfaceToObject(dmfInterface);
 
-        ASSERT((ModuleWithBindings == dmfInterfaceObject->ProtocolModule) ||
-               (ModuleWithBindings == dmfInterfaceObject->TransportModule));
+        DmfAssert((ModuleWithBindings == dmfInterfaceObject->ProtocolModule) ||
+                  (ModuleWithBindings == dmfInterfaceObject->TransportModule));
 
         if (((dmfInterfaceObject->ProtocolModule == ModuleWithBindings) && (dmfInterfaceObject->TransportModule == ModuleToFind)) ||
             ((dmfInterfaceObject->TransportModule == ModuleWithBindings) && (dmfInterfaceObject->ProtocolModule == ModuleToFind)))
@@ -487,7 +487,7 @@ Return Value:
 
     if (interfaceFound == TRUE)
     {
-        ASSERT(dmfInterface != NULL);
+        DmfAssert(dmfInterface != NULL);
 
         WdfCollectionRemove(dmfObject->InterfaceBindings,
                             dmfInterface);
@@ -574,12 +574,12 @@ Return Value:
     //
     WdfSpinLockAcquire(dmfInterfaceObject->InterfaceLock);
 
-    ASSERT((dmfInterfaceObject->InterfaceState == InterfaceState_Opened)||
-           (dmfInterfaceObject->InterfaceState == InterfaceState_Closing));
+    DmfAssert((dmfInterfaceObject->InterfaceState == InterfaceState_Opened)||
+              (dmfInterfaceObject->InterfaceState == InterfaceState_Closing));
 
     dmfInterfaceObject->ReferenceCount--;
 
-    ASSERT(dmfInterfaceObject->ReferenceCount >= 0);
+    DmfAssert(dmfInterfaceObject->ReferenceCount >= 0);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface reference count after de-reference: %d", dmfInterfaceObject->ReferenceCount);
 
@@ -615,7 +615,7 @@ Return Value:
 
     WdfSpinLockAcquire(DmfInterfaceObject->InterfaceLock);
 
-    ASSERT(DmfInterfaceObject->InterfaceState == InterfaceState_Opened);
+    DmfAssert(DmfInterfaceObject->InterfaceState == InterfaceState_Opened);
 
     // Set the Interface State to Closed.
     // Methods or Callbacks exposed by the Interface cannot be used anymore
@@ -675,8 +675,8 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(((InterfaceDescriptor->InterfaceType == Interface_Transport) && (InterfaceDescriptor->Size >= sizeof(DMF_INTERFACE_TRANSPORT_DESCRIPTOR))) ||
-           ((InterfaceDescriptor->InterfaceType == Interface_Protocol) && (InterfaceDescriptor->Size >= sizeof(DMF_INTERFACE_PROTOCOL_DESCRIPTOR))));
+    DmfAssert(((InterfaceDescriptor->InterfaceType == Interface_Transport) && (InterfaceDescriptor->Size >= sizeof(DMF_INTERFACE_TRANSPORT_DESCRIPTOR))) ||
+              ((InterfaceDescriptor->InterfaceType == Interface_Protocol) && (InterfaceDescriptor->Size >= sizeof(DMF_INTERFACE_PROTOCOL_DESCRIPTOR))));
 
     // Associate the Declaration Data with the DmfModule.
     //
@@ -747,10 +747,10 @@ Return Value:
 
     dmfInterfaceObject = NULL;
 
-    ASSERT ((NULL != ProtocolModule) &&
-            (NULL != TransportModule) &&
-            (NULL != ProtocolDescriptor) &&
-            (NULL != TransportDescriptor));
+    DmfAssert((NULL != ProtocolModule) &&
+              (NULL != TransportModule) &&
+              (NULL != ProtocolDescriptor) &&
+              (NULL != TransportDescriptor));
 
     // Lock and Check if Transport Module already contains an Interface binding with this Protocol.
     //
@@ -758,7 +758,7 @@ Return Value:
                                 TransportModule,
                                 &dmfInterfaceObject))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_OBJECT_NAME_COLLISION;
 
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Bind failed. Already found Protocol Module in Transport Module's Bindings. DmfInterfaceObject: 0x%p", dmfInterfaceObject);
@@ -772,7 +772,7 @@ Return Value:
                                 ProtocolModule,
                                 &dmfInterfaceObject))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_OBJECT_NAME_COLLISION;
 
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Bind failed. Already found Transport Module in Protocol Module's Bindings. DmfInterfaceObject: 0x%p", dmfInterfaceObject);
@@ -945,10 +945,10 @@ Return Value:
     DMF_INTERFACE_OBJECT* dmfInterfaceObject;
     DMF_INTERFACE_OBJECT* dmfInterfaceObjectTemp;
 
-    ASSERT ((NULL != ProtocolModule) &&
-            (NULL != TransportModule) &&
-            (NULL != ProtocolDescriptor) &&
-            (NULL != TransportDescriptor));
+    DmfAssert((NULL != ProtocolModule) &&
+              (NULL != TransportModule) &&
+              (NULL != ProtocolDescriptor) &&
+              (NULL != TransportDescriptor));
 
     // Find the Interface Handle in Transport Module.
     //
@@ -956,7 +956,7 @@ Return Value:
                                           TransportModule,
                                           &dmfInterfaceObject))
     {
-        // This could happen so no ASSERT(FALSE) here.
+        // This could happen so no DmfAssert(FALSE) here.
         // This happens if both Protocol and Transport are getting destroyed simultaneously.
         // Both will call the Unbind function and depending on who calls it first, the other caller will
         // enter this code path.
@@ -971,7 +971,7 @@ Return Value:
                                           ProtocolModule,
                                           &dmfInterfaceObjectTemp))
     {
-        // This could happen so no ASSERT(FALSE) here.
+        // This could happen so no DmfAssert(FALSE) here.
         // This happens if both Protocol and Transport are getting destroyed simultaneously.
         // Both will call the Unbind function and depending on who calls it first, the other caller will
         // enter this code path.
@@ -980,7 +980,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(dmfInterfaceObject == dmfInterfaceObjectTemp);
+    DmfAssert(dmfInterfaceObject == dmfInterfaceObjectTemp);
 
     // Interface state is set to Opened when PreUnbind callbacks are called.
     //
@@ -1054,7 +1054,7 @@ Return Value:
     {
         dmfInterfaceObject = DMF_InterfaceToObject(dmfInterface);
 
-        ASSERT((DmfModule == dmfInterfaceObject->ProtocolModule) || (DmfModule == dmfInterfaceObject->TransportModule));
+        DmfAssert((DmfModule == dmfInterfaceObject->ProtocolModule) || (DmfModule == dmfInterfaceObject->TransportModule));
 
         DMF_ModuleInterfaceUnbind(dmfInterfaceObject->ProtocolModule,
                                   dmfInterfaceObject->TransportModule,
