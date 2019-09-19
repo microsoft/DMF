@@ -284,7 +284,7 @@ Return Value:
     DmfModuleSpbTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
     moduleContext = DMF_CONTEXT_GET(DmfModuleSpbTarget);
 
-    ASSERT(moduleContext->EvtSpbTargetInterruptIsr != NULL);
+    DmfAssert(moduleContext->EvtSpbTargetInterruptIsr != NULL);
     returnValue = moduleContext->EvtSpbTargetInterruptIsr(DmfModuleSpbTarget,
                                                           MessageId,
                                                           QueuedWorkItem);
@@ -326,7 +326,7 @@ Return Value:
     DmfModuleSpbTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
     moduleContext = DMF_CONTEXT_GET(DmfModuleSpbTarget);
 
-    ASSERT(moduleContext->EvtSpbTargetInterruptIsr != NULL);
+    DmfAssert(moduleContext->EvtSpbTargetInterruptIsr != NULL);
     moduleContext->EvtSpbTargetInterruptDpc(DmfModuleSpbTarget,
                                             QueuedWorkItem);
 }
@@ -363,7 +363,7 @@ Return Value:
     DmfModuleSpbTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
     moduleContext = DMF_CONTEXT_GET(DmfModuleSpbTarget);
 
-    ASSERT(moduleContext->EvtSpbTargetInterruptPassive != NULL);
+    DmfAssert(moduleContext->EvtSpbTargetInterruptPassive != NULL);
     moduleContext->EvtSpbTargetInterruptPassive(DmfModuleSpbTarget);
 }
 

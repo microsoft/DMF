@@ -125,7 +125,7 @@ Return Value:
 
     if (0 == SequenceLength)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Sequence Length ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -179,7 +179,7 @@ Return Value:
     //   
     *BytesReturned = (ULONG)bytes;
 
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
 
@@ -239,9 +239,9 @@ Return Value:
 
     expectedLength = sizeof(UCHAR);
 
-    ASSERT(IoTarget != NULL);
-    ASSERT(Data != NULL);
-    ASSERT(DataLength > 0);
+    DmfAssert(IoTarget != NULL);
+    DmfAssert(Data != NULL);
+    DmfAssert(DataLength > 0);
 
     // Build the SPB sequence.
     //
@@ -256,7 +256,7 @@ Return Value:
                                                                      DelayUs,
                                                                      RegisterAddress,
                                                                      RegisterAddressLength);
-    ASSERT(2 == sequence.List.TransferCount);
+    DmfAssert(2 == sequence.List.TransferCount);
     // This code is correct, per the ASSERT.
     //
     #pragma warning(suppress: 6201)
@@ -289,7 +289,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
 
@@ -342,9 +342,9 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(IoTarget != NULL);
-    ASSERT(Data != NULL);
-    ASSERT(DataLength > 0);
+    DmfAssert(IoTarget != NULL);
+    DmfAssert(Data != NULL);
+    DmfAssert(DataLength > 0);
 
     memory = NULL;
 
@@ -357,12 +357,12 @@ Return Value:
     {
         // This is only for prefeast.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
 
-    ASSERT(bufferLength != 0);
+    DmfAssert(bufferLength != 0);
     ntStatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES,
                                NonPagedPoolNx,
                                MemoryTag,
@@ -429,7 +429,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
 
@@ -548,7 +548,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INTERNAL_ERROR;
     }
 
@@ -687,7 +687,7 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(NT_SUCCESS(ntStatus));
+        DmfAssert(NT_SUCCESS(ntStatus));
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -778,8 +778,8 @@ Return Value:
 
     UNREFERENCED_PARAMETER(ResourcesRaw);
 
-    ASSERT(ResourcesRaw != NULL);
-    ASSERT(ResourcesTranslated != NULL);
+    DmfAssert(ResourcesRaw != NULL);
+    DmfAssert(ResourcesTranslated != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -797,7 +797,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "I2C resources not found");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -839,7 +839,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "I2C Resources not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 

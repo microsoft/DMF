@@ -789,7 +789,7 @@ Returns:
         // from the handle (as an example). This is used in the Pipe's error callback.
         //
         dmfModuleAddress = WdfObjectGet_DMFMODULE(pipe);
-        ASSERT(*dmfModuleAddress == DmfModule);
+        DmfAssert(*dmfModuleAddress == DmfModule);
     }
 
     // If we didn't find all the 3 pipes, fail the start.
@@ -1522,7 +1522,7 @@ Returns:
         goto Exit;
     }
 
-    ASSERT(NumberOfBytesTransferred == sizeof(UCHAR));
+    DmfAssert(NumberOfBytesTransferred == sizeof(UCHAR));
 
     switchState = (UCHAR*)WdfMemoryGetBuffer(Buffer,
                                              NULL);
@@ -2457,7 +2457,7 @@ Returns:
                                                         WdfRequestTypeRead);
         if (!NT_SUCCESS(ntStatus))
         {
-            ASSERT(NT_SUCCESS(ntStatus));
+            DmfAssert(NT_SUCCESS(ntStatus));
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -2502,7 +2502,7 @@ Returns:
                                                         WdfRequestTypeWrite);
         if (!NT_SUCCESS(ntStatus))
         {
-            ASSERT(NT_SUCCESS(ntStatus));
+            DmfAssert(NT_SUCCESS(ntStatus));
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceConfigureRequestDispatching fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }

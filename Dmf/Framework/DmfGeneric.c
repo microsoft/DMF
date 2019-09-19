@@ -384,7 +384,7 @@ Return Value:
             // Indicate when the Module was opened (for clean up operations).
             // Internal Open has set this value to Manual by default.
             //
-            ASSERT(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
+            DmfAssert(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
             dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_PrepareHardware;
         }
     }
@@ -401,7 +401,7 @@ Return Value:
         {
             //  Indicate when the Module was notification was registered for clean up operations.
             //
-            ASSERT(ModuleOpenedDuringType_Invalid == dmfObject->ModuleNotificationRegisteredDuring);
+            DmfAssert(ModuleOpenedDuringType_Invalid == dmfObject->ModuleNotificationRegisteredDuring);
             dmfObject->ModuleNotificationRegisteredDuring = ModuleOpenedDuringType_PrepareHardware;
         }
     }
@@ -414,7 +414,7 @@ Return Value:
     else
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INTERNAL_ERROR;
     }
 
@@ -509,7 +509,7 @@ Return Value:
     else
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INTERNAL_ERROR;
     }
 
@@ -593,7 +593,7 @@ Return Value:
                 // Indicate when the Module was opened (for clean up operations).
                 // Internal Open has set this value to Manual by default.
                 //
-                ASSERT(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
+                DmfAssert(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
                 dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_D0EntrySystemPowerUp;
             }
         }
@@ -618,7 +618,7 @@ Return Value:
             // Indicate when the Module was opened (for clean up operations).
             // Internal Open has set this value to Manual by default.
             //
-            ASSERT(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
+            DmfAssert(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
             dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_D0Entry;
         }
     }
@@ -635,7 +635,7 @@ Return Value:
         {
             // Indicate when the Module was notification was registered for clean up operations.
             //
-            ASSERT(ModuleOpenedDuringType_Invalid == dmfObject->ModuleNotificationRegisteredDuring);
+            DmfAssert(ModuleOpenedDuringType_Invalid == dmfObject->ModuleNotificationRegisteredDuring);
             dmfObject->ModuleNotificationRegisteredDuring = ModuleOpenedDuringType_D0Entry;
         }
     }
@@ -648,7 +648,7 @@ Return Value:
     else
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INTERNAL_ERROR;
     }
 
@@ -818,7 +818,7 @@ Return Value:
     else
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INTERNAL_ERROR;
     }
 
@@ -2199,8 +2199,8 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
     // This check is necessary for SAL.
     //
     if (AuxiliaryLockIndex < DMF_MAXIMUM_AUXILIARY_LOCKS + DMF_NUMBER_OF_DEFAULT_LOCKS)
@@ -2210,7 +2210,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 #pragma code_seg()
@@ -2250,8 +2250,8 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
     // This check is necessary for SAL.
     //
     if (AuxiliaryLockIndex < DMF_MAXIMUM_AUXILIARY_LOCKS + DMF_NUMBER_OF_DEFAULT_LOCKS)
@@ -2260,7 +2260,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 #pragma code_seg()
@@ -2298,8 +2298,8 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
     // This check is necessary for SAL.
     //
     if (AuxiliaryLockIndex < DMF_MAXIMUM_AUXILIARY_LOCKS + DMF_NUMBER_OF_DEFAULT_LOCKS)
@@ -2308,7 +2308,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 
@@ -2345,8 +2345,8 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
     DMF_HandleValidate_IsAvailable(dmfObject);
 
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS);
     // This check is required for SAL.
     //
     if (AuxiliaryLockIndex < DMF_MAXIMUM_AUXILIARY_LOCKS + DMF_NUMBER_OF_DEFAULT_LOCKS)
@@ -2355,7 +2355,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 

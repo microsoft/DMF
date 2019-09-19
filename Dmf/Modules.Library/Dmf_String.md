@@ -57,6 +57,33 @@ LookFor | The string that the Client searches for.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+````
+_Function_class_(EVT_DMF_String_MutilSzCallback)
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+(EVT_DMF_String_MultiSzCallback)(_In_ DMFMODULE DmfModule,
+                                 _In_ WCHAR* String,
+                                 _In_ VOID* CallbackContext);
+````
+
+The multi sz string enumerator Method calls this callback for every string found within a given multi sz string.
+
+##### Returns
+
+    TRUE - Indicates that enumeration shall continue.
+    FALSE - Indicates that enumeration shall stop.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_String Module handle.
+String | The given multi sz string.
+CallbackContext | The call specific context passed by the caller.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Methods
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -189,6 +216,64 @@ LookFor | The given string to search for in the list.
 ##### Remarks
 
 * None
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_String_MultiSzEnumerate
+
+````
+NTSTATUS
+DMF_String_MultiSzEnumerate(
+    _In_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* MultiSzWideString,
+    _In_ EVT_DMF_String_MultiSzCallback Callback,
+    _In_ VOID* CallbackContext
+    );
+````
+Calls a given enumeration callback for every string found in the given multi sz string.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_String Module handle.
+MultiSzWideString | The given multi sz string.
+Callback | The given enumeration callback.
+CallbackContext | The context passed to the enumeration callback.
+
+##### Remarks
+
+* This method supports multi sz strings containing 0 length strings.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_String_MultiSzFindLast
+
+````
+WCHAR*
+DMF_String_MultiSzFindLast(
+    _In_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* MultiSzWideString
+    );
+````
+Returns the last found string in the given multi sz string.
+
+##### Returns
+
+The last string found in the given multi sz string.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_String Module handle.
+MultiSzWideString | The given multi sz string.
+
+##### Remarks
+
+* This method supports multi sz strings containing 0 length strings.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

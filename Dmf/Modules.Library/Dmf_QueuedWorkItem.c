@@ -462,7 +462,7 @@ Return Value:
 
     // Copy over the parameters.
     //
-    ASSERT(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
+    DmfAssert(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
     RtlCopyMemory(clientBuffer,
                   ContextBuffer,
                   ContextBufferSize);
@@ -546,7 +546,7 @@ Return Value:
 
     // Copy over the parameters.
     //
-    ASSERT(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
+    DmfAssert(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
     RtlCopyMemory(clientBuffer,
                   ContextBuffer,
                   ContextBufferSize);

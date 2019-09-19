@@ -92,7 +92,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)Context;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
@@ -149,7 +149,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfModule = (DMFMODULE)Context;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
@@ -207,7 +207,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
     ntStatus = STATUS_SUCCESS;
 
     device = DMF_ParentDeviceGet(DmfModule);

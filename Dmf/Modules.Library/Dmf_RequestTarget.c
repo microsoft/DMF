@@ -137,7 +137,7 @@ Return Value:
             {
                 *OutputBuffer = WdfMemoryGetBuffer(outputMemory,
                                                    NULL);
-                ASSERT(*OutputBuffer != NULL);
+                DmfAssert(*OutputBuffer != NULL);
             }
             break;
         }
@@ -153,7 +153,7 @@ Return Value:
             {
                 *InputBuffer = WdfMemoryGetBuffer(inputMemory,
                                                   NULL);
-                ASSERT(*InputBuffer != NULL);
+                DmfAssert(*InputBuffer != NULL);
             }
             break;
         }
@@ -170,21 +170,21 @@ Return Value:
             {
                 *InputBuffer = WdfMemoryGetBuffer(inputMemory,
                                                   InputBufferSize);
-                ASSERT(*InputBuffer != NULL);
+                DmfAssert(*InputBuffer != NULL);
             }
             if (outputMemory != NULL)
             {
                 *OutputBuffer = WdfMemoryGetBuffer(outputMemory,
                                                    OutputBufferSize);
-                ASSERT(*OutputBufferSize >= CompletionParams->Parameters.Ioctl.Output.Length);
+                DmfAssert(*OutputBufferSize >= CompletionParams->Parameters.Ioctl.Output.Length);
                 *OutputBufferSize = CompletionParams->Parameters.Ioctl.Output.Length;
-                ASSERT(*OutputBuffer != NULL);
+                DmfAssert(*OutputBuffer != NULL);
             }
             break;
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
         }
     }
 }
@@ -313,10 +313,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     singleAsynchronousRequestContext = (RequestTarget_SingleAsynchronousRequestContext*)Context;
-    ASSERT(singleAsynchronousRequestContext != NULL);
+    DmfAssert(singleAsynchronousRequestContext != NULL);
 
     dmfModule = singleAsynchronousRequestContext->DmfModule;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     RequestTarget_ProcessAsynchronousRequestSingle(dmfModule,
                                                    Request,
@@ -368,10 +368,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     singleAsynchronousRequestContext = (RequestTarget_SingleAsynchronousRequestContext*)Context;
-    ASSERT(singleAsynchronousRequestContext != NULL);
+    DmfAssert(singleAsynchronousRequestContext != NULL);
 
     dmfModule = singleAsynchronousRequestContext->DmfModule;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -425,7 +425,7 @@ Return Value:
 
     // Prepare the request to be sent down.
     //
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
     switch (RequestType)
     {
         case ContinuousRequestTarget_RequestType_Write:
@@ -577,12 +577,12 @@ Return Value:
     outputBufferSize = 0;
     requestSendResult = FALSE;
 
-    ASSERT((IsSynchronousRequest && (EvtRequestTargetSingleAsynchronousRequest == NULL)) ||
-           (! IsSynchronousRequest));
+    DmfAssert((IsSynchronousRequest && (EvtRequestTargetSingleAsynchronousRequest == NULL)) ||
+              (! IsSynchronousRequest));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -605,7 +605,7 @@ Return Value:
     memoryForRequest = NULL;
     if (RequestLength > 0)
     {
-        ASSERT(RequestBuffer != NULL);
+        DmfAssert(RequestBuffer != NULL);
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                RequestBuffer,
                                                RequestLength,
@@ -621,7 +621,7 @@ Return Value:
     memoryForResponse = NULL;
     if (ResponseLength > 0)
     {
-        ASSERT(ResponseBuffer != NULL);
+        DmfAssert(ResponseBuffer != NULL);
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                ResponseBuffer,
                                                ResponseLength,
@@ -680,7 +680,7 @@ Return Value:
         else
         {
             completionRoutineSingle = RequestTarget_CompletionRoutine;
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
         }
 
         singleAsynchronousRequestContext->DmfModule = DmfModule;
@@ -1028,8 +1028,8 @@ Return Value:
                                  RequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(IoTarget != NULL);
-    ASSERT(moduleContext->IoTarget == NULL);
+    DmfAssert(IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget == NULL);
 
     moduleContext->IoTarget = IoTarget;
 

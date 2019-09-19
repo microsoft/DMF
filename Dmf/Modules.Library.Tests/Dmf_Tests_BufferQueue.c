@@ -104,14 +104,14 @@ Tests_BufferQueue_Validate(
     UNREFERENCED_PARAMETER(DmfModuleBufferQueue);
     UNREFERENCED_PARAMETER(ClientBufferContext);
 
-    ASSERT(ClientBuffer != NULL);
-    ASSERT(ClientBufferContext != NULL);
+    DmfAssert(ClientBuffer != NULL);
+    DmfAssert(ClientBufferContext != NULL);
 
     checkSum = TestsUtility_CrcCompute(ClientBuffer,
                                        BUFFER_SIZE);
 
-    ASSERT(CLIENT_CONTEXT_SIGNATURE == ClientBufferContext->Signature);
-    ASSERT(checkSum == ClientBufferContext->CheckSum);
+    DmfAssert(CLIENT_CONTEXT_SIGNATURE == ClientBufferContext->Signature);
+    DmfAssert(checkSum == ClientBufferContext->CheckSum);
 }
 
 static
@@ -131,7 +131,7 @@ Tests_BufferQueue_EnumerationCallback(
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     enumContext = (PENUM_CONTEXT_Tests_BufferQueue)ClientDriverCallbackContext;
-    ASSERT(enumContext != NULL);
+    DmfAssert(enumContext != NULL);
 
     Tests_BufferQueue_Validate(DmfModuleBufferPool,
                               (UINT8*)ClientBuffer,
@@ -176,9 +176,9 @@ Tests_BufferQueue_ThreadAction_Enqueue(
     ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueue,
                                      (PVOID*)&clientBuffer,
                                      (PVOID*)&clientBufferContext);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(clientBuffer != NULL);
-    ASSERT(clientBufferContext != NULL);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(clientBuffer != NULL);
+    DmfAssert(clientBufferContext != NULL);
 
     // Populate the buffer with test data
     //
@@ -282,8 +282,8 @@ Tests_BufferQueue_ThreadAction_Enumerate(
     //
     if (enumContext.ClientOwnsBuffer)
     {
-        ASSERT(clientBuffer != NULL);
-        ASSERT(clientBufferContext != NULL);
+        DmfAssert(clientBuffer != NULL);
+        DmfAssert(clientBufferContext != NULL);
 
         Tests_BufferQueue_Validate(moduleContext->DmfModuleBufferQueue,
                                   clientBuffer,
@@ -317,7 +317,7 @@ Tests_BufferQueue_ThreadAction_Count(
     // for the currently acquired number and putting buffers to sync.
     // So a number of acquired buffers may be up to THREAD_COUNT more, in case of a race conditions.
     //
-    ASSERT(currentCount <= BUFFER_COUNT_MAX + THREAD_COUNT);
+    DmfAssert(currentCount <= BUFFER_COUNT_MAX + THREAD_COUNT);
 }
 #pragma code_seg()
 

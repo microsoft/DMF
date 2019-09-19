@@ -217,7 +217,7 @@ Return Value:
     UNREFERENCED_PARAMETER(BufferSize);
     UNREFERENCED_PARAMETER(CallbackContext);
 
-    ASSERT(BufferSize == sizeof(DATA_BUFFER));
+    DmfAssert(BufferSize == sizeof(DATA_BUFFER));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -226,7 +226,7 @@ Return Value:
 
     // There is an overhead of TRIAGE_DATA_OVERHEAD_PER_BLOCK Bytes for every Triage block added.
     //
-    ASSERT(moduleContext->DmfDataSize >= (dataBuffer->Size + TRIAGE_DATA_OVERHEAD_PER_BLOCK));
+    DmfAssert(moduleContext->DmfDataSize >= (dataBuffer->Size + TRIAGE_DATA_OVERHEAD_PER_BLOCK));
     moduleContext->DmfDataSize -= (dataBuffer->Size + TRIAGE_DATA_OVERHEAD_PER_BLOCK);
 
     return TRUE;
@@ -336,7 +336,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(BufferSize == sizeof(DATA_BUFFER));
+    DmfAssert(BufferSize == sizeof(DATA_BUFFER));
 
     ntStatus = STATUS_SUCCESS;
     dataBuffer = (DATA_BUFFER*)Buffer;
@@ -778,7 +778,7 @@ Return Value:
         {
             // It is a request to create a Live Kernel Dump.
             //
-            ASSERT(InputBufferSize == sizeof(LIVEKERNELDUMP_INPUT_BUFFER));
+            DmfAssert(InputBufferSize == sizeof(LIVEKERNELDUMP_INPUT_BUFFER));
             liveDumpInput = (PLIVEKERNELDUMP_INPUT_BUFFER)InputBuffer;
             ntStatus = LiveKernelDump_LiveKernelMemoryDumpCreate(liveKernelDumpModule,
                                                                  liveDumpInput->BugCheckCode,
@@ -792,7 +792,7 @@ Return Value:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_NOT_SUPPORTED;
             break;
         }

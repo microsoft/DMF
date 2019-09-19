@@ -165,7 +165,7 @@ Registry_CustomActionHandler_Read(
     // NOTE: This context is specific to this instance of this handler.
     //
     customActionHandlerContextRead = (Registry_CustomActionHandler_Read_Context*)ClientContext;
-    ASSERT(customActionHandlerContextRead != NULL);
+    DmfAssert(customActionHandlerContextRead != NULL);
 
     // If the value matches the value defined by the caller, then caller gets
     // back TRUE, otherwise false.
@@ -174,7 +174,7 @@ Registry_CustomActionHandler_Read(
     {
         // The value is of the correct type. Read it.
         //
-        ASSERT(customActionHandlerContextRead->Buffer != NULL);
+        DmfAssert(customActionHandlerContextRead->Buffer != NULL);
         RtlCopyMemory(customActionHandlerContextRead->Buffer,
                       ValueDataInRegistry,
                       ValueDataInRegistrySize);
@@ -199,7 +199,7 @@ Registry_CustomActionHandler_Read(
     {
         // It is cleared by the caller if the parameter is present.
         //
-        ASSERT(0 == *(customActionHandlerContextRead->BytesRead));
+        DmfAssert(0 == *(customActionHandlerContextRead->BytesRead));
         *(customActionHandlerContextRead->BytesRead) = ValueDataInRegistrySize;
     }
 
@@ -246,12 +246,12 @@ Return Value:
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
-    ASSERT(Entry != NULL);
-    ASSERT((Entry->ValueType == REG_SZ) ||
-        (Entry->ValueType == REG_DWORD) ||
-           (Entry->ValueType == REG_QWORD) ||
-           (Entry->ValueType == REG_BINARY) ||
-           (Entry->ValueType == REG_MULTI_SZ));
+    DmfAssert(Entry != NULL);
+    DmfAssert((Entry->ValueType == REG_SZ) ||
+              (Entry->ValueType == REG_DWORD) ||
+              (Entry->ValueType == REG_QWORD) ||
+              (Entry->ValueType == REG_BINARY) ||
+              (Entry->ValueType == REG_MULTI_SZ));
 
     switch (Entry->ValueType)
     {
@@ -272,7 +272,7 @@ Return Value:
                                            &valueSize);
             if (! NT_SUCCESS(ntStatus))
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 goto Exit;
             }
             // The above function returns the length in characters. The function
@@ -287,7 +287,7 @@ Return Value:
             ULONG count;
             BOOLEAN done;
 
-            ASSERT(Entry->ValueName != NULL);
+            DmfAssert(Entry->ValueName != NULL);
             current = (PWCHAR)Entry->ValueData;
             count = 0;
             done = FALSE;
@@ -325,14 +325,14 @@ Return Value:
         }
         case REG_BINARY:
         {
-            ASSERT(Entry->ValueSize != 0);
+            DmfAssert(Entry->ValueSize != 0);
             *ValueSize = Entry->ValueSize;
             break;
         }
         default:
         {
             *ValueSize = 0;
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             goto Exit;
         }
     }
@@ -376,14 +376,14 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(FullPathName != NULL);
-    ASSERT(Entry != NULL);
-    ASSERT(Entry->ValueName != NULL);
-    ASSERT((Entry->ValueType == REG_SZ) ||
-        (Entry->ValueType == REG_DWORD) ||
-           (Entry->ValueType == REG_QWORD) ||
-           (Entry->ValueType == REG_BINARY) ||
-           (Entry->ValueType == REG_MULTI_SZ));
+    DmfAssert(FullPathName != NULL);
+    DmfAssert(Entry != NULL);
+    DmfAssert(Entry->ValueName != NULL);
+    DmfAssert((Entry->ValueType == REG_SZ) ||
+              (Entry->ValueType == REG_DWORD) ||
+              (Entry->ValueType == REG_QWORD) ||
+              (Entry->ValueType == REG_BINARY) ||
+              (Entry->ValueType == REG_MULTI_SZ));
 
     // Get the size of the value to be written. It depends on the kind
     // of value it is.
@@ -393,7 +393,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path Registry_ValueSizeGet");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -530,7 +530,7 @@ Return Value:
             {
                 // A poorly formatted registry path.
                 //
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 ntStatus = STATUS_OBJECT_NAME_NOT_FOUND;
             }
         }
@@ -584,7 +584,7 @@ Return Value:
                                    &mainRegistryPathNameLength);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchLengthW ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -608,7 +608,7 @@ Return Value:
                                        &prefixPathNameLength);
         if (! NT_SUCCESS(ntStatus))
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchLengthW ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -641,7 +641,7 @@ Return Value:
                                      RegistryPath);
         if (! NT_SUCCESS(ntStatus))
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchCopyW ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -649,14 +649,14 @@ Return Value:
         // Copy the prefix into the full path name buffer.
         // NOTE: The prefix must have a '\' at front if there are any characters.
         //
-        ASSERT((L'\0' == branch->BranchValueNamePrefix[0]) ||
-            (L'\\' == branch->BranchValueNamePrefix[0]));
+        DmfAssert((L'\0' == branch->BranchValueNamePrefix[0]) ||
+                  (L'\\' == branch->BranchValueNamePrefix[0]));
         ntStatus = RtlStringCchCatW(fullPathName,
                                     fullPathNameSize,
                                     branch->BranchValueNamePrefix);
         if (! NT_SUCCESS(ntStatus))
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid code path RtlStringCchCatW ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -743,7 +743,7 @@ Return Value:
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
-    ASSERT(NumberOfTrees > 0);
+    DmfAssert(NumberOfTrees > 0);
 
     for (treeIndex = 0; treeIndex < NumberOfTrees; treeIndex++)
     {
@@ -805,7 +805,7 @@ Return Value:
                                     Name);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         handle = NULL;
         goto Exit;
     }
@@ -921,7 +921,7 @@ Return Value:
                                     Name);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         *RegistryHandle = NULL;
         goto Exit;
     }
@@ -1002,7 +1002,7 @@ Return Value:
                                     Name);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         handle = NULL;
         goto Exit;
     }
@@ -1362,7 +1362,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Check if action needed [%ws]...", ValueName);
 
-    ASSERT(ActionType != Registry_ActionTypeInvalid);
+    DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
     // Indicate if action will be taken...default is no.
     //
@@ -1399,7 +1399,7 @@ Return Value:
         // Suppress (resultLength may not be initialized.)
         //
         #pragma warning(suppress: 6102)
-        ASSERT(resultLength > 0);
+        DmfAssert(resultLength > 0);
         #pragma warning(suppress: 6102)
         keyValuePartialInformation = (KEY_VALUE_PARTIAL_INFORMATION*)ExAllocatePoolWithTag(NonPagedPoolNx,
                                                                                            resultLength,
@@ -1473,7 +1473,7 @@ Return Value:
             {
                 if (NULL == ValueDataToWrite)
                 {
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit;
                 }
@@ -1522,7 +1522,7 @@ Return Value:
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 break;
             }
         }
@@ -1585,7 +1585,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Action always [%ws]...", ValueName);
 
-    ASSERT(ActionType != Registry_ActionTypeInvalid);
+    DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
     // For SAL.
     //
@@ -1597,8 +1597,8 @@ Return Value:
         {
             // Just perform the action now.
             //
-            ASSERT(ValueDataBuffer != NULL);
-            ASSERT(NULL == BytesRead);
+            DmfAssert(ValueDataBuffer != NULL);
+            DmfAssert(NULL == BytesRead);
             ntStatus = RtlWriteRegistryValue(RTL_REGISTRY_HANDLE,
                                              (PCWSTR)Handle,
                                              ValueName,
@@ -1615,7 +1615,7 @@ Return Value:
         {
             // Just perform the action now.
             //
-            ASSERT(NULL == BytesRead);
+            DmfAssert(NULL == BytesRead);
             ntStatus = RtlDeleteRegistryValue(RTL_REGISTRY_HANDLE,
                                               (PCWSTR)Handle,
                                               ValueName);
@@ -1634,8 +1634,8 @@ Return Value:
             //
             Registry_CustomActionHandler_Read_Context customActionHandlerContextRead;
 
-            ASSERT(((ValueDataBuffer != NULL) && (ValueDataBufferSize > 0)) ||
-                ((NULL == ValueDataBuffer) && (0 == ValueDataBufferSize) && (BytesRead != NULL)));
+            DmfAssert(((ValueDataBuffer != NULL) && (ValueDataBufferSize > 0)) ||
+                      ((NULL == ValueDataBuffer) && (0 == ValueDataBufferSize) && (BytesRead != NULL)));
 
             // Give the Custom Action Handler the information it needs.
             //
@@ -1671,12 +1671,12 @@ Return Value:
         {
             // Client has asked for no action to always be taken.
             //
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
         }
     }
@@ -1848,7 +1848,7 @@ Return:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Polling timer expires");
 
     dmfModule = (DMFMODULE)WdfTimerGetParentObject(WdfTimer);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -1877,7 +1877,7 @@ Return:
             {
                 NTSTATUS ntStatus;
 
-                ASSERT(deferredContext->RegistryTree != NULL);
+                DmfAssert(deferredContext->RegistryTree != NULL);
                 ntStatus = Registry_TreeWrite(dmfModule,
                                               deferredContext->RegistryTree,
                                               deferredContext->ItemCount);
@@ -1910,7 +1910,7 @@ Return:
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 break;
             }
         }
@@ -2277,7 +2277,7 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Registry_Create fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-    ASSERT(NULL != dmfModuleRegistry);
+    DmfAssert(NULL != dmfModuleRegistry);
 
     // Do the work using the Module instance.
     //
@@ -2751,10 +2751,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -2769,7 +2769,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(registryPathHandle != NULL);
+    DmfAssert(registryPathHandle != NULL);
     ntStatus = DMF_Registry_ValueDelete(DmfModule,
                                         registryPathHandle,
                                         ValueName);
@@ -2829,12 +2829,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (BufferSize > 0)) || 
-           ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (BufferSize > 0)) || 
+              ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -2857,7 +2857,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(registryPathHandle != NULL);
+    DmfAssert(registryPathHandle != NULL);
     ntStatus = DMF_Registry_ValueRead(DmfModule,
                                       registryPathHandle,
                                       ValueName,
@@ -2917,12 +2917,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (BufferSize > 0)) || 
-           ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (BufferSize > 0)) || 
+              ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -2988,8 +2988,8 @@ Return Value:
     // "Using 'bytesRead' from failed function call.
     //
     #pragma warning(suppress: 6102)
-    ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONG) == bytesRead)) || 
-           (0 == bytesRead));
+    DmfAssert((NT_SUCCESS(ntStatus) && (sizeof(ULONG) == bytesRead)) || 
+              (0 == bytesRead));
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -3109,12 +3109,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (NumberOfCharacters > 0)) || 
-           ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (NumberOfCharacters > 0)) || 
+              ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -3181,8 +3181,8 @@ Return Value:
     // "Using 'bytesRead' from failed function call.
     //
     #pragma warning(suppress: 6102)
-    ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
-           (0 == bytesRead));
+    DmfAssert((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
+              (0 == bytesRead));
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -3302,12 +3302,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (NumberOfCharacters > 0)) || 
-           ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (NumberOfCharacters > 0)) || 
+              ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -3366,11 +3366,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -3385,7 +3385,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(registryPathHandle != NULL);
+    DmfAssert(registryPathHandle != NULL);
     ntStatus = DMF_Registry_ValueWrite(DmfModule,
                                        registryPathHandle,
                                        ValueName,
@@ -3442,11 +3442,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -3549,11 +3549,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -3657,11 +3657,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -3722,7 +3722,7 @@ Return Value:
     {
         goto Exit;
     }
-    ASSERT(handle != NULL);
+    DmfAssert(handle != NULL);
 
     // Delete the key.
     //
@@ -3786,7 +3786,7 @@ Return Value:
     device = DMF_ParentDeviceGet(DmfScheduledTask);
 
     scheduledTaskCallbackContext = (Registry_ContextScheduledTaskCallback*)ClientCallbackContext;
-    ASSERT(scheduledTaskCallbackContext != NULL);
+    DmfAssert(scheduledTaskCallbackContext != NULL);
 
     for (ULONG callbackIndex = 0; callbackIndex < scheduledTaskCallbackContext->NumberOfCallbacks; callbackIndex++)
     {
@@ -4050,9 +4050,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4171,11 +4171,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (BufferSize > 0)) ||
-        ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (BufferSize > 0)) ||
+              ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4242,11 +4242,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (BufferSize > 0)) || 
-           ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (BufferSize > 0)) ||
+              ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4300,10 +4300,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4318,8 +4318,8 @@ Return Value:
     // "Using 'bytesRead' from failed function call.
     //
     #pragma warning(suppress: 6102)
-    ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONG) == bytesRead)) || 
-           (0 == bytesRead));
+    DmfAssert((NT_SUCCESS(ntStatus) && (sizeof(ULONG) == bytesRead)) || 
+              (0 == bytesRead));
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -4365,10 +4365,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4444,11 +4444,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (NumberOfCharacters > 0)) || 
-           ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (NumberOfCharacters > 0)) || 
+              ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4503,10 +4503,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4521,8 +4521,8 @@ Return Value:
     // "Using 'bytesRead' from failed function call.
     //
     #pragma warning(suppress: 6102)
-    ASSERT((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
-           (0 == bytesRead));
+    DmfAssert((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
+              (0 == bytesRead));
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -4568,10 +4568,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4647,11 +4647,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(((Buffer != NULL) && (NumberOfCharacters > 0)) ||
-        ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(((Buffer != NULL) && (NumberOfCharacters > 0)) ||
+              ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4708,10 +4708,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4767,10 +4767,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4821,9 +4821,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4940,10 +4940,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -4995,9 +4995,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
@@ -5051,10 +5051,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfModule != NULL);
-    ASSERT(ValueName != NULL);
-    ASSERT(*ValueName != L'\0');
-    ASSERT(Buffer != NULL);
+    DmfAssert(DmfModule != NULL);
+    DmfAssert(ValueName != NULL);
+    DmfAssert(*ValueName != L'\0');
+    DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);

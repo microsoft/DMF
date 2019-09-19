@@ -343,8 +343,8 @@ Return Value:
 
     DMF_ModuleLock(dmfModule);
 
-    ASSERT(sizeof(moduleContext->InputReportEnabledState) <= HidTransferPacket->reportBufferLen);
-    ASSERT(HidTransferPacket->reportBufferLen >= REPORT_SIZE);
+    DmfAssert(sizeof(moduleContext->InputReportEnabledState) <= HidTransferPacket->reportBufferLen);
+    DmfAssert(HidTransferPacket->reportBufferLen >= REPORT_SIZE);
 
     *featureReport = moduleContext->InputReportEnabledState;
 
@@ -423,7 +423,7 @@ Return Value:
     {
         // Fail this request...Power button should never be disabled.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         DMF_BRANCHTRACK_MODULE_NEVER(dmfModule, "HidPortableDeviceButtons_SetFeature.DisablePowerButton");
     }
     else
@@ -503,8 +503,8 @@ Return Value:
 
     DMF_ModuleLock(dmfModule);
 
-    ASSERT(sizeof(moduleContext->InputReportEnabledState) <= HidTransferPacket->reportBufferLen);
-    ASSERT(HidTransferPacket->reportBufferLen >= REPORT_SIZE);
+    DmfAssert(sizeof(moduleContext->InputReportEnabledState) <= HidTransferPacket->reportBufferLen);
+    DmfAssert(HidTransferPacket->reportBufferLen >= REPORT_SIZE);
 
     *inputReport = moduleContext->InputReportButtonState;
 
@@ -983,7 +983,7 @@ Return Value:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonIsEnabled.BadButton");
             break;
         }
@@ -1037,8 +1037,8 @@ Return Value:
     //
     DMF_ModuleLock(DmfModule);
 
-    ASSERT(moduleContext->InputReportButtonState.ReportId == REPORTID_BUTTONS);
-    ASSERT(moduleContext->VhfHidReport.reportId == moduleContext->InputReportButtonState.ReportId);
+    DmfAssert(moduleContext->InputReportButtonState.ReportId == REPORTID_BUTTONS);
+    DmfAssert(moduleContext->VhfHidReport.reportId == moduleContext->InputReportButtonState.ReportId);
 
     // If statements are used below for clarity and ease of debugging. Also, it prevents
     // need to cast and allows for possible different states later.
@@ -1101,7 +1101,7 @@ Return Value:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_NOT_SUPPORTED;
             DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "ButtonStateChange.HidPortableDeviceButtons_ButtonId_Power");
             DMF_ModuleUnlock(DmfModule);
@@ -1206,7 +1206,7 @@ Return Value:
             break;
 
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             ntStatus = STATUS_NOT_SUPPORTED;
             DMF_BRANCHTRACK_MODULE_NEVER(DmfModule, "HotkeyStateChange.DMF_HidPortableDeviceButtons_HotkeyStateChange");
             DMF_ModuleUnlock(DmfModule);

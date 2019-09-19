@@ -144,7 +144,7 @@ Return Value:
             {
                 // Do the work the Client needs to do.
                 //
-                ASSERT(moduleConfig->ThreadControl.DmfControl.EvtThreadWork != NULL);
+                DmfAssert(moduleConfig->ThreadControl.DmfControl.EvtThreadWork != NULL);
                 moduleConfig->ThreadControl.DmfControl.EvtThreadWork(DmfModule);
                 break;
             }
@@ -156,7 +156,7 @@ Return Value:
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 break;
             }
         }
@@ -226,7 +226,7 @@ Return Value:
         {
             // Call the Client Driver's Thread Callback.
             //
-            ASSERT(moduleConfig->ThreadControl.ClientControl.EvtThreadFunction != NULL);
+            DmfAssert(moduleConfig->ThreadControl.ClientControl.EvtThreadFunction != NULL);
             moduleConfig->ThreadControl.ClientControl.EvtThreadFunction(dmfModule);
             break;
         }
@@ -255,7 +255,7 @@ Return Value:
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
         }
     }
@@ -315,7 +315,7 @@ Return Value:
         // the Stop Event here; otherwise, use the Client Driver's Stop Event.
         // The Client Driver will be able to stop the thread using this event.
         //
-        ASSERT(NULL == moduleContext->EventStop);
+        DmfAssert(NULL == moduleContext->EventStop);
 
         // Clear in case this thread was previously stopped.
         //
@@ -429,7 +429,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->EventStop != NULL);
+    DmfAssert(moduleContext->EventStop != NULL);
     DMF_Portable_EventSet(moduleContext->EventStop);
 
     FuncExitVoid(DMF_TRACE);
@@ -485,7 +485,7 @@ Return Value:
         // Wait indefinitely for thread to end.
         //
 #if !defined(DMF_USER_MODE)
-        ASSERT(moduleContext->ThreadObject != NULL);
+        DmfAssert(moduleContext->ThreadObject != NULL);
         KeWaitForSingleObject(moduleContext->ThreadObject,
                               Executive,
                               KernelMode,
@@ -495,7 +495,7 @@ Return Value:
         ZwClose(moduleContext->ThreadHandle);
         ObDereferenceObject(moduleContext->ThreadObject);
 #else
-        ASSERT(moduleContext->ThreadHandle != NULL);
+        DmfAssert(moduleContext->ThreadHandle != NULL);
         WaitForSingleObjectEx(moduleContext->ThreadHandle,
                               INFINITE,
                               FALSE);
@@ -506,8 +506,16 @@ Return Value:
         // If the thread is under DMF Control, then the internal event must have been set.
         // Otherwise, it is not set because the Client had complete control.
         //
-        ASSERT(((ThreadControlType_DmfControl == moduleConfig->ThreadControlType) && (NULL != moduleContext->EventStop)) ||
-               (ThreadControlType_ClientControl == moduleConfig->ThreadControlType) && (NULL == moduleContext->EventStop));
+        DmfAssert(((ThreadControlType_DmfControl == moduleConfig->ThreadControlType) && (NULL != moduleContext->EventStop)) ||
+                  (ThreadControlType_ClientControl == moduleConfig->ThreadControlType) && (NULL == moduleContext->EventStop));
+    }
+
+    // This is necessary for User-mode. It is a NOP in Kernel-mode.
+    //
+    DMF_Portable_EventClose(&moduleContext->EventWorkReady);
+    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
+    {
+        DMF_Portable_EventClose(&moduleContext->EventStopInternal);
     }
 
     moduleContext->EventStop = NULL;
@@ -551,7 +559,7 @@ Return Value:
     {
         // This is relevant only if the callback is ThreadControlType_ClientControl.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 
     return moduleContext->IsThreadStopPending;

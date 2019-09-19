@@ -64,6 +64,16 @@ LONG
                                      _In_ CHAR* StringInList, 
                                      _In_ CHAR* LookFor);
 
+typedef
+_Function_class_(EVT_DMF_String_MutilSzCallback)
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+(EVT_DMF_String_MultiSzCallback)(_In_ DMFMODULE DmfModule,
+                                 _In_ WCHAR* String,
+                                 _In_ VOID* CallbackContext);
+
 // This macro declares the following functions:
 // DMF_String_ATTRIBUTES_INIT()
 // DMF_String_Create()
@@ -104,6 +114,20 @@ DMF_String_FindInListLookForLeftMatchChar(
     _In_ CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
     _In_ CHAR* LookFor
+    );
+
+NTSTATUS
+DMF_String_MultiSzEnumerate(
+    _In_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* MultiSzWideString,
+    _In_ EVT_DMF_String_MultiSzCallback Callback,
+    _In_ VOID* CallbackContext
+    );
+
+WCHAR*
+DMF_String_MultiSzFindLast(
+    _In_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* MultiSzWideString
     );
 
 NTSTATUS

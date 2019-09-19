@@ -125,7 +125,7 @@ Return Value:
     outData = NULL;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(moduleContext->Target != NULL);
+    DmfAssert(moduleContext->Target != NULL);
 
     ntStatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES,
                                NonPagedPoolNx,
@@ -322,7 +322,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(moduleContext->Target != NULL);
+    DmfAssert(moduleContext->Target != NULL);
 
     transferLength = InDataLength + OutDataLength;
 
@@ -573,7 +573,7 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(NT_SUCCESS(ntStatus));
+        DmfAssert(NT_SUCCESS(ntStatus));
         WdfObjectDelete(moduleContext->Target);
         moduleContext->Target = NULL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
@@ -670,8 +670,8 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(ResourcesRaw != NULL);
-    ASSERT(ResourcesTranslated != NULL);
+    DmfAssert(ResourcesRaw != NULL);
+    DmfAssert(ResourcesTranslated != NULL);
 
     // Number of valid resources.
     //

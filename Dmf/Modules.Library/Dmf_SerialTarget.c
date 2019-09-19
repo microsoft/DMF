@@ -109,11 +109,11 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    ASSERT(moduleContext->EvtContinuousRequestTargetBufferInput != NULL);
+    DmfAssert(moduleContext->EvtContinuousRequestTargetBufferInput != NULL);
     // 'Using uninitialized memory '*InputBufferSize'.'.
     //
     #pragma warning(suppress:6001)
@@ -160,7 +160,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -200,7 +200,7 @@ SerialTarget_EvtIoTargetQueryRemove(
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-    ASSERT(moduleContext != NULL);
+    DmfAssert(moduleContext != NULL);
 
     DMF_SerialTarget_StreamStop(*dmfModuleAddress);
 
@@ -242,7 +242,7 @@ Return Value:
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-    ASSERT(moduleContext != NULL);
+    DmfAssert(moduleContext != NULL);
 
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
@@ -745,7 +745,7 @@ DMF_SerialTarget_Open(
     {
         // By calling this function here, callbacks at the Client will happen only after the Module is open.
         //
-        ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+        DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
         ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
         if (!NT_SUCCESS(ntStatus))
         {
@@ -783,7 +783,7 @@ DMF_SerialTarget_Close(
         {
             // By calling this function here, callbacks at the Client will happen only before the Module is closed.
             //
-            ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+            DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
             DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
         }
 
@@ -819,8 +819,8 @@ DMF_SerialTarget_ResourcesAssign(
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(ResourcesRaw != NULL);
-    ASSERT(ResourcesTranslated != NULL);
+    DmfAssert(ResourcesRaw != NULL);
+    DmfAssert(ResourcesTranslated != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1039,7 +1039,7 @@ Return Value:
         openOption = DMF_MODULE_OPEN_OPTION_OPEN_D0Entry;
         break;
     default:
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         openOption = DMF_MODULE_OPEN_OPTION_Invalid;
         break;
     }
@@ -1142,8 +1142,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(IoTarget != NULL);
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     *IoTarget = moduleContext->IoTarget;
 
@@ -1200,7 +1200,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     ntStatus = DMF_ContinuousRequestTarget_Send(moduleContext->DmfModuleContinuousRequestTarget,
                                                 RequestBuffer,
@@ -1266,7 +1266,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
                                                              RequestBuffer,
@@ -1315,7 +1315,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
 
@@ -1354,7 +1354,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
 

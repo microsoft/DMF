@@ -374,7 +374,7 @@ Return Value:
     DmfModuleGpioTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
     moduleContext = DMF_CONTEXT_GET(DmfModuleGpioTarget);
 
-    ASSERT(moduleContext->EvtGpioTargetInterruptIsr != NULL);
+    DmfAssert(moduleContext->EvtGpioTargetInterruptIsr != NULL);
     returnValue = moduleContext->EvtGpioTargetInterruptIsr(DmfModuleGpioTarget,
                                                           MessageId,
                                                           QueuedWorkItem);
@@ -416,7 +416,7 @@ Return Value:
     DmfModuleGpioTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
     moduleContext = DMF_CONTEXT_GET(DmfModuleGpioTarget);
 
-    ASSERT(moduleContext->EvtGpioTargetInterruptIsr != NULL);
+    DmfAssert(moduleContext->EvtGpioTargetInterruptIsr != NULL);
     moduleContext->EvtGpioTargetInterruptDpc(DmfModuleGpioTarget,
                                             QueuedWorkItem);
 }
@@ -453,7 +453,7 @@ Return Value:
     DmfModuleGpioTarget = DMF_ParentModuleGet(DmfModuleInterruptResource);
     moduleContext = DMF_CONTEXT_GET(DmfModuleGpioTarget);
 
-    ASSERT(moduleContext->EvtGpioTargetInterruptPassive != NULL);
+    DmfAssert(moduleContext->EvtGpioTargetInterruptPassive != NULL);
     moduleContext->EvtGpioTargetInterruptPassive(DmfModuleGpioTarget);
 }
 
@@ -1084,7 +1084,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(PinValue != NULL);
+    DmfAssert(PinValue != NULL);
     *PinValue = 0;
 
     if (moduleContext->GpioTarget != NULL)

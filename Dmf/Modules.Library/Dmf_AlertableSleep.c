@@ -121,8 +121,8 @@ Return Value:
 
     // Copy this so that Module Config is not queried often.
     //
-    ASSERT(moduleConfig->EventCount > 0);
-    ASSERT(moduleConfig->EventCount <= ALERTABLE_SLEEP_MAXIMUM_TIMERS);
+    DmfAssert(moduleConfig->EventCount > 0);
+    DmfAssert(moduleConfig->EventCount <= ALERTABLE_SLEEP_MAXIMUM_TIMERS);
     moduleContext->EventCount = moduleConfig->EventCount;
 
     for (ULONG eventIndex = 0; eventIndex < moduleConfig->EventCount; eventIndex++)
@@ -315,7 +315,7 @@ Return Value:
 
     if (EventIndex >= moduleContext->EventCount)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -378,7 +378,7 @@ Return Value:
 
     if (EventIndex >= moduleContext->EventCount)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -390,7 +390,7 @@ Return Value:
 
     // NOTE: Only call this function from the WAITING thread.
     //
-    ASSERT(! moduleContext->CurrentlyWaiting[EventIndex]);
+    DmfAssert(! moduleContext->CurrentlyWaiting[EventIndex]);
 
     // Clear the event so that threads will wait.
     //
@@ -445,7 +445,7 @@ Return Value:
 
     if (EventIndex >= moduleContext->EventCount)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -473,7 +473,7 @@ Return Value:
 
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] for %d-ms...", EventIndex, Milliseconds);
 
-        ASSERT(! moduleContext->CurrentlyWaiting[EventIndex]);
+        DmfAssert(! moduleContext->CurrentlyWaiting[EventIndex]);
         moduleContext->CurrentlyWaiting[EventIndex] = TRUE;
 
         // Unlock before waiting!

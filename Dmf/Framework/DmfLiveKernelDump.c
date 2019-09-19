@@ -89,8 +89,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DmfObject->ModuleCollection != NULL);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DmfObject->ModuleCollection != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -207,7 +207,7 @@ Return Value:
          driverModuleIndex++)
     {
         DMF_OBJECT* dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
 
         // For each Module, call this function on all its children.
         //

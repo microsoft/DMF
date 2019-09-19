@@ -122,14 +122,14 @@ Return Value:
     // Now, get the Module's Context.
     //
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
-    ASSERT(moduleContext != NULL);
+    DmfAssert(moduleContext != NULL);
 
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
-    ASSERT(moduleConfig != NULL);
+    DmfAssert(moduleConfig != NULL);
 
     // Cancel the request and decrement our held event count.
     //
-    ASSERT(moduleContext->EventCountHeld > 0);
+    DmfAssert(moduleContext->EventCountHeld > 0);
     InterlockedDecrement(&moduleContext->EventCountHeld);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "CANCEL 0x%p PendingEvents=%d", Request, moduleContext->EventCountHeld);
 
@@ -205,7 +205,7 @@ Return Value:
         // NOTE: The decrement must happen before the request returns because
         //       the caller may immediately enqueue another request.
         //
-        ASSERT(moduleContext->EventCountHeld > 0);
+        DmfAssert(moduleContext->EventCountHeld > 0);
         InterlockedDecrement(&moduleContext->EventCountHeld);
         numberOfRequestsCompleted++;
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
@@ -694,8 +694,8 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(((EventCallbackContext != NULL) && moduleConfig->SizeOfDataBuffer > 0) ||
-        (NULL == EventCallbackContext));
+    DmfAssert(((EventCallbackContext != NULL) && moduleConfig->SizeOfDataBuffer > 0) ||
+              (NULL == EventCallbackContext));
 
     DMF_ModuleLock(DmfModule);
     isLocked = TRUE;
@@ -724,7 +724,7 @@ Return Value:
         {
             // This should never happen.
             //
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -957,7 +957,7 @@ Return Value:
     }
     else
     {
-        ASSERT(1 == numberOfRequestsCompleted);
+        DmfAssert(1 == numberOfRequestsCompleted);
     }
 
     FuncExitVoid(DMF_TRACE);

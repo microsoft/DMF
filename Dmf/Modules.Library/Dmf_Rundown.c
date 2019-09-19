@@ -97,7 +97,7 @@ Return Value:
 
     // This routine must always be called in locked state.
     //
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     returnValue = InterlockedIncrement(&moduleContext->ReferenceCount);
 
@@ -136,8 +136,8 @@ Return Value:
 
     // This routine must always be called in locked state.
     //
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
-    ASSERT(moduleContext->ReferenceCount > 0);
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(moduleContext->ReferenceCount > 0);
 
     returnValue = InterlockedDecrement(&moduleContext->ReferenceCount);
 
@@ -191,7 +191,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(0 == moduleContext->ReferenceCount);
+    DmfAssert(0 == moduleContext->ReferenceCount);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -239,14 +239,14 @@ Return Value:
     {
         // This path should be avoided. Client did not call DMF_Rundown_EndAndWait().
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         endForClient = TRUE;
     }
     else
     {
         // This is the normal path that should execute.
         //
-        ASSERT(0 == moduleContext->ReferenceCount);
+        DmfAssert(0 == moduleContext->ReferenceCount);
     }
 
     DMF_ModuleUnlock(DmfModule);
@@ -371,7 +371,7 @@ Return Value:
     // Start sets REference to 1.
     // Reference will always increment to 2 minimum.
     //
-    ASSERT(moduleContext->ReferenceCount >= 1);
+    DmfAssert(moduleContext->ReferenceCount >= 1);
 
     DMF_ModuleUnlock(DmfModule);
 }
@@ -422,7 +422,7 @@ Return Value:
 
     // Ensure Client called DMF_Rundown_Start() before calling this Method.
     //
-    ASSERT(referenceCount >= 1);
+    DmfAssert(referenceCount >= 1);
 
     DMF_ModuleUnlock(DmfModule);
 
@@ -493,7 +493,7 @@ Return Value:
 
     // Client must call DMF_Rundown_Start() before calling this Method.
     //
-    ASSERT(moduleContext->ReferenceCount >= 1);
+    DmfAssert(moduleContext->ReferenceCount >= 1);
 
     // Increase reference only if Module is open (ReferenceCount >= 1) and if the Module close is not pending.
     // This is to stop new Module method callers from repeatedly accessing the Module when it should be closing.

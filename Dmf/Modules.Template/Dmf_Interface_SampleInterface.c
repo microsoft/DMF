@@ -152,7 +152,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SampleInterface_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    ASSERT(transportData != NULL);
+    DmfAssert(transportData != NULL);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SampleInterface_TransportBind");
 
@@ -188,7 +188,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SampleInterface_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    ASSERT(transportData != NULL);
+    DmfAssert(transportData != NULL);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SampleInterface_UnbindSampleInterface_Unbind");
 

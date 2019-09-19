@@ -54,13 +54,18 @@ DMF_MODULE_DECLARE_CONFIG(Pdo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define MAX_ID_LEN 80
+#define MAXIMUM_ID_LENGTH 80
+#define DEVICE_ID_INSTANCE 0
 
 typedef struct _PDO_DEVICE_DATA
 {
     // Unique serial number of the device on the bus.
     //
     ULONG SerialNumber;
+
+    // Hardware of the device on the bus.
+    //
+    WCHAR HardwareIdBuffer[MAXIMUM_ID_LENGTH];
 } PDO_DEVICE_DATA;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(PDO_DEVICE_DATA, PdoGetData)
@@ -96,7 +101,7 @@ Return Value:
     Pdo_DevicePropertyEntry* entry;
     UNREFERENCED_PARAMETER(DmfModule);
 
-    ASSERT(DevicePropertyTable);
+    DmfAssert(DevicePropertyTable);
 
     FuncEntry(DMF_TRACE);
 
@@ -117,7 +122,7 @@ Return Value:
             // Complain if the client requested us to register the device interface,
             // but did not provide a device interface GUID.
             //
-            ASSERT(entry->DeviceInterfaceGuid != NULL);
+            DmfAssert(entry->DeviceInterfaceGuid != NULL);
             if (NULL == entry->DeviceInterfaceGuid)
             {
                 ntStatus = STATUS_INVALID_PARAMETER;
@@ -194,9 +199,9 @@ Return Value:
     UNICODE_STRING deviceLocation;
     WDF_DEVICE_PNP_CAPABILITIES pnpCapabilities;
     WDF_DEVICE_POWER_CAPABILITIES powerCapabilities;
-    DECLARE_UNICODE_STRING_SIZE(instanceId, MAX_ID_LEN);
-    DECLARE_UNICODE_STRING_SIZE(deviceDescription, MAX_ID_LEN);
-    WCHAR formattedIdBuffer[MAX_ID_LEN];
+    DECLARE_UNICODE_STRING_SIZE(instanceId, MAXIMUM_ID_LENGTH);
+    DECLARE_UNICODE_STRING_SIZE(deviceDescription, MAXIMUM_ID_LENGTH);
+    WCHAR formattedIdBuffer[MAXIMUM_ID_LENGTH];
     PWCHAR idString;
     DMF_CONFIG_Pdo* moduleConfig;
     WDFDEVICE device;
@@ -206,17 +211,17 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-    ASSERT(PdoRecord != NULL);
+    DmfAssert(PdoRecord != NULL);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
-    ASSERT(PdoRecord->HardwareIds != NULL);
-    ASSERT(PdoRecord->HardwareIdsCount != 0);
-    ASSERT(PdoRecord->CompatibleIdsCount == 0 ||
-           PdoRecord->CompatibleIds != NULL);
-    ASSERT(PdoRecord->Description != NULL);
+    DmfAssert(PdoRecord->HardwareIds != NULL);
+    DmfAssert(PdoRecord->HardwareIdsCount != 0);
+    DmfAssert(PdoRecord->CompatibleIdsCount == 0 ||
+              PdoRecord->CompatibleIds != NULL);
+    DmfAssert(PdoRecord->Description != NULL);
 
     child = NULL;
     dmfDeviceInit = NULL;
@@ -496,6 +501,17 @@ Return Value:
 
     pdoData->SerialNumber = PdoRecord->SerialNumber;
 
+    // Store the device ID (1st instance of the hardwareID[] in PDO_RECORD) to be used during device removal
+    //
+    size_t hardwareIDLength = wcsnlen_s(PdoRecord->HardwareIds[DEVICE_ID_INSTANCE], MAXIMUM_ID_LENGTH);
+    if ((wcsnlen_s(PdoRecord->HardwareIds[DEVICE_ID_INSTANCE], MAXIMUM_ID_LENGTH) > MAXIMUM_ID_LENGTH))
+    {
+        hardwareIDLength = MAXIMUM_ID_LENGTH;
+    }
+    RtlCopyMemory(pdoData->HardwareIdBuffer,
+                  PdoRecord->HardwareIds[DEVICE_ID_INSTANCE],
+                  (hardwareIDLength * sizeof(WCHAR)));
+
     // Set properties for the child device, all others inherit from the bus driver.
     //
     WDF_DEVICE_PNP_CAPABILITIES_INIT(&pnpCapabilities);
@@ -662,13 +678,13 @@ Return Value:
             continue;
         }
 
-        ASSERT(moduleConfig->InstanceIdFormatString != NULL);
-        ASSERT(pdoRecord->HardwareIds != NULL);
-        ASSERT(pdoRecord->HardwareIdsCount != 0);
-        ASSERT(pdoRecord->HardwareIdsCount < PDO_RECORD_MAXIMUM_NUMBER_OF_HARDWARE_IDS);
-        ASSERT(pdoRecord->CompatibleIdsCount == 0 || pdoRecord->CompatibleIds != NULL);
-        ASSERT(pdoRecord->CompatibleIdsCount < PDO_RECORD_MAXIMUM_NUMBER_OF_COMPAT_IDS);
-        ASSERT(pdoRecord->Description != NULL);
+        DmfAssert(moduleConfig->InstanceIdFormatString != NULL);
+        DmfAssert(pdoRecord->HardwareIds != NULL);
+        DmfAssert(pdoRecord->HardwareIdsCount != 0);
+        DmfAssert(pdoRecord->HardwareIdsCount < PDO_RECORD_MAXIMUM_NUMBER_OF_HARDWARE_IDS);
+        DmfAssert(pdoRecord->CompatibleIdsCount == 0 || pdoRecord->CompatibleIds != NULL);
+        DmfAssert(pdoRecord->CompatibleIdsCount < PDO_RECORD_MAXIMUM_NUMBER_OF_COMPAT_IDS);
+        DmfAssert(pdoRecord->Description != NULL);
 
 
         // Create PDO.
@@ -1195,6 +1211,90 @@ Return Value:
     ntStatus = STATUS_SUCCESS;
 
 Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DeviceUnPlugEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ PWSTR HardwareId,
+    _In_ ULONG SerialNumber
+    )
+/*++
+
+Routine Description:
+
+    Unplug and destroy a static PDO from the Client Driver's FDO.
+    PDO is identified by matching the provided hardware ID and serial number.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    HardwareId - HardwareID of the PDO to be ejected.
+    SerialNumber - Serial number of the PDO to be ejected.
+
+Return Value:
+
+    STATUS_SUCCESS upon successful removal from the list
+    STATUS_INVALID_PARAMETER if the removal was unsuccessful
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+    WDFDEVICE childDevice;
+    PDO_DEVICE_DATA* pdoData;
+    UNICODE_STRING  childDeviceHardwareID;
+    UNICODE_STRING  hardwareIDOfDeviceToRemove;
+
+    DmfAssert(HardwareId != NULL);
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    ntStatus = STATUS_NOT_FOUND;
+    childDevice = NULL;
+
+    WdfFdoLockStaticChildListForIteration(device);
+
+    while ((childDevice = WdfFdoRetrieveNextStaticChild(device,
+                                                        childDevice,
+                                                        WdfRetrieveAddedChildren)) != NULL)
+    {
+        pdoData = PdoGetData(childDevice);
+
+        RtlInitUnicodeString(&childDeviceHardwareID, pdoData->HardwareIdBuffer);
+        RtlInitUnicodeString(&hardwareIDOfDeviceToRemove, (PCWSTR)HardwareId);
+
+        // Check if this is the requested PDO instance to be removed
+        // 
+        if ((RtlEqualUnicodeString(&hardwareIDOfDeviceToRemove, &childDeviceHardwareID, TRUE)) &&
+            (SerialNumber == pdoData->SerialNumber))
+        {
+            ntStatus = WdfPdoMarkMissing(childDevice);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoMarkMissing fails: ntStatus=%!STATUS!", ntStatus);
+                break;
+            }
+
+            // Successfully removed the requested PDO. Exit out. 
+            //
+            ntStatus = STATUS_SUCCESS;
+            break;
+        }
+    }
+
+    WdfFdoUnlockStaticChildListFromIteration(device);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

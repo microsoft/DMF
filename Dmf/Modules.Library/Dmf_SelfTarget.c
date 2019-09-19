@@ -132,7 +132,7 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(NT_SUCCESS(ntStatus));
+        DmfAssert(NT_SUCCESS(ntStatus));
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -331,8 +331,8 @@ DMF_SelfTarget_Get(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(IoTarget != NULL);
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
     *IoTarget = moduleContext->IoTarget;
 
     return STATUS_SUCCESS;
@@ -389,7 +389,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     ntStatus = DMF_RequestTarget_Send(moduleContext->DmfModuleRequestTarget,
                                       RequestBuffer,
@@ -455,7 +455,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     ntStatus = DMF_RequestTarget_SendSynchronously(moduleContext->DmfModuleRequestTarget,
                                                    RequestBuffer,

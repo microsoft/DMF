@@ -180,7 +180,7 @@ Return Value:
 
     // Populate Module Config.
     //
-    ASSERT(moduleConfig->BufferSize > 0);
+    DmfAssert(moduleConfig->BufferSize > 0);
     moduleContext->BufferSize = moduleConfig->BufferSize;
 
     // Create the collection that holds the buffer list.
@@ -252,7 +252,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -293,11 +293,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
     returnValue = moduleContext->Buffer[moduleContext->PingBufferIndex];
 
     // Return the current write offset address that corresponds with the current active buffer.
@@ -306,7 +306,7 @@ Return Value:
 
     // Return the address in the Ping Buffer where the next write should happen.
     //
-    ASSERT(*Size <= moduleContext->BufferSize);
+    DmfAssert(*Size <= moduleContext->BufferSize);
 
     FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
 
@@ -343,12 +343,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(WriteOffset != NULL);
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(WriteOffset != NULL);
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
 
     // Return the current write offset address that corresponds with the current active buffer.
     //
@@ -356,7 +356,7 @@ Return Value:
 
     // Return the address in the Ping Buffer where the next write should happen.
     //
-    ASSERT(*WriteOffset <= moduleContext->BufferSize);
+    DmfAssert(*WriteOffset <= moduleContext->BufferSize);
 
     // Note that if the buffer is full, the WriteOffset will be outside of the buffer range.
     //
@@ -398,12 +398,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(ReadOffset != NULL);
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(ReadOffset != NULL);
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
 
     // Return the current read offset address that corresponds with the current active buffer.
     //
@@ -411,7 +411,7 @@ Return Value:
 
     // Get the current read offset in the current active buffer.
     //
-    ASSERT(*ReadOffset <= moduleContext->BufferSize);
+    DmfAssert(*ReadOffset <= moduleContext->BufferSize);
     returnValue = &moduleContext->Buffer[moduleContext->PingBufferIndex][*ReadOffset];
 
     FuncExit(DMF_TRACE, "returnValue=0x%p", returnValue);
@@ -461,14 +461,14 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(StartOffset <= moduleContext->BufferSize);
-    ASSERT(WriteOffset <= moduleContext->BufferSize);
-    ASSERT(PacketLength <= moduleContext->BufferSize);
-    ASSERT(PacketBufferRead != NULL);
+    DmfAssert(StartOffset <= moduleContext->BufferSize);
+    DmfAssert(WriteOffset <= moduleContext->BufferSize);
+    DmfAssert(PacketLength <= moduleContext->BufferSize);
+    DmfAssert(PacketBufferRead != NULL);
 
     numberOfBytesToWrite = 0;
 
@@ -493,7 +493,7 @@ Return Value:
         // Determine how many bytes remain in the Ping Buffer that must now be
         // copied to the Pong Buffer in preparation for the switch of active packets.
         //
-        ASSERT((ULONG)(WriteOffset - (source - (UCHAR*)(activePacket))) == (WriteOffset - StartOffset - PacketLength));
+        DmfAssert((ULONG)(WriteOffset - (source - (UCHAR*)(activePacket))) == (WriteOffset - StartOffset - PacketLength));
         numberOfBytesToWrite = (WriteOffset - StartOffset - PacketLength);
 
         // Copy the data from Ping Buffer to Pong Buffer.
@@ -507,7 +507,7 @@ Return Value:
     // will be returned to caller. Now change the Ping Buffer to make the current Pong
     // Buffer the Ping Buffer.
     //
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
     moduleContext->PingBufferIndex = (moduleContext->PingBufferIndex + 1) % NUMBER_OF_PING_PONG_BUFFERS;
 
     // Next write will happen after the data that is just written.
@@ -673,7 +673,7 @@ Return Value:
 
     if (DMF_IsPoolTypePassiveLevel(moduleConfig->PoolType))
     {
-        ASSERT(DMF_ModuleLockIsPassive(*DmfModule));
+        DmfAssert(DMF_ModuleLockIsPassive(*DmfModule));
     }
 #endif
 
@@ -847,7 +847,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
     moduleContext->BufferOffsetRead[moduleContext->PingBufferIndex] = 0;
     moduleContext->BufferOffsetWrite[moduleContext->PingBufferIndex] = 0;
 
@@ -900,14 +900,14 @@ Return Value:
 
     readOffsetAddress = &moduleContext->BufferOffsetRead[moduleContext->PingBufferIndex];
     readOffset = *readOffsetAddress;
-    ASSERT(StartOffset >= readOffset);
-    ASSERT(StartOffset <= moduleContext->BufferSize);
+    DmfAssert(StartOffset >= readOffset);
+    DmfAssert(StartOffset <= moduleContext->BufferSize);
 
     // Calculate number of bytes that need to be copied from Ping to Pong buffer.
     //
     writeOffsetAddress = &moduleContext->BufferOffsetWrite[moduleContext->PingBufferIndex];
     writeOffset = *writeOffsetAddress;
-    ASSERT(StartOffset <= writeOffset);
+    DmfAssert(StartOffset <= writeOffset);
     numberOfBytes = writeOffset - StartOffset;
 
     activePacket = moduleContext->Buffer[moduleContext->PingBufferIndex];
@@ -922,7 +922,7 @@ Return Value:
     // Data from the Ping Buffer has been copied to the Pong Buffer. 
     // Now activate the current Pong Buffer.
     //
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
     moduleContext->PingBufferIndex = (moduleContext->PingBufferIndex + 1) % NUMBER_OF_PING_PONG_BUFFERS;
 
     // Next write will happen after the data that is just written.
@@ -993,7 +993,7 @@ Return Value:
     //
     activeBuffer = PingPongBuffer_PingWriteOffsetGet(DmfModule,
                                                      &writeOffsetAddress);
-    ASSERT(moduleContext->BufferSize >= NumberOfBytesToWrite);
+    DmfAssert(moduleContext->BufferSize >= NumberOfBytesToWrite);
 
     // Check if the Client is trying to perform an invalid write into the ping pong buffer. This should never happen
     // because the Client should have allocated a properly size buffer.
@@ -1005,15 +1005,15 @@ Return Value:
                     moduleContext->BufferSize,
                     NumberOfBytesToWrite,
                     writeOffsetAddress);
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         goto Exit;
     }
 
     // Copy new the buffer data into the current write location.
     //
-    ASSERT(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
-    ASSERT(((UCHAR*)activeBuffer) + NumberOfBytesToWrite <= (&moduleContext->Buffer[moduleContext->PingBufferIndex][moduleContext->BufferSize]));
+    DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
+    DmfAssert(((UCHAR*)activeBuffer) + NumberOfBytesToWrite <= (&moduleContext->Buffer[moduleContext->PingBufferIndex][moduleContext->BufferSize]));
     RtlCopyMemory(activeBuffer,
                   SourceBuffer,
                   NumberOfBytesToWrite);

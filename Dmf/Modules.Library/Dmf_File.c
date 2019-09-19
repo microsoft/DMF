@@ -274,7 +274,7 @@ Return Value:
 
         if (numberOfBytesRead == 0)
         {
-            ASSERT(bytesRemaining == 0);
+            DmfAssert(bytesRemaining == 0);
         }
     }
 

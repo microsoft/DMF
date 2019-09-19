@@ -144,8 +144,8 @@ Return Value:
     DMF_OBJECT* childDmfObject;
     LIST_ENTRY* nextChildListEntry;
 
-    ASSERT(ChildObjectInterationContext->ParentObject != NULL);
-    ASSERT(ChildObjectInterationContext->NextChildObjectListEntry != NULL);
+    DmfAssert(ChildObjectInterationContext->ParentObject != NULL);
+    DmfAssert(ChildObjectInterationContext->NextChildObjectListEntry != NULL);
 
     nextChildListEntry = ChildObjectInterationContext->NextChildObjectListEntry;
     if (nextChildListEntry != &ChildObjectInterationContext->ParentObject->ChildObjectList)
@@ -241,8 +241,8 @@ Return Value:
     DMF_OBJECT* childDmfObject;
     LIST_ENTRY* previousChildListEntry;
 
-    ASSERT(ChildObjectInterationContext->ParentObject != NULL);
-    ASSERT(ChildObjectInterationContext->NextChildObjectListEntry != NULL);
+    DmfAssert(ChildObjectInterationContext->ParentObject != NULL);
+    DmfAssert(ChildObjectInterationContext->NextChildObjectListEntry != NULL);
 
     previousChildListEntry = ChildObjectInterationContext->PreviousChildObjectListEntry;
     if (previousChildListEntry != &ChildObjectInterationContext->ParentObject->ChildObjectList)
@@ -413,7 +413,7 @@ Return Value:
     DMFMODULE* dmfModuleAddress;
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(WdfObject);
-    ASSERT(dmfModuleAddress != NULL);
+    DmfAssert(dmfModuleAddress != NULL);
     *dmfModuleAddress = DmfModule;
 }
 
@@ -453,7 +453,7 @@ Return Value:
 
     dmfModuleTransport = DMF_ModuleTransportGet(DmfModule);
     dmfObject = DMF_ModuleToObject(dmfModuleTransport);
-    ASSERT(dmfObject->ModuleDescriptor.ModuleTransportMethod != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.ModuleTransportMethod != NULL);
     ntStatus = dmfObject->ModuleDescriptor.ModuleTransportMethod(dmfModuleTransport,
                                                                  Message,
                                                                  InputBuffer,
@@ -495,9 +495,9 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
-    ASSERT(! dmfObject->DynamicModuleImmediate);
+    DmfAssert(! dmfObject->DynamicModuleImmediate);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -507,7 +507,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
     (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(DmfModule);
 
     // The Module Callback always does this. Do it for the Module.
@@ -550,7 +550,7 @@ Return Value:
     // objects using NonPaged Pool, nor a WDFREQUEST.)
     //
 #if !defined(DMF_USER_MODE)
-    ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
+    DmfAssert(KeGetCurrentIrql() == PASSIVE_LEVEL);
 #endif
 
     dmfModule = (DMFMODULE)Object;
@@ -563,7 +563,7 @@ Return Value:
     // Since  it is a Dynamic Module automatically close it before it is destroyed.
     // (Client has no access to the Close API.)
     //
-    ASSERT(dmfObject->DynamicModuleImmediate);
+    DmfAssert(dmfObject->DynamicModuleImmediate);
     DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
 
     // Dispatch callback to Child DMF Modules first.
@@ -576,7 +576,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
     // 'The current function is permitted to run at an IRQ level above the maximum permitted'
     //
     #pragma warning(suppress:28118)
@@ -669,7 +669,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware)(DmfModule,
                                                                                        ResourcesRaw,
                                                                                        ResourcesTranslated);
@@ -715,7 +715,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware)(DmfModule,
                                                                                        ResourcesTranslated);
     if (! NT_SUCCESS(ntStatus))
@@ -806,7 +806,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry)(DmfModule,
                                                                                PreviousState);
     if (! NT_SUCCESS(ntStatus))
@@ -877,7 +877,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled)(DmfModule,
                                                                                                     PreviousState);
     if (! NT_SUCCESS(ntStatus))
@@ -925,7 +925,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled)(DmfModule,
                                                                                                    TargetState);
     if (! NT_SUCCESS(ntStatus))
@@ -993,7 +993,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit)(DmfModule,
                                                                               TargetState);
     if (! NT_SUCCESS(ntStatus))
@@ -1067,7 +1067,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead)(DmfModule,
                                                                                       Queue,
                                                                                       Request,
@@ -1149,7 +1149,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite)(DmfModule,
                                                                                        Queue,
                                                                                        Request,
@@ -1235,7 +1235,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl)(DmfModule,
                                                                                           Queue,
                                                                                           Request,
@@ -1325,7 +1325,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl)(DmfModule,
                                                                                                   Queue,
                                                                                                   Request,
@@ -1397,11 +1397,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1438,11 +1438,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1480,7 +1480,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -1494,7 +1494,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit)(DmfModule);
 
 Exit:
@@ -1530,11 +1530,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1579,7 +1579,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -1593,7 +1593,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart)(DmfModule);
 
 Exit:
@@ -1628,11 +1628,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1670,11 +1670,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1720,11 +1720,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1791,7 +1791,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
     (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery)(DmfModule,
                                                                            RelationType);
 }
@@ -1850,7 +1850,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx)(DmfModule,
                                                                                            NotificationType,
                                                                                            IsInNotificationPath);
@@ -1892,11 +1892,11 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0)(DmfModule);
 
     // Dispatch callback to Child DMF Modules next.
@@ -1941,7 +1941,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -1951,7 +1951,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0)(DmfModule);
 }
 
@@ -1982,7 +1982,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -1992,7 +1992,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered)(DmfModule);
 }
 
@@ -2034,7 +2034,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason)(DmfModule,
                                                                                                DeviceWakeEnabled,
                                                                                                ChildrenArmedForWake);
@@ -2094,7 +2094,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -2104,7 +2104,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx)(DmfModule);
 }
 
@@ -2135,7 +2135,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to Child DMF Modules first.
     //
@@ -2145,7 +2145,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
     (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered)(DmfModule);
 }
 
@@ -2189,7 +2189,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate)(DmfModule,
                                                                                      Device,
                                                                                      Request,
@@ -2265,7 +2265,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup)(DmfModule,
                                                                                       FileObject);
     if (returnValue)
@@ -2337,7 +2337,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
+    DmfAssert(parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
     returnValue = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose)(DmfModule,
                                                                                     FileObject);
     if (returnValue)
@@ -2417,7 +2417,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
+    DmfAssert(parentDmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
     ntStatus = (parentDmfObject->InternalCallbacksDmf.DeviceNotificationRegister)(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -2428,7 +2428,7 @@ Return Value:
     // automatically.
     // Otherwise, it means the Client registered for notification for this Module.
     //
-    ASSERT(parentDmfObject->ModuleNotificationRegisteredDuring == ModuleOpenedDuringType_Invalid);
+    DmfAssert(parentDmfObject->ModuleNotificationRegisteredDuring == ModuleOpenedDuringType_Invalid);
     parentDmfObject->ModuleNotificationRegisteredDuring = ModuleOpenedDuringType_Manual;
 
 Exit:
@@ -2466,13 +2466,13 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module first.
     //
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
     (dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister)(DmfModule);
 
     // Reset Module Opened since Module is not open now.
     //
-    ASSERT(dmfObject->ModuleNotificationRegisteredDuring != ModuleOpenedDuringType_Invalid);
-    ASSERT(dmfObject->ModuleNotificationRegisteredDuring < ModuleOpenedDuringType_Maximum);
+    DmfAssert(dmfObject->ModuleNotificationRegisteredDuring != ModuleOpenedDuringType_Invalid);
+    DmfAssert(dmfObject->ModuleNotificationRegisteredDuring < ModuleOpenedDuringType_Maximum);
     dmfObject->ModuleNotificationRegisteredDuring = ModuleOpenedDuringType_Invalid;
 
     // Dispatch callback to Child DMF Modules next.
@@ -2517,7 +2517,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
     ntStatus = (dmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -2573,7 +2573,7 @@ Return Value:
     {
         // Dispatch Open callback to the given Parent DMF Module next.
         //
-        ASSERT(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
+        DmfAssert(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
         ntStatus = (dmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
         if (! NT_SUCCESS(ntStatus))
         {
@@ -2583,14 +2583,14 @@ Return Value:
         // Indicate when the Module was opened (for clean up operations).
         // Internal Open has set this value to Manual by default.
         //
-        ASSERT(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
+        DmfAssert(ModuleOpenedDuringType_Manual == dmfObject->ModuleOpenedDuring);
         dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_Create;
     }
     else if (dmfObject->ModuleDescriptor.OpenOption == DMF_MODULE_OPEN_OPTION_NOTIFY_Create)
     {
         // Dispatch NotificationRegister callback to the given Parent DMF Module next.
         //
-        ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
+        DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
         ntStatus = (dmfObject->InternalCallbacksDmf.DeviceNotificationRegister)(DmfModule);
         if (! NT_SUCCESS(ntStatus))
         {
@@ -2686,7 +2686,7 @@ Return Value:
     DMF_ModuleLock(DmfModule);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject->ReferenceCount >= 1);
+    DmfAssert(dmfObject->ReferenceCount >= 1);
 
     DMF_ModuleReferenceDelete(DmfModule);
 
@@ -2804,7 +2804,7 @@ Return Value:
 
     // Dispatch callback to this Module first.
     //
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
     (dmfObject->InternalCallbacksDmf.DeviceClose)(DmfModule);
 }
 
@@ -2833,7 +2833,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
+    DmfAssert(dmfObject != NULL);
 
     // Dispatch callback to this Module first.
     //
@@ -2841,7 +2841,7 @@ Return Value:
     {
         if (dmfObject->ModuleOpenedDuring == ModuleOpenedDuringType_Create)
         {
-            ASSERT(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
+            DmfAssert(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
             (dmfObject->InternalCallbacksDmf.DeviceClose)(DmfModule);
         }
         else
@@ -2853,7 +2853,7 @@ Return Value:
     }
     else if (dmfObject->ModuleDescriptor.OpenOption == DMF_MODULE_OPEN_OPTION_NOTIFY_Create)
     {
-        ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
+        DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
         (dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister)(DmfModule);
     }
 
@@ -2892,11 +2892,11 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    ASSERT(dmfObject != NULL);
-    ASSERT(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
     (dmfObject->InternalCallbacksInternal.AuxiliaryLock)(DmfModule,
                                                          DMF_DEFAULT_LOCK_INDEX);
-    ASSERT(NULL == dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
+    DmfAssert(NULL == dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
 #if !defined(DMF_USER_MODE)
     dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = PsGetCurrentThreadId();
 #else
@@ -2934,10 +2934,10 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    ASSERT(dmfObject != NULL);
-    ASSERT(NULL != dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(NULL != dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
     dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = NULL;
-    ASSERT(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
+    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
     (dmfObject->InternalCallbacksInternal.AuxiliaryUnlock)(DmfModule,
                                                            DMF_DEFAULT_LOCK_INDEX);
 }
@@ -2967,7 +2967,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     BOOLEAN lockHeld;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -3007,7 +3007,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
     BOOLEAN returnValue;
 
-    ASSERT(DmfModule != NULL);
+    DmfAssert(DmfModule != NULL);
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -3108,10 +3108,10 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks);
-    ASSERT(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks);
+    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
 
     // Device lock is at 0. Auxiliary locks start from 1.
     // AuxiliaryLockIndex is 0 based.
@@ -3123,7 +3123,7 @@ Return Value:
     //
     if (AuxiliaryLockIndex < DMF_MAXIMUM_AUXILIARY_LOCKS)
     {
-        ASSERT(NULL == dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
+        DmfAssert(NULL == dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
 #if !defined(DMF_USER_MODE)
         dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = PsGetCurrentThreadId();
 #else
@@ -3138,7 +3138,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 
@@ -3167,9 +3167,9 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks);
 
     // This check is required for SAL.
     //
@@ -3178,17 +3178,17 @@ Return Value:
         // Device lock is at 0. Auxiliary locks starts from 1.
         // AuxiliaryLockIndex is 0 based.
         //
-        ASSERT(NULL != dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
+        DmfAssert(NULL != dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
 
         dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = NULL;
 
-        ASSERT(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
+        DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
         (dmfObject->InternalCallbacksInternal.AuxiliaryUnlock)(DmfModule,
                                                                AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS);
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 
@@ -3220,9 +3220,9 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
-    ASSERT(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks);
+    DmfAssert(dmfObject != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks <= DMF_MAXIMUM_AUXILIARY_LOCKS);
+    DmfAssert(AuxiliaryLockIndex < dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks);
 
     // This check is required for SAL.
     //
@@ -3242,7 +3242,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         lockHeld = FALSE;
     }
 
@@ -3314,7 +3314,7 @@ Return Value:
 
     // Dispatch callback to the given Parent DMF Module next.
     //
-    ASSERT(parentDmfObject->InternalCallbacksDmf.DeviceResourcesAssign != NULL);
+    DmfAssert(parentDmfObject->InternalCallbacksDmf.DeviceResourcesAssign != NULL);
     ntStatus = (parentDmfObject->InternalCallbacksDmf.DeviceResourcesAssign)(DmfModule,
                                                                              ResourcesRaw,
                                                                              ResourcesTranslated);

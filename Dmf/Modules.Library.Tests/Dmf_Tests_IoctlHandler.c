@@ -117,7 +117,7 @@ Test_IoctlHandler_BufferPool_TimerCallback(
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 
@@ -193,7 +193,7 @@ Tests_IoctlHandler_RequestCancel(
     requestContext = (REQUEST_CONTEXT*)WdfObjectGetTypedContext(Request,
                                                                 REQUEST_CONTEXT);
 
-    ASSERT(requestContext->DmfModuleTestIoctlHandler != NULL);
+    DmfAssert(requestContext->DmfModuleTestIoctlHandler != NULL);
     moduleContext = DMF_CONTEXT_GET(requestContext->DmfModuleTestIoctlHandler);
     
     RtlZeroMemory(&enumerationContext,
@@ -303,7 +303,7 @@ Return Value:
             ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolFree,
                                           &clientBuffer,
                                           NULL);
-            ASSERT(NT_SUCCESS(ntStatus));
+            DmfAssert(NT_SUCCESS(ntStatus));
 
             sleepContext = (SleepContext*)clientBuffer;
             sleepContext->Request = Request;

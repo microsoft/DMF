@@ -74,7 +74,7 @@ Return Value:
     ULONG random;
     ULONG range;
 
-    ASSERT(Max >= Min);
+    DmfAssert(Max >= Min);
 
     range = Max - Min + 1;
     seed = (ULONG)ReadTimeStampCounter();

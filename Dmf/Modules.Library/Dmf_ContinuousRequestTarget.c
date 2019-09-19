@@ -219,7 +219,7 @@ Return Value:
     LONG result;
 
     result = InterlockedDecrement(&ModuleContext->StreamingRequestCount);
-    ASSERT(result >= 0);
+    DmfAssert(result >= 0);
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "[%d -> %d]", 
@@ -297,7 +297,7 @@ Return Value:
             {
                 *OutputBuffer = WdfMemoryGetBuffer(outputMemory,
                                                    NULL);
-                ASSERT(*OutputBuffer != NULL);
+                DmfAssert(*OutputBuffer != NULL);
             }
             break;
         }
@@ -313,7 +313,7 @@ Return Value:
             {
                 *InputBuffer = WdfMemoryGetBuffer(inputMemory,
                                                   NULL);
-                ASSERT(*InputBuffer != NULL);
+                DmfAssert(*InputBuffer != NULL);
             }
             break;
         }
@@ -330,21 +330,21 @@ Return Value:
             {
                 *InputBuffer = WdfMemoryGetBuffer(inputMemory,
                                                   InputBufferSize);
-                ASSERT(*InputBuffer != NULL);
+                DmfAssert(*InputBuffer != NULL);
             }
             if (outputMemory != NULL)
             {
                 *OutputBuffer = WdfMemoryGetBuffer(outputMemory,
                                                    OutputBufferSize);
-                ASSERT(*OutputBufferSize >= CompletionParams->Parameters.Ioctl.Output.Length);
+                DmfAssert(*OutputBufferSize >= CompletionParams->Parameters.Ioctl.Output.Length);
                 *OutputBufferSize = CompletionParams->Parameters.Ioctl.Output.Length;
-                ASSERT(*OutputBuffer != NULL);
+                DmfAssert(*OutputBuffer != NULL);
             }
             break;
         }
         default:
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
         }
     }
 }
@@ -478,10 +478,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     singleAsynchronousRequestContext = (ContinuousRequestTarget_SingleAsynchronousRequestContext*)Context;
-    ASSERT(singleAsynchronousRequestContext != NULL);
+    DmfAssert(singleAsynchronousRequestContext != NULL);
 
     dmfModule = singleAsynchronousRequestContext->DmfModule;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Completion Request]", Request);
 
@@ -535,10 +535,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     singleAsynchronousRequestContext = (ContinuousRequestTarget_SingleAsynchronousRequestContext*)Context;
-    ASSERT(singleAsynchronousRequestContext != NULL);
+    DmfAssert(singleAsynchronousRequestContext != NULL);
 
     dmfModule = singleAsynchronousRequestContext->DmfModule;
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -660,8 +660,8 @@ Return Value:
                                                                                      clientBufferContextOutput,
                                                                                      ntStatus);
 
-            ASSERT(bufferDisposition > ContinuousRequestTarget_BufferDisposition_Invalid);
-            ASSERT(bufferDisposition < ContinuousRequestTarget_BufferDisposition_Maximum);
+            DmfAssert(bufferDisposition > ContinuousRequestTarget_BufferDisposition_Invalid);
+            DmfAssert(bufferDisposition < ContinuousRequestTarget_BufferDisposition_Maximum);
         }
 
         if (((bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming) ||
@@ -887,7 +887,7 @@ Return Value:
 
     // Prepare the request to be sent down.
     //
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
     switch (RequestType)
     {
         case ContinuousRequestTarget_RequestType_Write:
@@ -1033,7 +1033,7 @@ Return Value:
                                                             inputBuffer,
                                                             &inputBufferSize,
                                                             inputBufferContext);
-        ASSERT(inputBufferSize <= moduleConfig->BufferInputSize);
+        DmfAssert(inputBufferSize <= moduleConfig->BufferInputSize);
     }
 
     // Create the output buffer for the request if the Client needs one.
@@ -1130,7 +1130,7 @@ Return Value:
                                    &requestParams);
         // Simple reuse cannot fail.
         //
-        ASSERT(NT_SUCCESS(ntStatus));
+        DmfAssert(NT_SUCCESS(ntStatus));
 
         ntStatus = ContinuousRequestTarget_CreateBuffersAndFormatRequestForRequestType(DmfModule,
                                                                                        Request);
@@ -1152,7 +1152,7 @@ Return Value:
             if (! requestSendResult)
             {
                 ntStatus = WdfRequestGetStatus(Request);
-                ASSERT(!NT_SUCCESS(ntStatus));
+                DmfAssert(!NT_SUCCESS(ntStatus));
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
             }
         }
@@ -1254,12 +1254,12 @@ Return Value:
     outputBufferSize = 0;
     requestSendResult = FALSE;
 
-    ASSERT((IsSynchronousRequest && (EvtContinuousRequestTargetSingleAsynchronousRequest == NULL)) ||
-           (! IsSynchronousRequest));
+    DmfAssert((IsSynchronousRequest && (EvtContinuousRequestTargetSingleAsynchronousRequest == NULL)) ||
+              (! IsSynchronousRequest));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -1284,7 +1284,7 @@ Return Value:
     memoryForRequest = NULL;
     if (RequestLength > 0)
     {
-        ASSERT(RequestBuffer != NULL);
+        DmfAssert(RequestBuffer != NULL);
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                RequestBuffer,
                                                RequestLength,
@@ -1300,7 +1300,7 @@ Return Value:
     memoryForResponse = NULL;
     if (ResponseLength > 0)
     {
-        ASSERT(ResponseBuffer != NULL);
+        DmfAssert(ResponseBuffer != NULL);
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                ResponseBuffer,
                                                ResponseLength,
@@ -1359,7 +1359,7 @@ Return Value:
         else
         {
             completionRoutineSingle = ContinuousRequestTarget_CompletionRoutine;
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
         }
 
         singleAsynchronousRequestContext->DmfModule = DmfModule;
@@ -1570,7 +1570,7 @@ Return Value:
     // NOTE: Get total number from Config in case it has already started decrementing StreamRequestCount;
     //
     LONG requestsToCancel = (LONG)moduleConfig->ContinuousRequestCount;
-    ASSERT(moduleContext->StreamingRequestCount <= requestsToCancel);
+    DmfAssert(moduleContext->StreamingRequestCount <= requestsToCancel);
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cancel Pending Requests: START requestsToCancel=%d", requestsToCancel);
     for (LONG requestIndex = 0; requestIndex < requestsToCancel; requestIndex++)
     {
@@ -1613,7 +1613,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     // Tell the rest of the Module that Client has stopped streaming.
     // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
@@ -1854,7 +1854,7 @@ Return Value:
     }
     else
     {
-        ASSERT(moduleConfig->BufferCountInput == 0);
+        DmfAssert(moduleConfig->BufferCountInput == 0);
     }
 
     if (moduleConfig->BufferOutputSize > 0)
@@ -1879,7 +1879,7 @@ Return Value:
     }
     else
     {
-        ASSERT(moduleConfig->BufferCountOutput == 0);
+        DmfAssert(moduleConfig->BufferCountOutput == 0);
     }
 
     // BufferPoolContext
@@ -2123,7 +2123,7 @@ Return Value:
     //       In that case, cancellation of requests works in an undefined manner.
     //       Streaming *must* be stopped when this callback happens!
     //
-    ASSERT(moduleContext->Stopping);
+    DmfAssert(moduleContext->Stopping);
 
     // There is no need to verify that IoTarget is NULL. Client may not clear it because it is
     // not necessary to do so.
@@ -2133,7 +2133,7 @@ Return Value:
     //
     if (moduleContext->TransientStreamRequestsCollection != NULL)
     {
-        ASSERT(WdfCollectionGetCount(moduleContext->TransientStreamRequestsCollection) == 0);
+        DmfAssert(WdfCollectionGetCount(moduleContext->TransientStreamRequestsCollection) == 0);
         WdfObjectDelete(moduleContext->TransientStreamRequestsCollection);
         moduleContext->TransientStreamRequestsCollection = NULL;
     }
@@ -2210,7 +2210,7 @@ Return Value:
 
     if (moduleConfig->PurgeAndStartTargetInD0Callbacks)
     {
-        ASSERT(DmfModuleAttributes->DynamicModule == FALSE);
+        DmfAssert(DmfModuleAttributes->DynamicModule == FALSE);
         DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_ContinuousRequestTarget);
         dmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Entry = DMF_ContinuousRequestTarget_ModuleD0Entry;
         dmfCallbacksWdf_ContinuousRequestTarget.ModuleD0Exit = DMF_ContinuousRequestTarget_ModuleD0Exit;
@@ -2304,8 +2304,8 @@ Return Value:
                                  ContinuousRequestTarget);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(moduleContext->IoTarget != NULL);
-    ASSERT(moduleContext->Stopping);
+    DmfAssert(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->Stopping);
 
     moduleContext->IoTarget = NULL;
 
@@ -2346,8 +2346,8 @@ Return Value:
     ntStatus = STATUS_SUCCESS;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(IoTarget != NULL);
-    ASSERT(moduleContext->IoTarget == NULL);
+    DmfAssert(IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget == NULL);
 
     moduleContext->IoTarget = IoTarget;
 
@@ -2632,7 +2632,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(moduleContext->Stopping);
+    DmfAssert(moduleContext->Stopping);
 
     // Clear the Stopped flag as streaming will now start.
     //
@@ -2653,7 +2653,7 @@ Return Value:
         
         request = (WDFREQUEST)WdfCollectionGetItem(moduleContext->CreatedStreamRequestsCollection,
                                                    requestIndex);
-        ASSERT(request != NULL);
+        DmfAssert(request != NULL);
 
         // Add it to the list of Transient requests a single time when Streaming starts.
         //
@@ -2723,7 +2723,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -2739,7 +2739,7 @@ Return Value:
 
     DMF_ModuleDereference(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
 Exit:
     ;
@@ -2779,7 +2779,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 

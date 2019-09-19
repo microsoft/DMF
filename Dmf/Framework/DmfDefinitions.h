@@ -134,7 +134,7 @@ extern "C"
         #if !defined(ASSERT)
             // It means, do not assert at all.
             //
-            #define ASSERT(X) (VOID(0))
+            #define ASSERT(X) TRUE
         #endif // !defined(ASSERT)
     #endif // defined(DEBUG)
 #else
@@ -175,6 +175,36 @@ extern "C"
 #endif // defined(DMF_USER_MODE)
 #include <hidusage.h>
 #include <hidpi.h>
+
+// DMF Asserts definitions 
+//
+#if defined(DMF_USER_MODE)
+    #if DBG
+        #if defined(NO_USE_ASSERT_BREAK)
+            #include <assert.h>
+            #define DmfAssertMessage(Message, Expression) (!(Expression) ? assert(Expression), FALSE : TRUE)
+        #else
+            #define DmfAssertMessage(Message, Expression) (!(Expression) ? DbgBreakPoint(), OutputDebugStringA(Message), FALSE : TRUE)
+        #endif
+    #else
+        #define DmfAssertMessage(Message, Expression) TRUE        
+    #endif
+    #define DmfVerifierAssert(Message, Expression)                          \
+        if ((WdfDriverGlobals->DriverFlags & WdfVerifyOn) && !(Expression)) \
+        {                                                                   \
+            OutputDebugStringA(Message);                                    \
+            DbgBreakPoint();                                                \
+        }
+#else
+    #define DmfAssertMessage(Message, Expression) ASSERTMSG(Message, Expression)
+    #define DmfVerifierAssert(Message, Expression)                          \
+        if ((WdfDriverGlobals->DriverFlags & WdfVerifyOn) && !(Expression)) \
+        {                                                                   \
+            RtlAssert( Message, __FILE__, __LINE__, NULL );                 \
+        }
+#endif
+
+#define DmfAssert(Expression) DmfAssertMessage(#Expression, Expression)
 
 // NOTE: This is necessary in order to avoid redefinition errors. It is not clear why
 //       this is the case.
@@ -408,8 +438,8 @@ Return Value:
 
 --*/
 {
-    ASSERT(ModuleAttributes != NULL);
-    ASSERT(DmfModuleEventCallbacks != NULL);
+    DmfAssert(ModuleAttributes != NULL);
+    DmfAssert(DmfModuleEventCallbacks != NULL);
 
     RtlZeroMemory(DmfModuleEventCallbacks,
                   sizeof(DMF_MODULE_EVENT_CALLBACKS));
@@ -1659,7 +1689,7 @@ FatalListEntryError(
 
     // This is modified from original code in Wdm.h.
     //
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 }
 
 FORCEINLINE

@@ -129,7 +129,7 @@ Return Value:
     buffer = NULL;
     length = 0;
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -1015,7 +1015,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(symbolicLinkNameToSearchSavedBuffer != NULL);
+    DmfAssert(symbolicLinkNameToSearchSavedBuffer != NULL);
     matchLength = RtlCompareMemory((VOID*)symbolicLinkNameToSearchSavedBuffer,
                                     DevicePath->Buffer,
                                     DevicePath->Length);
@@ -1077,8 +1077,8 @@ Return Value:
 
     PAGED_CODE();
 
-    ASSERT(DevicePath != NULL);
-    ASSERT(IsTopLevelCollection != NULL);
+    DmfAssert(DevicePath != NULL);
+    DmfAssert(IsTopLevelCollection != NULL);
 
     FuncEntry(DMF_TRACE);
 
@@ -1203,7 +1203,7 @@ Return Value:
     {
         if (0 == SymbolicLinkName->Length)
         {
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR,
                         DMF_TRACE,
                         "Symbolic link length is 0");
@@ -1245,7 +1245,7 @@ Return Value:
         TraceEvents(TRACE_LEVEL_WARNING,
                     DMF_TRACE,
                     "Symbolic link was already initialized");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 
     // These items are cleared up on device removal.
@@ -1360,7 +1360,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(SymbolicLinkName);
+    DmfAssert(SymbolicLinkName);
     targetMatched = FALSE;
 
     DMF_ModuleLock(DmfModule);
@@ -1389,7 +1389,7 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(symbolicLinkNameSaved != NULL);
+    DmfAssert(symbolicLinkNameSaved != NULL);
 
     matchLength = RtlCompareMemory((VOID*)symbolicLinkNameSaved,
                                    SymbolicLinkName->Buffer,
@@ -1476,7 +1476,7 @@ Return Value:
     //
     #pragma warning(suppress:6387)
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     info = (PDEVICE_INTERFACE_CHANGE_NOTIFICATION)NotificationStructure;
     ntStatus = STATUS_SUCCESS;
@@ -1484,7 +1484,7 @@ Return Value:
     if (DMF_Utility_IsEqualGUID((LPGUID)&(info->Event),
                                 (LPGUID)&GUID_DEVICE_INTERFACE_ARRIVAL))
     {
-        ASSERT(info->SymbolicLinkName);
+        DmfAssert(info->SymbolicLinkName);
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
                     DMF_TRACE,
@@ -1548,13 +1548,13 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     parentDevice = DMF_ParentDeviceGet(DmfModule);
-    ASSERT(parentDevice != NULL);
+    DmfAssert(parentDevice != NULL);
 
     deviceObject = WdfDeviceWdmGetDeviceObject(parentDevice);
-    ASSERT(deviceObject != NULL);
+    DmfAssert(deviceObject != NULL);
     driverObject = deviceObject->DriverObject;
 
-    ASSERT(NULL == moduleContext->HidInterfaceNotification);
+    DmfAssert(NULL == moduleContext->HidInterfaceNotification);
     ntStatus = IoRegisterPlugPlayNotification(EventCategoryDeviceInterfaceChange,
                                               PNPNOTIFY_DEVICE_INTERFACE_INCLUDE_EXISTING_INTERFACES,
                                               (void*)InterfaceGuid,
@@ -1722,7 +1722,7 @@ Return Value:
                         DMF_TRACE,
                         "IoUnregisterPlugPlayNotificationEx() fails: ntStatus=%!STATUS!",
                         ntStatus);
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             goto Exit;
         }
 
@@ -1797,7 +1797,7 @@ Return Value:
 
     if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL)
     {
-        ASSERT(EventData->u.DeviceInterface.SymbolicLink);
+        DmfAssert(EventData->u.DeviceInterface.SymbolicLink);
         UNICODE_STRING symbolicLinkName;
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
@@ -1812,7 +1812,7 @@ Return Value:
     }
     else if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
     {
-        ASSERT(EventData->u.DeviceInterface.SymbolicLink);
+        DmfAssert(EventData->u.DeviceInterface.SymbolicLink);
         UNICODE_STRING symbolicLinkName;
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
@@ -2149,7 +2149,7 @@ Return Value:
     DMF_ModuleLock(DmfModule);
     lockHeld = TRUE;
 
-    ASSERT(moduleContext->IoTarget == NULL);
+    DmfAssert(moduleContext->IoTarget == NULL);
 
     moduleContext->IoTarget = target;
     moduleContext->EvtHidInputReport = moduleConfig->EvtHidInputReport;
@@ -2342,7 +2342,7 @@ Return Value:
 
     // The Notification should not be enabled at this time. It should have been unregistered.
     //
-    ASSERT(NULL == moduleContext->HidInterfaceNotification);
+    DmfAssert(NULL == moduleContext->HidInterfaceNotification);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -2386,7 +2386,7 @@ Return Value:
 
     // This function should not be not called twice.
     //
-    ASSERT(NULL == moduleContext->HidInterfaceNotification);
+    DmfAssert(NULL == moduleContext->HidInterfaceNotification);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -2790,7 +2790,7 @@ Return Value:
 
     if (NumberOfBytesToCopy > BufferSize)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
@@ -2857,7 +2857,7 @@ Return Value:
 
     if (OffsetOfDataToCopy + NumberOfBytesToCopy > moduleContext->HidCaps.FeatureReportByteLength)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_OVERFLOW;
         goto Exit;
     }
@@ -2949,7 +2949,7 @@ Return Value:
 
     if (NumberOfBytesToCopy > BufferSize)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Insufficient Buffer Length ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -2960,7 +2960,7 @@ Return Value:
 
     if (OffsetOfDataToCopy + NumberOfBytesToCopy > moduleContext->HidCaps.FeatureReportByteLength)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_OVERFLOW;
         goto Exit;
     }
@@ -3125,7 +3125,7 @@ Return Value:
 
     if (NumberOfBytesToCopy > BufferSize)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Insufficient Buffer Length ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -3136,7 +3136,7 @@ Return Value:
 
     if (moduleContext->HidCaps.NumberFeatureValueCaps == 0)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid parameter! NumberFeatureValueCaps = 0 : ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -3168,7 +3168,7 @@ Return Value:
         TraceError(DMF_TRACE, "HidP_GetValueCaps fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-    ASSERT(capsCountFound <= moduleContext->HidCaps.NumberFeatureValueCaps);
+    DmfAssert(capsCountFound <= moduleContext->HidCaps.NumberFeatureValueCaps);
 
     USHORT capIndex;
     UINT featureReportByteLength = 0;
@@ -3199,7 +3199,7 @@ Return Value:
 
     if (OffsetOfDataToCopy + NumberOfBytesToCopy > featureReportByteLength)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_OVERFLOW;
         goto Exit;
     }
@@ -3660,7 +3660,7 @@ Return Value:
         goto ExitNoRelease;
     }
 
-    ASSERT(PreparsedData != NULL);
+    DmfAssert(PreparsedData != NULL);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_ModuleLock(DmfModule);

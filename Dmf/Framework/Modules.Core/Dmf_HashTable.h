@@ -31,7 +31,7 @@ EVT_DMF_HashTable_HashCalculate(_In_ DMFMODULE DmfModule,
                                 _In_reads_(KeyLength) UCHAR* Key,
                                 _In_ ULONG KeyLength);
 
-// Callback function for client driver to process table entry.
+// Callback function for Client to process table entry.
 //
 typedef
 _Function_class_(EVT_DMF_HashTable_Find)
@@ -43,6 +43,20 @@ EVT_DMF_HashTable_Find(_In_ DMFMODULE DmfModule,
                        _In_ ULONG KeyLength,
                        _Inout_updates_to_(*ValueLength, *ValueLength) UCHAR* Value,
                        _Inout_ ULONG* ValueLength);
+
+// Callback function for Client to process table entry or perform other operations.
+//
+typedef
+_Function_class_(EVT_DMF_HashTable_FindEx)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_HashTable_FindEx(_In_ DMFMODULE DmfModule,
+                         _In_ VOID* CallbackContext,
+                         _In_reads_(KeyLength) UCHAR* Key,
+                         _In_ ULONG KeyLength,
+                         _Inout_updates_to_(*ValueLength, *ValueLength) UCHAR* Value,
+                         _Inout_ ULONG* ValueLength);
 
 // Callback function for client driver to enumerate the table.
 //
@@ -105,6 +119,17 @@ DMF_HashTable_Find(
     _In_reads_(KeyLength) UCHAR* Key,
     _In_ ULONG KeyLength,
     _In_ EVT_DMF_HashTable_Find* CallbackFind
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HashTable_FindEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(KeyLength) UCHAR* Key,
+    _In_ ULONG KeyLength,
+    _In_ EVT_DMF_HashTable_FindEx* CallbackFindEx,
+    _In_ VOID* CallbackContext
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

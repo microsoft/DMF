@@ -100,9 +100,9 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(EventIndex <= moduleConfig->MaximumEventIndex);
-    ASSERT(EventIndex < NotifyUserWithEvent_MAXIMUM_EVENTS);
-    ASSERT(moduleConfig->EventNames[EventIndex].Length > 0);
+    DmfAssert(EventIndex <= moduleConfig->MaximumEventIndex);
+    DmfAssert(EventIndex < NotifyUserWithEvent_MAXIMUM_EVENTS);
+    DmfAssert(moduleConfig->EventNames[EventIndex].Length > 0);
 
     InitializeObjectAttributes(&objectAttributes,
                                (PUNICODE_STRING)&moduleConfig->EventNames[EventIndex],
@@ -165,7 +165,7 @@ Return Value:
             NTSTATUS ntStatus;
 
             ntStatus = ZwClose(moduleContext->NotifyUserWithEvent[eventIndex]);
-            ASSERT(NT_SUCCESS(ntStatus));
+            DmfAssert(NT_SUCCESS(ntStatus));
             moduleContext->NotifyUserWithEvent[eventIndex] = NULL;
         }
     }
@@ -212,8 +212,8 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(EventIndex <= moduleConfig->MaximumEventIndex);
-    ASSERT(EventIndex < NotifyUserWithEvent_MAXIMUM_EVENTS);
+    DmfAssert(EventIndex <= moduleConfig->MaximumEventIndex);
+    DmfAssert(EventIndex < NotifyUserWithEvent_MAXIMUM_EVENTS);
 
     if (moduleContext->NotifyUserWithEvent[EventIndex] != NULL)
     {
@@ -310,7 +310,7 @@ Return Value:
     //
     if (moduleConfig->MaximumEventIndex >= NotifyUserWithEvent_MAXIMUM_EVENTS)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -520,8 +520,8 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(EventIndex <= moduleConfig->MaximumEventIndex);
-    ASSERT(EventIndex < NotifyUserWithEvent_MAXIMUM_EVENTS);
+    DmfAssert(EventIndex <= moduleConfig->MaximumEventIndex);
+    DmfAssert(EventIndex < NotifyUserWithEvent_MAXIMUM_EVENTS);
 
     DMF_ModuleLock(DmfModule);
 

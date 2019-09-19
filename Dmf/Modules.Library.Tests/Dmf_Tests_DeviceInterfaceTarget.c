@@ -144,15 +144,15 @@ Tests_DeviceInterfaceTarget_BufferOutput(
 
     if (!NT_SUCCESS(CompletionStatus))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
     if (OutputBufferSize != sizeof(DWORD))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
     if (*((DWORD*)OutputBuffer) != 0)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
     return ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
 }
@@ -191,7 +191,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                                                            IOCTL_Tests_IoctlHandler_SLEEP,
                                                            0,
                                                            &bytesWritten);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
 
@@ -207,7 +207,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                                                            IOCTL_Tests_IoctlHandler_SLEEP,
                                                            0,
                                                            &bytesWritten);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
 }
@@ -273,7 +273,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
@@ -288,7 +288,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 }
 #pragma code_seg()
 
@@ -327,7 +327,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                               ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
                                         sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
@@ -351,7 +351,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                               ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               NULL);
-    ASSERT(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
                                      0);
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
@@ -404,7 +404,7 @@ Tests_DeviceInterfaceTarget_WorkThread(
                                                                         threadIndex->DmfModuleAlertableSleep);
             break;
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
     }
 
@@ -787,7 +787,7 @@ Return Value:
     }
 
     ntStatus = Tests_DeviceInterfaceTarget_NonContinousStartAuto(dmfModuleParent);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
@@ -889,7 +889,7 @@ Return Value:
     {
         Tests_DeviceInterfaceTarget_NonContinousStartManualInput(dmfModuleParent);
     }
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
@@ -953,7 +953,7 @@ Return Value:
     {
         Tests_DeviceInterfaceTarget_NonContinousStartManualOutput(dmfModuleParent);
     }
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }

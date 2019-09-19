@@ -58,6 +58,7 @@ EvtHashTableHashCalculate | A callback to replace the default hashing algorithm.
 #### Module Callbacks
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 ##### EVT_DMF_HashTable_HashCalculate
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -89,6 +90,45 @@ KeyLength | The Length of the Key in bytes.
 * Provide this callback only if the default hashing algorithm needs to be replaced.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
+##### EVT_DMF_HashTable_Enumerate
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+EVT_DMF_HashTable_Enumerate(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(KeyLength) UCHAR* Key,
+    _In_ ULONG KeyLength,
+    _In_reads_(ValueLength) UCHAR* Value,
+    _In_ ULONG ValueLength,
+    _In_ VOID* CallbackContext
+    );
+````
+
+A Client callback called by DMF_HashTable_Enumerate for every Key-Value pair in a Hash Table.
+
+##### Returns
+
+TRUE to continue enumeration.
+FALSE to stop enumeration.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HashTable Module handle.
+Key | The given Key.
+KeyLength | The Length of the Key in bytes.
+Value | The given Value.
+ValueLength | The Length of the Value in bytes.
+CallbackContext | A Context pointer passed by the Client into DMF_HashTable_Enumerate.
+
+##### Remarks
+
+* Key and Value buffers in this callback are read only.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### EVT_DMF_HashTable_Find
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -125,41 +165,44 @@ ValueLength | The Length of the Value in bytes.
 * The Value and the ValueLength can be modified in this callback.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### EVT_DMF_HashTable_Enumerate
+
+##### EVT_DMF_HashTable_FindEx
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
-BOOLEAN
-EVT_DMF_HashTable_Enumerate(
+VOID
+EVT_DMF_HashTable_Find(
     _In_ DMFMODULE DmfModule,
+    _In_ VOID* CallbackContext,
     _In_reads_(KeyLength) UCHAR* Key,
     _In_ ULONG KeyLength,
-    _In_reads_(ValueLength) UCHAR* Value,
-    _In_ ULONG ValueLength,
-    _In_ VOID* CallbackContext
+    _Inout_updates_to_(*ValueLength, *ValueLength) UCHAR* Value,
+    _Inout_ ULONG* ValueLength
     );
 ````
 
-A Client callback called by DMF_HashTable_Enumerate for every Key-Value pair in a Hash Table.
+A Client callback called by DMF_HashTable_Find.
+Allows the Client to perform Client specific tasks on a given Key-Value pair or perform other operations.
+This version allows caller to receive a call specific context.
 
 ##### Returns
 
-TRUE to continue enumeration.
-FALSE to stop enumeration.
+None
 
 ##### Parameters
 Parameter | Description
 ----|----
 DmfModule | An open DMF_HashTable Module handle.
+CallbackContext | Call specific context passed by the caller.
 Key | The given Key.
 KeyLength | The Length of the Key in bytes.
 Value | The given Value.
 ValueLength | The Length of the Value in bytes.
-CallbackContext | A Context pointer passed by the Client into DMF_HashTable_Enumerate.
 
 ##### Remarks
 
-* Key and Value buffers in this callback are read only.
+* The Key should not be modified.
+* The Value and the ValueLength can be modified in this callback.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -212,7 +255,8 @@ DMF_HashTable_Find(
   );
 ````
 
-This Method finds a given Key in a Hash Table and calls a given callback.
+Finds the specified key in the hash table and calls a callback function to process the value associated with the key.
+In case the key is absent in the hash table, it will be added with the ValueLength set to zero, and then the callback will be called.
 
 ##### Returns
 
@@ -225,6 +269,44 @@ DmfModule | An open DMF_HashTable Module handle.
 Key | The given Key.
 KeyLength | The Length of the Key in bytes.
 CallbackFind | The callback to perform Client specific tasks on the Value associated with the Key.
+
+##### Remarks
+
+* In case the Key is absent in the Hash Table, it will be added with the Value set to zero before calling the callback.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_HashTable_FindEx
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HashTable_FindEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(KeyLength) UCHAR* Key,
+    _In_ ULONG KeyLength,
+    _In_ EVT_DMF_HashTable_FindEx* CallbackFind,
+    _In_ VOID* CallbackContext
+  );
+````
+
+Finds the specified key in the hash table and calls a callback function to process the value associated with the key.
+In case the key is absent in the hash table, it will be added with the ValueLength set to zero, and then the callback will be called.
+Caller can use this Method to perform actions other than updating the hash table record.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HashTable Module handle.
+Key | The given Key.
+KeyLength | The Length of the Key in bytes.
+CallbackFind | The callback to perform Client specific tasks on the Value associated with the Key.
+CallbackContext | Call specific context passed to CallbackFind.
 
 ##### Remarks
 

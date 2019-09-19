@@ -271,7 +271,7 @@ Return Value:
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER_3;
         goto Exit;
     }
@@ -518,7 +518,7 @@ Return Value:
         // Same callback is created for both Server/Client. Standalone does not need or expose
         // callback.
         //
-        ASSERT(moduleConfig->ClientServerCallbackName != NULL);
+        DmfAssert(moduleConfig->ClientServerCallbackName != NULL);
         RtlUnicodeStringInit(&virtualKeyboardCallbackName,
                              moduleConfig->ClientServerCallbackName);
         InitializeObjectAttributes(&objectAttributes,
@@ -549,7 +549,7 @@ Return Value:
             // Only Server registers the callback handler. Client does not handle it. Standalone does not
             // expose any callback.
             //
-            ASSERT(moduleContext->CallbackHandle != NULL);
+            DmfAssert(moduleContext->CallbackHandle != NULL);
             moduleContext->CallbackHandle = ExRegisterCallback(moduleContext->CallbackObject,
                                                                VirtualHidKeyboard_CallbackFunction,
                                                                DmfModule);
@@ -607,7 +607,7 @@ Return Value:
 #else
         // Only the Server has registered the callback.
         //
-        ASSERT(moduleContext->CallbackHandle != NULL);
+        DmfAssert(moduleContext->CallbackHandle != NULL);
         ExUnregisterCallback(moduleContext->CallbackHandle);
 #endif // defined(USE_DISABLE_CALLBACK_REGISTRATION)
     }
@@ -615,7 +615,7 @@ Return Value:
     if ((moduleConfig->VirtualHidKeyboardMode == VirtualHidKeyboardMode_Server) ||
         (moduleConfig->VirtualHidKeyboardMode == VirtualHidKeyboardMode_Client))
     {
-        ASSERT(moduleContext->CallbackHandle != NULL);
+        DmfAssert(moduleContext->CallbackHandle != NULL);
         ObDereferenceObject(moduleContext->CallbackHandle);
         moduleContext->CallbackHandle = NULL;
     }

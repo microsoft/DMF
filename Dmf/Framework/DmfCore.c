@@ -400,7 +400,7 @@ Return Value:
         dmfModuleParent = (DMFMODULE)parentObject;
         dmfObjectParent = DMF_ModuleToObject(dmfModuleParent);
 
-        ASSERT(Device == DMF_ParentDeviceGet(dmfModuleParent));
+        DmfAssert(Device == DMF_ParentDeviceGet(dmfModuleParent));
     }
     else
     {
@@ -422,7 +422,7 @@ Return Value:
     if ((DmfModuleAttributes->DynamicModule) &&
         (NULL != ModuleDescriptor->CallbacksWdf))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -434,7 +434,7 @@ Return Value:
         (ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_OPEN_Create &&
          ModuleDescriptor->OpenOption != DMF_MODULE_OPEN_OPTION_NOTIFY_Create))
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
         goto Exit;
     }
@@ -501,7 +501,7 @@ Return Value:
     // want to force the Client Driver to maintain space for the name in cases where the 
     // name is generated.
     //
-    ASSERT(DmfModuleAttributes->ClientModuleInstanceName != NULL);
+    DmfAssert(DmfModuleAttributes->ClientModuleInstanceName != NULL);
     if (*DmfModuleAttributes->ClientModuleInstanceName == '\0')
     {
         // If Client Driver has passed "", then use the Module Name as the Module Instance Name.
@@ -517,7 +517,7 @@ Return Value:
         clientModuleInstanceName = DmfModuleAttributes->ClientModuleInstanceName;
     }
     clientModuleInstanceNameSizeBytes = strlen(clientModuleInstanceName) + sizeof(CHAR);
-    ASSERT(clientModuleInstanceNameSizeBytes > 1);
+    DmfAssert(clientModuleInstanceNameSizeBytes > 1);
 
     // Allocate space for the instance name. This name is useful during debugging.
     //
@@ -543,16 +543,16 @@ Return Value:
               clientModuleInstanceNameSizeBytes,
               clientModuleInstanceName,
               clientModuleInstanceNameSizeBytes);
-    ASSERT(clientModuleInstanceNameSizeBytes > 0);
-    ASSERT(dmfObject->ClientModuleInstanceName[clientModuleInstanceNameSizeBytes - 1] == '\0');
-    ASSERT(dmfObject->ClientModuleInstanceName[0] != '\0');
+    DmfAssert(clientModuleInstanceNameSizeBytes > 0);
+    DmfAssert(dmfObject->ClientModuleInstanceName[clientModuleInstanceNameSizeBytes - 1] == '\0');
+    DmfAssert(dmfObject->ClientModuleInstanceName[0] != '\0');
 
     // Create the area for Module Config, if any.
     //
-    ASSERT(NULL == dmfObject->ModuleConfig);
+    DmfAssert(NULL == dmfObject->ModuleConfig);
     if (DmfModuleAttributes->SizeOfModuleSpecificConfig != NULL)
     {
-        ASSERT(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
+        DmfAssert(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
         WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
         attributes.ParentObject = memoryDmfObject;
         ntStatus = WdfMemoryCreate(&attributes,
@@ -573,8 +573,8 @@ Return Value:
 
         // Save off the Module Config information for when the Open happens later.
         //
-        ASSERT(DmfModuleAttributes->ModuleConfigPointer != NULL);
-        ASSERT(dmfObject->ModuleConfig != NULL);
+        DmfAssert(DmfModuleAttributes->ModuleConfigPointer != NULL);
+        DmfAssert(dmfObject->ModuleConfig != NULL);
         RtlCopyMemory(dmfObject->ModuleConfig,
                       DmfModuleAttributes->ModuleConfigPointer,
                       ModuleDescriptor->ModuleConfigSize);
@@ -713,7 +713,7 @@ Return Value:
     {
         // For Modules that run at Dispatch Level.
         //
-        ASSERT(! (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE));
+        DmfAssert(! (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE));
         dmfObject->InternalCallbacksDmf = DmfCallbacksDmf_Internal_Dispatch;
         dmfObject->InternalCallbacksWdf = DmfCallbacksWdf_Internal_Dispatch;
         dmfObject->InternalCallbacksInternal = DmfCallbacksInternal_Internal_Dispatch;
@@ -722,14 +722,14 @@ Return Value:
     {
         // For Modules that run at Passive Level.
         //
-        ASSERT(! (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
+        DmfAssert(! (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
         dmfObject->InternalCallbacksDmf = DmfCallbacksDmf_Internal_Passive;
         dmfObject->InternalCallbacksWdf = DmfCallbacksWdf_Internal_Passive;
         dmfObject->InternalCallbacksInternal = DmfCallbacksInternal_Internal_Passive;
     }
     else
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 
     // Set default callbacks.
@@ -900,100 +900,100 @@ Return Value:
     }
 
     dmfObject->ModuleDescriptor.WdfAddCustomType = ModuleDescriptor->WdfAddCustomType;
-    ASSERT(dmfObject->ModuleDescriptor.WdfAddCustomType != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.WdfAddCustomType != NULL);
 
     // Handlers are always set. We don't need to check pointers everywhere.
     //
-    ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
-    ASSERT(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
+    DmfAssert(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
+    DmfAssert(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
 
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
-    ASSERT(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
+    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
 
-    ASSERT(dmfObject->InternalCallbacksDmf.ModuleInstanceDestroy != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModulePrepareHardware != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleReleaseHardware != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleD0Entry != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleD0EntryPostInterruptsEnabled != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleD0ExitPreInterruptsDisabled != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleD0Exit != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleQueueIoRead != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleQueueIoWrite != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleDeviceIoControl != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleInternalDeviceIoControl != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoCleanup != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoFlush != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoInit != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoSuspend != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoRestart != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleSurpriseRemoval != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleQueryRemove != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleQueryStop != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleRelationsQuery != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleUsageNotificationEx != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleArmWakeFromS0 != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromS0 != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleWakeFromS0Triggered != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleArmWakeFromSxWithReason != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromSx != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleWakeFromSxTriggered != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleFileCreate != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleFileCleanup != NULL);
-    ASSERT(dmfObject->InternalCallbacksWdf.ModuleFileClose != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.ModuleInstanceDestroy != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModulePrepareHardware != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleReleaseHardware != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0Entry != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0EntryPostInterruptsEnabled != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0ExitPreInterruptsDisabled != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0Exit != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueueIoRead != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueueIoWrite != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleDeviceIoControl != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleInternalDeviceIoControl != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoCleanup != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoFlush != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoInit != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoSuspend != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoRestart != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSurpriseRemoval != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueryRemove != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueryStop != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleRelationsQuery != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleUsageNotificationEx != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleArmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromS0 != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleWakeFromS0Triggered != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleArmWakeFromSxWithReason != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromSx != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleWakeFromSxTriggered != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleFileCreate != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleFileCleanup != NULL);
+    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleFileClose != NULL);
 
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceResourcesAssign != NULL);
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
-    ASSERT(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
-    ASSERT(dmfObject->InternalCallbacksInternal.DefaultLock != NULL);
-    ASSERT(dmfObject->InternalCallbacksInternal.DefaultUnlock != NULL);
-    ASSERT(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
-    ASSERT(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceResourcesAssign != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
+    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
+    DmfAssert(dmfObject->InternalCallbacksInternal.DefaultLock != NULL);
+    DmfAssert(dmfObject->InternalCallbacksInternal.DefaultUnlock != NULL);
+    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
+    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
 
     // Initialize the Module State.
     //
-    ASSERT(ModuleState_Invalid == dmfObject->ModuleState);
+    DmfAssert(ModuleState_Invalid == dmfObject->ModuleState);
     dmfObject->ModuleState = ModuleState_Created;
 
     if (childModuleCreate)
     {
-        ASSERT(dmfObjectParent != NULL);
-        ASSERT(dmfModuleParent != NULL);
+        DmfAssert(dmfObjectParent != NULL);
+        DmfAssert(dmfModuleParent != NULL);
 
         // Add the Child Module to the list of the Parent Module's children
         // if its not a Dynamic Module. The lifetime of the Dynamic Module is
@@ -1009,8 +1009,8 @@ Return Value:
             //       functioning of the drivers, however. These asserts are 
             //       here to ensure that we all know this is "by design".
             //
-            ASSERT(NULL == dmfObject->ModuleCollection);
-            ASSERT(NULL == dmfObjectParent->ModuleCollection);
+            DmfAssert(NULL == dmfObject->ModuleCollection);
+            DmfAssert(NULL == dmfObjectParent->ModuleCollection);
 
             InsertTailList(&dmfObjectParent->ChildObjectList,
                            &dmfObject->ChildListEntry);
@@ -1022,23 +1022,23 @@ Return Value:
 
         // Save the Parent in the Child.
         //
-        ASSERT(NULL == dmfObject->DmfObjectParent);
+        DmfAssert(NULL == dmfObject->DmfObjectParent);
         dmfObject->DmfObjectParent = dmfObjectParent;
 
         // Perform operations when this Module is instantiated as a Transport Module.
         //
         if (dmfObject->IsTransport)
         {
-            ASSERT(dmfObjectParent->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED);
+            DmfAssert(dmfObjectParent->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED);
 #if DBG
             GUID zeroGuid;
 
             RtlZeroMemory(&zeroGuid,
                           sizeof(zeroGuid));
-            ASSERT(!DMF_Utility_IsEqualGUID(&zeroGuid,
-                                            &dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid));
-            ASSERT(!DMF_Utility_IsEqualGUID(&zeroGuid,
-                                            &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid));
+            DmfAssert(!DMF_Utility_IsEqualGUID(&zeroGuid,
+                                               &dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid));
+            DmfAssert(!DMF_Utility_IsEqualGUID(&zeroGuid,
+                                               &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid));
 #endif
             // The Child's supported interface GUID must match the Parent's desired interface GUID.
             //
@@ -1057,7 +1057,7 @@ Return Value:
             {
                 // Attempted to connect incompatible transport interface.
                 //
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 ntStatus = STATUS_UNSUCCESSFUL;
                 goto Exit;
             }
@@ -1131,7 +1131,7 @@ Return Value:
     //
     if (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED)
     {
-        ASSERT(DmfModuleAttributes->TransportModuleAdd != NULL);
+        DmfAssert(DmfModuleAttributes->TransportModuleAdd != NULL);
         // Indicate that all Modules added here are Transport Modules.
         //
         moduleCollectionConfig.DmfPrivate.IsTransportModule = TRUE;
@@ -1148,7 +1148,7 @@ Return Value:
         //
         #pragma warning(suppress:4189)
         ULONG numberOfClientModulesToCreate = WdfCollectionGetCount(moduleCollectionConfig.DmfPrivate.ListOfConfigs);
-        ASSERT(numberOfClientModulesToCreate > 0);
+        DmfAssert(numberOfClientModulesToCreate > 0);
         // The attributes for all the Modules have been set. Create the Modules.
         //
         ntStatus = DMF_ModuleCollectionCreate(NULL,
@@ -1188,7 +1188,7 @@ Exit:
 
     if (dmfObject != NULL)
     {
-        ASSERT(! dmfObject->DynamicModuleImmediate);
+        DmfAssert(! dmfObject->DynamicModuleImmediate);
         // If this Module is a Dynamic Module or it is an immediate or non-immediate Child
         // of a Dynamic Module, open it now if it should be opened during Create.
         //
@@ -1264,9 +1264,9 @@ Return Value:
     DMF_HandleValidate_Destroy(dmfObject);
     dmfObject->ModuleState = ModuleState_Destroying;
 
-    ASSERT(dmfObject->MemoryDmfObject != NULL);
+    DmfAssert(dmfObject->MemoryDmfObject != NULL);
 
-    ASSERT(dmfObject->ClientModuleInstanceNameMemory != NULL);
+    DmfAssert(dmfObject->ClientModuleInstanceNameMemory != NULL);
     WdfObjectDelete(dmfObject->ClientModuleInstanceNameMemory);
     dmfObject->ClientModuleInstanceNameMemory = NULL;
 
@@ -1280,7 +1280,7 @@ Return Value:
 
     if (dmfObject->ModuleConfigMemory != NULL)
     {
-        ASSERT(dmfObject->ModuleConfig != NULL);
+        DmfAssert(dmfObject->ModuleConfig != NULL);
         WdfObjectDelete(dmfObject->ModuleConfigMemory);
         dmfObject->ModuleConfigMemory = NULL;
         dmfObject->ModuleConfig = NULL;
@@ -1289,8 +1289,8 @@ Return Value:
     {
         // Module Config Memory is optional.
         //
-        ASSERT(NULL == dmfObject->ModuleConfig);
-        ASSERT(NULL == dmfObject->ModuleConfigMemory);
+        DmfAssert(NULL == dmfObject->ModuleConfig);
+        DmfAssert(NULL == dmfObject->ModuleConfigMemory);
     }
 
     if (DeleteMemory)
@@ -1333,7 +1333,7 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
     dmfObjectTransport = DMF_ModuleToObject(TransportDmfModule);
-    ASSERT(NULL == dmfObject->TransportModule);
+    DmfAssert(NULL == dmfObject->TransportModule);
     dmfObject->TransportModule = dmfObjectTransport;
 }
 
@@ -1361,7 +1361,7 @@ Return Value:
     DMF_OBJECT* dmfObject;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
-    ASSERT(dmfObject->TransportModule != NULL);
+    DmfAssert(dmfObject->TransportModule != NULL);
     transportModule = DMF_ObjectToModule(dmfObject->TransportModule);
 
     return transportModule;

@@ -128,8 +128,8 @@ Tests_BufferPool_Validate(
 
     UNREFERENCED_PARAMETER(ClientBufferContext);
 
-    ASSERT(ClientBuffer != NULL);
-    ASSERT(ClientBufferContext != NULL);
+    DmfAssert(ClientBuffer != NULL);
+    DmfAssert(ClientBufferContext != NULL);
 
     DMF_BufferPool_ParametersGet(DmfModuleBufferPool,
                                  ClientBuffer,
@@ -139,25 +139,25 @@ Tests_BufferPool_Validate(
                                  &paramClientBufferContext,
                                  &paramClientBufferContextSize);
 
-    ASSERT(BUFFER_SIZE == paramClientBufferSize);
-    ASSERT(sizeof(CLIENT_BUFFER_CONTEXT) == paramClientBufferContextSize);
+    DmfAssert(BUFFER_SIZE == paramClientBufferSize);
+    DmfAssert(sizeof(CLIENT_BUFFER_CONTEXT) == paramClientBufferContextSize);
 
     checkSum = TestsUtility_CrcCompute(ClientBuffer,
                                        BUFFER_SIZE);
 
-    ASSERT(CLIENT_CONTEXT_SIGNATURE == ClientBufferContext->Signature);
-    ASSERT(checkSum == ClientBufferContext->CheckSum);
+    DmfAssert(CLIENT_CONTEXT_SIGNATURE == ClientBufferContext->Signature);
+    DmfAssert(checkSum == ClientBufferContext->CheckSum);
 
     if (ClientBufferMemory != NULL)
     {
-        ASSERT(ClientBufferMemory == paramClientBufferMemory);
+        DmfAssert(ClientBufferMemory == paramClientBufferMemory);
     }
 
     if (MemoryDescriptor != NULL)
     {
-        ASSERT(RtlCompareMemory(MemoryDescriptor, 
-                                &paramMemoryDescriptor, 
-                                sizeof(paramMemoryDescriptor) == sizeof(paramMemoryDescriptor)));
+        DmfAssert(RtlCompareMemory(MemoryDescriptor, 
+                                   &paramMemoryDescriptor, 
+                                   sizeof(paramMemoryDescriptor) == sizeof(paramMemoryDescriptor)));
     }
 }
 
@@ -179,8 +179,8 @@ Tests_BufferPool_GetFromPool(
     PWDF_MEMORY_DESCRIPTOR memoryDescriptorPointer;
     NTSTATUS ntStatus;
 
-    ASSERT(ClientBuffer != NULL);
-    ASSERT(ClientBufferContext != NULL);
+    DmfAssert(ClientBuffer != NULL);
+    DmfAssert(ClientBufferContext != NULL);
 
     dmfModule = DMF_ParentModuleGet(DmfModuleBufferPool);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
@@ -204,8 +204,8 @@ Tests_BufferPool_GetFromPool(
                                       (VOID**)&clientBufferContext);
         if (NT_SUCCESS(ntStatus))
         {
-            ASSERT(clientBuffer != NULL);
-            ASSERT(clientBufferContext != NULL);
+            DmfAssert(clientBuffer != NULL);
+            DmfAssert(clientBufferContext != NULL);
         }
         break;
 
@@ -216,9 +216,9 @@ Tests_BufferPool_GetFromPool(
                                                &clientBufferMemory);
         if (NT_SUCCESS(ntStatus))
         {
-            ASSERT(clientBuffer != NULL);
-            ASSERT(clientBufferContext != NULL);
-            ASSERT(clientBufferMemory != NULL);
+            DmfAssert(clientBuffer != NULL);
+            DmfAssert(clientBufferContext != NULL);
+            DmfAssert(clientBufferMemory != NULL);
         }
         break;
 
@@ -229,15 +229,15 @@ Tests_BufferPool_GetFromPool(
                                                          (VOID**)&clientBufferContext);
         if (NT_SUCCESS(ntStatus))
         {
-            ASSERT(clientBuffer != NULL);
-            ASSERT(clientBufferContext != NULL);
+            DmfAssert(clientBuffer != NULL);
+            DmfAssert(clientBufferContext != NULL);
             memoryDescriptorPointer = &memoryDescriptor;
         }
         break;
 
     default:
         ntStatus = STATUS_INTERNAL_ERROR;
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         break;
     }
 
@@ -319,7 +319,7 @@ BufferPool_Enumeration_Callback(
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     enumContext = (ENUM_CONTEXT*)ClientDriverCallbackContext;
-    ASSERT(enumContext != NULL);
+    DmfAssert(enumContext != NULL);
 
     Tests_BufferPool_Validate(moduleContext->DmfModuleBufferPoolSource,
                               (UINT8*)ClientBuffer,
@@ -372,8 +372,8 @@ Tests_BufferPool_ThreadAction_BufferAquire(
     {
         goto Exit;
     }
-    ASSERT(clientBuffer != NULL);
-    ASSERT(clientBufferContext != NULL);
+    DmfAssert(clientBuffer != NULL);
+    DmfAssert(clientBufferContext != NULL);
 
     // Generate a random action Id to put the buffer into the sink
     //
@@ -405,7 +405,7 @@ Tests_BufferPool_ThreadAction_BufferAquire(
         break;
     }
     default:
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         break;
     }
 
@@ -496,8 +496,8 @@ Tests_BufferPool_ThreadAction_BufferEnumerate(
     //
     if (enumContext.ClientOwnsBuffer)
     {
-        ASSERT(clientBuffer != NULL);
-        ASSERT(clientBufferContext != NULL);
+        DmfAssert(clientBuffer != NULL);
+        DmfAssert(clientBufferContext != NULL);
 
         Tests_BufferPool_Validate(moduleContext->DmfModuleBufferPoolSource,
                                   clientBuffer,
@@ -537,7 +537,7 @@ Tests_BufferPool_ThreadAction_BufferCount(
     // for the currently acquired number and putting buffers to sync.
     // So a number of acquired buffers may be up to THREAD_COUNT more, in case of a race conditions.
     //
-    ASSERT(currentCount <= BUFFER_COUNT_MAX + THREAD_COUNT);
+    DmfAssert(currentCount <= BUFFER_COUNT_MAX + THREAD_COUNT);
 
     return ntStatus;
 }
@@ -583,12 +583,12 @@ Tests_BufferPool_WorkThread(
         break;
     default:
         ntStatus = STATUS_UNSUCCESSFUL;
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         break;
     }
 
-    ASSERT(NT_SUCCESS(ntStatus) ||
-           DMF_Thread_IsStopPending(DmfModuleThread));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              DMF_Thread_IsStopPending(DmfModuleThread));
 
     // Repeat the test, until stop is signaled.
     //

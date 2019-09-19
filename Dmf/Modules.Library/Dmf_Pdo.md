@@ -417,6 +417,41 @@ Device | PDO to be unplugged.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_Pdo_DeviceUnPlugEx
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DeviceUnPlugEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ PWSTR HardwareId,
+    _In_ ULONG SerialNumber
+    );
+
+````
+
+Unplug and destroy a static PDO from the Client Driver's FDO.
+PDO is identified by matching the provided hardware ID and serial number.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Pdo Module handle.
+HardwareId | Wide string represenging Hardware Id of the PDO to be unplugged.
+SerialNumber | Serial number of the PDO to be unplugged.
+
+##### Remarks
+
+* This version allows the Client to remove PDO based on HardwareID and SerialNumber.
+* Useful when client bus driver is capable of enumerating child devices belonging to different device catogories 
+having same serial number. 
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_Pdo_DeviceUnplugUsingSerialNumber
 
 ````

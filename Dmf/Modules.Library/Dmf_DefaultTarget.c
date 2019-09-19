@@ -158,7 +158,7 @@ DefaultTarget_Stream_SendSynchronously(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     return DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
                                                          RequestBuffer,
                                                          RequestLength,
@@ -188,7 +188,7 @@ DefaultTarget_Stream_Send(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     return DMF_ContinuousRequestTarget_Send(moduleContext->DmfModuleContinuousRequestTarget,
                                             RequestBuffer,
                                             RequestLength,
@@ -211,7 +211,7 @@ DefaultTarget_Stream_IoTargetSet(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_IoTargetSet(moduleContext->DmfModuleContinuousRequestTarget,
                                             IoTarget);
 }
@@ -225,7 +225,7 @@ DefaultTarget_Stream_IoTargetClear(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_IoTargetClear(moduleContext->DmfModuleContinuousRequestTarget);
 }
 
@@ -251,7 +251,7 @@ DefaultTarget_Target_SendSynchronously(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     ntStatus = DMF_RequestTarget_SendSynchronously(moduleContext->DmfModuleRequestTarget,
                                                    RequestBuffer,
                                                    RequestLength,
@@ -284,7 +284,7 @@ DefaultTarget_Target_Send(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     ntStatus = DMF_RequestTarget_Send(moduleContext->DmfModuleRequestTarget,
                                       RequestBuffer,
                                       RequestLength,
@@ -309,7 +309,7 @@ DefaultTarget_Target_IoTargetSet(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     DMF_RequestTarget_IoTargetSet(moduleContext->DmfModuleRequestTarget,
                                   IoTarget);
 }
@@ -323,7 +323,7 @@ DefaultTarget_Target_IoTargetClear(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     DMF_RequestTarget_IoTargetClear(moduleContext->DmfModuleRequestTarget);
 }
 
@@ -363,7 +363,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -422,7 +422,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     dmfModule = DMF_ParentModuleGet(DmfModule);
-    ASSERT(dmfModule != NULL);
+    DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -505,7 +505,7 @@ Return Value:
     {
         // By calling this function here, callbacks at the Client will happen only after the Module is open.
         //
-        ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+        DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
         ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
         if (!NT_SUCCESS(ntStatus))
         {
@@ -562,7 +562,7 @@ Return Value:
     {
         // By calling this function here, callbacks at the Client will happen only before the Module is closed.
         //
-        ASSERT(moduleContext->DmfModuleContinuousRequestTarget != NULL);
+        DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
         DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
     }
 
@@ -895,7 +895,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_BufferPut(moduleContext->DmfModuleContinuousRequestTarget,
                                           ClientBuffer);
 
@@ -936,7 +936,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(IoTarget != NULL);
+    DmfAssert(IoTarget != NULL);
     *IoTarget = NULL;
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
@@ -950,7 +950,7 @@ Return Value:
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     *IoTarget = moduleContext->IoTarget;
 
@@ -1021,7 +1021,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
     ntStatus = moduleContext->RequestSink_Send(DmfModule,
                                                RequestBuffer,
                                                RequestLength,
@@ -1100,7 +1100,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
     ntStatus = moduleContext->RequestSink_SendSynchronously(DmfModule,
                                                             RequestBuffer,
@@ -1160,9 +1160,9 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
 
     DMF_ModuleDereference(DmfModule);
@@ -1212,9 +1212,9 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(moduleContext->IoTarget != NULL);
+    DmfAssert(moduleContext->IoTarget != NULL);
 
-    ASSERT(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
 
     DMF_ModuleDereference(DmfModule);

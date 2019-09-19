@@ -52,7 +52,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Code Path");
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 
     FuncExitVoid(DMF_TRACE);
 
@@ -89,8 +89,8 @@ Return Value:
     FuncEntry(DMF_TRACE);
     TraceInformation(DMF_TRACE, "%!FUNC!");
 
-    ASSERT(Device != NULL);
-    ASSERT((DeviceInterfaceGuid != NULL) || (SymbolicLinkName != NULL));
+    DmfAssert(Device != NULL);
+    DmfAssert((DeviceInterfaceGuid != NULL) || (SymbolicLinkName != NULL));
 
     if (DeviceInterfaceGuid != NULL)
     {
@@ -578,7 +578,7 @@ Return Value:
 {
     DMF_EventLogFormatSizeType returnValue;
 
-    ASSERT(FormatString != NULL);
+    DmfAssert(FormatString != NULL);
     returnValue = FormatSize_INVALID;
     while ((*FormatString != L'\0') &&
         (FormatSize_INVALID == returnValue))
@@ -621,7 +621,7 @@ Return Value:
                 }
                 default:
                 {
-                    ASSERT(FALSE);
+                    DmfAssert(FALSE);
                     goto Exit;
                 }
             }
@@ -676,7 +676,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(NumberOfFormatStrings == NumberOfInsertionStrings);
+    DmfAssert(NumberOfFormatStrings == NumberOfInsertionStrings);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     ntStatus = WdfMemoryCreate(&attributes,
@@ -694,23 +694,23 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(NULL != *EventLogInsertionStringTable);
-    ASSERT(NULL != *EventLogInsertionStringTableMemory);
+    DmfAssert(NULL != *EventLogInsertionStringTable);
+    DmfAssert(NULL != *EventLogInsertionStringTableMemory);
 
     eventLogInsertionStringTable = *EventLogInsertionStringTable;
 
     RtlZeroMemory(eventLogInsertionStringTable,
                   sizeof(EVENTLOG_INSERTION_STRING_TABLE));
 
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
     for (stringIndex = 0; stringIndex < NumberOfFormatStrings; stringIndex++)
     {
         WCHAR* formatString;
         DMF_EventLogFormatSizeType formatSize;
 
         formatString = FormatStrings[stringIndex];
-        ASSERT(formatString != NULL);
-        ASSERT(wcslen(FormatStrings[stringIndex]) < DMF_EVENTLOG_MAXIMUM_INSERTION_STRING_LENGTH);
+        DmfAssert(formatString != NULL);
+        DmfAssert(wcslen(FormatStrings[stringIndex]) < DMF_EVENTLOG_MAXIMUM_INSERTION_STRING_LENGTH);
 
         formatSize = DMF_DMF_EventLogFormatSizeTypeGet(formatString);
         switch (formatSize)
@@ -756,15 +756,15 @@ Return Value:
             }
             default:
             {
-                ASSERT(FALSE);
-                ASSERT(0 == eventLogInsertionStringTable->NumberOfInsertionStrings);
+                DmfAssert(FALSE);
+                DmfAssert(0 == eventLogInsertionStringTable->NumberOfInsertionStrings);
                 goto Exit;
             }
         }
     }
 
     eventLogInsertionStringTable->NumberOfInsertionStrings = NumberOfInsertionStrings;
-    ASSERT(eventLogInsertionStringTable->NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(eventLogInsertionStringTable->NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
 
 Exit:
 
@@ -838,17 +838,17 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    ASSERT(NumberOfInsertionStrings == NumberOfFormatStrings);
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(NumberOfInsertionStrings == NumberOfFormatStrings);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
     if (0 == NumberOfInsertionStrings)
     {
-        ASSERT(NULL == FormatStrings);
+        DmfAssert(NULL == FormatStrings);
         *EventLogInsertionStringTable = NULL;
         *EventLogInsertionStringTableMemory = NULL;
         goto Exit;
     }
 
-    ASSERT(FormatStrings != NULL);
+    DmfAssert(FormatStrings != NULL);
     // FormatStrings must not be NULL. But it is not because we have asserted above.
     //
     #pragma warning(suppress:6387)
@@ -860,13 +860,13 @@ Return Value:
                                                         FormatStrings);
     if (NT_SUCCESS(ntStatus))
     {
-        ASSERT(NULL != *EventLogInsertionStringTable);
-        ASSERT(NULL != *EventLogInsertionStringTableMemory);
+        DmfAssert(NULL != *EventLogInsertionStringTable);
+        DmfAssert(NULL != *EventLogInsertionStringTableMemory);
     }
     else
     {
-        ASSERT(NULL == *EventLogInsertionStringTable);
-        ASSERT(NULL == *EventLogInsertionStringTableMemory);
+        DmfAssert(NULL == *EventLogInsertionStringTable);
+        DmfAssert(NULL == *EventLogInsertionStringTableMemory);
     }
 
 Exit:
@@ -928,7 +928,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(DriverObject != NULL);
+    DmfAssert(DriverObject != NULL);
 
     textOffset = 0;
     insertionStringOffset = 0;
@@ -940,7 +940,7 @@ Return Value:
     //
     if (NULL != Text)
     {
-        ASSERT(TextLength > 0);
+        DmfAssert(TextLength > 0);
         // Calculate how big the error log packet needs to be to hold everything.
         // Get offset for text data.
         //
@@ -952,7 +952,7 @@ Return Value:
     }
     else
     {
-        ASSERT(TextLength == 0);
+        DmfAssert(TextLength == 0);
     }
 
     if (EventLogInsertionStringTable != NULL)
@@ -960,8 +960,8 @@ Return Value:
         insertionStringOffset = totalLength;
         numberOfInsertionStrings = EventLogInsertionStringTable->NumberOfInsertionStrings;
 
-        ASSERT(numberOfInsertionStrings > 0);
-        ASSERT(numberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+        DmfAssert(numberOfInsertionStrings > 0);
+        DmfAssert(numberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
         for (stringIndex = 0; stringIndex < numberOfInsertionStrings; stringIndex++)
         {
             // Add one for NULL terminating character.
@@ -974,7 +974,7 @@ Return Value:
     //
     if (totalLength > ERROR_LOG_MAXIMUM_SIZE)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         totalLength = sizeof(IO_ERROR_LOG_PACKET);
     }
 
@@ -1011,7 +1011,7 @@ Return Value:
         //
         if ((totalLength > insertionStringOffset) && (numberOfInsertionStrings > 0))
         {
-            ASSERT(numberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+            DmfAssert(numberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
             // Able to include insertion strings.
             //
             errorLogEntry->NumberOfStrings = (USHORT)numberOfInsertionStrings;
@@ -1102,7 +1102,7 @@ Return Value:
     eventLogStringTable = NULL;
     eventLogStringTableMemory = NULL;
 
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
 
     va_start(argumentList,
              NumberOfInsertionStrings);
@@ -1190,7 +1190,7 @@ Return Value:
     eventLogStringTable = NULL;
     eventLogStringTableMemory = NULL;
 
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
 
     va_start(argumentList,
              NumberOfInsertionStrings);
@@ -1282,8 +1282,8 @@ Return Value:
     eventLogStringTable = NULL;
     eventLogStringTableMemory = NULL;
 
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
-    ASSERT(Device != NULL);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(Device != NULL);
 
     va_start(argumentList,
              NumberOfInsertionStrings);
@@ -1300,7 +1300,7 @@ Return Value:
     // Get the associated WDF Driver.
     //
     driver = WdfDeviceGetDriver(Device);
-    ASSERT(driver != NULL);
+    DmfAssert(driver != NULL);
     // Get the associated WDM Driver Object.
     //
     driverObject = WdfDriverWdmGetDriverObject(driver);
@@ -1380,8 +1380,8 @@ Return Value:
     eventLogStringTable = NULL;
     eventLogStringTableMemory = NULL;
 
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
-    ASSERT(NumberOfInsertionStrings == NumberOfFormatStrings);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(NumberOfInsertionStrings == NumberOfFormatStrings);
 
     va_start(argumentList,
              NumberOfInsertionStrings);
@@ -1401,7 +1401,7 @@ Return Value:
     // Get the associated WDM Driver.
     //
     driver = WdfDeviceGetDriver(device);
-    ASSERT(driver != NULL);
+    DmfAssert(driver != NULL);
     // Get the associated WDM Driver Object.
     //
     driverObject = WdfDriverWdmGetDriverObject(driver);
@@ -1479,8 +1479,8 @@ Return Value:
 
     numberOfInsertionStrings = EventLogInsertionStringTable->NumberOfInsertionStrings;
 
-    ASSERT(numberOfInsertionStrings > 0);
-    ASSERT(numberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(numberOfInsertionStrings > 0);
+    DmfAssert(numberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
 
     // Allocate memory for the DMF_INSERTION_STRING_LIST structure.
     //
@@ -1565,11 +1565,11 @@ Return Value:
     ULONG stringIndex;
     ULONG numberOfInsertionStrings;
 
-    ASSERT(NULL != InsertionStringList);
-    ASSERT(NULL != (InsertionStringList)->InsertionStrings);
+    DmfAssert(NULL != InsertionStringList);
+    DmfAssert(NULL != (InsertionStringList)->InsertionStrings);
 
     numberOfInsertionStrings = (InsertionStringList)->NumberOfInsertionStrings;
-    ASSERT(numberOfInsertionStrings > 0);
+    DmfAssert(numberOfInsertionStrings > 0);
 
     // Free memory associated with each string.
     //
@@ -1640,9 +1640,9 @@ Return Value:
     eventLogStringTableMemory = NULL;
     insertionStrings = NULL;
 
-    ASSERT(Provider != NULL);
-    ASSERT(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
-    ASSERT(NumberOfInsertionStrings == NumberOfFormatStrings);
+    DmfAssert(Provider != NULL);
+    DmfAssert(NumberOfInsertionStrings <= DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS);
+    DmfAssert(NumberOfInsertionStrings == NumberOfFormatStrings);
 
     // Create the insertion string table.
     //
@@ -1664,7 +1664,7 @@ Return Value:
                                                      &insertionStringList);
     if (! NT_SUCCESS(ntStatus))
     {
-        ASSERT(NULL == insertionStringList);
+        DmfAssert(NULL == insertionStringList);
         NumberOfInsertionStrings = 0;
     }
     else if (NumberOfInsertionStrings > 0)

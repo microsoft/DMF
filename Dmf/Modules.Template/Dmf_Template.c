@@ -779,8 +779,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(ResourcesRaw != NULL);
-    ASSERT(ResourcesTranslated != NULL);
+    DmfAssert(ResourcesRaw != NULL);
+    DmfAssert(ResourcesTranslated != NULL);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

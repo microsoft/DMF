@@ -176,7 +176,7 @@ Return Value:
 
     if (FunctionCustomArgumentsBufferSize > 0)
     {
-        ASSERT(ARGUMENT_PRESENT(FunctionCustomArgumentsBuffer));
+        DmfAssert(ARGUMENT_PRESENT(FunctionCustomArgumentsBuffer));
 
         error = memcpy_s(&argument->Data[0],
                          argument->DataLength,
@@ -310,7 +310,7 @@ Return Value:
             }
             default:
             {
-                ASSERT(FALSE);
+                DmfAssert(FALSE);
                 ntStatus = STATUS_INVALID_PARAMETER_2;
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Signature ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
@@ -389,10 +389,10 @@ Return Value:
 
     if (sizeReturned > 0)
     {
-        ASSERT(sizeReturned >=
-               sizeof(ACPI_EVAL_OUTPUT_BUFFER) - sizeof(ACPI_METHOD_ARGUMENT));
+        DmfAssert(sizeReturned >=
+                  sizeof(ACPI_EVAL_OUTPUT_BUFFER) - sizeof(ACPI_METHOD_ARGUMENT));
 
-        ASSERT(outputBuffer->Signature == ACPI_EVAL_OUTPUT_BUFFER_SIGNATURE);
+        DmfAssert(outputBuffer->Signature == ACPI_EVAL_OUTPUT_BUFFER_SIGNATURE);
 
         if (ARGUMENT_PRESENT(ReturnBuffer))
         {
@@ -535,7 +535,7 @@ Return Value:
     // The Buffer must contain at least one bit. 
     // Rounding up implies that it must contain at least one byte.
     //
-    ASSERT(outputBufferSize >= sizeof(ACPI_EVAL_OUTPUT_BUFFER));
+    DmfAssert(outputBufferSize >= sizeof(ACPI_EVAL_OUTPUT_BUFFER));
 
     if ((outputBuffer->Argument[0].Type != ACPI_METHOD_ARGUMENT_BUFFER ||
         (outputBuffer->Argument[0].DataLength == 0)))
@@ -693,10 +693,10 @@ Return Value:
 
     if (outputBufferSize > 0 && outputBuffer != NULL)
     {
-        ASSERT(outputBufferSize >=
-               sizeof(ACPI_EVAL_OUTPUT_BUFFER) - sizeof(ACPI_METHOD_ARGUMENT));
+        DmfAssert(outputBufferSize >=
+                  sizeof(ACPI_EVAL_OUTPUT_BUFFER) - sizeof(ACPI_METHOD_ARGUMENT));
 
-        ASSERT(outputBuffer->Signature == ACPI_EVAL_OUTPUT_BUFFER_SIGNATURE);
+        DmfAssert(outputBuffer->Signature == ACPI_EVAL_OUTPUT_BUFFER_SIGNATURE);
 
         if (ARGUMENT_PRESENT(ReturnBuffer) != FALSE)
         {
@@ -923,10 +923,10 @@ Return Value:
         //
         if (outputBufferSize > 0 && outputBuffer != NULL)
         {
-            ASSERT(Add2Ptr(&outputBuffer->Argument[0],
-                           outputBuffer->Count * sizeof(ACPI_METHOD_ARGUMENT)) <=
-                   Add2Ptr(outputBuffer,
-                           outputBuffer->Length));
+            DmfAssert(Add2Ptr(&outputBuffer->Argument[0],
+                              outputBuffer->Count * sizeof(ACPI_METHOD_ARGUMENT)) <=
+                      Add2Ptr(outputBuffer,
+                              outputBuffer->Length));
 
             argument = &outputBuffer->Argument[0];
 
@@ -960,7 +960,7 @@ Return Value:
             // Either OutputBuffer or OutputBufferSize has invalid value
             //
             ntStatus = STATUS_UNSUCCESSFUL;
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "_DSM returned data type invalid!"
                         "outputBuffer=0x%p, outputBufferSize=%d",
                         outputBuffer,
@@ -972,14 +972,14 @@ Return Value:
         // For SAL. If there is a return buffer size there must be a return
         // buffer so this is invalid code path.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         *ReturnBufferSize = 0;
     }
     else if (ReturnBuffer != NULL)
     {
         // For SAL. ReturnBufferSize is invalid. Cannot use ReturnBuffer.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         *(UCHAR *)ReturnBuffer = 0;
     }
 

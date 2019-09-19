@@ -54,7 +54,7 @@ Return Value:
 {
     FuncEntry(DMF_TRACE);
 
-    ASSERT(EventPointer != NULL);
+    DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
     UNREFERENCED_PARAMETER(EventType);
@@ -95,7 +95,7 @@ Return Value:
 {
     FuncEntry(DMF_TRACE);
 
-    ASSERT(EventPointer != NULL);
+    DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
     SetEvent(EventPointer->Handle);
@@ -131,7 +131,7 @@ Return Value:
 {
     FuncEntry(DMF_TRACE);
 
-    ASSERT(EventPointer != NULL);
+    DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
     ResetEvent(EventPointer->Handle);
@@ -176,7 +176,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(EventPointer != NULL);
+    DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
     UNREFERENCED_PARAMETER(Alertable);
@@ -234,17 +234,17 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(EventCount != 0);
-    ASSERT(EventPointer != NULL);
+    DmfAssert(EventCount != 0);
+    DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
     HANDLE waitHandles[MAXIMUM_WAIT_OBJECTS];
-    ASSERT(EventCount <= MAXIMUM_WAIT_OBJECTS);
+    DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
 
     for (UINT eventIndex = 0; eventIndex < EventCount; ++eventIndex)
     {
-        ASSERT(EventPointer[eventIndex] != NULL);
-        ASSERT(EventPointer[eventIndex]->Handle != INVALID_HANDLE_VALUE);
+        DmfAssert(EventPointer[eventIndex] != NULL);
+        DmfAssert(EventPointer[eventIndex]->Handle != INVALID_HANDLE_VALUE);
         waitHandles[eventIndex] = EventPointer[eventIndex]->Handle;
     }
 
@@ -256,11 +256,11 @@ Return Value:
 #else
     VOID* waitObjects[MAXIMUM_WAIT_OBJECTS];
     WAIT_TYPE waitType;
-    ASSERT(EventCount <= MAXIMUM_WAIT_OBJECTS);
+    DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
 
     for (UINT eventIndex = 0; eventIndex < EventCount; ++eventIndex)
     {
-        ASSERT(EventPointer[eventIndex] != NULL);
+        DmfAssert(EventPointer[eventIndex] != NULL);
         waitObjects[eventIndex] = &EventPointer[eventIndex]->Handle;
     }
 
@@ -313,7 +313,7 @@ Return Value:
 {
     FuncEntry(DMF_TRACE);
 
-    ASSERT(EventPointer != NULL);
+    DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
     CloseHandle(EventPointer->Handle);
@@ -359,7 +359,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(LookasidePointer != NULL);
+    DmfAssert(LookasidePointer != NULL);
 
 #if defined(DMF_USER_MODE)
     UNREFERENCED_PARAMETER(LookasideAttributes);
@@ -381,7 +381,7 @@ Return Value:
     LookasidePointer->PoolType = PoolType;
     LookasidePointer->PoolTag = PoolTag;
 #else
-    ASSERT(BufferSize != 0);
+    DmfAssert(BufferSize != 0);
     // Error annotation: __formal(1,BufferSize) cannot be zero.
     //
     #pragma warning(suppress:28160)
@@ -429,7 +429,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(LookasidePointer != NULL);
+    DmfAssert(LookasidePointer != NULL);
 
 #if defined(DMF_USER_MODE)
     ntStatus = WdfMemoryCreate(&LookasidePointer->MemoryAttributes,
@@ -476,7 +476,7 @@ Return Value:
     //       in User-mode.
     //
     UNREFERENCED_PARAMETER(RundownRef);
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 #endif
 }
 
@@ -508,7 +508,7 @@ Return Value:
     //       in User-mode.
     //
     UNREFERENCED_PARAMETER(RundownRef);
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 #endif
 }
 
@@ -543,7 +543,7 @@ Return Value:
     //       in User-mode.
     //
     UNREFERENCED_PARAMETER(RundownRef);
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
     returnValue = FALSE;
 #endif
     
@@ -578,7 +578,7 @@ Return Value:
     //       in User-mode.
     //
     UNREFERENCED_PARAMETER(RundownRef);
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 #endif
 }
 
@@ -611,7 +611,7 @@ Return Value:
     //       in User-mode.
     //
     UNREFERENCED_PARAMETER(RundownRef);
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 #endif
 }
 
@@ -644,7 +644,7 @@ Return Value:
     //       in User-mode.
     //
     UNREFERENCED_PARAMETER(RundownRef);
-    ASSERT(FALSE);
+    DmfAssert(FALSE);
 #endif
 }
 

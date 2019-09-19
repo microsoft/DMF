@@ -54,8 +54,8 @@ Return Value:
     DMF_OBJECT* childDmfObject;
     CHILD_OBJECT_INTERATION_CONTEXT childObjectIterationContext;
 
-    ASSERT(DmfObject != NULL);
-    ASSERT(DmfObject->ModuleCollection != NULL);
+    DmfAssert(DmfObject != NULL);
+    DmfAssert(DmfObject->ModuleCollection != NULL);
 
     PAGED_CODE();
 
@@ -190,7 +190,7 @@ Return Value:
     {
         DMF_OBJECT* dmfObject = ModuleCollectionHandle->ClientDriverDmfModules[driverModuleIndex];
 
-        ASSERT(dmfObject != NULL);
+        DmfAssert(dmfObject != NULL);
         DMF_ModuleBranchTrack_ModuleInitialize(dmfObject);
     }
 }

@@ -281,7 +281,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(NULL != ModuleContext);
+    DmfAssert(NULL != ModuleContext);
 
     if (NULL != ModuleContext->HashMap)
     {
@@ -332,10 +332,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(NULL != ModuleConfig);
-    ASSERT(NULL != ModuleContext);
-    ASSERT(NULL == ModuleContext->HashMap);
-    ASSERT(NULL == ModuleContext->DataTable);
+    DmfAssert(NULL != ModuleConfig);
+    DmfAssert(NULL != ModuleContext);
+    DmfAssert(NULL == ModuleContext->HashMap);
+    DmfAssert(NULL == ModuleContext->DataTable);
 
     ModuleContext->MaximumKeyLength = ModuleConfig->MaximumKeyLength;
     ModuleContext->MaximumValueLength = ModuleConfig->MaximumValueLength;
@@ -395,7 +395,7 @@ Return Value:
                   INVALID_INDEX);
 
     sizeToAllocate = ModuleContext->DataTableSize * ModuleContext->DataEntrySize;
-    ASSERT(sizeToAllocate != 0);
+    DmfAssert(sizeToAllocate != 0);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     // 'Error annotation: __formal(3,BufferSize) cannot be zero.'.
@@ -468,15 +468,15 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
-    ASSERT(NewEntryIndex != NULL);
+    DmfAssert(NewEntryIndex != NULL);
 
     if (ModuleContext->DataEntriesAllocated >= ModuleContext->DataTableSize)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No more free slots available");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -539,9 +539,9 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_HashTable* moduleContext;
 
-    ASSERT(DataEntry != NULL);
+    DmfAssert(DataEntry != NULL);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -656,9 +656,9 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_HashTable* moduleContext;
 
-    ASSERT(DataEntry != NULL);
+    DmfAssert(DataEntry != NULL);
 
-    ASSERT(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -962,8 +962,8 @@ Arguments:
 
     DmfModule - This Module's handle.
     Key - Address of the buffer containing Key data.
-    KeyLength - Length of Key data in bytes
-    CallbackFind - The callback to process the value
+    KeyLength - Length of Key data in bytes.
+    CallbackFind - The callback to process the value.
 
 Return Value:
 
@@ -984,7 +984,7 @@ Return Value:
     //
     DMF_ModuleLock(DmfModule);
 
-    ASSERT(KeyLength <= moduleContext->MaximumKeyLength);
+    DmfAssert(KeyLength <= moduleContext->MaximumKeyLength);
 
     ntStatus = HashTable_DataEntryFindOrAllocate(DmfModule,
                                                  Key,
@@ -995,12 +995,85 @@ Return Value:
         goto Exit;
     }
 
-    ASSERT(CallbackFind != NULL);
+    DmfAssert(CallbackFind != NULL);
     CallbackFind(DmfModule,
                  Key,
                  KeyLength,
                  HashTable_ValueBufferGet(dataEntry),
                  &dataEntry->ValueLength);
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    DMF_ModuleUnlock(DmfModule);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HashTable_FindEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(KeyLength) UCHAR* Key,
+    _In_ ULONG KeyLength,
+    _In_ EVT_DMF_HashTable_FindEx* CallbackFindEx,
+    _In_ VOID* CallbackContext
+    )
+/*++
+
+Routine Description:
+
+    Finds the specified key in the hash table and calls a callback function to process the value associated with the key.
+    In case the key is absent in the hash table, it will be added with the ValueLength set to zero, and then the callback will be called.
+    Caller can use this Method to perform actions other than updating the hash table record.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Key - Address of the buffer containing Key data.
+    KeyLength - Length of Key data in bytes.
+    CallbackFind - The callback to process the value.
+    CallbackContext - Context passed to caller's callback.
+
+Return Value:
+
+    NT_STATUS code indicating success or failure.
+
+--*/
+{
+    DMF_CONTEXT_HashTable* moduleContext;
+    NTSTATUS ntStatus;
+    DATA_ENTRY* dataEntry;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HashTable);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Synchronize with Methods to read, write and enumerate entries in table.
+    //
+    DMF_ModuleLock(DmfModule);
+
+    DmfAssert(KeyLength <= moduleContext->MaximumKeyLength);
+
+    ntStatus = HashTable_DataEntryFindOrAllocate(DmfModule,
+                                                 Key,
+                                                 KeyLength,
+                                                 &dataEntry);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    DmfAssert(CallbackFindEx != NULL);
+    CallbackFindEx(DmfModule,
+                   CallbackContext,
+                   Key,
+                   KeyLength,
+                   HashTable_ValueBufferGet(dataEntry),
+                   &dataEntry->ValueLength);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1131,11 +1204,11 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ASSERT(KeyLength <= moduleContext->MaximumKeyLength);
+    DmfAssert(KeyLength <= moduleContext->MaximumKeyLength);
 
     if (ValueLength > moduleContext->MaximumValueLength)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         ntStatus = STATUS_BUFFER_OVERFLOW;
         goto Exit;
     }

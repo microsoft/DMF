@@ -247,7 +247,7 @@ HashTable_Find(
     INT foundRecordIndex = Tests_HashTable_DataRecordsSearch(moduleContext->DataRecords,
                                                              Key,
                                                              KeyLength);
-    ASSERT(foundRecordIndex >= 0);
+    DmfAssert(foundRecordIndex >= 0);
 
     HashTable_DataRecord* foundDataRecord = &moduleContext->DataRecords[foundRecordIndex];
 
@@ -263,7 +263,7 @@ HashTable_Find(
     {
         // Data does not match.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 }
 
@@ -297,11 +297,11 @@ Tests_HashTable_ThreadAction_ReadSuccess(
                                   valueBuffer,
                                   valueSize,
                                   &valueSize);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(valueSize == dataRecord->BufferSize);
-    ASSERT(RtlCompareMemory(valueBuffer,
-                            dataRecord->Buffer,
-                            valueSize));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(valueSize == dataRecord->BufferSize);
+    DmfAssert(RtlCompareMemory(valueBuffer,
+                               dataRecord->Buffer,
+                               valueSize));
 
     valueSize = sizeof(valueBuffer);
     ntStatus = DMF_HashTable_Read(moduleContext->DmfModuleHashTableCustom,
@@ -310,31 +310,31 @@ Tests_HashTable_ThreadAction_ReadSuccess(
                                   valueBuffer,
                                   valueSize,
                                   &valueSize);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(valueSize == dataRecord->BufferSize);
-    ASSERT(RtlCompareMemory(valueBuffer,
-                            dataRecord->Buffer,
-                            valueSize));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(valueSize == dataRecord->BufferSize);
+    DmfAssert(RtlCompareMemory(valueBuffer,
+                               dataRecord->Buffer,
+                               valueSize));
 
     ntStatus = DMF_HashTable_Find(moduleContext->DmfModuleHashTableDefault,
                                   dataRecord->Key,
                                   dataRecord->KeySize,
                                   HashTable_Find);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(valueSize == dataRecord->BufferSize);
-    ASSERT(RtlCompareMemory(valueBuffer,
-                            dataRecord->Buffer,
-                            valueSize));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(valueSize == dataRecord->BufferSize);
+    DmfAssert(RtlCompareMemory(valueBuffer,
+                               dataRecord->Buffer,
+                               valueSize));
 
     ntStatus = DMF_HashTable_Find(moduleContext->DmfModuleHashTableCustom,
                                   dataRecord->Key,
                                   dataRecord->KeySize,
                                   HashTable_Find);
-    ASSERT(NT_SUCCESS(ntStatus));
-    ASSERT(valueSize == dataRecord->BufferSize);
-    ASSERT(RtlCompareMemory(valueBuffer,
-                            dataRecord->Buffer,
-                            valueSize));
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(valueSize == dataRecord->BufferSize);
+    DmfAssert(RtlCompareMemory(valueBuffer,
+                               dataRecord->Buffer,
+                               valueSize));
 }
 #pragma code_seg()
 
@@ -383,7 +383,7 @@ TryAgain:
                                   valueBuffer,
                                   valueSize,
                                   &valueSize);
-    ASSERT(! NT_SUCCESS(ntStatus));
+    DmfAssert(! NT_SUCCESS(ntStatus));
 
     valueSize = sizeof(valueBuffer);
     ntStatus = DMF_HashTable_Read(moduleContext->DmfModuleHashTableCustom,
@@ -392,7 +392,7 @@ TryAgain:
                                   valueBuffer,
                                   valueSize,
                                   &valueSize);
-    ASSERT(! NT_SUCCESS(ntStatus));
+    DmfAssert(! NT_SUCCESS(ntStatus));
 }
 #pragma code_seg()
 
@@ -415,7 +415,7 @@ HashTable_Enumerate(
     DmfModuleParent = DMF_ParentModuleGet(DmfModule);
     if (CallbackContext != DmfModuleParent)
     {
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModuleParent);
@@ -427,7 +427,7 @@ HashTable_Enumerate(
     {
         // Not found. Error.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
     }
     else
     {
@@ -445,7 +445,7 @@ HashTable_Enumerate(
         {
             // Not found. Error.
             //
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
         }
     }
 
@@ -510,7 +510,7 @@ Tests_HashTable_WorkThread(
             Tests_HashTable_ThreadAction_Enumerate(dmfModule);
             break;
         default:
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
     }
 

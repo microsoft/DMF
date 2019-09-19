@@ -338,10 +338,10 @@ Return Value:
     UNREFERENCED_PARAMETER(KeyLength);
 
     tableKey = (HASH_TABLE_KEY*)Key;
-    ASSERT(NULL != tableKey);
+    DmfAssert(NULL != tableKey);
 
     statusData = (BRANCHTRACK_REQUEST_OUTPUT_DATA_STATUS*)CallbackContext;
-    ASSERT(NULL != statusData);
+    DmfAssert(NULL != statusData);
 
     ++statusData->BranchesTotal;
 
@@ -351,13 +351,13 @@ Return Value:
     }
     else
     {
-        ASSERT(sizeof(ULONGLONG) == ValueLength);
+        DmfAssert(sizeof(ULONGLONG) == ValueLength);
         tableValue = *(ULONGLONG*)Value;
     }
 
     keyBufferBranchName = BranchTrack_BranchNameBufferGet(tableKey);
 
-    ASSERT(NULL != tableKey->CallbackStatusQuery);
+    DmfAssert(NULL != tableKey->CallbackStatusQuery);
     if (tableKey->CallbackStatusQuery(DmfModule,
                                       keyBufferBranchName,
                                       tableKey->Context,
@@ -411,10 +411,10 @@ Return Value:
     UNREFERENCED_PARAMETER(ValueLength);
 
     tableKey = (HASH_TABLE_KEY*)Key;
-    ASSERT(NULL != tableKey);
+    DmfAssert(NULL != tableKey);
 
     detailsSizeContext = (DETAILS_SIZE_CONTEXT*)CallbackContext;
-    ASSERT(NULL != detailsSizeContext);
+    DmfAssert(NULL != detailsSizeContext);
 
     // Three strings plus three terminators.
     //
@@ -472,7 +472,7 @@ Return Value:
     UNREFERENCED_PARAMETER(KeyLength);
 
     tableKey = (HASH_TABLE_KEY*)Key;
-    ASSERT(NULL != tableKey);
+    DmfAssert(NULL != tableKey);
 
     if (0 == ValueLength)
     {
@@ -480,13 +480,13 @@ Return Value:
     }
     else
     {
-        ASSERT(sizeof(ULONGLONG) == ValueLength);
+        DmfAssert(sizeof(ULONGLONG) == ValueLength);
         tableValue = *(ULONGLONG*)Value;
     }
 
     detailsDataContext = (DETAILS_DATA_CONTEXT*)CallbackContext;
-    ASSERT(NULL != detailsDataContext);
-    ASSERT(NULL != detailsDataContext->OutputData);
+    DmfAssert(NULL != detailsDataContext);
+    DmfAssert(NULL != detailsDataContext->OutputData);
 
     currentEntrySize = FIELD_OFFSET(BRANCHTRACK_REQUEST_OUTPUT_DATA_DETAILS, 
                                     StringBuffer[tableKey->FileNameLength + 
@@ -499,7 +499,7 @@ Return Value:
         // This should never happen, unless there is an error in this Module.
         //
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Insufficient output buffer size");
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -525,7 +525,7 @@ Return Value:
     currentEntry->HintNameOffset = FIELD_OFFSET(BRANCHTRACK_REQUEST_OUTPUT_DATA_DETAILS,
                                                 StringBuffer[hintNameOffset]);
 
-    ASSERT(NULL != tableKey->CallbackStatusQuery);
+    DmfAssert(NULL != tableKey->CallbackStatusQuery);
     currentEntry->IsPassed = tableKey->CallbackStatusQuery(DmfModule,
                                                            keyBufferBranchName,
                                                            tableKey->Context,
@@ -549,12 +549,12 @@ Return Value:
 
     // Output the expected state of the counter.
     //
-    ASSERT(ValueLength >= sizeof(ULONGLONG));
+    DmfAssert(ValueLength >= sizeof(ULONGLONG));
     currentEntry->ExpectedState = (ULONGLONG)tableKey->Context;
 
     if (NULL != detailsDataContext->PreviousEntry)
     {
-        ASSERT(currentEntry > detailsDataContext->PreviousEntry);
+        DmfAssert(currentEntry > detailsDataContext->PreviousEntry);
         detailsDataContext->PreviousEntry->NextEntryOffset = (ULONG)((ULONG_PTR)currentEntry - (ULONG_PTR)detailsDataContext->PreviousEntry);
     }
 
@@ -600,11 +600,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(NULL != DmfModule);
-    ASSERT(NULL != ModuleContext);
+    DmfAssert(NULL != DmfModule);
+    DmfAssert(NULL != ModuleContext);
 
     moduleConfigHashTable = (DMF_CONFIG_HashTable*)DMF_ModuleConfigGet(ModuleContext->DmfObjectHashTable);
-    ASSERT(moduleConfigHashTable != NULL);
+    DmfAssert(moduleConfigHashTable != NULL);
 
     ModuleContext->TableKeyBufferLength = moduleConfigHashTable->MaximumKeyLength;
 
@@ -641,7 +641,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    ASSERT(NULL != ModuleContext);
+    DmfAssert(NULL != ModuleContext);
 
     ModuleContext->DmfObjectHashTable = NULL;
     ModuleContext->DmfObjectBufferPool = NULL;
@@ -688,12 +688,12 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ASSERT(NULL != BytesReturned);
+    DmfAssert(NULL != BytesReturned);
     *BytesReturned = 0;
 
     clientDriverNameLength = strlen(moduleConfig->ClientName);
-    ASSERT(clientDriverNameLength > 0);
-    ASSERT(clientDriverNameLength < BRANCH_TRACK_CLIENT_NAME_MAXIMUM_LENGTH);
+    DmfAssert(clientDriverNameLength > 0);
+    DmfAssert(clientDriverNameLength < BRANCH_TRACK_CLIENT_NAME_MAXIMUM_LENGTH);
 
     bufferLengthRequired = FIELD_OFFSET(BRANCHTRACK_REQUEST_OUTPUT_DATA,
                                         Response.Status.ClientModuleName[clientDriverNameLength + 1]);
@@ -784,9 +784,9 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-    ASSERT(NULL != moduleConfig);
+    DmfAssert(NULL != moduleConfig);
 
-    ASSERT(NULL != BytesReturned);
+    DmfAssert(NULL != BytesReturned);
     *BytesReturned = 0;
 
     RtlZeroMemory(&detailsSizeContext,
@@ -835,7 +835,7 @@ Return Value:
                             BranchTrack_EVT_DMF_HashTable_Enumerate_DetailsData,
                             &detailsDataContext);
 
-    ASSERT(outputData->ResponseLength == detailsSizeContext.SizeToAllocate);
+    DmfAssert(outputData->ResponseLength == detailsSizeContext.SizeToAllocate);
 
 Exit:
 
@@ -881,7 +881,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ASSERT(NULL != BytesReturned);
+    DmfAssert(NULL != BytesReturned);
 
     // For SAL.
     //
@@ -932,7 +932,7 @@ Return Value:
         default:
             TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Unsupported type: %d", inputData->Type);
             ntStatus = STATUS_NOT_SUPPORTED;
-            ASSERT(FALSE);
+            DmfAssert(FALSE);
             break;
     }
 
@@ -1014,14 +1014,14 @@ Return Value:
     }
 
     branchNameLength = (ULONG)strlen(BranchName);
-    ASSERT(branchNameLength <= moduleConfig->MaximumBranchNameLength);
+    DmfAssert(branchNameLength <= moduleConfig->MaximumBranchNameLength);
     if (branchNameLength > moduleConfig->MaximumBranchNameLength)
     {
         branchNameLength = moduleConfig->MaximumBranchNameLength;
     }
 
     hintNameLength = (ULONG)strlen(HintName);
-    ASSERT(hintNameLength <= BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH);
+    DmfAssert(hintNameLength <= BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH);
     if (hintNameLength > BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH)
     {
         hintNameLength = BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH;
@@ -1033,7 +1033,7 @@ Return Value:
                                           hintNameLength + 
                                           (BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA * sizeof(CHAR))]);
     tableKeyLength = (tableKeyLength + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);
-    ASSERT(tableKeyLength <= moduleContext->TableKeyBufferLength);
+    DmfAssert(tableKeyLength <= moduleContext->TableKeyBufferLength);
 
     tableKeyBuffer = NULL;
     tableKeyBufferContext = NULL;
@@ -1050,7 +1050,7 @@ Return Value:
     // Populate tableKeyBuffer and execute HashTable process entry function using this buffer as a key.
     //
 
-    ASSERT(NULL != tableKeyBuffer);
+    DmfAssert(NULL != tableKeyBuffer);
 
     RtlZeroMemory(tableKeyBuffer,
                   moduleContext->TableKeyBufferLength);
@@ -1086,7 +1086,7 @@ Return Value:
                                   CallbackFind);
     DMF_ModuleUnlock(DmfModule);
 
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     DMF_BufferPool_Put(moduleContext->DmfObjectBufferPool,
                        (VOID**)tableKeyBuffer);
@@ -1269,7 +1269,7 @@ Return Value:
             // Don't complete the request. It belongs to another Module.
             //
             requestHasNotBeenCompletedOrIsHeld = TRUE;
-            ASSERT(! handled);
+            DmfAssert(! handled);
             break;
         }
     }
@@ -1897,7 +1897,7 @@ Return Value:
     {
         // Name is longer than expected.
         //
-        ASSERT(FALSE);
+        DmfAssert(FALSE);
         bytesToCopy = BRANCH_TRACK_CLIENT_NAME_MAXIMUM_LENGTH;
     }
     // This is the name to use in BranchTrackReader.exe.
