@@ -28,6 +28,8 @@ Environment:
 
 #include "DmfUtility.tmh"
 
+#if defined(DMF_USER_MODE)
+
 #pragma warning (disable : 4100 4131)
 int __cdecl
 _purecall (
@@ -38,6 +40,8 @@ _purecall (
 Routine Description:
 
     In case there is a problem with undefined virtual functions.
+    NOTE: This function is included in NTOSKRNL.lib. If you need this function, just link with
+          that library.
 
 Arguments:
 
@@ -58,6 +62,8 @@ Return Value:
 
     return 0;
 }
+
+#endif
 
 _Must_inspect_result_
 NTSTATUS

@@ -270,7 +270,6 @@ Return Value:
     DMF_CONFIG_NotifyUserWithRequest* moduleConfig;
     USEREVENT_ENTRY* userEventEntry;
     ULONG numberOfRequestsCompleted;
-    BOOLEAN lockAcquired;
     BOOLEAN clientBufferExtracted;
 
     PAGED_CODE();
@@ -280,13 +279,11 @@ Return Value:
     numberOfRequestsCompleted = 0;
     ntStatus = STATUS_SUCCESS;
     clientBuffer = NULL;
-    lockAcquired = FALSE;
     clientBufferExtracted = FALSE;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_ModuleLock(DmfModule);
-    lockAcquired = TRUE;
 
     // Check if request is available.
     //
@@ -361,10 +358,7 @@ Exit:
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_BufferQueue_Reuse");
     }
 
-    if (TRUE == lockAcquired)
-    {
-        DMF_ModuleUnlock(DmfModule);
-    }
+    DMF_ModuleUnlock(DmfModule);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

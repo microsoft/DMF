@@ -272,6 +272,7 @@ DmfModule | An open DMF_Thread Module handle.
 
 * Multiple calls to DMF_Thread_WorkReady callback may only call the Client's EvtThreadWork once. So from the EvtThreadWork the client must account for all the ready work. However the Module ensures that teh client's EvtThreadWork will be called atleast once after 1 or more calls to DMF_Thread_WorkReady (as long as the client doesnt call Dmf_Thread_Stop).
 * Use this Method only if when ThreadControlType is set to ThreadControlType_DmfControl.
+* This Method can be called before the Thread starts as well.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
