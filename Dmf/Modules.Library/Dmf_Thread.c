@@ -306,28 +306,10 @@ Return Value:
 
     if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
     {
-        // Create the Work Ready Event.
-        //
-        DMF_Portable_EventCreate(&moduleContext->EventWorkReady,
-                                 SynchronizationEvent,
-                                 FALSE);
-        // If the Client Driver does not supply an address of its own Stop Event, create
-        // the Stop Event here; otherwise, use the Client Driver's Stop Event.
-        // The Client Driver will be able to stop the thread using this event.
-        //
-        DmfAssert(NULL == moduleContext->EventStop);
-
+        DmfAssert(NULL != moduleContext->EventStop);
         // Clear in case this thread was previously stopped.
         //
         moduleContext->IsThreadStopPending = FALSE;
-
-        // Create the Stop Event on behalf of Client Driver.
-        // (Usually for drivers with a single thread.)
-        //
-        DMF_Portable_EventCreate(&moduleContext->EventStopInternal,
-                                 NotificationEvent,
-                                 FALSE);
-        moduleContext->EventStop = &moduleContext->EventStopInternal;
     }
 
     // Create the thread.
@@ -510,16 +492,6 @@ Return Value:
                   (ThreadControlType_ClientControl == moduleConfig->ThreadControlType) && (NULL == moduleContext->EventStop));
     }
 
-    // This is necessary for User-mode. It is a NOP in Kernel-mode.
-    //
-    DMF_Portable_EventClose(&moduleContext->EventWorkReady);
-    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
-    {
-        DMF_Portable_EventClose(&moduleContext->EventStopInternal);
-    }
-
-    moduleContext->EventStop = NULL;
-
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
@@ -577,6 +549,69 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_Thread_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type Thread.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    STATUS_SUCCESS always.
+
+--*/
+{
+    DMF_CONTEXT_Thread* moduleContext;
+    DMF_CONFIG_Thread* moduleConfig;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
+    {
+        // Create the Work Ready Event.
+        //
+        DMF_Portable_EventCreate(&moduleContext->EventWorkReady,
+                                 SynchronizationEvent,
+                                 FALSE);
+
+        // If the Client Driver does not supply an address of its own Stop Event, create
+        // the Stop Event here; otherwise, use the Client Driver's Stop Event.
+        // The Client Driver will be able to stop the thread using this event.
+        //
+        DmfAssert(NULL == moduleContext->EventStop);
+
+        // Create the Stop Event on behalf of Client Driver.
+        //
+        DMF_Portable_EventCreate(&moduleContext->EventStopInternal,
+                                 NotificationEvent,
+                                 FALSE);
+        moduleContext->EventStop = &moduleContext->EventStopInternal;
+    }
+
+    FuncExitNoReturn(DMF_TRACE);
+
+    return STATUS_SUCCESS;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -599,13 +634,30 @@ Return Value:
 
 --*/
 {
+    DMF_CONTEXT_Thread* moduleContext;
+    DMF_CONFIG_Thread* moduleConfig;
+
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
     // In case, Client has not explicitly stopped the thread, do that now.
     //
     Thread_ThreadDestroy(DmfModule);
+
+    // This is necessary for User-mode. It is a NOP in Kernel-mode.
+    //
+    DMF_Portable_EventClose(&moduleContext->EventWorkReady);
+    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
+    {
+        DMF_Portable_EventClose(&moduleContext->EventStopInternal);
+    }
+
+    moduleContext->EventStop = NULL;
 
     FuncExitNoReturn(DMF_TRACE);
 }
@@ -654,6 +706,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Thread);
+    dmfCallbacksDmf_Thread.DeviceOpen = DMF_Thread_Open;
     dmfCallbacksDmf_Thread.DeviceClose = DMF_Thread_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Thread,

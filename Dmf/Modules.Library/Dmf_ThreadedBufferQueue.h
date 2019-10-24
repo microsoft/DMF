@@ -110,6 +110,13 @@ DMF_ThreadedBufferQueue_Flush(
     _In_ DMFMODULE DmfModule
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_Reuse(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_ThreadedBufferQueue_Start(

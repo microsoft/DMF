@@ -256,6 +256,36 @@ DmfModule | An open DMF_ThreadedBufferQueue Module handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_ThreadedBufferQueue_Reuse
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_Reuse(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's producer list (at the end).
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* Clients may use this Method if a buffer has been fetched but it is determined that it cannot be enqueued for some reason and must be returned to the free pool of buffers.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_ThreadedBufferQueue_Start
 
 ````

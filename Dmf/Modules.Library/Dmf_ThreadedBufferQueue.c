@@ -765,6 +765,51 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_Reuse(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to back to the producer list.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
+    ThreadedBufferQueue_WorkBufferInternal* workBuffer;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
+
+    workBuffer->Event = NULL;
+    workBuffer->NtStatus = NULL;
+
+    DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
+                          workBuffer);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS

@@ -63,6 +63,10 @@ extern "C"
 //
 #define IS_WIN10_RS3_OR_LATER (NTDDI_WIN10_RS3 && (NTDDI_VERSION >= NTDDI_WIN10_RS3))
 
+// Check that the Windows version is RS4 or later. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_RS4_OR_LATER (NTDDI_WIN10_RS4 && (NTDDI_VERSION >= NTDDI_WIN10_RS4))
+
 // Check that the Windows version is RS5 or later. The supported versions are defined in sdkddkver.h.
 //
 #define IS_WIN10_RS5_OR_LATER (NTDDI_WIN10_RS5 && (NTDDI_VERSION >= NTDDI_WIN10_RS5))
