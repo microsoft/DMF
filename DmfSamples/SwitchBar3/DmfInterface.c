@@ -291,6 +291,7 @@ Exit:
 }
 #pragma code_seg()
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 ContinuousRequestTarget_BufferDisposition

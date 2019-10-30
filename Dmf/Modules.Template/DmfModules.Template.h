@@ -51,7 +51,6 @@ extern "C"
 #include "Dmf_SampleInterfaceTransport1.h"
 #include "Dmf_SampleInterfaceTransport2.h"
 #include "Dmf_NonPnp.h"
-#include "Dmf_VirtualHidMiniSample.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.
