@@ -49,7 +49,7 @@ typedef struct
     PFN_WDF_IO_QUEUE_IO_WRITE EvtQueueIoWrite;
     PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL EvtDeviceIoControl;
 #if !defined(DMF_USER_MODE)
-    PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL EvtInternalDeviceIoControl;
+    PFN_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL EvtInternalDeviceIoControl;
 #endif // !defined(DMF_USER_MODE)
     PFN_WDF_DEVICE_SELF_MANAGED_IO_CLEANUP EvtDeviceSelfManagedIoCleanup;
     PFN_WDF_DEVICE_SELF_MANAGED_IO_FLUSH EvtDeviceSelfManagedIoFlush;
@@ -87,6 +87,7 @@ DMF_MODULE_DECLARE_CONFIG(Bridge)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(EVT_WDF_OBJECT_CONTEXT_CLEANUP)
 VOID
 Bridge_DefaultEvtDeviceContextCleanup(
     _In_ WDFOBJECT DeviceObject
@@ -115,6 +116,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_PREPARE_HARDWARE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDevicePrepareHardware(
@@ -157,6 +159,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_RELEASE_HARDWARE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceReleaseHardware(
@@ -194,6 +197,7 @@ Return Value:
 }
 #pragma code_seg()
 
+_Function_class_(EVT_WDF_DEVICE_D0_ENTRY)
 NTSTATUS
 Bridge_DefaultEvtDeviceD0Entry(
     _In_ WDFDEVICE Device,
@@ -226,6 +230,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Function_class_(EVT_WDF_DEVICE_D0_ENTRY_POST_INTERRUPTS_ENABLED)
 NTSTATUS
 Bridge_DefaultEvtDeviceD0EntryPostInterruptsEnabled(
     _In_ WDFDEVICE Device,
@@ -258,6 +263,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Function_class_(EVT_WDF_DEVICE_D0_EXIT_PRE_INTERRUPTS_DISABLED)
 NTSTATUS
 Bridge_DefaultEvtDeviceD0ExitPreInterruptsDisabled(
     _In_ WDFDEVICE Device,
@@ -290,6 +296,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Function_class_(EVT_WDF_DEVICE_D0_EXIT)
 NTSTATUS
 Bridge_DefaultEvtDeviceD0Exit(
     _In_ WDFDEVICE Device,
@@ -323,6 +330,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_CLEANUP)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceSelfManagedIoCleanup(
@@ -355,6 +363,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_FLUSH)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceSelfManagedIoFlush(
@@ -387,6 +396,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_INIT)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceSelfManagedIoInit(
@@ -421,6 +431,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_SUSPEND)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceSelfManagedIoSuspend(
@@ -455,6 +466,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_RESTART)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceSelfManagedIoRestart(
@@ -489,6 +501,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_SURPRISE_REMOVAL)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceSurpriseRemoval(
@@ -521,6 +534,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_QUERY_REMOVE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceQueryRemove(
@@ -555,6 +569,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_QUERY_STOP)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceQueryStop(
@@ -589,6 +604,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_RELATIONS_QUERY)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceRelationsQuery(
@@ -624,6 +640,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_USAGE_NOTIFICATION_EX)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceUsageNotificationEx(
@@ -662,6 +679,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_ARM_WAKE_FROM_S0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceArmWakeFromS0(
@@ -696,6 +714,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_DISARM_WAKE_FROM_S0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceDisarmWakeFromS0(
@@ -728,6 +747,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_WAKE_FROM_S0_TRIGGERED)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceWakeFromS0Triggered(
@@ -760,6 +780,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_ARM_WAKE_FROM_SX_WITH_REASON)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 Bridge_DefaultEvtDeviceArmWakeFromSxWithReason(
@@ -800,6 +821,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_DISARM_WAKE_FROM_SX)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceDisarmWakeFromSx(
@@ -832,6 +854,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_DEVICE_WAKE_FROM_SX_TRIGGERED)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Bridge_DefaultEvtDeviceWakeFromSxTriggered(
@@ -869,7 +892,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_Function_class_(DMF_ModulePrepareHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -932,7 +955,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -989,6 +1012,7 @@ Exit:
 }
 #pragma code_seg()
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 static
@@ -1043,6 +1067,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0EntryPostInterruptsEnabled)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 static
@@ -1097,6 +1122,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0ExitPreInterruptsDisabled)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 NTSTATUS
@@ -1150,6 +1176,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 NTSTATUS
@@ -1202,6 +1229,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleQueueIoRead)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -1262,6 +1290,7 @@ Return Value:
     return returnValue;
 }
 
+_Function_class_(DMF_ModuleQueueIoWrite)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -1321,6 +1350,7 @@ Return FALSE if this Module does not support (know) the IOCTL.
     return returnValue;
 }
 
+_Function_class_(DMF_ModuleDeviceIoControl)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -1389,6 +1419,7 @@ Return Value:
 
 #if !defined(DMF_USER_MODE)
 
+_Function_class_(DMF_ModuleInternalDeviceIoControl)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -1457,6 +1488,7 @@ Return Value:
 #endif // !defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoCleanup)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1498,6 +1530,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoFlush)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1539,6 +1572,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoInit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1591,6 +1625,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoSuspend)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1643,6 +1678,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1695,6 +1731,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSurpriseRemoval)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1736,6 +1773,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleQueryRemove)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1788,6 +1826,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleQueryStop)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1840,6 +1879,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleRelationsQuery)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1885,6 +1925,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleUsageNotificationEx)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1944,6 +1985,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleArmWakeFromS0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -1996,6 +2038,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleDisarmWakeFromS0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -2037,6 +2080,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleWakeFromS0Triggered)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -2078,6 +2122,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleArmWakeFromSxWithReason)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -2136,6 +2181,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleDisarmWakeFromSx)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -2177,6 +2223,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleWakeFromSxTriggered)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -2218,6 +2265,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleFileCreate)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 BOOLEAN
@@ -2283,6 +2331,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleFileCleanup)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 BOOLEAN
@@ -2339,6 +2388,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleFileClose)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 BOOLEAN
@@ -2401,6 +2451,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleInstanceDestroy)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -2447,6 +2498,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static

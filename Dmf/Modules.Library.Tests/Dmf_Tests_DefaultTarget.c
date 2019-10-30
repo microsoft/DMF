@@ -101,6 +101,7 @@ typedef struct
 } THREAD_INDEX_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE(THREAD_INDEX_CONTEXT);
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferInput)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -125,6 +126,7 @@ Tests_DefaultTarget_BufferInput(
     *InputBufferSize = sizeof(sleepIoctlBuffer);
 }
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 ContinuousRequestTarget_BufferDisposition
@@ -357,6 +359,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -627,6 +630,7 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -679,6 +683,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -733,6 +738,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_DefaultTarget_ChildModulesAdd(
@@ -886,6 +892,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static

@@ -615,6 +615,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(EVT_DMF_ScheduledTask_Callback)
 ScheduledTask_Result_Type
 Pdo_ScheduledTask(
     _In_ DMFMODULE DmfModule,
@@ -723,6 +724,7 @@ Exit:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Pdo_ChildModulesAdd(
@@ -1141,9 +1143,33 @@ Return Value:
         //
         if (PdoRecord->SerialNumber == pdoData->SerialNumber)
         {
-            unique = FALSE;
-            ntStatus = STATUS_INVALID_PARAMETER;
-            break;
+            size_t hardwareIdBufferLength;
+
+            hardwareIdBufferLength = wcslen(pdoData->HardwareIdBuffer);
+
+            // A serial number can match as long as all of the hardware ids passed
+            // differ.
+            //
+            for (UINT hardwareIdCount = 0; hardwareIdCount < PdoRecord->HardwareIdsCount; hardwareIdCount++)
+            {
+                PWSTR hardwareId = PdoRecord->HardwareIds[hardwareIdCount];
+                if (wcsncmp(hardwareId,
+                            pdoData->HardwareIdBuffer,
+                            hardwareIdBufferLength) == 0)
+                {
+                    // At least one hardware id matches a previously registered
+                    // one with this serial number.
+                    //
+                    unique = FALSE;
+                }
+            }
+
+            if (unique == FALSE)
+            {
+                ntStatus = STATUS_INVALID_PARAMETER;
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Device not unique.");
+                break;
+            }
         }
     }
 

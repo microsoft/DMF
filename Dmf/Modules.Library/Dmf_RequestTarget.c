@@ -752,6 +752,7 @@ Exit:
 }
 #pragma code_seg()
 
+_Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 ScheduledTask_Result_Type
 RequestTarget_QueuedWorkitemCallbackSingle(
     _In_ DMFMODULE DmfModule,
@@ -804,6 +805,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_RequestTarget_ChildModulesAdd(

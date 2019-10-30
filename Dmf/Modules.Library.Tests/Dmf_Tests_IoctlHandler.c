@@ -372,6 +372,7 @@ IoctlHandler_IoctlRecord Tests_IoctlHandlerTable[] =
 };
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_IoctlHandler_ChildModulesAdd(

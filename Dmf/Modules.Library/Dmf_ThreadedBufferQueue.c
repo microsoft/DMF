@@ -180,6 +180,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
 VOID
 ThreadedBufferQueueThreadCallback(
     _In_ DMFMODULE DmfModule
@@ -318,6 +319,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ThreadedBufferQueue_ChildModulesAdd(
@@ -389,6 +391,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

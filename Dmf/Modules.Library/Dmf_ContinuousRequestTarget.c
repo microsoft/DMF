@@ -1434,6 +1434,7 @@ Exit:
 }
 #pragma code_seg()
 
+_Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 ScheduledTask_Result_Type 
 ContinuousRequestTarget_QueuedWorkitemCallbackSingle(
     _In_ DMFMODULE DmfModule,
@@ -1475,6 +1476,7 @@ Return Value:
     return ScheduledTask_WorkResult_Success;
 }
 
+_Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 ScheduledTask_Result_Type
 ContinuousRequestTarget_QueuedWorkitemCallbackStream(
     _In_ DMFMODULE DmfModule,
@@ -1652,6 +1654,7 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -1726,6 +1729,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -1789,6 +1793,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ContinuousRequestTarget_ChildModulesAdd(
@@ -1949,6 +1954,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -2089,6 +2095,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

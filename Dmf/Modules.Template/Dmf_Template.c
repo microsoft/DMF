@@ -144,6 +144,7 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -183,6 +184,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0EntryPostInterruptsEnabled)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -222,6 +224,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0ExitPreInterruptsDisabled)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -260,6 +263,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -298,6 +302,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleSelfManagedIoCleanup)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_Template_SelfManagedIoCleanup(
@@ -322,6 +327,7 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModule);
 }
 
+_Function_class_(DMF_ModuleSelfManagedIoFlush)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_Template_SelfManagedIoFlush(
@@ -346,6 +352,7 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModule);
 }
 
+_Function_class_(DMF_ModuleSelfManagedIoInit)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_Template_SelfManagedIoInit(
@@ -372,6 +379,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Function_class_(DMF_ModuleSelfManagedIoSuspend)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_Template_SelfManagedIoSuspend(
@@ -398,6 +406,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_Template_SelfManagedIoRestart(
@@ -424,6 +433,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Function_class_(DMF_ModuleSurpriseRemoval)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Template_SurpriseRemoval(
@@ -452,6 +462,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(DMF_ModuleFileCreate)
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -501,6 +512,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleFileCleanup)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 BOOLEAN
@@ -543,6 +555,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleFileClose)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 BOOLEAN
@@ -584,6 +597,7 @@ Return Value:
 }
 #pragma code_seg()
 
+_Function_class_(DMF_ModuleDeviceIoControl)
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
@@ -635,6 +649,7 @@ Return Value:
     return handled;
 }
 
+_Function_class_(DMF_ModuleInternalDeviceIoControl)
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
@@ -692,6 +707,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Template_ChildModulesAdd(
@@ -738,6 +754,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -823,6 +840,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationRegister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -866,6 +884,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -902,6 +921,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -942,6 +962,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

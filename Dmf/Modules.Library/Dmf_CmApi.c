@@ -222,6 +222,7 @@ Return Value:
     return (DWORD)ntStatus;
 }
 
+_Function_class_(EVT_DMF_CmApi_ParentTargetSymbolicLinkName)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 BOOLEAN 
@@ -321,6 +322,7 @@ Exit:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -403,6 +405,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

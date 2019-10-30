@@ -576,6 +576,7 @@ DeviceInterfaceTarget_Target_IoTargetClear(
 // ---------------------------
 //
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferInput)
 VOID
 DeviceInterfaceTarget_Stream_BufferInput(
     _In_ DMFMODULE DmfModule,
@@ -632,6 +633,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
 ContinuousRequestTarget_BufferDisposition
 DeviceInterfaceTarget_Stream_BufferOutput(
     _In_ DMFMODULE DmfModule,
@@ -1354,6 +1356,7 @@ Exit:
 #if defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationRegister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -1434,6 +1437,7 @@ Return Value:
 }
 #pragma code_seg()
 
+_Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1477,6 +1481,7 @@ Return Value:
 #if !defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationRegister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -1546,6 +1551,7 @@ Return Value:
 #if !defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1619,6 +1625,7 @@ Exit:
 #endif // !defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -1672,6 +1679,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1709,6 +1717,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_DeviceInterfaceTarget_ChildModulesAdd(

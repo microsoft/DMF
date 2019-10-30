@@ -172,6 +172,7 @@ DMFMODULE g_DmfModuleCrashDump;
 
 KBUGCHECK_REASON_CALLBACK_ROUTINE CrashDump_BugCheckSecondaryDumpDataCallbackRingBuffer;
 
+_Function_class_(EVT_DMF_RingBuffer_Enumeration)
 BOOLEAN
 CrashDump_RingBufferElementsFirstBufferGet(
     _In_ DMFMODULE DmfModule,
@@ -222,6 +223,7 @@ Return Value:
     return FALSE;
 }
 
+_Function_class_(EVT_DMF_RingBuffer_Enumeration)
 BOOLEAN
 CrashDump_RingBufferElementsXor(
     _In_ DMFMODULE DmfModule,
@@ -2872,6 +2874,7 @@ Return Value:
 
 ++*/
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleFileClose)
 BOOLEAN
 DMF_CrashDump_FileClose(
     _In_ DMFMODULE DmfModule,
@@ -2901,6 +2904,7 @@ DMF_CrashDump_FileClose(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSurpriseRemoval)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_CrashDump_SurpriseRemoval(
@@ -2944,6 +2948,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleInstanceDestroy)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -2980,6 +2985,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -3252,6 +3258,7 @@ Return Value:
 #if !defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -3477,6 +3484,7 @@ IoctlHandler_IoctlRecord CrashDump_IoctlSpecification[] =
 };
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_CrashDump_ChildModulesAdd(

@@ -964,10 +964,12 @@ EVT_DMF_INTERFACE_Generic_PreUnbind(
     _In_ DMFINTERFACE DmfInterface
     );
 
+_Function_class_(DMF_ModuleInstanceDestroy)
 VOID
 DMF_Generic_Destroy(
     _In_ DMFMODULE DmfModule
     );
+
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -995,6 +997,7 @@ DMF_Internal_Close(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModulePrepareHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1004,6 +1007,7 @@ DMF_Generic_ModulePrepareHardware(
     _In_ WDFCMRESLIST ResourcesTranslated
     );
 
+_Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Generic_ModuleReleaseHardware(
@@ -1011,6 +1015,7 @@ DMF_Generic_ModuleReleaseHardware(
     _In_ WDFCMRESLIST ResourcesTranslated
     );
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1019,6 +1024,7 @@ DMF_Generic_ModuleD0Entry(
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     );
 
+_Function_class_(DMF_ModuleD0EntryPostInterruptsEnabled)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1027,6 +1033,7 @@ DMF_Generic_ModuleD0EntryPostInterruptsEnabled(
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     );
 
+_Function_class_(DMF_ModuleD0ExitPreInterruptsDisabled)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Generic_ModuleD0ExitPreInterruptsDisabled(
@@ -1034,6 +1041,7 @@ DMF_Generic_ModuleD0ExitPreInterruptsDisabled(
     _In_ WDF_POWER_DEVICE_STATE TargetState
     );
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Generic_ModuleD0Exit(
@@ -1041,6 +1049,7 @@ DMF_Generic_ModuleD0Exit(
     _In_ WDF_POWER_DEVICE_STATE TargetState
     );
 
+_Function_class_(DMF_ModuleQueueIoRead)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Generic_ModuleQueueIoRead(
@@ -1050,6 +1059,7 @@ DMF_Generic_ModuleQueueIoRead(
     _In_ size_t Length
     );
 
+_Function_class_(DMF_ModuleQueueIoWrite)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_Generic_ModuleQueueIoWrite(
@@ -1059,6 +1069,7 @@ DMF_Generic_ModuleQueueIoWrite(
     _In_ size_t Length
     );
 
+_Function_class_(DMF_ModuleDeviceIoControl)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 BOOLEAN
@@ -1071,6 +1082,7 @@ DMF_Generic_ModuleDeviceIoControl(
     _In_ ULONG IoControlCode
     );
 
+_Function_class_(DMF_ModuleInternalDeviceIoControl)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 BOOLEAN
@@ -1083,18 +1095,21 @@ DMF_Generic_ModuleInternalDeviceIoControl(
     _In_ ULONG IoControlCode
     );
 
+_Function_class_(DMF_ModuleSelfManagedIoCleanup)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleSelfManagedIoCleanup(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleSelfManagedIoFlush)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleSelfManagedIoFlush(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleSelfManagedIoInit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1102,6 +1117,7 @@ DMF_Generic_ModuleSelfManagedIoInit(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleSelfManagedIoSuspend)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1109,6 +1125,7 @@ DMF_Generic_ModuleSelfManagedIoSuspend(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1116,12 +1133,14 @@ DMF_Generic_ModuleSelfManagedIoRestart(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleSurpriseRemoval)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleSurpriseRemoval(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleQueryRemove)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1129,6 +1148,7 @@ DMF_Generic_ModuleQueryRemove(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleQueryStop)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1136,6 +1156,7 @@ DMF_Generic_ModuleQueryStop(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleRelationsQuery)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleRelationsQuery(
@@ -1143,6 +1164,7 @@ DMF_Generic_ModuleRelationsQuery(
     _In_ DEVICE_RELATION_TYPE RelationType
     );
 
+_Function_class_(DMF_ModuleUsageNotificationEx)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1152,6 +1174,7 @@ DMF_Generic_ModuleUsageNotificationEx(
     _In_ BOOLEAN IsInNotificationPath
     );
 
+_Function_class_(DMF_ModuleArmWakeFromS0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1159,18 +1182,21 @@ DMF_Generic_ModuleArmWakeFromS0(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleDisarmWakeFromS0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleDisarmWakeFromS0(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleWakeFromS0Triggered)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleWakeFromS0Triggered(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleArmWakeFromSxWithReason)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1180,18 +1206,21 @@ DMF_Generic_ModuleArmWakeFromSxWithReason(
     _In_ BOOLEAN ChildrenArmedForWake
     );
 
+_Function_class_(DMF_ModuleDisarmWakeFromSx)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleDisarmWakeFromSx(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleWakeFromSxTriggered)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ModuleWakeFromSxTriggered(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ModuleFileCreate)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 BOOLEAN
@@ -1202,6 +1231,7 @@ DMF_Generic_ModuleFileCreate(
     _In_ WDFFILEOBJECT FileObject
     );
 
+_Function_class_(DMF_ModuleFileCleanup)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 BOOLEAN
@@ -1210,6 +1240,7 @@ DMF_Generic_ModuleFileCleanup(
     _In_ WDFFILEOBJECT FileObject
     );
 
+_Function_class_(DMF_ModuleFileClose)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 BOOLEAN
@@ -1218,6 +1249,7 @@ DMF_Generic_ModuleFileClose(
     _In_ WDFFILEOBJECT FileObject
     );
 
+_Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Generic_ResourcesAssign(
@@ -1226,6 +1258,7 @@ DMF_Generic_ResourcesAssign(
     _In_ WDFCMRESLIST ResourcesTranslated
     );
 
+_Function_class_(DMF_NotificationRegister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1233,12 +1266,14 @@ DMF_Generic_NotificationRegister(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_NotificationUnregister(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1246,12 +1281,14 @@ DMF_Generic_Open(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_Close(
     _In_ DMFMODULE DmfModule
     );
 
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Generic_ChildModulesAdd(
@@ -1594,6 +1631,7 @@ DMF_DmfDeviceInitClientImplementsDeviceAdd(
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(EVT_WDF_OBJECT_CONTEXT_CLEANUP)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ModuleCollectionDestroy(

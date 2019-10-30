@@ -485,6 +485,7 @@ Return Value:
     FuncExit(DMF_TRACE, "ModuleCollectionHandle=0x%p", ModuleCollectionHandle);
 }
 
+_Function_class_(EVT_WDF_OBJECT_CONTEXT_CLEANUP)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ModuleCollectionDestroy(

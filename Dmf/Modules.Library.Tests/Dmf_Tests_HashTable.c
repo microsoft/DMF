@@ -227,6 +227,7 @@ Tests_HashTable_DataRecordsSearch(
     return returnValue;
 }
 
+_Function_class_(EVT_DMF_HashTable_Find)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -476,6 +477,7 @@ Tests_HashTable_ThreadAction_Enumerate(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -536,6 +538,7 @@ Tests_HashTable_WorkThread(
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -610,6 +613,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -651,6 +655,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_HashTable_ChildModulesAdd(

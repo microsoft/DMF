@@ -282,6 +282,7 @@ g_HidPortableDeviceButtons_HidDescriptor =
     }
 };
 
+_Function_class_(EVT_VHF_ASYNC_OPERATION)
 VOID
 HidPortableDeviceButtons_GetFeature(
     _In_ VOID* VhfClientContext,
@@ -361,6 +362,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_VHF_ASYNC_OPERATION)
 VOID
 HidPortableDeviceButtons_SetFeature(
     _In_ VOID* VhfClientContext,
@@ -444,6 +446,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_VHF_ASYNC_OPERATION)
 VOID
 HidPortableDeviceButtons_GetInputReport(
     _In_ VOID* VhfClientContext,
@@ -524,6 +527,7 @@ Exit:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -583,6 +587,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -646,6 +651,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -684,6 +690,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_HidPortableDeviceButtons_ChildModulesAdd(
