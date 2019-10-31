@@ -96,6 +96,7 @@ DMF_BranchTrack_CONFIG_INIT(
     _In_ CHAR* ClientName
     );
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_Count(
@@ -105,6 +106,7 @@ DMF_BranchTrack_Helper_BranchStatusQuery_Count(
     _In_ ULONGLONG Count
     );
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_MoreThan(
@@ -114,6 +116,7 @@ DMF_BranchTrack_Helper_BranchStatusQuery_MoreThan(
     _In_ ULONGLONG Count
     );
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_LessThan(
@@ -123,6 +126,7 @@ DMF_BranchTrack_Helper_BranchStatusQuery_LessThan(
     _In_ ULONGLONG Count
     );
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_AtLeast(

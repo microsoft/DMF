@@ -331,6 +331,7 @@ DefaultTarget_Target_IoTargetClear(
 // ---------------------------
 //
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferInput)
 VOID
 DefaultTarget_Stream_BufferInput(
     _In_ DMFMODULE DmfModule,
@@ -387,6 +388,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
 ContinuousRequestTarget_BufferDisposition
 DefaultTarget_Stream_BufferOutput(
     _In_ DMFMODULE DmfModule,
@@ -455,6 +457,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationRegister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -522,6 +525,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -576,6 +580,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -635,6 +640,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -672,6 +678,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_DefaultTarget_ChildModulesAdd(

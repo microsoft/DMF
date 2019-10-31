@@ -253,6 +253,7 @@ Tests_Pdo_ThreadAction_Slow(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -430,6 +431,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoInit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Tests_Pdo_SelfManagedIoInit(
@@ -465,6 +467,7 @@ Return Value:
 }
 #pragma code_seg()
 
+_Function_class_(DMF_ModuleSelfManagedIoSuspend)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_Tests_Pdo_SelfManagedIoSuspend(
@@ -491,6 +494,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Tests_Pdo_SelfManagedIoRestart(
@@ -532,6 +536,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_Pdo_ChildModulesAdd(

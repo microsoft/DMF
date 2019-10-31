@@ -93,6 +93,7 @@ SymbolicLinkTarget_IoTargetDestroy(
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -121,6 +122,7 @@ DMF_SymbolicLinkTarget_Open(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

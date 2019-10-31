@@ -77,6 +77,7 @@ DMF_MODULE_DECLARE_CONFIG(BufferQueue)
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_BufferQueue_ChildModulesAdd(

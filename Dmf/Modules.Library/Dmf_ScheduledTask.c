@@ -278,6 +278,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_TIMER)
 VOID
 ScheduledTask_TimerHandler(
     _In_ WDFTIMER WdfTimer
@@ -332,6 +333,7 @@ Return:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_WORKITEM)
 VOID
 ScheduledTask_DeferredHandlerOnDemand(
     _In_ WDFWORKITEM WdfWorkitem
@@ -399,6 +401,7 @@ Return:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModulePrepareHardware)
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -508,6 +511,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -552,6 +556,7 @@ Return Value:
 }
 #pragma code_seg()
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -659,6 +664,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -705,6 +711,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -808,6 +815,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

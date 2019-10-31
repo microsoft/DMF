@@ -180,6 +180,7 @@ Return Value:
     return TRUE;
 }
 
+_Function_class_(EVT_DMF_Pdo_DeviceQueryInterfaceAdd)
 NTSTATUS
 ToasterBus_DeviceQueryInterfaceAdd(
     DMFMODULE DmfModule,
@@ -610,6 +611,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -672,6 +674,7 @@ IoctlHandler_IoctlRecord ToasterBus_IoctlSpecification[] =
 };
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ToasterBus_ChildModulesAdd(

@@ -55,6 +55,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(String)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(EVT_DMF_String_CompareCharCallback)
 LONG
 String_FindInListExactCharCallback(
     _In_ DMFMODULE DmfModule,
@@ -87,6 +88,7 @@ Return Value:
                    LookFor));
 }
 
+_Function_class_(EVT_DMF_String_CompareCharCallback)
 LONG
 String_FindInListLeftLookForMatchCharCallback(
     _In_ DMFMODULE DmfModule,
@@ -478,6 +480,7 @@ typedef struct
     WCHAR* LastString;
 } String_MultiSzFindLastContext;
 
+_Function_class_(EVT_DMF_String_MutilSzCallback)
 _Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_

@@ -111,6 +111,7 @@ const LONGLONG DEFAULT_CONTROL_TRANSFER_TIMEOUT = 5 * -1 * WDF_TIMEOUT_TO_SEC;
 #define TEST_BOARD_TRANSFER_BUFFER_SIZE     (64*1024)
 #define DEVICE_DESCRIPTOR_LENGTH            256
 
+_Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 ScheduledTask_Result_Type 
@@ -143,6 +144,7 @@ OsrFx2_QueuedWorkitemFunction(
     return ScheduledTask_WorkResult_Success;
 }
 
+_Function_class_(EVT_WDF_REQUEST_COMPLETION_ROUTINE)
 static
 VOID
 OsrFx2_EvtRequestReadCompletionRoutine(
@@ -218,6 +220,7 @@ Returns:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_WDF_IO_QUEUE_IO_READ)
 static
 VOID
 OsrFx2_EvtIoRead(
@@ -350,6 +353,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_WDF_REQUEST_COMPLETION_ROUTINE)
 static
 VOID
 OsrFx2_EvtRequestWriteCompletionRoutine(
@@ -427,6 +431,7 @@ Returns:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_WDF_IO_QUEUE_IO_WRITE)
 static
 VOID 
 OsrFx2_EvtIoWrite(
@@ -549,6 +554,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_WDF_IO_QUEUE_IO_STOP)
 static
 VOID
 OsrFx2_EvtIoStop(
@@ -1459,6 +1465,7 @@ Returns:
 }
 #pragma code_seg()
 
+_Function_class_(EVT_WDF_USB_READER_COMPLETION_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1562,6 +1569,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_WDF_USB_READERS_FAILED)
 _Must_inspect_result_
 static
 BOOLEAN
@@ -1919,6 +1927,7 @@ Returns:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -2002,6 +2011,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
@@ -2058,6 +2068,7 @@ Returns:
     return ntStatus;
 }
 
+_Function_class_(DMF_ModuleSelfManagedIoFlush)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 VOID
@@ -2117,6 +2128,7 @@ IoctlHandler_IoctlRecord OsrFx2_IoctlHandlerTable[] =
 };
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_OsrFx2_ChildModulesAdd(
@@ -2200,6 +2212,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static

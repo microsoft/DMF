@@ -304,6 +304,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -365,6 +366,7 @@ Tests_SelfTarget_WorkThread(
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoInit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Tests_SelfTarget_SelfManagedIoInit(
@@ -425,6 +427,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleSelfManagedIoCleanup)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_SelfTarget_SelfManagedIoCleanup(
@@ -476,6 +479,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_SelfTarget_ChildModulesAdd(
@@ -562,6 +566,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static

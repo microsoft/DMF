@@ -141,6 +141,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Registry)
 
 #pragma code_seg("PAGE")
 
+_Function_class_(EVT_DMF_Registry_ValueComparisonCallback)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 BOOLEAN
@@ -1216,6 +1217,7 @@ Exit:
 // Enumeration Filter Functions. Add more here as needed for external use.
 //
 
+_Function_class_(EVT_DMF_Registry_KeyEnumerationCallback)
 BOOLEAN
 Registry_KeyEnumerationFilterAllSubkeys(
     _In_ VOID* ClientContext,
@@ -1259,6 +1261,7 @@ Exit:
     return returnValue;
 }
 
+_Function_class_(EVT_DMF_Registry_KeyEnumerationCallback)
 BOOLEAN
 Registry_KeyEnumerationFilterStrstr(
     _In_ VOID* ClientContext,
@@ -1943,6 +1946,7 @@ Return:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -2007,6 +2011,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

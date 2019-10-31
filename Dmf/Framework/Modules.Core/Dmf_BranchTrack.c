@@ -219,6 +219,7 @@ Return Value:
     return (CHAR*)(&TableKey->RawData[hintNameOffset]);
 }
 
+_Function_class_(EVT_DMF_HashTable_Find)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 VOID
@@ -261,6 +262,7 @@ Return Value:
     *(ULONGLONG*)Value = *(ULONGLONG*)Value + 1;
 }
 
+_Function_class_(EVT_DMF_HashTable_Find)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 VOID
@@ -298,6 +300,7 @@ Return Value:
     *(ULONGLONG*)Value = 0;
 }
 
+_Function_class_(EVT_DMF_HashTable_Enumerate)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -369,6 +372,7 @@ Return Value:
     return TRUE;
 }
 
+_Function_class_(EVT_DMF_HashTable_Enumerate)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -428,6 +432,7 @@ Return Value:
     return TRUE;
 }
 
+_Function_class_(EVT_DMF_HashTable_Enumerate)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 static
 BOOLEAN
@@ -1102,6 +1107,7 @@ Exit:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_BranchTrack_ChildModulesAdd(
@@ -1184,6 +1190,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleDeviceIoControl)
 static
 _Check_return_
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1296,6 +1303,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -1447,6 +1455,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -1723,6 +1732,7 @@ Exit:
 // NOTE: These are not Module Methods because no DMF Module is passed.
 //
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_Count(
@@ -1757,6 +1767,7 @@ Return Value:
     return (Count == (ULONGLONG)BranchContext);
 }
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_MoreThan(
@@ -1791,6 +1802,7 @@ Return Value:
     return  (Count > (ULONGLONG)BranchContext);
 }
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_LessThan(
@@ -1825,6 +1837,7 @@ Return Value:
     return  (Count < (ULONGLONG)BranchContext);
 }
 
+_Function_class_(EVT_DMF_BranchTrack_StatusQuery)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_AtLeast(

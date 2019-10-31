@@ -182,6 +182,7 @@ Return Value:
     return ntStatus;
 }
 
+_Function_class_(EVT_DMF_RingBuffer_Enumeration)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 LiveKernelDump_InvalidateDataBuffer(
@@ -292,6 +293,7 @@ Return Value:
 
 #if IS_WIN10_RS3_OR_LATER
 
+_Function_class_(EVT_DMF_RingBuffer_Enumeration)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 LiveKernelDump_InsertDataBufferInLiveDump(
@@ -818,6 +820,7 @@ IoctlHandler_IoctlRecord LiveKernelDump_IoctlSpecification[] =
 #endif // IS_WIN10_RS3_OR_LATER
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_LiveKernelDump_ChildModulesAdd(
@@ -924,6 +927,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static

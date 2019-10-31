@@ -159,6 +159,7 @@ Return Value:
     return queuedWorkItemWaitBlock;
 }
 
+_Function_class_(EVT_DMF_ScheduledTask_Callback)
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 ScheduledTask_Result_Type
@@ -254,6 +255,7 @@ Exit:
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_QueuedWorkItem_ChildModulesAdd(

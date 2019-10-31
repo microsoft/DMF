@@ -274,6 +274,7 @@ Exit:
     return ntStatus;
 }
 
+_Function_class_(EVT_DMF_BufferPool_TimerCallback)
 static
 VOID
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -302,6 +303,7 @@ Tests_BufferPool_TimerCallback(
                        ClientBuffer);
 }
 
+_Function_class_(EVT_DMF_BufferPool_Enumeration)
 static
 BufferPool_EnumerationDispositionType
 BufferPool_Enumeration_Callback(
@@ -544,6 +546,7 @@ Tests_BufferPool_ThreadAction_BufferCount(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -612,6 +615,7 @@ Tests_BufferPool_WorkThread(
 //
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -671,6 +675,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -712,6 +717,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Tests_BufferPool_ChildModulesAdd(
