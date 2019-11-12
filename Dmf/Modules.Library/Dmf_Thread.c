@@ -310,6 +310,7 @@ Return Value:
         // Clear in case this thread was previously stopped.
         //
         moduleContext->IsThreadStopPending = FALSE;
+        DMF_Portable_EventReset(moduleContext->EventStop);
     }
 
     // Create the thread.
