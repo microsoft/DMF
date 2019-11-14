@@ -145,6 +145,8 @@ DmfCallbacksWdf_Internal_Dispatch =
     DMF_Internal_ModuleFileClose,
 };
 
+#pragma code_seg("PAGE")
+static
 VOID
 DmfCallbacksDmfInitialize(
     _Out_ DMF_CALLBACKS_DMF* DmfCallbacksDmf
@@ -165,6 +167,8 @@ Return Value:
 
 --*/
 {
+    PAGED_CODE();
+
     RtlZeroMemory(DmfCallbacksDmf,
                   sizeof(DMF_CALLBACKS_DMF));
 
@@ -177,7 +181,10 @@ Return Value:
     DmfCallbacksDmf->DeviceClose = DMF_Generic_Close;
     DmfCallbacksDmf->ChildModulesAdd = DMF_Generic_ChildModulesAdd;
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+static
 VOID
 DmfCallbacksWdfInitialize(
     _Out_ DMF_CALLBACKS_WDF* DmfCallbacksWdf
@@ -198,6 +205,8 @@ Return Value:
 
 --*/
 {
+    PAGED_CODE();
+
     RtlZeroMemory(DmfCallbacksWdf,
                   sizeof(DMF_CALLBACKS_WDF));
 
@@ -231,6 +240,759 @@ Return Value:
     DmfCallbacksWdf->ModuleFileCreate = DMF_Generic_ModuleFileCreate;
     DmfCallbacksWdf->ModuleFileCleanup = DMF_Generic_ModuleFileCleanup;
     DmfCallbacksWdf->ModuleFileClose = DMF_Generic_ModuleFileClose;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+NTSTATUS
+DmfModuleInstanceNameInitialize(
+    _Inout_ DMF_OBJECT* DmfObject,
+    _In_ WDFMEMORY MemoryDmfObject,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes
+    )
+/*++
+
+Routine Description:
+
+    Populate a given DMF_OBJECT structure with Client Module Instance Name.
+
+Arguments:
+
+    DmfObject - The given DMF_OBJECT structure.
+    MemoryDmfObject - The corresponding WDFMEMORY object for DmfObject.
+    DmfModuleAttributes - Pointer to the initialized DMF_MODULE_ATTRIBUTES structure.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDF_OBJECT_ATTRIBUTES attributes;
+    size_t clientModuleInstanceNameSizeBytes;
+    CHAR* clientModuleInstanceName;
+
+    PAGED_CODE();
+
+    // Create space for the Client Module Instance Name. It needs to be allocated because
+    // the name that is passed in may not be statically allocated. A copy needs to be made
+    // in case the Client Driver has allocated the passed in name on the stack. We don't 
+    // want to force the Client Driver to maintain space for the name in cases where the 
+    // name is generated.
+    //
+    DmfAssert(DmfModuleAttributes->ClientModuleInstanceName != NULL);
+    if (*DmfModuleAttributes->ClientModuleInstanceName == '\0')
+    {
+        // If Client Driver has passed "", then use the Module Name as the Module Instance Name.
+        // (Client Driver only needs to set this string in cases where multiple instances of a 
+        // DMF Module are instantiated.)
+        //
+        clientModuleInstanceName = DmfObject->ModuleName;
+    }
+    else
+    {
+        // Use the name the Client passed in. 
+        //
+        clientModuleInstanceName = DmfModuleAttributes->ClientModuleInstanceName;
+    }
+    clientModuleInstanceNameSizeBytes = strlen(clientModuleInstanceName) + sizeof(CHAR);
+    DmfAssert(clientModuleInstanceNameSizeBytes > 1);
+
+    // Allocate space for the instance name. This name is useful during debugging.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = MemoryDmfObject;
+    ntStatus = WdfMemoryCreate(&attributes,
+                               NonPagedPoolNx,
+                               DMF_TAG,
+                               clientModuleInstanceNameSizeBytes,
+                               &DmfObject->ClientModuleInstanceNameMemory,
+                               (VOID* *)&DmfObject->ClientModuleInstanceName);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate ClientModuleInstanceName");
+        goto Exit;
+    }
+    RtlZeroMemory(DmfObject->ClientModuleInstanceName,
+                  clientModuleInstanceNameSizeBytes);
+    // Copy the string. The length passed is one more than the length but that
+    // extra byte is terminating zero which will not be copied.
+    //
+    strncpy_s(DmfObject->ClientModuleInstanceName,
+              clientModuleInstanceNameSizeBytes,
+              clientModuleInstanceName,
+              clientModuleInstanceNameSizeBytes);
+    DmfAssert(clientModuleInstanceNameSizeBytes > 0);
+    DmfAssert(DmfObject->ClientModuleInstanceName[clientModuleInstanceNameSizeBytes - 1] == '\0');
+    DmfAssert(DmfObject->ClientModuleInstanceName[0] != '\0');
+
+Exit:
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+NTSTATUS
+DmfModuleChildObjectsInitialize(
+    _Inout_ DMF_OBJECT* DmfObject,
+    _In_ WDFMEMORY MemoryDmfObject,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
+    _In_ DMF_MODULE_DESCRIPTOR* ModuleDescriptor
+    )
+/*++
+
+Routine Description:
+
+    Initialize various child objects in a given DMF_OBJECT structure.
+
+Arguments:
+
+    DmfObject - The given DMF_OBJECT structure.
+    MemoryDmfObject - The corresponding WDFMEMORY object for DmfObject.
+    DmfModuleAttributes - Pointer to the initialized DMF_MODULE_ATTRIBUTES structure.
+    ModuleDescriptor - Pointer to the DMF_MODULE_DESCRIPTOR structure providing information about the Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDF_OBJECT_ATTRIBUTES attributes;
+
+    PAGED_CODE();
+
+    // Create the area for Module Config, if any.
+    //
+    DmfAssert(NULL == DmfObject->ModuleConfig);
+    if (DmfModuleAttributes->SizeOfModuleSpecificConfig != NULL)
+    {
+        DmfAssert(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
+        WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+        attributes.ParentObject = MemoryDmfObject;
+        ntStatus = WdfMemoryCreate(&attributes,
+                                   NonPagedPoolNx,
+                                   DMF_TAG,
+                                   ModuleDescriptor->ModuleConfigSize,
+                                   &DmfObject->ModuleConfigMemory,
+                                   &DmfObject->ModuleConfig);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Module Config");
+            goto Exit;
+        }
+
+        // ModuleConfig will be fully overwritten in RtlCopyMemory below. 
+        // So zeroing out the buffer is not necessary.
+        //
+
+        // Save off the Module Config information for when the Open happens later.
+        //
+        DmfAssert(DmfModuleAttributes->ModuleConfigPointer != NULL);
+        DmfAssert(DmfObject->ModuleConfig != NULL);
+        RtlCopyMemory(DmfObject->ModuleConfig,
+                      DmfModuleAttributes->ModuleConfigPointer,
+                      ModuleDescriptor->ModuleConfigSize);
+    }
+    else
+    {
+        // NOTE: Because only proper Config initialization macros are exposed, there is no way for the 
+        //       Client to improperly initialize the Config (as it was in the past). It means, that if 
+        //       this path executes, the Module Author has not defined a Config.
+        //
+    }
+
+    // Create WDFCOLLECTION to store the Interface Bindings of this Module.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = MemoryDmfObject;
+    ntStatus = WdfCollectionCreate(&attributes,
+                                   &DmfObject->InterfaceBindings);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Collection for InterfaceBindings.");
+        goto Exit;
+    }
+
+    // Create a spin lock to protect access to the Interface Bindings Collection.
+    //
+    ntStatus = WdfSpinLockCreate(&attributes,
+                                 &DmfObject->InterfaceBindingsLock);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "InterfaceBindingsLock create fails.");
+        goto Exit;
+    }
+
+Exit:
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+NTSTATUS
+DmfModuleCallbacksInitialize(
+    _Inout_ DMF_OBJECT* DmfObject,
+    _In_ WDFMEMORY MemoryDmfObject,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
+    _In_ DMF_MODULE_DESCRIPTOR* ModuleDescriptor
+    )
+/*++
+
+Routine Description:
+
+    Populate callback functions pointers in a given DMF_CALLBACKS_DMF structure.
+
+Arguments:
+
+    DmfObject - The given DMF_OBJECT structure.
+    MemoryDmfObject - The corresponding WDFMEMORY object for DmfObject.
+    DmfModuleAttributes - Pointer to the initialized DMF_MODULE_ATTRIBUTES structure.
+    ModuleDescriptor - Pointer to the DMF_MODULE_DESCRIPTOR structure providing information about the Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDF_OBJECT_ATTRIBUTES attributes;
+    DMF_MODULE_EVENT_CALLBACKS* callbacks;
+    WDFMEMORY callbacksDmfMemory;
+    WDFMEMORY callbacksWdfMemory;
+
+    PAGED_CODE();
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    attributes.ParentObject = MemoryDmfObject;
+    ntStatus = WdfMemoryCreate(&attributes,
+                               NonPagedPoolNx,
+                               DMF_TAG,
+                               sizeof(DMF_CALLBACKS_DMF),
+                               &callbacksDmfMemory,
+                               (VOID* *)&DmfObject->ModuleDescriptor.CallbacksDmf);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Callbacks Dmf");
+        goto Exit;
+    }
+
+    RtlZeroMemory(DmfObject->ModuleDescriptor.CallbacksDmf,
+                  sizeof(DMF_CALLBACKS_DMF));
+
+    ntStatus = WdfMemoryCreate(&attributes,
+                               NonPagedPoolNx,
+                               DMF_TAG,
+                               sizeof(DMF_CALLBACKS_WDF),
+                               &callbacksWdfMemory,
+                               (VOID* *)&DmfObject->ModuleDescriptor.CallbacksWdf);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Callbacks Dmf");
+        goto Exit;
+    }
+
+    RtlZeroMemory(DmfObject->ModuleDescriptor.CallbacksWdf,
+                  sizeof(DMF_CALLBACKS_WDF));
+
+    DmfCallbacksDmfInitialize(DmfObject->ModuleDescriptor.CallbacksDmf);
+    DmfCallbacksWdfInitialize(DmfObject->ModuleDescriptor.CallbacksWdf);
+
+    // Set the optional callbacks.
+    //
+    callbacks = DmfModuleAttributes->ClientCallbacks;
+    if (callbacks != NULL)
+    {
+        // Copy the Client Driver's Asynchronous callbacks.
+        //
+        DmfObject->Callbacks = *callbacks;
+    }
+    else
+    {
+        DmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose = USE_GENERIC_CALLBACK;
+        DmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen = USE_GENERIC_CALLBACK;
+    }
+
+    // Set Internal Callbacks.
+    // NOTE: Use updated options, not global options.
+    //
+    if (DmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH)
+    {
+        // For Modules that run at Dispatch Level.
+        //
+        DmfAssert(! (DmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE));
+        DmfObject->InternalCallbacksDmf = DmfCallbacksDmf_Internal_Dispatch;
+        DmfObject->InternalCallbacksWdf = DmfCallbacksWdf_Internal_Dispatch;
+        DmfObject->InternalCallbacksInternal = DmfCallbacksInternal_Internal_Dispatch;
+    }
+    else if (DmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE)
+    {
+        // For Modules that run at Passive Level.
+        //
+        DmfAssert(! (DmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
+        DmfObject->InternalCallbacksDmf = DmfCallbacksDmf_Internal_Passive;
+        DmfObject->InternalCallbacksWdf = DmfCallbacksWdf_Internal_Passive;
+        DmfObject->InternalCallbacksInternal = DmfCallbacksInternal_Internal_Passive;
+    }
+    else
+    {
+        DmfAssert(FALSE);
+    }
+
+    // Set default callbacks.
+    //
+    if (USE_GENERIC_CALLBACK == DmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen)
+    {
+        DmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen = EVT_DMF_MODULE_Generic_OnDeviceNotificationPostOpen;
+    }
+    if (USE_GENERIC_CALLBACK == DmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose)
+    {
+        DmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose = EVT_DMF_MODULE_Generic_OnDeviceNotificationPreClose;
+    }
+
+    // Allow client to override default behavior of each handler.
+    //
+    if (ModuleDescriptor->CallbacksWdf != NULL)
+    {
+        if (ModuleDescriptor->CallbacksWdf->ModulePrepareHardware != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware = ModuleDescriptor->CallbacksWdf->ModulePrepareHardware;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleReleaseHardware != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware = ModuleDescriptor->CallbacksWdf->ModuleReleaseHardware;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleD0Entry != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry = ModuleDescriptor->CallbacksWdf->ModuleD0Entry;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled = ModuleDescriptor->CallbacksWdf->ModuleD0EntryPostInterruptsEnabled;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled = ModuleDescriptor->CallbacksWdf->ModuleD0ExitPreInterruptsDisabled;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleD0Exit != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit = ModuleDescriptor->CallbacksWdf->ModuleD0Exit;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleQueueIoRead != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead = ModuleDescriptor->CallbacksWdf->ModuleQueueIoRead;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleQueueIoWrite != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite = ModuleDescriptor->CallbacksWdf->ModuleQueueIoWrite;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleDeviceIoControl != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl = ModuleDescriptor->CallbacksWdf->ModuleDeviceIoControl;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleInternalDeviceIoControl != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl = ModuleDescriptor->CallbacksWdf->ModuleInternalDeviceIoControl;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoCleanup != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoCleanup;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoFlush != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoFlush;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoInit != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoInit;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoSuspend != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoSuspend;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoRestart != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoRestart;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleSurpriseRemoval != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval = ModuleDescriptor->CallbacksWdf->ModuleSurpriseRemoval;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleQueryRemove != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove = ModuleDescriptor->CallbacksWdf->ModuleQueryRemove;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleQueryStop != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop = ModuleDescriptor->CallbacksWdf->ModuleQueryStop;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleRelationsQuery != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery = ModuleDescriptor->CallbacksWdf->ModuleRelationsQuery;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleUsageNotificationEx != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx = ModuleDescriptor->CallbacksWdf->ModuleUsageNotificationEx;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromS0 != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 = ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromS0;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromS0 != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 = ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromS0;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleWakeFromS0Triggered != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered = ModuleDescriptor->CallbacksWdf->ModuleWakeFromS0Triggered;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromSxWithReason != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason = ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromSxWithReason;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromSx != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx = ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromSx;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleWakeFromSxTriggered != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered = ModuleDescriptor->CallbacksWdf->ModuleWakeFromSxTriggered;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleFileCreate != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate = ModuleDescriptor->CallbacksWdf->ModuleFileCreate;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleFileCleanup != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup = ModuleDescriptor->CallbacksWdf->ModuleFileCleanup;
+        }
+        if (ModuleDescriptor->CallbacksWdf->ModuleFileClose != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose = ModuleDescriptor->CallbacksWdf->ModuleFileClose;
+        }
+    }
+
+    if (ModuleDescriptor->CallbacksDmf != NULL)
+    {
+        if (ModuleDescriptor->CallbacksDmf->ModuleInstanceDestroy != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy = ModuleDescriptor->CallbacksDmf->ModuleInstanceDestroy;
+        }
+        if (ModuleDescriptor->CallbacksDmf->DeviceResourcesAssign != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign = ModuleDescriptor->CallbacksDmf->DeviceResourcesAssign;
+        }
+        if (ModuleDescriptor->CallbacksDmf->DeviceNotificationRegister != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister = ModuleDescriptor->CallbacksDmf->DeviceNotificationRegister;
+        }
+        if (ModuleDescriptor->CallbacksDmf->DeviceNotificationUnregister != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister = ModuleDescriptor->CallbacksDmf->DeviceNotificationUnregister;
+        }
+        if (ModuleDescriptor->CallbacksDmf->DeviceOpen != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen = ModuleDescriptor->CallbacksDmf->DeviceOpen;
+        }
+        if (ModuleDescriptor->CallbacksDmf->DeviceClose != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose = ModuleDescriptor->CallbacksDmf->DeviceClose;
+        }
+        if (ModuleDescriptor->CallbacksDmf->ChildModulesAdd != USE_GENERIC_ENTRYPOINT)
+        {
+            DmfObject->ModuleDescriptor.CallbacksDmf->ChildModulesAdd = ModuleDescriptor->CallbacksDmf->ChildModulesAdd;
+        }
+        // NOTE: Lock and Unlock callbacks may not be overridden.
+        //
+    }
+
+    DmfObject->ModuleDescriptor.WdfAddCustomType = ModuleDescriptor->WdfAddCustomType;
+    DmfAssert(DmfObject->ModuleDescriptor.WdfAddCustomType != NULL);
+
+    // Handlers are always set. We don't need to check pointers everywhere.
+    //
+    DmfAssert(DmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
+    DmfAssert(DmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
+
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
+
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
+    DmfAssert(DmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
+
+    DmfAssert(DmfObject->InternalCallbacksDmf.ModuleInstanceDestroy != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModulePrepareHardware != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleReleaseHardware != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleD0Entry != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleD0EntryPostInterruptsEnabled != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleD0ExitPreInterruptsDisabled != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleD0Exit != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleQueueIoRead != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleQueueIoWrite != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleDeviceIoControl != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleInternalDeviceIoControl != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleSelfManagedIoCleanup != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleSelfManagedIoFlush != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleSelfManagedIoInit != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleSelfManagedIoSuspend != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleSelfManagedIoRestart != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleSurpriseRemoval != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleQueryRemove != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleQueryStop != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleRelationsQuery != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleUsageNotificationEx != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleArmWakeFromS0 != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromS0 != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleWakeFromS0Triggered != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleArmWakeFromSxWithReason != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromSx != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleWakeFromSxTriggered != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleFileCreate != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleFileCleanup != NULL);
+    DmfAssert(DmfObject->InternalCallbacksWdf.ModuleFileClose != NULL);
+
+    DmfAssert(DmfObject->InternalCallbacksDmf.DeviceResourcesAssign != NULL);
+    DmfAssert(DmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
+    DmfAssert(DmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
+    DmfAssert(DmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
+    DmfAssert(DmfObject->InternalCallbacksDmf.DeviceClose != NULL);
+    DmfAssert(DmfObject->InternalCallbacksInternal.DefaultLock != NULL);
+    DmfAssert(DmfObject->InternalCallbacksInternal.DefaultUnlock != NULL);
+    DmfAssert(DmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
+    DmfAssert(DmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
+
+Exit:
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+NTSTATUS
+DmfModuleParentUpdate(
+    _In_ WDFDEVICE Device,
+    _Inout_ WDFOBJECT ParentObject,
+    _Inout_ DMF_OBJECT* DmfObject,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes
+    )
+/*++
+
+Routine Description:
+
+    Updates Parent-Child references when a child module is created.
+
+Arguments:
+
+    Device - The given WDFDEVICE object.
+    ParentObject - The given Parent Object.
+    DmfObject - The given DMF_OBJECT structure of a child DMF Module.
+    DmfModuleAttributes - Pointer to the initialized DMF_MODULE_ATTRIBUTES structure.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleParent;
+    DMF_OBJECT* dmfObjectParent;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(Device);
+    
+    ntStatus = STATUS_SUCCESS;
+
+    dmfModuleParent = (DMFMODULE)ParentObject;
+    DmfAssert(dmfModuleParent != NULL);
+
+    dmfObjectParent = DMF_ModuleToObject(dmfModuleParent);
+    DmfAssert(dmfObjectParent != NULL);
+    
+    DmfAssert(Device == DMF_ParentDeviceGet(dmfModuleParent));
+
+    // Add the Child Module to the list of the Parent Module's children
+    // if its not a Dynamic Module. The lifetime of the Dynamic Module is
+    // managed by the Client. 
+    //
+    if (!DmfModuleAttributes->DynamicModuleImmediate)
+    {
+        // NOTE: These values are expected to be NULL because the Parent
+        //       has not initialized the ModuleCollection yet. (It cannot
+        //       because that pointer is not passed to the Instance Creation
+        //       function. Perhaps later we modify the Instance Creation 
+        //       function to accept it. It is not necessary for proper
+        //       functioning of the drivers, however. These asserts are 
+        //       here to ensure that we all know this is "by design".
+        //
+        DmfAssert(NULL == DmfObject->ModuleCollection);
+        DmfAssert(NULL == dmfObjectParent->ModuleCollection);
+
+        InsertTailList(&dmfObjectParent->ChildObjectList,
+                       &DmfObject->ChildListEntry);
+
+        // Increment the Number of Child Modules.
+        //
+        dmfObjectParent->NumberOfChildModules += 1;
+    }
+
+    // Save the Parent in the Child.
+    //
+    DmfAssert(NULL == DmfObject->DmfObjectParent);
+    DmfObject->DmfObjectParent = dmfObjectParent;
+
+    // Perform operations when this Module is instantiated as a Transport Module.
+    //
+    if (DmfObject->IsTransport)
+    {
+        DmfAssert(dmfObjectParent->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED);
+#if DBG
+        GUID zeroGuid;
+
+        RtlZeroMemory(&zeroGuid,
+                      sizeof(zeroGuid));
+        DmfAssert(!DMF_Utility_IsEqualGUID(&zeroGuid,
+                                           &DmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid));
+        DmfAssert(!DMF_Utility_IsEqualGUID(&zeroGuid,
+                                           &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid));
+#endif
+        // The Child's supported interface GUID must match the Parent's desired interface GUID.
+        //
+        if (DMF_Utility_IsEqualGUID(&DmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid,
+                                    &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid))
+        {
+            DMFMODULE parentDmfModule = DMF_ObjectToModule(dmfObjectParent);
+            DMFMODULE childDmfModule = DMF_ObjectToModule(DmfObject);
+
+            // Set the Parent's Transport Module to this Child Module.
+            //
+            DMF_ModuleTransportSet(parentDmfModule,
+                                   childDmfModule);
+        }
+        else
+        {
+            // Attempted to connect incompatible transport interface.
+            //
+            DmfAssert(FALSE);
+            ntStatus = STATUS_UNSUCCESSFUL;
+            goto Exit;
+        }
+    }
+
+Exit:
+
+    return ntStatus;
+}
+
+#pragma code_seg("PAGE")
+static
+VOID
+DmfModuleInFlightRecorderInitialize(
+    _Inout_ DMF_OBJECT* DmfObject
+    )
+/*++
+
+Routine Description:
+
+    Populate InFlight Recorder data in a given DMF_CALLBACKS_DMF structure.
+
+Arguments:
+
+    DmfObject - The given DMF_OBJECT structure.
+    
+Return Value:
+
+    None.
+
+--*/
+{
+    PAGED_CODE();
+
+#if !defined(DMF_USER_MODE)
+
+    RECORDER_LOG recorder;
+
+    if (DmfObject->ModuleDescriptor.InFlightRecorderSize > 0)
+    {
+        RECORDER_LOG_CREATE_PARAMS recorderCreateParams;
+        NTSTATUS recorderStatus;
+        
+        RECORDER_LOG_CREATE_PARAMS_INIT(&recorderCreateParams,
+                                        NULL);
+
+        recorderCreateParams.TotalBufferSize = DmfObject->ModuleDescriptor.InFlightRecorderSize;
+
+        RtlStringCbPrintfA(recorderCreateParams.LogIdentifier,
+                           RECORDER_LOG_IDENTIFIER_MAX_CHARS,
+                           DmfObject->ClientModuleInstanceName);
+        
+        recorderStatus = WppRecorderLogCreate(&recorderCreateParams,
+                                              &recorder);
+        if (!NT_SUCCESS(recorderStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WppRecorderLogCreate fails: ntStatus=%!STATUS!", recorderStatus);
+
+            // A new buffer could not be created. Check if the default log is available and set the Module's recorder handle to it 
+            // to not miss capturing logs from this Module.
+            //
+            recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
+        }
+    }
+    else
+    {
+        // The Module's logs will be part of the default log if the Module chose to not have a separate custom buffer.
+        //
+        recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
+    }
+
+    DmfObject->InFlightRecorder = recorder;
+
+#else
+
+    UNREFERENCED_PARAMETER(DmfObject);
+
+#endif
 }
 
 // This table defines the Generic Callbacks, some of which will be overridden by the
@@ -314,14 +1076,8 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
     WDFMEMORY memoryDmfObject;
     DMF_OBJECT* dmfObject;
-    size_t clientModuleInstanceNameSizeBytes;
-    DMF_MODULE_EVENT_CALLBACKS* callbacks;
-    CHAR* clientModuleInstanceName;
-    DMF_OBJECT* dmfObjectParent;
-    DMFMODULE dmfModuleParent;
     BOOLEAN childModuleCreate;
     DMFMODULE dmfModule;
     DMF_MODULE_COLLECTION_CONFIG moduleCollectionConfig;
@@ -344,8 +1100,6 @@ Return Value:
         *DmfModule = NULL;
     }
 
-    dmfObjectParent = NULL;
-    dmfModuleParent = NULL;
     memoryDmfObject = NULL;
     dmfModule = NULL;
     dmfObject = NULL;
@@ -397,10 +1151,6 @@ Return Value:
     {
         // Client is creating a Child Module.
         //
-        dmfModuleParent = (DMFMODULE)parentObject;
-        dmfObjectParent = DMF_ModuleToObject(dmfModuleParent);
-
-        DmfAssert(Device == DMF_ParentDeviceGet(dmfModuleParent));
     }
     else
     {
@@ -495,160 +1245,32 @@ Return Value:
                   DmfModuleAttributes,
                   sizeof(DMF_MODULE_ATTRIBUTES));
 
-    // Create space for the Client Module Instance Name. It needs to be allocated because
-    // the name that is passed in may not be statically allocated. A copy needs to be made
-    // in case the Client Driver has allocated the passed in name on the stack. We don't 
-    // want to force the Client Driver to maintain space for the name in cases where the 
-    // name is generated.
+    // Initialize Client Module Instance Name.
     //
-    DmfAssert(DmfModuleAttributes->ClientModuleInstanceName != NULL);
-    if (*DmfModuleAttributes->ClientModuleInstanceName == '\0')
-    {
-        // If Client Driver has passed "", then use the Module Name as the Module Instance Name.
-        // (Client Driver only needs to set this string in cases where multiple instances of a 
-        // DMF Module are instantiated.)
-        //
-        clientModuleInstanceName = dmfObject->ModuleName;
-    }
-    else
-    {
-        // Use the name the Client passed in. 
-        //
-        clientModuleInstanceName = DmfModuleAttributes->ClientModuleInstanceName;
-    }
-    clientModuleInstanceNameSizeBytes = strlen(clientModuleInstanceName) + sizeof(CHAR);
-    DmfAssert(clientModuleInstanceNameSizeBytes > 1);
-
-    // Allocate space for the instance name. This name is useful during debugging.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = memoryDmfObject;
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               DMF_TAG,
-                               clientModuleInstanceNameSizeBytes,
-                               &dmfObject->ClientModuleInstanceNameMemory,
-                               (VOID* *)&dmfObject->ClientModuleInstanceName);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate ClientModuleInstanceName");
-        goto Exit;
-    }
-    RtlZeroMemory(dmfObject->ClientModuleInstanceName,
-                  clientModuleInstanceNameSizeBytes);
-    // Copy the string. The length passed is one more than the length but that
-    // extra byte is terminating zero which will not be copied.
-    //
-    strncpy_s(dmfObject->ClientModuleInstanceName,
-              clientModuleInstanceNameSizeBytes,
-              clientModuleInstanceName,
-              clientModuleInstanceNameSizeBytes);
-    DmfAssert(clientModuleInstanceNameSizeBytes > 0);
-    DmfAssert(dmfObject->ClientModuleInstanceName[clientModuleInstanceNameSizeBytes - 1] == '\0');
-    DmfAssert(dmfObject->ClientModuleInstanceName[0] != '\0');
-
-    // Create the area for Module Config, if any.
-    //
-    DmfAssert(NULL == dmfObject->ModuleConfig);
-    if (DmfModuleAttributes->SizeOfModuleSpecificConfig != NULL)
-    {
-        DmfAssert(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
-        WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-        attributes.ParentObject = memoryDmfObject;
-        ntStatus = WdfMemoryCreate(&attributes,
-                                   NonPagedPoolNx,
-                                   DMF_TAG,
-                                   ModuleDescriptor->ModuleConfigSize,
-                                   &dmfObject->ModuleConfigMemory,
-                                   &dmfObject->ModuleConfig);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Module Config");
-            goto Exit;
-        }
-
-        // ModuleConfig will be fully overwritten in RtlCopyMemory below. 
-        // So zeroing out the buffer is not necessary.
-        //
-
-        // Save off the Module Config information for when the Open happens later.
-        //
-        DmfAssert(DmfModuleAttributes->ModuleConfigPointer != NULL);
-        DmfAssert(dmfObject->ModuleConfig != NULL);
-        RtlCopyMemory(dmfObject->ModuleConfig,
-                      DmfModuleAttributes->ModuleConfigPointer,
-                      ModuleDescriptor->ModuleConfigSize);
-    }
-    else
-    {
-        // NOTE: Because only proper Config initialization macros are exposed, there is no way for the 
-        //       Client to improperly initialize the Config (as it was in the past). It means, that if 
-        //       this path executes, the Module Author has not defined a Config.
-        //
-    }
-
-    // Create WDFCOLLECTION to store the Interface Bindings of this Module.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = memoryDmfObject;
-    ntStatus = WdfCollectionCreate(&attributes,
-                                   &dmfObject->InterfaceBindings);
+    ntStatus = DmfModuleInstanceNameInitialize(dmfObject,
+                                               memoryDmfObject,
+                                               DmfModuleAttributes);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Collection for InterfaceBindings.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleInstanceNameInitialize fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    // Create a spin lock to protect access to the Interface Bindings Collection.
+    // Initialize child objects.
     //
-    ntStatus = WdfSpinLockCreate(&attributes,
-                                 &dmfObject->InterfaceBindingsLock);
+    ntStatus = DmfModuleChildObjectsInitialize(dmfObject, 
+                                              memoryDmfObject,
+                                              DmfModuleAttributes,
+                                              ModuleDescriptor);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "InterfaceBindingsLock create fails.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleChildObjectsInitialize fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     // Initialize the callbacks to generic handlers.
     //
     dmfObject->ModuleDescriptor = DmfModuleDescriptor_Generic;
-
-    WDFMEMORY callbacksDmfMemory;
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = memoryDmfObject;
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               DMF_TAG,
-                               sizeof(DMF_CALLBACKS_DMF),
-                               &callbacksDmfMemory,
-                               (VOID* *)&dmfObject->ModuleDescriptor.CallbacksDmf);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Callbacks Dmf");
-        goto Exit;
-    }
-
-    RtlZeroMemory(dmfObject->ModuleDescriptor.CallbacksDmf,
-                  sizeof(DMF_CALLBACKS_DMF));
-
-    WDFMEMORY callbacksWdfMemory;
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               DMF_TAG,
-                               sizeof(DMF_CALLBACKS_WDF),
-                               &callbacksWdfMemory,
-                               (VOID* *)&dmfObject->ModuleDescriptor.CallbacksWdf);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Callbacks Dmf");
-        goto Exit;
-    }
-
-    RtlZeroMemory(dmfObject->ModuleDescriptor.CallbacksWdf,
-                  sizeof(DMF_CALLBACKS_WDF));
-
-    DmfCallbacksDmfInitialize(dmfObject->ModuleDescriptor.CallbacksDmf);
-    DmfCallbacksWdfInitialize(dmfObject->ModuleDescriptor.CallbacksWdf);
 
     // Copy over the context sizes for debugging purposes. These values are not reused.
     //
@@ -691,299 +1313,17 @@ Return Value:
     //
     dmfObject->ModuleDescriptor.InFlightRecorderSize = ModuleDescriptor->InFlightRecorderSize;
 
-    // Set the optional callbacks.
+    // Initialize Callbacks.
     //
-    callbacks = DmfModuleAttributes->ClientCallbacks;
-    if (callbacks != NULL)
+    ntStatus = DmfModuleCallbacksInitialize(dmfObject,
+                                            memoryDmfObject,
+                                            DmfModuleAttributes,
+                                            ModuleDescriptor);
+    if (!NT_SUCCESS(ntStatus))
     {
-        // Copy the Client Driver's Asynchronous callbacks.
-        //
-        dmfObject->Callbacks = *callbacks;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleObjectCallbacksInitialize fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
-    else
-    {
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose = USE_GENERIC_CALLBACK;
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen = USE_GENERIC_CALLBACK;
-    }
-
-    // Set Internal Callbacks.
-    // NOTE: Use updated options, not global options.
-    //
-    if (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH)
-    {
-        // For Modules that run at Dispatch Level.
-        //
-        DmfAssert(! (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE));
-        dmfObject->InternalCallbacksDmf = DmfCallbacksDmf_Internal_Dispatch;
-        dmfObject->InternalCallbacksWdf = DmfCallbacksWdf_Internal_Dispatch;
-        dmfObject->InternalCallbacksInternal = DmfCallbacksInternal_Internal_Dispatch;
-    }
-    else if (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE)
-    {
-        // For Modules that run at Passive Level.
-        //
-        DmfAssert(! (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
-        dmfObject->InternalCallbacksDmf = DmfCallbacksDmf_Internal_Passive;
-        dmfObject->InternalCallbacksWdf = DmfCallbacksWdf_Internal_Passive;
-        dmfObject->InternalCallbacksInternal = DmfCallbacksInternal_Internal_Passive;
-    }
-    else
-    {
-        DmfAssert(FALSE);
-    }
-
-    // Set default callbacks.
-    //
-    if (USE_GENERIC_CALLBACK == dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen)
-    {
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen = EVT_DMF_MODULE_Generic_OnDeviceNotificationPostOpen;
-    }
-    if (USE_GENERIC_CALLBACK == dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose)
-    {
-        dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose = EVT_DMF_MODULE_Generic_OnDeviceNotificationPreClose;
-    }
-
-    // Allow client to override default behavior of each handler.
-    //
-    if (ModuleDescriptor->CallbacksWdf != NULL)
-    {
-        if (ModuleDescriptor->CallbacksWdf->ModulePrepareHardware != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware = ModuleDescriptor->CallbacksWdf->ModulePrepareHardware;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleReleaseHardware != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware = ModuleDescriptor->CallbacksWdf->ModuleReleaseHardware;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleD0Entry != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry = ModuleDescriptor->CallbacksWdf->ModuleD0Entry;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled = ModuleDescriptor->CallbacksWdf->ModuleD0EntryPostInterruptsEnabled;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled = ModuleDescriptor->CallbacksWdf->ModuleD0ExitPreInterruptsDisabled;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleD0Exit != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit = ModuleDescriptor->CallbacksWdf->ModuleD0Exit;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleQueueIoRead != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead = ModuleDescriptor->CallbacksWdf->ModuleQueueIoRead;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleQueueIoWrite != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite = ModuleDescriptor->CallbacksWdf->ModuleQueueIoWrite;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleDeviceIoControl != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl = ModuleDescriptor->CallbacksWdf->ModuleDeviceIoControl;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleInternalDeviceIoControl != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl = ModuleDescriptor->CallbacksWdf->ModuleInternalDeviceIoControl;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoCleanup != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoCleanup;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoFlush != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoFlush;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoInit != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoInit;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoSuspend != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoSuspend;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoRestart != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart = ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoRestart;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleSurpriseRemoval != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval = ModuleDescriptor->CallbacksWdf->ModuleSurpriseRemoval;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleQueryRemove != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove = ModuleDescriptor->CallbacksWdf->ModuleQueryRemove;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleQueryStop != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop = ModuleDescriptor->CallbacksWdf->ModuleQueryStop;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleRelationsQuery != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery = ModuleDescriptor->CallbacksWdf->ModuleRelationsQuery;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleUsageNotificationEx != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx = ModuleDescriptor->CallbacksWdf->ModuleUsageNotificationEx;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromS0 != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 = ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromS0;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromS0 != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 = ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromS0;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleWakeFromS0Triggered != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered = ModuleDescriptor->CallbacksWdf->ModuleWakeFromS0Triggered;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromSxWithReason != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason = ModuleDescriptor->CallbacksWdf->ModuleArmWakeFromSxWithReason;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromSx != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx = ModuleDescriptor->CallbacksWdf->ModuleDisarmWakeFromSx;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleWakeFromSxTriggered != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered = ModuleDescriptor->CallbacksWdf->ModuleWakeFromSxTriggered;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleFileCreate != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate = ModuleDescriptor->CallbacksWdf->ModuleFileCreate;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleFileCleanup != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup = ModuleDescriptor->CallbacksWdf->ModuleFileCleanup;
-        }
-        if (ModuleDescriptor->CallbacksWdf->ModuleFileClose != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose = ModuleDescriptor->CallbacksWdf->ModuleFileClose;
-        }
-    }
-
-    if (ModuleDescriptor->CallbacksDmf != NULL)
-    {
-        if (ModuleDescriptor->CallbacksDmf->ModuleInstanceDestroy != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy = ModuleDescriptor->CallbacksDmf->ModuleInstanceDestroy;
-        }
-        if (ModuleDescriptor->CallbacksDmf->DeviceResourcesAssign != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign = ModuleDescriptor->CallbacksDmf->DeviceResourcesAssign;
-        }
-        if (ModuleDescriptor->CallbacksDmf->DeviceNotificationRegister != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister = ModuleDescriptor->CallbacksDmf->DeviceNotificationRegister;
-        }
-        if (ModuleDescriptor->CallbacksDmf->DeviceNotificationUnregister != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister = ModuleDescriptor->CallbacksDmf->DeviceNotificationUnregister;
-        }
-        if (ModuleDescriptor->CallbacksDmf->DeviceOpen != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen = ModuleDescriptor->CallbacksDmf->DeviceOpen;
-        }
-        if (ModuleDescriptor->CallbacksDmf->DeviceClose != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose = ModuleDescriptor->CallbacksDmf->DeviceClose;
-        }
-        if (ModuleDescriptor->CallbacksDmf->ChildModulesAdd != USE_GENERIC_ENTRYPOINT)
-        {
-            dmfObject->ModuleDescriptor.CallbacksDmf->ChildModulesAdd = ModuleDescriptor->CallbacksDmf->ChildModulesAdd;
-        }
-        // NOTE: Lock and Unlock callbacks may not be overridden.
-        //
-    }
-
-    dmfObject->ModuleDescriptor.WdfAddCustomType = ModuleDescriptor->WdfAddCustomType;
-    DmfAssert(dmfObject->ModuleDescriptor.WdfAddCustomType != NULL);
-
-    // Handlers are always set. We don't need to check pointers everywhere.
-    //
-    DmfAssert(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen != NULL);
-    DmfAssert(dmfObject->Callbacks.EvtModuleOnDeviceNotificationPreClose != NULL);
-
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModulePrepareHardware != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Entry != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0EntryPostInterruptsEnabled != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoRead != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueueIoWrite != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDeviceIoControl != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleInternalDeviceIoControl != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoCleanup != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoFlush != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSurpriseRemoval != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleRelationsQuery != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleUsageNotificationEx != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromS0 != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromS0Triggered != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleDisarmWakeFromSx != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleWakeFromSxTriggered != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCreate != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileCleanup != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleFileClose != NULL);
-
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceClose != NULL);
-
-    DmfAssert(dmfObject->InternalCallbacksDmf.ModuleInstanceDestroy != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModulePrepareHardware != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleReleaseHardware != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0Entry != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0EntryPostInterruptsEnabled != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0ExitPreInterruptsDisabled != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleD0Exit != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueueIoRead != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueueIoWrite != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleDeviceIoControl != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleInternalDeviceIoControl != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoCleanup != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoFlush != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoInit != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoSuspend != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSelfManagedIoRestart != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleSurpriseRemoval != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueryRemove != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleQueryStop != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleRelationsQuery != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleUsageNotificationEx != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleArmWakeFromS0 != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromS0 != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleWakeFromS0Triggered != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleArmWakeFromSxWithReason != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleDisarmWakeFromSx != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleWakeFromSxTriggered != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleFileCreate != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleFileCleanup != NULL);
-    DmfAssert(dmfObject->InternalCallbacksWdf.ModuleFileClose != NULL);
-
-    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceResourcesAssign != NULL);
-    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationRegister != NULL);
-    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
-    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceOpen != NULL);
-    DmfAssert(dmfObject->InternalCallbacksDmf.DeviceClose != NULL);
-    DmfAssert(dmfObject->InternalCallbacksInternal.DefaultLock != NULL);
-    DmfAssert(dmfObject->InternalCallbacksInternal.DefaultUnlock != NULL);
-    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryLock != NULL);
-    DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
 
     // Initialize the Module State.
     //
@@ -992,78 +1332,15 @@ Return Value:
 
     if (childModuleCreate)
     {
-        DmfAssert(dmfObjectParent != NULL);
-        DmfAssert(dmfModuleParent != NULL);
-
-        // Add the Child Module to the list of the Parent Module's children
-        // if its not a Dynamic Module. The lifetime of the Dynamic Module is
-        // managed by the Client. 
-        //
-        if (!DmfModuleAttributes->DynamicModuleImmediate)
+        ntStatus = DmfModuleParentUpdate(Device,
+                                         parentObject,
+                                         dmfObject,
+                                         DmfModuleAttributes);
+        if (!NT_SUCCESS(ntStatus))
         {
-            // NOTE: These values are expected to be NULL because the Parent
-            //       has not initialized the ModuleCollection yet. (It cannot
-            //       because that pointer is not passed to the Instance Creation
-            //       function. Perhaps later we modify the Instance Creation 
-            //       function to accept it. It is not necessary for proper
-            //       functioning of the drivers, however. These asserts are 
-            //       here to ensure that we all know this is "by design".
-            //
-            DmfAssert(NULL == dmfObject->ModuleCollection);
-            DmfAssert(NULL == dmfObjectParent->ModuleCollection);
-
-            InsertTailList(&dmfObjectParent->ChildObjectList,
-                           &dmfObject->ChildListEntry);
-
-            // Increment the Number of Child Modules.
-            //
-            dmfObjectParent->NumberOfChildModules += 1;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleParentUpdate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
         }
-
-        // Save the Parent in the Child.
-        //
-        DmfAssert(NULL == dmfObject->DmfObjectParent);
-        dmfObject->DmfObjectParent = dmfObjectParent;
-
-        // Perform operations when this Module is instantiated as a Transport Module.
-        //
-        if (dmfObject->IsTransport)
-        {
-            DmfAssert(dmfObjectParent->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED);
-#if DBG
-            GUID zeroGuid;
-
-            RtlZeroMemory(&zeroGuid,
-                          sizeof(zeroGuid));
-            DmfAssert(!DMF_Utility_IsEqualGUID(&zeroGuid,
-                                               &dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid));
-            DmfAssert(!DMF_Utility_IsEqualGUID(&zeroGuid,
-                                               &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid));
-#endif
-            // The Child's supported interface GUID must match the Parent's desired interface GUID.
-            //
-            if (DMF_Utility_IsEqualGUID(&dmfObject->ModuleDescriptor.SupportedTransportInterfaceGuid,
-                                        &dmfObjectParent->ModuleDescriptor.RequiredTransportInterfaceGuid))
-            {
-                DMFMODULE parentDmfModule = DMF_ObjectToModule(dmfObjectParent);
-                DMFMODULE childDmfModule = DMF_ObjectToModule(dmfObject);
-
-                // Set the Parent's Transport Module to this Child Module.
-                //
-                DMF_ModuleTransportSet(parentDmfModule,
-                                       childDmfModule);
-            }
-            else
-            {
-                // Attempted to connect incompatible transport interface.
-                //
-                DmfAssert(FALSE);
-                ntStatus = STATUS_UNSUCCESSFUL;
-                goto Exit;
-            }
-        }
-
-
     }
 
     dmfModule = (DMFMODULE)memoryDmfObject;
@@ -1075,46 +1352,9 @@ Return Value:
         goto Exit;
     }
 
-#if !defined(DMF_USER_MODE)
-
-    RECORDER_LOG recorder;
-
-    if (dmfObject->ModuleDescriptor.InFlightRecorderSize > 0)
-    {
-        RECORDER_LOG_CREATE_PARAMS recorderCreateParams;
-        NTSTATUS recorderStatus;
-        
-        RECORDER_LOG_CREATE_PARAMS_INIT(&recorderCreateParams,
-                                        NULL);
-
-        recorderCreateParams.TotalBufferSize = dmfObject->ModuleDescriptor.InFlightRecorderSize;
-
-        RtlStringCbPrintfA(recorderCreateParams.LogIdentifier,
-                           RECORDER_LOG_IDENTIFIER_MAX_CHARS,
-                           dmfObject->ClientModuleInstanceName);
-        
-        recorderStatus = WppRecorderLogCreate(&recorderCreateParams,
-                                              &recorder);
-        if (!NT_SUCCESS(recorderStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WppRecorderLogCreate fails: ntStatus=%!STATUS!", recorderStatus);
-
-            // A new buffer could not be created. Check if the default log is available and set the Module's recorder handle to it 
-            // to not miss capturing logs from this Module.
-            //
-            recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
-        }
-    }
-    else
-    {
-        // The Module's logs will be part of the default log if the Module chose to not have a separate custom buffer.
-        //
-        recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
-    }
-
-    dmfObject->InFlightRecorder = recorder;
-
-#endif
+    // Initialize InFlight recorder.
+    //
+    DmfModuleInFlightRecorderInitialize(dmfObject);
 
     // Create child Modules
     // Prepare to create a Module Collection.
