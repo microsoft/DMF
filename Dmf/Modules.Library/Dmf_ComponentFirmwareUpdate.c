@@ -23,6 +23,7 @@ Environment:
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
+#include <intsafe.h>
 #include "Dmf_ComponentFirmwareUpdate.tmh"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,11 +64,12 @@ typedef enum _FIRMWARE_UPDATE_STATUS
 
 // Size of the maximum value name in registry (per MSDN).
 //
-#define MAX_VALUE_NAME_SIZE  16382
+#define MAXIMUM_VALUE_NAME_SIZE  16382
 
-// Protocol version.
+// Protocol versions.
 //
 #define PROTOCOL_VERSION_2 0x2
+#define PROTOCOL_VERSION_4 0x4
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context.
@@ -79,7 +81,7 @@ typedef enum _FIRMWARE_UPDATE_STATUS
 //
 typedef struct _PAYLOAD_RESPONSE
 {
-    ULONG SequenceNumber;
+    UINT16 SequenceNumber;
     COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE ResponseStatus;
 } PAYLOAD_RESPONSE;
 
@@ -132,6 +134,9 @@ typedef struct _CONTEXT_ComponentFirmwareUpdateTransport
     // Required size of FirmwareVersion Buffer this transport needs (excluding the TransportHeaderSize above).
     //
     ULONG TransportFirmwareVersionBufferRequiredSize;
+    // Payload buffer fill alignment this transport needs.
+    //
+    UINT TransportPayloadFillAlignment;
 } CONTEXT_ComponentFirmwareUpdateTransport;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_ComponentFirmwareUpdateTransport, ComponentFirmwareUpdateTransportContextGet)
 
@@ -179,8 +184,9 @@ PCWSTR ComponentFirmwareUpdate_CurrentFwVersionValueName = L"CurrentFwVersion";
 PCWSTR ComponentFirmwareUpdate_OfferFwVersionValueName = L"OfferFwVersion";
 PCWSTR ComponentFirmwareUpdate_FirmwareUpdateStatusValueName = L"FirmwareUpdateStatus";
 PCWSTR ComponentFirmwareUpdate_FirmwareUpdateStatusRejectReasonValueName = L"FirmwareUpdateStatusRejectReason";
-
-PCWSTR ComponentFirmwareUpdate_ResumePayloadDataIndexValueName = L"ResumePayloadDataIndex";
+ 
+PCWSTR ComponentFirmwareUpdate_ResumePayloadBufferBinRecordIndexValueName = L"ResumePayloadBinRecordIndex";
+PCWSTR ComponentFirmwareUpdate_ResumePayloadBufferBinRecordDataOffsetValueName = L"ResumePayloadBufferBinRecordDataOffset";
 PCWSTR ComponentFirmwareUpdate_ResumeSequenceNumberValueName = L"ResumeSequenceNumber";
 PCWSTR ComponentFirmwareUpdate_ResumeOnConnectValueName = L"ResumeOnConnect";
 
@@ -314,7 +320,7 @@ ComponentFirmwareUpdateOfferResponseRejectString(
 NTSTATUS
 ComponentFirmwareUpdate_WaitForResponse(
     _In_ DMFMODULE DmfModule,
-    _In_ ULONG WaitTimeoutMs
+    _In_ ULONG TransportWaitTimeoutMs
     )
 /*++
 
@@ -324,8 +330,8 @@ Routine Description:
 
 Parameters:
 
-    DmfModule - This Module’s DMF Object.
-    WaitTimeoutMs - WaitTimeout in MilliSecond.
+    DmfModule - This Module's DMF Object.
+    TransportWaitTimeoutMs - TransportWaitTimeout in MilliSecond.
 
 Return:
 
@@ -355,7 +361,7 @@ Return:
                                                    waitObjects,
                                                    FALSE,
                                                    FALSE,
-                                                   WaitTimeoutMs);
+                                                   TransportWaitTimeoutMs);
     switch (waitStatus)
     {
         case STATUS_WAIT_0:
@@ -401,7 +407,7 @@ _Must_inspect_result_
 NTSTATUS
 ComponentFirmwareUpdate_PayloadResponseProcess(
     _In_ DMFMODULE DmfModule,
-    _In_ ULONG ExpectedSequenceNumber,
+    _In_ UINT16 ExpectedSequenceNumber,
     _Out_ COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE* PayloadResponse
     )
 /*++
@@ -413,7 +419,7 @@ Routine Description:
 
 Parameters:
 
-    DmfModule - This Module’s DMF Object.
+    DmfModule - This Module's DMF Object.
     ExpectedSequenceNumber - Sequence Number that we are expecting see in the response.
     PayloadResponse - Response retrieved from the device.
 
@@ -578,29 +584,34 @@ _Must_inspect_result_
 static
 NTSTATUS
 ComponentFirmwareUpdate_PayloadBufferFill(
-    _In_ const ULONG SequenceNumber,
-    _In_reads_(PayloadBufferTotalSize) const PBYTE PayloadBufferTotal,
-    _In_ const size_t PayloadBufferTotalSize,
-    _Inout_ ULONG &PayloadBufferIndex,
-    _Out_writes_(PayloadBufferSize) UCHAR* PayloadBuffer,
-    _In_ const size_t PayloadBufferSize
+    _In_ DMFMODULE DmfModule,
+    _In_ const UINT16 SequenceNumber,
+    _In_reads_(PayloadBufferSize) const BYTE* PayloadBuffer,
+    _In_ const size_t PayloadBufferSize,
+    _Inout_ ULONG &PayloadBufferBinRecordStartIndex,
+    _Inout_ BYTE &PayloadBufferBinRecordDataOffset,
+    _Out_writes_(TransferBufferSize) UCHAR* TransferBuffer,
+    _In_ const BYTE TransferBufferSize
     )
 /*++
 
 Routine Description:
 
     Reads whole payload data and fill up a payload chunk ready to send to device.
-    PayloadBuffer holds the prepared data and 
-    PayloadBufferIndex updated to index to the next unused spot in payloadBufferTotal.
+    TransferBuffer holds the prepared data and
+    PayloadBufferBinRecordStartIndex updated to index to the next unread entry in payloadBuffer and
+    PayloadBufferBinRecordDataOffset updated to how far into the entry we have read.
 
 Arguments:
 
+    DmfModule - This Module's DMF Object.
     SequenceNumber - Sequence number to be used in this payload.
-    PayloadBufferTotal - Payload data from the blob. This is the whole payload.
-    payloadBufferTotalSize - Size of the above buffer.
-    PayloadBufferIndex - Index into PayloadBufferTotal.
-    PayloadBuffer - Buffer where the data will be written. This is the current payload chunk.
-    PayloadBufferSize - Size of PayloadBuffer
+    PayloadBuffer - Payload data from the blob. This is the whole payload.
+    PayloadBufferSize - Size of the above buffer.
+    PayloadBufferBinRecordStartIndex - Index into PayloadBuffer that corresponds to a bin record's beginning.
+    PayloadBufferBinRecordDataOffset - Data offset into the current bin record.
+    TransferBuffer - Buffer where the data will be written. This is the current payload chunk.
+    TransferBufferSize - Size of TransferBuffer.
 
 Return Value:
 
@@ -608,221 +619,256 @@ Return Value:
 
 --*/
 {
+    // Enable 1 byte packing for our structs.
+    //
+    #include <pshpack1.h>
+    // This private structure holds the CFU formatted bin file, which is ||ADDR|L|DATA....
+    // Addr is 4 bytes, length is 1 bytes, and data[] as defined by length.
+    //
+    typedef struct _BIN_RECORD
+    {
+        ULONG Address;
+        BYTE Length;
+        BYTE BinData[1];
+    } BIN_RECORD;
+    // This private structure is used to build the Transfer buffer. 
+    //
+    typedef struct _PAYLOAD
+    {
+        BYTE Flags;
+        BYTE DataLength;
+        UINT16 SequenceNumber;
+        ULONG Address;
+        BYTE PayloadData[1];
+    } PAYLOAD;
+    #include <poppack.h>
+
     NTSTATUS ntStatus;
+    DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
+    CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
 
     errno_t errorNumber;
-    UINT32 address;
     BYTE dataLength;
-    BYTE flags;
-    USHORT payloadBufferLengthRequired;
-    USHORT payloadBufferOffset;
+    BYTE remainingPayloadBufferLength;
 
-    const USHORT flagsOffset = 0;
-    const USHORT dataLengthOffset = 1;
+    UINT32 lastAddressConsumed;
+    BYTE payloadBufferOffset;
+
+    BIN_RECORD *currentBinRecord;
+    PAYLOAD *payload;
+    const UINT32 BinRecordHeaderLength = sizeof(ULONG) + sizeof(BYTE);
+    const UINT32 PayloadHeaderLength = sizeof(BYTE) + sizeof(BYTE) + sizeof(UINT16) + sizeof(ULONG);
     
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DmfAssert(PayloadBufferTotal != NULL);
     DmfAssert(PayloadBuffer != NULL);
+    DmfAssert(TransferBuffer != NULL);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
 
     ntStatus = STATUS_SUCCESS;
 
-    // The first 4 bytes of the firmware data is the address to be sent.
+    // Check if the input buffer size has the minimum length requirement for Address and Length. 
+    // We will check if the data field is valid later.
     //
-    address = PayloadBufferTotal[PayloadBufferIndex] +
-              (PayloadBufferTotal[PayloadBufferIndex + 1] << 8) + 
-              (PayloadBufferTotal[PayloadBufferIndex + 2] << 16) + 
-              (PayloadBufferTotal[PayloadBufferIndex + 3] << 24);
-    PayloadBufferIndex += sizeof(address);
-
-    // The next 1 byte is the payload size.
-    //
-    dataLength = PayloadBufferTotal[PayloadBufferIndex];
-    PayloadBufferIndex += sizeof(dataLength);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, 
-                DMF_TRACE, 
-                "PayloadBufferIndex[0x%x] address 0x%x length 0x%x PayloadBufferTotalSize 0x%Ix PayloadBufferSize 0x%Ix ", 
-                PayloadBufferIndex, 
-                address, 
-                dataLength, 
-                PayloadBufferTotalSize, 
-                PayloadBufferSize);
-
-    // Add flags depending on whether this is the first, or not-special block.
-    //
-    flags = COMPONENT_FIRMWARE_UPDATE_FLAG_DEFAULT;
-    if ((PayloadBufferIndex - sizeof(address) - sizeof(dataLength)) == 0)
+    if ( PayloadBufferSize - PayloadBufferBinRecordStartIndex < BinRecordHeaderLength)
     {
-        flags |= COMPONENT_FIRMWARE_UPDATE_FLAG_FIRST_BLOCK;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Payload Buffer is corrupted. Size remaining %Iu is less than the minimum required (%Iu)",
+                    (PayloadBufferSize - PayloadBufferBinRecordStartIndex),
+                    BinRecordHeaderLength);
+        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+        goto Exit;
     }
 
     // Clear the output buffer.
     //
-    ZeroMemory(PayloadBuffer, 
-               PayloadBufferSize);
+    ZeroMemory(TransferBuffer, 
+               TransferBufferSize);
 
-    // Calculate length of all items going in the payload buffer.
+    currentBinRecord = (BIN_RECORD*) (PayloadBuffer + PayloadBufferBinRecordStartIndex);
+    payload = (PAYLOAD*) TransferBuffer;
+
+    payload->Address = currentBinRecord->Address + PayloadBufferBinRecordDataOffset;
+    payload->SequenceNumber = SequenceNumber;
+    payload->Flags = COMPONENT_FIRMWARE_UPDATE_FLAG_DEFAULT;
+
+    remainingPayloadBufferLength = TransferBufferSize - PayloadHeaderLength;
+
+    // Adjust the RemainingPayloadBufferLength as per the alignment.
     //
-    payloadBufferLengthRequired = sizeof(flags) + sizeof(dataLength) + sizeof(SequenceNumber) + sizeof(address) + dataLength;
-    if (payloadBufferLengthRequired > PayloadBufferSize)
+    if (remainingPayloadBufferLength % componentFirmwareUpdateTransportContext->TransportPayloadFillAlignment == 0)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, 
+        // Do nothing, already aligned.
+    }
+    else 
+    {
+        remainingPayloadBufferLength -= (remainingPayloadBufferLength % componentFirmwareUpdateTransportContext->TransportPayloadFillAlignment);
+        TraceEvents(TRACE_LEVEL_VERBOSE, 
                     DMF_TRACE, 
-                    "payloadBufferLengthRequired(%d) larger than PayloadBufferSize(%Iu)", 
-                    payloadBufferLengthRequired, 
-                    PayloadBufferSize);
-        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        goto Exit;
+                    "Setting buffer length to %d to meet alignment requirements.", 
+                    remainingPayloadBufferLength);
     }
 
-    // Pack the Output buffer as per specification.
-    // Header contains Flag, DataLength, SequenceNumber, and Address.
-    //
-    payloadBufferOffset = 0;
-    PayloadBuffer[payloadBufferOffset++] = flags;
-    PayloadBuffer[payloadBufferOffset++] = dataLength;
-    PayloadBuffer[payloadBufferOffset++] = (SequenceNumber >> (0 * 8)) & 0xFF;
-    PayloadBuffer[payloadBufferOffset++] = (SequenceNumber >> (1 * 8)) & 0xFF;
-    PayloadBuffer[payloadBufferOffset++] = (address >> (0 * 8)) & 0xFF;
-    PayloadBuffer[payloadBufferOffset++] = (address >> (1 * 8)) & 0xFF;
-    PayloadBuffer[payloadBufferOffset++] = (address >> (2 * 8)) & 0xFF;
-    PayloadBuffer[payloadBufferOffset++] = (address >> (3 * 8)) & 0xFF;
-
-    // Payload data follows the header.
-    //
-    errorNumber = memcpy_s(&PayloadBuffer[payloadBufferOffset],
-                           PayloadBufferSize - payloadBufferOffset, 
-                           &(PayloadBufferTotal[PayloadBufferIndex]), 
-                           dataLength);
-    if (errorNumber)
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "memcpy_s fails with errno_t: %d", 
-                    errorNumber);
-        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        goto Exit;
-    }
-    payloadBufferOffset += dataLength;
-    TraceEvents(TRACE_LEVEL_INFORMATION, 
+    TraceEvents(TRACE_LEVEL_VERBOSE, 
                 DMF_TRACE, 
-                "PayloadBufferIndex[0x%x] length 0x%x payloadBufferOffset %d", 
-                PayloadBufferIndex,
-                dataLength,
-                payloadBufferOffset);
+                "PayloadBufferIndex[0x%x] address 0x%x length %d PayloadBufferSize 0x%Ix TransferBufferSize 0x%Ix", 
+                PayloadBufferBinRecordStartIndex,
+                currentBinRecord->Address,
+                currentBinRecord->Length, 
+                PayloadBufferSize, 
+                TransferBufferSize);
 
-    PayloadBufferIndex += dataLength;
-
-    // Clump adjacent payloads if space permits in PayloadBuffer when there is still buffer to consume.
-    //
-    for (;;)
+    payloadBufferOffset = 0;
+    
+    while (1)
     {
-        // Don't read beyond the buffer.
+        // We check if the length of the payload buffer has the length specified by the length field.
+        // Note: we can only check if the required length is satisfied, we have no way to know if the data 
+        // is correct or not.
         //
-        if (PayloadBufferIndex >= PayloadBufferTotalSize)
+        if (PayloadBufferBinRecordStartIndex + BinRecordHeaderLength + currentBinRecord->Length > PayloadBufferSize)
         {
-            // We consumed all the data; Mark the last block flag.
-            //
-            PayloadBuffer[flagsOffset] |= COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK;
-            TraceEvents(TRACE_LEVEL_INFORMATION, 
-                        DMF_TRACE, 
-                        "Last Block at PayloadBufferIndex[0x%x] length 0x%x PayloadBufferSize 0x%Ix ", 
-                        PayloadBufferIndex, 
-                        dataLength, 
-                        PayloadBufferSize);
-            break;
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "Payload Buffer is corrupted. Length of buffer remaining is %Iu, which is less than the length specified (%Iu)",
+                        (PayloadBufferSize - PayloadBufferBinRecordStartIndex - BinRecordHeaderLength),
+                        currentBinRecord->Length);
+            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            goto Exit;
         }
 
-        UINT32 nextAddress;
-        UINT nextPayloadBufferIndex;
-
-        nextPayloadBufferIndex = PayloadBufferIndex;
-
-        // Get new address.
+        // PayloadBufferBinRecordDataOffset should always be smaller than the currentBinRecord length.
         //
-        nextAddress = PayloadBufferTotal[nextPayloadBufferIndex] + 
-                      (PayloadBufferTotal[nextPayloadBufferIndex + 1] << 8) + 
-                      (PayloadBufferTotal[nextPayloadBufferIndex + 2] << 16) + 
-                      (PayloadBufferTotal[nextPayloadBufferIndex + 3] << 24);
-        nextPayloadBufferIndex += sizeof(nextAddress);
+        DmfAssert(PayloadBufferBinRecordDataOffset < currentBinRecord->Length);
 
-        // Verify that nextAddress is sequentially after address.
+        // Add flags depending on whether this is the first block.
         //
-        if (nextAddress != address + dataLength)
+        if (PayloadBufferBinRecordStartIndex == 0 && PayloadBufferBinRecordDataOffset == 0)
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, 
-                        DMF_TRACE, 
-                        "Cannot clump nonsequential messages");
-            break;
+            payload->Flags |= COMPONENT_FIRMWARE_UPDATE_FLAG_FIRST_BLOCK;
         }
 
-        // Get dataLength.
-        //
-        dataLength = PayloadBufferTotal[nextPayloadBufferIndex];
-        nextPayloadBufferIndex += sizeof(dataLength);
+        lastAddressConsumed = currentBinRecord->Address + PayloadBufferBinRecordDataOffset;
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, 
-                    DMF_TRACE, 
-                    "next block: PayloadBufferIndex[0x%x] address 0x%x length 0x%x ", 
-                    nextPayloadBufferIndex, 
-                    nextAddress, 
-                    dataLength);
-
-        // Determine whether dataLength will fit in the buffer.
+        // dataLength is the number of uncopied bytes in the current bin record, or the 
+        // remaining size of the payload. Whichever is less.
         //
-        payloadBufferLengthRequired = payloadBufferOffset + dataLength;
-        if (payloadBufferLengthRequired > PayloadBufferSize)
+        dataLength = currentBinRecord->Length - PayloadBufferBinRecordDataOffset;
+        if (dataLength > remainingPayloadBufferLength)
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, 
-                        DMF_TRACE, 
-                        "Cannot clump additional %d bytes", 
-                        dataLength);
-            break;
+            dataLength = remainingPayloadBufferLength;
         }
 
-        // Copy the data to output buffer.
-        //
-        errorNumber = memcpy_s(&PayloadBuffer[payloadBufferOffset],
-                               PayloadBufferSize - payloadBufferOffset, 
-                               &(PayloadBufferTotal[nextPayloadBufferIndex]), 
+        errorNumber = memcpy_s(&(payload->PayloadData[payloadBufferOffset]),
+                               remainingPayloadBufferLength, 
+                               &(currentBinRecord->BinData[PayloadBufferBinRecordDataOffset]),
                                dataLength);
         if (errorNumber)
         {
             TraceEvents(TRACE_LEVEL_ERROR, 
                         DMF_TRACE, 
-                        "memcpy_s failed with errno_t: %d", 
+                        "memcpy_s fails with errno_t: %d", 
                         errorNumber);
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
             goto Exit;
         }
 
-        // Update the values that persist outside each loop iteration.
+        // Keep track of how many bytes remain in our payload.
+        //
+        remainingPayloadBufferLength -= dataLength;
+        // Gather the address we have consumed so far.
+        //
+        lastAddressConsumed += dataLength;
+        // Increment pointer to the next empty byte in our payload.
         //
         payloadBufferOffset += dataLength;
-        nextPayloadBufferIndex += dataLength;
-        PayloadBufferIndex = nextPayloadBufferIndex;
-        address = nextAddress;
-
-        // Update the new dataLength in PayloadBuffer.
+        // Keep track of how many bytes we consumed of the current bin record.
         //
-        PayloadBuffer[dataLengthOffset] += dataLength;
+        PayloadBufferBinRecordDataOffset += dataLength;
+        payload->DataLength = payloadBufferOffset;
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, 
-                    DMF_TRACE, 
-                    "Clumped %d data at nextAddress 0x%x to make payloadBufferOffset become %d", 
-                    dataLength, 
-                    nextAddress, 
-                    payloadBufferOffset);
-    }
+        // If we are done reading this bin record. Advance to the next one.
+        //
+        if (PayloadBufferBinRecordDataOffset == currentBinRecord->Length)
+        {
+            PayloadBufferBinRecordStartIndex += BinRecordHeaderLength + currentBinRecord->Length;
+            // Check if this was the last block.
+            //
+            if (PayloadBufferBinRecordStartIndex == PayloadBufferSize)
+            {
+                // We consumed all the data.
+                //
+                payload->Flags |= COMPONENT_FIRMWARE_UPDATE_FLAG_LAST_BLOCK;
+                TraceEvents(TRACE_LEVEL_INFORMATION,
+                            DMF_TRACE,
+                            "Last Block at PayloadBufferIndex[0x%x] length 0x%x TransferBufferSize 0x%Ix",
+                            PayloadBufferBinRecordStartIndex - BinRecordHeaderLength - currentBinRecord->Length,
+                            dataLength,
+                            TransferBufferSize);
+                break;
+            }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, 
-                DMF_TRACE, 
-                "Exiting with PayloadBufferIndex[0x%x] last address 0x%x ", 
-                PayloadBufferIndex, 
-                address);
+            // Check if there is enough buffer left.
+            //
+            if (PayloadBufferSize - PayloadBufferBinRecordStartIndex < BinRecordHeaderLength)
+            {
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "Payload Buffer is corrupted. Size %Iu is less than the minimum required (%u)",
+                            (PayloadBufferSize - PayloadBufferBinRecordStartIndex),
+                            BinRecordHeaderLength);
+                ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+                goto Exit;
+            }
+
+            currentBinRecord = (BIN_RECORD*)(PayloadBuffer + PayloadBufferBinRecordStartIndex);
+            PayloadBufferBinRecordDataOffset = 0;
+            TraceEvents(TRACE_LEVEL_VERBOSE,
+                        DMF_TRACE,
+                        "next block: PayloadBufferIndex[0x%x] address 0x%x length 0x%x",
+                        PayloadBufferBinRecordStartIndex,
+                        currentBinRecord->Address,
+                        currentBinRecord->Length);
+        }
+
+
+        if (remainingPayloadBufferLength == 0)
+        {
+            TraceEvents(TRACE_LEVEL_VERBOSE,
+                        DMF_TRACE,
+                        "Buffer Full PayloadBufferIndex[0x%x] Position: [0x%x]",
+                        PayloadBufferBinRecordStartIndex,
+                        currentBinRecord->Address + PayloadBufferBinRecordDataOffset);
+            break;
+        }
+
+        // Verify that nextAddress is sequentially after address.
+        //
+        if (lastAddressConsumed != currentBinRecord->Address)
+        {
+            TraceEvents(TRACE_LEVEL_VERBOSE,
+                        DMF_TRACE,
+                        "Cannot clump nonsequential messages");
+            break;
+        }
+
+    } 
+
+    TraceEvents(TRACE_LEVEL_VERBOSE,
+                DMF_TRACE,
+                "Clumped %x data till lastAddress[0x%x]",
+                payloadBufferOffset,
+                lastAddressConsumed);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE,
+                DMF_TRACE,
+                "Exiting with PayloadBufferStartIndex[0x%x]",
+                PayloadBufferBinRecordStartIndex);
 
 Exit:
 
@@ -915,8 +961,8 @@ Return Value:
     ULONG firmwareComponentIndex;
     size_t offerBufferSize;
     size_t payloadBufferSize;
-    PBYTE payloadBufferFromClient = NULL;
-    PBYTE offerBufferFromClient = NULL;
+    BYTE* payloadBufferFromClient = NULL;
+    BYTE* offerBufferFromClient = NULL;
 
     PAGED_CODE();
 
@@ -1098,7 +1144,7 @@ Return Value:
         if (moduleConfig->FirmwareBuffersNotInPresistantMemory)
         {
             WDFMEMORY payloadMemory;
-            PBYTE payloadBufferLocallyCreated;
+            BYTE* payloadBufferLocallyCreated;
             WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
             objectAttributes.ParentObject = firmwareMemory;
             ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -1150,7 +1196,7 @@ Return Value:
         if (moduleConfig->FirmwareBuffersNotInPresistantMemory)
         {
             WDFMEMORY offerMemory;
-            PBYTE offerBufferLocallyCreated;
+            BYTE* offerBufferLocallyCreated;
             WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
             objectAttributes.ParentObject = firmwareMemory;
             ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -1371,7 +1417,7 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
-    const size_t combinedValueNameMaxLength = MAX_VALUE_NAME_SIZE;
+    const size_t combinedValueNameMaxLength = MAXIMUM_VALUE_NAME_SIZE;
     WCHAR combinedValueNameBuffer[combinedValueNameMaxLength] = { 0 };
     UNICODE_STRING registryValueNameString;
 
@@ -1454,7 +1500,7 @@ Return Value:
 
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
 
-    const size_t combinedValueNameMaxLength = MAX_VALUE_NAME_SIZE;
+    const size_t combinedValueNameMaxLength = MAXIMUM_VALUE_NAME_SIZE;
     WCHAR combinedValueNameBuffer[combinedValueNameMaxLength] = { 0 };
     UNICODE_STRING registryValueNameString;
 
@@ -1531,7 +1577,7 @@ Return Value:
 
     DMF_CONTEXT_ComponentFirmwareUpdate* moduleContext;
 
-    const size_t combinedValueNameMaxLength = MAX_VALUE_NAME_SIZE;
+    const size_t combinedValueNameMaxLength = MAXIMUM_VALUE_NAME_SIZE;
     WCHAR combinedValueNameBuffer[combinedValueNameMaxLength] = { 0 };
     UNICODE_STRING registryValueNameString;
 
@@ -1618,7 +1664,7 @@ Return Value:
     CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
 
-    ULONG waitTimeout;
+    ULONG transportWaitTimeout;
     ULONG offerCommand;
 
     const BYTE informationPacketMarker = FWUPDATE_COMMAND_TOKEN;
@@ -1694,17 +1740,17 @@ Return Value:
     //
     if (OfferCommandCode == COMPONENT_FIRMWARE_UPDATE_OFFER_COMMAND_NOTIFY_ON_READY)
     {
-        waitTimeout = INFINITE;
+        transportWaitTimeout = INFINITE;
     }
     else
     {
-        waitTimeout = componentFirmwareUpdateTransportContext->TransportWaitTimeout;
+        transportWaitTimeout = componentFirmwareUpdateTransportContext->TransportWaitTimeout;
     }
 
     // Wait for response.
     //
     ntStatus = ComponentFirmwareUpdate_WaitForResponse(DmfModule,
-                                                       waitTimeout);
+                                                       transportWaitTimeout);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -2242,21 +2288,34 @@ Return Value:
     //
     UCHAR* bufferHeader;
     UCHAR* payloadBuffer;
-    size_t payloadBufferLength;
+    BYTE payloadBufferLength;
 
-    // Index in the whole payload buffer.
+    // Index in the whole payload buffer that tracks the begining of a Bin Record.
+    // Each Bin Record has {address, length, data}
     //
-    ULONG payloadBufferIndex = 0;
+    ULONG payloadBufferBinRecordStartIndex = 0;
 
     // Keep track of where we left off.
     //
-    ULONG resumePayloadBufferIndex = 0;
+    ULONG resumePayloadBufferBinRecordStartIndex = 0;
+
+    // Offset in the current bin record in the payload buffer.
+    //
+    BYTE payloadBufferBinRecordDataOffset = 0;
+
+    // Keep track of this offset in case of interruption.
+    //
+    ULONG resumePayloadBufferBinRecordDataOffset = 0;
 
     // Do not start at 0 due to firmware limitations.
     //
-    const ULONG sequenceNumberStart = 0x0001;
-    ULONG sequenceNumber = 0;
-    ULONG resumeSequenceNumber = 0;
+    const UINT16 sequenceNumberStart = 0x0001;
+    UINT16 sequenceNumber = 0;
+    UINT16 resumeSequenceNumber = 0;
+
+    // Read a ULONG from registry.
+    //
+    ULONG resumeSequenceNumberFromRegistry = 0;
 
     BOOL updateInterruptedFromIoFailure = FALSE;
 
@@ -2296,11 +2355,11 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
-                                NonPagedPoolNx,
-                                0,
-                                allocatedSize,
-                                &payloadChunkMemory,
-                                (VOID**)&bufferHeader);
+                               NonPagedPoolNx,
+                               0,
+                               allocatedSize,
+                               &payloadChunkMemory,
+                               (VOID**)&bufferHeader);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -2313,7 +2372,7 @@ Return Value:
     RtlZeroMemory(bufferHeader,
                   allocatedSize);
 
-    // Ensure the driver is packing 60 bytes of payload every time.
+    // Ensure the driver is packing 60 bytes of payload everytime.
     //
     payloadBuffer = (UCHAR*)(bufferHeader + componentFirmwareUpdateTransportContext->TransportHeaderSize);
     payloadBufferLength = SizeOfPayload;
@@ -2321,7 +2380,7 @@ Return Value:
     // Check whether the update should resume from a previously interrupted update.
     // This can only occur if the same pair 'that was interrupted last attempt matches the first pair to be accepted this attempt'.
     //
-    payloadBufferIndex = 0;
+    payloadBufferBinRecordStartIndex = 0;
     sequenceNumber = sequenceNumberStart;
     do
     {
@@ -2382,9 +2441,9 @@ Return Value:
         // Get the payload data index to use upon resume.
         //
         ntStatus = ComponentFirmwareUpdate_RegistryQueryComponentUlong(DmfModule,
-                                                                       ComponentFirmwareUpdate_ResumePayloadDataIndexValueName, 
+                                                                       ComponentFirmwareUpdate_ResumePayloadBufferBinRecordIndexValueName, 
                                                                        ComponentIdentifier, 
-                                                                       &resumePayloadBufferIndex);
+                                                                       &resumePayloadBufferBinRecordStartIndex);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, 
@@ -2399,7 +2458,7 @@ Return Value:
         ntStatus = ComponentFirmwareUpdate_RegistryQueryComponentUlong(DmfModule,
                                                                        ComponentFirmwareUpdate_ResumeSequenceNumberValueName,
                                                                        ComponentIdentifier, 
-                                                                       &resumeSequenceNumber);
+                                                                       &resumeSequenceNumberFromRegistry);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, 
@@ -2409,15 +2468,40 @@ Return Value:
             break;
         }
 
+        // Get the payload buffer offset to use upon resume.
+        //
+        ntStatus = ComponentFirmwareUpdate_RegistryQueryComponentUlong(DmfModule,
+                                                                       ComponentFirmwareUpdate_ResumePayloadBufferBinRecordDataOffsetValueName,
+                                                                       ComponentIdentifier, 
+                                                                       &resumePayloadBufferBinRecordDataOffset);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, 
+                        DMF_TRACE, 
+                        "WdfRegistryQueryULong fails for ResumePayloadBufferAddressOffset ntStatus=%!STATUS!", 
+                        ntStatus);
+            break;
+        }
+
+        // PayloadBufferBinRecordDataOffset is of type Byte, this is a sanity check for registry value to make sure
+        // the registry didn't corrupt the value.
+        //
+        DmfAssert(resumePayloadBufferBinRecordDataOffset <= BYTE_MAX);
+
+        // Sequence number size is 2 Bytes.
+        //
+        DmfAssert(resumeSequenceNumberFromRegistry <= UINT16_MAX);
+        resumeSequenceNumber = (UINT16) resumeSequenceNumberFromRegistry;
         TraceEvents(TRACE_LEVEL_INFORMATION, 
                     DMF_TRACE, 
                     "Resuming interrupted update on PairIndex %d at ResourceDataIndex %d with SequenceNumber %d", 
                     resumePairIndex, 
-                    resumePayloadBufferIndex, 
+                    resumePayloadBufferBinRecordStartIndex,
                     resumeSequenceNumber);
 
-        payloadBufferIndex = resumePayloadBufferIndex;
+        payloadBufferBinRecordStartIndex = resumePayloadBufferBinRecordStartIndex;
         sequenceNumber = resumeSequenceNumber;
+        payloadBufferBinRecordDataOffset = (BYTE) resumePayloadBufferBinRecordDataOffset;
     } while (0);
 
     TraceEvents(TRACE_LEVEL_VERBOSE, 
@@ -2428,7 +2512,7 @@ Return Value:
     // There needs to be have some payload content to be send (applicable for both resume from interrupted case or normal) 
     // otherwise it is an error case.
     //
-    if (payloadBufferIndex >= firmwareInformation->PayloadSize)
+    if (payloadBufferBinRecordStartIndex >= firmwareInformation->PayloadSize)
     {
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
@@ -2436,28 +2520,31 @@ Return Value:
 
     // Proceed while there is some payload data still needed to send..
     //
-    while (payloadBufferIndex < firmwareInformation->PayloadSize)
+    while (payloadBufferBinRecordStartIndex < firmwareInformation->PayloadSize)
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, 
-                    DMF_TRACE, 
+        TraceEvents(TRACE_LEVEL_INFORMATION,
+                    DMF_TRACE,
                     "Current sequenceNumber: %d, PayloadIndex: %d, Payload Total size: %Iu", 
-                    sequenceNumber, 
-                    payloadBufferIndex, 
+                    sequenceNumber,
+                    payloadBufferBinRecordStartIndex,
                     firmwareInformation->PayloadSize);
         
         // Preserve the currently completed numbers as a checkpoint.
         //
         resumeSequenceNumber = sequenceNumber;
-        resumePayloadBufferIndex = payloadBufferIndex;
+        resumePayloadBufferBinRecordStartIndex = payloadBufferBinRecordStartIndex;
+        resumePayloadBufferBinRecordDataOffset = payloadBufferBinRecordDataOffset;
 
         // Fill the output buffer with the next chunk of payload to send.
         //      Content is Copied From payloadContent to payloadBuffer.
         //      payloadBufferIndex is updated inside as the payloadBuffer is filled up.
         //
-        ntStatus = ComponentFirmwareUpdate_PayloadBufferFill(sequenceNumber,
-                                                             (PBYTE)payloadContent,
+        ntStatus = ComponentFirmwareUpdate_PayloadBufferFill(DmfModule,
+                                                             sequenceNumber,
+                                                             (BYTE*)payloadContent,
                                                              firmwareInformation->PayloadSize,
-                                                             payloadBufferIndex,
+                                                             payloadBufferBinRecordStartIndex,
+                                                             payloadBufferBinRecordDataOffset,
                                                              payloadBuffer, 
                                                              payloadBufferLength);
         if (FAILED(ntStatus))
@@ -2509,8 +2596,9 @@ Return Value:
                         DMF_TRACE, 
                         "PayloadResponseProcess returns: %d", 
                         *PayloadResponse);
-            ntStatus = STATUS_TRANSACTION_ABORTED;
             goto Exit;
+            // Do not flag this with ntStatus.
+            //
         }
 
         ++sequenceNumber;
@@ -2534,14 +2622,27 @@ Exit:
         {
             NTSTATUS ntStatusLocal;
             ntStatusLocal = ComponentFirmwareUpdate_RegistryAssignComponentUlong(DmfModule,
-                                                                                 ComponentFirmwareUpdate_ResumePayloadDataIndexValueName,
+                                                                                 ComponentFirmwareUpdate_ResumePayloadBufferBinRecordIndexValueName,
                                                                                  ComponentIdentifier, 
-                                                                                 resumePayloadBufferIndex);
+                                                                                 resumePayloadBufferBinRecordStartIndex);
             if (!NT_SUCCESS(ntStatusLocal))
             {
                 TraceEvents(TRACE_LEVEL_ERROR, 
                             DMF_TRACE, 
-                            "ComponentFirmwareUpdate_RegistryAssignComponentUlong fails for ResumePayloadBufferIndex: ntStatus=%!STATUS!", 
+                            "ComponentFirmwareUpdate_RegistryAssignComponentUlong fails for ResumePayloadBufferBinRecordIndex: ntStatus=%!STATUS!", 
+                            ntStatusLocal);
+                break;
+            }
+
+            ntStatusLocal = ComponentFirmwareUpdate_RegistryAssignComponentUlong(DmfModule,
+                                                                                 ComponentFirmwareUpdate_ResumePayloadBufferBinRecordDataOffsetValueName,
+                                                                                 ComponentIdentifier, 
+                                                                                 resumePayloadBufferBinRecordDataOffset);
+            if (!NT_SUCCESS(ntStatusLocal))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, 
+                            DMF_TRACE, 
+                            "DMF_ComponentFirmwareUpdate_RegistryAssignComponentUlong fails for ResumePayloadBufferBinRecordDataOffset: ntStatus=%!STATUS!", 
                             ntStatusLocal);
                 break;
             }
@@ -2796,7 +2897,7 @@ Exit:
 // CFU Protocol Related (BEGIN)
 //=============================
 
-BOOL 
+BOOL
 ComponentFirmwareUpdate_IsProtocolStopRequestPending(
     _In_ DMFMODULE DmfModule
     )
@@ -2854,6 +2955,8 @@ Return Value:
     WDFMEMORY valueNameMemory;
     DWORD  valueNameCount = 0;
     DWORD valueNameElementCountMaximum = 0;
+    WDFCOLLECTION registryValueNamesToBeDeleted;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
 
     FuncEntry(DMF_TRACE);
 
@@ -2861,6 +2964,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    registryValueNamesToBeDeleted = WDF_NO_HANDLE;
     valueNameMemory = WDF_NO_HANDLE;
     handle = WdfRegistryWdmGetHandle(moduleContext->DeviceRegistryKey);
 
@@ -2897,30 +3001,11 @@ Return Value:
         goto Exit;
     }
 
-    // Create a buffer which is big enough to hold the largest valuename.
-    // Account for NULL as well. Note: No overflow check as the registry value length maximum is limited.
-    //
-    DWORD valueNameElementCount = valueNameElementCountMaximum + 1;
-    size_t valueNameBytesRequired = (valueNameElementCount * sizeof(TCHAR));
-    ntStatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES, 
-                                PagedPool, 
-                                MemoryTag, 
-                                valueNameBytesRequired,
-                                &valueNameMemory,
-                                (PVOID*)&valueNameMemoryBuffer);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, 
-                    DMF_TRACE, 
-                    "WdfMemoryCreate fails: ntStatus=%!STATUS!", 
-                    ntStatus);
-        goto Exit;
-    }
 
     // Build the pattern that is to be matched. 
     // It is either "InstanceID:.*:Offer:.*" or "Offer:.*"
     //
-    WCHAR patternToMatch[MAX_VALUE_NAME_SIZE];
+    WCHAR patternToMatch[MAXIMUM_VALUE_NAME_SIZE];
     HRESULT hr;
     if (moduleConfig->InstanceIdentifierLength != 0)
     {
@@ -2966,31 +3051,73 @@ Return Value:
         goto Exit;
     }
 
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+
+    ntStatus = WdfCollectionCreate(&objectAttributes,
+                                   &registryValueNamesToBeDeleted);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "WdfCollectionCreate fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    // Create buffer(s) which is/are big enough to hold the largest valuename.
+    // Account for NULL as well. Note: No overflow check as the registry value length maximum is limited.
+    //
+    DWORD valueNameElementCount = valueNameElementCountMaximum + 1;
+    const size_t valueNameBytesRequired = (valueNameElementCount * sizeof(TCHAR));
+    valueNameMemoryBuffer = NULL;
+
     // Compare the pattern with the value name in the registry and 
     // delete the matched entry
     //
-    for (DWORD valueIndex = 0; valueIndex<valueNameCount; valueIndex++)
+    for (DWORD valueIndex = 0; valueIndex < valueNameCount; valueIndex++)
     {
+        // Create new or reuse the existing memory object.
+        //
+        if (WDF_NO_HANDLE == valueNameMemory)
+        {
+            ntStatus = WdfMemoryCreate(&objectAttributes,
+                                       PagedPool,
+                                       MemoryTag,
+                                       valueNameBytesRequired,
+                                       &valueNameMemory,
+                                       (PVOID*)&valueNameMemoryBuffer);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "WdfMemoryCreate fails: ntStatus=%!STATUS!",
+                            ntStatus);
+                goto Exit;
+            }
+
+            SecureZeroMemory(valueNameMemoryBuffer,
+                             valueNameBytesRequired);
+        }
+
         valueNameElementCount = valueNameElementCountMaximum + 1;
-        ZeroMemory(valueNameMemoryBuffer,
-                   valueNameBytesRequired);
 
         // Read the value name.
         //
         ntStatus = RegEnumValue((HKEY)handle,
                                 valueIndex,
                                 valueNameMemoryBuffer,
-                                (LPDWORD) &valueNameElementCount,
+                                (LPDWORD)&valueNameElementCount,
                                 NULL,
                                 NULL,
                                 NULL,
                                 NULL);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, 
-                        DMF_TRACE, 
-                        "RegEnumValue fails: ntStatus=%!STATUS!", 
-                        ntStatus );
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "RegEnumValue fails: ntStatus=%!STATUS!",
+                        ntStatus);
             goto Exit;
         }
 
@@ -3003,8 +3130,37 @@ Return Value:
         {
             continue;
         }
+        else
+        {
+            // Add to collection.
+            //
+            ntStatus = WdfCollectionAdd(registryValueNamesToBeDeleted, 
+                                        valueNameMemory);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "WdfCollectionAdd fails: ntStatus=%!STATUS!",
+                            ntStatus);
+                goto Exit;
+            }
 
-        // Delete the name value just read.
+            // We consumed this object. 
+            //
+            valueNameMemory = WDF_NO_HANDLE;
+        }
+    }
+
+    // Remove the registry value names collected.
+    //
+    ULONG numberOfValueNamesToBeDeleted = WdfCollectionGetCount(registryValueNamesToBeDeleted);
+    for (ULONG index = 0; index < numberOfValueNamesToBeDeleted; index++)
+    {
+        WDFMEMORY registryValueNameMemory = (WDFMEMORY)WdfCollectionGetItem(registryValueNamesToBeDeleted,
+                                                                            index);
+        valueNameMemoryBuffer = (LPTSTR)WdfMemoryGetBuffer(registryValueNameMemory, 
+                                                           NULL);
+        // Delete the name value.
         //
         ntStatus = RegDeleteValue((HKEY)handle,
                                    valueNameMemoryBuffer);
@@ -3019,6 +3175,18 @@ Return Value:
     }
 
 Exit:
+
+    if (registryValueNamesToBeDeleted != WDF_NO_HANDLE)
+    {
+        WDFMEMORY registryValueNameMemory;
+        while ((registryValueNameMemory = (WDFMEMORY)WdfCollectionGetFirstItem(registryValueNamesToBeDeleted)) != NULL)
+        {
+            WdfCollectionRemoveItem(registryValueNamesToBeDeleted,
+                                    0);
+            WdfObjectDelete(registryValueNameMemory);
+        }
+        WdfObjectDelete(registryValueNamesToBeDeleted);
+    }
 
     if (valueNameMemory != WDF_NO_HANDLE)
     {
@@ -3175,7 +3343,7 @@ Return Value:
     size_t offerListDataSize;
 
     UNICODE_STRING offerVersionNameValueString;
-    WCHAR offerString[MAX_VALUE_NAME_SIZE];
+    WCHAR offerString[MAXIMUM_VALUE_NAME_SIZE];
 
     // Size of each offer is 4 ULONGs as per spec.
     //
@@ -3464,10 +3632,10 @@ NTSTATUS
 ComponentFirmwareUpdate_OfferListSend(
     _In_ DMFMODULE DmfModule,
     _In_ UINT32 OfferIndex,
-    _Out_ PBYTE ComponentIdentifier,
-    _Out_ PBOOL OfferAccepted,
-    _Out_ PBOOL OfferSkipped,
-    _Out_ PBOOL OfferUpToDate
+    _Out_ BYTE* ComponentIdentifier,
+    _Out_ BOOLEAN* OfferAccepted,
+    _Out_ BOOLEAN* OfferSkipped,
+    _Out_ BOOLEAN* OfferUpToDate
     )
 /*++
 
@@ -3515,7 +3683,7 @@ Return Value:
     DWORD offerVersion;
     BYTE componentIdentifier;
 
-    BOOL retryOffer;
+    BOOLEAN retryOffer;
 
     FuncEntry(DMF_TRACE);
 
@@ -3609,14 +3777,15 @@ Return Value:
         //
         TraceEvents(TRACE_LEVEL_INFORMATION,
                     DMF_TRACE,
-                    "Offer from pair %d returned response %s(%d)",
+                    "Offer from pair %d with Component%x returned response %s(%d)",
                     OfferIndex,
+                    componentIdentifier,
                     ComponentFirmwareUpdateOfferResponseString(offerResponse),
                     offerResponse);
 
         // Decide the next course of actions based on the response status.
         // 
-        // In the absence of a formal state machine implementation, decisions are made to a swich case.
+        // In the absense of a formal state machine implementation, decisions are made to a swich case.
         //
         switch (offerResponse)
         {
@@ -3798,9 +3967,9 @@ static
 NTSTATUS
 ComponentFirmwareUpdate_OfferPayloadPairsSendAll(
     _In_ DMFMODULE DmfModule,
-    _Out_ PBOOL AnyAccepted,
-    _Out_ PBOOL AnySkipped,
-    _Out_ PBOOL AllUpToDate
+    _Out_ BOOLEAN* AnyAccepted,
+    _Out_ BOOLEAN* AnySkipped,
+    _Out_ BOOLEAN* AllUpToDate
     )
 /*++
 
@@ -3833,13 +4002,16 @@ Return Value:
 
     // Update protocol is aborted or not.
     //
-    BOOL forcedExit;
+    BOOLEAN forcedExit;
 
-    BOOL anyAccepted;
-    BOOL anySkipped;
+    // True if any offer was accepted and payload transferred successfully.
+    //
+    BOOLEAN anyAccepted;
+    BOOLEAN anySkipped;
+    BOOLEAN payloadUpdateFailed;
     // Initialized to TRUE, set to false if anything was accepted, skipped, or rejected for bad reasons.
     //
-    BOOL allUpToDate;
+    BOOLEAN allUpToDate;
 
     FuncEntry(DMF_TRACE);
 
@@ -3849,13 +4021,14 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    payloadUpdateFailed = FALSE;
     componentIdentifier = 0;
     forcedExit = FALSE;
     anyAccepted = FALSE;
     anySkipped = FALSE;
     allUpToDate = TRUE;
 
-    *AnyAccepted = TRUE;
+    *AnyAccepted = FALSE;
     *AnySkipped = FALSE;
     *AllUpToDate = TRUE;
 
@@ -3891,9 +4064,10 @@ Return Value:
                     pairIndex,
                     countOfOfferPayloadPairs);
 
-        BOOL currentOfferAccepted = FALSE;
-        BOOL currentOfferSkipped = FALSE;
-        BOOL currentStatusUpToDate = FALSE;
+        BOOLEAN currentOfferAccepted = FALSE;
+        BOOLEAN currentOfferSkipped = FALSE;
+        BOOLEAN currentStatusUpToDate = FALSE;
+        payloadResponse = COMPONENT_FIRMWARE_UPDATE_SUCCESS;
 
         // Skip the protocol if the client has requested a stop request already.
         //
@@ -3923,7 +4097,6 @@ Return Value:
             goto Exit;
         }
 
-        anyAccepted |= currentOfferAccepted;
         anySkipped |= currentOfferSkipped;
         // Clear if any offer response indicates firmware is not up to date.
         //
@@ -3985,27 +4158,36 @@ Return Value:
                         ComponentFirmwareUpdatePayloadResponseString(payloadResponse),
                         payloadResponse);
 
-            if (payloadResponse != COMPONENT_FIRMWARE_UPDATE_SUCCESS)
+            if (payloadResponse == COMPONENT_FIRMWARE_UPDATE_SUCCESS)
             {
-                ntStatus = STATUS_UNSUCCESSFUL;
-                goto Exit;
-            }
+                // Payload sent successfully, mark this current offer as accepted.
+                //
+                anyAccepted |= currentOfferAccepted;
 
-            ntStatus = ComponentFirmwareUpdate_RegistryAssignComponentUlong(DmfModule,
-                                                                            ComponentFirmwareUpdate_FirmwareUpdateStatusValueName,
-                                                                            componentIdentifier,
-                                                                            FIRMWARE_UPDATE_STATUS_PENDING_RESET);
-            if (! NT_SUCCESS(ntStatus))
-            {
-                TraceEvents(TRACE_LEVEL_ERROR, 
-                            DMF_TRACE, 
-                            "ComponentFirmwareUpdate_RegistryAssignComponentUlong fails for %ws with Component%x and value 0x%x: ntStatus=%!STATUS!", 
-                            ComponentFirmwareUpdate_FirmwareUpdateStatusValueName, 
-                            componentIdentifier, 
-                            FIRMWARE_UPDATE_STATUS_PENDING_RESET, 
-                            ntStatus);
-                goto Exit;
+                ntStatus = ComponentFirmwareUpdate_RegistryAssignComponentUlong(DmfModule,
+                                                                                ComponentFirmwareUpdate_FirmwareUpdateStatusValueName,
+                                                                                componentIdentifier,
+                                                                                FIRMWARE_UPDATE_STATUS_PENDING_RESET);
+                if (! NT_SUCCESS(ntStatus))
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, 
+                                DMF_TRACE, 
+                                "ComponentFirmwareUpdate_RegistryAssignComponentUlong fails for %ws with Component%x and value 0x%x: ntStatus=%!STATUS!", 
+                                ComponentFirmwareUpdate_FirmwareUpdateStatusValueName, 
+                                componentIdentifier, 
+                                FIRMWARE_UPDATE_STATUS_PENDING_RESET, 
+                                ntStatus);
+                    goto Exit;
+                }
             }
+        }
+
+        // if the offer was accepted and yet the payload is rejected, exit.
+        //
+        if (currentOfferAccepted && (payloadResponse != COMPONENT_FIRMWARE_UPDATE_SUCCESS))
+        {
+            payloadUpdateFailed = TRUE;
+            goto Exit;
         }
     }
 
@@ -4042,15 +4224,15 @@ Return Value:
 
 Exit:
 
-    if (! NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus) || payloadUpdateFailed)
     {
         // Write the status as Error in the case of an error.
         //
-        HRESULT hr2 = ComponentFirmwareUpdate_RegistryAssignComponentUlong(DmfModule,
-                                                                           ComponentFirmwareUpdate_FirmwareUpdateStatusValueName,
-                                                                           componentIdentifier,
-                                                                           FIRMWARE_UPDATE_STATUS_ERROR);
-        if (FAILED(hr2))
+        NTSTATUS ntStatus2 = ComponentFirmwareUpdate_RegistryAssignComponentUlong(DmfModule,
+                                                                                  ComponentFirmwareUpdate_FirmwareUpdateStatusValueName,
+                                                                                  componentIdentifier,
+                                                                                  FIRMWARE_UPDATE_STATUS_ERROR);
+        if (!NT_SUCCESS(ntStatus2))
         {
             TraceEvents(TRACE_LEVEL_ERROR, 
                         DMF_TRACE, 
@@ -4058,7 +4240,7 @@ Exit:
                         ComponentFirmwareUpdate_FirmwareUpdateStatusValueName, 
                         componentIdentifier, 
                         FIRMWARE_UPDATE_STATUS_ERROR, 
-                        hr2);
+                        ntStatus2);
         }
     }
 
@@ -4207,6 +4389,12 @@ Return Value:
     DMF_CONFIG_ComponentFirmwareUpdate* moduleConfig;
 
     COMPONENT_FIRMWARE_VERSIONS firmwareVersions = { 0 };
+    BOOLEAN skipProtocolTransaction;
+    UINT8 loopIteration;
+    BOOLEAN restartLoop;
+    BOOLEAN anyAccepted;
+    BOOLEAN anySkipped;
+    BOOLEAN allUpToDate;
 
     FuncEntry(DMF_TRACE);
 
@@ -4221,12 +4409,19 @@ Return Value:
                 DMF_TRACE,
                 "Start of the CFU protocol.");
 
+    anyAccepted = FALSE;
+    anySkipped = FALSE;
+    allUpToDate = FALSE;
+    skipProtocolTransaction = FALSE;
+    loopIteration = 0;
+
     ULONG countOfOfferPayloadPairs = WdfCollectionGetCount(moduleContext->FirmwareBlobCollection);
     if (countOfOfferPayloadPairs == 0)
     {
         TraceEvents(TRACE_LEVEL_WARNING,
                     DMF_TRACE,
                     "No Firmware available to process. Skipping the entire transaction.");
+        ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
 
@@ -4259,9 +4454,11 @@ Return Value:
              componentIndex < firmwareVersions.componentCount;
              ++componentIndex)
         {
+            BYTE componentIdentifier = firmwareVersions.ComponentIdentifiers[componentIndex];
+            DWORD componentFirmwareVersion = firmwareVersions.FirmwareVersion[componentIndex];
             ntStatus = ComponentFirmwareUpdate_RegistryAssignComponentUlong(dmfModuleComponentFirmwareUpdate,
                                                                             ComponentFirmwareUpdate_FirmwareUpdateStatusValueName,
-                                                                            firmwareVersions.ComponentIdentifiers[componentIndex],
+                                                                            componentIdentifier,
                                                                             FIRMWARE_UPDATE_STATUS_NOT_STARTED);
             if (! NT_SUCCESS(ntStatus))
             {
@@ -4269,7 +4466,7 @@ Return Value:
                             DMF_TRACE,
                             "ComponentFirmwareUpdate_RegistryAssignComponentUlong failed for %ws with Component%x and value 0x%x %!STATUS!, but ignoring error",
                             ComponentFirmwareUpdate_FirmwareUpdateStatusValueName,
-                            firmwareVersions.ComponentIdentifiers[componentIndex],
+                            componentIdentifier,
                             FIRMWARE_UPDATE_STATUS_NOT_STARTED,
                             ntStatus);
 
@@ -4278,16 +4475,16 @@ Return Value:
 
             ntStatus = ComponentFirmwareUpdate_RegistryAssignComponentUlong(dmfModuleComponentFirmwareUpdate,
                                                                             ComponentFirmwareUpdate_CurrentFwVersionValueName,
-                                                                            firmwareVersions.ComponentIdentifiers[componentIndex],
-                                                                            firmwareVersions.FirmwareVersion[componentIndex]);
+                                                                            componentIdentifier,
+                                                                            componentFirmwareVersion);
             if (! NT_SUCCESS(ntStatus))
             {
                 TraceEvents(TRACE_LEVEL_ERROR,
                             DMF_TRACE,
                             "ComponentFirmwareUpdate_RegistryAssignComponentUlong failed for %ws with Component%x and value 0x%x %!STATUS!, but ignoring error",
                             ComponentFirmwareUpdate_CurrentFwVersionValueName,
-                            firmwareVersions.ComponentIdentifiers[componentIndex],
-                            firmwareVersions.FirmwareVersion[componentIndex],
+                            componentIdentifier,
+                            componentFirmwareVersion,
                             ntStatus);
 
                 ntStatus = STATUS_SUCCESS;
@@ -4295,14 +4492,14 @@ Return Value:
 
             ntStatus = ComponentFirmwareUpdate_RegistryRemoveComponentValue(dmfModuleComponentFirmwareUpdate,
                                                                             ComponentFirmwareUpdate_FirmwareUpdateStatusRejectReasonValueName, 
-                                                                            firmwareVersions.ComponentIdentifiers[componentIndex]);
+                                                                            componentIdentifier);
             if (!NT_SUCCESS(ntStatus))
             {
                 TraceEvents(TRACE_LEVEL_ERROR,
                             DMF_TRACE,
                             "FirmwareUpdate_RegistryRemoveComponentValue failed for %ws with Component%x %!STATUS!, but ignoring error",
                             ComponentFirmwareUpdate_FirmwareUpdateStatusRejectReasonValueName,
-                            firmwareVersions.ComponentIdentifiers[componentIndex],
+                            componentIdentifier,
                             ntStatus);
 
                 ntStatus = STATUS_SUCCESS;
@@ -4322,7 +4519,7 @@ Return Value:
 
     // Skip the protocol if there is nothing new to offer to the firmware and its already known to be up-to-date.
     //
-    BOOLEAN skipProtocolTransaction = ComponentFirmwareUpdate_IsProtocolTransactionSkippable(dmfModuleComponentFirmwareUpdate);
+    skipProtocolTransaction = ComponentFirmwareUpdate_IsProtocolTransactionSkippable(dmfModuleComponentFirmwareUpdate);
     if (skipProtocolTransaction)
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -4352,11 +4549,7 @@ Return Value:
     // Send every payload pair. Repeat until all of the offers are Rejected. 
     // This allows the device to control the order that payloads are taken.
     //
-    BOOL restartLoop;
-    BOOL anyAccepted;
-    BOOL anySkipped;
-    BOOL allUpToDate;
-    UINT loopIteration = 0;
+    restartLoop = FALSE;
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 DMF_TRACE,
@@ -4371,6 +4564,7 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR,
                         DMF_TRACE,
                         "FirmwareUpdate protocol Stopped");
+            ntStatus = STATUS_ABANDONED;
             goto Exit;
         }
 
@@ -4436,14 +4630,14 @@ Return Value:
 
     // Update the firmware versions in Registry as needed.
     //
-    ntStatus = ComponentFirmwareUpdate_OfferVersionsRegistryUpdate(dmfModuleComponentFirmwareUpdate, 
-                                                                   allUpToDate);
-    if (! NT_SUCCESS(ntStatus))
+    NTSTATUS ntStatus2 = ComponentFirmwareUpdate_OfferVersionsRegistryUpdate(dmfModuleComponentFirmwareUpdate, 
+                                                                             allUpToDate);
+    if (! NT_SUCCESS(ntStatus2))
     {
         TraceEvents(TRACE_LEVEL_ERROR, 
                     DMF_TRACE, 
                     "ComponentFirmwareUpdate_OfferVersionsRegistryUpdate fails: ntStatus=%!STATUS!", 
-                    ntStatus);
+                    ntStatus2);
         goto Exit;
     }
 
@@ -4692,12 +4886,22 @@ Return Value:
         goto Exit;
     }
 
+    if (transportBindData.TransportPayloadFillAlignment == 0)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Invalid TransportPayloadFillAlignment. It can not be 0");
+        ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
+
     configComponentFirmwareUpdateTransport = ComponentFirmwareUpdateTransportContextGet(DmfInterface);
     configComponentFirmwareUpdateTransport->TransportHeaderSize = transportBindData.TransportHeaderSize;
     configComponentFirmwareUpdateTransport->TransportFirmwarePayloadBufferRequiredSize = transportBindData.TransportFirmwarePayloadBufferRequiredSize;
     configComponentFirmwareUpdateTransport->TransportFirmwareVersionBufferRequiredSize = transportBindData.TransportFirmwareVersionBufferRequiredSize;
     configComponentFirmwareUpdateTransport->TransportOfferBufferRequiredSize = transportBindData.TransportOfferBufferRequiredSize;
     configComponentFirmwareUpdateTransport->TransportWaitTimeout = transportBindData.TransportWaitTimeout;
+    configComponentFirmwareUpdateTransport->TransportPayloadFillAlignment = transportBindData.TransportPayloadFillAlignment;
 
     // Allocate a Context to keep items for transaction response response specific processing.
     //
@@ -4879,9 +5083,18 @@ Return:
         goto Exit;
     }
 
-    // We have a limitation on the number of components (16).
+    // We have a limitation on the number of components (7).
     //
-    DmfAssert(componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount < MAX_NUMBER_OF_IMAGE_PAIRS);
+    if (componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount >= MAX_NUMBER_OF_IMAGE_PAIRS)
+    {
+        DmfAssert(FALSE);
+        TraceError(DMF_TRACE, 
+                   "Invalid ComponentCount(%d) greater than max supported(%d).", 
+                   componentCount, 
+                   MAX_NUMBER_OF_IMAGE_PAIRS);
+        componentFirmwareUpdateTransactionContext->ntStatus = STATUS_DEVICE_PROTOCOL_ERROR;
+        goto Exit;
+    }
 
     componentFirmwareUpdateTransactionContext->FirmwareVersions.componentCount = componentCount;
 
@@ -4892,7 +5105,7 @@ Return:
                 firmwareUpdateProtocolRevision);
 
     DWORD* firmwareVersion = NULL;
-    if (firmwareUpdateProtocolRevision == PROTOCOL_VERSION_2)
+    if (firmwareUpdateProtocolRevision == PROTOCOL_VERSION_2 || firmwareUpdateProtocolRevision == PROTOCOL_VERSION_4)
     {
         // Header is 4 bytes.
         //
@@ -4916,9 +5129,8 @@ Return:
             *firmwareVersion |= ((FirmwareVersionsBuffer[versionTableOffset + componentIndex * componentDataSize + 3] & 0xFF) << 24);
             TraceEvents(TRACE_LEVEL_VERBOSE, 
                         DMF_TRACE, 
-                        "Component%02x has version 0x%x (%d)", 
+                        "Component%02x has version 0x%x",
                         componentFirmwareUpdateTransactionContext->FirmwareVersions.ComponentIdentifiers[componentIndex],
-                        *firmwareVersion,
                         *firmwareVersion);
         }
     }
@@ -5003,7 +5215,7 @@ Return:
 
     ULONG* offerResponseLocal = (ULONG*)ResponseBuffer;
 
-    // Get Token and Validate it. (Byte 3)
+    // Get Token (Byte 3) and Validate it.
     //
     BYTE tokenResponse = (offerResponseLocal[0] >> 24) & 0xFF;
     if (outputToken != tokenResponse)
@@ -5017,11 +5229,11 @@ Return:
         goto Exit;
     }
 
-    // Get Offer Response Reason. (Byte 0)
+    // Get Offer Response Reason (Byte 0).
     //
     COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON offerResponseReason = (COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON)((offerResponseLocal[2]) & 0xFF);
 
-    // Get Offer Response Status. (Byte 0)
+    // Get Offer Response Status (Byte 0).
     //
     COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE offerResponseStatus = (COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE)((offerResponseLocal[3]) & 0xFF);
 
@@ -5053,7 +5265,7 @@ DMF_ComponentFirmwareUpdate_PayloadResponseEvt(
 
 Routine Description:
 
-    Callback to indicate the response to an payload that was sent to device.
+    Callback to indicate the response to a payload that was sent to device.
 
 Parameters:
 
@@ -5105,11 +5317,11 @@ Return:
 
     ULONG* payloadResponseLocal = (ULONG*)ResponseBuffer;
 
-    // Get Response Sequence Number. (Bytes 0-1)
+    // Get Response Sequence Number (Bytes 0-1).
     //
-    ULONG responseSequenceNumber = (ULONG)((payloadResponseLocal[0] >> 0) & 0xFFFF);
+    UINT16 responseSequenceNumber = (UINT16)((payloadResponseLocal[0] >> 0) & 0xFFFF);
 
-    // Get Payload Response Status. (Byte 0)
+    // Get Payload Response Status (Byte 0).
     //
     COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE responseSequenceStatus = (COMPONENT_FIRMWARE_UPDATE_PAYLOAD_RESPONSE)((payloadResponseLocal[1] >> 0) & 0xFF);
 
@@ -5344,6 +5556,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_ComponentFirmwareUpdate;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_ComponentFirmwareUpdate;
     DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DECLARATION_DATA protocolDeclarationData;
+    DMFMODULE dmfModule;
 
     PAGED_CODE();
 
@@ -5366,7 +5579,7 @@ Return Value:
                                 DmfModuleAttributes,
                                 ObjectAttributes,
                                 &dmfModuleDescriptor_ComponentFirmwareUpdate,
-                                DmfModule);
+                                &dmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -5396,7 +5609,7 @@ Return Value:
 
     // Add the interface to the Protocol Module.
     //
-    ntStatus = DMF_ModuleInterfaceDescriptorAdd(*DmfModule,
+    ntStatus = DMF_ModuleInterfaceDescriptorAdd(dmfModule,
                                                 (DMF_INTERFACE_DESCRIPTOR*)&protocolDeclarationData);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -5406,6 +5619,7 @@ Return Value:
 
 Exit:
 
+    *DmfModule = dmfModule;
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);

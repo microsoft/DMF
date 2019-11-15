@@ -83,6 +83,9 @@ typedef struct
     // Interface Handle.
     //
     DMFINTERFACE DmfInterfaceComponentFirmwareUpdate;
+    // Timeout to be used for transport operations.
+    //
+    ULONG HidDeviceWaitTimeoutMs;
 } DMF_CONTEXT_ComponentFirmwareUpdateHidTransport;
 
 // This macro declares the following function:
@@ -580,6 +583,7 @@ Return:
 {
     NTSTATUS ntStatus;
     DMFMODULE DmfComponentFirmwareUpdateTransportModule;
+    DMF_CONTEXT_ComponentFirmwareUpdateHidTransport* moduleContext;
 
     UNREFERENCED_PARAMETER(HeaderSize);
 
@@ -589,6 +593,8 @@ Return:
 
     DmfComponentFirmwareUpdateTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
+    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateTransportModule);
+
     UCHAR reportId = REPORT_ID_OFFER_CONTENT_OUTPUT;
     DmfAssert(HeaderSize == sizeof(reportId));
     Buffer[0] = reportId;
@@ -596,7 +602,7 @@ Return:
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
                                                                Buffer,
                                                                (USHORT)BufferSize,
-                                                               HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS);
+                                                               moduleContext->HidDeviceWaitTimeoutMs);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -647,6 +653,7 @@ Return:
 {
     NTSTATUS ntStatus;
     DMFMODULE DmfComponentFirmwareUpdateTransportModule;
+    DMF_CONTEXT_ComponentFirmwareUpdateHidTransport* moduleContext;
 
     UNREFERENCED_PARAMETER(HeaderSize);
 
@@ -656,6 +663,7 @@ Return:
 
     DmfComponentFirmwareUpdateTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
+    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateTransportModule);
 
     UCHAR reportId = REPORT_ID_OFFER_CONTENT_OUTPUT;
     DmfAssert(HeaderSize == sizeof(reportId));
@@ -664,7 +672,7 @@ Return:
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
                                                                Buffer,
                                                                (USHORT)BufferSize,
-                                                               HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS);
+                                                               moduleContext->HidDeviceWaitTimeoutMs);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -716,6 +724,7 @@ Return:
 {
     NTSTATUS ntStatus;
     DMFMODULE DmfComponentFirmwareUpdateTransportModule;
+    DMF_CONTEXT_ComponentFirmwareUpdateHidTransport* moduleContext;
 
     UNREFERENCED_PARAMETER(HeaderSize);
 
@@ -725,6 +734,7 @@ Return:
 
     DmfComponentFirmwareUpdateTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
+    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateTransportModule);
 
     UCHAR reportId = REPORT_ID_OFFER_CONTENT_OUTPUT;
     DmfAssert(HeaderSize == sizeof(reportId));
@@ -733,7 +743,7 @@ Return:
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
                                                                Buffer,
                                                                (USHORT)BufferSize,
-                                                               HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS);
+                                                               moduleContext->HidDeviceWaitTimeoutMs);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -898,6 +908,7 @@ Return:
 {
     NTSTATUS ntStatus;
     DMFMODULE DmfComponentFirmwareUpdateTransportModule;
+    DMF_CONTEXT_ComponentFirmwareUpdateHidTransport* moduleContext;
 
     UNREFERENCED_PARAMETER(HeaderSize);
 
@@ -907,6 +918,7 @@ Return:
     
     DmfComponentFirmwareUpdateTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
     DMF_ObjectValidate(DmfComponentFirmwareUpdateTransportModule);
+    moduleContext = DMF_CONTEXT_GET(DmfComponentFirmwareUpdateTransportModule);
 
     UCHAR reportId = REPORT_ID_PAYLOAD_CONTENT_OUTPUT;
     DmfAssert(HeaderSize == sizeof(reportId));
@@ -915,7 +927,7 @@ Return:
     ntStatus = ComponentFirmwareUpdateHidTransport_ReportWrite(DmfComponentFirmwareUpdateTransportModule,
                                                                Buffer,
                                                                (USHORT)BufferSize,
-                                                               HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS);
+                                                               moduleContext->HidDeviceWaitTimeoutMs);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
@@ -1063,7 +1075,8 @@ Return:
     TransportBindData->TransportFirmwarePayloadBufferRequiredSize = SizeOfPayload;
     TransportBindData->TransportFirmwareVersionBufferRequiredSize = SizeOfFirmwareVersion;
     TransportBindData->TransportOfferBufferRequiredSize = SizeOfOffer;
-    TransportBindData->TransportWaitTimeout = HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS;
+    TransportBindData->TransportWaitTimeout = moduleContext->HidDeviceWaitTimeoutMs;
+    TransportBindData->TransportPayloadFillAlignment = moduleConfig->PayloadFillAlignment;
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1093,7 +1106,6 @@ Return:
 
 --*/
 {
-
     UNREFERENCED_PARAMETER(DmfInterface);
 }
 
@@ -1179,7 +1191,7 @@ DMF_ComponentFirmwareUpdateHidTransport_Open(
 
 Routine Description:
 
-    Initialize an instance of a DMF Module HID Tranport.
+    Initialize an instance of a DMF Module HID Transport.
 
 Arguments:
 
@@ -1192,11 +1204,24 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-
-    UNREFERENCED_PARAMETER(DmfModule);
+    DMF_CONTEXT_ComponentFirmwareUpdateHidTransport* moduleContext;
+    DMF_CONFIG_ComponentFirmwareUpdateHidTransport* moduleConfig;
 
     FuncEntry(DMF_TRACE);
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // Set the timeout. Use the default if none was specified.
+    //
+    if (moduleConfig->HidDeviceWaitTimeoutMs == 0)
+    {
+        moduleContext->HidDeviceWaitTimeoutMs = HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS;
+    }
+    else
+    {
+        moduleContext->HidDeviceWaitTimeoutMs = moduleConfig->HidDeviceWaitTimeoutMs;
+    }
     ntStatus = STATUS_SUCCESS;
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);

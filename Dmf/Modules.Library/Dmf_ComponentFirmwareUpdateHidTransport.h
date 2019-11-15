@@ -31,6 +31,14 @@ typedef struct
     // Number of Input reports reads that are simultaneously pended.
     //
     DWORD NumberOfInputReportReadsPended;
+    // Optional timeout to be used for transport operations. If not
+    // specifically set, it will use the default timeout of HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS.
+    //
+    ULONG HidDeviceWaitTimeoutMs;
+
+    // Payload buffer fill alignment required.
+    //
+    UINT PayloadFillAlignment;
 } DMF_CONFIG_ComponentFirmwareUpdateHidTransport;
 
 // This macro declares the following functions:

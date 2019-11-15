@@ -877,17 +877,16 @@ Return Value:
     if (! DMF_Utility_IsEqualGUID(&nullGuid,
                                   &moduleConfig->DeviceInterfaceGuid))
     {
-        if (! moduleConfig->ManualMode)
+        // Register a device interface so applications/drivers can find and open this device.
+        //
+        ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
+
+        if (moduleConfig->ManualMode)
         {
-            // Register a device interface so applications/drivers can find and open this device.
-            //
-            ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
-        }
-        else
-        {
-            // Client will call DMF_IoctlHandler_IoctlsEnable() to enable the device interface.
-            //
-            ntStatus = STATUS_SUCCESS;
+            WdfDeviceSetDeviceInterfaceState(device,
+                                             &moduleConfig->DeviceInterfaceGuid,
+                                             NULL,
+                                             FALSE);
         }
     }
     else
@@ -1064,30 +1063,31 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-NTSTATUS
-DMF_IoctlHandler_IoctlsEnable(
-    _In_ DMFMODULE DmfModule
+VOID
+DMF_IoctlHandler_IoctlStateSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ BOOLEAN Enable
     )
 /*++
 
 Routine Description:
 
-    Allows Client to enable the device interface set in the Module's Config. Usually, it is done when this
-    Module opens, but since the Module can open prior its parent, this Method allows Parent full control.
+    Allows Client to enable / disable the device interface set in the Module's Config.
 
 Arguments:
 
     DmfModule - This Module's handle.
+    Enable - If true, enable the device interface.
+             Otherwise, disable the device interface.
 
 Return Value:
 
-    NTSTATUS
+    None
 
 --*/
 {
-    NTSTATUS ntStatus;
     DMF_CONFIG_IoctlHandler* moduleConfig;
+    WDFDEVICE device;
 
     PAGED_CODE();
 
@@ -1096,21 +1096,16 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  IoctlHandler);
 
-    FuncEntry(DMF_TRACE);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    DmfAssert(moduleConfig->ManualMode);
+    device = DMF_ParentDeviceGet(DmfModule);
 
-    // Register a device interface so applications/drivers can find and open this device.
-    // Perform additional optional tasks per the Client. Allow Client to also perform
-    // additional Client specific tasks.
-    //
-    ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
+    WdfDeviceSetDeviceInterfaceState(device,
+                                     &moduleConfig->DeviceInterfaceGuid,
+                                     NULL,
+                                     Enable);
 
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
