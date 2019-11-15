@@ -248,27 +248,25 @@ IoSetDeviceInterfaceProperty | This is a function pointer to a function that all
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-NTSTATUS
-DMF_IoctlHandler_IoctlsEnable(
-  _In_ DMFMODULE DmfModule
-  )
+VOID
+DMF_IoctlHandler_IoctlStateSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ BOOLEAN Enable
+    )
 ````
-Allows the Client to enable the Device Interface on demand. This Method is called when the Client sets ManualMode = TRUE in the
-Config when this Module is instantiated.
+Allows Client to enable / disable the device interface set in the Module's Config.
 
 ##### Returns
 
-NTSTATUS
+None
 
 ##### Parameters
 Parameter | Description
 ----|----
 DmfModule | An open DMF_IoctlHandler Module handle.
+Enable | If true, enable the device interface. Otherwise, disable the device interface.
 
 ##### Remarks
-
-* There is no way to disable the device interface because WDF does not provide an API to do so.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -305,7 +303,6 @@ DmfModule | An open DMF_IoctlHandler Module handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-* Add a Dmf_IoctlsDisable() where the Module itself just returns an error when IOCTLs are sent.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Category
