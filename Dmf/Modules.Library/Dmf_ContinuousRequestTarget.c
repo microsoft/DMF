@@ -1997,8 +1997,6 @@ Return Value:
     moduleContext->Stopping = TRUE;
 
 #if !defined(DMF_USER_MODE)
-    DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
-
     DMF_Portable_EventCreate(&moduleContext->StreamRequestsRundownCompletionEvent, 
                              NotificationEvent, 
                              FALSE);
@@ -2634,9 +2632,7 @@ Return Value:
                                  ContinuousRequestTarget);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     ntStatus = STATUS_SUCCESS;
 
     DmfAssert(moduleContext->Stopping);
@@ -2649,7 +2645,7 @@ Return Value:
     // In case it was previous stopped, re-initialize fields used for rundown.
     //
     DMF_Portable_EventReset(&moduleContext->StreamRequestsRundownCompletionEvent);
-    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
+    DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     moduleContext->StreamingRequestCount = moduleConfig->ContinuousRequestCount;
