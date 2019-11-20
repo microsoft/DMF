@@ -2421,14 +2421,12 @@ Return Value:
     ntStatus = (parentDmfObject->InternalCallbacksDmf.DeviceNotificationRegister)(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-#if DBG
         // Module NotificationRegister should never fail unless the driver cannot be loaded.
         // When debugging it can be difficult to determine which Module failed to register for notifications.
         // When Module NotificationRegister fails, the driver just becomes disabled.
         // This breakpoint makes it easy to determine which Module fails.
         //
-        DbgBreakPoint();
-#endif
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -2529,14 +2527,12 @@ Return Value:
     ntStatus = (dmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-#if DBG
         // Module Open should never fail unless the driver cannot be loaded.
         // When debugging it can be difficult to determine which Module failed to open.
         // When Module open fails, the driver just becomes disabled.
         // This breakpoint makes it easy to determine which Module fails.
         //
-        DbgBreakPoint();
-#endif
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -2593,14 +2589,12 @@ Return Value:
         ntStatus = (dmfObject->InternalCallbacksDmf.DeviceOpen)(DmfModule);
         if (! NT_SUCCESS(ntStatus))
         {
-#if DBG
             // Module Open should never fail unless the driver cannot be loaded.
             // When debugging it can be difficult to determine which Module failed to open.
             // When Module open fails, the driver just becomes disabled.
             // This breakpoint makes it easy to determine which Module fails.
             //
-            DbgBreakPoint();
-#endif
+            DmfAssert(FALSE);
             goto Exit;
         }
 
@@ -2618,14 +2612,12 @@ Return Value:
         ntStatus = (dmfObject->InternalCallbacksDmf.DeviceNotificationRegister)(DmfModule);
         if (! NT_SUCCESS(ntStatus))
         {
-#if DBG
             // Module NotificationRegister should never fail unless the driver cannot be loaded.
             // When debugging it can be difficult to determine which Module failed to register for notifications.
             // When Module NotificationRegister fails, the driver just becomes disabled.
             // This breakpoint makes it easy to determine which Module fails.
             //
-            DbgBreakPoint();
-#endif
+            DmfAssert(FALSE);
             goto Exit;
         }
     }
