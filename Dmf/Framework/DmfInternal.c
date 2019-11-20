@@ -1446,6 +1446,17 @@ Return Value:
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister)(DmfModule);
+#if DBG
+    if (! NT_SUCCESS(ntStatus))
+    {
+        // Module NotificationRegister should never fail unless the driver cannot be loaded.
+        // When debugging it can be difficult to determine which Module failed to register for notifications.
+        // When Module NotificationRegister fails, the driver just becomes disabled.
+        // This breakpoint makes it easy to determine which Module fails.
+        //
+        DbgBreakPoint();
+    }
+#endif
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
 
@@ -1528,7 +1539,6 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceOpen)(DmfModule);
-
     if (NT_SUCCESS(ntStatus))
     {
         // The Module is open.
@@ -1563,6 +1573,14 @@ Return Value:
         // The Module is not open.
         //
         dmfObject->ModuleState = ModuleState_Created;
+#if DBG
+        // Module Open should never fail unless the driver cannot be loaded.
+        // When debugging it can be difficult to determine which Module failed to open.
+        // When Module open fails, the driver just becomes disabled.
+        // This breakpoint makes it easy to determine which Module fails.
+        //
+        DbgBreakPoint();
+#endif
     }
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
