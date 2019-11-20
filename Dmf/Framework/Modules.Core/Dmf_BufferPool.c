@@ -425,7 +425,6 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-__forceinline
 BUFFERPOOL_ENTRY*
 BufferPool_BufferPoolEntryGetFromClientBuffer(
     _In_ VOID* ClientBuffer
@@ -457,9 +456,12 @@ Return Value:
     //
     bufferPoolEntry = ((BUFFERPOOL_ENTRY*)ClientBuffer) - 1;
 
-    DmfAssert(bufferPoolEntry->Signature == BufferPool_Signature);
-    DmfAssert(*(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
-    DmfAssert(*(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
+    DmfVerifierAssert("DMF_BufferPool signature mismatch", 
+                      bufferPoolEntry->Signature == BufferPool_Signature);
+    DmfVerifierAssert("DMF_BufferPool data sentinel mismatch",
+                      *(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
+    DmfVerifierAssert("DMF_BufferPool context sentinel mismatch",
+                      *(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
 
     return bufferPoolEntry;
 }
@@ -1032,9 +1034,12 @@ Return Value:
     }
 
     DmfAssert(bufferPoolEntry != NULL);
-    DmfAssert(bufferPoolEntry->Signature == BufferPool_Signature);
-    DmfAssert(*(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
-    DmfAssert(*(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
+    DmfVerifierAssert("DMF_BufferPool signature mismatch", 
+                      bufferPoolEntry->Signature == BufferPool_Signature);
+    DmfVerifierAssert("DMF_BufferPool data sentinel mismatch", 
+                      *(bufferPoolEntry->SentinelData) == BufferPool_SentinelData);
+    DmfVerifierAssert("DMF_BufferPool context sentinel mismatch", 
+                      *(bufferPoolEntry->SentinelContext) == BufferPool_SentinelContext);
     DmfAssert(bufferPoolEntry->BufferPoolEntryMemory == bufferPoolEntryMemory);
     DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
     DmfAssert(sizeof(BUFFERPOOL_ENTRY) == bufferPoolEntry->SizeOfBufferPoolEntry);
