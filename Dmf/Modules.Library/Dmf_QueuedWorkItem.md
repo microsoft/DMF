@@ -71,9 +71,9 @@ EVT_DMF_QueuedWorkItem_Callback(
 ##### Parameters
 Parameter | Description
 ----|----
-CallbackContext | Client specific context passed by Client when the deferred call was enqueued.
+DmfModule | An open DMF_QueuedWorkItem handle.
 ClientBuffer | Contains the parameters for this call.
-ClientBufferSize | Size of ClientBuffer in bytes.
+ClientBufferContext | Client specific context passed by Client when the deferred call was enqueued.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

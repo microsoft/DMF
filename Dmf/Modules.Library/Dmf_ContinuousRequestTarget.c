@@ -2000,6 +2000,13 @@ Return Value:
     DMF_Portable_EventCreate(&moduleContext->StreamRequestsRundownCompletionEvent, 
                              NotificationEvent, 
                              FALSE);
+    DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
+    // Per OSG, doing the wait immediately after initialize allows use of reinitialize later.
+    // In some cases, this may provide better performance so this is a better pattern.
+    // NOTE: This also corrects an assert that happens in CHK build of Windows when reinitialize
+    //       happens immediately after initialize.
+    //
+    DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
 #endif
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2645,7 +2652,7 @@ Return Value:
     // In case it was previous stopped, re-initialize fields used for rundown.
     //
     DMF_Portable_EventReset(&moduleContext->StreamRequestsRundownCompletionEvent);
-    DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
+    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     moduleContext->StreamingRequestCount = moduleConfig->ContinuousRequestCount;
