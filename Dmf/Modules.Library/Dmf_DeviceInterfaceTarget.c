@@ -2365,7 +2365,7 @@ Return Value:
     DmfAssert(moduleContext->IoTarget != NULL);
 
     DmfAssert(moduleContext->OpenedInStreamMode);
-    DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
+    DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
 
     DMF_ModuleDereference(DmfModule);
 

@@ -18,10 +18,6 @@ Environment:
 
 #pragma once
 
-// This code is only supported in Kernel-mode.
-//
-#if !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
-
 // It is the number of two column rows in the table.
 //
 #define VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS               24
@@ -37,6 +33,28 @@ typedef struct
 } VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA;
 #pragma pack()
 
+#pragma pack(1)
+
+typedef struct
+{
+    USHORT Z;
+    USHORT Y;
+    USHORT Ir1;
+    USHORT X;
+} ACS_RAW_REG_VALUES;
+
+typedef struct
+{
+    LONG Lux;
+    UCHAR AlsSensorState;
+    UCHAR AlsSensorEvent;
+    LONG MainLux;
+    LONG SecondaryLux;
+    ACS_RAW_REG_VALUES MainRegValues;
+    ACS_RAW_REG_VALUES SecondaryRegValues;
+} VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_EXTENDED_DATA;
+#pragma pack()
+
 // Feature Report
 //
 #pragma pack(1)
@@ -49,7 +67,7 @@ typedef struct
     USHORT ChangeSensitivityRelativePercentage;
     USHORT ChangeSensitivityAbsolute;
     ULONG ReportInterval;
-    UCHAR MinimumReportInterval;
+    UINT32 MinimumReportInterval;
     SHORT AlrResponseCurve[VirtualHidAmbientLightSensor_MAXIMUM_NUMBER_OF_ALR_CURVE_RECORDS][2];
 } VirtualHidAmbientLightSensor_ALS_FEATURE_REPORT_DATA;
 #pragma pack()
@@ -61,6 +79,14 @@ _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientLightSensor_InputReportDataGet(_In_ DMFMODULE DmfModule,
                                                     _Out_ VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_DATA* InputReportData);
+
+typedef
+_Function_class_(EVT_VirtualHidAmbientLightSensor_InputReportExtendedDataGet)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_VirtualHidAmbientLightSensor_InputReportExtendedDataGet(_In_ DMFMODULE DmfModule,
+                                                            _Out_ VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_EXTENDED_DATA* InputReportData);
 
 typedef
 _Function_class_(EVT_VirtualHidAmbientLightSensor_FeatureReportDataGet)
@@ -115,8 +141,6 @@ DMF_VirtualHidAmbientLightSensor_LuxValueSend(
     _In_ DMFMODULE DmfModule,
     _In_ float LuxValue
     );
-
-#endif // !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
 
 // eof: Dmf_VirtualHidAmbientLightSensor.h
 //

@@ -14,6 +14,7 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -35,7 +36,6 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#pragma warning(pop)
 typedef struct
 {
     // Resources assigned.
@@ -515,7 +515,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Interrupt resource not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 

@@ -73,6 +73,15 @@
     <Filter Include="Documentation\Interfaces">
       <UniqueIdentifier>{c79a811d-46a2-4cc5-ba71-cab21bf0cecb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\Hid">
+      <UniqueIdentifier>{4d5882b0-63cc-4fa0-bcf5-441ee5e7527d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modules\Hid">
+      <UniqueIdentifier>{37048495-78da-4c83-a3ba-85d1c56d8524}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Hid">
+      <UniqueIdentifier>{0e021f5f-590e-404c-ab18-7ee3a05800cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h">
@@ -147,6 +156,15 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_I2cTarget.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_SpbTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -207,6 +225,15 @@
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_I2cTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
   </ItemGroup>
@@ -277,6 +304,18 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_File.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_I2cTarget.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_SpbTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_InterruptResource.md">
+      <Filter>Documentation\Modules\Targets</Filter>
     </None>
   </ItemGroup>
 </Project>

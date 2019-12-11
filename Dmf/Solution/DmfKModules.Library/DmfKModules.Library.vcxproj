@@ -60,6 +60,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Wmi.c" />
@@ -102,6 +103,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Wmi.h" />
@@ -396,6 +398,7 @@
     <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

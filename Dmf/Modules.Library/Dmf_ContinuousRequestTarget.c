@@ -1633,14 +1633,33 @@ Return Value:
     //
 #if !defined(DMF_USER_MODE)
     DMF_Portable_EventWaitForSingleObject(&moduleContext->StreamRequestsRundownCompletionEvent,
-                                          FALSE, 
+                                          FALSE,
                                           NULL);
 #else
     // Once Rundown API is supported in User-mode, this code can be deleted.
     //
     while (moduleContext->PendingStreamingRequests > 0)
     {
+        WDFREQUEST transientRequest;
+        ULONG transientRequestCount;
+
         DMF_Utility_DelayMilliseconds(50);
+
+        // Cancel the remaining transient requests.
+        // Some may not be cancelled yet, if they were in the completion path during cancellation.
+        //
+        transientRequestCount = WdfCollectionGetCount(moduleContext->TransientStreamRequestsCollection);
+
+        for (ULONG requestIndex = 0; requestIndex < transientRequestCount; requestIndex++)
+        {
+            transientRequest = (WDFREQUEST)WdfCollectionGetItem(moduleContext->TransientStreamRequestsCollection,
+                                                                requestIndex);
+            if (transientRequest != NULL)
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestCancelSentRequest transientRequest=0x%p", transientRequest);
+                WdfRequestCancelSentRequest(transientRequest);
+            }
+        }
     }
 #endif
 

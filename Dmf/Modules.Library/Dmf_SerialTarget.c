@@ -1362,7 +1362,7 @@ Return Value:
 
     DmfAssert(moduleContext->IoTarget != NULL);
 
-    DMF_ContinuousRequestTarget_Stop(moduleContext->DmfModuleContinuousRequestTarget);
+    DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
 
     FuncExitVoid(DMF_TRACE);
 }

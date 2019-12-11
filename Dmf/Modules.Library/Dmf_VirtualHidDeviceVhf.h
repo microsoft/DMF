@@ -19,14 +19,6 @@ Environment:
 
 #pragma once
 
-// This Module is only supported in Kernel-mode because VHF only support Kernel-mode.
-//
-#if !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
-
-#pragma warning(disable:4201)  // suppress nameless struct/union warning
-#pragma warning(disable:4214)  // suppress bit field types other than int warning
-#include <vhf.h>
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Definitions used by various HID descriptors.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -997,11 +989,11 @@ Environment:
 #define Data_Var_Rel                            0x06
 // Collection flags.
 //
-#define Physical                                0x00
-#define Application                             0x01
-#define Logical                                 0x02
-#define NamedArray                              0x04
-#define UsageSwitch                             0x05
+#define HID_FLAGS_COLLECTION_Physical           0x00
+#define HID_FLAGS_COLLECTION_Application        0x01
+#define HID_FLAGS_COLLECTION_Logical            0x02
+#define HID_FLAGS_COLLECTION_NamedArray         0x04
+#define HID_FLAGS_COLLECTION_UsageSwitch        0x05
 // Other.
 //
 #define Undefined                               0x00
@@ -1044,6 +1036,14 @@ Environment:
 #define HID_FEATURE_8(a)                        0xB1U,(a)
 #define HID_FEATURE_16(a,b)                     0xB2U,(a),(b)
 #define HID_FEATURE_32(a,b,c,d)                 0xB3U,(a),(b),(c),(d)
+
+// This Module is only supported in Kernel-mode because VHF only support Kernel-mode.
+//
+#if !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
+
+#pragma warning(disable:4201)  // suppress nameless struct/union warning
+#pragma warning(disable:4214)  // suppress bit field types other than int warning
+#include <vhf.h>
 
 // Client uses this structure to configure the Module specific parameters.
 //
