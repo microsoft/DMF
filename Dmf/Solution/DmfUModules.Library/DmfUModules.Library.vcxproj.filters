@@ -165,6 +165,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_AlertableSleep.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -235,6 +238,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c">
       <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_AlertableSleep.c">
+      <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -316,6 +322,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md">
       <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_AlertableSleep.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>
