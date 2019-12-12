@@ -279,8 +279,9 @@ Return Value:
     }
     else if (WaitForAll)
     {
-        if ((dwordReturnValue >= WAIT_OBJECT_0) && 
-            (dwordReturnValue < (WAIT_OBJECT_0 + EventCount)))
+        // NOTE: dwordReturnValue >= WAIT_OBJECT_0 is always TRUE.
+        //
+        if (dwordReturnValue < (WAIT_OBJECT_0 + EventCount))
         {
             returnValue = STATUS_SUCCESS;
         }
