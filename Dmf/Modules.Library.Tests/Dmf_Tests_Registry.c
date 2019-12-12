@@ -24,10 +24,6 @@ Environment:
 
 #include "Dmf_Tests_Registry.tmh"
 
-// TODO: Wait for Anoop's code.
-//
-#if !defined(DMF_USER_MODE)
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +93,7 @@ static ULONGLONG ulonglongOriginal = VALUEDATA_QWORD;
 static PWCHAR subkeys[] = {SUBKEYNAME_1, 
                            SUBKEYNAME_2};
 
+#if !defined(DMF_USER_MODE)
 // A set of entries in the branch.
 //
 static
@@ -135,6 +132,7 @@ RegistryTree[] =
         ARRAYSIZE(RegistryBranches)
     },
 };
+#endif
 
 struct EnumCallbackContext
 {
@@ -1622,6 +1620,7 @@ Tests_Registry_Handle_ConditionalWrite(
 }
 #pragma code_seg()
 
+#if !defined(DMF_USER_MODE)
 #pragma code_seg("PAGE")
 static
 VOID
@@ -1657,6 +1656,7 @@ Tests_Registry_TreeWriteDeferred(
     DmfAssert(STATUS_SUCCESS == ntStatus);
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -1767,11 +1767,22 @@ Return Value:
         //
         PLUGPLAY_REGKEY_DEVICE,
         PLUGPLAY_REGKEY_DRIVER,
+#if !defined(DMF_USER_MODE)
         // Note: PLUGPLAY_REGKEY_CURRENT_HWPROFILE may not be used alone.
         //
         PLUGPLAY_REGKEY_DEVICE | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
-        PLUGPLAY_REGKEY_DRIVER | PLUGPLAY_REGKEY_CURRENT_HWPROFILE
+        PLUGPLAY_REGKEY_DRIVER | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
+#else
+        // Note: PLUGPLAY_REGKEY_CURRENT_HWPROFILE may not be used alone.
+        //
+        PLUGPLAY_REGKEY_DEVICE | WDF_REGKEY_DEVICE_SUBKEY,
+        PLUGPLAY_REGKEY_DRIVER | WDF_REGKEY_DEVICE_SUBKEY
+#endif
     };
+
+#if defined(DMF_USER_MODE)
+    DbgBreakPoint();
+#endif
 
     for (ULONG predefinedIdIndex = 0; predefinedIdIndex < ARRAYSIZE(predefinedIds); predefinedIdIndex++)
     {
@@ -1787,11 +1798,28 @@ Return Value:
         }
         else
         {
+            ACCESS_MASK accessMask = GENERIC_ALL;
+#if defined(DMF_USER_MODE)
+            // For UMDF, ensure to set the right accessMask.
+            // Reference: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfdevice/nf-wdfdevice-wdfdeviceopenregistrykey            //
+            if ((predefinedIds[predefinedIdIndex] & PLUGPLAY_REGKEY_DEVICE) ||
+                (predefinedIds[predefinedIdIndex] & PLUGPLAY_REGKEY_DRIVER))
+            {
+                accessMask = KEY_READ;
+            }
+
+            if ((predefinedIds[predefinedIdIndex] & WDF_REGKEY_DEVICE_SUBKEY) ||
+                (predefinedIds[predefinedIdIndex] & WDF_REGKEY_DRIVER_SUBKEY))
+            {
+                accessMask |= KEY_SET_VALUE;
+            }   
+#endif
+
             // Open the predefined key.
             //
             ntStatus = DMF_Registry_HandleOpenById(moduleContext->DmfModuleRegistry,
                                                    predefinedIds[predefinedIdIndex],
-                                                   GENERIC_ALL,
+                                                   accessMask,
                                                    &registryHandle);
         }
         DmfAssert(NT_SUCCESS(ntStatus));
@@ -1860,6 +1888,7 @@ Return Value:
         }
     }
 
+#if !defined(DMF_USER_MODE)
     // Tree Tests
     // ----------
     //
@@ -1879,8 +1908,6 @@ Return Value:
     //
     Tests_Registry_Path_DeleteValues(moduleContext->DmfModuleRegistry);
     Tests_Registry_Path_DeletePath(moduleContext->DmfModuleRegistry);
-
-
     // Tree Tests deferred
     // -------------------
     //
@@ -1914,6 +1941,7 @@ Return Value:
     //
     Tests_Registry_Path_DeleteValues(moduleContext->DmfModuleRegistry);
     Tests_Registry_Path_DeletePath(moduleContext->DmfModuleRegistry);
+#endif
 
 
     // Enum and Conditional Tests
@@ -2258,8 +2286,6 @@ Return Value:
     return(ntStatus);
 }
 #pragma code_seg()
-
-#endif
 
 // Module Methods
 //

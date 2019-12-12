@@ -455,6 +455,7 @@ DMF_Registry_SubKeysFromPathNameContainingStringEnumerate(
     _In_ VOID* ClientCallbackContext
     );
 
+#if !defined(DMF_USER_MODE)
 NTSTATUS
 DMF_Registry_TreeWriteDeferred(
     _In_ DMFMODULE DmfModule,
@@ -468,6 +469,7 @@ DMF_Registry_TreeWriteEx(
     _In_ Registry_Tree* RegistryTree,
     _In_ ULONG ItemCount
     );
+#endif
 
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)

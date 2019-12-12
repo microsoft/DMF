@@ -113,12 +113,17 @@ typedef struct
 
 typedef struct
 {
+#if !defined(DMF_USER_MODE)
+    // Deferred Tree Write is not supported in usermode.
+    //
+
     // Timer for deferred operations.
     //
     WDFTIMER Timer;
     // Stores data needed to perform deferred operations.
     //
     LIST_ENTRY ListDeferredOperations;
+#endif
 } DMF_CONTEXT_Registry;
 
 // This macro declares the following function:
@@ -215,6 +220,7 @@ Registry_CustomActionHandler_Read(
 //-----------------------------------------------------------------------------------------------------
 //
 
+#if !defined(DMF_USER_MODE)
 static
 NTSTATUS
 Registry_ValueSizeGet(
@@ -767,6 +773,7 @@ Exit:
 
     return ntStatus;
 }
+#endif
 
 //-----------------------------------------------------------------------------------------------------
 // Registry Enumeration
@@ -795,34 +802,29 @@ Return Value:
 {
     HANDLE handle;
     NTSTATUS ntStatus;
-    OBJECT_ATTRIBUTES objectAttributes;
     UNICODE_STRING nameString;
+    WDFKEY key;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = RtlUnicodeStringInit(&nameString,
-                                    Name);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        DmfAssert(FALSE);
-        handle = NULL;
-        goto Exit;
-    }
-    InitializeObjectAttributes(&objectAttributes,
-                               &nameString,
-                               OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-                               NULL,
-                               NULL);
-    ntStatus = ZwOpenKey(&handle,
-                         GENERIC_ALL,
-                         &objectAttributes);
+    RtlInitUnicodeString(&nameString,
+                         Name);
+
+    key = NULL;
+    ntStatus = WdfRegistryOpenKey(NULL,
+                                  &nameString,
+                                  GENERIC_ALL,
+                                  WDF_NO_OBJECT_ATTRIBUTES, 
+                                  &key);
     if (! NT_SUCCESS(ntStatus))
     {
         handle = NULL;
         goto Exit;
     }
+
+    handle = (HANDLE)key;
 
 Exit:
 
@@ -857,25 +859,27 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    PDEVICE_OBJECT deviceObject;
+    WDFKEY key;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    deviceObject = WdfDeviceWdmGetPhysicalDevice(Device);
-
     // Open the device registry key of the instance of the device.
     //
-    ntStatus = IoOpenDeviceRegistryKey(deviceObject,
-                                       PredefinedKeyId,
-                                       AccessMask,
-                                       RegistryHandle);
+    key = NULL;
+    ntStatus = WdfDeviceOpenRegistryKey(Device,
+                                        PredefinedKeyId,
+                                        AccessMask,
+                                        WDF_NO_OBJECT_ATTRIBUTES,
+                                        &key);
     if (! NT_SUCCESS(ntStatus))
     {
         *RegistryHandle = NULL;
         goto Exit;
     }
+
+    *RegistryHandle = (HANDLE) key;
 
 Exit:
 
@@ -911,53 +915,46 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    OBJECT_ATTRIBUTES objectAttributes;
     UNICODE_STRING nameString;
+    WDFKEY key;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = RtlUnicodeStringInit(&nameString,
-                                    Name);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        DmfAssert(FALSE);
-        *RegistryHandle = NULL;
-        goto Exit;
-    }
-    // Registry names are case insensitive.
-    //
-    InitializeObjectAttributes(&objectAttributes,
-                               &nameString,
-                               OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-                               NULL,
-                               NULL);
+    RtlInitUnicodeString(&nameString,
+                         Name);
+
+    key = NULL;
     if (Create)
     {
         // Open existing or create new.
         //
-        ntStatus = ZwCreateKey(RegistryHandle,
-                               AccessMask,
-                               &objectAttributes,
-                               0,
-                               NULL,
-                               REG_OPTION_NON_VOLATILE,
-                               NULL);
+        ntStatus = WdfRegistryCreateKey(NULL,
+                                        &nameString,
+                                        AccessMask,
+                                        REG_OPTION_NON_VOLATILE,
+                                        NULL,
+                                        WDF_NO_OBJECT_ATTRIBUTES,
+                                        &key);
     }
     else
     {
         // Open existing.
         //
-        ntStatus = ZwOpenKey(RegistryHandle,
-                             AccessMask,
-                             &objectAttributes);
+        ntStatus = WdfRegistryOpenKey(NULL,
+                                      &nameString,
+                                      AccessMask,
+                                      WDF_NO_OBJECT_ATTRIBUTES, 
+                                      &key);
     }
     if (! NT_SUCCESS(ntStatus))
     {
         *RegistryHandle = NULL;
         goto Exit;
     }
+
+    *RegistryHandle = (HANDLE)key;
 
 Exit:
 
@@ -991,46 +988,40 @@ Return Value:
 --*/
 {
     HANDLE handle;
+    WDFKEY key;
     NTSTATUS ntStatus;
-    OBJECT_ATTRIBUTES objectAttributes;
     UNICODE_STRING nameString;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = RtlUnicodeStringInit(&nameString,
-                                    Name);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        DmfAssert(FALSE);
-        handle = NULL;
-        goto Exit;
-    }
-    InitializeObjectAttributes(&objectAttributes,
-                               &nameString,
-                               OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-                               Handle,
-                               NULL);
+    RtlInitUnicodeString(&nameString,
+                         Name);
+
+    key = NULL;
     if (TryToCreate)
     {
         // Try to create/open.
         //
-        ntStatus = ZwCreateKey(&handle,
-                               KEY_ALL_ACCESS,
-                               &objectAttributes,
-                               0,
-                               NULL,
-                               REG_OPTION_NON_VOLATILE,
-                               NULL);
+        ntStatus = WdfRegistryCreateKey((WDFKEY)Handle,
+                                        &nameString,
+                                        KEY_ALL_ACCESS,
+                                        REG_OPTION_NON_VOLATILE,
+                                        NULL,
+                                        WDF_NO_OBJECT_ATTRIBUTES,
+                                        &key);
+
     }
     else
     {
         // Try to open.
         //
-        ntStatus = ZwOpenKey(&handle,
-                             KEY_ALL_ACCESS,
-                             &objectAttributes);
+        ntStatus = WdfRegistryOpenKey((WDFKEY)Handle,
+                                      &nameString,
+                                      KEY_ALL_ACCESS,
+                                      WDF_NO_OBJECT_ATTRIBUTES, 
+                                      &key);
     }
 
     if (! NT_SUCCESS(ntStatus))
@@ -1038,6 +1029,8 @@ Return Value:
         handle = NULL;
         goto Exit;
     }
+
+    handle = (HANDLE)key;
 
 Exit:
 
@@ -1070,12 +1063,13 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ZwClose(Handle);
+    WdfRegistryClose((WDFKEY)Handle);
     Handle = NULL;
 
     FuncExitVoid(DMF_TRACE);
 }
 
+#if !defined(DMF_USER_MODE)
 BOOLEAN
 Registry_SubKeysFromHandleEnumerate(
     _In_ HANDLE Handle,
@@ -1105,6 +1099,7 @@ Return Value:
     ULONG resultLength;
     ULONG currentSubKeyIndex;
     BOOLEAN done;
+    HANDLE handleWdm;
 
     PAGED_CODE();
 
@@ -1113,6 +1108,11 @@ Return Value:
     returnValue = FALSE;
     done = FALSE;
     currentSubKeyIndex = 0;
+
+    // Grab the WDM Handle. Handle that is coming in is WDFKEY.
+    //
+    handleWdm = WdfRegistryWdmGetHandle((WDFKEY)Handle);
+
     while (! done)
     {
         // If there is a key to enumerate, since the function is passed NULL and 0 as buffer and buffer
@@ -1120,7 +1120,7 @@ Return Value:
         // amount of memory needed to read it.
         //
         resultLength = 0;
-        ntStatus = ZwEnumerateKey(Handle,
+        ntStatus = ZwEnumerateKey(handleWdm,
                                   currentSubKeyIndex,
                                   KeyBasicInformation,
                                   NULL,
@@ -1160,7 +1160,7 @@ Return Value:
 
                 // Enumerate the next key.
                 //
-                ntStatus = ZwEnumerateKey(Handle,
+                ntStatus = ZwEnumerateKey(handleWdm,
                                           currentSubKeyIndex,
                                           KeyBasicInformation,
                                           keyInformationBuffer,
@@ -1178,6 +1178,7 @@ Return Value:
                 keyInformationBuffer->Name[keyInformationBuffer->NameLength / sizeof(WCHAR)] = L'\0';
 
                 // Call the client enumeration function.
+                // Note: We are passing in the WDFKEY.
                 //
                 returnValue = RegistryEnumerationFunction(Context,
                                                           Handle,
@@ -1213,6 +1214,147 @@ Exit:
 
     return returnValue;
 }
+#else
+BOOLEAN
+Registry_SubKeysFromHandleEnumerate(
+    _In_ HANDLE Handle,
+    _In_ EVT_DMF_Registry_KeyEnumerationCallback* RegistryEnumerationFunction,
+    _In_ VOID* Context
+    )
+/*++
+
+Routine Description:
+
+    Given a registry handle, enumerate all the sub keys and call an enumeration function for each of them.
+
+Arguments:
+
+    Handle - The handle the registry key.
+    RegistryEnumerationFunction - The enumeration function to call for each sub key.
+    Context - The client context to pass into the enumeration function.
+
+Return Value:
+
+    TRUE on success, FALSE on error.
+
+--*/
+{
+    BOOLEAN returnValue;
+    NTSTATUS ntStatus;
+    DWORD  numberOfSubKeys;
+    DWORD maximumSubKeyLength;
+    HANDLE handle;
+    WDFMEMORY subKeyNameMemory;
+    size_t maximumBytesRequired;
+    DWORD elementCountOfSubKeyName;
+    LPTSTR subKeyNameMemoryBuffer;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    returnValue = FALSE;
+    numberOfSubKeys = 0;
+    maximumSubKeyLength = 0;
+    maximumBytesRequired = 0;
+    subKeyNameMemory = WDF_NO_HANDLE;
+    subKeyNameMemoryBuffer = NULL;
+
+    handle = WdfRegistryWdmGetHandle((WDFKEY) Handle);
+
+    // Get the subkey count and maximum subkey name size.
+    //
+    ntStatus = RegQueryInfoKey((HKEY)handle,
+                               NULL,
+                               0,
+                               NULL,
+                               &numberOfSubKeys,
+                               &maximumSubKeyLength,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RegQueryInfoKey ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    if (numberOfSubKeys == 0)
+    {
+        returnValue = TRUE;
+        goto Exit;
+    }
+
+    // Enumerate the subkeys.
+    //
+    // Create a buffer which is big enough to hold the largest subkey.
+    // Account for NULL as well. Note: No overflow check as the registry key length maximum is limited.
+    //
+    elementCountOfSubKeyName = maximumSubKeyLength + 1;
+    maximumBytesRequired = (elementCountOfSubKeyName * sizeof(WCHAR));
+    ntStatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES,
+                               PagedPool, 
+                               MemoryTag, 
+                               maximumBytesRequired,
+                               &subKeyNameMemory,
+                               (PVOID*)&subKeyNameMemoryBuffer);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    for (DWORD keyIndex = 0; keyIndex < numberOfSubKeys; keyIndex++)
+    {
+        elementCountOfSubKeyName = maximumSubKeyLength + 1;
+        ZeroMemory(subKeyNameMemoryBuffer,
+                   maximumBytesRequired);
+
+        // Read the subkey.
+        //
+        ntStatus = RegEnumKeyEx((HKEY)handle,
+                                keyIndex,
+                                subKeyNameMemoryBuffer,
+                                (LPDWORD) &elementCountOfSubKeyName,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RegEnumKeyEx ntStatus=%!STATUS!", ntStatus);
+            break;
+        }
+
+        // Call the client enumeration function.
+        // Note: We are passing in the WDFKEY.
+        //
+        returnValue = RegistryEnumerationFunction(Context,
+                                                  Handle,
+                                                  subKeyNameMemoryBuffer);
+        if (!returnValue)
+        {
+            goto Exit;
+        }
+    }
+
+    returnValue = TRUE;
+
+Exit:
+
+    if (subKeyNameMemory != WDF_NO_HANDLE)
+    {
+        WdfObjectDelete(subKeyNameMemory);
+    }
+
+    FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
+
+    return returnValue;
+}
+#endif
 
 // Enumeration Filter Functions. Add more here as needed for external use.
 //
@@ -1353,11 +1495,14 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
     UNICODE_STRING valueNameString;
-    ULONG resultLength;
     BOOLEAN needsAction;
-    KEY_VALUE_PARTIAL_INFORMATION* keyValuePartialInformation;
-    VOID* existingValueSetting;
+    ULONG valueLength;
+    ULONG valueLengthQueried;
+    ULONG valueType;
+    LPTSTR valueMemoryBuffer;
+    WDFMEMORY valueMemory;
 
     PAGED_CODE();
 
@@ -1376,12 +1521,12 @@ Return Value:
 
     // Find out how much memory is needed to retrieve the value if it is there.
     //
-    ntStatus = ZwQueryValueKey(Handle,
-                               &valueNameString,
-                               KeyValuePartialInformation,
-                               NULL,
-                               0,
-                               &resultLength);
+    ntStatus = WdfRegistryQueryValue((WDFKEY)Handle,
+                                     &valueNameString,
+                                     0,
+                                     NULL,
+                                     &valueLengthQueried,
+                                     &valueType);
     if ((STATUS_OBJECT_NAME_NOT_FOUND == ntStatus))
     {
         // The value is not there. Write it.
@@ -1396,39 +1541,41 @@ Return Value:
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws not found (no action will happen)", ValueName);
         }
     }
-    else if (STATUS_BUFFER_TOO_SMALL == ntStatus)
+    else if (STATUS_BUFFER_OVERFLOW == ntStatus)
     {
-        // The registry record containing the data will be here.
-        // Suppress (resultLength may not be initialized.)
+        // We have size in bytes of the value.
+        // Suppress (valueLengthQueried may not be initialized.)
         //
         #pragma warning(suppress: 6102)
-        DmfAssert(resultLength > 0);
+        DmfAssert(valueLengthQueried > 0);
         #pragma warning(suppress: 6102)
-        keyValuePartialInformation = (KEY_VALUE_PARTIAL_INFORMATION*)ExAllocatePoolWithTag(NonPagedPoolNx,
-                                                                                           resultLength,
-                                                                                           MemoryTag);
-        if (NULL == keyValuePartialInformation)
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        valueLength = valueLengthQueried;
+        valueMemory = WDF_NO_HANDLE;
+        ntStatus = WdfMemoryCreate(&objectAttributes,
+                                   NonPagedPoolNx,
+                                   MemoryTag,
+                                   valueLength,
+                                   &valueMemory,
+                                   (PVOID*)&valueMemoryBuffer);
+        if (!NT_SUCCESS(ntStatus))
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
-
-        // The registry value setting will be here.
-        //
-        existingValueSetting = (VOID*)&keyValuePartialInformation->Data;
 
         // TODO: Validate the ValueType.
         //
 
         // Retrieve the setting of the value.
         //
-        ntStatus = ZwQueryValueKey(Handle,
-                                   &valueNameString,
-                                   KeyValuePartialInformation,
-                                   keyValuePartialInformation,
-                                   resultLength,
-                                   &resultLength);
+        ntStatus = WdfRegistryQueryValue((WDFKEY)Handle,
+                                         &valueNameString,
+                                         valueLength,
+                                         valueMemoryBuffer,
+                                         NULL,
+                                         NULL);
         if (! NT_SUCCESS(ntStatus))
         {
             // Fall through to free memory. Let the caller decide what to do.
@@ -1442,8 +1589,8 @@ Return Value:
             //
             if (ComparisonCallback(DmfModule,
                                    ComparisonCallbackContext,
-                                   existingValueSetting,
-                                   keyValuePartialInformation->DataLength,
+                                   valueMemoryBuffer,
+                                   valueLength,
                                    ValueDataToWrite,
                                    ValueDataToWriteSize))
             {
@@ -1456,9 +1603,8 @@ Return Value:
             }
         }
 
-        ExFreePoolWithTag(keyValuePartialInformation,
-                          MemoryTag);
-        keyValuePartialInformation = NULL;
+        WdfObjectDelete(valueMemory);
+        valueMemory = WDF_NO_HANDLE;
     }
     else
     {
@@ -1481,26 +1627,24 @@ Return Value:
                     goto Exit;
                 }
 
-                ntStatus = RtlWriteRegistryValue(RTL_REGISTRY_HANDLE,
-                                                 (PCWSTR)Handle,
-                                                 ValueName,
-                                                 ValueType,
-                                                 (VOID*)ValueDataToWrite,
-                                                 ValueDataToWriteSize);
+                ntStatus = WdfRegistryAssignValue((WDFKEY)Handle,
+                                                  &valueNameString,
+                                                  ValueType,
+                                                  ValueDataToWriteSize,
+                                                  (VOID*)ValueDataToWrite);
                 if (! NT_SUCCESS(ntStatus))
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlWriteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryAssignValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
                 }
                 break;
             }
             case Registry_ActionTypeDelete:
             {
-                ntStatus = RtlDeleteRegistryValue(RTL_REGISTRY_HANDLE,
-                                                  (PCWSTR)Handle,
-                                                  ValueName);
+                ntStatus = WdfRegistryRemoveValue((WDFKEY)Handle,
+                                                  &valueNameString);
                 if (! NT_SUCCESS(ntStatus))
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlDeleteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryRemoveValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
                 }
                 break;
             }
@@ -1581,6 +1725,7 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    UNICODE_STRING valueNameString;
 
     PAGED_CODE();
 
@@ -1590,6 +1735,8 @@ Return Value:
 
     DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
+    RtlInitUnicodeString(&valueNameString,
+                         ValueName);
     // For SAL.
     //
     ntStatus = STATUS_UNSUCCESSFUL;
@@ -1602,15 +1749,14 @@ Return Value:
             //
             DmfAssert(ValueDataBuffer != NULL);
             DmfAssert(NULL == BytesRead);
-            ntStatus = RtlWriteRegistryValue(RTL_REGISTRY_HANDLE,
-                                             (PCWSTR)Handle,
-                                             ValueName,
-                                             ValueType,
-                                             (VOID*)ValueDataBuffer,
-                                             ValueDataBufferSize);
+            ntStatus = WdfRegistryAssignValue((WDFKEY)Handle,
+                                              &valueNameString,
+                                              ValueType,
+                                              ValueDataBufferSize,
+                                              (VOID*)ValueDataBuffer);
             if (! NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlWriteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryAssignValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
             }
             break;
         }
@@ -1619,9 +1765,8 @@ Return Value:
             // Just perform the action now.
             //
             DmfAssert(NULL == BytesRead);
-            ntStatus = RtlDeleteRegistryValue(RTL_REGISTRY_HANDLE,
-                                              (PCWSTR)Handle,
-                                              ValueName);
+            ntStatus = WdfRegistryRemoveValue((WDFKEY)Handle,
+                                              &valueNameString);
             if (! NT_SUCCESS(ntStatus))
             {
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlDeleteRegistryValue %ws...ntStatus=%!STATUS!", ValueName, ntStatus);
@@ -1693,6 +1838,7 @@ Return Value:
 // Registry Deferred Operations
 //-----------------------------------------------------------------------------------------------------
 //
+#if !defined(DMF_USER_MODE)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -1935,7 +2081,7 @@ Return:
 
     FuncExitVoid(DMF_TRACE);
 }
-
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1945,6 +2091,8 @@ Return:
 // DMF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+#if !defined(DMF_USER_MODE)
 
 _Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -2088,10 +2236,12 @@ Return Value:
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Remove deferredContext=0x%p", deferredContext);
         RemoveEntryList(listEntry);
+#if !defined(DMF_USER_MODE)
         // Free its allocated memory.
         //
         ExFreePoolWithTag(deferredContext,
                           MemoryTag);
+#endif
         deferredContext = NULL;
 
         // Get the next entry.
@@ -2106,6 +2256,7 @@ SkipListIteration:
 
     FuncExitVoid(DMF_TRACE);
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -2142,24 +2293,30 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Registry;
+#if !defined(DMF_USER_MODE)
     DMF_CALLBACKS_DMF dmfCallbacksDmf_Registry;
+#endif
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
+    // For user mode, Open and Close are not needed as the deferred TreeWrite is not supported.
+    //
+#if !defined(DMF_USER_MODE)
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Registry);
     dmfCallbacksDmf_Registry.DeviceOpen = DMF_Registry_Open;
     dmfCallbacksDmf_Registry.DeviceClose = DMF_Registry_Close;
-
+#endif
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Registry,
                                             Registry,
                                             DMF_CONTEXT_Registry,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
+#if !defined(DMF_USER_MODE)
     dmfModuleDescriptor_Registry.CallbacksDmf = &dmfCallbacksDmf_Registry;
-
+#endif
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
@@ -2497,7 +2654,7 @@ Return Value:
 
    // Delete the key.
    //
-    ntStatus = ZwDeleteKey(Handle);
+    ntStatus = WdfRegistryRemoveKey((WDFKEY)Handle);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -3933,6 +4090,7 @@ Return Value:
     return returnValue;
 }
 
+#if !defined(DMF_USER_MODE)
 NTSTATUS
 DMF_Registry_TreeWriteDeferred(
     _In_ DMFMODULE DmfModule,
@@ -4022,6 +4180,7 @@ Return Value:
 
     return ntStatus;
 }
+#endif
 
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)

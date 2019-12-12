@@ -147,6 +147,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
       <Filter>Headers\Modules\Driver Patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Registry.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h">
       <Filter>Headers\Interfaces</Filter>
     </ClInclude>
@@ -233,6 +236,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c">
       <Filter>Modules\Hid</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Registry.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
@@ -273,7 +279,7 @@
       <Filter>Documentation\Modules\Targets</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_Registry.md">
-      <Filter>Documentation\Modules\Targets</Filter>
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md">
       <Filter>Documentation\Modules\Task Execution</Filter>

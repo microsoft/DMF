@@ -176,6 +176,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Registry.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HidTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_HidTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Registry.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RequestTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
