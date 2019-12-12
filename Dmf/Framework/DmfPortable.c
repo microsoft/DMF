@@ -143,7 +143,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-DWORD
+NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
     _In_ BOOLEAN Alertable,
@@ -168,11 +168,11 @@ Arguments:
 
 Return Value:
 
-    This function returns DWORD/NTSTATUS depending on execution mode.
+    NTSTATUS using Kernel-mode status values.
 
 --*/
 {
-    DWORD returnValue;
+    NTSTATUS returnValue;
 
     FuncEntry(DMF_TRACE);
 
@@ -181,8 +181,22 @@ Return Value:
 #if defined(DMF_USER_MODE)
     UNREFERENCED_PARAMETER(Alertable);
 
-    returnValue = WaitForSingleObject(EventPointer->Handle,
-                                      TimeoutMs);
+    DWORD dwordReturnValue;
+
+    dwordReturnValue = WaitForSingleObject(EventPointer->Handle,
+                                           TimeoutMs);
+    if (dwordReturnValue == WAIT_OBJECT_0)
+    {
+        returnValue = STATUS_SUCCESS;
+    }
+    else if (dwordReturnValue == WAIT_TIMEOUT)
+    {
+        returnValue = STATUS_TIMEOUT;
+    }
+    else
+    {
+        returnValue = STATUS_UNSUCCESSFUL;
+    }
 #else
     returnValue = KeWaitForSingleObject(&EventPointer->Handle,
                                         Executive,
@@ -197,7 +211,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-DWORD
+NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
     _In_ DMF_PORTABLE_EVENT** EventPointer,
@@ -226,11 +240,11 @@ Arguments:
 
 Return Value:
 
-    This function returns DWORD/NTSTATUS depending on execution mode.
+    NTSTATUS using Kernel-mode status values.
 
 --*/
 {
-    DWORD returnValue;
+    NTSTATUS returnValue;
 
     FuncEntry(DMF_TRACE);
 
@@ -248,11 +262,42 @@ Return Value:
         waitHandles[eventIndex] = EventPointer[eventIndex]->Handle;
     }
 
-    returnValue = WaitForMultipleObjectsEx(EventCount,
-                                           waitHandles,
-                                           WaitForAll,
-                                           TimeoutMs,
-                                           Alertable);
+    DWORD dwordReturnValue;
+
+    dwordReturnValue = WaitForMultipleObjectsEx(EventCount,
+                                                waitHandles,
+                                                WaitForAll,
+                                                TimeoutMs,
+                                                Alertable);
+    if (dwordReturnValue == WAIT_TIMEOUT)
+    {
+        returnValue = STATUS_TIMEOUT;
+    }
+    else if (dwordReturnValue == WAIT_FAILED)
+    {
+        returnValue = STATUS_UNSUCCESSFUL;
+    }
+    else if (WaitForAll)
+    {
+        // NOTE: dwordReturnValue >= WAIT_OBJECT_0 is always TRUE.
+        //
+        if (dwordReturnValue < (WAIT_OBJECT_0 + EventCount))
+        {
+            returnValue = STATUS_SUCCESS;
+        }
+        else
+        {
+            returnValue = STATUS_UNSUCCESSFUL;
+        }
+    }
+    else if (!WaitForAll)
+    {
+        returnValue = STATUS_WAIT_0 + (dwordReturnValue - WAIT_OBJECT_0);
+    }
+    else
+    {
+        returnValue = STATUS_UNSUCCESSFUL;
+    }
 #else
     VOID* waitObjects[MAXIMUM_WAIT_OBJECTS];
     WAIT_TYPE waitType;
