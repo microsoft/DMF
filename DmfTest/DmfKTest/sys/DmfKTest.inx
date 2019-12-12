@@ -34,7 +34,7 @@ DmfKTest.sys=1,,
 ; To install the driver run the following command from driver's package folder:
 ; devcon install DmfKTest.inf root\DmfKTest
 %DmfKTest%=DmfKTest.Inst, root\DmfKTest
-%DmfKTest%=DmfKTest.InstFunction, {0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\DmfKTestFunction
+%DmfKTestFunction%=DmfKTest.InstFunction, {0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\DmfKTestFunction
 
 [DmfKTest.Inst.NT]
 CopyFiles = Drivers_Dir
@@ -71,7 +71,8 @@ HKR,,TypesSupported,0x00010001,7
 
 [Strings] 
 VENDOR="Surface"
-DmfKTest="Surface DmfK Test Driver"
+DmfKTest="Surface DmfK Test Driver (Bus)"
+DmfKTestFunction="Surface DmfK Test Driver (Function)"
 DiskName = "Surface DmfK Test Driver Installation Disk"
 
 SERVICE_BOOT_START     = 0x0 

@@ -9,6 +9,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKTestPackage", "DmfKTest
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUTest", "DmfUTest\sys\DmfUTest.vcxproj", "{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUTestPackage", "DmfUTest\pkg\DmfUTestPackage.vcxproj", "{759F3EB1-7097-4499-8659-597429CA366C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C} = {E98FB229-86D0-4EAF-8FC1-D20F63F5991C}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -65,6 +70,18 @@ Global
 		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|win32.Build.0 = Release|Win32
 		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|x64.ActiveCfg = Release|x64
 		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|x64.Build.0 = Release|x64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Debug|ARM64.Build.0 = Debug|ARM64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Debug|win32.ActiveCfg = Debug|Win32
+		{759F3EB1-7097-4499-8659-597429CA366C}.Debug|win32.Build.0 = Debug|Win32
+		{759F3EB1-7097-4499-8659-597429CA366C}.Debug|x64.ActiveCfg = Debug|x64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Debug|x64.Build.0 = Debug|x64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Release|ARM64.ActiveCfg = Release|ARM64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Release|ARM64.Build.0 = Release|ARM64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Release|win32.ActiveCfg = Release|Win32
+		{759F3EB1-7097-4499-8659-597429CA366C}.Release|win32.Build.0 = Release|Win32
+		{759F3EB1-7097-4499-8659-597429CA366C}.Release|x64.ActiveCfg = Release|x64
+		{759F3EB1-7097-4499-8659-597429CA366C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
