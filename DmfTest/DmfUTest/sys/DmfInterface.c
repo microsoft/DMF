@@ -162,7 +162,7 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModuleInit);
 
     PAGED_CODE();
-
+DbgBreakPoint();
     isFunctionDriver = DriverModeGet(Device);
 
     /////////////////////////////////////////////////////////////////////////////////
