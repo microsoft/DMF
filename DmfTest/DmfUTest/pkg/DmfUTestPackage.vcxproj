@@ -29,73 +29,28 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{759F3EB1-7097-4499-8659-597429CA366C}</ProjectGuid>
     <TemplateGuid>{4605da2c-74a5-4865-98e1-152ef136825f}</TemplateGuid>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <Configuration Condition="'$(Configuration)' == ''">Debug_RS1</Configuration>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
-    <RootNamespace>DmfKTestPackage</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
+    <RootNamespace>DmfUTestPackage</RootNamespace>
+
     <ConfigurationType>Utility</ConfigurationType>
     <DriverType>Package</DriverType>
-    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <ProjectName>DmfUTestPackage</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS1'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS2'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS3'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS4'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS5'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
   <PropertyGroup>
-    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <EnableDeployment>False</EnableDeployment>
-    <RemoveDriver>True</RemoveDriver>
-    <HardwareIdString />
-    <CommandLine />
-    <DeployFiles />
-    <EnableVerifier>False</EnableVerifier>
-    <AllDrivers>False</AllDrivers>
-    <VerifyProjectOutput>True</VerifyProjectOutput>
-    <VerifyDrivers />
-    <VerifyFlags>133563</VerifyFlags>
+    <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup>
     <!--  Adding Empty PropertyGroup required after importing "$(VCTargetsPath)\Microsoft.Cpp.props" due to Visual Studio Intellisense bug -->
   </PropertyGroup>
-  <ItemDefinitionGroup>
-    <Inf>
-      <SpecifyDriverVerDirectiveVersion>false</SpecifyDriverVerDirectiveVersion>
-      <TimeStamp />
-      <SpecifyDriverVerDirectiveDate>false</SpecifyDriverVerDirectiveDate>
-      <DateStamp />
-    </Inf>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <DriverSymbolsToCopyToOutput Include="$(DriverOutDir)DmfKTest.pdb" />
+    <DriverSymbolsToCopyToOutput Include="$(DriverOutDir)DmfUTest.pdb" />
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
