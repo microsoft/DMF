@@ -44,8 +44,6 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#if !defined(DMF_USER_MODE)
-
 _Must_inspect_result_
 _IRQL_requires_same_
 ULONG
@@ -66,7 +64,7 @@ Arguments:
 
 Return Value:
 
-    ULONG - generated random number
+    ULONG - The generated random number.
 
     --*/
 {
@@ -77,11 +75,20 @@ Return Value:
     DmfAssert(Max >= Min);
 
     range = Max - Min + 1;
+#if !defined(DMF_USER_MODE)
     seed = (ULONG)ReadTimeStampCounter();
     random = Min + RtlRandomEx(&seed) % range;
+#else
+    seed = 0;
+    random = Min+ rand() % range;
+#endif
 
     return random;
 }
+
+#if defined(DMF_USER_MODE)
+#define BYTE_MAX    0xFFFFFFFF
+#endif
 
 _IRQL_requires_same_
 VOID
@@ -144,19 +151,21 @@ Return Value:
     --*/
 
 {
-    LARGE_INTEGER delayInterval;
-
     PAGED_CODE();
+
+#if !defined(DMF_USER_MODE)
+    LARGE_INTEGER delayInterval;
 
     delayInterval.QuadPart = -1;
 
     KeDelayExecutionThread(KernelMode,
                            TRUE,
                            &delayInterval);
+#else
+    Sleep(0);
+#endif
 }
 #pragma code_seg()
-
-#endif // !defined(DMF_USER_MODE)
 
 #define CRC_INIT 0xFFFFU
 #define CRC(crcval, data)   ((UINT16)((crcval) << 8) ^ CRCTable[(((crcval) >> 8) ^ ((UINT16)(data) & 0xFFU))])

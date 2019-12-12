@@ -88,9 +88,6 @@
     <Inf Include="DmfKTest.inx" />
   </ItemGroup>
   <ItemGroup>
-    <MessageCompile Include="DmfKTestEventLog.mc" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="DmfKTest.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

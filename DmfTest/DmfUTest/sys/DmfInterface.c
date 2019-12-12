@@ -15,7 +15,7 @@ Abstract:
 
 Environment:
 
-    Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -34,33 +34,34 @@ Environment:
 //
 
 DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_DRIVER_DEVICE_ADD DmfKTestEvtDeviceAdd;
-EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfKTestEvtDriverContextCleanup;
+EVT_WDF_DRIVER_DEVICE_ADD DmfUTestEvtDeviceAdd;
+EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfUTestEvtDriverContextCleanup;
 EVT_DMF_DEVICE_MODULES_ADD DmfDeviceModulesAdd;
 
 // BranchTrack name.
 //
-#define BRANCHTRACK_NAME               "DmfKTest"
+#define BRANCHTRACK_NAME               "DmfUTest"
 
 // BranchTrack Initialize routine.
 //
 VOID
-DmfKTestBranchTrackInitialize(
+DmfUTestBranchTrackInitialize(
     _In_ DMFMODULE DmfModuleBranchTrack
     );
 
 /*WPP_INIT_TRACING(); (This comment is necessary for WPP Scanner.)*/
 #pragma code_seg("INIT")
 DMF_DEFAULT_DRIVERENTRY(DriverEntry,
-                        DmfKTestEvtDriverContextCleanup,
-                        DmfKTestEvtDeviceAdd)
+                        DmfUTestEvtDriverContextCleanup,
+                        DmfUTestEvtDeviceAdd,
+                        "DmfUTracingId")
 #pragma code_seg()
 
 #pragma code_seg("PAGED")
-DMF_DEFAULT_DRIVERCLEANUP(DmfKTestEvtDriverContextCleanup)
-DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfKTestEvtDeviceAdd,
+DMF_DEFAULT_DRIVERCLEANUP(DmfUTestEvtDriverContextCleanup)
+DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfUTestEvtDeviceAdd,
                                        DmfDeviceModulesAdd,
-                                       DmfKTestBranchTrackInitialize,
+                                       DmfUTestBranchTrackInitialize,
                                        BRANCHTRACK_NAME,
                                        BRANCHTRACK_DEFAULT_MAXIMUM_BRANCHES)
 #pragma code_seg()
@@ -154,11 +155,13 @@ Return Value:
 
 --*/
 {
+#if 0
     DMF_MODULE_ATTRIBUTES moduleAttributes;
+#endif
     BOOLEAN isFunctionDriver;
-    DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
 
     UNREFERENCED_PARAMETER(Device);
+    UNREFERENCED_PARAMETER(DmfModuleInit);
 
     PAGED_CODE();
 
@@ -169,7 +172,7 @@ Return Value:
     // can be placed in just the bus driver.
     /////////////////////////////////////////////////////////////////////////////////
     //
-
+#if 0
     // Tests_BufferPool
     // ----------------
     //
@@ -223,9 +226,10 @@ Return Value:
                         &moduleAttributes,
                         WDF_NO_OBJECT_ATTRIBUTES,
                         NULL);
-
+#endif
     if (isFunctionDriver)
     {
+#if 0
         // Tests_DefaultTarget
         // -------------------
         //
@@ -243,9 +247,13 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
+#endif
     }
     else
     {
+// TODO: Anoop
+//
+#if ANOOP
         // Tests_Registry
         // --------------
         // Only run these in a single driver since they add/delete from a single resource
@@ -256,7 +264,8 @@ Return Value:
                             &moduleAttributes,
                             WDF_NO_OBJECT_ATTRIBUTES,
                             NULL);
-
+#endif
+#if 0
         // Tests_ScheduledTask
         // --------------------
         // Only run these in a single driver since they add/delete from a single resource
@@ -271,6 +280,7 @@ Return Value:
         // Tests_IoctlHandler
         // ------------------
         //
+        DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
         DMF_CONFIG_Tests_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigTests_IoctlHandler,
                                                           &moduleAttributes);
         // This instance will be accessed by SelfTarget and remote targets.
@@ -299,12 +309,13 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
+#endif
     }
 }
 #pragma code_seg()
 
 VOID
-DmfKTestBranchTrackInitialize(
+DmfUTestBranchTrackInitialize(
     _In_ DMFMODULE DmfModuleBranchTrack
     )
 {
