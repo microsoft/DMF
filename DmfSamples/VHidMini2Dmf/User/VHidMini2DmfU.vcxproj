@@ -114,7 +114,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\..\Release\x64\lib\DmfU\DmfU.lib;..\..\..\..\Release\x64\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\Release\x64\lib\DmfU\DmfU.lib;..\..\..\Release\x64\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,7 +133,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\..\Debug\x64\lib\DmfU\DmfU.lib;..\..\..\..\Debug\x64\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\Debug\x64\lib\DmfU\DmfU.lib;..\..\..\Debug\x64\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,7 +152,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\..\Release\Win32\lib\DmfU\DmfU.lib;..\..\..\..\Release\Win32\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\Release\Win32\lib\DmfU\DmfU.lib;..\..\..\Release\Win32\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -171,7 +171,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\..\Debug\Win32\lib\DmfU\DmfU.lib;..\..\..\..\Debug\Win32\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);..\..\..\Debug\Win32\lib\DmfU\DmfU.lib;..\..\..\Debug\Win32\individual_libs\DmfUModules.Template\DmfUModules.Template.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
