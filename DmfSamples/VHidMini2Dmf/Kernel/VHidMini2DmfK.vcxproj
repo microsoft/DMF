@@ -121,7 +121,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\..\Release\x64\lib\DmfK\DmfK.lib;..\..\..\..\Release\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\Release\x64\lib\DmfK\DmfK.lib;..\..\..\Release\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -140,7 +140,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\..\Debug\x64\lib\DmfK\DmfK.lib;..\..\..\..\Debug\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\Debug\x64\lib\DmfK\DmfK.lib;..\..\..\Debug\x64\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -159,7 +159,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\..\Release\Win32\lib\DmfK\DmfK.lib;..\..\..\..\Release\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\Release\Win32\lib\DmfK\DmfK.lib;..\..\..\Release\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -178,7 +178,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);EVENT_TRACING</PreprocessorDefinitions>
     </Midl>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\..\Debug\Win32\lib\DmfK\DmfK.lib;..\..\..\..\Debug\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\ntstrsafe.lib;..\..\..\Debug\Win32\lib\DmfK\DmfK.lib;..\..\..\Debug\Win32\individual_libs\DmfKModules.Template\DmfKModules.Template.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
