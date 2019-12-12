@@ -14,6 +14,7 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -578,7 +579,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Spb Connection not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 

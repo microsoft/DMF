@@ -109,6 +109,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Rundown.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
@@ -233,6 +236,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Rundown.h">
       <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h">
+      <Filter>Headers\Hid</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h">
       <Filter>Headers\Targets</Filter>
@@ -418,6 +424,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_Rundown.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md">
+      <Filter>Documentation\Modules\Hid</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>

@@ -85,7 +85,7 @@ g_VirtualHidKeyboard_HidReportDescriptor[] =
     */
     0x05, 0x01,     /* Usage Page(Generic Desktop), */
     0x09, 0x06,     /* Usage(Keyboard),*/
-    0xA1, 0x01,     /* Collection(Application),*/
+    0xA1, 0x01,     /* Collection(HID_FLAGS_COLLECTION_Application),*/
     0x85, REPORT_ID_KEYBOARD,  /* Report Id,*/
     0x05, 0x07,     /* Usage Page(Key Codes),*/
     0x19, 0xE0,     /* Usage Minimum(Left Ctrl),*/
@@ -105,7 +105,7 @@ g_VirtualHidKeyboard_HidReportDescriptor[] =
 
     0x05, 0x0C,          /* USAGE_PAGE (Consumer devices), */
     0x09, 0x01,          /* USAGE (Consumer Control) */
-    0xa1, 0x01,          /* COLLECTION (Application) */
+    0xa1, 0x01,          /* COLLECTION (HID_FLAGS_COLLECTION_Application) */
     0x85, REPORT_ID_CONSUMER,  /* Report Id, */
     0x1A, 0x00, 0x00,    /* Usage Minimum(0x0),*/
     0x2A, 0xFF, 0x03,    /* Usage Maximum(0x3FF),*/

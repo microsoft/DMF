@@ -18,10 +18,6 @@ Environment:
 
 #pragma once
 
-// This code is only supported in Kernel-mode.
-//
-#if !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
-
 // It is the number of two column rows in the table.
 //
 #define VirtualHidAmbientColorSensor_MAXIMUM_NUMBER_OF_ACS_CURVE_RECORDS               24
@@ -44,6 +40,7 @@ Environment:
 #pragma pack(1)
 typedef struct
 {
+    UCHAR ReportId;
     LONG Illuminance;
     USHORT ChromaticityX;
     USHORT ChromaticityY;
@@ -134,9 +131,7 @@ DMF_VirtualHidAmbientColorSensor_AllValuesSend(
     _In_ float Illuminance,
     _In_ float ChromaticityX,
     _In_ float ChromaticityY
-);
-
-#endif // !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
+    );
 
 // eof: Dmf_VirtualHidAmbientColorSensor.h
 //
