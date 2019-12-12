@@ -488,7 +488,7 @@ Return Value:
         ntStatus = DMF_Portable_EventWaitForSingleObject(&moduleContext->Event[EventIndex],
                                                          TRUE,
 #if defined(DMF_USER_MODE)
-                                                         timeout.LowPart);
+                                                         Milliseconds);
 #else
                                                          &timeout);
 #endif
