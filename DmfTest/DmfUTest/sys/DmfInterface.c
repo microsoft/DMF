@@ -155,9 +155,7 @@ Return Value:
 
 --*/
 {
-#if 0
     DMF_MODULE_ATTRIBUTES moduleAttributes;
-#endif
     BOOLEAN isFunctionDriver;
 
     UNREFERENCED_PARAMETER(Device);
@@ -172,7 +170,7 @@ Return Value:
     // can be placed in just the bus driver.
     /////////////////////////////////////////////////////////////////////////////////
     //
-#if 0
+
     // Tests_BufferPool
     // ----------------
     //
@@ -226,10 +224,9 @@ Return Value:
                         &moduleAttributes,
                         WDF_NO_OBJECT_ATTRIBUTES,
                         NULL);
-#endif
+
     if (isFunctionDriver)
     {
-#if 0
         // Tests_DefaultTarget
         // -------------------
         //
@@ -247,7 +244,6 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
-#endif
     }
     else
     {
@@ -265,7 +261,7 @@ Return Value:
                             WDF_NO_OBJECT_ATTRIBUTES,
                             NULL);
 #endif
-#if 0
+
         // Tests_ScheduledTask
         // --------------------
         // Only run these in a single driver since they add/delete from a single resource
@@ -291,25 +287,6 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
-
-        // Tests_SelfTarget
-        // ----------------
-        //
-        DMF_Tests_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
-
-        // Tests_Pdo
-        // ---------
-        //
-        DMF_Tests_Pdo_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
-#endif
     }
 }
 #pragma code_seg()
