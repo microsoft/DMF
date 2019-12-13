@@ -31,8 +31,15 @@ Environment:
 //
 
 #define BUFFER_SIZE                 (32)
-#define BUFFER_COUNT_PREALLOCATED   (16)
 #define BUFFER_COUNT_MAX            (24)
+#if !defined(DMF_USER_MODE)
+    #define BUFFER_COUNT_PREALLOCATED   (16)
+#else
+    // NOTE: Cannot use lookaside with timer in User-mode because deleting the memory from
+    //       timer callback causes verifier issue.
+    //
+    #define BUFFER_COUNT_PREALLOCATED   BUFFER_COUNT_MAX
+#endif
 #define THREAD_COUNT                (2)
 
 #define CLIENT_CONTEXT_SIGNATURE    'GISB'
