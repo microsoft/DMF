@@ -804,6 +804,7 @@ Return Value:
     NTSTATUS ntStatus;
     UNICODE_STRING nameString;
     WDFKEY key;
+    ACCESS_MASK accessMask;
 
     PAGED_CODE();
 
@@ -812,10 +813,18 @@ Return Value:
     RtlInitUnicodeString(&nameString,
                          Name);
 
+    accessMask = GENERIC_ALL;
+#if defined(DMF_USER_MODE)
+    // For usermode only read access works.
+    //
+    accessMask = KEY_READ;
+#endif
+
     key = NULL;
+
     ntStatus = WdfRegistryOpenKey(NULL,
                                   &nameString,
-                                  GENERIC_ALL,
+                                  accessMask,
                                   WDF_NO_OBJECT_ATTRIBUTES, 
                                   &key);
     if (! NT_SUCCESS(ntStatus))
@@ -928,6 +937,25 @@ Return Value:
     key = NULL;
     if (Create)
     {
+
+#if defined(DMF_USER_MODE)
+        // Usermode driver cannot create subkey. 
+        // If the user tries to create a key, try opening instead.
+        //
+        ntStatus = WdfRegistryOpenKey(NULL,
+                                      &nameString,
+                                      AccessMask,
+                                      WDF_NO_OBJECT_ATTRIBUTES, 
+                                      &key);
+
+        // if the key doesnt exist, we get Access denied error.
+        //
+        if (STATUS_ACCESS_DENIED == ntStatus)
+        {
+            DmfAssert(FALSE);
+            ntStatus = STATUS_NOT_SUPPORTED;
+        }
+#else
         // Open existing or create new.
         //
         ntStatus = WdfRegistryCreateKey(NULL,
@@ -937,6 +965,7 @@ Return Value:
                                         NULL,
                                         WDF_NO_OBJECT_ATTRIBUTES,
                                         &key);
+#endif
     }
     else
     {
@@ -1002,6 +1031,24 @@ Return Value:
     key = NULL;
     if (TryToCreate)
     {
+#if defined(DMF_USER_MODE)
+        // Usermode driver cannot create subkey. 
+        // If the user tries to create a key, try opening instead.
+        //
+        ntStatus = WdfRegistryOpenKey((WDFKEY)Handle,
+                                      &nameString,
+                                      KEY_READ | KEY_SET_VALUE,
+                                      WDF_NO_OBJECT_ATTRIBUTES, 
+                                      &key);
+
+        // if the key doesnt exist, we get Access denied error.
+        //
+        if (STATUS_ACCESS_DENIED == ntStatus)
+        {
+            DmfAssert(FALSE);
+            ntStatus = STATUS_NOT_SUPPORTED;
+        }
+#else
         // Try to create/open.
         //
         ntStatus = WdfRegistryCreateKey((WDFKEY)Handle,
@@ -1011,15 +1058,22 @@ Return Value:
                                         NULL,
                                         WDF_NO_OBJECT_ATTRIBUTES,
                                         &key);
-
+#endif
     }
     else
     {
+        ACCESS_MASK accessMask = KEY_ALL_ACCESS;
+#if defined(DMF_USER_MODE)
+         // For usermode only read access works.
+         //
+         accessMask = KEY_READ;
+#endif
+
         // Try to open.
         //
         ntStatus = WdfRegistryOpenKey((WDFKEY)Handle,
                                       &nameString,
-                                      KEY_ALL_ACCESS,
+                                      accessMask,
                                       WDF_NO_OBJECT_ATTRIBUTES, 
                                       &key);
     }
