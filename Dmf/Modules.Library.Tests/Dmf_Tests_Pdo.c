@@ -30,11 +30,11 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                            (2)
+#define THREAD_COUNT                            (4)
 // Don't use an ever increasing serial number because those serial numbers will be remembered
 // by Windows and will slow down the test computer eventually.
 //
-#define MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS    (THREAD_COUNT)
+#define MAXIMUM_PDO_SERIAL_NUMBER               (THREAD_COUNT)
 
 typedef enum _TEST_ACTION
 {
@@ -63,7 +63,7 @@ typedef struct
     DMFMODULE DmfModuleAlertableSleep[THREAD_COUNT + 1];
     // Serial number in use table.
     //
-    BOOLEAN SerialNumbersInUse[MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS + 1];
+    BOOLEAN SerialNumbersInUse[MAXIMUM_PDO_SERIAL_NUMBER + 1];
 } DMF_CONTEXT_Tests_Pdo;
 
 // This macro declares the following function:
@@ -131,8 +131,8 @@ Tests_Pdo_ThreadAction(
     DMF_CONTEXT_Tests_Pdo* moduleContext;
     NTSTATUS ntStatus;
     ULONG timeToSleepMilliSeconds;
-    USHORT serialNumber;
-    WDFDEVICE device;
+    USHORT serialNumberPair;
+    WDFDEVICE devicePair[2];
     PDO_RECORD pdoRecord;
     BOOLEAN waitAgain;
 
@@ -140,42 +140,62 @@ Tests_Pdo_ThreadAction(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     waitAgain = TRUE;
-    serialNumber = 0;
+    serialNumberPair = 0;
 
+    // Each iteration requires two PDOs with unique serial numbers.
+    //
     DMF_ModuleLock(DmfModule);
-    for (USHORT serialNumberIndex = 0; serialNumberIndex < MAXIMUM_NUMBER_OF_PDO_SERIAL_NUMBERS; serialNumberIndex++)
+    for (USHORT serialNumber = 1; serialNumber < MAXIMUM_PDO_SERIAL_NUMBER; serialNumber += 2)
     {
-        if (! moduleContext->SerialNumbersInUse[serialNumberIndex])
+        if (! moduleContext->SerialNumbersInUse[serialNumber])
         {
-            moduleContext->SerialNumbersInUse[serialNumberIndex] = TRUE;
-            serialNumber = serialNumberIndex + 1;
+            // Each iteration requires two serial numbers, one for Kernel-mode
+            // function driver and one for User-mode function driver.
+            //
+            moduleContext->SerialNumbersInUse[serialNumber + 0] = TRUE;
+            DmfAssert(!moduleContext->SerialNumbersInUse[serialNumber + 1]);
+            moduleContext->SerialNumbersInUse[serialNumber + 1] = TRUE;
+            serialNumberPair = serialNumber;
             break;
         }
     }
     DMF_ModuleUnlock(DmfModule);
 
-    if (0 == serialNumber)
+    if (0 == serialNumberPair)
     {
         // No more serial numbers left. Just get out and retry later.
         //
         goto Exit;
     }
 
+    // Create the Kernel-mode function driver PDO.
+    //
     RtlZeroMemory(&pdoRecord,
                   sizeof(pdoRecord));
-
     pdoRecord.HardwareIds[0] = L"{0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\\DmfKTestFunction";
     pdoRecord.Description = L"DMF Test Function Driver (Kernel)";
     pdoRecord.HardwareIdsCount = 1;
-    pdoRecord.SerialNumber = serialNumber;
+    pdoRecord.SerialNumber = serialNumberPair + 0;
     pdoRecord.EnableDmf = TRUE;
     pdoRecord.EvtDmfDeviceModulesAdd = Tests_Pdo_DmfModulesAdd;
-
-    // Create the PDO.
-    //
     ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
                                     &pdoRecord,
-                                    &device);
+                                    &devicePair[0]);
+    DmfAssert(NT_SUCCESS(ntStatus));
+
+    // Create the User-mode function driver PDO.
+    //
+    RtlZeroMemory(&pdoRecord,
+                  sizeof(pdoRecord));
+    pdoRecord.HardwareIds[0] = L"{5F30A572-D79D-43EC-BD35-D5556F09CE21}\\DmfUTestFunction";
+    pdoRecord.Description = L"DMF Test Function Driver (User)";
+    pdoRecord.HardwareIdsCount = 1;
+    pdoRecord.SerialNumber = serialNumberPair + 1;
+    pdoRecord.EnableDmf = TRUE;
+    pdoRecord.EvtDmfDeviceModulesAdd = Tests_Pdo_DmfModulesAdd;
+    ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
+                                    &pdoRecord,
+                                    &devicePair[1]);
     DmfAssert(NT_SUCCESS(ntStatus));
 
     // Wait some time.
@@ -192,15 +212,19 @@ Tests_Pdo_ThreadAction(
         waitAgain = FALSE;
     }
 
-    // Destroy the PDO.
+    // Destroy the PDOs.
     //
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
-                                    device);
+                                    devicePair[0]);
+    ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
+                                    devicePair[1]);
+
     // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
     //
 
     DMF_ModuleLock(DmfModule);
-    moduleContext->SerialNumbersInUse[serialNumber - 1] = FALSE;
+    moduleContext->SerialNumbersInUse[serialNumberPair + 0] = FALSE;
+    moduleContext->SerialNumbersInUse[serialNumberPair + 1] = FALSE;
     DMF_ModuleUnlock(DmfModule);
 
 Exit:

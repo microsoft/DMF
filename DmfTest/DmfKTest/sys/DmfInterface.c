@@ -246,6 +246,7 @@ Return Value:
     }
     else
     {
+#if 0
         // Tests_Registry
         // --------------
         // Only run these in a single driver since they add/delete from a single resource
@@ -256,6 +257,7 @@ Return Value:
                             &moduleAttributes,
                             WDF_NO_OBJECT_ATTRIBUTES,
                             NULL);
+#endif
 
         // Tests_ScheduledTask
         // --------------------
