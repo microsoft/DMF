@@ -162,7 +162,7 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfModuleInit);
 
     PAGED_CODE();
-DbgBreakPoint();
+
     isFunctionDriver = DriverModeGet(Device);
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -227,6 +227,7 @@ DbgBreakPoint();
 
     if (isFunctionDriver)
     {
+#if 0
         // Tests_DefaultTarget
         // -------------------
         //
@@ -244,6 +245,7 @@ DbgBreakPoint();
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
+#endif
     }
     else
     {
