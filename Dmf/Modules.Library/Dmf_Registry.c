@@ -804,6 +804,7 @@ Return Value:
     NTSTATUS ntStatus;
     UNICODE_STRING nameString;
     WDFKEY key;
+    ACCESS_MASK accessMask;
 
     PAGED_CODE();
 
@@ -812,10 +813,18 @@ Return Value:
     RtlInitUnicodeString(&nameString,
                          Name);
 
+    accessMask = GENERIC_ALL;
+#if defined(DMF_USER_MODE)
+    // For usermode only read access works.
+    //
+    accessMask = KEY_READ;
+#endif
+
     key = NULL;
+
     ntStatus = WdfRegistryOpenKey(NULL,
                                   &nameString,
-                                  GENERIC_ALL,
+                                  accessMask,
                                   WDF_NO_OBJECT_ATTRIBUTES, 
                                   &key);
     if (! NT_SUCCESS(ntStatus))

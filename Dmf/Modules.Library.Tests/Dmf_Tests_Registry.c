@@ -744,6 +744,7 @@ Tests_Registry_Path_ReadSmallBufferWithBytesRead(
     #pragma warning(pop)
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -814,7 +815,6 @@ Tests_Registry_Path_NameContainingStringEnumerate(
     DmfAssert(0 == callbackContext.NumberOfKeys);
 }
 #pragma code_seg()
-#endif
 
 #pragma code_seg("PAGE")
 static
@@ -2020,11 +2020,10 @@ Return Value:
         // Write the subkeys.
         //
         Tests_Registry_Handle_WriteSubkeys(moduleContext->DmfModuleRegistry, registryHandle);
+#endif
 
         // Enum Tests
         // ----------
-        //
-        // Usermode Driver has ONLY read access to the arbitrary path, so there is no entry to enumerate. Hence the below are not a valid.
         //
 
         // Try to enumerate keys in the path
@@ -2034,7 +2033,6 @@ Return Value:
         // Try to find keys by name in the path
         //
         Tests_Registry_Path_NameContainingStringEnumerate(moduleContext->DmfModuleRegistry);
-#endif
 
         // Try to enumerate keys via a root key handle
         //
