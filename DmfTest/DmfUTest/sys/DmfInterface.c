@@ -227,7 +227,6 @@ Return Value:
 
     if (isFunctionDriver)
     {
-#if 0
         // Tests_DefaultTarget
         // -------------------
         //
@@ -245,7 +244,6 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
-#endif
     }
     else
     {
