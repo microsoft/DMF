@@ -2,58 +2,82 @@
 ; DmfKTest.inf
 ;
 ; Copyright (C) 2018 Microsoft Corporation.  All Rights Reserved.
+;
+; To install the bus driver run this command:
+;
+;     devcon.exe install DmfKTest.inf root\DmfKTest
+;
+; To install the function driver, install DmfKTest.sys. Then, that driver creates a PDO
+; for the User-mode Function driver. Use Device Manager to install the driver.
+;
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=System
-ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
-Provider=%VENDOR%
-CatalogFile=DmfKTest.cat
+Class=Sample
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
+Provider=%ProviderString%
 DriverVer= ; Set in target output .inf
-PnpLockdown=1
-
-[DestinationDirs]
-DefaultDestDir = 12
+CatalogFile=DmfKTest.cat
 
 ; ================= Class section =====================
 
-[SourceDisksNames]
-1 = %DiskName%,,,""
+[ClassInstall32]
+Addreg=SampleClassReg
 
-[SourceDisksFiles]
-DmfKTest.sys=1,,
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
 
-;*****************************************
-; Install Section
-;*****************************************
+; ================= Device section =====================
 
 [Manufacturer]
-%VENDOR%=Vendor,NT$ARCH$
+%ProviderString%=Microsoft,NT$ARCH$
 
-[Vendor.NT$ARCH$]
-; To install the driver run the following command from driver's package folder:
-; devcon install DmfKTest.inf root\DmfKTest
-%DmfKTest%=DmfKTest.Inst, root\DmfKTest
-%DmfKTestFunction%=DmfKTest.InstFunction, {0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\DmfKTestFunction
+[Microsoft.NT$ARCH$]
+%DmfKTestBus%      =DmfKTest.Bus,      root\DmfKTest
+%DmfKTestFunction% =DmfKTest.Function, {0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\DmfKTestFunction
 
-[DmfKTest.Inst.NT]
-CopyFiles = Drivers_Dir
+;; .NT
+;;
+[DmfKTest.Bus.NT]
+CopyFiles = KMDriverCopy
+AddReg = DmfKTest.Bus.AddReg
 
-[DmfKTest.Inst.NT.Services]
+[DmfKTest.Function.NT]
+CopyFiles = KMDriverCopy
+AddReg = DmfKTest.Function.AddReg
+
+;; .NT.Hw
+;;
+[DmfKTest.Bus.NT.Hw]
+AddReg=DmfKTest.Bus.HwAddReg
+
+[DmfKTest.Function.NT.Hw]
+AddReg=DmfKTest.Function.HwAddReg
+
+;; .NT.Services
+;;
+[DmfKTest.Bus.NT.Services]
 AddService = DmfKTest,%SERVICE_DEMAND_START%,DmfKTest_Service_Inst, DmfKTest_EventLogInst
 
-[DmfKTest.InstFunction.NT]
-CopyFiles = Drivers_Dir
-AddReg = DmfKTest.InstFunction.AddReg
-
-[DmfKTest.InstFunction.NT.Services]
+[DmfKTest.Function.NT.Services]
 AddService = DmfKTest,%SERVICE_DEMAND_START%,DmfKTest_Service_Inst, DmfKTest_EventLogInst
 
-[DmfKTest.InstFunction.AddReg]
+;; .AddReg
+;;
+[DmfKTest.Bus.AddReg]
+HKR,,"FunctionDriver", %REG_DWORD%, 0
+
+[DmfKTest.Function.AddReg]
 HKR,,"FunctionDriver", %REG_DWORD%, 1
 
-[Drivers_Dir]
-DmfKTest.sys
+;; .HwAddReg
+;;
+[DmfKTest.Bus.HwAddReg]
+
+[DmfKTest.Function.HwAddReg]
+
+; ================= Service section =====================
 
 [DmfKTest_Service_Inst]
 DisplayName    = %DmfKTest%
@@ -69,11 +93,30 @@ AddReg = DmfKTest_EventLogAddReg
 HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\DmfKTest.sys"
 HKR,,TypesSupported,0x00010001,7
 
+; ================= Copy Files Section =====================
+
+[KMDriverCopy]
+DmfKTest.sys
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+DmfKTest.sys=1,,
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+;---------------------------------------------------------------;
+
 [Strings] 
-VENDOR="Surface"
-DmfKTest="Surface DmfK Test Driver (Bus)"
-DmfKTestFunction="Surface DmfK Test Driver (Function)"
-DiskName = "Surface DmfK Test Driver Installation Disk"
+ProviderString     ="Driver Module Framework (DMF)"
+ManufacturerString ="Microsoft"
+ClassName          ="Sample Device"
+DmfKTest           ="Surface DmfK Test Driver"
+DmfKTestBus        ="Surface DmfK Test Driver (Bus)"
+DmfKTestFunction   ="Surface DmfK Test Driver (Function)"
+DiskName           ="Surface DmfK Test Driver Installation Disk"
 
 SERVICE_BOOT_START     = 0x0 
 SERVICE_SYSTEM_START   = 0x1 
