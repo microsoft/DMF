@@ -1107,6 +1107,20 @@ Return Value:
               (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && moduleConfig->Mode.SourceSettings.BufferCount == 0));
     moduleContext->NumberOfBuffersSpecifiedByClient = moduleConfig->Mode.SourceSettings.BufferCount;
 
+#if defined(DMF_USER_MODE)
+    // It is not possible to use "PutWithTimer" Method when lookaside list is enabled in User-mode
+    // because buffers are deleted in the timer callback which causes the child WDFTIMER to also
+    // be deleted. That, in turn, can cause a deadlock and verifier issue.
+    //
+    if ((moduleConfig->Mode.SourceSettings.CreateWithTimer) &&
+        (moduleConfig->Mode.SourceSettings.EnableLookAside))
+    {
+        DmfAssert(FALSE);
+        ntStatus = STATUS_NOT_SUPPORTED;
+        goto Exit;
+    }
+#endif
+
     // Create the list that holds all the buffers.
     //
     InitializeListHead(&moduleContext->BufferList);
