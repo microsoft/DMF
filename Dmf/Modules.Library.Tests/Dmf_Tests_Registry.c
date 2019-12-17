@@ -268,9 +268,9 @@ RegistryValueComparisonFunction_IfDefault(
 }
 
 #if !defined(DMF_USER_MODE)
-// Usermode driver cannot create arbitrary keys at runtime, 
+// User-mode driver cannot create arbitrary keys at runtime, 
 // so test should not delete them at runtime.  
-// For usermode, The arbitrary path is created through INF and not deleted during test.
+// For User-mode, The arbitrary path is created through INF and not deleted during test.
 //
 #pragma code_seg("PAGE")
 static
@@ -852,9 +852,9 @@ Tests_Registry_Handle_DeleteValues(
 #pragma code_seg()
 
 #if !defined(DMF_USER_MODE)
-// Usermode driver cannot create subkeys at runtime, 
+// User-mode driver cannot create subkeys at runtime, 
 // so test should not delete them at runtime.  
-// For usermode, The subkeys are created through INF and not deleted during test.
+// For User-mode, The subkeys are created through INF and not deleted during test.
 //
 #pragma code_seg("PAGE")
 static
@@ -882,8 +882,13 @@ Tests_Registry_Handle_DeleteSubkeys(
                                              subkeyHandle);
         DmfAssert(NT_SUCCESS(ntStatus));
 
+#if defined(DMF_USER_MODE)
+        // Regardless of the above call, close the handle.
+        // NOTE: Per MSDN, in Kernel-mode do not call this function after deleting the key.
+        //
         DMF_Registry_HandleClose(DmfModuleRegistry,
                                  subkeyHandle);
+#endif
     }
 }
 #pragma code_seg()
@@ -1007,7 +1012,7 @@ Tests_Registry_Handle_WriteValues(
 #pragma code_seg()
 
 #if !defined(DMF_USER_MODE)
-// Usermode driver cannot create subkeys at runtime.
+// User-mode driver cannot create subkeys at runtime.
 //
 #pragma code_seg("PAGE")
 static
@@ -1726,7 +1731,7 @@ Return Value:
     // --------------------
     //
 #if !defined(DMF_USER_MODE)
-    // From usermode, ONLY Read access is allowed for arbitrary registry path.
+    // From User-mode, ONLY Read access is allowed for arbitrary registry path.
     // Hence the below tests are valid for kernel mode only.
     //
 
@@ -1811,7 +1816,7 @@ Return Value:
         if (0 == predefinedIdIndex)
         {
 #if defined(DMF_USER_MODE)
-            // ONLY Read Only access works for arbitrary registry path in usermode.
+            // ONLY Read Only access works for arbitrary registry path in User-mode.
             //
             accessMask = KEY_READ;
 #endif
@@ -1827,7 +1832,8 @@ Return Value:
         {
 #if defined(DMF_USER_MODE)
             // For UMDF, ensure to set the right accessMask.
-            // Reference: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfdevice/nf-wdfdevice-wdfdeviceopenregistrykey            //
+            // Reference: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfdevice/nf-wdfdevice-wdfdeviceopenregistrykey
+            //
             if ((predefinedIds[predefinedIdIndex] & PLUGPLAY_REGKEY_DEVICE) ||
                 (predefinedIds[predefinedIdIndex] & PLUGPLAY_REGKEY_DRIVER))
             {
@@ -1905,27 +1911,36 @@ Return Value:
 
             }
 
+            BOOLEAN closeRegistryKey = TRUE;
+
             // Driver is not allowed to delete predefined keys.
             //
             if (0 == predefinedIdIndex)
             {
 #if !defined(DMF_USER_MODE)
-                // Don't delete the Path in usermode, as the driver can not create it during runtime.
+                // Don't delete the Path in User-mode, as the driver can not create it during runtime.
                 //
                 Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry,
                                                  registryHandle);
                 Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
+                // NOTE: Per MSDN, in Kernel-mode do not call this function after deleting the key.
+                //
+                closeRegistryKey = FALSE;
 #endif
+                
             }
 
-            DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
-                                     registryHandle);
+            if (closeRegistryKey)
+            {
+                DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
+                                         registryHandle);
+            }
             registryHandle = NULL;
         }
     }
 
 #if !defined(DMF_USER_MODE) 
-    // Tree Write feature are not supported in usermode.
+    // Tree Write feature are not supported in User-mode.
     //
 
     // Tree Tests
@@ -1987,7 +2002,7 @@ Return Value:
     // --------------------------
     //
 #if !defined(DMF_USER_MODE)
-    // Only kernelmode driver can write to arbitrary registry paths.
+    // Only Kernel-mode driver can write to arbitrary registry paths.
     // Make sure the path does not exist
     //
     Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
@@ -1998,7 +2013,7 @@ Return Value:
                                                TRUE,
                                                &registryHandle);
 #else
-    // For usermode Open the predefined key where there is write access.
+    // For User-mode Open the predefined key where there is write access.
     //
     ntStatus = DMF_Registry_HandleOpenById(moduleContext->DmfModuleRegistry,
                                            PLUGPLAY_REGKEY_DEVICE | WDF_REGKEY_DEVICE_SUBKEY,
@@ -2050,7 +2065,7 @@ Return Value:
         Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry, registryHandle);
 
 #if !defined(DMF_USER_MODE)
-        // From usermode, we cannot create subkeys.
+        // From User-mode, we cannot create subkeys.
         //
         Tests_Registry_Handle_DeleteSubkeys(moduleContext->DmfModuleRegistry, registryHandle);
 
@@ -2058,8 +2073,12 @@ Return Value:
         //
         Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry, registryHandle);
 #endif
+#if defined(DMF_USER_MODE)
+        // NOTE: Per MSDN, in Kernel-mode do not call this function after deleting the key.
+        //
         DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
                                  registryHandle);
+#endif
         registryHandle = NULL;
     }
 

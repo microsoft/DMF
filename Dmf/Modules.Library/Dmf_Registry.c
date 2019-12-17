@@ -114,7 +114,7 @@ typedef struct
 typedef struct
 {
 #if !defined(DMF_USER_MODE)
-    // Deferred Tree Write is not supported in usermode.
+    // Deferred Tree Write is not supported in User-mode.
     //
 
     // Timer for deferred operations.
@@ -815,7 +815,7 @@ Return Value:
 
     accessMask = GENERIC_ALL;
 #if defined(DMF_USER_MODE)
-    // For usermode only read access works.
+    // For User-mode only read access works.
     //
     accessMask = KEY_READ;
 #endif
@@ -939,7 +939,7 @@ Return Value:
     {
 
 #if defined(DMF_USER_MODE)
-        // Usermode driver cannot create subkey. 
+        // User-mode driver cannot create subkey. 
         // If the user tries to create a key, try opening instead.
         //
         ntStatus = WdfRegistryOpenKey(NULL,
@@ -1032,7 +1032,7 @@ Return Value:
     if (TryToCreate)
     {
 #if defined(DMF_USER_MODE)
-        // Usermode driver cannot create subkey. 
+        // User-mode driver cannot create subkey. 
         // If the user tries to create a key, try opening instead.
         //
         ntStatus = WdfRegistryOpenKey((WDFKEY)Handle,
@@ -1064,7 +1064,7 @@ Return Value:
     {
         ACCESS_MASK accessMask = KEY_ALL_ACCESS;
 #if defined(DMF_USER_MODE)
-         // For usermode only read access works.
+         // For User-mode only read access works.
          //
          accessMask = KEY_READ;
 #endif
