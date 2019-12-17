@@ -2682,7 +2682,7 @@ DMF_Registry_HandleDelete(
 
 Routine Description:
 
-    Delete a registry key by path name.
+    Delete a registry key.
 
 Arguments:
 
@@ -3945,9 +3945,12 @@ Return Value:
     ntStatus = DMF_Registry_HandleDelete(DmfModule,
                                          handle);
 
+#if defined(DMF_USER_MODE)
     // Regardless of the above call, close the handle.
+    // NOTE: Per MSDN, do not call this function after deleting the key.
     //
     Registry_HandleClose(handle);
+#endif
     handle = NULL;
 
 Exit:
