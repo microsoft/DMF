@@ -31,7 +31,9 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define REGISTRY_ROOT_LENGTH  (sizeof("\\Registry\\Machine") - 1)  // This is the number of characters in \Registry\Machine, which is the root of all registry access
+// This is the number of characters in \Registry\Machine, which is the root of all registry access.
+//
+#define REGISTRY_ROOT_LENGTH  (sizeof("\\Registry\\Machine") - 1)
 
 // Context data for registry enumeration functions.
 //
@@ -948,7 +950,7 @@ Return Value:
                                       WDF_NO_OBJECT_ATTRIBUTES, 
                                       &key);
 
-        // if the key doesnt exist, we get Access denied error.
+        // If the key doesn't exist, access denied is returned.
         //
         if (STATUS_ACCESS_DENIED == ntStatus)
         {
