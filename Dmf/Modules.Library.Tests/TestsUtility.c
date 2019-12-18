@@ -101,7 +101,9 @@ Return Value:
 }
 
 #if defined(DMF_USER_MODE)
-#define BYTE_MAX    ((ULONG)0xFFFFFFFF)
+    // Same as DDK definition.
+    //
+    #define BYTE_MAX    (0xFF)
 #endif
 
 _IRQL_requires_same_
