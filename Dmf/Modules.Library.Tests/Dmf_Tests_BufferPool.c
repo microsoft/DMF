@@ -31,8 +31,16 @@ Environment:
 //
 
 #define BUFFER_SIZE                 (32)
-#define BUFFER_COUNT_PREALLOCATED   (16)
-#define BUFFER_COUNT_MAX            (24)
+#if !defined(DMF_USER_MODE)
+    #define BUFFER_COUNT_MAX            (24)
+    #define BUFFER_COUNT_PREALLOCATED   (16)
+#else
+    // NOTE: Cannot use lookaside with timer in User-mode because deleting the memory from
+    //       timer callback causes verifier issue.
+    //
+    #define BUFFER_COUNT_MAX            (2400)
+    #define BUFFER_COUNT_PREALLOCATED   BUFFER_COUNT_MAX
+#endif
 #define THREAD_COUNT                (2)
 
 #define CLIENT_CONTEXT_SIGNATURE    'GISB'
@@ -766,7 +774,13 @@ Return Value:
     moduleConfigBufferPool.Mode.SourceSettings.BufferSize = BUFFER_SIZE;
     moduleConfigBufferPool.Mode.SourceSettings.BufferCount = BUFFER_COUNT_PREALLOCATED;
     moduleConfigBufferPool.Mode.SourceSettings.CreateWithTimer = TRUE;
+#if !defined(DMF_USER_MODE)
+    // TODO: Cannot use "lookaside" in User-mode with timer since deleting buffers
+    //       from timer callback causes corresponding timer to delete which causes 
+    //       a deadlock (and verifier issue).
+    //
     moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+#endif
     moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,

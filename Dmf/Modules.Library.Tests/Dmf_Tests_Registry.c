@@ -28,8 +28,11 @@ Environment:
 // Module Private Enumerations and Structures
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#define REGISTRY_PATH_NAME          L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\DmfTest"
+#if !defined(DMF_USER_MODE)
+#define REGISTRY_PATH_NAME          L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\DmfKTest"
+#else
+#define REGISTRY_PATH_NAME          L"SOFTWARE\\Microsoft\\DmfUTest"
+#endif
 #define VALUENAME_STRING            L"string"
 #define VALUENAME_MULTISTRING       L"multistring"
 #define VALUENAME_BINARY            L"binary"
@@ -93,6 +96,7 @@ static ULONGLONG ulonglongOriginal = VALUEDATA_QWORD;
 static PWCHAR subkeys[] = {SUBKEYNAME_1, 
                            SUBKEYNAME_2};
 
+#if !defined(DMF_USER_MODE)
 // A set of entries in the branch.
 //
 static
@@ -131,6 +135,7 @@ RegistryTree[] =
         ARRAYSIZE(RegistryBranches)
     },
 };
+#endif
 
 struct EnumCallbackContext
 {
@@ -262,6 +267,11 @@ RegistryValueComparisonFunction_IfDefault(
                              sizeToCompare) == sizeToCompare);
 }
 
+#if !defined(DMF_USER_MODE)
+// User-mode driver cannot create arbitrary keys at runtime, 
+// so test should not delete them at runtime.  
+// For User-mode, The arbitrary path is created through INF and not deleted during test.
+//
 #pragma code_seg("PAGE")
 static
 VOID
@@ -734,6 +744,7 @@ Tests_Registry_Path_ReadSmallBufferWithBytesRead(
     #pragma warning(pop)
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -840,6 +851,11 @@ Tests_Registry_Handle_DeleteValues(
 }
 #pragma code_seg()
 
+#if !defined(DMF_USER_MODE)
+// User-mode driver cannot create subkeys at runtime, 
+// so test should not delete them at runtime.  
+// For User-mode, The subkeys are created through INF and not deleted during test.
+//
 #pragma code_seg("PAGE")
 static
 VOID
@@ -866,8 +882,13 @@ Tests_Registry_Handle_DeleteSubkeys(
                                              subkeyHandle);
         DmfAssert(NT_SUCCESS(ntStatus));
 
+#if defined(DMF_USER_MODE)
+        // Regardless of the above call, close the handle.
+        // NOTE: Per MSDN, in Kernel-mode do not call this function after deleting the key.
+        //
         DMF_Registry_HandleClose(DmfModuleRegistry,
                                  subkeyHandle);
+#endif
     }
 }
 #pragma code_seg()
@@ -889,6 +910,7 @@ Tests_Registry_Handle_DeletePath(
     DmfAssert(NT_SUCCESS(ntStatus) || (STATUS_OBJECT_NAME_NOT_FOUND == ntStatus));
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -989,6 +1011,9 @@ Tests_Registry_Handle_WriteValues(
 }
 #pragma code_seg()
 
+#if !defined(DMF_USER_MODE)
+// User-mode driver cannot create subkeys at runtime.
+//
 #pragma code_seg("PAGE")
 static
 VOID
@@ -1014,6 +1039,7 @@ Tests_Registry_Handle_WriteSubkeys(
     }
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -1618,6 +1644,7 @@ Tests_Registry_Handle_ConditionalWrite(
 }
 #pragma code_seg()
 
+#if !defined(DMF_USER_MODE)
 #pragma code_seg("PAGE")
 static
 VOID
@@ -1653,6 +1680,7 @@ Tests_Registry_TreeWriteDeferred(
     DmfAssert(STATUS_SUCCESS == ntStatus);
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -1702,6 +1730,10 @@ Return Value:
     // Path and Value Tests
     // --------------------
     //
+#if !defined(DMF_USER_MODE)
+    // From User-mode, ONLY Read access is allowed for arbitrary registry path.
+    // Hence the below tests are valid for kernel mode only.
+    //
 
     // Delete everything.
     //
@@ -1749,6 +1781,7 @@ Return Value:
     //
     Tests_Registry_Path_ReadNonExistent(moduleContext->DmfModuleRegistry);
     Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
+#endif
 
     // Path/Predefined Id key open and Value Tests
     // Do same as above, but this time open the predefined key by id and operate only on the values, reusing the path handle.
@@ -1763,98 +1796,152 @@ Return Value:
         //
         PLUGPLAY_REGKEY_DEVICE,
         PLUGPLAY_REGKEY_DRIVER,
+#if !defined(DMF_USER_MODE)
         // Note: PLUGPLAY_REGKEY_CURRENT_HWPROFILE may not be used alone.
         //
         PLUGPLAY_REGKEY_DEVICE | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
-        PLUGPLAY_REGKEY_DRIVER | PLUGPLAY_REGKEY_CURRENT_HWPROFILE
+        PLUGPLAY_REGKEY_DRIVER | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
+#else
+        // Note: PLUGPLAY_REGKEY_CURRENT_HWPROFILE may not be used alone.
+        //
+        PLUGPLAY_REGKEY_DEVICE | WDF_REGKEY_DEVICE_SUBKEY,
+        PLUGPLAY_REGKEY_DRIVER | WDF_REGKEY_DRIVER_SUBKEY
+#endif
     };
+
 
     for (ULONG predefinedIdIndex = 0; predefinedIdIndex < ARRAYSIZE(predefinedIds); predefinedIdIndex++)
     {
+        ACCESS_MASK accessMask = GENERIC_ALL;
         if (0 == predefinedIdIndex)
         {
+#if defined(DMF_USER_MODE)
+            // ONLY Read Only access works for arbitrary registry path in User-mode.
+            //
+            accessMask = KEY_READ;
+#endif
             // Zero means open from the hard coded path.
             //
             ntStatus = DMF_Registry_HandleOpenByNameEx(moduleContext->DmfModuleRegistry,
                                                        REGISTRY_PATH_NAME,
-                                                       GENERIC_ALL,
+                                                       accessMask,
                                                        TRUE,
                                                        &registryHandle);
         }
         else
         {
+#if defined(DMF_USER_MODE)
+            // For UMDF, ensure to set the right accessMask.
+            // Reference: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfdevice/nf-wdfdevice-wdfdeviceopenregistrykey
+            //
+            if ((predefinedIds[predefinedIdIndex] & PLUGPLAY_REGKEY_DEVICE) ||
+                (predefinedIds[predefinedIdIndex] & PLUGPLAY_REGKEY_DRIVER))
+            {
+                accessMask = KEY_READ;
+            }
+
+            if ((predefinedIds[predefinedIdIndex] & WDF_REGKEY_DEVICE_SUBKEY) ||
+                (predefinedIds[predefinedIdIndex] & WDF_REGKEY_DRIVER_SUBKEY))
+            {
+                accessMask |= KEY_SET_VALUE;
+            }   
+#endif
+
             // Open the predefined key.
             //
             ntStatus = DMF_Registry_HandleOpenById(moduleContext->DmfModuleRegistry,
                                                    predefinedIds[predefinedIdIndex],
-                                                   GENERIC_ALL,
+                                                   accessMask,
                                                    &registryHandle);
         }
         DmfAssert(NT_SUCCESS(ntStatus));
         DmfAssert(registryHandle != NULL);
         if (registryHandle != NULL)
         {
-            // Delete values.
+            // Can not write values for read only access keys.
             //
-            Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry,
-                                               registryHandle);
+            if ((accessMask & GENERIC_ALL) || (accessMask & KEY_SET_VALUE))
+            {
+                // Delete values.
+                //
+                Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry,
+                                                   registryHandle);
 
-            // Now, try to read some non-existent values.
-            //
-            Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry,
+                // Now, try to read some non-existent values.
+                //
+                Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry,
+                                                      registryHandle);            
+
+                // Write the values.
+                //
+                Tests_Registry_Handle_WriteValues(moduleContext->DmfModuleRegistry,
                                                   registryHandle);
 
-            // Write the values.
-            //
-            Tests_Registry_Handle_WriteValues(moduleContext->DmfModuleRegistry,
-                                              registryHandle);
-
-            // Get sizes of values to read.
-            //
-            Tests_Registry_Handle_ReadAndValidateBytesRead(moduleContext->DmfModuleRegistry,
-                                                           registryHandle);
-
-            // Read values and compare to original with NULL bytesRead.
-            //
-            Tests_Registry_Handle_ReadAndValidateData(moduleContext->DmfModuleRegistry,
-                                                      registryHandle);
-
-            // Read values and compare to original with bytesRead.
-            //
-            Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(moduleContext->DmfModuleRegistry,
-                                                                  registryHandle);
-
-            // Try to read to small buffers with NULL bytesRead.
-            //
-            Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(moduleContext->DmfModuleRegistry,
-                                                                  registryHandle);
-
-            // Try to read to small buffers with bytesRead.
-            //
-            Tests_Registry_Handle_ReadSmallBufferWithBytesRead(moduleContext->DmfModuleRegistry,
+                // Get sizes of values to read.
+                //
+                Tests_Registry_Handle_ReadAndValidateBytesRead(moduleContext->DmfModuleRegistry,
                                                                registryHandle);
 
-            // Delete everything we wrote and make sure it was deleted.
-            //
-            Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry,
-                                               registryHandle);
-            Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry,
-                                                  registryHandle);
+                // Read values and compare to original with NULL bytesRead.
+                //
+                Tests_Registry_Handle_ReadAndValidateData(moduleContext->DmfModuleRegistry,
+                                                          registryHandle);
+
+                // Read values and compare to original with bytesRead.
+                //
+                Tests_Registry_Handle_ReadAndValidateDataAndBytesRead(moduleContext->DmfModuleRegistry,
+                                                                      registryHandle);
+
+                // Try to read to small buffers with NULL bytesRead.
+                //
+                Tests_Registry_Handle_ReadSmallBufferWithoutBytesRead(moduleContext->DmfModuleRegistry,
+                                                                      registryHandle);
+
+                // Try to read to small buffers with bytesRead.
+                //
+                Tests_Registry_Handle_ReadSmallBufferWithBytesRead(moduleContext->DmfModuleRegistry,
+                                                                   registryHandle);
+
+                // Delete everything we wrote and make sure it was deleted.
+                //
+                Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry,
+                                                   registryHandle);
+                Tests_Registry_Handle_ReadNonExistent(moduleContext->DmfModuleRegistry,
+                                                      registryHandle);
+
+            }
+
+            BOOLEAN closeRegistryKey = TRUE;
 
             // Driver is not allowed to delete predefined keys.
             //
             if (0 == predefinedIdIndex)
             {
+#if !defined(DMF_USER_MODE)
+                // Don't delete the Path in User-mode, as the driver can not create it during runtime.
+                //
                 Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry,
                                                  registryHandle);
                 Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
+                // NOTE: Per MSDN, in Kernel-mode do not call this function after deleting the key.
+                //
+                closeRegistryKey = FALSE;
+#endif
+                
             }
 
-            DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
-                                     registryHandle);
+            if (closeRegistryKey)
+            {
+                DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
+                                         registryHandle);
+            }
             registryHandle = NULL;
         }
     }
+
+#if !defined(DMF_USER_MODE) 
+    // Tree Write feature are not supported in User-mode.
+    //
 
     // Tree Tests
     // ----------
@@ -1875,8 +1962,6 @@ Return Value:
     //
     Tests_Registry_Path_DeleteValues(moduleContext->DmfModuleRegistry);
     Tests_Registry_Path_DeletePath(moduleContext->DmfModuleRegistry);
-
-
     // Tree Tests deferred
     // -------------------
     //
@@ -1910,12 +1995,14 @@ Return Value:
     //
     Tests_Registry_Path_DeleteValues(moduleContext->DmfModuleRegistry);
     Tests_Registry_Path_DeletePath(moduleContext->DmfModuleRegistry);
+#endif
 
 
     // Enum and Conditional Tests
     // --------------------------
     //
-
+#if !defined(DMF_USER_MODE)
+    // Only Kernel-mode driver can write to arbitrary registry paths.
     // Make sure the path does not exist
     //
     Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
@@ -1925,6 +2012,15 @@ Return Value:
                                                GENERIC_ALL,
                                                TRUE,
                                                &registryHandle);
+#else
+    // For User-mode Open the predefined key where there is write access.
+    //
+    ntStatus = DMF_Registry_HandleOpenById(moduleContext->DmfModuleRegistry,
+                                           PLUGPLAY_REGKEY_DEVICE | WDF_REGKEY_DEVICE_SUBKEY,
+                                           KEY_READ | KEY_SET_VALUE,
+                                           &registryHandle);
+#endif
+
     DmfAssert(NT_SUCCESS(ntStatus));
     DmfAssert(registryHandle != NULL);
 
@@ -1934,12 +2030,15 @@ Return Value:
         //
         Tests_Registry_Handle_WriteValues(moduleContext->DmfModuleRegistry, registryHandle);
 
+#if !defined(DMF_USER_MODE)
+        // These are only valid for Kernel mode driver.
         // Write the subkeys.
         //
         Tests_Registry_Handle_WriteSubkeys(moduleContext->DmfModuleRegistry, registryHandle);
+#endif
 
         // Enum Tests
-        // -------------------
+        // ----------
         //
 
         // Try to enumerate keys in the path
@@ -1964,22 +2063,33 @@ Return Value:
         // Delete everything we wrote.
         //
         Tests_Registry_Handle_DeleteValues(moduleContext->DmfModuleRegistry, registryHandle);
-        Tests_Registry_Handle_DeleteSubkeys(moduleContext->DmfModuleRegistry, registryHandle);
-        Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry, registryHandle);
 
+#if !defined(DMF_USER_MODE)
+        // From User-mode, we cannot create subkeys.
+        //
+        Tests_Registry_Handle_DeleteSubkeys(moduleContext->DmfModuleRegistry, registryHandle);
+
+        // Driver is not allowed to delete predefined keys.
+        //
+        Tests_Registry_Handle_DeletePath(moduleContext->DmfModuleRegistry, registryHandle);
+#endif
+#if defined(DMF_USER_MODE)
+        // NOTE: Per MSDN, in Kernel-mode do not call this function after deleting the key.
+        //
         DMF_Registry_HandleClose(moduleContext->DmfModuleRegistry,
                                  registryHandle);
+#endif
         registryHandle = NULL;
     }
 
     // Finalizing
     // -------------------
     //
-
+#if !defined(DMF_USER_MODE)
     // Make sure the path does not exist
     //
     Tests_Registry_ValidatePathDeleted(moduleContext->DmfModuleRegistry);
-
+#endif
 Exit:
 
     return;

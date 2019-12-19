@@ -21,8 +21,6 @@ Environment:
 // Public Functions
 //
 
-#if !defined(DMF_USER_MODE)
-
 _Must_inspect_result_
 _IRQL_requires_same_
 ULONG
@@ -42,8 +40,6 @@ _IRQL_requires_same_
 _IRQL_requires_max_(APC_LEVEL)
 VOID
 TestsUtility_YieldExecution();
-
-#endif // !defined(DMF_USER_MODE)
 
 _Must_inspect_result_
 _IRQL_requires_same_

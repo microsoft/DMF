@@ -487,7 +487,11 @@ Return Value:
         timeout.QuadPart = WDF_REL_TIMEOUT_IN_MS(Milliseconds);
         ntStatus = DMF_Portable_EventWaitForSingleObject(&moduleContext->Event[EventIndex],
                                                          TRUE,
+#if defined(DMF_USER_MODE)
+                                                         Milliseconds);
+#else
                                                          &timeout);
+#endif
 
         // Lock again. Object is still valid.
         //

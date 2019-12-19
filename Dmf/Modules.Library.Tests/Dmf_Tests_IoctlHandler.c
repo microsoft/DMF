@@ -442,7 +442,9 @@ Return Value:
     moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(SleepContext);
     moduleConfigBufferPool.Mode.SourceSettings.BufferCount = 32;
     moduleConfigBufferPool.Mode.SourceSettings.CreateWithTimer = TRUE;
+#if !defined(DMF_USER_MODE)
     moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+#endif
     moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,

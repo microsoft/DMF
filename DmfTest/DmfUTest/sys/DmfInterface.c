@@ -15,7 +15,7 @@ Abstract:
 
 Environment:
 
-    Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -34,33 +34,34 @@ Environment:
 //
 
 DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_DRIVER_DEVICE_ADD DmfKTestEvtDeviceAdd;
-EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfKTestEvtDriverContextCleanup;
+EVT_WDF_DRIVER_DEVICE_ADD DmfUTestEvtDeviceAdd;
+EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfUTestEvtDriverContextCleanup;
 EVT_DMF_DEVICE_MODULES_ADD DmfDeviceModulesAdd;
 
 // BranchTrack name.
 //
-#define BRANCHTRACK_NAME               "DmfKTest"
+#define BRANCHTRACK_NAME               "DmfUTest"
 
 // BranchTrack Initialize routine.
 //
 VOID
-DmfKTestBranchTrackInitialize(
+DmfUTestBranchTrackInitialize(
     _In_ DMFMODULE DmfModuleBranchTrack
     );
 
 /*WPP_INIT_TRACING(); (This comment is necessary for WPP Scanner.)*/
 #pragma code_seg("INIT")
 DMF_DEFAULT_DRIVERENTRY(DriverEntry,
-                        DmfKTestEvtDriverContextCleanup,
-                        DmfKTestEvtDeviceAdd)
+                        DmfUTestEvtDriverContextCleanup,
+                        DmfUTestEvtDeviceAdd,
+                        "DmfUTracingId")
 #pragma code_seg()
 
 #pragma code_seg("PAGED")
-DMF_DEFAULT_DRIVERCLEANUP(DmfKTestEvtDriverContextCleanup)
-DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfKTestEvtDeviceAdd,
+DMF_DEFAULT_DRIVERCLEANUP(DmfUTestEvtDriverContextCleanup)
+DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfUTestEvtDeviceAdd,
                                        DmfDeviceModulesAdd,
-                                       DmfKTestBranchTrackInitialize,
+                                       DmfUTestBranchTrackInitialize,
                                        BRANCHTRACK_NAME,
                                        BRANCHTRACK_DEFAULT_MAXIMUM_BRANCHES)
 #pragma code_seg()
@@ -156,9 +157,9 @@ Return Value:
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     BOOLEAN isFunctionDriver;
-    DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
 
     UNREFERENCED_PARAMETER(Device);
+    UNREFERENCED_PARAMETER(DmfModuleInit);
 
     PAGED_CODE();
 
@@ -271,6 +272,7 @@ Return Value:
         // Tests_IoctlHandler
         // ------------------
         //
+        DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
         DMF_CONFIG_Tests_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigTests_IoctlHandler,
                                                           &moduleAttributes);
         // This instance will be accessed by SelfTarget and remote targets.
@@ -281,30 +283,12 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
-
-        // Tests_SelfTarget
-        // ----------------
-        //
-        DMF_Tests_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
-
-        // Tests_Pdo
-        // ---------
-        //
-        DMF_Tests_Pdo_ATTRIBUTES_INIT(&moduleAttributes);
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         NULL);
     }
 }
 #pragma code_seg()
 
 VOID
-DmfKTestBranchTrackInitialize(
+DmfUTestBranchTrackInitialize(
     _In_ DMFMODULE DmfModuleBranchTrack
     )
 {

@@ -1375,7 +1375,7 @@ DMF_Portable_EventReset(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-DWORD 
+NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
     _In_ BOOLEAN Alertable,
@@ -1387,7 +1387,7 @@ DMF_Portable_EventWaitForSingleObject(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-DWORD
+NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
     _In_ DMF_PORTABLE_EVENT** EventPointer,

@@ -14,6 +14,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKModules.Library", "Dmf\Solution\DmfKModules.Library\DmfKModules.Library.vcxproj", "{7CD49BFE-26BB-423E-8093-980F28A34389}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKModules.Template", "Dmf\Solution\DmfKModules.Template\DmfKModules.Template.vcxproj", "{7ED5D018-8523-4647-8A71-9CA73118FF7A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7CD49BFE-26BB-423E-8093-980F28A34389} = {7CD49BFE-26BB-423E-8093-980F28A34389}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKFramework", "Dmf\Solution\DmfKFramework\DmfKFramework.vcxproj", "{A603433B-6AE6-419D-AD1A-103809B82745}"
 EndProject
@@ -22,6 +25,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUModules.Library", "Dmf\Solution\DmfUModules.Library\DmfUModules.Library.vcxproj", "{4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUModules.Template", "Dmf\Solution\DmfUModules.Template\DmfUModules.Template.vcxproj", "{C163CB6E-82BF-4381-A606-357FE1DD2D48}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC} = {4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfU", "Dmf\Solution\DmfU\DmfU.vcxproj", "{FEBF910D-1CF9-4DDD-88AF-37642D6E2D1C}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -31,6 +37,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfU", "Dmf\Solution\DmfU\D
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKModules.Library.Tests", "Dmf\Solution\DmfKModules.Library.Tests\DmfKModules.Library.Tests.vcxproj", "{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7CD49BFE-26BB-423E-8093-980F28A34389} = {7CD49BFE-26BB-423E-8093-980F28A34389}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{B474F7F0-867B-4A9D-86FB-3D421186DEF3}"
 	ProjectSection(SolutionItems) = preProject
@@ -39,7 +48,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKTest", "DmfTest\DmfKTest\sys\DmfKTest.vcxproj", "{ADBA2F9D-D994-4691-838F-927D55DF7C74}"
 	ProjectSection(ProjectDependencies) = postProject
+		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B} = {E4BB47E7-F800-46C7-9837-9C3E5D0F456B}
 		{241252E8-4ADE-42E5-B34B-AEFD33B9698E} = {241252E8-4ADE-42E5-B34B-AEFD33B9698E}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUModules.Library.Tests", "Dmf\Solution\DmfUModules.Library.Tests\DmfUModules.Library.Tests.vcxproj", "{2F16597F-C98B-45EB-9DCF-F69C6993301D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC} = {4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUTest", "DmfTest\DmfUTest\sys\DmfUTest.vcxproj", "{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FEBF910D-1CF9-4DDD-88AF-37642D6E2D1C} = {FEBF910D-1CF9-4DDD-88AF-37642D6E2D1C}
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D} = {2F16597F-C98B-45EB-9DCF-F69C6993301D}
 	EndProjectSection
 EndProject
 Global
@@ -226,6 +247,28 @@ Global
 		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|Win32.Build.0 = Release|Win32
 		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|x64.ActiveCfg = Release|x64
 		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|x64.Build.0 = Release|x64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|ARM64.Build.0 = Debug|ARM64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|Win32.Build.0 = Debug|Win32
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|x64.ActiveCfg = Debug|x64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|x64.Build.0 = Debug|x64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|ARM64.ActiveCfg = Release|ARM64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|ARM64.Build.0 = Release|ARM64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|Win32.ActiveCfg = Release|Win32
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|Win32.Build.0 = Release|Win32
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|x64.ActiveCfg = Release|x64
+		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|x64.Build.0 = Release|x64
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|Win32.Build.0 = Debug|Win32
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|x64.ActiveCfg = Debug|x64
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|x64.Build.0 = Debug|x64
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|ARM64.ActiveCfg = Release|Win32
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|Win32.ActiveCfg = Release|Win32
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|Win32.Build.0 = Release|Win32
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|x64.ActiveCfg = Release|x64
+		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

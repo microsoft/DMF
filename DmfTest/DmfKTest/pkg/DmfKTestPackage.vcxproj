@@ -31,13 +31,9 @@
     <TemplateGuid>{4605da2c-74a5-4865-98e1-152ef136825f}</TemplateGuid>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <Configuration Condition="'$(Configuration)' == ''">Debug_RS1</Configuration>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <RootNamespace>DmfKTestPackage</RootNamespace>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <ConfigurationType>Utility</ConfigurationType>
     <DriverType>Package</DriverType>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
@@ -46,26 +42,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS1'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS2'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS3'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS4'))">
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('RS5'))">
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -95,7 +71,7 @@
     </Inf>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <DriverSymbolsToCopyToOutput Include="$(DriverOutDir)DmfKTest.pdb" />
+    <FilesToPackage Include="$(OutDir)DmfKTest.pdb"/>  
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
