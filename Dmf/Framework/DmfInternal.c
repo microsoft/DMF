@@ -1581,7 +1581,6 @@ Return Value:
     return ntStatus;
 }
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Internal_Close(
@@ -1604,8 +1603,6 @@ Return Value:
 --*/
 {
     DMF_OBJECT* dmfObject;
-
-    PAGED_CODE();
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -1644,7 +1641,6 @@ Return Value:
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 }
-#pragma code_seg()
 
 // eof: DmfInternal.c
 //

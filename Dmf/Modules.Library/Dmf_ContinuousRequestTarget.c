@@ -1583,6 +1583,16 @@ Return Value:
     }
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cancel Pending Requests: END");
 
+#if !defined(DMF_USER_MODE)
+    // 3. If streaming never started - we need to signal rundown completion event here, othewise it won't be signalled.
+    //
+    if (0 == moduleContext->StreamingRequestCount)
+    {
+        DMF_Portable_EventSet(&moduleContext->StreamRequestsRundownCompletionEvent);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "StreamRequestsRundownCompletionEvent SET");
+    }
+#endif
+
     FuncExitVoid(DMF_TRACE);
 }
 
