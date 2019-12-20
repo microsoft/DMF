@@ -387,8 +387,7 @@ Handle | The given registry handle.
 
 ##### Remarks
 
-* None
-
+* **Per MSDN, in Kernel-mode do not call this Method after deleting the key.**
 -----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_HandleDelete

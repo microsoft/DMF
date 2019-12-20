@@ -34,9 +34,4 @@
       <Filter>Inx</Filter>
     </Inf>
   </ItemGroup>
-  <ItemGroup>
-    <MessageCompile Include="DmfKTestEventLog.mc">
-      <Filter>Resources</Filter>
-    </MessageCompile>
-  </ItemGroup>
 </Project>

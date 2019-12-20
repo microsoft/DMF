@@ -159,8 +159,8 @@ Member | Description.
 BufferCount | The number of buffers that should be automatically allocated when DMF_BufferPool is created. This number may be not be zero unless EnableLookAside is set to TRUE.  
 BufferSize | The size of each buffer.
 BufferContextSize | In some cases, the Client may wish to allocate a Client specific meta data for each buffer in the pool. If so, this field indicates the size of that buffer.
-EnableLookAside | If set to TRUE, when there are no buffers left in the pool and the Client requests another buffer, a new buffer is allocated internally. Essentially it behaves like a lookaside list. 
-CreateWithTimer | As noted in the module description, a buffer allocated by a source-mode instance of the buffer pool may be inserted to an sink-mode buffer pool. Only a buffer that has a corresponding timer allocated may be inserted into a sink-mode buffer pool. If Create with timer is set to true, a timer instance is created for each of the the buffer allocated by the DMF_BufferPool Module instance.
+EnableLookAside | If set to TRUE, when there are no buffers left in the pool and the Client requests another buffer, a new buffer is allocated internally. Essentially it behaves like a lookaside list. *See remarks below for more information.**
+CreateWithTimer | As noted in the module description, a buffer allocated by a source-mode instance of the buffer pool may be inserted to an sink-mode buffer pool. Only a buffer that has a corresponding timer allocated may be inserted into a sink-mode buffer pool. If Create with timer is set to true, a timer instance is created for each of the the buffer allocated by the DMF_BufferPool Module instance. *See remarks below for more information.**
 PoolType | The Pool Type attribute of the automatically allocated buffers. If Paged pool is used then this Module must be instantiated as a PASSIVE_LEVEL instance by setting DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -570,6 +570,7 @@ None
 * Many core Modules use DMF_BufferPool to build more complex Modules.
 * When a sink-mode buffer pool instance is deleted, all the buffers in that pool are automatically returned to the corresponding source-mode buffer pool instance(s).
 * When a source-mode buffer pool instance is deleted, all buffers it allocated are deleted. If any buffer is in other sink-mode buffer pool, the buffer is automatically removed from that sink-mode buffer pool and deleted. Any associated timer is also canceled. If any buffer is owned by the Client, internal reference counting prevents the module instance to be truely deleted until all the buffers are returned back to it by the Client.
+* In User-mode, Config parameters EnableLookAside and CreateWithTimer cannot both be set to TRUE. Either can be TRUE, but not both. See the code for more information.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

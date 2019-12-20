@@ -1107,6 +1107,20 @@ Return Value:
               (moduleConfig->BufferPoolMode == BufferPool_Mode_Sink && moduleConfig->Mode.SourceSettings.BufferCount == 0));
     moduleContext->NumberOfBuffersSpecifiedByClient = moduleConfig->Mode.SourceSettings.BufferCount;
 
+#if defined(DMF_USER_MODE)
+    // It is not possible to use "PutWithTimer" Method when lookaside list is enabled in User-mode
+    // because buffers are deleted in the timer callback which causes the child WDFTIMER to also
+    // be deleted. That, in turn, can cause a deadlock and verifier issue.
+    //
+    if ((moduleConfig->Mode.SourceSettings.CreateWithTimer) &&
+        (moduleConfig->Mode.SourceSettings.EnableLookAside))
+    {
+        DmfAssert(FALSE);
+        ntStatus = STATUS_NOT_SUPPORTED;
+        goto Exit;
+    }
+#endif
+
     // Create the list that holds all the buffers.
     //
     InitializeListHead(&moduleContext->BufferList);
@@ -2227,6 +2241,20 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DmfAssert(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
+
+#if defined(DMF_USER_MODE)
+    // It is not possible to use this Method when buffers come from the "lookaside
+    // list" in User-mode because the buffers are just allocated and deallocated
+    // as needed. The problem is that in the timer callback the buffers are actually
+    // deleted and a child of the buffer is the corresponding WDFTIMER which is also
+    // deleted because it is a child object. The problem is that deleting the WDFTIMER
+    // from inside the timer callback can cause a deadlock and does cause a WDF
+    // verifier violation.
+    //
+    DMF_CONFIG_BufferPool* moduleConfig;
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    DmfAssert(!moduleConfig->Mode.SourceSettings.EnableLookAside);
+#endif
 
     // Given the Client Buffer, get the associated meta data.
     // NOTE: Client Driver (caller) owns the buffer at this time.

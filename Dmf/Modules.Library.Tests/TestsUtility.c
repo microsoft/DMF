@@ -17,6 +17,8 @@ Environment:
 
 --*/
 
+#define _CRT_RAND_S
+
 // DMF specific definitions.
 //
 #include "DmfModules.Library.Tests.h"
@@ -44,14 +46,12 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#if !defined(DMF_USER_MODE)
-
 _Must_inspect_result_
 _IRQL_requires_same_
 ULONG
 TestsUtility_GenerateRandomNumber(
-    _In_ ULONG Min,
-    _In_ ULONG Max
+    _In_ ULONG Minimum,
+    _In_ ULONG Maximum
     )
 /*++
 
@@ -61,27 +61,50 @@ Routine Description:
 
 Arguments:
 
-    Min - Minimal number of the range.
-    Max - Maximum number of the range 
+    Minimum - Minimal number of the range.
+    Maximum - Maximum number of the range 
 
 Return Value:
 
-    ULONG - generated random number
+    The generated random number.
 
     --*/
 {
-    ULONG seed;
     ULONG random;
-    ULONG range;
+    ULONGLONG range;
 
-    DmfAssert(Max >= Min);
+    DmfAssert(Maximum >= Minimum);
 
-    range = Max - Min + 1;
+    range = Maximum - Minimum;
+    range += 1;
+
+#if !defined(DMF_USER_MODE)
+    ULONG seed;
+
     seed = (ULONG)ReadTimeStampCounter();
-    random = Min + RtlRandomEx(&seed) % range;
+    random = Minimum + RtlRandomEx(&seed) % range;
+#else
+    unsigned int randomNumber;
+
+    if (rand_s(&randomNumber) == 0)
+    {
+        random = Minimum + randomNumber % range;
+    }
+    else
+    {
+        DmfAssert(FALSE);
+        random = 0;
+    }
+#endif
 
     return random;
 }
+
+#if defined(DMF_USER_MODE)
+    // Same as DDK definition.
+    //
+    #define BYTE_MAX    (0xFF)
+#endif
 
 _IRQL_requires_same_
 VOID
@@ -144,21 +167,23 @@ Return Value:
     --*/
 
 {
-    LARGE_INTEGER delayInterval;
-
     PAGED_CODE();
+
+#if !defined(DMF_USER_MODE)
+    LARGE_INTEGER delayInterval;
 
     delayInterval.QuadPart = -1;
 
     KeDelayExecutionThread(KernelMode,
                            TRUE,
                            &delayInterval);
+#else
+    Sleep(0);
+#endif
 }
 #pragma code_seg()
 
-#endif // !defined(DMF_USER_MODE)
-
-#define CRC_INIT 0xFFFFU
+#define CRC_INITIAL_VALUE 0xFFFFU
 #define CRC(crcval, data)   ((UINT16)((crcval) << 8) ^ CRCTable[(((crcval) >> 8) ^ ((UINT16)(data) & 0xFFU))])
 
 static 
@@ -208,29 +233,31 @@ TestsUtility_CrcCompute(
 
 Routine Description:
 
-    This function computes the 16-bit CRC of the specified message and
+    This function computes the 16-bit CRC of the given message and
     returns it.
 
 Arguments:
 
-    Message - pointer to the message
-    NumberOfBytes - # of bytes to computer the CRC over
+    Message - Pointer to the given message.
+    NumberOfBytes - Number of bytes to compute the CRC over.
 
 Return Value:
 
-    16-bit CRC
+    16-bit CRC corresponding to the given message.
 
 --*/
 {
     UINT32 index;
-    UINT16 accum = CRC_INIT;
+    UINT16 accumulatedValue;
 
+    accumulatedValue = CRC_INITIAL_VALUE;
     for (index = 0U; index < NumberOfBytes; index++)
     {
-        accum = CRC(accum, Message[index]);
+        accumulatedValue = CRC(accumulatedValue,
+                               Message[index]);
     }
 
-    return accum;
+    return accumulatedValue;
 }
 
 // eof: TestsUtility.c

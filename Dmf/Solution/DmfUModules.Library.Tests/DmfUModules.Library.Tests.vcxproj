@@ -27,11 +27,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC}</ProjectGuid>
+    <ProjectGuid>{2F16597F-C98B-45EB-9DCF-F69C6993301D}</ProjectGuid>
     <TemplateGuid>{2177f19c-eb4c-4687-9e7f-f9eec1f12cf1}</TemplateGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <ProjectName>DmfUModules.Library</ProjectName>
+    <ProjectName>DmfUModules.Library.Tests</ProjectName>
     <SccProjectName>SAK</SccProjectName>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
@@ -163,93 +163,40 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
-    <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Public.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_AlertableSleep.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_CmApi.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_File.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_I2cTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_Registry.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_HidTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_RequestTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_ScheduledTask.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_SpbTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.h" />
-    <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Trace.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_String.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\TestsUtility.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Modules.Library\Dmf_AlertableSleep.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_File.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_I2cTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_HidTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_Registry.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_RequestTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\Modules.Library\Dmf_AlertableSleep.md" />
-    <None Include="..\..\Modules.Library\Dmf_CmApi.md" />
-    <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.md" />
-    <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.md" />
-    <None Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_File.md" />
-    <None Include="..\..\Modules.Library\Dmf_HidTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_I2cTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.md" />
-    <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
-    <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.md" />
-    <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md" />
-    <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />
-    <None Include="..\..\Modules.Library\Dmf_Registry.md" />
-    <None Include="..\..\Modules.Library\Dmf_ScheduledTask.md" />
-    <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md" />
-    <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_String.md" />
-    <None Include="..\..\Modules.Library\Dmf_Thread.md" />
-    <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
-    <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />
+    <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Public.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Trace.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler_Public.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_String.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

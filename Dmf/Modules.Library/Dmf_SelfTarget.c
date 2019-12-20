@@ -14,7 +14,6 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -123,6 +122,10 @@ Return Value:
         goto Exit;
     }
 
+    // NOTE: WdfDeviceWdmGetDeviceObject() is not available in Use-mode.
+    //       Is there a way to use this macro in User-mode?
+    //       (For this reason, this Module is not available in User-mode.)
+    //
     WDF_IO_TARGET_OPEN_PARAMS_INIT_EXISTING_DEVICE(&openParams,
                                                    WdfDeviceWdmGetDeviceObject(device));
     openParams.ShareAccess = FILE_SHARE_WRITE | FILE_SHARE_READ;
