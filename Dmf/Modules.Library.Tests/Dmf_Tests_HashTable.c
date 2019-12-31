@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_HashTable Module
+    Functional tests for Dmf_HashTable Module.
 
 Environment:
 

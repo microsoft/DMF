@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for DMF_PingPongBuffer Module
+    Functional tests for DMF_PingPongBuffer Module.
 
 Environment:
 

@@ -133,11 +133,8 @@ Return Value:
                                                        waitObjects,
                                                        FALSE,
                                                        FALSE,
-#if defined(DMF_USER_MODE)
-                                                       INFINITE);
-#else
-                                                       NULL);
-#endif // defined(DMF_USER_MODE)
+                                                       0,
+                                                       TRUE);
         switch (waitStatus)
         {
             case STATUS_WAIT_0:

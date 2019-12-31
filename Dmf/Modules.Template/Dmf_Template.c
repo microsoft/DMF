@@ -12,13 +12,19 @@ Abstract:
 
     To use this template:
 
-    1. Save this file as a new file with the name of the new DMF Module to create. For example, Dmf_NewModule.c.
-    2. Save the corresponding file, Dmf_Template.h, as Dmf_NewModule.h.
-    3. Open the two new files and replace "Template" with the new name, e.g., "NewModule".
-    4. Correct the Abstract (delete all of this, of course).
-    5. Search for "TEMPLATE:" and make appropriate modifications as indicated.
-    6. Update DmfModuleId.h to add DMF_ModuleId_NewModule.
-    7. Delete all callbacks that the new Module does not need. (Most will probably not be needed.)
+    1. Save this file as a new file with the name of the new DMF Module to create. For example, Dmf_[NewModuleName].c.
+    2. Save the corresponding file, Dmf_Template.h, as Dmf_[NewModuleName].h.
+    3. Add #include "Dmf_[NewModuleName].h" to the DMF Library Include file name at the end of the list. For example,
+       DmfModules.Template.h or DmfModules.Library.h. Usually, you add this new Module to the Module Include file
+       of a new, private DMF Library.
+    4. Add Dmf_[NewModuleName].c and Dmf_[NewModuleName].h to the Visual Studio DMF Library project. Now, the entire
+       project should compile.
+    5. Open the two new files and replace "Template" with the new name, e.g., "[NewModuleName]".
+    6. Correct the Abstract (delete all of this, of course).
+    7. Search for "TEMPLATE:" and make appropriate modifications as indicated.
+    8. Delete all callbacks that the new Module does not need. (Most will probably not be needed.)
+
+    NOTE: Please see slide #81 in the DMF PowerPoint presentation for details about the above steps.
 
     NOTE: This file contains all the function headers for the most commonly needed DMF Callbacks. You should use 
           these as a basis for your own code to save time. They should be copied and then updated to add specific 

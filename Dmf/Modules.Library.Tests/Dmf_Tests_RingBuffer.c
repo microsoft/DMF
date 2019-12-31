@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_RingBuffer Module
+    Functional tests for Dmf_RingBuffer Module.
 
 Environment:
 
@@ -73,7 +73,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                     sizeof(data));                        \
     if (!NT_SUCCESS(ntStatus))                                            \
     {                                                                     \
-        DmfAssert(FALSE);                                                    \
+        DmfAssert(FALSE);                                                 \
         goto Exit;                                                        \
     }                                                                     
                                                                           
@@ -84,7 +84,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
     if (!NT_SUCCESS(ntStatus) ||                                          \
         data != Value)                                                    \
     {                                                                     \
-        DmfAssert(FALSE);                                                    \
+        DmfAssert(FALSE);                                                 \
         goto Exit;                                                        \
     }                                                                     
                                                                           
@@ -94,7 +94,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                    sizeof(data));                         \
     if (NT_SUCCESS(ntStatus))                                             \
     {                                                                     \
-        DmfAssert(FALSE);                                                    \
+        DmfAssert(FALSE);                                                 \
         goto Exit;                                                        \
     }
 
@@ -110,7 +110,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                              TRUE,                                        \
                              Tests_RingBuffer_Enumeration,                \
                              &enumContext);                               \
-    DmfAssert(enumContext.ItemsFound == (NumberOfItems));                    \
+    DmfAssert(enumContext.ItemsFound == (NumberOfItems));                 \
 }                                                                         
 
 #define FIND_AND_VERIFY(Value)                                            \
@@ -126,7 +126,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                        &enumContext,                      \
                                        (UCHAR*)&Value,                    \
                                        sizeof(Value));                    \
-    DmfAssert(enumContext.ItemsFound == 1);                                  \
+    DmfAssert(enumContext.ItemsFound == 1);                               \
 }
 
 _Function_class_(EVT_DMF_RingBuffer_Enumeration)
@@ -502,9 +502,9 @@ Return Value:
     moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
     moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_RingBuffer_WorkThread;
     DMF_DmfModuleAdd(DmfModuleInit,
-                        &moduleAttributes,
-                        WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleThread);
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleThread);
 
     FuncExitVoid(DMF_TRACE);
 }

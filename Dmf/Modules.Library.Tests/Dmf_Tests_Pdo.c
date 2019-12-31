@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_Pdo Module
+    Functional tests for Dmf_Pdo Module.
 
 Environment:
 
@@ -30,11 +30,16 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                            (4)
+#define THREAD_COUNT                            (2)
 // Don't use an ever increasing serial number because those serial numbers will be remembered
 // by Windows and will slow down the test computer eventually.
 //
 #define MAXIMUM_PDO_SERIAL_NUMBER               (THREAD_COUNT)
+
+// For test purposes to easily enable/disable types of PDOs.
+//
+#define PDO_ENABLE_KERNELMODE
+#define PDO_ENABLE_USERMODE
 
 typedef enum _TEST_ACTION
 {
@@ -168,6 +173,7 @@ Tests_Pdo_ThreadAction(
         goto Exit;
     }
 
+#if defined(PDO_ENABLE_KERNELMODE)
     // Create the Kernel-mode function driver PDO.
     //
     RtlZeroMemory(&pdoRecord,
@@ -182,7 +188,9 @@ Tests_Pdo_ThreadAction(
                                     &pdoRecord,
                                     &devicePair[0]);
     DmfAssert(NT_SUCCESS(ntStatus));
+#endif
 
+#if defined(PDO_ENABLE_USERMODE)
     // Create the User-mode function driver PDO.
     //
     RtlZeroMemory(&pdoRecord,
@@ -197,6 +205,7 @@ Tests_Pdo_ThreadAction(
                                     &pdoRecord,
                                     &devicePair[1]);
     DmfAssert(NT_SUCCESS(ntStatus));
+#endif
 
     // Wait some time.
     //
@@ -214,10 +223,14 @@ Tests_Pdo_ThreadAction(
 
     // Destroy the PDOs.
     //
+#if defined(PDO_ENABLE_KERNELMODE)
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
                                     devicePair[0]);
+#endif
+#if defined(PDO_ENABLE_USERMODE)
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
                                     devicePair[1]);
+#endif
 
     // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
     //
@@ -514,6 +527,7 @@ Return Value:
 --*/
 {
     Tests_Pdo_Stop(DmfModule);
+
     return STATUS_SUCCESS;
 }
 

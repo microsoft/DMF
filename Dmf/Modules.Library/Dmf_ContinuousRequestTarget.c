@@ -1644,7 +1644,8 @@ Return Value:
 #if !defined(DMF_USER_MODE)
     DMF_Portable_EventWaitForSingleObject(&moduleContext->StreamRequestsRundownCompletionEvent,
                                           FALSE,
-                                          NULL);
+                                          0,
+                                          TRUE);
 #else
     // Once Rundown API is supported in User-mode, this code can be deleted.
     //

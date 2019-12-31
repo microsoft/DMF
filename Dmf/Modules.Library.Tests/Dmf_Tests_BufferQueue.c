@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_BufferQueue Module
+    Functional tests for Dmf_BufferQueue Module.
 
 Environment:
 

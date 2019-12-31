@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_SelfTarget Module
+    Functional tests for Dmf_SelfTarget Module.
 
 Environment:
 
@@ -114,6 +114,8 @@ Tests_SelfTarget_ThreadAction_Synchronous(
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     RtlZeroMemory(&sleepIoctlBuffer,
@@ -176,6 +178,8 @@ Tests_SelfTarget_SendCompletion(
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 }
 
 #pragma code_seg("PAGE")
@@ -194,6 +198,8 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
     UNREFERENCED_PARAMETER(ThreadIndex);
 
     PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -248,6 +254,8 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
     size_t bytesWritten;
 
     PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -319,6 +327,8 @@ Tests_SelfTarget_WorkThread(
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
     threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
@@ -364,23 +374,73 @@ Tests_SelfTarget_WorkThread(
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#pragma code_seg("PAGE")
-_Function_class_(DMF_ModuleSelfManagedIoInit)
+_Function_class_(DMF_ModuleD0Entry)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
 NTSTATUS
-DMF_Tests_SelfTarget_SelfManagedIoInit(
-    _In_ DMFMODULE DmfModule
+DMF_Tests_SelfTarget_ModuleD0Entry(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDF_POWER_DEVICE_STATE PreviousState
     )
 /*++
 
 Routine Description:
 
-    Template callback for ModuleSelfManagedIoInit for a given DMF Module.
+    Starts non-continuous threads. Also starts the manual instance of DMF_DeviceInterfaceTarget.
 
 Arguments:
 
-    DmfModule - The given DMF Module.
+    DmfModule - This Module's handle.
+    PreviousState - The WDF Power State that the given DMF Module should exit from.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_Tests_SelfTarget* moduleContext;
+    LONG threadIndex;
+
+    UNREFERENCED_PARAMETER(PreviousState);
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        // Starts thread.
+        //
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[threadIndex]);
+        DmfAssert(NT_SUCCESS(ntStatus));
+    }
+
+    FuncExitVoid(DMF_TRACE);
+
+    return STATUS_SUCCESS;
+}
+
+_Function_class_(DMF_ModuleD0Exit)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_Tests_SelfTarget_ModuleD0Exit(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDF_POWER_DEVICE_STATE TargetState
+    )
+/*++
+
+Routine Description:
+
+    Stops non-continuous threads. Also stops the manual instance of DMF_DeviceInterfaceTarget.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    TargetState - The WDF Power State that the given DMF Module will enter.
 
 Return Value:
 
@@ -389,68 +449,9 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Tests_SelfTarget* moduleContext;
-    NTSTATUS ntStatus;
     LONG threadIndex;
 
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    ntStatus = STATUS_SUCCESS;
-
-    // Create threads that read with expected success, read with expected failure
-    // and enumerate.
-    //
-    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
-    {
-        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[threadIndex]);
-        if (!NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-    }
-
-    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
-    {
-        DMF_Thread_WorkReady(moduleContext->DmfModuleThread[threadIndex]);
-    }
-
-Exit:
-    
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_Function_class_(DMF_ModuleSelfManagedIoCleanup)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Tests_SelfTarget_SelfManagedIoCleanup(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Template callback for ModuleSelfManagedIoCleanup for a given DMF Module.
-
-Arguments:
-
-    DmfModule - The given DMF Module.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMF_CONTEXT_Tests_SelfTarget* moduleContext;
-    LONG threadIndex;
+    UNREFERENCED_PARAMETER(TargetState);
 
     PAGED_CODE();
 
@@ -470,8 +471,9 @@ Return Value:
     }
 
     FuncExitVoid(DMF_TRACE);
+
+    return STATUS_SUCCESS;
 }
-#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks
@@ -521,18 +523,18 @@ Return Value:
     //
     DMF_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
-                        &moduleAttributes,
-                        WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleSelfTargetDispatch);
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleSelfTargetDispatch);
 
     // SelfTarget (PASSIVE_LEVEL)
     //
     DMF_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
     moduleAttributes.PassiveLevel = TRUE;
     DMF_DmfModuleAdd(DmfModuleInit,
-                        &moduleAttributes,
-                        WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleSelfTargetPassive);
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleSelfTargetPassive);
 
     // Thread
     // ------
@@ -667,8 +669,8 @@ Return Value:
     dmfCallbacksDmf_Tests_SelfTarget.DeviceOpen = DMF_Tests_SelfTarget_Open;
 
     DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_Tests_SelfTarget);
-    dmfCallbacksWdf_Tests_SelfTarget.ModuleSelfManagedIoInit = DMF_Tests_SelfTarget_SelfManagedIoInit;
-    dmfCallbacksWdf_Tests_SelfTarget.ModuleSelfManagedIoCleanup = DMF_Tests_SelfTarget_SelfManagedIoCleanup;
+    dmfCallbacksWdf_Tests_SelfTarget.ModuleD0Entry = DMF_Tests_SelfTarget_ModuleD0Entry;
+    dmfCallbacksWdf_Tests_SelfTarget.ModuleD0Exit = DMF_Tests_SelfTarget_ModuleD0Exit;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_SelfTarget,
                                             Tests_SelfTarget,

@@ -57,7 +57,7 @@ DMF_AlertableSleep_ResetForReuse(
     );
 
 _Must_inspect_result_
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AlertableSleep_Sleep(
     _In_ DMFMODULE DmfModule,
