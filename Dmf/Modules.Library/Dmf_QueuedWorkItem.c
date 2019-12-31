@@ -576,7 +576,8 @@ Return Value:
      //
     DMF_Portable_EventWaitForSingleObject(&event,
                                           FALSE,
-                                          NULL);
+                                          0,
+                                          TRUE);
 
     // Copy over the NTSTATUS that will be returned.
     //

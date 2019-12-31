@@ -50,6 +50,10 @@ typedef struct
     // For debug purposes to make sure two threads don't wait on the same event.
     //
     BOOLEAN CurrentlyWaiting[ALERTABLE_SLEEP_MAXIMUM_TIMERS];
+    // Indicates that the Module is closing so all attempts to start waiting on an event
+    // must fail.
+    //
+    BOOLEAN Closing;
 } DMF_CONTEXT_AlertableSleep;
 
 // This macro declares the following function:
@@ -179,6 +183,11 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_ModuleLock(DmfModule);
+    ASSERT(!moduleContext->Closing);
+    moduleContext->Closing = TRUE;
+    DMF_ModuleUnlock(DmfModule);
 
     ULONG eventIndex;
 
@@ -406,7 +415,7 @@ Exit:
 }
 
 _Must_inspect_result_
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AlertableSleep_Sleep(
     _In_ DMFMODULE DmfModule,
@@ -417,8 +426,12 @@ DMF_AlertableSleep_Sleep(
 
 Routine Description:
 
-    Given an event index, make the current thread wait for a given number of milliseconds
-    or until the event is set.
+    Given an event index, make the current thread wait:
+      1. A given number of milliseconds.
+      2. The event is set.
+      3. The wait is aborted by another thread.
+
+    TODO: Add version of this API that allows an infinite wait.
 
 Arguments:
 
@@ -453,17 +466,19 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    // Make sure the object is open after the wait is satisfied.
-    // TODO: Look into this.
-    //
-    DMF_ModuleReferenceAdd(DmfModule);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait EventIndex=%d: Milliseconds%d-ms DoNotWait=%d",
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait EventIndex=%d: Milliseconds%d-ms DoNotWait=%d Closing=%d",
                 EventIndex,
                 Milliseconds,
-                moduleContext->DoNotWait[EventIndex]);
+                moduleContext->DoNotWait[EventIndex],
+                moduleContext->Closing);
 
-    if (moduleContext->DoNotWait[EventIndex])
+    if (moduleContext->Closing)
+    {
+        // Don't wait on the event if the Module is closing.
+        //
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%d] closing. Do not wait.", EventIndex);
+    }
+    else if (moduleContext->DoNotWait[EventIndex])
     {
         // The event has already been set. Do not wait and return unsuccessful.
         //
@@ -471,29 +486,23 @@ Return Value:
     }
     else
     {
-        LARGE_INTEGER timeout;
-
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] for %d-ms...", EventIndex, Milliseconds);
 
         DmfAssert(! moduleContext->CurrentlyWaiting[EventIndex]);
         moduleContext->CurrentlyWaiting[EventIndex] = TRUE;
 
-        // Unlock before waiting!
+        // Unlock before waiting.
         //
         DMF_ModuleUnlock(DmfModule);
 
         // Wait for the time specified by the caller or until the event is set.
         //
-        timeout.QuadPart = WDF_REL_TIMEOUT_IN_MS(Milliseconds);
         ntStatus = DMF_Portable_EventWaitForSingleObject(&moduleContext->Event[EventIndex],
                                                          TRUE,
-#if defined(DMF_USER_MODE)
-                                                         Milliseconds);
-#else
-                                                         &timeout);
-#endif
+                                                         Milliseconds,
+                                                         FALSE);
 
-        // Lock again. Object is still valid.
+        // Lock again.
         //
         DMF_ModuleLock(DmfModule);
 
@@ -515,11 +524,6 @@ Return Value:
 
         moduleContext->CurrentlyWaiting[EventIndex] = FALSE;
     }
-
-    // Allow close operation to happen.
-    // TODO: Look into this.
-    //
-    DMF_ModuleReferenceDelete(DmfModule);
 
     DMF_ModuleUnlock(DmfModule);
 

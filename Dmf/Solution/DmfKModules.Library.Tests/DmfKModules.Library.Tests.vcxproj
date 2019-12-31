@@ -278,6 +278,7 @@
     <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Public.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\DmfModules.Library.Tests.Trace.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_AlertableSleep.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.h" />
@@ -295,6 +296,7 @@
     <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_AlertableSleep.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.c" />

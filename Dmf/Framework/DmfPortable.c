@@ -147,11 +147,8 @@ NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
     _In_ BOOLEAN Alertable,
-#if defined(DMF_USER_MODE)
-    _In_ ULONG TimeoutMs
-#else
-    _In_opt_ PLARGE_INTEGER Timeout100nsPointer
-#endif // defined(DMF_USER_MODE)
+    _In_ ULONG TimeoutMs,
+    _In_ BOOLEAN Infinite
     )
 /*++
 
@@ -163,8 +160,8 @@ Arguments:
 
     EventPointer - Pointer to Event Object Storage.
     Alertable - Indicates if wait is alertable.
-    Timeout100nsPointer - Pointer to Timeout in 100-nano seconds unit (applicable for non-User-mode).
-    TimeoutMs - Timeout value in milliseconds (applicable for User-mode).
+    TimeoutMs - Timeout value in milliseconds.
+    Infinite - Indicates caller waits until the event is set regardless of TimeoutMs.
 
 Return Value:
 
@@ -183,6 +180,13 @@ Return Value:
 
     DWORD dwordReturnValue;
 
+    if (Infinite)
+    {
+        // Overwrite TimeoutMs with specific value that indicates "wait until event is set.".
+        //
+        TimeoutMs = INFINITE;
+    }
+
     dwordReturnValue = WaitForSingleObject(EventPointer->Handle,
                                            TimeoutMs);
     if (dwordReturnValue == WAIT_OBJECT_0)
@@ -198,11 +202,28 @@ Return Value:
         returnValue = STATUS_UNSUCCESSFUL;
     }
 #else
+    LARGE_INTEGER timeout100ns;
+    LARGE_INTEGER* timeout100nsPointer;
+    
+    if (! Infinite)
+    {
+        // Caller waits for a maximum time in milliseconds.
+        //
+        timeout100ns.QuadPart = WDF_REL_TIMEOUT_IN_MS(TimeoutMs);
+        timeout100nsPointer = &timeout100ns;
+    }
+    else
+    {
+        // Passing NULL indicates "wait until event is set".
+        //
+        timeout100nsPointer = NULL;
+    }
+
     returnValue = KeWaitForSingleObject(&EventPointer->Handle,
                                         Executive,
                                         KernelMode,
                                         Alertable,
-                                        Timeout100nsPointer);
+                                        &timeout100ns);
 #endif // defined(DMF_USER_MODE)
 
     FuncExit(DMF_TRACE, "returnValue=0x%X", returnValue);
@@ -217,11 +238,8 @@ DMF_Portable_EventWaitForMultiple(
     _In_ DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
     _In_ BOOLEAN Alertable,
-#if defined(DMF_USER_MODE)
-    _In_ ULONG TimeoutMs
-#else
-    _In_opt_ PLARGE_INTEGER Timeout100nsPointer
-#endif // defined(DMF_USER_MODE)
+    _In_ ULONG TimeoutMs,
+    _In_ BOOLEAN Infinite
     )
 /*++
 
@@ -263,6 +281,13 @@ Return Value:
     }
 
     DWORD dwordReturnValue;
+
+    if (Infinite)
+    {
+        // Overwrite TimeoutMs with specific value that indicates "wait until event is set.".
+        //
+        TimeoutMs = INFINITE;
+    }
 
     dwordReturnValue = WaitForMultipleObjectsEx(EventCount,
                                                 waitHandles,
@@ -320,13 +345,30 @@ Return Value:
         waitType = WaitAny;
     }
 
+    LARGE_INTEGER timeout100ns;
+    LARGE_INTEGER* timeout100nsPointer;
+    
+    if (! Infinite)
+    {
+        // Caller waits for a maximum time in milliseconds.
+        //
+        timeout100ns.QuadPart = WDF_REL_TIMEOUT_IN_MS(TimeoutMs);
+        timeout100nsPointer = &timeout100ns;
+    }
+    else
+    {
+        // Passing NULL indicates "wait until event is set".
+        //
+        timeout100nsPointer = NULL;
+    }
+
     returnValue = KeWaitForMultipleObjects(EventCount,
                                            waitObjects,
                                            waitType,
                                            Executive,
                                            KernelMode,
                                            Alertable,
-                                           Timeout100nsPointer,
+                                           timeout100nsPointer,
                                            NULL);
 #endif // defined(DMF_USER_MODE)
 

@@ -331,7 +331,7 @@ Routine Description:
 Parameters:
 
     DmfModule - This Module's DMF Object.
-    TransportWaitTimeoutMs - TransportWaitTimeout in MilliSecond.
+    TransportWaitTimeoutMs - TransportWaitTimeout in Milliseconds.
 
 Return:
 
@@ -361,7 +361,8 @@ Return:
                                                    waitObjects,
                                                    FALSE,
                                                    FALSE,
-                                                   TransportWaitTimeoutMs);
+                                                   TransportWaitTimeoutMs,
+                                                   FALSE);
     switch (waitStatus)
     {
         case STATUS_WAIT_0:

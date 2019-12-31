@@ -643,11 +643,12 @@ Return Value:
 
     ThreadedBufferQueue_WorkReady(DmfModule);
 
-    // Wait for the work to execute.
+    // Infinite wait for the work to execute.
     //
     DMF_Portable_EventWaitForSingleObject(&event,
                                           FALSE,
-                                          NULL);
+                                          0,
+                                          TRUE);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

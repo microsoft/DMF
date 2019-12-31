@@ -722,18 +722,6 @@ DMF_ModuleClose(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-LONG
-DMF_ModuleReferenceAdd(
-    _In_ DMFMODULE DmfModule
-    );
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
-LONG
-DMF_ModuleReferenceDelete(
-    _In_ DMFMODULE DmfModule
-    );
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_ModuleIsInFilterDriver(
     _In_ DMFMODULE DmfModule

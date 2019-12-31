@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_String Module
+    Functional tests for Dmf_String Module.
 
 Environment:
 

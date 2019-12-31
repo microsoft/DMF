@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for DMF_Registry Module
+    Functional tests for DMF_Registry Module.
 
 Environment:
 
@@ -1716,8 +1716,13 @@ Return Value:
     //
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
                                         0,
-                                        10000);
-    DmfAssert(STATUS_SUCCESS == ntStatus);
+                                        30000);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver stopped immediately after starting.
+        //
+        goto Exit;
+    }
 
     DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep,
                                      0);
@@ -1802,8 +1807,6 @@ Return Value:
         PLUGPLAY_REGKEY_DEVICE | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
         PLUGPLAY_REGKEY_DRIVER | PLUGPLAY_REGKEY_CURRENT_HWPROFILE,
 #else
-        // Note: PLUGPLAY_REGKEY_CURRENT_HWPROFILE may not be used alone.
-        //
         PLUGPLAY_REGKEY_DEVICE | WDF_REGKEY_DEVICE_SUBKEY,
         PLUGPLAY_REGKEY_DRIVER | WDF_REGKEY_DRIVER_SUBKEY
 #endif

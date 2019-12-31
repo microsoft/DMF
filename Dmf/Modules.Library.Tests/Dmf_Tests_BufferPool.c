@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_BufferPool Module
+    Functional tests for Dmf_BufferPool Module.
 
 Environment:
 

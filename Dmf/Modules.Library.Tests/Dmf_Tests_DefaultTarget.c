@@ -8,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    Functional tests for Dmf_DefaultTarget Module
+    Functional tests for Dmf_DefaultTarget Module.
 
 Environment:
 
@@ -118,6 +118,8 @@ Tests_DefaultTarget_BufferInput(
     UNREFERENCED_PARAMETER(InputBufferSize);
     UNREFERENCED_PARAMETER(ClientBuferContextInput);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0,
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     RtlCopyMemory(InputBuffer,
@@ -141,9 +143,8 @@ Tests_DefaultTarget_BufferOutput(
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
     UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(CompletionStatus);
-    UNREFERENCED_PARAMETER(OutputBufferSize);
-    UNREFERENCED_PARAMETER(OutputBuffer);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%!FUNC!:  ntStatus=%!STATUS!", CompletionStatus);
 
     DmfAssert(NT_SUCCESS(CompletionStatus));
     DmfAssert(OutputBufferSize == sizeof(DWORD));
@@ -168,6 +169,8 @@ Tests_DefaultTarget_ThreadAction_Synchronous(
     UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
     PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -231,6 +234,8 @@ Tests_DefaultTarget_SendCompletion(
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 }
 
 #pragma code_seg("PAGE")
@@ -249,6 +254,8 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
     UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
     PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -303,6 +310,8 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     size_t bytesWritten;
 
     PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -373,6 +382,8 @@ Tests_DefaultTarget_WorkThread(
     THREAD_INDEX_CONTEXT* threadIndex;
 
     PAGED_CODE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
     threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
@@ -643,7 +654,7 @@ DMF_Tests_DefaultTarget_ModuleD0Entry(
 
 Routine Description:
 
-    Starts non-continuous threads. Also starts the manual instance of DMF_DeviceInterfaceTarget.
+    Start all threads.
 
 Arguments:
 
@@ -695,7 +706,7 @@ DMF_Tests_DefaultTarget_ModuleD0Exit(
 
 Routine Description:
 
-    Stops non-continuous threads. Also stops the manual instance of DMF_DeviceInterfaceTarget.
+    Stop all threads.
 
 Arguments:
 
