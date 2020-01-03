@@ -141,8 +141,9 @@ Tests_DefaultTarget_BufferOutput(
     )
 {
     UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
-    UNREFERENCED_PARAMETER(DmfModule);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%!FUNC!:  ntStatus=%!STATUS!", CompletionStatus);
 

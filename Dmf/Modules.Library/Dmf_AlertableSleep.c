@@ -185,7 +185,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_ModuleLock(DmfModule);
-    ASSERT(!moduleContext->Closing);
+    DmfAssert(!moduleContext->Closing);
     moduleContext->Closing = TRUE;
     DMF_ModuleUnlock(DmfModule);
 
@@ -414,6 +414,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
+#pragma code_seg("PAGE")
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -449,6 +450,8 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_AlertableSleep* moduleContext;
 
+    PAGED_CODE();
+
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
@@ -466,7 +469,7 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait EventIndex=%d: Milliseconds%d-ms DoNotWait=%d Closing=%d",
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait EventIndex=%u: Milliseconds%d-ms DoNotWait=%d Closing=%!bool!",
                 EventIndex,
                 Milliseconds,
                 moduleContext->DoNotWait[EventIndex],
@@ -476,17 +479,17 @@ Return Value:
     {
         // Don't wait on the event if the Module is closing.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%d] closing. Do not wait.", EventIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%u] closing. Do not wait.", EventIndex);
     }
     else if (moduleContext->DoNotWait[EventIndex])
     {
         // The event has already been set. Do not wait and return unsuccessful.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%d] already interrupted. Do not wait.", EventIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%u] already interrupted. Do not wait.", EventIndex);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] for %d-ms...", EventIndex, Milliseconds);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] for %d-ms...", EventIndex, Milliseconds);
 
         DmfAssert(! moduleContext->CurrentlyWaiting[EventIndex]);
         moduleContext->CurrentlyWaiting[EventIndex] = TRUE;
@@ -498,9 +501,8 @@ Return Value:
         // Wait for the time specified by the caller or until the event is set.
         //
         ntStatus = DMF_Portable_EventWaitForSingleObject(&moduleContext->Event[EventIndex],
-                                                         TRUE,
-                                                         Milliseconds,
-                                                         FALSE);
+                                                         &Milliseconds,
+                                                         TRUE);
 
         // Lock again.
         //
@@ -511,7 +513,7 @@ Return Value:
             // The thread delayed for the time specified by the caller. It is considered success.
             //
             ntStatus = STATUS_SUCCESS;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] Satisfied", EventIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] Satisfied", EventIndex);
         }
         else
         {
@@ -519,7 +521,7 @@ Return Value:
             // did not happen. It is considered unsuccessful.
             //
             ntStatus = STATUS_UNSUCCESSFUL;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%d] Interrupted", EventIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] Interrupted", EventIndex);
         }
 
         moduleContext->CurrentlyWaiting[EventIndex] = FALSE;
@@ -533,6 +535,7 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 // eof: Dmf_AlertableSleep.c
 //

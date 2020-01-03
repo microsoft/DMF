@@ -2636,7 +2636,7 @@ DMF_ModuleReferenceAdd(
 
 Routine Description:
 
-    Decrement the Module's Reference Count.
+    Increment the Module's Reference Count.
     This Routine must always be called in locked state.
 
 Arguments:
@@ -2678,7 +2678,7 @@ DMF_ModuleReferenceDelete(
 
 Routine Description:
 
-    Increment the Module's Reference Count.
+    Decrement the Module's Reference Count.
     This Routine must always be called in locked state.
 
 Arguments:
@@ -2973,9 +2973,36 @@ Return Value:
                                          &DmfChildObjectIterateBackward);
 }
 
-// Sometimes the Thread ID of the current thread is zero. In that case, use DMF_INVALID_HANDLE_VALUE.
-//
-#define DMF_INVALID_HANDLE_VALUE (HANDLE)(-1)
+HANDLE 
+DmfGetCurrentThreadId(
+    )
+/*++
+
+Routine Description:
+
+    Helper routine to get current thread for kernel and user mode.
+
+Arguments:
+
+    None
+
+Return Value:
+
+    ID of current thread
+
+--*/
+{
+    HANDLE currentThreadId;
+
+#if defined(DMF_USER_MODE)
+    currentThreadId = (HANDLE)GetCurrentThreadId();
+#else
+    currentThreadId = PsGetCurrentThread();
+#endif
+
+    DmfAssert(currentThreadId != NULL);
+    return currentThreadId;
+}
 
 VOID
 DMF_ModuleLock(
@@ -3006,17 +3033,8 @@ Return Value:
     (dmfObject->InternalCallbacksInternal.AuxiliaryLock)(DmfModule,
                                                          DMF_DEFAULT_LOCK_INDEX);
     DmfAssert(NULL == dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
-#if !defined(DMF_USER_MODE)
-    dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = PsGetCurrentThreadId();
-#else
-    dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = GetCurrentThread();
-#endif
-    // Sometimes the Thread ID of the current thread is zero. In that case, use DMF_INVALID_HANDLE_VALUE.
-    //
-    if (dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread == 0)
-    {
-        dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = DMF_INVALID_HANDLE_VALUE;
-    }
+
+    dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = DmfGetCurrentThreadId();
 }
 
 VOID
@@ -3044,7 +3062,9 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     DmfAssert(dmfObject != NULL);
-    DmfAssert(NULL != dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
+    
+    DmfAssert(DmfGetCurrentThreadId() == dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread);
+
     dmfObject->Synchronizations[DMF_DEFAULT_LOCK_INDEX].LockHeldByThread = NULL;
     DmfAssert(dmfObject->InternalCallbacksInternal.AuxiliaryUnlock != NULL);
     (dmfObject->InternalCallbacksInternal.AuxiliaryUnlock)(DmfModule,
@@ -3233,17 +3253,7 @@ Return Value:
     if (AuxiliaryLockIndex < DMF_MAXIMUM_AUXILIARY_LOCKS)
     {
         DmfAssert(NULL == dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
-#if !defined(DMF_USER_MODE)
-        dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = PsGetCurrentThreadId();
-#else
-        dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = GetCurrentThread();
-#endif
-        // Sometimes the Thread ID of the current thread is zero. In that case, use DMF_INVALID_HANDLE_VALUE.
-        //
-        if (dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread == 0)
-        {
-            dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = DMF_INVALID_HANDLE_VALUE;
-        }
+        dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = DmfGetCurrentThreadId();
     }
     else
     {
@@ -3287,7 +3297,7 @@ Return Value:
         // Device lock is at 0. Auxiliary locks starts from 1.
         // AuxiliaryLockIndex is 0 based.
         //
-        DmfAssert(NULL != dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
+        DmfAssert(DmfGetCurrentThreadId() == dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread);
 
         dmfObject->Synchronizations[AuxiliaryLockIndex + DMF_NUMBER_OF_DEFAULT_LOCKS].LockHeldByThread = NULL;
 

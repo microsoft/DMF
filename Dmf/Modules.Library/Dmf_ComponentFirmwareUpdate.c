@@ -360,8 +360,7 @@ Return:
     waitStatus = DMF_Portable_EventWaitForMultiple(ARRAYSIZE(waitObjects),
                                                    waitObjects,
                                                    FALSE,
-                                                   FALSE,
-                                                   TransportWaitTimeoutMs,
+                                                   &TransportWaitTimeoutMs,
                                                    FALSE);
     switch (waitStatus)
     {

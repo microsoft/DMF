@@ -132,9 +132,8 @@ Return Value:
         waitStatus = DMF_Portable_EventWaitForMultiple(ARRAYSIZE(waitObjects),
                                                        waitObjects,
                                                        FALSE,
-                                                       FALSE,
-                                                       0,
-                                                       TRUE);
+                                                       NULL,
+                                                       FALSE);
         switch (waitStatus)
         {
             case STATUS_WAIT_0:
