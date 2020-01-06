@@ -1378,9 +1378,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
-    _In_ BOOLEAN Alertable,
-    _In_ ULONG TimeoutMs,
-    _In_ BOOLEAN Infinite
+    _In_ ULONG* TimeoutMs,
+    _In_ BOOLEAN Alertable
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1389,9 +1388,8 @@ DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
     _In_ DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
-    _In_ BOOLEAN Alertable,
-    _In_ ULONG TimeoutMs,
-    _In_ BOOLEAN Infinite
+    _In_ ULONG* TimeoutMs,
+    _In_ BOOLEAN Alertable
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

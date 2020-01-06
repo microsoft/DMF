@@ -646,9 +646,12 @@ Return Value:
     // Infinite wait for the work to execute.
     //
     DMF_Portable_EventWaitForSingleObject(&event,
-                                          FALSE,
-                                          0,
-                                          TRUE);
+                                          NULL,
+                                          FALSE);
+
+    // NOTE: Needed to prevent leak in User-mode. NOP in Kernel-mode.
+    //
+    DMF_Portable_EventClose(&event);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

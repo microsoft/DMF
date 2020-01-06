@@ -355,6 +355,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventWaitForSingle](#dmf_portable_eventwaitforsingle)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventWaitForMultiple](#dmf_portable_eventwaitformultiple)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventClose 194](#dmf_portable_eventclose)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_LookasideListCreate](#dmf_portable_lookasidelistcreate)
@@ -6767,17 +6769,17 @@ Common API used to create an event in Kernel or User-modes.
 +-----------------------------------+-----------------------------------+
 | Parameter                         | Description                       |
 +===================================+===================================+
-| **PDMF_PORTABLE_EVENT             | The address where the event is    |
-| EventPointer**                    | created. Use this address with    |
+| DMF_PORTABLE_EVENT*               | The address where the event is    |
+| EventPointer                      | created. Use this address with    |
 |                                   | the APIs that use this event.     |
 +-----------------------------------+-----------------------------------+
-| **EVENT_TYPE EventType**          | NotificationEvent or              |
+| EVENT_TYPE EventType              | NotificationEvent or              |
 |                                   |                                   |
 |                                   | SynchronizationEvent. See Win32   |
 |                                   | API or NTAPI for the exact        |
 |                                   | meaning and use cases.            |
 +-----------------------------------+-----------------------------------+
-| **BOOLEAN State**                 | Initial state of the event when   |
+| BOOLEAN State                     | Initial state of the event when   |
 |                                   | this function returns.            |
 +-----------------------------------+-----------------------------------+
 
@@ -6805,7 +6807,7 @@ to be set will continue executing.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMF_PORTABLE_EVENT EventPointer** |  The address of the given event to set.
+  DMF_PORTABLE_EVENT* EventPointer |  The address of the given event to set.
 
 #### Returns
 
@@ -6829,7 +6831,7 @@ Reset a given portable event.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMF_PORTABLE_EVENT EventPointer** |   The address of the given event to reset (set it not a non-set state).
+  DMF_PORTABLE_EVENT* EventPointer |   The address of the given event to reset (set it not a non-set state).
 
 #### Returns
 
@@ -6847,8 +6849,8 @@ None.
 DWORD 
 DMF_Portable_EventWaitForSingle(
     _In_ PDMF_PORTABLE_EVENT EventPointer,
-    _In_ BOOLEAN Alertable,
-    _In_opt_ PLARGE_INTEGER TimeoutPointer
+    _In_ ULONG* TimeoutMs,
+    _In_ BOOLEAN Alertable
     );
 ```
 Cause the current thread to wait for an event to be set.
@@ -6857,19 +6859,54 @@ Cause the current thread to wait for an event to be set.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMF_PORTABLE_EVENT EventPointer** | The address of the given event to wait for.
-  **BOOLEAN Alertable**                |   
-  **PLARGE_INTEGER TimeoutPointer**    |  Use NULL to indicate infinite wait. Otherwise, it is the address of a LARGE_INTEGER holding the number of 100-ns to wait.
+  DMF_PORTABLE_EVENT* EventPointer | The address of the given event to wait for.
+  ULONG* TimeoutMs    |  Use NULL to indicate infinite wait. Otherwise, it is the address of a ULONG holding the number of milliseconds to wait.
+  BOOLEAN Alertable                | TRUE to indicate the wait is alertable.
 
 #### Returns
 
 **STATUS_WAIT_OBJECT_0** to indicate the event was set.
 **STATUS_TIMEOUT** to indicate the event was not set during the timeout
 period.
+**(See MSDN for other return values.)**
 
 #### Remarks
 
--   There is not no option to wait for multiple events at this time.
+- See MSDN for more information.
+
+### DMF_Portable_EventWaitForMultiple
+```
+NTSTATUS
+DMF_Portable_EventWaitForMultiple(
+    _In_ ULONG EventCount,
+    _In_ DMF_PORTABLE_EVENT** EventPointer,
+    _In_ BOOLEAN WaitForAll,
+    _In_ ULONG* TimeoutMs,
+    _In_ BOOLEAN Alertable
+    )
+```
+Cause the current thread to wait for an event to be set.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  ULONG EventCount | The number of events in the event pointer array to wait for.
+  DMF_PORTABLE_EVENT* EventPointer | The address of the array of events to wait for.
+  BOOLEAN WaitForAll | Indicates that call waits for all events to be set.
+  ULONG* TimeoutMs    |  Use NULL to indicate infinite wait. Otherwise, it is the address of a ULONG holding the number of milliseconds to wait.
+  BOOLEAN Alertable                | TRUE to indicate the wait is alertable.
+
+#### Returns
+
+**STATUS_WAIT_OBJECT_0** to indicate the event was set.
+**STATUS_TIMEOUT** to indicate the event was not set during the timeout
+period.
+**(See MSDN for other return values.)**
+
+#### Remarks
+
+- See MSDN for more information.
 
 ### DMF_Portable_EventClose
 ```
@@ -6884,7 +6921,7 @@ Cause a portable event to be unusable (closed).
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------
-  **PDMF_PORTABLE_EVENT EventPointer**  | The address of the given event to close.
+  DMF_PORTABLE_EVENT* EventPointer  | The address of the given event to close.
 
 #### Returns
 
@@ -7598,6 +7635,7 @@ same code can be used in both Kernel and User-mode code:
   **DMF_Portable_EventSet**                   | Sets an event created using **DMF_PortableEventCreate**.
   **DMF_Portable_EventReset**                 | Resets an event created using **DMF_PortableEventCreate**.
   **DMF_Portable_EventWaitForSingle**         | Waits on an event created using **DMF_PortableEventCreate**.
+  **DMF_Portable_EventWaitForMultiple**       | Waits on events created using **DMF_PortableEventCreate**.
   **DMF_Portable_EventClose**                 | Closes or deletes an event created using **DMF_PortableEventCreate**.
   **DMF_Portable_LookasideListCreate**        | Creates a lookaside list.
   **DMF_Portable_LookasideListCreateMemory**  | Retrieves a buffer from a lookaside list created by **DMF_Portable_LookasideListCreateMemory**.

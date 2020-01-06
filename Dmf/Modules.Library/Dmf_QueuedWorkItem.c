@@ -575,9 +575,8 @@ Return Value:
      // Wait for the work to execute.
      //
     DMF_Portable_EventWaitForSingleObject(&event,
-                                          FALSE,
-                                          0,
-                                          TRUE);
+                                          NULL,
+                                          FALSE);
 
     // Copy over the NTSTATUS that will be returned.
     //

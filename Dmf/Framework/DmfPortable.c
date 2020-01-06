@@ -142,13 +142,13 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
-    _In_ BOOLEAN Alertable,
-    _In_ ULONG TimeoutMs,
-    _In_ BOOLEAN Infinite
+    _In_ ULONG* TimeoutMs,
+    _In_ BOOLEAN Alertable
     )
 /*++
 
@@ -159,9 +159,8 @@ Routine Description:
 Arguments:
 
     EventPointer - Pointer to Event Object Storage.
+    TimeoutMs - Address of timeout value in milliseconds. NULL if caller waits infinitely.
     Alertable - Indicates if wait is alertable.
-    TimeoutMs - Timeout value in milliseconds.
-    Infinite - Indicates caller waits until the event is set regardless of TimeoutMs.
 
 Return Value:
 
@@ -171,24 +170,31 @@ Return Value:
 {
     NTSTATUS returnValue;
 
+    PAGED_CODE();
+
     FuncEntry(DMF_TRACE);
 
     DmfAssert(EventPointer != NULL);
 
 #if defined(DMF_USER_MODE)
-    UNREFERENCED_PARAMETER(Alertable);
-
     DWORD dwordReturnValue;
+    ULONG timeoutMs;
 
-    if (Infinite)
+    if (TimeoutMs != NULL)
     {
-        // Overwrite TimeoutMs with specific value that indicates "wait until event is set.".
-        //
-        TimeoutMs = INFINITE;
+        timeoutMs = *TimeoutMs;
+    }
+    else
+    {
+        timeoutMs = INFINITE;
     }
 
-    dwordReturnValue = WaitForSingleObject(EventPointer->Handle,
-                                           TimeoutMs);
+    dwordReturnValue = WaitForSingleObjectEx(EventPointer->Handle,
+                                             timeoutMs,
+                                             Alertable);
+    // Translate the Win32 values to Kernel-mode values.
+    // NOTE: Actual numbers are the same, but this is done for clarity.
+    //
     if (dwordReturnValue == WAIT_OBJECT_0)
     {
         returnValue = STATUS_SUCCESS;
@@ -196,6 +202,14 @@ Return Value:
     else if (dwordReturnValue == WAIT_TIMEOUT)
     {
         returnValue = STATUS_TIMEOUT;
+    }
+    else if (dwordReturnValue == WAIT_ABANDONED)
+    {
+        returnValue = STATUS_ABANDONED;
+    }
+    else if (dwordReturnValue == WAIT_IO_COMPLETION)
+    {
+        returnValue = STATUS_ALERTED;
     }
     else
     {
@@ -205,11 +219,11 @@ Return Value:
     LARGE_INTEGER timeout100ns;
     LARGE_INTEGER* timeout100nsPointer;
     
-    if (! Infinite)
+    if (TimeoutMs != NULL)
     {
         // Caller waits for a maximum time in milliseconds.
         //
-        timeout100ns.QuadPart = WDF_REL_TIMEOUT_IN_MS(TimeoutMs);
+        timeout100ns.QuadPart = WDF_REL_TIMEOUT_IN_MS(*TimeoutMs);
         timeout100nsPointer = &timeout100ns;
     }
     else
@@ -230,16 +244,17 @@ Return Value:
 
     return returnValue;
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
     _In_ DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
-    _In_ BOOLEAN Alertable,
-    _In_ ULONG TimeoutMs,
-    _In_ BOOLEAN Infinite
+    _In_ ULONG* TimeoutMs,
+    _In_ BOOLEAN Alertable
     )
 /*++
 
@@ -252,17 +267,18 @@ Arguments:
     EventCount - Count of Event Objects.
     EventPointer - Pointer to Event Object Storage.
     WaitForAll - Indicating to 'wait for all' or 'wait for any'
+    TimeoutMs - Address of timeout value in milliseconds. NULL if caller waits infinitely.
     Alertable - Indicates if wait is alertable.
-    Timeout100nsPointer - Pointer to Timeout in 100-nano seconds unit(applicable for non-usermode).
-    TimeoutMs - Timeout value in milliseconds (applicable for usermode).
 
 Return Value:
 
-    NTSTATUS using Kernel-mode status values.
+    NTSTATUS
 
 --*/
 {
     NTSTATUS returnValue;
+
+    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -273,7 +289,7 @@ Return Value:
     HANDLE waitHandles[MAXIMUM_WAIT_OBJECTS];
     DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
 
-    for (UINT eventIndex = 0; eventIndex < EventCount; ++eventIndex)
+    for (ULONG eventIndex = 0; eventIndex < EventCount; ++eventIndex)
     {
         DmfAssert(EventPointer[eventIndex] != NULL);
         DmfAssert(EventPointer[eventIndex]->Handle != INVALID_HANDLE_VALUE);
@@ -281,22 +297,33 @@ Return Value:
     }
 
     DWORD dwordReturnValue;
+    ULONG timeoutMs;
 
-    if (Infinite)
+    if (TimeoutMs != NULL)
     {
-        // Overwrite TimeoutMs with specific value that indicates "wait until event is set.".
-        //
-        TimeoutMs = INFINITE;
+        timeoutMs = *TimeoutMs;
+    }
+    else
+    {
+        timeoutMs = INFINITE;
     }
 
     dwordReturnValue = WaitForMultipleObjectsEx(EventCount,
                                                 waitHandles,
                                                 WaitForAll,
-                                                TimeoutMs,
+                                                timeoutMs,
                                                 Alertable);
     if (dwordReturnValue == WAIT_TIMEOUT)
     {
         returnValue = STATUS_TIMEOUT;
+    }
+    else if (dwordReturnValue == WAIT_ABANDONED_0)
+    {
+        returnValue = STATUS_ABANDONED;
+    }
+    else if (dwordReturnValue == WAIT_IO_COMPLETION)
+    {
+        returnValue = STATUS_USER_APC;
     }
     else if (dwordReturnValue == WAIT_FAILED)
     {
@@ -310,6 +337,11 @@ Return Value:
         {
             returnValue = STATUS_SUCCESS;
         }
+        else if ((dwordReturnValue >= WAIT_ABANDONED_0) &&
+                 (dwordReturnValue < (WAIT_ABANDONED_0 + EventCount)))
+        {
+            returnValue = STATUS_ABANDONED;
+        }
         else
         {
             returnValue = STATUS_UNSUCCESSFUL;
@@ -317,7 +349,23 @@ Return Value:
     }
     else if (!WaitForAll)
     {
-        returnValue = STATUS_WAIT_0 + (dwordReturnValue - WAIT_OBJECT_0);
+        // NOTE: dwordReturnValue >= WAIT_OBJECT_0 is always TRUE.
+        //
+        if (dwordReturnValue < (WAIT_OBJECT_0 + EventCount))
+        {
+            returnValue = STATUS_WAIT_0 + (dwordReturnValue - WAIT_OBJECT_0);
+        }
+        else if ((dwordReturnValue >= WAIT_ABANDONED_0) &&
+                 (dwordReturnValue < (WAIT_ABANDONED_0 + EventCount)))
+        {
+            // NOTE: Only single status is available.
+            //
+            returnValue = STATUS_ABANDONED;
+        }
+        else
+        {
+            returnValue = STATUS_UNSUCCESSFUL;
+        }
     }
     else
     {
@@ -328,7 +376,7 @@ Return Value:
     WAIT_TYPE waitType;
     DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
 
-    for (UINT eventIndex = 0; eventIndex < EventCount; ++eventIndex)
+    for (ULONG eventIndex = 0; eventIndex < EventCount; ++eventIndex)
     {
         DmfAssert(EventPointer[eventIndex] != NULL);
         waitObjects[eventIndex] = &EventPointer[eventIndex]->Handle;
@@ -348,11 +396,11 @@ Return Value:
     LARGE_INTEGER timeout100ns;
     LARGE_INTEGER* timeout100nsPointer;
     
-    if (! Infinite)
+    if (TimeoutMs != NULL)
     {
         // Caller waits for a maximum time in milliseconds.
         //
-        timeout100ns.QuadPart = WDF_REL_TIMEOUT_IN_MS(TimeoutMs);
+        timeout100ns.QuadPart = WDF_REL_TIMEOUT_IN_MS(*TimeoutMs);
         timeout100nsPointer = &timeout100ns;
     }
     else
@@ -376,6 +424,7 @@ Return Value:
 
     return returnValue;
 }
+#pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID

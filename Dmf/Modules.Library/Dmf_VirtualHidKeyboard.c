@@ -245,8 +245,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    RtlZeroBytes(&inputReport,
-                    sizeof(inputReport));
+    RtlZeroMemory(&inputReport,
+                  sizeof(inputReport));
 
     if (UsagePage == HID_USAGE_PAGE_KEYBOARD)
     {
@@ -333,8 +333,8 @@ Return Value:
     keyIndex = 0;
     while (keyIndex < NumberOfKeysToType)
     {
-        RtlZeroBytes(&inputReport,
-                     sizeof(inputReport));
+        RtlZeroMemory(&inputReport,
+                      sizeof(inputReport));
         if (UsagePage == HID_USAGE_PAGE_KEYBOARD)
         {
             // Modifier remains set for both key up and down events.
