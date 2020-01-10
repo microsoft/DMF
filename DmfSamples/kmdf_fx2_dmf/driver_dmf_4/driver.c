@@ -47,7 +47,6 @@ Environment:
 
 #include <osrusbfx2.h>
 
-#if defined(EVENT_TRACING)
 //
 // The trace message header (.tmh) file must be included in a source file
 // before any WPP macro calls and after defining a WPP_CONTROL_GUIDS
@@ -58,10 +57,6 @@ Environment:
 // is automatically generated and used during post-processing.
 //
 #include "driver.tmh"
-#else
-ULONG DebugLevel = TRACE_LEVEL_INFORMATION;
-ULONG DebugFlag = 0xff;
-#endif
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
@@ -203,79 +198,4 @@ Return Value:
 
     EventUnregisterOSRUSBFX2();
 }
-
-#if !defined(EVENT_TRACING)
-
-VOID
-TraceEvents (
-    _In_ ULONG DebugPrintLevel,
-    _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_
-    _In_ PCSTR DebugMessage,
-    ...
-    )
-
-/*++
-
-Routine Description:
-
-    Debug print for the sample driver.
-
-Arguments:
-
-    DebugPrintLevel - print level between 0 and 3, with 3 the most verbose
-    DebugPrintFlag - message mask
-    DebugMessage - format string of the message to print
-    ... - values used by the format string
-
-Return Value:
-
-    None.
-
- --*/
- {
-#if DBG
-#define     TEMP_BUFFER_SIZE        1024
-    va_list    list;
-    CHAR       debugMessageBuffer[TEMP_BUFFER_SIZE];
-    NTSTATUS   status;
-
-    va_start(list, DebugMessage);
-
-    if (DebugMessage) {
-
-        //
-        // Using new safe string functions instead of _vsnprintf.
-        // This function takes care of NULL terminating if the message
-        // is longer than the buffer.
-        //
-        status = RtlStringCbVPrintfA( debugMessageBuffer,
-                                      sizeof(debugMessageBuffer),
-                                      DebugMessage,
-                                      list );
-        if(!NT_SUCCESS(status)) {
-
-            DbgPrint (_DRIVER_NAME_": RtlStringCbVPrintfA failed 0x%x\n", status);
-            return;
-        }
-        if (DebugPrintLevel <= TRACE_LEVEL_ERROR ||
-            (DebugPrintLevel <= DebugLevel &&
-             ((DebugPrintFlag & DebugFlag) == DebugPrintFlag))) {
-            DbgPrint("%s %s", _DRIVER_NAME_, debugMessageBuffer);
-        }
-    }
-    va_end(list);
-
-    return;
-#else
-    UNREFERENCED_PARAMETER(DebugPrintLevel);
-    UNREFERENCED_PARAMETER(DebugPrintFlag);
-    UNREFERENCED_PARAMETER(DebugMessage);
-#endif
-}
-
-#endif
-
-
-
 
