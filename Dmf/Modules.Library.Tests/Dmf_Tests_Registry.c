@@ -28,10 +28,14 @@ Environment:
 // Module Private Enumerations and Structures
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+// Make this key for User-mode driver non-create operations tests.
+//
+#define REGISTRY_PATH_NAME_USER     L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\DmfUTest"
 #if !defined(DMF_USER_MODE)
-#define REGISTRY_PATH_NAME          L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\DmfKTest"
+    #define REGISTRY_PATH_NAME      L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\DmfKTest"
 #else
-#define REGISTRY_PATH_NAME          L"SOFTWARE\\Microsoft\\DmfUTest"
+    #define REGISTRY_PATH_NAME      L"SOFTWARE\\Microsoft\\DmfUTest"
 #endif
 #define VALUENAME_STRING            L"string"
 #define VALUENAME_MULTISTRING       L"multistring"
@@ -123,6 +127,22 @@ RegistryBranches[] =
     },
 };
 
+static
+Registry_Branch
+RegistryBranchesUser[] =
+{
+    {
+        L"\\subkey1",
+        NULL,
+        0
+    },
+    {
+        L"\\subkey2",
+        NULL,
+        0
+    },
+};
+
 // The sets of branches to be written to the Registry.
 //
 static
@@ -133,6 +153,11 @@ RegistryTree[] =
         REGISTRY_PATH_NAME,
         RegistryBranches,
         ARRAYSIZE(RegistryBranches)
+    },
+    {
+        REGISTRY_PATH_NAME_USER,
+        RegistryBranchesUser,
+        ARRAYSIZE(RegistryBranchesUser)
     },
 };
 #endif
