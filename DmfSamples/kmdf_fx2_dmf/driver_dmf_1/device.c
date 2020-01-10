@@ -24,9 +24,7 @@ Environment:
 
 #include <osrusbfx2.h>
 
-#if defined(EVENT_TRACING)
 #include "device.tmh"
-#endif
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, OsrFxEvtDeviceAdd)

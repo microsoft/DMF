@@ -24,10 +24,7 @@ Environment:
 
 #include <osrusbfx2.h>
 
-#if defined(EVENT_TRACING)
 #include "interrupt.tmh"
-#endif
-
 
 _IRQL_requires_(PASSIVE_LEVEL)
 NTSTATUS

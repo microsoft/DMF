@@ -24,9 +24,7 @@ Environment:
 
 #include <osrusbfx2.h>
 
-#if defined(EVENT_TRACING)
 #include "interrupt.tmh"
-#endif
 
 _Use_decl_annotations_
 VOID

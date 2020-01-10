@@ -23,9 +23,7 @@ Environment:
 
 #include <osrusbfx2.h>
 
-#if defined(EVENT_TRACING)
 #include "ioctl.tmh"
-#endif
 
 #pragma alloc_text(PAGE, OsrFxEvtIoDeviceControl)
 #pragma alloc_text(PAGE, ResetPipe)

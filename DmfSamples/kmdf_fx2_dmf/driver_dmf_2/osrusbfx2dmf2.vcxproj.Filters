@@ -22,7 +22,18 @@
     <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-
+    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MessageCompile Include="osrusbfx2.man">
@@ -33,6 +44,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd">
       <Filter>Header Files</Filter>
     </ClInclude>
