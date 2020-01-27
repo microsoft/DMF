@@ -1090,7 +1090,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-    TraceInformation(DMF_TRACE, "%!FUNC!");
 
     // For SAL.
     // (To be honest, I think it should have been _InOut_.
@@ -1428,6 +1427,13 @@ Exit:
 
     if (dmfObject != NULL)
     {
+        // Add Module name as a custom type for the newly created Module handle.
+        // Data and callbacks are not used as part of the custom type. 
+        //
+        dmfObject->ModuleDescriptor.WdfAddCustomType(dmfModule,
+                                                     0,
+                                                     NULL,
+                                                     NULL);
         DmfAssert(! dmfObject->DynamicModuleImmediate);
         // If this Module is a Dynamic Module or it is an immediate or non-immediate Child
         // of a Dynamic Module, open it now if it should be opened during Create.
@@ -1450,13 +1456,6 @@ Exit:
         }
         if (DmfModule != NULL)
         {
-            // Add Module name as a custom type for the newly created Module handle.
-            // Data and callbacks are not used as part of the custom type. 
-            //
-            dmfObject->ModuleDescriptor.WdfAddCustomType(dmfModule,
-                                                         0,
-                                                         NULL,
-                                                         NULL);
             // Give Client the resultant Module Handle.
             //
             *DmfModule = dmfModule;

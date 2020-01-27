@@ -1564,7 +1564,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Check if action needed [%ws]...", ValueName);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Check if action needed [%ws]...", ValueName);
 
     DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
@@ -1590,11 +1590,11 @@ Return Value:
         if (WriteIfNotFound)
         {
             needsAction = TRUE;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws not found (action will happen)", ValueName);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%ws not found (action will happen)", ValueName);
         }
         else
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws not found (no action will happen)", ValueName);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%ws not found (no action will happen)", ValueName);
         }
     }
     else if (STATUS_BUFFER_OVERFLOW == ntStatus)
@@ -1650,12 +1650,12 @@ Return Value:
                                    ValueDataToWrite,
                                    ValueDataToWriteSize))
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws found needs action", ValueName);
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%ws found needs action", ValueName);
                 needsAction = TRUE;
             }
             else
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws found but needs no action", ValueName);
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%ws found but needs no action", ValueName);
             }
         }
 
@@ -1732,7 +1732,7 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%ws: no action taken", ValueName);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%ws: no action taken", ValueName);
     }
 
 Exit:
@@ -1787,7 +1787,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Action always [%ws]...", ValueName);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Action always [%ws]...", ValueName);
 
     DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
@@ -2276,7 +2276,7 @@ Return Value:
         goto SkipListIteration;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Begin list iteration");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Begin list iteration");
     // Loop ends when the current entry points to the list header.
     //
     while (listEntry != &moduleContext->ListDeferredOperations)
@@ -2304,7 +2304,7 @@ Return Value:
         //
         listEntry = nextListEntry;
     }
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "End list iteration");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "End list iteration");
 
 SkipListIteration:
 
@@ -4000,7 +4000,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_Registry_ScheduledTaskCallbackContainer");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_Registry_ScheduledTaskCallbackContainer");
 
     returnValue = ScheduledTask_WorkResult_FailButTryAgain;
 

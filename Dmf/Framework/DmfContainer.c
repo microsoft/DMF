@@ -1513,7 +1513,7 @@ Return Value:
     if ((! handled) && 
         (! dmfDeviceContext->IsFilterDevice))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: FileObject=0x%p", FileObject);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Unhandled Request: FileObject=0x%p", FileObject);
     }
 
 Exit:
@@ -1569,7 +1569,7 @@ Return Value:
     if ((!handled) &&
         (!dmfDeviceContext->IsFilterDevice))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unhandled Request: FileObject=0x%p", FileObject);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Unhandled Request: FileObject=0x%p", FileObject);
     }
 
     FuncExitVoid(DMF_TRACE);

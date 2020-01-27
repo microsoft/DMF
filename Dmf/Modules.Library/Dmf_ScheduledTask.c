@@ -454,12 +454,12 @@ Return Value:
     {
         case ScheduledTask_ExecuteWhen_PrepareHardware:
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecuteWhen_PrepareHardware");
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "ScheduledTask_ExecuteWhen_PrepareHardware");
             switch (moduleConfig->ExecutionMode)
             {
                 case ScheduledTask_ExecutionMode_Deferred:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecutionMode_Deferred");
+                    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "ScheduledTask_ExecutionMode_Deferred");
                     // Only start the timer if the timer has not started.
                     // This allows the SuccessButTryAgain mode to function without
                     // extra initial timer launches.
@@ -470,7 +470,7 @@ Return Value:
                         // (The first iteration happens immediately. After that, the 
                         // retry interval is used.)
                         //
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START");
+                        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Timer START");
                         moduleContext->TimerIsStarted = TRUE;
                         WdfTimerStart(moduleContext->Timer,
                                       WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimeMsBeforeInitialCall));
@@ -479,7 +479,7 @@ Return Value:
                 }
                 case ScheduledTask_ExecutionMode_Immediate:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_ExecutionMode_Immediate");
+                    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "ScheduledTask_ExecutionMode_Immediate");
 
                     ScheduledTask_Result_Type workResult;
 
@@ -697,7 +697,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set ModuleClosing");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Set ModuleClosing");
     moduleContext->ModuleClosing = TRUE;
 
     FuncExitVoid(DMF_TRACE);
