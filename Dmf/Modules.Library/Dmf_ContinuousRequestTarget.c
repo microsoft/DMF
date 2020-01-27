@@ -1561,7 +1561,7 @@ Return Value:
 #if !defined(DMF_USER_MODE)
     // 1. Make sure no new request will be sent.
     //
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Start Rundown");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Start Rundown");
     DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
     DMF_Portable_Rundown_Completed(&moduleContext->StreamRequestsRundown);
 #endif
@@ -1589,7 +1589,7 @@ Return Value:
     if (0 == moduleContext->StreamingRequestCount)
     {
         DMF_Portable_EventSet(&moduleContext->StreamRequestsRundownCompletionEvent);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "StreamRequestsRundownCompletionEvent SET");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "StreamRequestsRundownCompletionEvent SET");
     }
 #endif
 
@@ -1637,7 +1637,7 @@ Return Value:
     //
     ContinuousRequestTarget_RequestsCancel(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait for in-flight callback");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wait for in-flight callback");
 
     // 3. Wait for any in-flight callback to return.
     //
@@ -1673,7 +1673,7 @@ Return Value:
     }
 #endif
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown Completed");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Rundown Completed");
 
     FuncExitVoid(DMF_TRACE);
 }

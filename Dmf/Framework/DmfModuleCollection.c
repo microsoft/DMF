@@ -3202,7 +3202,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-    TraceInformation(DMF_TRACE, "%!FUNC!");
 
     DmfAssert(ModuleCollectionConfig->DmfPrivate.ClientDriverWdfDevice != NULL);
 
@@ -3664,7 +3663,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-    TraceInformation(DMF_TRACE, "%!FUNC!");
 
     ntStatus = STATUS_UNSUCCESSFUL;
     moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
@@ -3794,7 +3792,6 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
-    TraceInformation(DMF_TRACE, "%!FUNC!");
 
     DmfAssert(Device != NULL);
     DmfAssert(DmfDeviceInitPointer != NULL);

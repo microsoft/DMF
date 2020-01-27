@@ -456,7 +456,7 @@ Return Value:
     //
     if (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE)
     {
-        TraceInformation(DMF_TRACE, "DMF_MODULE_OPTIONS_PASSIVE");
+        TraceVerbose(DMF_TRACE, "DMF_MODULE_OPTIONS_PASSIVE");
 
         DmfAssert(! (moduleDescriptor->ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH));
 
@@ -477,7 +477,7 @@ Return Value:
     }
     else
     {
-        TraceInformation(DMF_TRACE, "DMF_MODULE_OPTIONS_DISPATCH");
+        TraceVerbose(DMF_TRACE, "DMF_MODULE_OPTIONS_DISPATCH");
 
         // Create the Generic DISPATCH_LEVEL Lock for the Auxiliary Synchronization and one device lock.
         //

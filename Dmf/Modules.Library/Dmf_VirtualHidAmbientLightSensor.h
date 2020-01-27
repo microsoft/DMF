@@ -34,15 +34,26 @@ typedef struct
 #pragma pack()
 
 #pragma pack(1)
-
 typedef struct
 {
     USHORT Z;
     USHORT Y;
     USHORT Ir1;
     USHORT X;
-} ACS_RAW_REG_VALUES;
+} ACS_RAW_REGISTER_VALUES_IN_HW_ORDER;
+#pragma pack()
 
+#pragma pack(1)
+typedef struct
+{
+    USHORT X;
+    USHORT Y;
+    USHORT Z;
+    USHORT Ir1;
+} ACS_RAW_REG_VALUES;
+#pragma pack()
+
+#pragma pack(1)
 typedef struct
 {
     LONG Lux;
@@ -57,7 +68,6 @@ typedef struct
 
 // Feature Report
 //
-#pragma pack(1)
 typedef struct
 {
     UCHAR ConnectionType;
