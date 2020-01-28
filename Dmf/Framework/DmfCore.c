@@ -1449,9 +1449,13 @@ Exit:
             // Give Client the resultant Module Handle:
             // PostOpen callback may need to compare contents of the address of the Module it
             // passed with the Module handle passed in the callback. So, set this now before 
-            // PostOpen callback happens.
+            // PostOpen callback happens. It is unlikely that a Client may pass NULL when creating
+            // a Dynamic Module, but it is possible so allow for that possibility.
             //
-            *DmfModule = dmfModule;
+            if (DmfModule != NULL)
+            {
+                *DmfModule = dmfModule;
+            }
             // Since it is a Dynamic Module, Open or register for Notification as specified by the Module's
             // Open Option.
             //
