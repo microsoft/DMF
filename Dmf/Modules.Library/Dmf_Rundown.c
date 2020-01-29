@@ -409,8 +409,8 @@ Return Value:
     //
     const ULONG referenceCountPollingIntervalMs = 100;
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 Rundown);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            Rundown);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -421,10 +421,6 @@ Return Value:
     //
     moduleContext->WaitingForRundown = TRUE;
     referenceCount = moduleContext->ReferenceCount;
-
-    // Ensure Client called DMF_Rundown_Start() before calling this Method.
-    //
-    DmfAssert(referenceCount >= 1);
 
     DMF_ModuleUnlock(DmfModule);
 
@@ -492,10 +488,6 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_ModuleLock(DmfModule);
-
-    // Client must call DMF_Rundown_Start() before calling this Method.
-    //
-    DmfAssert(moduleContext->ReferenceCount >= 1);
 
     // Increase reference only if Module is open (ReferenceCount >= 1) and if the Module close is not pending.
     // This is to stop new Module method callers from repeatedly accessing the Module when it should be closing.
