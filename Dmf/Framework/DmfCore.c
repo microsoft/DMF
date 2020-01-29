@@ -1425,6 +1425,8 @@ Exit:
         dmfObject = NULL;
     }
 
+    // If the Module has been successfully created, perform final operations prior to returning.
+    //
     if (dmfObject != NULL)
     {
         // Add Module name as a custom type for the newly created Module handle.
@@ -1440,10 +1442,20 @@ Exit:
         //
         if (DmfModuleAttributes->DynamicModuleImmediate)
         {
+            // Dynamic Module Path:
             // Remember it is Dynamic Module so it can be automatically closed prior to destruction.
-            // (Client no longer has access to Open/Close API.)
             //
             dmfObject->DynamicModuleImmediate = TRUE;
+            // Give Client the resultant Module Handle:
+            // PostOpen callback may need to compare contents of the address of the Module it
+            // passed with the Module handle passed in the callback. So, set this now before 
+            // PostOpen callback happens. It is unlikely that a Client may pass NULL when creating
+            // a Dynamic Module, but it is possible so allow for that possibility.
+            //
+            if (DmfModule != NULL)
+            {
+                *DmfModule = dmfModule;
+            }
             // Since it is a Dynamic Module, Open or register for Notification as specified by the Module's
             // Open Option.
             //
@@ -1454,11 +1466,17 @@ Exit:
                 goto Exit;
             }
         }
-        if (DmfModule != NULL)
+        else
         {
-            // Give Client the resultant Module Handle.
+            // Static Module path:
+            // Return the Module handle if requested by Client.
             //
-            *DmfModule = dmfModule;
+            if (DmfModule != NULL)
+            {
+                // Give Client the resultant Module Handle.
+                //
+                *DmfModule = dmfModule;
+            }
         }
     }
 

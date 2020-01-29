@@ -148,6 +148,9 @@ typedef struct
 #endif // defined(DMF_USER_MODE)
 
     DMFMODULE DmfModuleBufferQueue;
+    // Ensures that Module Open/Close are called a single time.
+    //
+    LONG NumberOfTargetsCreated;
 
     // Redirect Input buffer callback from ContinuousRequestTarget to this callback.
     //
@@ -467,7 +470,7 @@ Return Value:
 
     // No lock is used here, since the pnp callback is synchronous.
     //
-    if (DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) == 0)
+    if (InterlockedDecrement(&moduleContext->NumberOfTargetsCreated) == 0)
     {
         // Close the Module.
         //
@@ -1548,7 +1551,7 @@ Return Value:
         // No lock is used here, since the PnP callback is synchronous.
         // TODO: Optimize the callback, by queuing a workitem to do all the work. 
         //
-        if (DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) == 0)
+        if (InterlockedIncrement(&moduleContext->NumberOfTargetsCreated) == 1)
         {
             ntStatus = DMF_ModuleOpen(DmfModule);
             if (!NT_SUCCESS(ntStatus))
