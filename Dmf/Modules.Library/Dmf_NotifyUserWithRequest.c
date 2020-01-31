@@ -294,7 +294,7 @@ Return Value:
                                      &request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoQueueFindRequest failed: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoQueueFindRequest fails: ntStatus=%!STATUS!", ntStatus);
         // Correct the error status.
         //
         ntStatus = STATUS_SUCCESS;
@@ -336,7 +336,7 @@ Return Value:
         // Failed to complete the request.
         //
         ntStatus = STATUS_INTERNAL_ERROR;
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn failed to complete request.");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn fails to complete request.");
         moduleConfig = DMF_CONFIG_GET(DmfModule);
 #if defined(DMF_USER_MODE)
         DMF_Utility_EventLogEntryWriteUserMode(moduleConfig->ClientDriverProviderName,
@@ -681,14 +681,13 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = STATUS_SUCCESS;
-    isLocked = FALSE;
-
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  NotifyUserWithRequest);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    ntStatus = STATUS_SUCCESS;
+    isLocked = FALSE;
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     DmfAssert(((EventCallbackContext != NULL) && moduleConfig->SizeOfDataBuffer > 0) ||
@@ -808,8 +807,14 @@ Return Value:
                                  NotifyUserWithRequest);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoDereference;
+    }
 
     if (InterlockedIncrement(&moduleContext->EventCountHeld) > moduleConfig->MaximumNumberOfPendingRequests)
     {
@@ -835,6 +840,10 @@ Return Value:
     }
 
 Exit:
+
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoDereference:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -877,13 +886,20 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  NotifyUserWithRequest);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoDereference;
+    }
+
     // Store the request.
     //
     ntStatus = DMF_NotifyUserWithRequest_EventRequestAdd(DmfModule,
                                                          Request);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_NotifyUserWithRequest_EventRequestAdd failed with ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_NotifyUserWithRequest_EventRequestAdd fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -892,11 +908,15 @@ Return Value:
     ntStatus = NotifyUserWithRequest_CompleteRequestWithEventData(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NotifyUserWithRequest_CompleteRequestWithEventData failed with ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NotifyUserWithRequest_CompleteRequestWithEventData fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
 Exit:
+
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoDereference:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -936,6 +956,7 @@ Return Value:
 ++*/
 {
     ULONG numberOfRequestsCompleted;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
@@ -943,6 +964,13 @@ Return Value:
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  NotifyUserWithRequest);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
 
     numberOfRequestsCompleted = NotifyUserWithRequest_EventRequestReturn(DmfModule,
                                                                          EventCallbackFunction,
@@ -956,6 +984,10 @@ Return Value:
     {
         DmfAssert(1 == numberOfRequestsCompleted);
     }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -994,6 +1026,7 @@ Return Value:
     ULONG numberOfRequestsCompletedThisCall;
     ULONG numberOfRequestsToComplete;
     DMF_CONTEXT_NotifyUserWithRequest* moduleContext;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
@@ -1005,17 +1038,24 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
                                             NotifyUserWithRequest);
 
+    numberOfRequestsCompleted = 0;
+    numberOfRequestsCompletedThisCall = 0;
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     // Find number of requests in queue (There will be at least 1 request per Application).
     //
     numberOfRequestsToComplete = moduleContext->EventCountHeld;
 
-    // Complete all the requests in the queue at this time.
+    // Complete all the requests in the queue.
     //
-    numberOfRequestsCompleted = 0;
-    numberOfRequestsCompletedThisCall = 0;
-
     do
     {
         numberOfRequestsCompletedThisCall = NotifyUserWithRequest_EventRequestReturn(DmfModule,
@@ -1030,6 +1070,10 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Event lost because there are no pending requests!");
     }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of requests completed = %u", numberOfRequestsCompleted);
 
@@ -1078,18 +1122,29 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  NotifyUserWithRequest);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     numberOfRequestsCompleted = NotifyUserWithRequest_EventRequestReturn(DmfModule,
                                                                          EventCallbackFunction,
                                                                          EventCallbackContext,
                                                                          NtStatus);
     if (0 == numberOfRequestsCompleted)
     {
-        ntStatus = STATUS_UNSUCCESSFUL;   
+        ntStatus = STATUS_UNSUCCESSFUL;
     }
     else
     {
         ntStatus = STATUS_SUCCESS;
     }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 
