@@ -175,6 +175,10 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfFdoSetFilter](#dmf_dmffdosetfilter)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDereference](#dmf_moduledereference)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleReference](#dmf_modulereference)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModulesCreate](#dmf_modulescreate)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Client Driver DMF Callbacks](#client-driver-dmf-callbacks)
@@ -345,19 +349,25 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[WdfObjectGet_DMFMODULE 188](#wdfobjectget_dmfmodule)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Portable API 189](#portable-api)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FilterControl API 189](#filtercontrol-api)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventCreate 190](#dmf_portable_eventcreate)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterControl_DeviceCreate](#dmf_filtercontrol_devicecreate)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventSet 191](#dmf_portable_eventset)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterControl_DeviceDelete](#dmf_filtercontrol_devicedelete)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventReset 192](#dmf_portable_eventreset)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Portable API 191](#portable-api)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventCreate](#dmf_portable_eventcreate)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventSet](#dmf_portable_eventset)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventReset](#dmf_portable_eventreset)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventWaitForSingle](#dmf_portable_eventwaitforsingle)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventWaitForMultiple](#dmf_portable_eventwaitformultiple)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventClose 194](#dmf_portable_eventclose)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventClose](#dmf_portable_eventclose)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_LookasideListCreate](#dmf_portable_lookasidelistcreate)
 
@@ -3647,6 +3657,75 @@ None
 
 -   See SwitchBar3 sample.
 
+### DMF_ModuleDereference
+```
+NTSTATUS
+DMF_ModuleDereference(
+    _In_ DMFMODULE DmfModule
+    )
+```
+The Client uses this function after having called `DMF_ModuleReference()` to tell the given Module that its
+underlying resources re no longer in use.
+
+#### Parameters
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **DMFMODULE DmfModule**   |     The given DMFMODULE.
+
+#### Returns
+
+None
+
+#### Remarks
+
+-   See `DMF_ModuleReference()`.
+-   **When `DMF_ModuleReference()` returns STATUS_SUCCESS, the caller must always call `DMF_Module_Dereference()`.**
+-   Do not call `DMF_ModuleDereference()` if `DMF_ModuleReference()` returns an error.
+
+#### Example
+
+-   See `DMF_ModuleReference()`.
+
+### DMF_ModuleReference
+```
+NTSTATUS
+DMF_ModuleReference(
+    _In_ DMFMODULE DmfModule
+    )
+```
+The Client uses this function to tell DMF that the given Module's resources will be
+used and that the Module must remain open until a corresponding `DMF_ModuleDereference()` call
+is made. If the Module is closed or in a state of closing, then this function returns an
+error and the Client must not use the Module's resources.
+
+#### Parameters
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **DMFMODULE DmfModule**   |     The given DMFMODULE.
+
+#### Returns
+
+STATUS_SUCCESS indicates that the caller may use the given Module's resources.
+STATUS_INVALID_DEVICE_STATE indicates that the given Module is closed or closing and its resources may not be used.
+
+#### Remarks
+
+-   It is never necessary to use `DMF_Module_Reference()` when calling a Module's Methods because the Methods
+    make this call on behalf of the caller.
+-   Some Module's (see below) allow a Client to access its resources directly so that underlying WDF APIs
+    can be called. In that case, it is important to use this API to synchronize with possible asynchronous arrival/removal
+    of the resource(s).
+-   **When this function returns STATUS_SUCCESS, the caller must always call `DMF_Module_Dereference()`.**
+
+#### Example
+
+-   Clients should use `DMF_ModuleReference()` when using the `WDFIOTARGET` retrieved from the following Methods:
+    `DMF_DeviceInterfaceTarget_IoTargetGet()`
+    `DMF_DeviceInterfaceMultipleTarget_IoTargetGet()`
+    `DMF_SerialTarget_IoTargetGet()`
+-   Clients should use this `DMF_ModuleReference()` for other Modules that allow the Client to access its resources.
+-   Do not call `DMF_ModuleDereference()` if `DMF_ModuleReference()` returns an error.
+
 ### DMF_ModulesCreate
 ```
 NTSTATUS
@@ -6742,6 +6821,63 @@ The address that contains the **DMFMODULE** context area.
 
 -   This function is used, for example, when passing a **DMFMODULE** in
     the context of a **WDFTIMER**.
+
+FilterControl API
+-----------------
+
+### DMF_FilterControl_DeviceCreate
+```
+NTSTATUS
+DMF_FilterControl_DeviceCreate(
+    _In_ WDFDEVICE Device,
+    _In_opt_ DMF_CONFIG_BranchTrack* FilterBranchTrackConfig,
+    _In_opt_ PWDF_IO_QUEUE_CONFIG QueueConfig,
+    _In_ WCHAR* ControlDeviceName
+    )
+```
+This function creates a Control Device, stores the Control Device handle in DMF device context and enables BranchTrack for Control Device.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  WDFDEVICE Device | The given WDFDEVICE.
+  DMF_CONFIG_BranchTrack* FilterBranchTrackConfig | BranchTrack Module Config.
+  PWDF_IO_QUEUE_CONFIG QueueConfig | The Client Driver passes an initialized structure or NULL if not used.
+  WCHAR* ControlDeviceName    |  The name of the Filter Control Device to create.
+
+#### Returns
+
+STATUS_SUCCESS if the Control Device Object is successfully created. Otherwise an error code is returned.
+
+#### Remarks
+
+-   Client Driver provides QueueConfig if it wants to process IOCTLs from User-mode. In that case create the default queue for control device here, to enable Client IOCTL callback to be dispatched. If not, DMF will create a default queue for control device.
+
+-   Client Driver must delete the control device object after the framework has deleted all FilterControlDevice instances that were created. To determine when the framework has deleted the Device Objects, Client Driver should provide EvtCleanupCallback functions for the object and invoke DMF_FilterControl_DeviceDelete in that callback.
+
+### DMF_FilterControl_DeviceDelete
+```
+VOID
+DMF_FilterControl_DeviceDelete(
+    _In_ WDFDEVICE Device,
+    )
+```
+This function deletes the control device object after all FilterControlDevice instances have been deleted.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  WDFDEVICE Device | The given WDFDEVICE.
+
+#### Returns
+
+None
+
+#### Remarks
+
+-   Client Driver should invoke DMF_FilterControl_DeviceDelete in the EvtCleanupCallback functions.
 
 Portable API
 ------------
