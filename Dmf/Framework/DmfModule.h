@@ -792,19 +792,6 @@ DMF_IsModulePassiveLevel(
     _In_ DMFMODULE DmfModule
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_Must_inspect_result_
-NTSTATUS
-DMF_ModuleReference(
-    _In_ DMFMODULE DmfModule
-    );
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
-DMF_ModuleDereference(
-    _In_ DMFMODULE DmfModule
-    );
-
 VOID
 DMF_ModuleInContextSave(
     _In_ WDFOBJECT WdfObject,

@@ -1289,6 +1289,19 @@ DMF_ModuleConfigRetrieve(
     _In_ size_t ModuleConfigSize
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleReference(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ModuleDereference(
+    _In_ DMFMODULE DmfModule
+    );
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Filter Driver Support (FilterControl API)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1302,7 +1315,7 @@ DMF_FilterControl_DeviceCreate(
     _In_ WDFDEVICE Device,
     _In_opt_ DMF_CONFIG_BranchTrack* FilterBranchTrackConfig,
     _In_opt_ PWDF_IO_QUEUE_CONFIG QueueConfig,
-    _In_ PWCHAR ControlDeviceName
+    _In_ WCHAR* ControlDeviceName
     );
 
 _IRQL_always_function_max_(PASSIVE_LEVEL)
