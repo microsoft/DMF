@@ -31,6 +31,9 @@ Environment:
 
 typedef struct
 {
+    // The only Filter Control Device for each driver.
+    //
+    WDFDEVICE FilterControlDevice;
     // List of all the filtered WDFDEVICE objects.
     //
     WDFCOLLECTION FilterDeviceCollection;
@@ -233,6 +236,7 @@ Return Value:
 
     // We can unlock here because another WdfCollectionAdd cannot occur till the end of this function
     // due to the sequential nature of its caller DeviceAdd.
+    //
     DMF_FilterControl_Unlock();
 
     if (1 == numberOfDevicesInCollection)
@@ -316,16 +320,24 @@ Return Value:
         // rejected until this call is made.
         //
         WdfControlFinishInitializing(controlDevice);
+
+        // When control device is created for the first time, store it in the filter control global variable.
+        // This will be used by all subsequent devices.
+        //
+        g_DMF_FilterControlGlobals.FilterControlDevice = controlDevice;
     }
 
     ntStatus = STATUS_SUCCESS;
-    dmfDeviceContext->WdfControlDevice = controlDevice;
+    // Assign the global filter control device to the control device in device context.
+    // This allows Modules to have easy access to this device.
+    //
+    dmfDeviceContext->WdfControlDevice = g_DMF_FilterControlGlobals.FilterControlDevice;
     goto Exit;
 
 Error:
 
     DMF_FilterControl_Lock();
-    //Remove item added above since it is no longer valid because this function has failed.
+    // Remove item added above since it is no longer valid because this function has failed.
     //
     WdfCollectionRemoveItem(g_DMF_FilterControlGlobals.FilterDeviceCollection,
                             0);
@@ -338,6 +350,7 @@ Error:
         //
         WdfObjectDelete(controlDevice);
         controlDevice = NULL;
+        g_DMF_FilterControlGlobals.FilterControlDevice = NULL;
     }
 
     if (deviceInit != NULL)
@@ -377,10 +390,12 @@ Return Value:
     ULONG collectionIndex;
     WDFDEVICE deviceToDelete;
     WDFDEVICE deviceInCollection;
+    BOOLEAN foundDeviceInCollection;
 
     FuncEntry(DMF_TRACE);
 
     deviceToDelete = NULL;
+    foundDeviceInCollection = FALSE;
 
     DMF_FilterControl_Lock();
 
@@ -391,26 +406,38 @@ Return Value:
                                                              collectionIndex);
         if (Device == deviceInCollection)
         {
+            foundDeviceInCollection = TRUE;
             WdfCollectionRemoveItem(g_DMF_FilterControlGlobals.FilterDeviceCollection,
                                     collectionIndex);
+            // Reduce the count of devices remaining in the collection. 
+            // The Control Device is deleted when this count goes to 0.
+            //
+            numberOfDevicesInCollection--;
             break;
         }
     }
-    if (collectionIndex == numberOfDevicesInCollection)
+    // Device was not found in collection.
+    // This can happen when DMF_FilterControl_DeviceCreate fails but client driver ignores the failure.
+    //
+    if (FALSE == foundDeviceInCollection)
     {
         TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Device 0x%p not found in Filter Device Collection", Device);
     }   
 
     dmfDeviceContext = DmfDeviceContextGet(Device);
 
-    if (1 == numberOfDevicesInCollection)
+    if (0 == numberOfDevicesInCollection)
     {
         // We should avoid holding locks when calling into WDF to avoid deadlocks.
         // So store the device to delete in context in a local variable,
-        // clear the device in context while lock is held and the delete the local variable later.
+        // clear the device in context while lock is held and then delete the local variable later.
+        // This device to delete and the global filter control device can be NULL in the case when 
+        // DMF_FilterControl_DeviceCreate was attempted but failed.
         //
         deviceToDelete = dmfDeviceContext->WdfControlDevice;
+        DmfAssert(deviceToDelete == g_DMF_FilterControlGlobals.FilterControlDevice);
         dmfDeviceContext->WdfControlDevice = NULL;
+        g_DMF_FilterControlGlobals.FilterControlDevice = NULL;
     }
 
     DMF_FilterControl_Unlock();
