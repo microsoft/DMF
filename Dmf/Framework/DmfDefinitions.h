@@ -73,7 +73,7 @@ extern "C"
 
 // Check that the Windows version is 19H1 or earlier. The supported versions are defined in sdkddkver.h.
 //
-#define IS_WIN10_19H1_OR_EARLIER (NTDDI_WIN10_19H1 && (NTDDI_VERSION <= NTDDI_WIN10_19H1))
+#define IS_WIN10_19H1_OR_EARLIER (!(NTDDI_WIN10_19H1 && (NTDDI_VERSION > NTDDI_WIN10_19H1)))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
