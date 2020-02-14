@@ -142,6 +142,12 @@
       <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppEnabled>
       <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppEnabled>
       <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppEnabled>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">stdcpp17</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">stdcpp17</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpp17</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
@@ -171,6 +177,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_File.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_HingeAngle.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_I2cTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
@@ -182,6 +189,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RequestTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ScheduledTask.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_SimpleOrientation.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SpbTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
@@ -192,6 +200,7 @@
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Trace.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_MobileBroadband.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_AlertableSleep.c" />
@@ -200,6 +209,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdateHidTransport.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_File.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_HingeAngle.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_I2cTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
@@ -211,6 +221,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Registry.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RequestTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_SimpleOrientation.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
@@ -219,6 +230,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_MobileBroadband.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc" />
@@ -236,14 +248,17 @@
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_File.md" />
     <None Include="..\..\Modules.Library\Dmf_HidTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_HingeAngle.md" />
     <None Include="..\..\Modules.Library\Dmf_I2cTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
+    <None Include="..\..\Modules.Library\Dmf_MobileBroadband.md" />
     <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.md" />
     <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md" />
     <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />
     <None Include="..\..\Modules.Library\Dmf_Registry.md" />
     <None Include="..\..\Modules.Library\Dmf_ScheduledTask.md" />
+    <None Include="..\..\Modules.Library\Dmf_SimpleOrientation.md" />
     <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_String.md" />

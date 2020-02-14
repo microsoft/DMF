@@ -19,6 +19,11 @@ Environment:
 
 #pragma once
 
+// Include DMF Framework and Public Modules.
+//
+#include "..\Modules.Library\DmfModules.Library.h"
+#include "DmfModules.Template.Public.h"
+
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.
 //
@@ -26,11 +31,6 @@ Environment:
 extern "C"
 {
 #endif // defined(__cplusplus)
-
-// Include DMF Framework and Public Modules.
-//
-#include "..\Modules.Library\DmfModules.Library.h"
-#include "DmfModules.Template.Public.h"
 
 // Other library specific includes.
 //

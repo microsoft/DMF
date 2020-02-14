@@ -37,11 +37,11 @@ EVT_DMF_ResourceHub_DispatchTransferList(_In_ DMFMODULE DmfModule,
 
 typedef enum
 {
-    Reserved = 0,
-    I2C,
-    SPI,
-    UART
-} DIRECTFW_SERIAL_BUS_TYPE;
+    ResourceHub_Reserved = 0,
+    ResourceHub_I2C,
+    ResourceHub_SPI,
+    ResourceHub_UART
+} ResourceHub_DIRECTFW_SERIAL_BUS_TYPE;
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -49,7 +49,7 @@ typedef struct
 {
     // TODO: Currently only I2C is supported.
     //
-    DIRECTFW_SERIAL_BUS_TYPE TargetBusType;
+    ResourceHub_DIRECTFW_SERIAL_BUS_TYPE TargetBusType;
     // Callback to get TransferList from Spb.
     //
     EVT_DMF_ResourceHub_DispatchTransferList* EvtResourceHubDispatchTransferList;

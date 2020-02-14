@@ -246,7 +246,7 @@ ResourceHub_ParseGenericSerialBusDescriptor(
     _In_  DMFMODULE DmfModule,
     _In_bytecount_(BiosDescriptorLength) VOID* BiosDescriptor,
     _In_ size_t BiosDescriptorLength,
-    _Out_ DIRECTFW_SERIAL_BUS_TYPE* SerialBusType,
+    _Out_ ResourceHub_DIRECTFW_SERIAL_BUS_TYPE* SerialBusType,
     _Out_ __deref_bcount(*TypeSpecificDataLength) VOID* * TypeSpecificData,
     _Out_ ULONG* TypeSpecificDataLength,
     _Out_opt_ UCHAR** ResourcePath
@@ -341,7 +341,7 @@ Return Value:
 
     // Extract SerialBusType.
     //
-    *SerialBusType = (DIRECTFW_SERIAL_BUS_TYPE)serialBusDescriptor->SerialBusType;
+    *SerialBusType = (ResourceHub_DIRECTFW_SERIAL_BUS_TYPE)serialBusDescriptor->SerialBusType;
 
     // Extract pointer to type specific data section and resource path.
     //
@@ -954,7 +954,7 @@ Return Value:
     WDFMEMORY connectionProperties;
     VOID* connectionPropertiesBuffer;
     size_t connectionPropertiesLength;
-    DIRECTFW_SERIAL_BUS_TYPE serialBusType;
+    ResourceHub_DIRECTFW_SERIAL_BUS_TYPE serialBusType;
     VOID* typeSpecificData;
     ULONG typeSpecificDataLength;
     USHORT secondaryDeviceAddress;
@@ -1066,7 +1066,7 @@ Return Value:
             goto Exit;
         }
 
-        if (serialBusType != I2C)
+        if (serialBusType != ResourceHub_I2C)
         {
             ntStatus = STATUS_UNSUCCESSFUL;
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "GenericSerialBus descriptor subtype not I2C: 0x%x ntStatus=%!STATUS!", serialBusType, ntStatus);
