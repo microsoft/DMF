@@ -66,6 +66,7 @@ typedef struct
 } VirtualHidAmbientLightSensor_ALS_INPUT_REPORT_EXTENDED_DATA;
 #pragma pack()
 
+#pragma pack(1)
 // Feature Report
 //
 typedef struct

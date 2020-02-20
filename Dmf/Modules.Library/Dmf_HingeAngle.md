@@ -21,7 +21,7 @@ typedef struct
 {
     // Specific hinge angle device Id to open. This is optional.
     //
-    winrt::hstring DeviceId;
+    WCHAR* DeviceId;
     // Report threshold in degrees.
     //
     double ReportThresholdInDegrees;

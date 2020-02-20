@@ -1,6 +1,7 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT license.
 
 Module Name:
 
@@ -26,10 +27,9 @@ Environment:
 
 #include "Dmf_MobileBroadband.tmh"
 
-// This Module uses C++/WinRT so it needs RS5+ support. 
-// This code will not be compiled in RS4 and below.
+// Only support 19H1 and above because of library size limitations on RS5.
 //
-#if IS_WIN10_RS5_OR_LATER
+#if IS_WIN10_19H1_OR_LATER
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures

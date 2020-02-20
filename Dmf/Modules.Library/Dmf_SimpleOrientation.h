@@ -2,6 +2,7 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT license.
 
 Module Name:
 
@@ -17,17 +18,26 @@ Environment:
 
 --*/
 
-// This Module uses C++/WinRT so it needs RS5+ support. 
-// This code will not be compiled in RS4 and below.
+// Only support 19H1 and above because of library size limitations on RS5.
 //
-#if defined(DMF_USER_MODE) && IS_WIN10_RS5_OR_LATER && defined(__cplusplus)
+#if defined(DMF_USER_MODE) && IS_WIN10_19H1_OR_LATER && defined(__cplusplus)
 
-#include "winrt/Windows.Devices.Sensors.h"
+// Enum copy from WinRT SimpleOrientation class enum.
+//
+typedef enum class _SIMPLE_ORIENTATION_STATE
+{
+    NotRotated = 0,
+    Rotated90DegreesCounterclockwise = 1,
+    Rotated180DegreesCounterclockwise = 2,
+    Rotated270DegreesCounterclockwise = 3,
+    Faceup = 4,
+    Facedown = 5,
+} SimpleOrientation_State;
 
 typedef struct _SIMPLE_ORIENTATION_SENSOR_STATE
 {
     BOOLEAN IsSensorValid;
-    winrt::Windows::Devices::Sensors::SimpleOrientation CurrentSimpleOrientation;
+    SimpleOrientation_State CurrentSimpleOrientation;
 } SIMPLE_ORIENTATION_SENSOR_STATE;
 
 // DMF Module event callback.
@@ -47,7 +57,7 @@ typedef struct
 {
     // Specific simple orientation device Id to open. This is optional.
     //
-    winrt::hstring DeviceId;
+    WCHAR* DeviceId;
     // Callback to inform Parent Module that simple orientation has new changed reading.
     //
     EVT_DMF_SimpleOrientation_SimpleOrientationSensorReadingChangeCallback* EvtSimpleOrientationReadingChangeCallback;
@@ -85,7 +95,7 @@ DMF_SimpleOrientation_Stop(
     _In_ DMFMODULE DmfModule
     );
 
-#endif // defined(DMF_USER_MODE) && defined(IS_WIN10_RS5_OR_LATER) && defined(__cplusplus)
+#endif // IS_WIN10_19H1_OR_LATER
 
 // eof: Dmf_SimpleOrientation.h
 //

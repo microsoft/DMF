@@ -88,16 +88,11 @@ extern "C"
 #include "Dmf_Rundown.h"
 #include "Dmf_File.h"
 #include "Dmf_MobileBroadband.h"
+#include "Dmf_HingeAngle.h"
+#include "Dmf_SimpleOrientation.h"
 
 #if defined(__cplusplus)
 }
-
-// C++ only DMF header files. (These header files require C++ and are only 
-// usable by C++ Clients.)
-//
-#include "Dmf_SimpleOrientation.h"
-#include "Dmf_HingeAngle.h"
-
 #endif // defined(__cplusplus)
 
 // eof: DmfModules.Library.h
