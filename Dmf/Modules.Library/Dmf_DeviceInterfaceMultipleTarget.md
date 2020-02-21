@@ -195,7 +195,7 @@ ClientBuffer | The given DMF_BufferPool buffer.
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Get(
     _In_ DMFMODULE DmfModule,
     _In_ DMFIOTARGET Target,
@@ -207,7 +207,7 @@ Gives the Client direct access to the WDFIOTARGET handle associated with the giv
 
 ##### Returns
 
-None
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -217,6 +217,39 @@ Target | The given DMFIOTARGET handle.
 IoTarget | The address where the Client reads the WDFIOTARGET handle after this Method completes.
 
 ##### Remarks
+
+* Clients should call DMF_ModuleReference() before using the returned handle in order to synchronize with possible asynchronous removal.
+* Clients should call DMF_ModuleDereferece() after using the returned handle in order to synchronize with possible asynchronous removal.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_DeviceInterfaceMultipleTarget_GuidGet
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_GuidGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ GUID* Guid
+    );
+````
+
+The device interface GUID associated with this Module's WDFIOTARGET.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceMultipleTarget Module handle.
+Guid | The device interface GUID associated with this Module's WDFIOTARGET.
+
+##### Remarks
+
+* Clients use this Method when the same callback is used for multiple device interfaces.
+* The callback can use this Method to determine which device interface has called the Client.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
