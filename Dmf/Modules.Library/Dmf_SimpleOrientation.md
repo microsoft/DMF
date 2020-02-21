@@ -21,7 +21,7 @@ typedef struct
 {
     // Specific Simple Orientation device Id to open. This is optional.
     //
-    winrt::hstring DeviceId;
+    WCHAR* DeviceId;
     // Callback to inform Parent Module that Simple Orientation has new changed reading.
     //
     EVT_DMF_SimpleOrientation_SimpleOrientationSensorReadingChangeCallback* EvtSimpleOrientationReadingChangeCallback;

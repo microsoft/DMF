@@ -75,6 +75,10 @@ extern "C"
 //
 #define IS_WIN10_19H1_OR_EARLIER (!(NTDDI_WIN10_19H1 && (NTDDI_VERSION > NTDDI_WIN10_19H1)))
 
+// Check that the Windows version is 19H1 or later. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_19H1_OR_LATER (NTDDI_WIN10_19H1 && (NTDDI_VERSION >= NTDDI_WIN10_19H1))
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // All include files needed by all Modules and the Framework.

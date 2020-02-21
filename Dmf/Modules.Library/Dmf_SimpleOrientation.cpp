@@ -1,6 +1,7 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT license.
 
 Module Name:
 
@@ -26,10 +27,9 @@ Environment:
 
 #include "Dmf_SimpleOrientation.tmh"
 
-// This Module uses C++/WinRT so it needs RS5+ support. 
-// This code will not be compiled in RS4 and below.
+// Only support 19H1 and above because of library size limitations on RS5.
 //
-#if defined(DMF_USER_MODE) && IS_WIN10_RS5_OR_LATER && defined(__cplusplus)
+#if defined(DMF_USER_MODE) && IS_WIN10_19H1_OR_LATER && defined(__cplusplus)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -492,7 +492,7 @@ Return Value:
 
     SimpleOrientationSensorReadingDataContainer* simpleOrientationSensorReadingDataContainer = (SimpleOrientationSensorReadingDataContainer*)ClientWorkBuffer;
 
-    simpleOrientationDevice->simpleOrientationState.CurrentSimpleOrientation = simpleOrientationSensorReadingDataContainer->simpleOrientationSensorReadingData->simpleOrientationSensorOrientationChangedEventArgs.Orientation();
+    simpleOrientationDevice->simpleOrientationState.CurrentSimpleOrientation = (SimpleOrientation_State)simpleOrientationSensorReadingDataContainer->simpleOrientationSensorReadingData->simpleOrientationSensorOrientationChangedEventArgs.Orientation();
 
     if (simpleOrientationDevice->EvtSimpleOrientationReadingChangeCallback != nullptr)
     {
@@ -530,7 +530,6 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_SimpleOrientation* moduleContext;
-    DMF_CONFIG_SimpleOrientation* moduleConfig;
 
     PAGED_CODE();
 
@@ -538,10 +537,7 @@ Return Value:
 
     ntStatus = STATUS_UNSUCCESSFUL;
     moduleContext = DMF_CONTEXT_GET(thisModuleHandle);
-    moduleConfig = DMF_CONFIG_GET(thisModuleHandle);
 
-    // Create device watcher according to the sensor GUID from ModuleConfig.
-    //
     deviceWatcher = DeviceInformation::CreateWatcher(SimpleOrientationSensor::GetDeviceSelector());
 
     // Using lambda function is necessary here, because it need access variables that outside function scope,
@@ -918,7 +914,7 @@ Return Value:
     }
 
     moduleContext->simpleOrientationDevice->thisModuleHandle = DmfModule;
-    moduleContext->simpleOrientationDevice->DeviceIdToFind = moduleConfig->DeviceId;
+    moduleContext->simpleOrientationDevice->DeviceIdToFind = to_hstring(moduleConfig->DeviceId);
     moduleContext->simpleOrientationDevice->EvtSimpleOrientationReadingChangeCallback = moduleConfig->EvtSimpleOrientationReadingChangeCallback;
     ntStatus = moduleContext->simpleOrientationDevice->Initialize();
 
@@ -1241,7 +1237,7 @@ Return Value:
         goto Exit;
     }
 
-    moduleContext->simpleOrientationDevice->simpleOrientationState.CurrentSimpleOrientation = currentSimpleOrientation;
+    moduleContext->simpleOrientationDevice->simpleOrientationState.CurrentSimpleOrientation = (SimpleOrientation_State)currentSimpleOrientation;
     *CurrentState = moduleContext->simpleOrientationDevice->simpleOrientationState;
 
     ntStatus = STATUS_SUCCESS;
@@ -1364,7 +1360,7 @@ ExitNoRelease:
 }
 #pragma code_seg()
 
-#endif // defined(DMF_USER_MODE) && defined(IS_WIN10_RS5_OR_LATER) && defined(__cplusplus)
+#endif // IS_WIN10_19H1_OR_LATER
 
 // eof: Dmf_SimpleOrientation.cpp
 //

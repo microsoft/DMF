@@ -2,6 +2,7 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT license.
 
 Module Name:
 
@@ -16,11 +17,6 @@ Environment:
     User-mode Driver Framework
 
 --*/
-
-// This Module uses C++\WinRT so it needs RS5+ support. 
-// This code will not be compiled in RS4 and below.
-//
-#if IS_WIN10_RS5_OR_LATER
 
 typedef struct _MOBILEBROADBAND_WIRELESS_STATE
 {
@@ -105,8 +101,6 @@ DMF_MobileBroadband_WirelessStateGet(
     _In_ DMFMODULE DmfModule,
     _Out_ MobileBroadband_WIRELESS_STATE* MobileBroadbandWirelessState
     );
-
-#endif
 
 // eof: Dmf_MobileBroadband.h
 //

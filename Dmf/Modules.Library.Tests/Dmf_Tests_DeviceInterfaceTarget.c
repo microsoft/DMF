@@ -115,10 +115,13 @@ Tests_DeviceInterfaceTarget_BufferInput(
     )
 {
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
+    GUID guid;
 
-    UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(InputBufferSize);
     UNREFERENCED_PARAMETER(ClientBuferContextInput);
+
+    DMF_DeviceInterfaceTarget_GuidGet(DmfModule,
+                                      &guid);
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0,
                                                                                  MAXIMUM_SLEEP_TIME_MS);
@@ -140,9 +143,13 @@ Tests_DeviceInterfaceTarget_BufferOutput(
     _In_ NTSTATUS CompletionStatus
     )
 {
-    UNREFERENCED_PARAMETER(DmfModule);
+    GUID guid;
+
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
     UNREFERENCED_PARAMETER(DmfModule);
+
+    DMF_DeviceInterfaceTarget_GuidGet(DmfModule,
+                                      &guid);
 
     if (!NT_SUCCESS(CompletionStatus))
     {

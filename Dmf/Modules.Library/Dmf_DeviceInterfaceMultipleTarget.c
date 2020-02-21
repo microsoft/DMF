@@ -2478,7 +2478,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Get(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
@@ -2497,7 +2497,7 @@ Arguments:
 
 Return Value:
 
-    VOID
+    NTSTATUS
 
 --*/
 {
@@ -2531,6 +2531,63 @@ Return Value:
 Exit:
 
     FuncExitVoid(DMF_TRACE);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_GuidGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ GUID* Guid
+    )
+/*++
+
+Routine Description:
+
+    The device interface GUID associated with this Module's WDFIOTARGET.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Guid - The device interface GUID associated with this Module's WDFIOTARGET.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceMultipleTarget);
+
+    DmfAssert(Guid != NULL);
+    RtlZeroMemory(Guid,
+                  sizeof(GUID));
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        goto Exit;
+    }
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    *Guid = moduleConfig->DeviceInterfaceMultipleTargetGuid;
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

@@ -96,10 +96,17 @@ DMF_DeviceInterfaceTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_DeviceInterfaceTarget_Get(
     _In_ DMFMODULE DmfModule,
     _Out_ WDFIOTARGET* IoTarget
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DeviceInterfaceTarget_GuidGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ GUID* Guid
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

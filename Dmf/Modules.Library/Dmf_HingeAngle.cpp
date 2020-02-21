@@ -1,6 +1,7 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT license.
 
 Module Name:
 
@@ -26,10 +27,9 @@ Environment:
 
 #include "Dmf_HingeAngle.tmh"
 
-// This Module uses C++/WinRT so it needs RS5+ support. 
-// This code will not be compiled in RS4 and below.
+// Only support 19H1 and above because of library size limitations on RS5.
 //
-#if defined(DMF_USER_MODE) && IS_WIN10_RS5_OR_LATER && defined(__cplusplus)
+#if defined(DMF_USER_MODE) && IS_WIN10_19H1_OR_LATER && defined(__cplusplus)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -536,7 +536,6 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_HingeAngle* moduleContext;
-    DMF_CONFIG_HingeAngle* moduleConfig;
 
     PAGED_CODE();
 
@@ -544,10 +543,7 @@ Return Value:
 
     ntStatus = STATUS_UNSUCCESSFUL;
     moduleContext = DMF_CONTEXT_GET(thisModuleHandle);
-    moduleConfig = DMF_CONFIG_GET(thisModuleHandle);
 
-    // Create device watcher according to the sensor GUID from ModuleConfig.
-    //
     deviceWatcher = DeviceInformation::CreateWatcher(HingeAngleSensor::GetDeviceSelector());
 
     // Using lambda function is necessary here, because it need access variables that outside function scope,
@@ -920,7 +916,7 @@ Return Value:
     }
 
     moduleContext->hingeAngleDevice->thisModuleHandle = DmfModule;
-    moduleContext->hingeAngleDevice->DeviceIdToFind = moduleConfig->DeviceId;
+    moduleContext->hingeAngleDevice->DeviceIdToFind = to_hstring(moduleConfig->DeviceId);
     moduleContext->hingeAngleDevice->EvtHingeAngleReadingChangeCallback = moduleConfig->EvtHingeAngleReadingChangeCallback;
     ntStatus = moduleContext->hingeAngleDevice->Initialize();
 
@@ -1366,7 +1362,7 @@ ExitNoRelease:
 }
 #pragma code_seg()
 
-#endif // defined(DMF_USER_MODE) && defined(IS_WIN10_RS5_OR_LATER) && defined(__cplusplus)
+#endif // IS_WIN10_19H1_OR_LATER
 
 // eof: Dmf_HingeAngle.cpp
 //

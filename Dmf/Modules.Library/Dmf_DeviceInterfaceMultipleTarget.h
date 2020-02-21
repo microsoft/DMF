@@ -121,11 +121,18 @@ DMF_DeviceInterfaceMultipleTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Get(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
     _Out_ WDFIOTARGET* IoTarget
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_GuidGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ GUID* Guid
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
