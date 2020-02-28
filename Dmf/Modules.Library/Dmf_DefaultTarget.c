@@ -39,6 +39,13 @@ Environment:
 //
 
 typedef
+BOOLEAN
+RequestSink_Cancel_Type(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+
+typedef
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
@@ -65,6 +72,23 @@ RequestSink_Send_Type(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    );
+
+typedef
+NTSTATUS
+RequestSink_SendEx_Type(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     );
 
 typedef
@@ -116,6 +140,8 @@ typedef struct
     DMFMODULE DmfModuleRequestTarget;
     RequestSink_SendSynchronously_Type* RequestSink_SendSynchronously;
     RequestSink_Send_Type* RequestSink_Send;
+    RequestSink_SendEx_Type* RequestSink_SendEx;
+    RequestSink_Cancel_Type* RequestSink_Cancel;
     RequestSink_IoTargetSet_Type* RequestSink_IoTargetSet;
     RequestSink_IoTargetClear_Type* RequestSink_IoTargetClear;
 } DMF_CONTEXT_DefaultTarget;
@@ -140,6 +166,26 @@ DMF_MODULE_DECLARE_CONFIG(DefaultTarget)
 // ContinuousRequestTarget Methods
 // -------------------------------
 //
+
+BOOLEAN
+DefaultTarget_Stream_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+{
+    BOOLEAN returnValue;
+
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->OpenedInStreamMode);
+
+    returnValue = DMF_ContinuousRequestTarget_Cancel(moduleContext->DmfModuleContinuousRequestTarget,
+                                                     DmfRequest);
+
+    return returnValue;
+}
 
 NTSTATUS
 DefaultTarget_Stream_SendSynchronously(
@@ -201,6 +247,42 @@ DefaultTarget_Stream_Send(
                                             SingleAsynchronousRequestClientContext);
 }
 
+NTSTATUS
+DefaultTarget_Stream_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+    _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    )
+{
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->OpenedInStreamMode);
+
+    return DMF_ContinuousRequestTarget_SendEx(moduleContext->DmfModuleContinuousRequestTarget,
+                                              RequestBuffer,
+                                              RequestLength,
+                                              ResponseBuffer,
+                                              ResponseLength,
+                                              RequestType,
+                                              RequestIoctl,
+                                              RequestTimeoutMilliseconds,
+                                              CompletionOption,
+                                              EvtRequestSinkSingleAsynchronousRequest,
+                                              SingleAsynchronousRequestClientContext,
+                                              DmfRequest);
+}
+
 VOID
 DefaultTarget_Stream_IoTargetSet(
     _In_ DMFMODULE DmfModule,
@@ -232,6 +314,25 @@ DefaultTarget_Stream_IoTargetClear(
 // RequestTarget Methods
 // ---------------------
 //
+
+BOOLEAN
+DefaultTarget_Target_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->OpenedInStreamMode);
+
+    returnValue = DMF_RequestTarget_Cancel(moduleContext->DmfModuleRequestTarget,
+                                           DmfRequest);
+
+    return returnValue;
+}
 
 NTSTATUS
 DefaultTarget_Target_SendSynchronously(
@@ -297,6 +398,42 @@ DefaultTarget_Target_Send(
                                       SingleAsynchronousRequestClientContext);
 
     return ntStatus;
+}
+
+NTSTATUS
+DefaultTarget_Target_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+    _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    )
+{
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->OpenedInStreamMode);
+
+    return DMF_RequestTarget_SendEx(moduleContext->DmfModuleRequestTarget,
+                                    RequestBuffer,
+                                    RequestLength,
+                                    ResponseBuffer,
+                                    ResponseLength,
+                                    RequestType,
+                                    RequestIoctl,
+                                    RequestTimeoutMilliseconds,
+                                    CompletionOption,
+                                    EvtRequestSinkSingleAsynchronousRequest,
+                                    SingleAsynchronousRequestClientContext,
+                                    DmfRequest);
 }
 
 VOID
@@ -748,6 +885,8 @@ Return Value:
         moduleContext->RequestSink_IoTargetClear = DefaultTarget_Stream_IoTargetClear;
         moduleContext->RequestSink_IoTargetSet = DefaultTarget_Stream_IoTargetSet;
         moduleContext->RequestSink_Send = DefaultTarget_Stream_Send;
+        moduleContext->RequestSink_SendEx = DefaultTarget_Stream_SendEx;
+        moduleContext->RequestSink_Cancel = DefaultTarget_Stream_Cancel;
         moduleContext->RequestSink_SendSynchronously = DefaultTarget_Stream_SendSynchronously;
         moduleContext->OpenedInStreamMode = TRUE;
         // Remember Client's choice so this Module can start/stop streaming appropriately.
@@ -776,6 +915,8 @@ Return Value:
         moduleContext->RequestSink_IoTargetClear = DefaultTarget_Target_IoTargetClear;
         moduleContext->RequestSink_IoTargetSet = DefaultTarget_Target_IoTargetSet;
         moduleContext->RequestSink_Send = DefaultTarget_Target_Send;
+        moduleContext->RequestSink_SendEx = DefaultTarget_Target_SendEx;
+        moduleContext->RequestSink_Cancel = DefaultTarget_Target_Cancel;
         moduleContext->RequestSink_SendSynchronously = DefaultTarget_Target_SendSynchronously;
         moduleContext->OpenedInStreamMode = FALSE;
     }
@@ -916,6 +1057,58 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_DefaultTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+/*++
+
+Routine Description:
+
+    Cancels a given WDFREQUEST associated with DmfRequest.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DmfRequest - The given DmfRequest.
+
+Return Value:
+
+    TRUE if the given WDFREQUEST was has been canceled.
+    FALSE if the given WDFREQUEST is not canceled because it has already been completed or deleted.
+
+--*/
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+    NTSTATUS ntStatus;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        returnValue = FALSE;
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    returnValue = moduleContext->RequestSink_Cancel(DmfModule,
+                                                    DmfRequest);
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    return returnValue;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_DefaultTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -1039,6 +1232,91 @@ Return Value:
                                                RequestTimeoutMilliseconds,
                                                EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                SingleAsynchronousRequestClientContext);
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DefaultTarget_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    )
+/*++
+
+Routine Description:
+
+    Creates and sends an Asynchronous request to the IoTarget given a buffer, IOCTL and other information.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    RequestBuffer - Buffer of data to attach to request to be sent.
+    RequestLength - Number of bytes to in RequestBuffer to send.
+    ResponseBuffer - Buffer of data that is returned by the request.
+    ResponseLength - Size of Response Buffer in bytes.
+    RequestType - Read or Write or Ioctl
+    RequestIoctl - The given IOCTL.
+    RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
+    EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
+    SingleAsynchronousRequestClientContext - Client context sent in callback
+
+Return Value:
+
+    STATUS_SUCCESS if a buffer is added to the list.
+    Other NTSTATUS if there is an error.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DefaultTarget* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    // This Module Method can be called when SSH is removed or being removed. The code in this function is 
+    // protected due to call to ModuleAcquire.
+    //
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DefaultTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->IoTarget != NULL);
+    ntStatus = moduleContext->RequestSink_SendEx(DmfModule,
+                                                 RequestBuffer,
+                                                 RequestLength,
+                                                 ResponseBuffer,
+                                                 ResponseLength,
+                                                 RequestType,
+                                                 RequestIoctl,
+                                                 RequestTimeoutMilliseconds,
+                                                 CompletionOption,
+                                                 EvtContinuousRequestTargetSingleAsynchronousRequest,
+                                                 SingleAsynchronousRequestClientContext,
+                                                 DmfRequest);
 
     DMF_ModuleDereference(DmfModule);
 

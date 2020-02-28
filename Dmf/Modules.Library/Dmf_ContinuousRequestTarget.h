@@ -31,6 +31,10 @@ typedef enum
     ContinuousRequestTarget_RequestType_Write
 } ContinuousRequestTarget_RequestType;
 
+// WDFOBJECT that abstracts a WDFREQUEST instance.
+//
+DECLARE_HANDLE(RequestTarget_DmfRequest);
+
 // Enum to specify who owns the buffer and whether to continue streaming the request or stop
 // The streaming callback function returns this value.
 //
@@ -201,6 +205,13 @@ DMF_ContinuousRequestTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_ContinuousRequestTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_ContinuousRequestTarget_IoTargetClear(
     _In_ DMFMODULE DmfModule
@@ -241,7 +252,8 @@ DMF_ContinuousRequestTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
-    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

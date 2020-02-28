@@ -96,6 +96,13 @@ DMF_DeviceInterfaceTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_DeviceInterfaceTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DeviceInterfaceTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -137,7 +144,8 @@ DMF_DeviceInterfaceTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
-    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

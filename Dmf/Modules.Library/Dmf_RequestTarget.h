@@ -46,6 +46,13 @@ DECLARE_DMF_MODULE_NO_CONFIG(RequestTarget)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_RequestTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_RequestTarget_IoTargetClear(
     _In_ DMFMODULE DmfModule
@@ -86,7 +93,8 @@ DMF_RequestTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
-    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
