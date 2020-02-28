@@ -173,7 +173,7 @@ BOOLEAN
 DMF_DeviceInterfaceTarget_Cancel(
     _In_ DMFMODULE DmfModule,
     _In_ RequestTarget_DmfRequest DmfRequest
-    )
+    );
 ````
 
 This Method cancels the underlying WDFREQUEST associated with a given DmfRequest.
