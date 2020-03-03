@@ -71,8 +71,10 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     _In_ DMFMODULE DmfModule,
-    _In_ INT32 AntennaIndex,
-    _In_ INT32 AntennaBackOffTableIndex
+    _In_ INT32* AntennaIndex,
+    _In_ INT32* AntennaBackOffTableIndex,
+    _In_ INT32 AntennaCount,
+    _In_ BOOLEAN AbsoluteAntennaIndexMode
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

@@ -530,7 +530,7 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    NTSTATUS ntStatus;
     DMF_CONTEXT_RequestTarget* moduleContext;
 
     FuncEntry(DMF_TRACE);
@@ -653,7 +653,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     RequestBuffer - Buffer of data to attach to request to be sent.
-    RequestLength - Number of bytes to in RequestBuffer to send.
+    RequestLength - Number of bytes in RequestBuffer to send.
     ResponseBuffer - Buffer of data that is returned by the request.
     ResponseLength - Size of Response Buffer in bytes.
     RequestIoctl - The given IOCTL.
@@ -662,6 +662,8 @@ Arguments:
     BytesWritten - Bytes returned by the transaction.
     EvtContinuousRequestTargetSingleAsynchronousRequest - Completion routine. 
     SingleAsynchronousRequestClientContext - Client context returned in completion routine. 
+    DmfRequest - Contains a handle to the WDFREQUEST that was sent to the underlying IoTarget so that caller
+                 can cancel the WDFREQUEST using DMF_RequestTarget_Cancel().
 
 Return Value:
 
@@ -763,6 +765,7 @@ Return Value:
 
     if (IsSynchronousRequest)
     {
+        DmfAssert(NULL == DmfRequest);
         WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions,
                                       WDF_REQUEST_SEND_OPTION_SYNCHRONOUS | WDF_REQUEST_SEND_OPTION_TIMEOUT);
     }
@@ -808,6 +811,20 @@ Return Value:
         WdfRequestSetCompletionRoutine(request,
                                        completionRoutineSingle,
                                        singleAsynchronousRequestContext);
+
+        // Add to list of pending requests so that when Client cancels the request it can be done safely
+        // in case this Module has already deleted the request.
+        //
+        if (DmfRequest != NULL)
+        {
+            ntStatus = RequestTarget_PendingCollectionListAdd(DmfModule,
+                                                              request);
+            if (! NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RequestTarget_PendingCollectionListAdd fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
+        }
     }
 
     WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&sendOptions,
@@ -818,20 +835,6 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestAllocateTimer fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
-    }
-
-    // Add to list of pending requests so that when Client cancels the request it can be done safely
-    // in case this Module has already deleted the request.
-    //
-    if (DmfRequest != NULL)
-    {
-        ntStatus = RequestTarget_PendingCollectionListAdd(DmfModule,
-                                                          request);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RequestTarget_PendingCollectionListAdd fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
     }
 
     requestSendResult = WdfRequestSend(request,
@@ -1082,9 +1085,8 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-_Function_class_(DMF_Open)
+_Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 DMF_RequestTarget_Close(
@@ -1102,7 +1104,7 @@ Arguments:
 
 Return Value:
 
-    STATUS_SUCCESS
+    None
 
 --*/
 {
@@ -1114,13 +1116,13 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    if (moduleContext->IoTarget != NULL)
-    {
-        // There should be no outstanding requests in the target.
-        //
-        ASSERT((moduleContext->PendingAsynchronousRequests == NULL) ||
-               (WdfCollectionGetCount(moduleContext->PendingAsynchronousRequests)) == 0);
+    // There should be no outstanding requests in the target.
+    //
+    ASSERT((moduleContext->PendingAsynchronousRequests == NULL) ||
+            (WdfCollectionGetCount(moduleContext->PendingAsynchronousRequests)) == 0);
 
+    if (moduleContext->PendingAsynchronousRequests != NULL)
+    {
         WdfObjectDelete(moduleContext->PendingAsynchronousRequests);
         moduleContext->PendingAsynchronousRequests = NULL;
     }
@@ -1350,7 +1352,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     RequestBuffer - Buffer of data to attach to request to be sent.
-    RequestLength - Number of bytes to in RequestBuffer to send.
+    RequestLength - Number of bytes in RequestBuffer to send.
     ResponseBuffer - Buffer of data that is returned by the request.
     ResponseLength - Size of Response Buffer in bytes.
     RequestType - Read or Write or Ioctl
@@ -1437,7 +1439,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     RequestBuffer - Buffer of data to attach to request to be sent.
-    RequestLength - Number of bytes to in RequestBuffer to send.
+    RequestLength - Number of bytes in RequestBuffer to send.
     ResponseBuffer - Buffer of data that is returned by the request.
     ResponseLength - Size of Response Buffer in bytes.
     RequestType - Read or Write or Ioctl
@@ -1509,7 +1511,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     RequestBuffer - Buffer of data to attach to request to be sent.
-    RequestLength - Number of bytes to in RequestBuffer to send.
+    RequestLength - Number of bytes in RequestBuffer to send.
     ResponseBuffer - Buffer of data that is returned by the request.
     ResponseLength - Size of Response Buffer in bytes.
     RequestType - Read or Write or Ioctl

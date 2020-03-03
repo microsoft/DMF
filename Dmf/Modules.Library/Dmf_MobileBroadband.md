@@ -130,8 +130,10 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     _In_ DMFMODULE DmfModule,
-    _In_ INT32 AntennaIndex,
-    _In_ INT32 AntennaBackOffTableIndex
+    _In_ INT32* AntennaIndex,
+    _In_ INT32* AntennaBackOffTableIndex,
+    _In_ INT32 AntennaCount,
+    _In_ BOOLEAN AbsoluteAntennaIndexMode
     );
 ````
 
@@ -145,8 +147,10 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_MobileBroadband Module handle.
-AntennaIndex | The given antenna of the device.
-AntennaBackOffTableIndex | The power back-off table index to be set. NOTE: This index range is from 0 to 8.
+AntennaIndex | Index of antenna to set.
+AntennaBackOffTableIndex | Index into the power back-off table to set.
+AntennaCount | Number of antennas present.
+AbsoluteAntennaIndexMode | Indicates whether the input antenna index is an absolute index or relative index.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

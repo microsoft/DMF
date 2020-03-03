@@ -1180,7 +1180,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     RequestBuffer - Buffer of data to attach to request to be sent.
-    RequestLength - Number of bytes to in RequestBuffer to send.
+    RequestLength - Number of bytes in RequestBuffer to send.
     ResponseBuffer - Buffer of data that is returned by the request.
     ResponseLength - Size of Response Buffer in bytes.
     RequestType - Read or Write or Ioctl
@@ -1247,7 +1247,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     RequestBuffer - Buffer of data to attach to request to be sent.
-    RequestLength - Number of bytes to in RequestBuffer to send.
+    RequestLength - Number of bytes in RequestBuffer to send.
     ResponseBuffer - Buffer of data that is returned by the request.
     ResponseLength - Size of Response Buffer in bytes.
     RequestType - Read or Write or Ioctl

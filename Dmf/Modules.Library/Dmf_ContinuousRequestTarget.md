@@ -306,6 +306,36 @@ ClientBuffer | The given DMF_BufferPool buffer.
 ##### Remarks
 
 * NOTE: The given DMF_BufferPool buffer must be a properly formed DMF_BufferPool buffer.
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_ContinuousRequestTarget_Cancel
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_ContinuousRequestTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+````
+
+This Method cancels the underlying WDFREQUEST associated with a given DmfRequest.
+
+##### Returns
+
+TRUE if the underlying WDFREQUEST has been canceled.
+FALSE if the underlying WDFREQUEST could not be canceled because it has been completed or is being completed.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ContinuousRequestTarget Module handle.
+DmfRequest | A handle to a WDFREQUEST that is returned by `DMF_ContinuousRequestTarget_SendEx()`.
+
+##### Remarks
+* **Caller must use DMF_ContinuousRequestTarget_Cancel() to cancel the DmfRequest returned by `DMF_ContinuousRequestTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
+the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
+** 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -422,12 +452,14 @@ DMF_ContinuousRequestTarget_SendEx(
   _In_ ULONG RequestTimeoutMilliseconds,
   _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
   _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
-  _In_opt_ VOID* SingleAsynchronousRequestClientContext
+  _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+  _Out_opt_ RequestTarget_DmfRequest* DmfRequest
   );
 ````
 
 This Method uses the given parameters to create a Request and send it asynchronously to the Module's underlying WDFIOTARGET.
 Ex version of DMF_RequestTarget_Send, allows the clients to specify ContinuousRequestTarget_CompletionOptions, which controls how completion routine will be called. 
+Ex version also allows caller to retrieve the WDFREQUEST sent to the underlying target for later cancellation.
 
 ##### Returns
 
@@ -447,8 +479,16 @@ RequestTimeoutMilliseconds | A time in milliseconds that causes the call to time
 CompletionOption | Completion option associated with the completion routine.
 EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
 SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
+DmfRequest | Contains a handle to the WDFREQUEST that was sent to the underlying IoTarget so that caller can cancel the WDFREQUEST using DMF_ContinuousRequestTarget_Cancel().
 
 ##### Remarks
+
+* Caller passes `DmfRequest` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
+sent to the underlying WDFIOTARGET.
+* **Caller must use `DMF_ContinuousRequestTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequest. Caller may not use WdfRequestCancel() because 
+the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
+** 
+* **Caller must not use value returned in DmfRequest for any purpose except to pass it `DMF_ContinuousRequestTarget_Cancel()`.** For example, do not assign a context to the handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ContinuousRequestTarget_SendSynchronously
