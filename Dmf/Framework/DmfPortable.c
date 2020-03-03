@@ -147,7 +147,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
-    _In_ ULONG* TimeoutMs,
+    _In_opt_ ULONG* TimeoutMs,
     _In_ BOOLEAN Alertable
     )
 /*++
@@ -237,7 +237,7 @@ Return Value:
                                         Executive,
                                         KernelMode,
                                         Alertable,
-                                        &timeout100ns);
+                                        timeout100nsPointer);
 #endif // defined(DMF_USER_MODE)
 
     FuncExit(DMF_TRACE, "returnValue=0x%X", returnValue);

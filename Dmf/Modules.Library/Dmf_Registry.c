@@ -2193,7 +2193,7 @@ Return Value:
     //
     WDF_TIMER_CONFIG_INIT(&timerConfig,
                           Registry_DeferredOperationHandler);
-    timerConfig.AutomaticSerialization = TRUE;
+    timerConfig.AutomaticSerialization = FALSE;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&timerAttributes);
     timerAttributes.ParentObject = DmfModule;

@@ -47,6 +47,13 @@ DMF_DefaultTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_DefaultTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_DefaultTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -66,6 +73,23 @@ DMF_DefaultTarget_Send(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DefaultTarget_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

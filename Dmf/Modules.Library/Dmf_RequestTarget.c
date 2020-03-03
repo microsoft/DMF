@@ -49,6 +49,9 @@ typedef struct
     // IO Target to Send Requests to.
     //
     WDFIOTARGET IoTarget;
+    // Pending asynchronous requests.
+    //
+    WDFCOLLECTION PendingAsynchronousRequests;
 } DMF_CONTEXT_RequestTarget;
 
 // This macro declares the following function:
@@ -189,6 +192,111 @@ Return Value:
     }
 }
 
+static
+NTSTATUS
+RequestTarget_PendingCollectionListAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
+    )
+/*++
+
+Routine Description:
+
+    Add the given WDFREQUEST to the list of pending asynchronous requests.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Request - The given request.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_RequestTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_ModuleLock(DmfModule);
+    ntStatus = WdfCollectionAdd(moduleContext->PendingAsynchronousRequests,
+                                Request);
+    DMF_ModuleUnlock(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
+    }
+
+    return ntStatus;
+}
+
+static
+BOOLEAN 
+RequestTarget_PendingCollectionListSearchAndRemove(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
+    )
+/*++
+
+Routine Description:
+
+    If the given WDFREQUEST is in the pending asynchronous request list, remove it.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Request - The given request.
+
+Return Value:
+
+    TRUE if the WDFREQUEST was found and removed.
+    FALSE if the given WDFREQUEST was not found.
+
+--*/
+{
+    DMF_CONTEXT_RequestTarget* moduleContext;
+    WDFREQUEST currentRequestFromList;
+    ULONG currentItemIndex;
+    BOOLEAN returnValue;
+
+    returnValue = FALSE;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // In case Client sends a NULL, don't try to remove the first request if there are
+    // no requests.
+    //
+    if (NULL == Request)
+    {
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
+    DMF_ModuleLock(DmfModule);
+    
+    currentItemIndex = 0;
+    do 
+    {
+        currentRequestFromList = (WDFREQUEST)WdfCollectionGetItem(moduleContext->PendingAsynchronousRequests,
+                                                                  currentItemIndex);
+        if (currentRequestFromList == Request)
+        {
+            WdfCollectionRemoveItem(moduleContext->PendingAsynchronousRequests,
+                                    currentItemIndex);
+            returnValue = TRUE;
+            break;
+        }
+        currentItemIndex++;
+    } while (currentRequestFromList != NULL);
+    
+    DMF_ModuleUnlock(DmfModule);
+
+Exit:
+
+    return returnValue;
+}
+
 VOID
 RequestTarget_ProcessAsynchronousRequestSingle(
     _In_ DMFMODULE DmfModule,
@@ -228,6 +336,12 @@ Return Value:
     inputBuffer = NULL;
     outputBuffer = NULL;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Request may or may not be in this list. Remove it if it is.
+    // Caller may have removed it by calling the cancel Method.
+    //
+    RequestTarget_PendingCollectionListSearchAndRemove(DmfModule,
+                                                       Request);
 
     ntStatus = WdfRequestGetStatus(Request);
     if (!NT_SUCCESS(ntStatus))
@@ -526,7 +640,8 @@ RequestTarget_RequestCreateAndSend(
     _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _Out_opt_ size_t* BytesWritten,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
-    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     )
 /*++
 
@@ -705,12 +820,34 @@ Return Value:
         goto Exit;
     }
 
+    // Add to list of pending requests so that when Client cancels the request it can be done safely
+    // in case this Module has already deleted the request.
+    //
+    if (DmfRequest != NULL)
+    {
+        ntStatus = RequestTarget_PendingCollectionListAdd(DmfModule,
+                                                          request);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RequestTarget_PendingCollectionListAdd fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
     requestSendResult = WdfRequestSend(request,
                                        moduleContext->IoTarget,
                                        &sendOptions);
 
     if (! requestSendResult || IsSynchronousRequest)
     {
+        if (DmfRequest != NULL)
+        {
+            // Request is not pending, so remove it from the list.
+            //
+            RequestTarget_PendingCollectionListSearchAndRemove(DmfModule,
+                                                               request);
+        }
+
         ntStatus = WdfRequestGetStatus(request);
         if (! NT_SUCCESS(ntStatus))
         {
@@ -721,6 +858,17 @@ Return Value:
         {
             TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfRequestSend completed with ntStatus=%!STATUS!", ntStatus);
             outputBufferSize = WdfRequestGetInformation(request);
+        }
+    }
+    else
+    {
+        if (DmfRequest != NULL)
+        {
+            // Return the request so the Client can add a context if necessary.
+            // But Client must not cancel the request directly. Client must use
+            // this Module's Method to do so.
+            //
+            *DmfRequest = (RequestTarget_DmfRequest)request;
         }
     }
 
@@ -887,6 +1035,100 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+DMF_RequestTarget_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type RequestTarget.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    DMF_CONTEXT_RequestTarget* moduleContext;
+    NTSTATUS ntStatus;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfCollectionCreate(&objectAttributes,
+                                   &moduleContext->PendingAsynchronousRequests);
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+VOID
+DMF_RequestTarget_Close(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Uninitialize an instance of a DMF Module of type RequestTarget.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    DMF_CONTEXT_RequestTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (moduleContext->IoTarget != NULL)
+    {
+        // There should be no outstanding requests in the target.
+        //
+        ASSERT((moduleContext->PendingAsynchronousRequests == NULL) ||
+               (WdfCollectionGetCount(moduleContext->PendingAsynchronousRequests)) == 0);
+
+        WdfObjectDelete(moduleContext->PendingAsynchronousRequests);
+        moduleContext->PendingAsynchronousRequests = NULL;
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -931,6 +1173,8 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_RequestTarget);
     dmfCallbacksDmf_RequestTarget.ChildModulesAdd = DMF_RequestTarget_ChildModulesAdd;
+    dmfCallbacksDmf_RequestTarget.DeviceOpen = DMF_RequestTarget_Open;
+    dmfCallbacksDmf_RequestTarget.DeviceClose = DMF_RequestTarget_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_RequestTarget,
                                             RequestTarget,
@@ -958,6 +1202,50 @@ Return Value:
 
 // Module Methods
 //
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_RequestTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+/*++
+
+Routine Description:
+
+    Cancels a given WDFREQUEST associated with DmfRequest.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DmfRequest - The given DmfRequest.
+
+Return Value:
+
+    TRUE if the given WDFREQUEST was has been canceled.
+    FALSE if the given WDFREQUEST is not canceled because it has already been completed or deleted.
+
+--*/
+{
+    BOOLEAN returnValue;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 RequestTarget);
+
+    returnValue = RequestTarget_PendingCollectionListSearchAndRemove(DmfModule,
+                                                                     (WDFREQUEST)DmfRequest);
+    if (returnValue)
+    {
+        // The request has not been completed or deleted yet.
+        // Cancel it on behalf of the Client and let Client know if it was canceled.
+        //
+        returnValue = WdfRequestCancelSentRequest((WDFREQUEST)DmfRequest);
+    }
+
+    return returnValue;
+}
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -1109,7 +1397,8 @@ Return Value:
                                                   completionOption,
                                                   NULL,
                                                   EvtRequestTargetSingleAsynchronousRequest,
-                                                  SingleAsynchronousRequestClientContext);
+                                                  SingleAsynchronousRequestClientContext,
+                                                  NULL);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
@@ -1134,7 +1423,8 @@ DMF_RequestTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
-    _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     )
 /*++
 
@@ -1154,7 +1444,8 @@ Arguments:
     RequestIoctl - The given IOCTL.
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
     EvtRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
-    SingleAsynchronousRequestClientContext - Client context sent in callback
+    SingleAsynchronousRequestClientContext - Client context sent in callback.
+    DmfRequest - Allows Client to retrieve asynchronous request for possible later cancellation.
 
 Return Value:
 
@@ -1163,7 +1454,7 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
@@ -1182,7 +1473,8 @@ Return Value:
                                                   CompletionOption,
                                                   NULL,
                                                   EvtRequestTargetSingleAsynchronousRequest,
-                                                  SingleAsynchronousRequestClientContext);
+                                                  SingleAsynchronousRequestClientContext,
+                                                  DmfRequest);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
@@ -1232,7 +1524,7 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
@@ -1250,6 +1542,7 @@ Return Value:
                                                   RequestTimeoutMilliseconds,
                                                   ContinuousRequestTarget_CompletionOptions_Default,
                                                   BytesWritten,
+                                                  NULL,
                                                   NULL,
                                                   NULL);
     if (! NT_SUCCESS(ntStatus))
