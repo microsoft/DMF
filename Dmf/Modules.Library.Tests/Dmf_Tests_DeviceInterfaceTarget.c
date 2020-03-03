@@ -472,7 +472,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                         DmfRequest);
 
     /////////////////////////////////////////////////////////////////////////////////////
-    // Cancel the before it is normally completed. It should always cancel.
+    // Cancel the request before it is normally completed. It should always cancel.
     //
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(4, 

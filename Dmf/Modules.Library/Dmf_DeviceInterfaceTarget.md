@@ -346,10 +346,10 @@ DmfRequest | Optional address of the handle to the handle to the WDFREQUEST that
 ##### Remarks
 * Caller passes `DmfRequest` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
 sent to the underlying WDFIOTARGET.
-* **Caller must use `DMF_DefaultTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequest. Caller may not use WdfRequestCancel() because 
+* **Caller must use `DMF_DeviceInterfaceTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequest. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
-* **Caller must not use value returned in DmfRequest for any purpose except to pass it `DMF_DefaultTarget_Cancel()`.** For example, do not assign a context to the handle.
+* **Caller must not use value returned in DmfRequest for any purpose except to pass it `DMF_DeviceInterfaceTarget_Cancel()`.** For example, do not assign a context to the handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_DeviceInterfaceTarget_SendSynchronously

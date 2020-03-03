@@ -989,8 +989,10 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     _In_ DMFMODULE DmfModule,
-    _In_ INT32 AntennaIndex,
-    _In_ INT32 AntennaBackOffTableIndex
+    _In_ INT32* AntennaIndex,
+    _In_ INT32* AntennaBackOffTableIndex,
+    _In_ INT32 AntennaCount,
+    _In_ BOOLEAN AbsoluteAntennaIndexMode
     )
 /*++
 
@@ -1001,8 +1003,10 @@ Routine Description:
 Arguments:
 
     DmfModule - This module's Dmf Module.
-    AntennaIndex - The antenna index on device to be control.
-    AntennaBackOffTableIndex - The power back off table index to be set. NOTE: this index range is from 0 to 8 only.
+    AntennaIndex - Index of antenna to set.
+    AntennaBackOffTableIndex - Index into the power back-off table to set.
+    AntennaCount - Number of antennas present.
+    AbsoluteAntennaIndexMode - Indicates whether the input antenna index is an absolute index or relative index.
 
 Return Value:
 
@@ -1010,7 +1014,7 @@ Return Value:
 
     --*/
 {
-    NTSTATUS ntStatus;
+NTSTATUS ntStatus;
     DMF_CONTEXT_MobileBroadband* moduleContext;
 
     PAGED_CODE();
@@ -1019,11 +1023,19 @@ Return Value:
 
     ntStatus = STATUS_UNSUCCESSFUL;
 
-    if ((AntennaBackOffTableIndex < AntennaBackOffTableIndexMin) ||
-        (AntennaBackOffTableIndex > AntennaBackOffTableIndexMax))
+    if (AntennaCount < 1)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Antenna back off index exceed the limit");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Antenna count is 0");
         goto ExitNoRelease;
+    }
+
+    for (INT32 antennaIndex = 0; antennaIndex < AntennaCount; antennaIndex++)
+    {
+        if (AntennaBackOffTableIndex[antennaIndex] > AntennaBackOffTableIndexMax)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Antenna back off index exceed the limit");
+            goto ExitNoRelease;
+        }
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1035,26 +1047,69 @@ Return Value:
         goto ExitNoRelease;
     }
 
+    ntStatus = STATUS_UNSUCCESSFUL;
+    
     try
     {
         vector<MobileBroadbandAntennaSar> antennas;
-        antennas.push_back({AntennaIndex,
-                            AntennaBackOffTableIndex});
-        // get() will ensure ansyc action returns. If fails, it will go to catch block.
+
+        INT32 physicalAntennaCount = moduleContext->ModemDevice->sarManager.Antennas().Size();
+
+        if (physicalAntennaCount < AntennaCount)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Antennas count exceed physical antenna count");
+            goto Exit;
+        }
+
+        // Iterate each antenna setting.
         //
+        for (INT32 antennaIndex = 0; antennaIndex < AntennaCount; antennaIndex++)
+        {  
+            // Antenna index absolute mode.
+            //
+            if (AbsoluteAntennaIndexMode == TRUE)
+            {
+                BOOLEAN antennaFind = FALSE;
+                for (auto antenna : moduleContext->ModemDevice->sarManager.Antennas())
+                {
+                    if (antenna.AntennaIndex() == AntennaIndex[antennaIndex])
+                    {
+                        antennas.push_back({AntennaIndex[antennaIndex],
+                                            AntennaBackOffTableIndex[antennaIndex]});
+                        antennaFind = TRUE;
+                        break;
+                    }
+                }
+                if (!antennaFind)
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No absolute antenna index %d found", AntennaIndex[antennaIndex]);
+                    goto Exit;
+                }
+            }
+            // Antenna index relative mode.
+            //
+            else
+            {
+                auto antenna = moduleContext->ModemDevice->sarManager.Antennas().GetAt(antennaIndex);
+                antennas.push_back({antenna.AntennaIndex(),
+                                    AntennaBackOffTableIndex[antennaIndex]});
+
+            }
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Map Antenna No.%d back off index to %d success",
+                                                            AntennaIndex[antennaIndex],
+                                                            AntennaBackOffTableIndex[antennaIndex]);
+        }
+
         moduleContext->ModemDevice->sarManager.SetConfigurationAsync(std::move(antennas)).get();
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set Antenna No.%d back off index to %d success", 
-                                                         AntennaIndex,
-                                                         AntennaBackOffTableIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set Antenna back off index success");
+
     }
     catch (hresult_error ex)
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "Set Antenna No.%d back off index to %d fails, error code 0x%08x - %ws", 
-                    AntennaIndex,
-                    AntennaBackOffTableIndex,
+                    "Set Antenna back off index fails, error code 0x%08x - %ws", 
                     ex.code().value,
                     ex.message().c_str());
         ntStatus = STATUS_UNSUCCESSFUL;
@@ -1261,13 +1316,17 @@ AlternativeBackOff:
     {
         for (auto antenna : moduleContext->ModemDevice->sarManager.Antennas())
         {
-             ntStatus = DMF_MobileBroadband_AntennaBackOffTableIndexSet(DmfModule, 
-                                                                        antenna.AntennaIndex(),
-                                                                        DefaultBackOffTableIndex);
-             if (!NT_SUCCESS(ntStatus))
-             {
-                 goto Exit;
-             }
+            INT32 lteAntennaIndex = antenna.AntennaIndex();
+            INT32 lteAntennaBackoffIndex = DefaultBackOffTableIndex;
+            ntStatus = DMF_MobileBroadband_AntennaBackOffTableIndexSet(DmfModule,
+                                                                       &lteAntennaIndex,
+                                                                       &lteAntennaBackoffIndex,
+                                                                       1,
+                                                                       FALSE);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                goto Exit;
+            }
         }
     }
     catch (hresult_error ex)
