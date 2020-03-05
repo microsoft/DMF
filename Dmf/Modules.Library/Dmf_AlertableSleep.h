@@ -42,14 +42,14 @@ DECLARE_DMF_MODULE(AlertableSleep)
 // Module Methods
 //
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_AlertableSleep_Abort(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG EventIndex
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_AlertableSleep_ResetForReuse(
     _In_ DMFMODULE DmfModule,

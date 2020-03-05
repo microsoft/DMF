@@ -262,7 +262,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_AlertableSleep,
                                             AlertableSleep,
                                             DMF_CONTEXT_AlertableSleep,
-                                            DMF_MODULE_OPTIONS_DISPATCH,
+                                            DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     dmfModuleDescriptor_AlertableSleep.CallbacksDmf = &dmfCallbacksDmf_AlertableSleep;
@@ -286,7 +286,7 @@ Return Value:
 // Module Methods
 //
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_AlertableSleep_Abort(
     _In_ DMFMODULE DmfModule,
@@ -312,6 +312,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_AlertableSleep* moduleContext;
+
+    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -350,7 +352,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_AlertableSleep_ResetForReuse(
     _In_ DMFMODULE DmfModule,
@@ -379,6 +381,8 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_AlertableSleep* moduleContext;
+
+    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 

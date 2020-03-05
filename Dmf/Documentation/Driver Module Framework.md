@@ -94,7 +94,7 @@ Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 4: Module Private Enumerations and Structures](#section-4-module-private-enumerations-and-structures)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 5: Module Private Context](#section-5-module-private-context)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 5: Module Context](#section-5-module-private-context)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 6: Module Macros](#section-6-module-macros)
 
@@ -111,7 +111,7 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module _Public.h File](#the-module-_public.h-file)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module .txt File](#the-module-.txt-file)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module .md File](#the-module-.md-file)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module .mc File](#the-module-.mc-file)
 
@@ -393,31 +393,37 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Utility_EventLogEntryWriteUserMode](#dmf_utility_eventlogentrywriteusermode)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Utility_IsEqualGUID 211](#dmf_utility_isequalguid)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Utility_IsEqualGUID](#dmf_utility_isequalguid)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Utility_UserModeAccessCreate](#dmf_utility_usermodeaccesscreate)
 
-[DMF Coding Conventions 213](#dmf-coding-conventions)
+[Important DMF Concepts](#important-dmf-concepts)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Conventions 213](#conventions)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Meaning of Open and Close Module](#meaning-of-open-and-close-module)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Do: 213](#do)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Notification Module Concepts](#notification-module-concepts)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Do Not: 213](#do-not)
+[DMF Coding Conventions](#dmf-coding-conventions)
 
-[Additional Information 214](#additional-information)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Conventions](#conventions)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Git Repository 214](#git-repository)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Do:](#do)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Contributors 214](#contributors)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Do Not:](#do-not)
 
-[DMF API Tables 215](#dmf-api-tables)
+[Additional Information](#additional-information)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Client Driver Facing DMF APIs 216](#client-driver-facing-dmf-apis)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Git Repository](#git-repository)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Facing DMF APIs 218](#module-facing-dmf-apis)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Contributors](#contributors)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF Utility and Portable APIs 220](#dmf-utility-and-portable-apis)
+[DMF API Tables](#dmf-api-tables)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Client Driver Facing DMF APIs](#client-driver-facing-dmf-apis)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Facing DMF APIs](#module-facing-dmf-apis)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF Utility and Portable APIs](#dmf-utility-and-portable-apis)
 
  Document Information
  ====================
@@ -604,7 +610,7 @@ drivers and perform all their work (driver's "business logic")
 individually without knowledge of the other Modules. All the Modules
 receive WDF callbacks as if they were a normal WDF driver. *Note: This
 type of Client Driver has **no** Device Context. However, each Module
-has its own Private Context.*
+has its own Context.*
 
 DMF Non-Container Driver
 ------------------------
@@ -733,7 +739,7 @@ Module specifically contain:
 
 -   Module Attributes: Indicates the Module's parent.
 
--   Private Context: Contains data that the Module needs while it is
+-   Context: Contains private data that the Module needs while it is
     instantiated. This is similar to a device driver's Device Context.
 
 -   Private Methods: Code which is internal to the Module and not
@@ -791,7 +797,7 @@ drivers:
 4.  DMF is responsible for the direct creation and destruction of all
     Modules. DMF is responsible for allocating memory for DMF specific
     resources for each instantiated Module. DMF also allocates the
-    Module's Private Context.
+    Module's Context.
 
 5.  DMF is responsible for dispatching all WDF callbacks that WDF sends
     to the Client Driver to each Module and its Child Modules
@@ -1206,8 +1212,8 @@ moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
 ```
 Finally, add the Module to the list of Modules that will be
 instantiated. This API allows the Client Driver to save a copy of the
-Module handle for later use. If the Client Driver has no Device Context
-or does not need to save the Module handle, then the last argument can
+DMFMODULE for later use. If the Client Driver has no Device Context
+or does not need to save the DMFMODULE, then the last argument can
 be NULL.
 ```
 DMF_DmfModuleAdd(DmfModuleInit,
@@ -1279,7 +1285,7 @@ function returns, DMF will actually instantiate the Modules that have
 been added to the list.
 
 If the Client Driver has a Device Context and it saved a copy of the
-Module handle, then the Client Driver can start using the Modules
+DMFMODULE, then the Client Driver can start using the Modules
 directly. See the section below called, "Using Modules". If the Client
 Driver has no Device Context, then the Modules are not directly used;
 they just operate on their own.
@@ -1516,7 +1522,7 @@ Methods or Client Callbacks, then the Client Driver does not, and
 
 When a Client wants to know what Module Methods the Module exposes, the
 author simply refers to the Module's .h file, which has the publicly
-available Methods listed. Each Module also has a corresponding .txt file
+available Methods listed. Each Module also has a corresponding .md file
 that explains all the Methods the Module exposes.
 
 All Module Methods require that the Module's handle be sent as the first
@@ -1532,7 +1538,7 @@ DMF_RingBuffer_Write(
     _In_ ULONG SourceBufferSize
     );
 ```
-This Method receives the instantiated Module handle for a Module that
+This Method receives the instantiated DMFMODULE for a Module that
 exposes a FIFO. It also accepts an address of a buffer and the length of
 that buffer. This Method reads the next entry in the Module's FIFO and
 returns it to the caller.
@@ -1551,7 +1557,7 @@ It is not possible to use a Module's Method without a valid handle to an
 instance of the Module. This guarantees that when the Module's Method is
 called, the Module's internal data structures are ready to be used. It
 is the responsibility of the Module's author to make sure that as long
-as a valid Module handle is passed, the Method must operate gracefully.
+as a valid DMFMODULE is passed, the Method must operate gracefully.
 
 Note the separation of work between Modules and the Clients. This
 separation limits the number of code paths and eliminates dependencies
@@ -1694,7 +1700,7 @@ Every Module has three mandatory files:
 
 -   Module's .h file
 
--   Module's .txt file
+-   Module's .md file
 
 In addition, Modules may have two optional files:
 
@@ -1816,7 +1822,7 @@ headers.)
 
 -   Module Private Enumerations and Structures
 
--   Module Private Context
+-   Module Context
 
 -   Module Macros
 
@@ -1908,14 +1914,14 @@ typedef struct _RESOURCEHUB_FILEOBJECT_CONTEXT
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(RESOURCEHUB_FILEOBJECT_CONTEXT,
                                    ResourceHub_FileContextGet);
 ```
-### Section 5: Module Private Context
+### Section 5: Module Context
 
-The Module's Private Context is similar to a driver's device context.
+The Module's Context is similar to a driver's device context.
 This data structure contains all the information needed while the Module
 is running. For example, it may contain handles to Child Modules or
 timers or other WDF primitives as well as flags and buffers. This
 structure is only visible to this file. Place the definition of the
-Module's Private Context in this section. It may use enumerations and
+Module's Context in this section. It may use enumerations and
 structures defined above.
 ```
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2195,7 +2201,7 @@ are in *italics*.
 Module | Notes
 ----------------------------------- | -----------------------------------
 **DMF_[ModuleName]_PrepareHardware** and **DMF_[ModuleName]_ReleaseHardware**         | Modules should generally not   support **DMF_[ModuleName]_PrepareHardware** and **DMF_[ModuleName]_ReleaseHardware**. Instead, set the Module Open Option to indicate when the Modules' **DMF_[ModuleName]_Open** and **DMF_[ModuleName]_Close** callbacks are be called. Also, Modules that need resources define **DMF_[ModuleName]_ResourcesAssign**. For more information about why **DMF_[ModuleName]_PrepareHardware** and **DMF_[ModuleName]_ReleaseHardware** are rarely used, please see 7.3.1 and 7.3.2. Also, please see section 7.1.1 which describes Module Open Options.              
-**DMF_[ModuleName]_DeviceIoControl** and **DMF_[ModuleName]_InternalDeviceIoControl** | Instead of using these callbacks, it is much easier to use **DMF_IoctlHandler**. This Module is designed to easily manage the routing of IOCTLs between the different Modules and Client driver code. Also, this Module will perform validation and access control based on table of supported IOCTLs. For more information please see **DMF_IoctlHandler.txt**. Also, please see 7.3.7 and 7.3.8.      
+**DMF_[ModuleName]_DeviceIoControl** and **DMF_[ModuleName]_InternalDeviceIoControl** | Instead of using these callbacks, it is much easier to use **DMF_IoctlHandler**. This Module is designed to easily manage the routing of IOCTLs between the different Modules and Client driver code. Also, this Module will perform validation and access control based on table of supported IOCTLs. For more information please see **DMF_IoctlHandler.md**. Also, please see 7.3.7 and 7.3.8.      
 
 ```
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2760,11 +2766,11 @@ These are the steps a Module's Create function should perform:
     Modules. This descriptor also holds the DMF and WDF callback
     structures that are defined in the above steps.
 
-4.  Define the Module's Private Context. This step is mandatory for all
-    Modules even if the Module does not define a Private Context. Use
+4.  Define the Module's Context. This step is mandatory for all
+    Modules even if the Module does not define a Context. Use
     **DMF_WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE** if the Module
-    has a Private Context. Use **DMF_WDF_OBJECT_ATTRIBUTES_INIT** if
-    the Module does not have a Private Context.
+    has a Context. Use **DMF_WDF_OBJECT_ATTRIBUTES_INIT** if
+    the Module does not have a Context.
 
 5.  Call the DMF API that creates an instance of the Module using all
     the definitions in the above steps.
@@ -3884,10 +3890,8 @@ structure. Then, set the members in the following table as needed:
 
   **Member**                                                                             |      **Description**
   ---------------------------------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **EVT_DMF_MODULE_OnDeviceNotificationOpen\* EvtModuleOnDeviceNotificationOpen**         |  When the Module's notification function has detected that the underlying resource it needs is available and the Module is ready to be opened, this callback is called. The Client has an opportunity to fail the open operation.
-  **EVT_DMF_MODULE_OnDeviceNotificationPostOpen\* EvtModuleOnDeviceNotificationPostOpen** |  After the Module has been opened, this callback is called. This tells the Client that the Module is ready for use (meaning that its Module Methods may be called).
-  **EVT_DMF_MODULE_OnDeviceNotificationPreClose\* EvtModuleOnDeviceNotificationPreClose** |  When the Module's notification function has detected that the underlying resource it needs is no longer available and the Module will be closed, this callback is called. This tells the Client the Module will close.
-  **EVT_DMF_MODULE_OnDeviceNotificationClose\* EvtModuleOnDeviceNotificationClose**       |  After the Module has been closed, this callback is called. This tells the Client that the Module is no longer ready for use (meaning that its Module Methods may not be called).
+  **EVT_DMF_MODULE_OnDeviceNotificationPostOpen\* EvtModuleOnDeviceNotificationPostOpen** |  After the Module has been opened, this callback is called. This tells the Client that the Module is ready for use (meaning that its Module Context is initialized and Module Methods may be called). This callback can tell Clients that the Module's resources have arrived. The Module's Methods may be called from this callback.
+  **EVT_DMF_MODULE_OnDeviceNotificationPreClose\* EvtModuleOnDeviceNotificationPreClose** |  Before a Module is closed, this callback is called. This tells the Client the Module's Context will not longer be valid and its Module Methods should no longer be called. This callback can tell Clients that the Module's resources have been removed. The Module's Methods may be called from this callback.
 
 DMF Client API for Instantiating Modules
 ----------------------------------------
@@ -4016,7 +4020,7 @@ None
     the DMF instantiates all the Module's in the list.
 
 -   Each Module's Config is unique to each Module. The author must
-    consult the Module's .h file or .txt file to understand how to
+    consult the Module's .h file or .md file to understand how to
     initialize that structure. Every Module has a Module specific macro
     that initializes the Config structure.
 
@@ -4110,12 +4114,12 @@ it tells DMF when to call the Module's Open and Close callbacks.
   **Value**                                         |        **Meaning**
   ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   **DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware**  |  Tells DMF that the Module's **Open** callback should be called when the Client Driver receives an **EvtDevicePrepareHardware** callback. The Module's **Close** callback will be called when the Client Driver receives an **EvtDeviceReleaseHardware** callback.
-  **DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware** |  Tells DMF that the Module's **NotificationRegister** callback should be called when the Client Driver receives an **EvtDevicePrepareHardware** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceReleaseHardware** callback.
+  **DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware** |  Tells DMF that the Module's **NotificationRegister** callback should be called when the Client Driver receives an **EvtDevicePrepareHardware** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceReleaseHardware** callback. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()**. (See [Notification Module Concepts](#notification-module-concepts).).
   **DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp** |  Tells DMF that the Module's **Open** callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback while the system is transitioning from Sx to S0 power state. The Module's **Close** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback while the system is transitioning from S0 to Sx power state.
   **DMF_MODULE_OPEN_OPTION_OPEN_D0Entry**          |  Tells DMF that the Module's **Open** callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback. The Module's **Close** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback.
-  **DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry**        |  Tells DMF that the Module's notification register callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback.
+  **DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry**        |  Tells DMF that the Module's notification register callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()**. (See [Notification Module Concepts](#notification-module-concepts).).
   **DMF_MODULE_OPEN_OPTION_OPEN_Create**           |  Tells DMF that the Module should be opened/closed when the Module is created/destroyed. This is common for Modules that do not interact with hardware and, instead, expose support for data structures that just require memory resources. DMF will call the Module's **Open** callback soon after the Module is created. DMF will call the Module's **Close** callback right before the Module is destroyed.
-  **DMF_MODULE_OPEN_OPTION_NOTIFY_Create**         |  Tells DMF that the Module's Notification register/unregister callbacks should called when the Module is create/destroyed. DMF will call the Module's **NotificationRegister** callback soon after the Module is created. DMF will call the Module's **NotificationUnregister** callback right before the Module is destroyed.
+  **DMF_MODULE_OPEN_OPTION_NOTIFY_Create**         |  Tells DMF that the Module's Notification register/unregister callbacks should called when the Module is created/destroyed. DMF will call the Module's **NotificationRegister** callback soon after the Module is created. DMF will call the Module's **NotificationUnregister** callback right before the Module is destroyed. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()**. (See [Notification Module Concepts](#notification-module-concepts).).
 
 Module Structures
 -----------------
@@ -4161,7 +4165,7 @@ specifically for the Module: DMF_ENTRYPOINTS_DMF_INIT()
   **DeviceResourcesAssign**         | DMF calls this callback to allow the Module to retrieve the Client's Driver's resources.
   **DeviceNotificationRegister**    | DMF calls this callback to allow the Module to register for notification of an event that will tell the Module its required dependencies are available or not available.
   **DeviceNotificationUnregister**  | DMF calls this callback to allow the Module to unregister for notification of an event that will tell the Module its required dependencies are available or not available.
-  **DeviceOpen**                    | DMF calls this callback to open the Module. Generally speaking, the Module uses this callback to prepare its Private Context in preparation for later calls to other callbacks or for calls to its Module Methods by the Client.
+  **DeviceOpen**                    | DMF calls this callback to open the Module. Generally speaking, the Module uses this callback to prepare its Context in preparation for later calls to other callbacks or for calls to its Module Methods by the Client.
   **DeviceClose**                   | DMF calls this callback to close the Module. Generally speaking, the Module uses this callback to do the inverse of what it did in the **DeviceOpen** callback.
   **ChildModulesAdd**               | DMF calls this callback so that the Module can tell DMF about the Child Module(s) it needs to create.
 
@@ -4215,12 +4219,12 @@ to each instantiated Module/Child Module.
 
 When a Module receives these callbacks, it also receives all the
 parameters that are sent to the Client Driver. However, there is always
-one additional parameter that is first in the parameter list. That
-parameter is the Module handle for that Module.
+one additional parameter that is first in the parameter list.
+That parameter is a DMFMODULE which is an opaque handle to the Module.
 
-Using that Module handle, the Module's callback function will retrieve
-the Module's Private Context and/or the Module's Config data. The
-Client's **WDFDEVICE** is also accessible via the Module handle using
+Using that DMFMODULE, the Module's callback function will retrieve
+the Module's Context and/or the Module's Config data. The
+Client's **WDFDEVICE** is also accessible via the DMFMODULE using
 **DMF_ParentDeviceGet()**. Then, the Module can handle the callback as
 it needs to.
 
@@ -4258,7 +4262,7 @@ callback.**
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**   | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**   | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
 
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4304,7 +4308,7 @@ this callback.**
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
 
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4347,7 +4351,7 @@ powered up.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4386,7 +4390,7 @@ when it needs to perform operations after interrupts have been enabled.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4423,7 +4427,7 @@ powered down.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4459,7 +4463,7 @@ when it needs to perform operations before interrupts are disabled.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4503,7 +4507,7 @@ the input/output buffer sizes.**
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4554,7 +4558,7 @@ the input/output buffer sizes.**
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4595,7 +4599,7 @@ Module supports this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4627,7 +4631,7 @@ Module supports this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |   The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |   The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
 
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4660,7 +4664,7 @@ Module supports this callback.
 
   Parameter | Description
   ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4695,7 +4699,7 @@ Module supports this callback.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4730,7 +4734,7 @@ Module supports this callback.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4765,7 +4769,7 @@ supports this callback.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4786,7 +4790,7 @@ None
     hardware after the Client Driver detects that its hardware has been
     surprise removed.
 
--   Usually this callback sets a flag in the Module's Private Context to
+-   Usually this callback sets a flag in the Module's Context to
     so that other callbacks and Methods know the underlying device is no
     longer present.
 
@@ -4802,14 +4806,11 @@ DMF calls this callback for every instantiated Module when the Client
 Driver receives the **EvtDeviceQueryRemove** callback if the Module
 supports this callback.
 
-**Generally speaking, Module's should use DMF_NotificationStream for
-resources/hardware that can be gracefully removed at runtime.**
-
 #### Parameters
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |   The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |   The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4827,8 +4828,6 @@ WDF documentation for more information.
 -   This callback is always called directly by DMF. This function is
     never called directly (nor is it accessible to Clients or other
     Modules).
-
--   Please see DMF_NotificationStream.
 
 ### DMF_[ModuleName]_ModuleQueryStop
 ```
@@ -4842,14 +4841,11 @@ DMF calls this callback for every instantiated Module when the Client
 Driver receives the **EvtDeviceQueryStop** callback if the Module
 supports this callback.
 
-**Generally speaking, Module's should use DMF_Notification for
-resources/hardware that can be gracefully stopped at runtime.**
-
 #### Parameters
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4867,8 +4863,6 @@ WDF documentation for more information.
 -   This callback is always called directly by DMF. This function is
     never called directly (nor is it accessible to Clients or other
     Modules).
-
--   Please see DMF_NotificationStream.
 
 ### DMF_[ModuleName]_ModuleRelationsQuery
 ```
@@ -4887,7 +4881,7 @@ supports this callback.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4922,7 +4916,7 @@ Module supports this callback.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4957,7 +4951,7 @@ supports this callback.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  DMFMODULE DmfModule |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  DMFMODULE DmfModule |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -4991,7 +4985,7 @@ supports this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |   The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |   The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5024,7 +5018,7 @@ callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |   The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |   The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5057,7 +5051,7 @@ this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5089,7 +5083,7 @@ EvtDeviceDisarmWakeFromSx callback if the Module supports this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5120,7 +5114,7 @@ callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  DMFMODULE DmfModule  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  DMFMODULE DmfModule  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5155,7 +5149,7 @@ callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5195,7 +5189,7 @@ this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5235,7 +5229,7 @@ this callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5280,7 +5274,7 @@ provide support for a Read operation.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  DMFMODULE DmfModule  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  DMFMODULE DmfModule  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5323,7 +5317,7 @@ provide support for a Write operation.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 *Consult the official WDF documentation to understand the other
 parameters. The meanings of the parameters are the same. To ensure
@@ -5420,7 +5414,7 @@ enumerate the resources and choose the resources it needs.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**         |       The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule**         |       The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
   **WDFCMRESLIST ResourcesRaw**      |    Raw resource information passed to Client Driver's **EvtDevicePrepareHardware** callback.
   **WDFCMRESLIST ResourcesTranslated** |  Translated resource information passed to Client Driver's **EvtDevicePrepareHardware** callback.
 
@@ -5458,9 +5452,7 @@ DMF_[ModuleName]_Open(
 If the Module supports this callback, DMF calls this callback after the
 Module is created. Depending on the Module's Open Flags, this callback
 may be called immediately after the Module is created, during
-EvtDevicePrepareHardware or during EvtDeviceD0Entry. It is also possible
-that this callback is called on demand by the Client if
-**DMF_MODULE_OPEN_OPTION_Generic** is set.
+EvtDevicePrepareHardware or during EvtDeviceD0Entry.
 
 The purpose of this callback is to allow the Module to perform actions
 one time before further callbacks happen and before the Module's Methods
@@ -5471,13 +5463,13 @@ will use later.
 In some cases, all the work the Module does is in the
 **DMF_[ModuleName]_Open()** callback.
 
-This callback is used to initialize the Module's Private Context (which
+This callback is used to initialize the Module's Context (which
 is analogous to the Device Context of a Client Driver).
 
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
   
 #### Returns
 
@@ -5611,9 +5603,7 @@ DMF_[ModuleName]_Close(
 If the Module supports this callback, DMF calls this callback before the
 Module is destroyed. Depending on the Module's Open Flags, this callback
 may be called immediately before the Module is destroyed, during
-EvtDeviceReleaseHardware or during EvtDeviceD0Exit. It is also possible
-that this callback is called on demand by the Client if
-**DMF_MODULE_OPEN_OPTION_Generic** is set.
+EvtDeviceReleaseHardware or during EvtDeviceD0Exit.
 
 The purpose of this callback is to allow the Module to release all
 resources allocated in the Module's Open callback.
@@ -5621,7 +5611,7 @@ resources allocated in the Module's Open callback.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |   The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule** |   The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
   
 #### Returns
 
@@ -5629,9 +5619,10 @@ None
 
 #### Remarks
 
--   This callback is always called directly by DMF. This function is
+-   This callback is always called directly by DMF. This callback is
     never called directly (nor is it accessible to Clients or other
-    Modules).
+    Modules). Modules must never call this callback directly because 
+    DMF performs important processing before and after the call to this callback.
 
 -   Resources released in this callback are generally acquired in the
     Module's Open callback.
@@ -5694,20 +5685,18 @@ DMF_[ModuleName]_NotificationRegister(
 If the Module supports this callback, DMF calls this callback after the
 Module is created. Depending on the Module's Open Flags, this callback
 may be called immediately after the Module is created, during
-EvtDevicePrepareHardware or during EvtDeviceD0Entry. It is also possible
-that this callback is called on demand by the Client if
-**DMF_MODULE_OPEN_OPTION_Generic** is set.
+EvtDevicePrepareHardware or during EvtDeviceD0Entry.
 
 The purpose of this callback is to allow the Module to register for an
 asynchronous notification that a resource needed by the Module's Open
 callback has appeared in the system. When the registered callback
-happens, the Module must call **DMF_ModuleNotificationOpen()** to tell
+happens, the Module must call **DMF_ModuleOpen()** to tell
 DMF to call the Module's Open callback.
 
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
   
 #### Returns
 
@@ -5721,16 +5710,16 @@ an error code corresponding to the error is returned.
     Modules).
 
 -   **Do not call DMF_[ModuleName]_Open() directly from the
-    notification routine when the resource appears**. **Use
-    DMF_ModuleNotificationOpen() instead**.
-    **DMF_ModuleNotificationOpen()** allows DMF to automatically
+    notification callback when the resource appears**. **Use
+    DMF_ModuleOpen() instead**.
+    **DMF_ModuleOpen()** allows DMF to automatically
     synchronize the arrival/removal of the resource with Methods and
     will call **DMF_[ModuleName]_Open()** itself.
 
 -   **Do not call DMF_[ModuleName]_Close() directly from the
-    notification routine when the resource disappears. Use
-    DMF_ModuleNotificationClose() instead.**
-    **DMF_ModuleNotificationClose()** allows DMF to automatically
+    notification callback when the resource disappears. Use
+    DMF_ModuleClose() instead.**
+    **DMF_ModuleClose()** allows DMF to automatically
     synchronize the arrival/removal of the resource with Methods and
     will call DMF_[ModuleName]_Close() itself.
 
@@ -5748,8 +5737,10 @@ DMF_DeviceInterfaceTarget_NotificationRegister(
 
 Routine Description:
 
-    This callback is called when the Module Open Flags indicate that this Module is opened after an asynchronous notification has happened. (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware or DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry)
-    This callback registers the notification.
+    This callback is called when the Module Open Flags indicate that this Module is 
+    opened after an asynchronous notification has happened 
+    (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware or DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry).
+    This callback registers for the notification.
 
 Arguments:
 
@@ -5808,12 +5799,10 @@ DMF_[ModuleName]_NotificationUnregister(
     _In_ DMFMODULE DmfModule
     )
 ```
-If the Module supports this callback, DMF calls this callback before the
+If a Module supports this callback, DMF calls this callback before the
 Module is destroyed. Depending on the Module's Open Flags, this callback
 may be called immediately before the Module is destroyed, during
-EvtDeviceReleaseHardware or during EvtDeviceD0Exit. It is also possible
-that this callback is called on demand by the Client if
-**DMF_MODULE_OPEN_OPTION_Generic** is set.
+EvtDeviceReleaseHardware or during EvtDeviceD0Exit.
 
 The purpose of this callback is to allow the Module to unregister for
 any notifications that were registered in
@@ -5822,7 +5811,7 @@ any notifications that were registered in
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
   
 #### Returns
 
@@ -5832,7 +5821,8 @@ None
 
 -   This callback is always called directly by DMF. This function is
     never called directly (nor is it accessible to Clients or other
-    Modules).
+    Modules). Modules must never call this callback directly because 
+    DMF performs important processing before and after the call to this callback.
 
 #### Example
 ```
@@ -5925,7 +5915,7 @@ accounted for prior to Module destruction.
 
   Parameter | Description
   -----------------------------|------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
 
 #### Returns
 
@@ -5968,7 +5958,7 @@ Use **DECLARE_DMF_MODULE()** to declare this function in the Module's .h file.
   **WDFDEVICE Device**                            |    The Client Driver's **WDFDEVICE**.
   **DMF_MODULE_ATTRIBUTES\* DmfModuleAttributes**  | Attributes that tell DMF how to create the function.
   **WDF_OBJECT_ATTRIBUTES\* ObjectAttributes**     | Attributes that tell DMF about the parent of the Module that is to be created.
-  **DMFMODULE\* DmfModule**                        |   After the Module has been created (by this function), the resultant Module handle is returned here.
+  **DMFMODULE\* DmfModule**                        |   After the Module has been created (by this function), the resultant DMFMODULE is returned here.
 
 #### Returns
 
@@ -6238,7 +6228,7 @@ Config.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The given Module's DMF Module handle.
+  **DMFMODULE DmfModule**  | The given Module's DMFMODULE.
   
 #### Returns
 
@@ -6271,13 +6261,13 @@ DMF_CONTEXT_GET(
     )
 ```
 Given an instance of a Module, this function returns the given Module's
-Private Context.
+Context.
 
 #### Parameters
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The given Module's DMF Module handle.
+  **DMFMODULE DmfModule**  | The given Module's DMFMODULE.
 
 #### Returns
 
@@ -6346,31 +6336,27 @@ Module's Methods.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 #### Returns
 
-STATUS_SUCCESS if no error is encountered in the callback. Otherwise,
-an error code corresponding to the error is returned.
+The NTSTATUS returned by the Module's Open callback.
 
-Remarks
+#### Remarks
 
--   Module's only use this call from their
-    **DMF_Module_NotificationRegister()** callbacks; otherwise, DMF
-    opens the Module automatically based on the Module's Open Option.
+-   Modules **only** call **DMF_ModuleOpen()** when the Module's Open Option is: `DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware`, `DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry` or `DMF_MODULE_OPEN_OPTION_NOTIFY_Create`.
 
--   This callback is where the Module prepares its Module Context and
-    acquires any resources needed for further use by the Client.
+-   In all other cases, DMF automatically opens the Module based on its Open Option.
 
--   This callback is where the Module can start doing any processing it
-    needs to perform it function without any interaction from its
-    parent. (For example, if a Module has no Methods because it does all
-    its work on its own, this callback is where such work can start.)
+-   When Modules call **DMF_ModuleOpen()**, they do so from an asynchronous notification that indicates that an underlying resource is available.
 
--   Clients will not call the Module's Methods before this callback
-    happens or while this callback is happening.
+-   All calls to **DMF_ModuleOpen()** must have a corresponding call to **DMF_ModuleClose()**.
 
--   
+-   (See [Notification Module Concepts](#notification-module-concepts).).
+
+-   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleOpen()` and the associated programming pattern.
+
+-   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
 ### DMF_ModuleClose
 ```
@@ -6387,27 +6373,29 @@ not call the Module's Methods after this call.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config. Also, the Client Driver's **WDFDEVICE** is accessible via this parameter.
   
 #### Returns
 
-STATUS_SUCCESS if no error is encountered in the callback. Otherwise,
-an error code corresponding to the error is returned.
+None
 
-Remarks
+#### Remarks
 
--   Module's only use this call from their
-    **DMF_Module_NotificationUnregister()** callbacks; otherwise, DMF
-    closes the Module automatically based on the Module's Open Option.
+-   Modules **only** call **DMF_ModuleClose()** when the Module's Open Option is: `DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware`, `DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry` or `DMF_MODULE_OPEN_OPTION_NOTIFY_Create`.
 
--   This callback is where the Module releases any resources acquired
-    when it opened.
+-   In all other cases, DMF automatically Closes the Module based on its Open Option.
 
--   This callback is where the Module can stop doing any processing it
-    started during its Open callback.
+-   When Modules call **DMF_ModuleClose()**, they do so from an asynchronous notification that indicates that an underlying resource is not longer available.
 
--   Clients will not call the Module's Methods after this callback
-    happens or while this callback is happening.
+-   If asynchronous threads are executing any of the Module's Methods when **DMF_ModuleClose()** is called, **DMF_ModuleClose()** will automatically wait for those Method's to finish executing prior 
+    to calling the Module's Close callback. In addition, **DMF_ModuleClose()** prevents asynchronous threads from making new calls into the Module's Methods. **NOTE: For this 
+    behavior to happen, the Module's Methods must call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** at the start and end of the Methods.**
+
+-   (See [Notification Module Concepts](#notification-module-concepts).).
+
+-   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleClose()` and the associated programming pattern.
+
+-   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
 ### DMF_ModuleAcquire
 ```
@@ -6416,51 +6404,54 @@ DMF_ModuleAcquire(
     _In_ DMFMODULE DmfModule
     )
 ```
-Module methods that use **DMF_[ModuleName]_NotificationOpen()** or
-the **DMF_Notification** Module call this function at the beginning of
-the Method's code prior to accessing the Module's Private Context or
-calling any Module support functions. This function tells DMF to prevent
-the underlying resource's handle from being closed while the Method is
-executing. If the underlying resource's handle has already been closed,
-then this function returns an error and the Method should immediately
-exit.
+Increments an the internal Module's reference count that tells DMF that the Module is in use and cannot be closed.
 
 #### Parameters
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
 
 #### Returns
 
-None
+STATUS_SUCCESS: A reference has been acquired and indicating the Module's Methods can be called. It means the Module will remain open until the corresponding `DMF_ModuleRelease()` is called.
+STATUS_UNSUCCESSFUL: The Module has closed or is closing. The Module's Methods should not execute.
 
 #### Remarks
 
--   If this call succeeds, the Method must always call
-    **DMF_ModuleRelease()** before exiting to release the reference
+-   If this call succeeds, the Method must always call `DMF_ModuleRelease()` before to release the reference
     count acquired by this function.
 
--   This function is only applicable if
-    **DMF_ModuleNotificationOpen()** is used by the Module from the
-    Module's notification callback.
+-   Use of this function allows DMF to prevent the underlying resource's handle from being closed while the Method is
+    executing. If the underlying resource's handle has already been closed, then this function returns an error and 
+    the Method should immediately exit.
+
+-   Modules that support **DMF_[ModuleName]_NotificationRegister()** should call `DMF_ModuleAqcquire()` at the beginning of their Methods.
+
+-   All Module Methods may call `DMF_ModuleAqcquire()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
+
+-   It is permissible for Clients (Drivers or Modules) to call `DMF_ModuleAcquire()` to keep the underlying Module open, however it is rarely needed.
+
+-   (See [Notification Module Concepts](#notification-module-concepts).).
+
+-   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleAcquire()` and the associated programming pattern.
+
+-   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
 ### DMF_ModuleRelease
 ```
-NTSTATUS
+VOID
 DMF_ModuleRelease(
     _In_ DMFMODULE DmfModule
     )
 ```
-Module methods that use **DMF_[ModuleName]_NotificationOpen()** or
-the **DMF_Notification** Module call this function at the end of the
-Method's code if the prior call to DMF_ModuleAcquire() succeeded.
+Decrements the internal Module reference count that tells DMF that the Module is not in use and can be closed.
 
 #### Parameters
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
 
 #### Returns
 
@@ -6468,10 +6459,20 @@ None
 
 #### Remarks
 
--   This function is only applicable if
-    **DMF_ModuleNotificationClose()** is used by the Module from the
-    Module's notification callback.
+-   Always call `DMF_ModuleRelease()` to release the reference count acquired by `DMF_ModuleAcquire()`.
 
+-   Use of this function allows DMF to prevent the underlying resource's handle from being closed while its Methods are
+    executing.
+
+-   Modules that support **DMF_[ModuleName]_NotificationRegister()** should call `DMF_ModuleRelease()` at the end of their Methods.
+
+-   All Module Methods may call `DMF_ModuleRelease()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
+
+-   (See [Notification Module Concepts](#notification-module-concepts).).
+
+-   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleRelease()` and the associated programming pattern.
+
+-   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
 ### DMF_ModuleIsDynamic
 ```
@@ -6512,7 +6513,7 @@ driver.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The Module's DMF Module handle. Use this handle to retrieve the Module's Private Context and Config.
+  **DMFMODULE DmfModule** |  The Module's DMFMODULE. Use this handle to retrieve the Module's Context and Config.
 
 #### Returns
 
@@ -6582,7 +6583,7 @@ status is not **STATUS_SUCCESS**. Otherwise the following happens:
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE
   **WDFREQUEST Request**   | The given **WDFREQUEST**.
   **NTSTATUS NtSTatus**    | The **NTSTATUS** that is to be set in the **WDFREQUEST**.
 
@@ -6618,7 +6619,7 @@ functions.
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The Module's DMF Module handle.
+  **DMFMODULE DmfModule**  | The Module's DMFMODULE.
   **Message**              | Indicates the reason for the call. Also, indicates the format of the Input and Output buffers.
   **InputBuffer**          | Specifies data sent to the Method. Message indicates the contents of this buffer.
   **InputBufferSize**      | Indicates the size of InputBuffer in bytes.
@@ -6670,7 +6671,7 @@ DMF_FeatureModuleGetFromModule(
     _In_ DmfFeatureType DmfFeature
     );
 ```
-Given a WDF Device, retrieve a Feature Module handle given its
+Given a WDF Device, retrieve a Feature DMFMODULE given its
 identifier.
 
 #### Parameters
@@ -6697,7 +6698,7 @@ DMF_FeatureModuleGetFromModule(
     _In_ DmfFeatureType DmfFeature
     );
 ```
-Given a DMF Module, retrieve a Feature Module handle given its
+Given a DMF Module, retrieve a Feature DMFMODULE given its
 identifier.
 
 #### Parameters
@@ -6743,7 +6744,7 @@ drivers).
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule**  | The given DMF Module handle.
+  **DMFMODULE DmfModule**  | The given DMFMODULE.
 
 #### Returns
 
@@ -6777,7 +6778,7 @@ Given a Module, this function retrieves the Client Filter Driver's
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DMFMODULE DmfModule** |  The given DMF Module handle.
+  **DMFMODULE DmfModule** |  The given DMFMODULE.
 
 #### Returns
 
@@ -7548,6 +7549,131 @@ returned.
 -   **Do not use this function. Use DMF_IoctlHandler instead.**
 
 -   This function is present for legacy reasons.
+
+Important DMF Concepts
+======================
+
+This section discusses various issues related to writing device drivers using DMF.
+
+Meaning of Open and Close Module
+--------------------------------
+
+DMF Modules support two important callbacks called **DMF_[ModuleName]_Open()** and **DMF_[ModuleName]_Close()**.
+However, the meaning and purpose of these callbacks is often not understood. 
+
+Authors use **DMF_[ModuleName]_Open()** to do the following:
+1. Prepare the Module's Context for use by the Module (which is the only code that uses that Context directly).
+2. Allocate resources and store handles to those resources in the Context. Those resources are used while the Module is open (either by the Module's internal suport code or the Module's Methods.)
+3. Prepare the Module's Context so that Clients may call the Module's Methods.
+4. **Indicate to DMF that the Module's Methods may now be called.** DMF receives this indication when **DMF_[ModuleName]_Open()**
+returns STATUS_SUCCESS. Any other NTSTATUS tells DMF that the Module's Methods may not be called. This synchronization occurs when
+Module Methods call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** at the beginning and end of each Method.
+
+Once a Module's Open Callback has executed and returned STATUS_SUCCESS, the Client may call any of the Module's Methods. Note that the Module's Methods
+may be called at any time by multiple simultaneous threads. It is the responsibility of the Module to synchronize such calls
+using **DMF_ModuleLock()** and **DMF_ModuleUnlock()**. In some cases, it is necessary for Methods to use **DMF_ModuleReference()** and
+**DMF_ModuleDereference()**. (See [Notification Module Concepts](#notification-module-concepts).)
+
+Authors use **DMF_[ModuleName]_Close()** to do the following:
+1. Flush and wait for any pending operations the Module started to finish.
+2. Undo any allocations of resources that **DMF_[ModuleName]_Open()** made.
+3. **Indicate to DMF that the Module's Methods may no longer be called.** DMF receives this indication when **DMF_[ModuleName]_Close()** returns.
+This synchronization occurs when Module Methods call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** at the beginning and end of each Method.
+
+Other notes:
+1. When **DMF_[ModuleName]_Open()** executes, it means that the Module's Child Modules have all successfully opened and any of their Methods may be called.
+Specifically, this means that Child Modules are opened before their Parents (much like underlying WDFDEVICES are powered-up from the buttom up).
+2. When **DMF_[ModuleName]_Close()** executes, it means that the Module's Parent Module has closed and the Parent will not call any of the Modules's Methods.
+Specifically, this means that Child Modules are closed before their Children (much like underlying WDFDEVICES are powered-down from the top down).
+
+A Module's Context and its Open callback are Module specific, much  like a WDF driver's DEVICE_CONTEXT and AddDevice() are driver specific.
+It is up to the Module's author to design their function appropriately. There are many examples of these callbacks. Reading those should help
+one to understand these concepts better.
+
+Additionally, note that some Modules do not need these callbacks. Even in that case, however, DMF still calls an internal version of the callbacks.
+
+Finally, it is possible for Child Modules to callback into Parent Modules. In that case, it is the responsibility of the Module author to synchronize those
+calls with the Module's Open/Close callbacks. This can also be done using **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** or other means.
+
+Notification Module Concepts
+----------------------------
+
+A common programming pattern that occurs in device drivers is when the driver needs to perform operations after a specific resource becomes available which can happen before or after the driver starts. In addition, that same resource can become unavailable while the driver is using it. In addition, after becoming unavailable, the resource can once again become available which means the driver needs to begin using it again.
+The resource can be a WDFIOTARGET identified by a device interface GUID or it can be some other device that becomes available via some other means.
+
+In this situation, when drivers start, they typically register for an asynchronous notification that the resource is available or unavailable. Then, as soon as the notification tells the driver that resource is available, the driver opens the resources and begins sending or receiving data to/from the resource. 
+The driver must make sure that when the resource suddenly becomes unavailable the driver stops communicating with the resource, flushes pending requests from that resource, closes the resource and destroys any associated allocations for that resource.
+
+However, at the same time, there may be asynchronous threads that are communicating with the resource, often due to external events coming into the driver. 
+Thus, when shutting down communication with the resource the driver must be careful to make sure to properly synchronize the asynchronous communication with the resource with the thread that is shutting down the resource.
+
+One other complication is that not only is the code that executes when the resource appears easier to write, that code is often better tested because it executes  more frequently. Indeed, the removal of the resource may never happen in ordinary situations and to test that code path it must be artificially induced by using stress test programs (such as PnpDTest). The removal path is often poorly tested so it is easy to miss race conditions between the threads communicating with the resource and thread that is shutting down the resource.
+A common pattern that poorly written drivers follow is to shut down the resource and then set the handle to the resource to NULL. Or, perhaps to set a flag called “ResourcePresent”. Then, the code that is using the resource checks the handle or the flag to determine if the resource is available. Unfortunately, that code does not work well under stress conditions because the resource can be come unavailable just after the handle or flag have been checked.
+
+One of the benefits when using DMF is that DMF allows a programmer to properly implement this programming pattern easily and correctly because DMF contains internal support for such code. When using DMF's constructs correctly the following is true:
+
+  1. The Client of the Module that contains the resource never has to check if the Module's underlying resource is available or has become unavailable. Specifically, it means that the Client can all that Module's Methods at any time without worrying that a race condition will occur with the resource's handle or the internal Module Context.
+  2. Given the above, it is not mandatory that a Client begin communicating (via Module Methods) with such a Module only after the Module's resource has become available. Nor is it mandatory that when the Module's resource has become unavailable, the Client stop communicating with the Module.
+However, the **best practice** is that the Client should only begin calling the Module's Methods after the Module's resource is available. In addition, **best practice** dictates that the Client should stop calling the Module's Methods when the Module's resource becomes unavailable.
+To this end, DMF provides a simple mechanism that allows any Client to register for notifications from any Module when the Module wants to inform the Client that the Module's resource is or is not available so that the Client can start/stop calling the Module's Methods. The combination of both these
+features allows for a Client to robustly start/stop communicating with a Module's Methods based on when the underlying resource is available or not.
+  3. It is the responsibility of the Module to properly handle all the race conditions that can occur when Client's call the Module's Methods randomly, asynchronously
+and simultaneously…while the underlying resource is simultaneously appearing/disappearing. Fortunately, DMF provides constructs that are simple to use than make it easy
+for the Module's author to properly write such code.
+
+#### Module Open Options
+
+Modules that have underlying resources that appear/disappear asynchronously are called **Notification Modules**. Module authors indicate that a Module is a Notification Module by using one of these Open Options in the Module's descriptor initialization macro:
+
+ * `DMF_MODULE_OPEN_OPTION_NOTIFY_Create`
+ * `DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware`
+ * `DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry`
+
+(See `DMF_DeviceInterfaceTarget_Create`).
+
+The only difference between Notification Modules and non-Notification Modules is when DMF calls the Module's Open/Close callbacks.
+DMF calls the Open callback of Non-Notification Modules automatically when the Module is (1) created, (2) during the Client Driver's EvtDevicePrepareHardware callback or (3) during the Client Driver's EvtDeviceD0Entry callback depending on the open option chosen:
+
+ * `DMF_MODULE_OPEN_OPTION_Create`
+ * `DMF_MODULE_OPEN_OPTION_PrepareHardware`
+ * `DMF_MODULE_OPEN_OPTION_D0Entry`
+
+Similarly, DMF calls the Close callback of a non-Notification Module when the Module is (1) destroyed, (2) during the Client Driver's EvtDeviceReleaseHardware callback or (3) during the Client Driver's EvtDeviceD0Exit  callback depending on the open option chosen.
+Non-Notification Modules are different because for these Modules DMF does not automatically call the Module's Open/Close callbacks. Instead, calling the Module's Open callback, DMF calls the Module's Notification Register callback when the Module is (1) created, (2) during the Client Driver's EvtDevicePrepareHardware callback or (3) during the Client Driver's EvtDeviceD0Entry callback depending on the open option chosen. Similarly, instead of calling the Module's Close callback, DMF calls the Module's Notification Unregister callback when the Module is (1) destroyed, (2) during the Client Driver's EvtDeviceReleaseHardware callback or (3) during the Client Driver's EvtDeviceD0Exit  callback depending on the open option chosen.
+
+#### Notification Registration
+
+The Module's Notification Register performs the work of starting the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationRegister.
+
+#### Notification Unregistration
+
+The Module's Notification Unregister performs the work of stopping up the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationUnregister.
+
+#### Resource Arrival
+
+When the underlying resource appears the asynchronous notification function that was set up in the Notification Register callback executes. From that callback, the Module determines if it needs to access that resource. If so, it makes a call to DMF_ModuleOpen(). In turn, DMF executes the following code:
+1. DMF calls the Module's Open callback. (See DMF_DeviceInterfaceTarget_Open). Here is where the Module prepares the resource for use.
+2. DMF calls the Module's Post Open callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is now ready for use. It means that its resource is available and the Client may call the Module's Methods at will. (See SwitchBar_OnDeviceArrivalNotification).
+Note: A Module's Post Open callback is called for any Module after its Open callback has returned STATUS_SUCCESS, regardless of whether or not it is a Notification Module.
+
+#### Resource Removal
+
+When the underlying resource disappears the asynchronous notification function that was set up in the Notification Register callback executes again. From that callback, the Module makes a call to **DMF_ModuleClose()**. In turn, DMF executes the following code:
+
+ 1. DMF sets a flag that tells all the Module's Methods that the resource is no longer available and that Methods should not read or write to the Module's Context. If a Client makes a new call to one of the Module's Methods, the Method will immediately return an error to the Client without accessing the Module's Context.
+ 2. **DMF waits for the all Methods that were already executing to finish executing. This leaves the Module's Context in a proper synchronized state while the exiting Methods are running. (The underlying resource may return an error when accessed, but the Module's Context remains valid while the Method executes.) During this wait, any new calls to the Module's Methods are immediately rejected with an error.**
+ 3. After the above wait is satisfied, DMF calls the Module's Pre Close callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is no longer ready for use. It means that its resource is no longer available and the Client *should* stop  calling the Module's Methods. (See SwitchBar_OnDeviceRemovalNotification).
+ 4. DMF calls the Module's Close callback. (See DMF_DeviceInterfaceTarget_Close). Here is where the Module closes the resource and deallocates any associated allocations.
+
+Note: A Module's Pre Close callback is called for any Module before its Close  callback is called, regardless of whether or not it is a Notification Module.
+
+#### Summary
+
+Using the above constructs allows the Module author to clear the Module's Context and associated resource handles as soon as its Close callback executes without worry that another thread will try to use an invalid Context. The Module author does not need to worry that a Method will be called by a Client during or after that time.
+Similarly, the Client does not need to worry about exiting code that executing Methods when the Module's Pre Close callback happens.
+
+Using Notification Modules properly eliminates common race conditions that are difficult to find and fix in drivers. Furthermore, by simply writing code in the correct locations, neither the Module author nor the Client have to worry about such race conditions.
+There are various examples of Notification Modules in the DMF Library. To find the examples, search for `DMF_MODULE_OPEN_OPTION_NOTIFY` (partial word).
 
 DMF Coding Conventions
 ======================
