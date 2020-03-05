@@ -166,7 +166,7 @@ typedef struct
     // In order to not check for NULL Handles, this flag is used when a choice must be made.
     // This flag is also used for assertions in case people misuse APIs.
     //
-    BOOLEAN OpenedInStreamMode;
+    BOOLEAN ContinuousReaderMode;
 
     // Indicates the mode of ContinuousRequestTarget.
     //
@@ -501,7 +501,7 @@ DeviceInterfaceMultipleTarget_Stream_SendSynchronously(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     return DMF_ContinuousRequestTarget_SendSynchronously(Target->DmfModuleRequestTarget,
                                                          RequestBuffer,
                                                          RequestLength,
@@ -532,7 +532,7 @@ DeviceInterfaceMultipleTarget_Stream_Send(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     return DMF_ContinuousRequestTarget_Send(Target->DmfModuleRequestTarget,
                                             RequestBuffer,
                                             RequestLength,
@@ -556,7 +556,7 @@ DeviceInterfaceMultipleTarget_Stream_IoTargetSet(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     DMF_ContinuousRequestTarget_IoTargetSet(Target->DmfModuleRequestTarget,
                                             IoTarget);
 }
@@ -571,7 +571,7 @@ DeviceInterfaceMultipleTarget_Stream_IoTargetClear(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     DMF_ContinuousRequestTarget_IoTargetClear(Target->DmfModuleRequestTarget);
 }
 
@@ -598,7 +598,7 @@ DeviceInterfaceMultipleTarget_Target_SendSynchronously(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->ContinuousReaderMode);
     ntStatus = DMF_RequestTarget_SendSynchronously(Target->DmfModuleRequestTarget,
                                                    RequestBuffer,
                                                    RequestLength,
@@ -632,7 +632,7 @@ DeviceInterfaceMultipleTarget_Target_Send(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->ContinuousReaderMode);
     ntStatus = DMF_RequestTarget_Send(Target->DmfModuleRequestTarget,
                                       RequestBuffer,
                                       RequestLength,
@@ -658,7 +658,7 @@ DeviceInterfaceMultipleTarget_Target_IoTargetSet(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->ContinuousReaderMode);
     DMF_RequestTarget_IoTargetSet(Target->DmfModuleRequestTarget,
                                   IoTarget);
 }
@@ -673,7 +673,7 @@ DeviceInterfaceMultipleTarget_Target_IoTargetClear(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->OpenedInStreamMode);
+    DmfAssert(! moduleContext->ContinuousReaderMode);
     DMF_RequestTarget_IoTargetClear(Target->DmfModuleRequestTarget);
 }
 
@@ -1016,6 +1016,8 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
+    // If the client has registered for device interface state changes, call the notification callback.
+    //
     if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
     {
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
@@ -1023,7 +1025,9 @@ Return Value:
                                                                     DeviceInterfaceMultipleTarget_StateType_QueryRemove);
     }
 
-    if (moduleContext->OpenedInStreamMode)
+    // Transparently stop the stream in automatic mode.
+    //
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
     {
         DMF_DeviceInterfaceMultipleTarget_StreamStop(dmfModule,
                                                      target->DmfIoTarget);
@@ -1077,13 +1081,6 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
-    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
-    {
-        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
-                                                                    target->DmfIoTarget,
-                                                                    DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled);
-    }
-
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
     ntStatus = WdfIoTargetOpen(IoTarget,
@@ -1095,7 +1092,18 @@ Return Value:
         goto Exit;
     }
 
-    if (moduleContext->OpenedInStreamMode)
+    // If the client has registered for device interface state changes, call the notification callback.
+    //
+    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+    {
+        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
+                                                                    target->DmfIoTarget,
+                                                                    DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled);
+    }
+
+    // Transparently restart the stream in automatic mode.
+    //
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
     {
         ntStatus = DMF_DeviceInterfaceMultipleTarget_StreamStart(dmfModule,
                                                                  target->DmfIoTarget);
@@ -1266,7 +1274,7 @@ Return Value:
         moduleContext->RequestSink_IoTargetSet = DeviceInterfaceMultipleTarget_Stream_IoTargetSet;
         moduleContext->RequestSink_Send = DeviceInterfaceMultipleTarget_Stream_Send;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceMultipleTarget_Stream_SendSynchronously;
-        moduleContext->OpenedInStreamMode = TRUE;
+        moduleContext->ContinuousReaderMode = TRUE;
         // Remember Client's choice so this Module can start/stop streaming appropriately.
         //
         moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode;
@@ -1299,7 +1307,7 @@ Return Value:
         moduleContext->RequestSink_IoTargetSet = DeviceInterfaceMultipleTarget_Target_IoTargetSet;
         moduleContext->RequestSink_Send = DeviceInterfaceMultipleTarget_Target_Send;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceMultipleTarget_Target_SendSynchronously;
-        moduleContext->OpenedInStreamMode = FALSE;
+        moduleContext->ContinuousReaderMode = FALSE;
     }
 
 Exit:
@@ -2464,7 +2472,7 @@ Return Value:
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     DMF_ContinuousRequestTarget_BufferPut(target->DmfModuleRequestTarget,
                                           ClientBuffer);
 
@@ -2802,7 +2810,7 @@ Return Value:
 
     DmfAssert(target->IoTarget != NULL);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     ntStatus = DMF_ContinuousRequestTarget_Start(target->DmfModuleRequestTarget);
 
     DMF_ModuleDereference(DmfModule);
@@ -2857,7 +2865,7 @@ Return Value:
 
     DmfAssert(target->IoTarget != NULL);
 
-    DmfAssert(moduleContext->OpenedInStreamMode);
+    DmfAssert(moduleContext->ContinuousReaderMode);
     DMF_ContinuousRequestTarget_StopAndWait(target->DmfModuleRequestTarget);
 
     DMF_ModuleDereference(DmfModule);
