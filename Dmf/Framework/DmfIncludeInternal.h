@@ -384,6 +384,10 @@ typedef struct _DMF_DEVICE_CONTEXT
     // Indicates that the Client Driver is a Filter driver.
     //
     BOOLEAN IsFilterDevice;
+
+    // Callback that allows Client to emit logging/telemetry data.
+    //
+    EVT_DMF_DEVICE_LOG* EvtDmfDeviceLog;
 } DMF_DEVICE_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_DEVICE_CONTEXT, DmfDeviceContextGet)

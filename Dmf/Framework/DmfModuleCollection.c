@@ -3884,6 +3884,11 @@ Return Value:
             dmfEventCallbacks->EvtDmfDeviceModulesAdd(Device,
                                                       (PDMFMODULE_INIT)&moduleCollectionConfig);
         }
+
+        if (dmfEventCallbacks->EvtDmfDeviceLog != NULL)
+        {
+            dmfDeviceContext->EvtDmfDeviceLog = dmfEventCallbacks->EvtDmfDeviceLog;
+        }
     }
 
     // The attributes for all the Modules have been set. Create the Modules.

@@ -453,8 +453,6 @@ Return Value:
 
     UNREFERENCED_PARAMETER(TargetState);
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);

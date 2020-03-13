@@ -880,6 +880,165 @@ Exit:
     return ntStatus;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_Utility_LogEmitString(
+    _In_ DMFMODULE DmfModule,
+    _In_ DmfLogDataSeverity DmfLogDataSeverity,
+    _In_ WCHAR* FormatString,
+    ...
+    )
+/*++
+
+Routine Description:
+
+    This routine raises events by calling the ETW callback function registered by
+    the client. It creates a DMF_EVENT structure for the Module with a String type
+    EventData argument.
+    NOTE: Do not let user-mode driver pass user requests here.
+    NOTE: Passing a single-byte string with a wide %s can cause stack overrun. 
+
+Arguments:
+
+    DmfModule - DMF Module raising the event.
+    DmfLogDataSeverity - Used by Client to identify the severity of the event.
+    FormatString - The format specifier for each argument passed below.
+    ... - Variable list of insertion strings.
+
+Return Value:
+
+    None. If there is an error, no error is logged.
+
+--*/
+{
+    DMF_OBJECT* dmfObject;
+    DMF_DEVICE_CONTEXT* dmfDeviceContext;
+    va_list argumentList;
+    NTSTATUS ntStatus;
+    WDFMEMORY  writeBufferMemoryHandle;
+    WDF_OBJECT_ATTRIBUTES attributes;
+    DMF_LOG_DATA dmfLogData;
+    UNICODE_STRING outputString;
+    WDFDEVICE device;
+
+    FuncEntry(DMF_TRACE);
+
+    DmfAssert((DmfLogDataSeverity >= DmfLogDataSeverity_Critical) &&
+              (DmfLogDataSeverity < DmfLogDataSeverity_Maximum));
+
+    writeBufferMemoryHandle = NULL;
+
+    // Extract object to get to event callback.
+    //
+    dmfObject = DMF_ModuleToObject(DmfModule);
+
+    DmfAssert(dmfObject->ParentDevice != NULL);
+    dmfDeviceContext = DmfDeviceContextGet(dmfObject->ParentDevice);
+
+    if (NULL == dmfDeviceContext->EvtDmfDeviceLog)
+    {
+        // Client driver did not register the callback so there is
+        // nothing to do.
+        //
+        goto Exit;
+    }
+
+    // Initialize the Unicode string. Allow for final zero termination.
+    //
+    outputString.Length = 0;
+    outputString.MaximumLength = (DMF_EVENTLOG_MAXIMUM_LENGTH_OF_STRING + 1) * sizeof(WCHAR);
+
+    // Allocate buffer for the output Unicode string.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    ntStatus = WdfMemoryCreate(&attributes,
+                                NonPagedPoolNx,
+                                DMF_TAG,
+                                outputString.MaximumLength,
+                                &writeBufferMemoryHandle,
+                                (PVOID*)&outputString.Buffer);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+#if defined(DMF_USER_MODE)
+
+    // Zero out the string buffer.
+    //
+    ZeroMemory(outputString.Buffer,
+               outputString.MaximumLength);
+
+    va_start(argumentList,
+             FormatString);
+
+    HRESULT hResult;
+
+    hResult = StringCchVPrintfW(outputString.Buffer,
+                                DMF_EVENTLOG_MAXIMUM_LENGTH_OF_STRING,
+                                FormatString,
+                                argumentList);
+
+    va_end(argumentList);
+
+    // Allow truncated results to pass to Client.
+    //
+    if (hResult != S_OK &&
+        hResult != STRSAFE_E_INSUFFICIENT_BUFFER)
+    {
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
+#else
+
+    // Zero out the string buffer.
+    //
+    RtlZeroMemory(outputString.Buffer,
+                  outputString.MaximumLength);
+
+    va_start(argumentList,
+             FormatString);
+
+    // Put arguments inside format strings.
+    //
+    ntStatus = RtlUnicodeStringVPrintf(&outputString,
+                                       FormatString,
+                                       argumentList);
+
+    va_end(argumentList);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+#endif
+
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    // Send the string to the callback.
+    //
+    dmfLogData.DmfLogDataType = DmfLogDataType_String;
+    dmfLogData.DmfLogDataSeverity = DmfLogDataSeverity;
+    dmfLogData.LogData.StringArgument.Message = outputString.Buffer;
+    dmfDeviceContext->EvtDmfDeviceLog(device,
+                                      dmfLogData);
+
+
+Exit:
+
+    // Clear all allocated memory.
+    //
+    if (writeBufferMemoryHandle != NULL)
+    {
+        WdfObjectDelete(writeBufferMemoryHandle);
+    }
+
+    FuncExitNoReturn(DMF_TRACE);
+}
+
 #if !defined(DMF_USER_MODE)
 
 // Event log support for Kernel-mode Drivers.

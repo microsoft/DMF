@@ -467,84 +467,93 @@ Return Value:
 
 #if !defined(DMF_USER_MODE)
 
-#define DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfEvtDeviceAdd, DmfDeviceModulesAdd, BranchTrackInitialize, BranchTrackName, BranchTrackEntriesOverride)   \
-                                                                                                                                                           \
-_Use_decl_annotations_                                                                                                                                     \
-NTSTATUS                                                                                                                                                   \
-DmfEvtDeviceAdd(                                                                                                                                           \
-    _In_ WDFDRIVER Driver,                                                                                                                                 \
-    _Inout_ PWDFDEVICE_INIT DeviceInit                                                                                                                     \
-    )                                                                                                                                                      \
-{                                                                                                                                                          \
-    NTSTATUS ntStatus;                                                                                                                                     \
-    WDFDEVICE device;                                                                                                                                      \
-    PDMFDEVICE_INIT dmfDeviceInit;                                                                                                                         \
-    DMF_EVENT_CALLBACKS dmfCallbacks;                                                                                                                      \
-    DMF_CONFIG_BranchTrack branchTrackModuleConfig;                                                                                                        \
-                                                                                                                                                           \
-    UNREFERENCED_PARAMETER(Driver);                                                                                                                        \
-                                                                                                                                                           \
-    PAGED_CODE();                                                                                                                                          \
-                                                                                                                                                           \
-    dmfDeviceInit = DMF_DmfDeviceInitAllocate(DeviceInit);                                                                                                 \
-                                                                                                                                                           \
-    DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit,                                                                                             \
-                                                NULL);                                                                                                     \
-    DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit,                                                                                                   \
-                                          NULL);                                                                                                           \
-    DMF_DmfDeviceInitHookPowerPolicyEventCallbacks(dmfDeviceInit,                                                                                          \
-                                                   NULL);                                                                                                  \
-                                                                                                                                                           \
-    WdfDeviceInitSetDeviceType(DeviceInit,                                                                                                                 \
-                               FILE_DEVICE_UNKNOWN);                                                                                                       \
-    WdfDeviceInitSetExclusive(DeviceInit,                                                                                                                  \
-                              FALSE);                                                                                                                      \
-    WdfDeviceInitSetIoType(DeviceInit,                                                                                                                     \
-                           WdfDeviceIoBuffered);                                                                                                           \
-                                                                                                                                                           \
-    ntStatus = WdfDeviceCreate(&DeviceInit,                                                                                                                \
-                               WDF_NO_OBJECT_ATTRIBUTES,                                                                                                   \
-                               &device);                                                                                                                   \
-    if (! NT_SUCCESS(ntStatus))                                                                                                                            \
-    {                                                                                                                                                      \
-        goto Exit;                                                                                                                                         \
-    }                                                                                                                                                      \
-                                                                                                                                                           \
-    if (strlen(BranchTrackName) != 0)                                                                                                                      \
-    {                                                                                                                                                      \
-        DMF_BranchTrack_CONFIG_INIT(&branchTrackModuleConfig,                                                                                              \
-                                    BranchTrackName);                                                                                                      \
-        branchTrackModuleConfig.BranchesInitialize = BranchTrackInitialize;                                                                                \
-        ULONG branchTrackEntriesOverride = BranchTrackEntriesOverride;                                                                                     \
-        if (branchTrackEntriesOverride != 0)                                                                                                               \
-        {                                                                                                                                                  \
-            branchTrackModuleConfig.MaximumBranches = BranchTrackEntriesOverride;                                                                          \
-        }                                                                                                                                                  \
-        DMF_DmfDeviceInitSetBranchTrackConfig(dmfDeviceInit,                                                                                               \
-                                              &branchTrackModuleConfig);                                                                                   \
-    }                                                                                                                                                      \
-                                                                                                                                                           \
-    DMF_EVENT_CALLBACKS_INIT(&dmfCallbacks);                                                                                                               \
-    dmfCallbacks.EvtDmfDeviceModulesAdd = DmfDeviceModulesAdd;                                                                                             \
-    DMF_DmfDeviceInitSetEventCallbacks(dmfDeviceInit,                                                                                                      \
-                                       &dmfCallbacks);                                                                                                     \
-                                                                                                                                                           \
-    ntStatus = DMF_ModulesCreate(device,                                                                                                                   \
-                                 &dmfDeviceInit);                                                                                                          \
-    if (! NT_SUCCESS(ntStatus))                                                                                                                            \
-    {                                                                                                                                                      \
-        goto Exit;                                                                                                                                         \
-    }                                                                                                                                                      \
-                                                                                                                                                           \
-Exit:                                                                                                                                                      \
-                                                                                                                                                           \
-    if (dmfDeviceInit != NULL)                                                                                                                             \
-    {                                                                                                                                                      \
-        DMF_DmfDeviceInitFree(&dmfDeviceInit);                                                                                                             \
-    }                                                                                                                                                      \
-                                                                                                                                                           \
-    return ntStatus;                                                                                                                                       \
-}                                                                                                                                                          \
+#define DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfDeviceAdd,                                                                                                             \
+                                                   DmfDeviceModulesAdd,                                                                                                      \
+                                                   DmfDeviceLog,                                                                                                             \
+                                                   BranchTrackInitialize,                                                                                                    \
+                                                   BranchTrackName,                                                                                                          \
+                                                   BranchTrackEntriesOverride)                                                                                               \
+                                                                                                                                                                             \
+_Use_decl_annotations_                                                                                                                                                       \
+NTSTATUS                                                                                                                                                                     \
+DmfDeviceAdd(                                                                                                                                                                \
+    _In_ WDFDRIVER Driver,                                                                                                                                                   \
+    _Inout_ PWDFDEVICE_INIT DeviceInit                                                                                                                                       \
+    )                                                                                                                                                                        \
+{                                                                                                                                                                            \
+    NTSTATUS ntStatus;                                                                                                                                                       \
+    WDFDEVICE device;                                                                                                                                                        \
+    PDMFDEVICE_INIT dmfDeviceInit;                                                                                                                                           \
+    DMF_EVENT_CALLBACKS dmfCallbacks;                                                                                                                                        \
+    DMF_CONFIG_BranchTrack branchTrackModuleConfig;                                                                                                                          \
+                                                                                                                                                                             \
+    UNREFERENCED_PARAMETER(Driver);                                                                                                                                          \
+                                                                                                                                                                             \
+    PAGED_CODE();                                                                                                                                                            \
+                                                                                                                                                                             \
+    dmfDeviceInit = DMF_DmfDeviceInitAllocate(DeviceInit);                                                                                                                   \
+                                                                                                                                                                             \
+    DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit,                                                                                                               \
+                                                NULL);                                                                                                                       \
+    DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit,                                                                                                                     \
+                                          NULL);                                                                                                                             \
+    DMF_DmfDeviceInitHookPowerPolicyEventCallbacks(dmfDeviceInit,                                                                                                            \
+                                                   NULL);                                                                                                                    \
+                                                                                                                                                                             \
+    WdfDeviceInitSetDeviceType(DeviceInit,                                                                                                                                   \
+                               FILE_DEVICE_UNKNOWN);                                                                                                                         \
+    WdfDeviceInitSetExclusive(DeviceInit,                                                                                                                                    \
+                              FALSE);                                                                                                                                        \
+    WdfDeviceInitSetIoType(DeviceInit,                                                                                                                                       \
+                           WdfDeviceIoBuffered);                                                                                                                             \
+                                                                                                                                                                             \
+    ntStatus = WdfDeviceCreate(&DeviceInit,                                                                                                                                  \
+                               WDF_NO_OBJECT_ATTRIBUTES,                                                                                                                     \
+                               &device);                                                                                                                                     \
+    if (! NT_SUCCESS(ntStatus))                                                                                                                                              \
+    {                                                                                                                                                                        \
+        goto Exit;                                                                                                                                                           \
+    }                                                                                                                                                                        \
+                                                                                                                                                                             \
+    if (strlen(BranchTrackName) != 0)                                                                                                                                        \
+    {                                                                                                                                                                        \
+        DMF_BranchTrack_CONFIG_INIT(&branchTrackModuleConfig,                                                                                                                \
+                                    BranchTrackName);                                                                                                                        \
+        branchTrackModuleConfig.BranchesInitialize = BranchTrackInitialize;                                                                                                  \
+        ULONG branchTrackEntriesOverride = BranchTrackEntriesOverride;                                                                                                       \
+        if (branchTrackEntriesOverride != 0)                                                                                                                                 \
+        {                                                                                                                                                                    \
+            branchTrackModuleConfig.MaximumBranches = BranchTrackEntriesOverride;                                                                                            \
+        }                                                                                                                                                                    \
+        DMF_DmfDeviceInitSetBranchTrackConfig(dmfDeviceInit,                                                                                                                 \
+                                              &branchTrackModuleConfig);                                                                                                     \
+    }                                                                                                                                                                        \
+                                                                                                                                                                             \
+    DMF_EVENT_CALLBACKS_INIT(&dmfCallbacks);                                                                                                                                 \
+    dmfCallbacks.EvtDmfDeviceModulesAdd = DmfDeviceModulesAdd;                                                                                                               \
+    dmfCallbacks.EvtDmfDeviceLog = DmfDeviceLog;                                                                                                                             \
+    DMF_DmfDeviceInitSetEventCallbacks(dmfDeviceInit,                                                                                                                        \
+                                       &dmfCallbacks);                                                                                                                       \
+                                                                                                                                                                             \
+    ntStatus = DMF_ModulesCreate(device,                                                                                                                                     \
+                                 &dmfDeviceInit);                                                                                                                            \
+    if (! NT_SUCCESS(ntStatus))                                                                                                                                              \
+    {                                                                                                                                                                        \
+        goto Exit;                                                                                                                                                           \
+    }                                                                                                                                                                        \
+                                                                                                                                                                             \
+Exit:                                                                                                                                                                        \
+                                                                                                                                                                             \
+    if (dmfDeviceInit != NULL)                                                                                                                                               \
+    {                                                                                                                                                                        \
+        DMF_DmfDeviceInitFree(&dmfDeviceInit);                                                                                                                               \
+    }                                                                                                                                                                        \
+                                                                                                                                                                             \
+    return ntStatus;                                                                                                                                                         \
+}                                                                                                                                                                            \
+                                                                                                                                                                             
+#define DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfDeviceAdd, DmfDeviceModulesAdd, BranchTrackInitialize, BranchTrackName, BranchTrackEntriesOverride)                        \
+    DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfDeviceAdd, DmfDeviceModulesAdd, NULL, BranchTrackInitialize, BranchTrackName, BranchTrackEntriesOverride)
 
 #define DMF_DEFAULT_DRIVERENTRY(DmfDriverEntry, DmfDriverContextCleanup, DmfEvtDeviceAdd)                     \
                                                                                                               \
@@ -597,11 +606,16 @@ DmfDriverContextCleanup(                                                        
 
 #else
 
-#define DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfEvtDeviceAdd, DmfDeviceModuleAdd, BranchTrackInitialize, BranchTrackName, BranchTrackEntriesOverride)    \
+#define DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfDeviceAdd,                                                                                           \
+                                                   DmfDeviceModulesAdd,                                                                                    \
+                                                   DmfDeviceLog,                                                                                           \
+                                                   BranchTrackInitialize,                                                                                  \
+                                                   BranchTrackName,                                                                                        \
+                                                   BranchTrackEntriesOverride)                                                                             \
                                                                                                                                                            \
 _Use_decl_annotations_                                                                                                                                     \
 NTSTATUS                                                                                                                                                   \
-DmfEvtDeviceAdd(                                                                                                                                           \
+DmfDeviceAdd(                                                                                                                                              \
     _In_ WDFDRIVER Driver,                                                                                                                                 \
     _Inout_ PWDFDEVICE_INIT DeviceInit                                                                                                                     \
     )                                                                                                                                                      \
@@ -651,7 +665,8 @@ DmfEvtDeviceAdd(                                                                
     }                                                                                                                                                      \
                                                                                                                                                            \
     DMF_EVENT_CALLBACKS_INIT(&dmfCallbacks);                                                                                                               \
-    dmfCallbacks.EvtDmfDeviceModulesAdd = DmfDeviceModuleAdd;                                                                                              \
+    dmfCallbacks.EvtDmfDeviceModulesAdd = DmfDeviceModulesAdd;                                                                                             \
+    dmfCallbacks.EvtDmfDeviceLog = DmfDeviceLog;                                                                                                           \
     DMF_DmfDeviceInitSetEventCallbacks(dmfDeviceInit,                                                                                                      \
                                        &dmfCallbacks);                                                                                                     \
                                                                                                                                                            \
@@ -672,7 +687,11 @@ Exit:                                                                           
     return ntStatus;                                                                                                                                       \
 }                                                                                                                                                          \
 
+#define DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfDeviceAdd, DmfDeviceModulesAdd, BranchTrackInitialize, BranchTrackName, BranchTrackEntriesOverride)      \
+    DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfDeviceAdd, DmfDeviceModulesAdd, NULL, BranchTrackInitialize, BranchTrackName, BranchTrackEntriesOverride)
+
 #if (UMDF_VERSION_MAJOR > 2) || (UMDF_VERSION_MINOR >= 15)
+
 #define DMF_DEFAULT_DRIVERENTRY(DmfDriverEntry, DmfDriverContextCleanup, DmfEvtDeviceAdd, UserModeTracingId)  \
                                                                                                               \
 _Use_decl_annotations_                                                                                        \
@@ -711,6 +730,7 @@ Exit:                                                                           
                                                                                                               \
 
 #else
+
 #define DMF_DEFAULT_DRIVERENTRY(DmfDriverEntry, DmfDriverContextCleanup, DmfEvtDeviceAdd, UserModeTracingId)  \
                                                                                                               \
 _Use_decl_annotations_                                                                                        \
@@ -751,6 +771,7 @@ Exit:                                                                           
 #endif // (UMDF_VERSION_MAJOR > 2) || (UMDF_VERSION_MINOR >= 15)
 
 #if (UMDF_VERSION_MAJOR > 2) || (UMDF_VERSION_MINOR >= 15)
+
 #define DMF_DEFAULT_DRIVERCLEANUP(DmfDriverContextCleanup)                                                    \
                                                                                                               \
 _Use_decl_annotations_                                                                                        \
@@ -764,6 +785,7 @@ DmfDriverContextCleanup(                                                        
 }                                                                                                             \
 
 #else
+
 #define DMF_DEFAULT_DRIVERCLEANUP(DmfDriverContextCleanup)                                                    \
                                                                                                               \
 _Use_decl_annotations_                                                                                        \
@@ -781,8 +803,11 @@ DmfDriverContextCleanup(                                                        
 
 #endif // !defined(DMF_USER_MODE)
 
-#define DMF_DEFAULT_DEVICEADD(DmfEvtDeviceAdd, DmfDeviceModuleAdd)                                            \
-DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfEvtDeviceAdd, DmfDeviceModuleAdd, NULL, "", 0)                      \
+#define DMF_DEFAULT_DEVICEADD(DmfDeviceAdd, DmfDeviceModulesAdd)                                              \
+DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfDeviceAdd, DmfDeviceModulesAdd, NULL, "", 0)                        \
+
+#define DMF_DEFAULT_DEVICEADD_LOG(DmfDeviceAdd, DmfDeviceModulesAdd, DmfDeviceLog)                            \
+DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfDeviceAdd, DmfDeviceModulesAdd, DmfDeviceLog, NULL, "", 0)      \
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1164,15 +1189,71 @@ EVT_DMF_DEVICE_MODULES_ADD(
     _In_ PDMFMODULE_INIT DmfModuleInit
     );
 
-typedef EVT_DMF_DEVICE_MODULES_ADD* PFN_DMF_DEVICE_MODULES_ADD;
+// Used to identify the type of EventData.
+//
+typedef enum
+{
+    DmfLogDataType_Invalid = 0,
+    DmfLogDataType_String,
+    DmfLogDataType_Generic,
+} DmfLogDataType;
 
-typedef struct _DMF_EVENT_CALLBACKS 
+// Used to identify the severity of EventData.
+//
+typedef enum
+{
+    DmfLogDataSeverity_Invalid = 0,
+    DmfLogDataSeverity_Critical,
+    DmfLogDataSeverity_Error,
+    DmfLogDataSeverity_Warning,
+    DmfLogDataSeverity_Informational,
+    DmfLogDataSeverity_Verbose,
+    DmfLogDataSeverity_Maximum,
+} DmfLogDataSeverity;
+
+// This struct, along with the Client Driver WDFDEVICE, is provided
+// to the Client's Event Emit Callback.
+//
+typedef struct _DMF_LOG_DATA
+{
+    // Used to identify the type of EventData in the union.
+    //
+    DmfLogDataType DmfLogDataType;
+    // Severity of the message.
+    //
+    DmfLogDataSeverity DmfLogDataSeverity;
+    union
+    {
+        struct
+        {
+            // A Null-terminated String message.
+            //
+            WCHAR* Message;
+        } StringArgument;
+        // TODO: Add support for variable parameters/type.
+        //
+    } LogData;
+} DMF_LOG_DATA;
+
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+EVT_DMF_DEVICE_LOG(
+    _In_ WDFDEVICE Device,
+    _In_ DMF_LOG_DATA DmfLogData
+    );
+
+typedef struct _DMF_EVENT_CALLBACKS
 {
     // Size of this structure in bytes.
     //
     ULONG Size;
-
-    PFN_DMF_DEVICE_MODULES_ADD EvtDmfDeviceModulesAdd;
+    // This callback allows the Client to instantiate Static Modules.
+    //
+    EVT_DMF_DEVICE_MODULES_ADD* EvtDmfDeviceModulesAdd;
+    // This is called by Modules to emit logging/telemetry data.
+    //
+    EVT_DMF_DEVICE_LOG* EvtDmfDeviceLog;
 } DMF_EVENT_CALLBACKS;
 
 VOID
@@ -1514,6 +1595,7 @@ DMF_Invoke_DeviceCallbacksDestroy(
 #define DMF_EVENTLOG_FORMAT_STRINGS_NULL                    (NULL)
 #define DMF_EVENTLOG_TEXT_NULL                              (NULL)
 #define DMF_EVENTLOG_MAXIMUM_NUMBER_OF_INSERTION_STRINGS    (8)
+#define DMF_EVENTLOG_MAXIMUM_LENGTH_OF_STRING               (1024)
 #define DMF_EVENTLOG_MAXIMUM_INSERTION_STRING_LENGTH        (300)
 #define DMF_EVENTLOG_MAXIMUM_BYTES_IN_INSERTION_STRING      (DMF_EVENTLOG_MAXIMUM_INSERTION_STRING_LENGTH  * sizeof(WCHAR))
 
@@ -1559,6 +1641,15 @@ BOOLEAN
 DMF_Utility_IsEqualGUID(
     _In_ GUID* Guid1,
     _In_ GUID* Guid2
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_Utility_LogEmitString(
+    _In_ DMFMODULE DmfModule,
+    _In_ DmfLogDataSeverity DmfLogDataSeverity,
+    _In_ WCHAR* FormatString,
+    ...
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

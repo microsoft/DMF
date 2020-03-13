@@ -641,6 +641,87 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+static
+VOID
+Tests_String_EventLog(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Performs unit tests on the Methods.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
+
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"this string only");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"string=%s",
+                              L"string");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%s",
+                              L"string");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%d",
+                              1024);
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%10s",
+                              L"");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"small string=%S",
+                              "small");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%10s",
+                              L"abc");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%512s",
+                              L"X");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%1023s",
+                              L"X");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"%1024s",
+                              L"");
+    DMF_Utility_LogEmitString(DmfModule,
+                              DmfLogDataSeverity_Informational,
+                              L"[0=%d 0x100=%d 256=0x%x string=%s]",
+                              0,
+                              256,
+                              256,
+                              L"string");
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -664,6 +745,10 @@ Tests_String_WorkThread(
     // Run the table look up tests.
     //
     Tests_String_TableLookups(moduleContext->DmfModuleString);
+
+    // Test event logging function.
+    //
+    Tests_String_EventLog(moduleContext->DmfModuleString);
 
     // Repeat the test, until stop is signaled or the function stopped because the
     // driver is stopping.

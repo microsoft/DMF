@@ -111,7 +111,7 @@ typedef struct
   BOOLEAN EnableDmf;
   // The callback that instantiates DMF Modules, if applicable.
   //
-  PFN_DMF_DEVICE_MODULES_ADD EvtDmfDeviceModulesAdd;
+  EVT_DMF_DEVICE_MODULES_ADD* EvtDmfDeviceModulesAdd;
 } PDO_RECORD;
 ````
 Member | Description
