@@ -113,8 +113,6 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module .md File](#the-module-.md-file)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module .mc File](#the-module-.mc-file)
-
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module's Create Function](#the-modules-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Contents of a Module's Create Function](#contents-of-a-modules-create-function)
@@ -184,6 +182,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Client Driver DMF Callbacks](#client-driver-dmf-callbacks)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[EVT_DMF_DEVICE_MODULES_ADD](#evt_dmf_device_modules_add)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[EVT_DMF_DEVICE_LOG](#evt_dmf_device_log)
 
 [DMF Client API Reference](#dmf-client-api-reference)
 
@@ -1706,8 +1706,6 @@ In addition, Modules may have two optional files:
 
 -   Module's _Public.h file
 
--   Module's .mc file
-
 The Module .h File
 ------------------
 
@@ -2706,25 +2704,6 @@ in a consistent manner.
 
 Example: Link a Module md file. [TODO]
 
-The Module .mc File
--------------------
-
-*NOTE: This concept will be eliminated in the near future. Instead
-callbacks to the Client will happen where Client can output event
-logging information itself.*
-
-Modules may write to the Event Log. (There are some DMF APIs that
-simplify writing to the Event Log).
-
-The .mc file contains definitions that must be copied into the Client
-Driver's .mc file in order for the Event Log entries that the Module
-writes to appear properly formed in the Event Log.
-
-Due to how the compiler works, it is not possible to directly include
-the .mc file into the Client Driver project.
-
-If a Module does not write to the Event Log, this file is not necessary.
-
 The Module's Create Function
 ----------------------------
 
@@ -3187,7 +3166,8 @@ that structure to **DMF_DmfDeviceInitSetEventCallbacks**.
   **Member**                                                  | **Description**
   ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------
   **Size**                                                    | Size of the structure initialized by **DMF_EVENT_CALLBACKS_INIT().**
-  **PFN_DMF_DEVICE_MODULES_ADD EvtDmfDeviceModulesAdd**       | Set the **EvtDmfDeviceModulesAdd** member to the function that the Client Driver uses to add Modules that will be instantiated.
+  **EVT_DMF_DEVICE_MODULES_ADD* EvtDmfDeviceModulesAdd**      | Set the **EvtDmfDeviceModulesAdd** member to the function that the Client Driver uses to add Modules that will be instantiated.
+  **EVT_DMF_DEVICE_LOG* EvtDmfDeviceLog**                     | Set the **EvtDmfDeviceLog** member to the function that the Client Driver uses to to receive event log information from Modules.
 
 Client Driver DMF Initialization Macros
 ---------------------------------------
@@ -7519,6 +7499,42 @@ TRUE if the two GUIDs are the same. FALSE, otherwise.
 This function is better than the version provided in the DDK because it
 is portable between Kernel and User-mode.
 
+### DMF_Utility_LogEmitString
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_Utility_LogEmitString(
+    _In_ DMFMODULE DmfModule,
+    _In_ DmfLogDataSeverity DmfLogDataSeverity,
+    _In_ WCHAR* FormatString,
+    ...
+    );
+````
+Allows a Module to call the Client Driver's event log callback with a formatted string that
+contains information that can be written to the event log or other sink under the Client Driver's
+control.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ---------------------------------------------------------------
+  **DMFMODULE DmfModule**          | The Module from which the string is emitted.
+  **DmfLogDataSeverity DmfLogDataSeverity**           | The severity of the message.
+  **WCHAR* FormatString**       | The format string which is used to format the following variable arguments.
+  **...**               | The variable argument list that contains the data to write in the string and emit to Client Driver.
+
+#### Returns
+
+None.
+
+#### Remarks
+
+-   This call allows Modules to output logging information using whatever logging sink the Client Driver uses.
+
+-   The standard printf formatting specification is used to create the string emitted to Client Driver.
+
+-   Can only be called from passive level.
+
 ### DMF_Utility_UserModeAccessCreate
 ```
 NTSTATUS
@@ -7887,6 +7903,7 @@ functions are not Module specific.
   **DMF_Utility_EventLogEntryWriteDevice**       |  Given a **WDFDEVICE**, write an event log entry.
   **DMF_Utility_EventLogEntryWriteDmfModule**    |  Given a **DMFMODULE**, write an event log entry.
   **DMF_Utility_EventLogEntryWriteUserMode**     |  Write an event log entry in a User-mode driver.
+  **DMF_Utility_LogEmitString**                  |  Callback Client driver with a string that can be written to event log or other sink.
 
 These APIs are used to abstract code and data structures so that the
 same code can be used in both Kernel and User-mode code:

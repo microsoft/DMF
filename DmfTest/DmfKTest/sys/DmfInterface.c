@@ -34,15 +34,23 @@ Environment:
 //
 
 DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_DRIVER_DEVICE_ADD DmfKTestEvtDeviceAdd;
-EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfKTestEvtDriverContextCleanup;
-EVT_DMF_DEVICE_MODULES_ADD DmfDeviceModulesAdd;
+EVT_WDF_DRIVER_DEVICE_ADD DmfKTestDeviceAdd;
+EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfKTestDriverContextCleanup;
+EVT_DMF_DEVICE_MODULES_ADD DmfKTestDeviceModulesAdd;
 
 // BranchTrack name.
 //
 #define BRANCHTRACK_NAME               "DmfKTest"
 
-// BranchTrack Initialize routine.
+// Logging callback.
+//
+VOID
+DmfKTestDeviceLog(
+    _In_ WDFDEVICE Device,
+    _In_ DMF_LOG_DATA DmfLogData
+    );
+
+// BranchTrack Initialize callback.
 //
 VOID
 DmfKTestBranchTrackInitialize(
@@ -52,17 +60,18 @@ DmfKTestBranchTrackInitialize(
 /*WPP_INIT_TRACING(); (This comment is necessary for WPP Scanner.)*/
 #pragma code_seg("INIT")
 DMF_DEFAULT_DRIVERENTRY(DriverEntry,
-                        DmfKTestEvtDriverContextCleanup,
-                        DmfKTestEvtDeviceAdd)
+                        DmfKTestDriverContextCleanup,
+                        DmfKTestDeviceAdd)
 #pragma code_seg()
 
 #pragma code_seg("PAGED")
-DMF_DEFAULT_DRIVERCLEANUP(DmfKTestEvtDriverContextCleanup)
-DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK(DmfKTestEvtDeviceAdd,
-                                       DmfDeviceModulesAdd,
-                                       DmfKTestBranchTrackInitialize,
-                                       BRANCHTRACK_NAME,
-                                       BRANCHTRACK_DEFAULT_MAXIMUM_BRANCHES)
+DMF_DEFAULT_DRIVERCLEANUP(DmfKTestDriverContextCleanup)
+DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfKTestDeviceAdd,
+                                           DmfKTestDeviceModulesAdd,
+                                           DmfKTestDeviceLog,
+                                           DmfKTestBranchTrackInitialize,
+                                           BRANCHTRACK_NAME,
+                                           BRANCHTRACK_DEFAULT_MAXIMUM_BRANCHES)
 #pragma code_seg()
 
 #pragma code_seg("PAGED")
@@ -133,7 +142,7 @@ Exit:
 #pragma code_seg("PAGED")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-DmfDeviceModulesAdd(
+DmfKTestDeviceModulesAdd(
     _In_ WDFDEVICE Device,
     _In_ PDMFMODULE_INIT DmfModuleInit
     )
@@ -311,6 +320,18 @@ Return Value:
     }
 }
 #pragma code_seg()
+
+VOID
+DmfKTestDeviceLog(
+    _In_ WDFDEVICE Device,
+    _In_ DMF_LOG_DATA DmfLogData
+    )
+{
+    UNREFERENCED_PARAMETER(Device);
+    UNREFERENCED_PARAMETER(DmfLogData);
+    // Look at results in debugger for now.
+    //
+}
 
 VOID
 DmfKTestBranchTrackInitialize(

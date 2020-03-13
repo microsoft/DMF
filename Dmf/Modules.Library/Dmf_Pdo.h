@@ -159,7 +159,7 @@ typedef struct
     BOOLEAN EnableDmf;
     // The callback function that instantiates DMF Modules, if applicable.
     //
-    PFN_DMF_DEVICE_MODULES_ADD EvtDmfDeviceModulesAdd;
+    EVT_DMF_DEVICE_MODULES_ADD* EvtDmfDeviceModulesAdd;
 
     // The table entry for this device's properties.
     //
