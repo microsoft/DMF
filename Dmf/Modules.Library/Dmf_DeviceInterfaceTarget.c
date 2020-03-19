@@ -70,7 +70,6 @@ RequestSink_Send_Type(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     );
@@ -86,7 +85,6 @@ RequestSink_SendEx_Type(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
     _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -467,7 +465,6 @@ DeviceInterfaceTarget_Stream_Send(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     )
@@ -485,7 +482,6 @@ DeviceInterfaceTarget_Stream_Send(
                                               RequestType,
                                               RequestIoctl,
                                               RequestTimeoutMilliseconds,
-                                              CompletionOption,
                                               EvtRequestSinkSingleAsynchronousRequest,
                                               SingleAsynchronousRequestClientContext,
                                               NULL);
@@ -501,7 +497,6 @@ DeviceInterfaceTarget_Stream_SendEx(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
     _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -521,7 +516,6 @@ DeviceInterfaceTarget_Stream_SendEx(
                                               RequestType,
                                               RequestIoctl,
                                               RequestTimeoutMilliseconds,
-                                              CompletionOption,
                                               EvtRequestSinkSingleAsynchronousRequest,
                                               SingleAsynchronousRequestClientContext,
                                               DmfRequest);
@@ -620,7 +614,6 @@ DeviceInterfaceTarget_Target_Send(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     )
@@ -639,7 +632,6 @@ DeviceInterfaceTarget_Target_Send(
                                     RequestType,
                                     RequestIoctl,
                                     RequestTimeoutMilliseconds,
-                                    CompletionOption,
                                     EvtRequestSinkSingleAsynchronousRequest,
                                     SingleAsynchronousRequestClientContext,
                                     NULL);
@@ -655,7 +647,6 @@ DeviceInterfaceTarget_Target_SendEx(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
     _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -675,7 +666,6 @@ DeviceInterfaceTarget_Target_SendEx(
                                     RequestType,
                                     RequestIoctl,
                                     RequestTimeoutMilliseconds,
-                                    CompletionOption,
                                     EvtRequestSinkSingleAsynchronousRequest,
                                     SingleAsynchronousRequestClientContext,
                                     DmfRequest);
@@ -2366,7 +2356,6 @@ Return Value:
                                                RequestType,
                                                RequestIoctl,
                                                RequestTimeoutMilliseconds,
-                                               moduleContext->DefaultCompletionOption,
                                                EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                SingleAsynchronousRequestClientContext);
 
@@ -2390,7 +2379,6 @@ DMF_DeviceInterfaceTarget_SendEx(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
     _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -2412,7 +2400,6 @@ Arguments:
     RequestType - Read or Write or Ioctl
     RequestIoctl - The given IOCTL.
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
-    CompletionOption - Completion option associated with the completion routine. 
     EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
     SingleAsynchronousRequestClientContext - Client context sent in callback
 
@@ -2452,7 +2439,6 @@ Return Value:
                                                  RequestType,
                                                  RequestIoctl,
                                                  RequestTimeoutMilliseconds,
-                                                 CompletionOption,
                                                  EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                  SingleAsynchronousRequestClientContext,
                                                  DmfRequest);

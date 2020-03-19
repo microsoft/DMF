@@ -2709,7 +2709,6 @@ DMF_ContinuousRequestTarget_SendEx(
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
     _In_ ULONG RequestTimeoutMilliseconds,
-    _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
     _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -2744,6 +2743,7 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    ContinuousRequestTarget_CompletionOptions completionOption;
 
     FuncEntry(DMF_TRACE);
 
@@ -2756,6 +2756,15 @@ Return Value:
         goto Exit;
     }
 
+    if (DMF_IsModulePassiveLevel(DmfModule))
+    {
+        completionOption = ContinuousRequestTarget_CompletionOptions_Passive;
+    }
+    else
+    {
+        completionOption = ContinuousRequestTarget_CompletionOptions_Dispatch;
+    }
+
     ntStatus = ContinuousRequestTarget_RequestCreateAndSend(DmfModule,
                                                             FALSE,
                                                             RequestBuffer,
@@ -2765,7 +2774,7 @@ Return Value:
                                                             RequestType,
                                                             RequestIoctl,
                                                             RequestTimeoutMilliseconds,
-                                                            CompletionOption,
+                                                            completionOption,
                                                             NULL,
                                                             EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                             SingleAsynchronousRequestClientContext,
