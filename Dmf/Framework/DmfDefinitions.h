@@ -1262,9 +1262,10 @@ DMF_EVENT_CALLBACKS_INIT(
     _Out_ DMF_EVENT_CALLBACKS* Callbacks
     )
 {
-    RtlZeroMemory(Callbacks, sizeof(DMF_EVENT_CALLBACKS*));
+    RtlZeroMemory(Callbacks,
+                  sizeof(DMF_EVENT_CALLBACKS));
 
-    Callbacks->Size = sizeof(DMF_EVENT_CALLBACKS*);
+    Callbacks->Size = sizeof(DMF_EVENT_CALLBACKS);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

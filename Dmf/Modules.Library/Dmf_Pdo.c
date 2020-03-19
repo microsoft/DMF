@@ -531,13 +531,12 @@ Return Value:
                                 &pnpCapabilities);
 
     WDF_DEVICE_POWER_CAPABILITIES_INIT(&powerCapabilities);
-
-    powerCapabilities.DeviceD1 = WdfTrue;
-    powerCapabilities.WakeFromD1 = WdfTrue;
-    powerCapabilities.DeviceWake = PowerDeviceD1;
-
+    powerCapabilities.DeviceD1 = WdfFalse;
+    powerCapabilities.WakeFromD1 = WdfFalse;
+    powerCapabilities.WakeFromD3 = WdfTrue;
+    powerCapabilities.DeviceWake = PowerDeviceD3;
     powerCapabilities.DeviceState[PowerSystemWorking] = PowerDeviceD0;
-    powerCapabilities.DeviceState[PowerSystemSleeping1] = PowerDeviceD1;
+    powerCapabilities.DeviceState[PowerSystemSleeping1] = PowerDeviceD3;
     powerCapabilities.DeviceState[PowerSystemSleeping2] = PowerDeviceD3;
     powerCapabilities.DeviceState[PowerSystemSleeping3] = PowerDeviceD3;
     powerCapabilities.DeviceState[PowerSystemHibernate] = PowerDeviceD3;

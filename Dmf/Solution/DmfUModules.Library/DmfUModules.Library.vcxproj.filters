@@ -286,11 +286,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc">
-      <Filter>Resources</Filter>
-    </MessageCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
     </Text>
