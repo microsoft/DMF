@@ -31,8 +31,6 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#include "Dmf_NotifyUserWithRequest_EventLog.h"
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,12 +337,9 @@ Return Value:
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn fails to complete request.");
         moduleConfig = DMF_CONFIG_GET(DmfModule);
 #if defined(DMF_USER_MODE)
-        DMF_Utility_EventLogEntryWriteUserMode(moduleConfig->ClientDriverProviderName,
-                                               EVENTLOG_INFORMATION_TYPE,
-                                               MSG_USERMODE_EVENT_REQUEST_NOT_FOUND,
-                                               0,
-                                               NULL,
-                                               0);
+        DMF_Utility_LogEmitString(DmfModule,
+                                  DmfLogDataSeverity_Informational,
+                                  L"User-mode event request not found.");
 #endif // defined(DMF_USER_MODE)
         goto Exit;
     }

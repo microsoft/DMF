@@ -285,14 +285,14 @@ Return Value:
         // New modem interface arrived.
         //
         if (modem == nullptr)
-        {
-            try
+        {        
+            // MobileBroadbandModem is not ready right after modem interface arrived.
+            // Need for wait for MobileBroadbandModem be available. Otherwise modem get will return nullptr.
+            // This wait will not block other threads.
+            //
+            for (int tryTimes = 0; tryTimes < RetryTimesAmount; tryTimes++)
             {
-                // MobileBroadbandModem is not ready right after modem interface arrived.
-                // Need for wait for MobileBroadbandModem be available. Otherwise modem get will return nullptr.
-                // This wait will not block other threads.
-                //
-                for (int tryTimes = 0; tryTimes < RetryTimesAmount; tryTimes++)
+                try
                 {
                     Sleep(WaitTimeMilliseconds);
                     modem = MobileBroadbandModem::GetDefault();
@@ -328,24 +328,22 @@ Return Value:
                         MobileBroadband_TransmissionStateMonitorStart(DmfModule);
                         break;
                     }
+                    else
+                    {
+                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem get failed");
+                    }
                 }
-                if (modem == nullptr)
+                catch (hresult_error ex)
                 {
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Modem is not found");
+                    TraceEvents(TRACE_LEVEL_ERROR,
+                                DMF_TRACE,
+                                "could not get valid MobileBroadbandModem, error code 0x%08x - %ws",
+                                ex.code().value,
+                                ex.message().c_str());
+                    modem = nullptr;
                     sarManager = nullptr;
                     mobileBroadbandWirelessState.IsModemValid = FALSE;
                 }
-            }
-            catch (hresult_error ex)
-            {
-                TraceEvents(TRACE_LEVEL_ERROR,
-                            DMF_TRACE,
-                            "could not get valid MobileBroadbandModem, error code 0x%08x - %ws", 
-                            ex.code().value,
-                            ex.message().c_str());
-                modem = nullptr;
-                sarManager = nullptr;
-                mobileBroadbandWirelessState.IsModemValid = FALSE;
             }
         }
         // Only one instance of mobile broad band is supported.

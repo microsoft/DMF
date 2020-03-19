@@ -358,9 +358,6 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <MessageCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest_EventLog.mc" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_CrashDump.md" />
     <Text Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />
     <Text Include="..\..\Modules.Library\Dmf_PingPongBuffer.md" />

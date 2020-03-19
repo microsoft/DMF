@@ -352,7 +352,7 @@ Return Value:
     // Copy the converted string to the destination buffer.
     //
     wcscpy_s(UnicodeString->Buffer,
-             UnicodeString->MaximumLength,
+             UnicodeString->MaximumLength / sizeof(WCHAR),
              wideString);
 
     // Zero-terminate the destination string.
