@@ -231,7 +231,6 @@ DMF_RequestTarget_SendEx(
   _In_ ContinuousRequestTarget_RequestType RequestType,
   _In_ ULONG RequestIoctl,
   _In_ ULONG RequestTimeoutMilliseconds,
-  _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
   _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext,
   _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -256,7 +255,6 @@ ResponseLength | The size in bytes of the output buffer.
 RequestType | Indicates the type of request to send to the underlying WDFIOTARGET.
 RequestIoctl | The IOCTL code to send to the underlying WDFIOTARGET.
 RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
-CompletionOption | Indicates the completion option associated with the completion routine.
 EvtRequestTargetSingleAsynchronousRequest | The Client callback that is called when request completes.
 SingleAsynchronousRequestClientContext | A Client specific context that is sent to the Client callback that is called when the request completes.
 DmfRequest | Optional address of the handle to the handle to the WDFREQUEST that has been sent.

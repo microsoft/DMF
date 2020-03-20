@@ -450,7 +450,6 @@ DMF_ContinuousRequestTarget_SendEx(
   _In_ ContinuousRequestTarget_RequestType RequestType,
   _In_ ULONG RequestIoctl,
   _In_ ULONG RequestTimeoutMilliseconds,
-  _In_ ContinuousRequestTarget_CompletionOptions CompletionOption,
   _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext,
   _Out_opt_ RequestTarget_DmfRequest* DmfRequest
@@ -476,7 +475,6 @@ ResponseLength | The size in bytes of ResponseBuffer.
 RequestType | The type of Request to send to this Module's underlying WDFIOTARGET.
 RequestIoctl | The IOCTL that tells the Module's underlying WDFIOTARGET the purpose of the associated Request that is sent.
 RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
-CompletionOption | Completion option associated with the completion routine.
 EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
 SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
 DmfRequest | Contains a handle to the WDFREQUEST that was sent to the underlying IoTarget so that caller can cancel the WDFREQUEST using DMF_ContinuousRequestTarget_Cancel().
