@@ -9,10 +9,14 @@ Module Name:
 
 Abstract:
 
+    This file chooses the correct include files and creates additional
+    definitions for the platform that is being compiled.
+
 Environment:
 
     Kernel-mode Driver Framework
     User-mode Driver Framework
+    Non-native WDF platforms
 
 --*/
 
