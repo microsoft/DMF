@@ -42,11 +42,6 @@ extern "C"
 //
 #include "Dmf_Interface_ComponentFirmwareUpdate.h"
 
-// PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
-// Legacy Interfaces in this Library.
-//
-#include "Dmf_Interface_BusTransport.h"
-
 // All the Modules in this Library.
 //
 #include "Dmf_PingPongBuffer.h"

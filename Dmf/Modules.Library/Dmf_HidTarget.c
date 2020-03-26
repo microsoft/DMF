@@ -2532,9 +2532,6 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Hid;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_HidTarget;
-    // PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
-    //
-    DMF_ModuleTransportMethod DMF_HidTarget_TransportMethod;
 
     PAGED_CODE();
 
@@ -2551,11 +2548,6 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
     dmfModuleDescriptor_Hid.CallbacksDmf = &dmfCallbacksDmf_HidTarget;
-
-    // PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
-    //
-    dmfModuleDescriptor_Hid.ModuleTransportMethod = DMF_HidTarget_TransportMethod;
-    dmfModuleDescriptor_Hid.SupportedTransportInterfaceGuid = BusTransport_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
@@ -3854,73 +3846,6 @@ ExitNoRelease:
     return ntStatus;
 }
 #pragma code_seg()
-
-// PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
-//
-NTSTATUS
-DMF_HidTarget_TransportMethod(
-    _In_ DMFMODULE DmfModule,
-    _In_ ULONG Message,
-    _In_reads_(InputBufferSize) VOID* InputBuffer,
-    _In_ size_t InputBufferSize,
-    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
-    _In_ size_t OutputBufferSize
-    )
-{
-    NTSTATUS ntStatus;
-    BusTransport_TransportPayload* payload;
-
-    UNREFERENCED_PARAMETER(InputBuffer);
-    UNREFERENCED_PARAMETER(InputBufferSize);
-    UNREFERENCED_PARAMETER(OutputBuffer);
-    UNREFERENCED_PARAMETER(OutputBufferSize);
-
-    DMF_ObjectValidate(DmfModule);
-
-    ntStatus = STATUS_SUCCESS;
-
-    payload = (BusTransport_TransportPayload*)InputBuffer;
-    switch (Message)
-    {
-        case BusTransport_TransportMessage_Hid_FeatureGet:
-        {
-            ntStatus = DMF_HidTarget_FeatureGet(DmfModule,
-                                                payload->HidFeatureGet.FeatureId,
-                                                payload->HidFeatureGet.Buffer,
-                                                payload->HidFeatureGet.BufferLength,
-                                                payload->HidFeatureGet.Offset,
-                                                payload->HidFeatureGet.BytesToCopy);
-            break;
-        }
-        case BusTransport_TransportMessage_Hid_FeatureSet:
-        {
-            ntStatus = DMF_HidTarget_FeatureSet(DmfModule,
-                                                payload->HidFeatureSet.FeatureId,
-                                                payload->HidFeatureSet.Buffer,
-                                                payload->HidFeatureSet.BufferLength,
-                                                payload->HidFeatureSet.Offset,
-                                                payload->HidFeatureSet.BytesToCopy);
-            break;
-        }
-        case BusTransport_TransportMessage_AddressWrite:
-        case BusTransport_TransportMessage_AddressRead:
-        case BusTransport_TransportMessage_BufferWrite:
-        case BusTransport_TransportMessage_BufferRead:
-        {
-            // N/a
-            //
-            ntStatus = STATUS_INVALID_PARAMETER;
-            break;
-        }
-        default:
-        {
-            ntStatus = STATUS_INVALID_PARAMETER;
-            break;
-        }
-    }
-
-    return ntStatus;
-}
 
 // eof: Dmf_HidTarget.c
 //
