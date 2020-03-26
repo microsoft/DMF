@@ -64,6 +64,9 @@
     <ClCompile Include="..\..\Framework\DmfInterfaceInternal.c">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_String.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.h">
@@ -112,6 +115,15 @@
       <Filter>Headers\Modules\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Framework\Modules.Core\DmfInterface.h">
+      <Filter>Headers\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_String.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\DmfIncludes_USER_MODE.h">
+      <Filter>Headers\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\DmfIncludes.h">
       <Filter>Headers\Framework</Filter>
     </ClInclude>
   </ItemGroup>
@@ -192,6 +204,9 @@
     </None>
     <None Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md">
       <Filter>Documentation\Modules\Features</Filter>
+    </None>
+    <None Include="..\..\Framework\Modules.Core\Dmf_String.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -27,7 +27,9 @@ Environment:
 
 #include "DmfIncludeInternal.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfContainer.tmh"
+#endif
 
 // Callbacks called by Windows directly should use C calling convention (not C++).
 //
@@ -180,7 +182,7 @@ Return Value:
                                                    ResourcesTranslated);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionPrepareHardware fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionReleaseHardware fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1890,7 +1892,7 @@ Return Value:
         // implements EVT_WDF_DRIVER_DEVICE_ADD callback
         //
         ntStatus = STATUS_NOT_SUPPORTED;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Invoke_DeviceCallbacksCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Invoke_DeviceCallbacksDestroy fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

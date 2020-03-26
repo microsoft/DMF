@@ -25,7 +25,9 @@ Environment:
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_HingeAngle.tmh"
+#endif
 
 // Only support 19H1 and above because of library size limitations on RS5.
 //

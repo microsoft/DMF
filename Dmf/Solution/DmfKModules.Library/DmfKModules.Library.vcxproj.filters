@@ -103,9 +103,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c">
       <Filter>Modules\Hid</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
-      <Filter>Modules\Driver Patterns</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_Rundown.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
@@ -230,9 +227,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h">
       <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
-      <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Rundown.h">
       <Filter>Headers\Driver Patterns</Filter>
@@ -413,9 +407,6 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md">
       <Filter>Documentation\Modules\Hid</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_String.md">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_Rundown.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>

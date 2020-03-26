@@ -43,7 +43,9 @@ Environment:
 
 #include "DmfIncludeInternal.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfModuleCollection.tmh"
+#endif
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -2727,7 +2729,7 @@ DMF_ModuleCollectionConfigAddAttributes(
     _In_ DMF_MODULE_ATTRIBUTES* ModuleAttributes,
     _In_opt_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes,
     _In_opt_ DMFMODULE* ResultantDmfModule
-)
+    )
 /*++
 
 Routine Description:

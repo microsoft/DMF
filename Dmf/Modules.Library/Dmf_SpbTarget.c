@@ -24,7 +24,9 @@ Environment:
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_SpbTarget.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -753,6 +755,10 @@ Return Value:
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SpbTarget;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_SpbTarget;
 
+    // PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
+    //
+    DMF_ModuleTransportMethod DMF_SpbTarget_TransportMethod;
+
     PAGED_CODE();
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_SpbTarget);
@@ -768,6 +774,11 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     dmfModuleDescriptor_SpbTarget.CallbacksDmf = &dmfCallbacksDmf_SpbTarget;
+
+    // PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
+    //
+    dmfModuleDescriptor_SpbTarget.ModuleTransportMethod = DMF_SpbTarget_TransportMethod;
+    dmfModuleDescriptor_SpbTarget.SupportedTransportInterfaceGuid = BusTransport_Interface_Guid;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
@@ -1220,6 +1231,72 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
+
+// PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
+//
+NTSTATUS
+DMF_SpbTarget_TransportMethod(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG Message,
+    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_ size_t InputBufferSize,
+    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize
+    )
+{
+    NTSTATUS ntStatus;
+    BusTransport_TransportPayload* payload;
+
+    UNREFERENCED_PARAMETER(InputBuffer);
+    UNREFERENCED_PARAMETER(InputBufferSize);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
+
+    DMF_ObjectValidate(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    payload = (BusTransport_TransportPayload*)InputBuffer;
+    switch (Message)
+    {
+        case BusTransport_TransportMessage_AddressWrite:
+        {
+            // TODO:
+            //
+            break;
+        }
+        case BusTransport_TransportMessage_AddressRead:
+        {
+            ntStatus = DMF_SpbTarget_BufferWriteRead(DmfModule,
+                                                     payload->AddressRead.Address,
+                                                     payload->AddressRead.AddressLength,
+                                                     payload->AddressRead.Buffer,
+                                                     payload->AddressRead.BufferLength);
+            break;
+        }
+        case BusTransport_TransportMessage_BufferWrite:
+        {
+            ntStatus = DMF_SpbTarget_BufferWrite(DmfModule,
+                                                 payload->BufferWrite.Buffer,
+                                                 payload->BufferWrite.BufferLength);
+            break;
+        }
+        case BusTransport_TransportMessage_BufferRead:
+        {
+            // N/a
+            //
+            ntStatus = STATUS_INVALID_PARAMETER;
+            break;
+        }
+        default:
+        {
+            ntStatus = STATUS_INVALID_PARAMETER;
+            break;
+        }
+    }
+
+    return ntStatus;
+}
 
 // eof: Dmf_SpbTarget.c
 //

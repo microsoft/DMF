@@ -49,7 +49,9 @@ Environment:
 #include "DmfModules.Template.h"
 #include "DmfModules.Template.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Template.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures

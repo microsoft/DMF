@@ -123,7 +123,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGet(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _Out_ UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy

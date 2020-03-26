@@ -50,9 +50,12 @@
     <ClCompile Include="..\..\Framework\DmfLiveKernelDump.c" />
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_String.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\DmfDefinitions.h" />
+    <ClInclude Include="..\..\Framework\DmfIncludes.h" />
+    <ClInclude Include="..\..\Framework\DmfIncludes_KERNEL_MODE.h" />
     <ClInclude Include="..\..\Framework\DmfModule.h" />
     <ClInclude Include="..\..\Framework\DmfIncludeInternal.h" />
     <ClInclude Include="..\..\Framework\DmfTrace.h" />
@@ -68,6 +71,7 @@
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Trace.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_String.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A603433B-6AE6-419D-AD1A-103809B82745}</ProjectGuid>
@@ -138,6 +142,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WppEnabled>true</WppEnabled>
@@ -149,7 +158,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -177,7 +185,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -205,7 +212,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -233,7 +239,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -261,7 +266,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -289,7 +293,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -317,6 +320,7 @@
     <Text Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md" />
     <Text Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md" />
     <Text Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.md" />
+    <Text Include="..\..\Framework\Modules.Core\Dmf_String.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

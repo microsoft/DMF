@@ -23,7 +23,9 @@ Environment:
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Tests_SelfTarget.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures

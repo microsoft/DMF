@@ -42,6 +42,11 @@ extern "C"
 //
 #include "Dmf_Interface_ComponentFirmwareUpdate.h"
 
+// PTREMOVE: Remove this after upgrade to new Protocol-Transport code.
+// Legacy Interfaces in this Library.
+//
+#include "Dmf_Interface_BusTransport.h"
+
 // All the Modules in this Library.
 //
 #include "Dmf_PingPongBuffer.h"
@@ -73,7 +78,9 @@ extern "C"
 #include "Dmf_NotifyUserWithRequest.h"
 #include "Dmf_VirtualHidDeviceVhf.h"
 #include "Dmf_VirtualHidMini.h"
+#if defined(DMF_WDF_DRIVER)
 #include "Dmf_Wmi.h"
+#endif
 #include "Dmf_ThreadedBufferQueue.h"
 #include "Dmf_CmApi.h"
 #include "Dmf_SymbolicLinkTarget.h"
@@ -84,7 +91,6 @@ extern "C"
 #include "Dmf_SpbTarget.h"
 #include "Dmf_VirtualHidAmbientLightSensor.h"
 #include "Dmf_VirtualHidAmbientColorSensor.h"
-#include "Dmf_String.h"
 #include "Dmf_Rundown.h"
 #include "Dmf_File.h"
 #include "Dmf_MobileBroadband.h"

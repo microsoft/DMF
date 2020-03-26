@@ -23,7 +23,9 @@ Environment:
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Tests_Pdo.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -268,7 +270,7 @@ Tests_Pdo_ThreadAction_Fast(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           1000 * 1,
+                           1000 * 30,
                            ThreadIndex);
 }
 #pragma code_seg()

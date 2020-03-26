@@ -23,7 +23,9 @@ Environment:
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Tests_PingPongBuffer.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -38,7 +40,7 @@ typedef enum _TEST_ACTION {
     TEST_ACTION_SHIFT    = 1,
     TEST_ACTION_CONSUME  = 2,
     TEST_ACTION_COUNT,
-    TEST_ACTION_MINIUM       = TEST_ACTION_RESET,
+    TEST_ACTION_MINIMUM       = TEST_ACTION_RESET,
     TEST_ACTION_MAXIMUM      = TEST_ACTION_CONSUME
 } TEST_ACTION;
 
@@ -289,7 +291,7 @@ Tests_PingPongBuffer_ReadThreadWork(
 
     // Generate a random test action Id for a current iteration.
     //
-    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIMUM,
                                                                 TEST_ACTION_MAXIMUM);
     // Execute the test action.
     //

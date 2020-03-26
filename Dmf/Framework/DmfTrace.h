@@ -19,14 +19,6 @@ Environment:
 
 #pragma once
 
-// Define the tracing flags.
-//
-// DMF Library Root Tracing GUID - {25AB6EA0-(Driver Id)-(DMF Module Id)-A85C-2C29C1C3FA97}
-//
-
-// Each DMF Module needs a unique Id (defined here).
-//
-
 // TODO: DMF Client Driver Writer:
 //
 // Copy lines 35 through 83 into your Trace.h file.
@@ -59,7 +51,6 @@ Environment:
 // begin_wpp config
 // FUNC Trace{FLAG=MYDRIVER_ALL_INFO}(LEVEL, MSG, ...);
 // FUNC TraceEvents(LEVEL, FLAGS, MSG, ...);
-// FUNC LogEvents(IFRLOG, LEVEL, FLAGS, MSG, ...);
 // FUNC FuncEntry{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
 // FUNC FuncEntryArguments{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
 // FUNC FuncExit{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
@@ -82,6 +73,82 @@ Environment:
 // CUSTOM_TYPE(SMFX_TRANSITION_TYPE, ItemEnum(SmFx::TransitionType));
 // CUSTOM_TYPE(UCMUCSI_PPM_IOCTL, ItemEnum(_UCMUCSI_PPM_IOCTL));
 // end_wpp
+
+#if !defined(DMF_WDF_DRIVER)
+
+#if defined(__cplusplus)
+extern "C"
+{
+#endif // defined(__cplusplus)
+
+// Levels.
+//
+#define TRACE_LEVEL_NONE        0
+#define TRACE_LEVEL_CRITICAL    1
+#define TRACE_LEVEL_FATAL       1
+#define TRACE_LEVEL_ERROR       2
+#define TRACE_LEVEL_WARNING     3
+#define TRACE_LEVEL_INFORMATION 4
+#define TRACE_LEVEL_VERBOSE     5
+#define TRACE_LEVEL_RESERVED6   6
+#define TRACE_LEVEL_RESERVED7   7
+#define TRACE_LEVEL_RESERVED8   8
+#define TRACE_LEVEL_RESERVED9   9
+
+// Flags.
+//
+#define DMF_TRACE               0x00000001
+
+VOID
+TraceEvents(
+    _In_ ULONG DebugPrintLevel,
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    );
+
+VOID
+TraceInformation(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    );
+
+VOID
+TraceVerbose(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    );
+
+VOID
+TraceError(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    );
+
+VOID
+FuncEntryArguments(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    );
+
+#define Trace TraceEvents
+#define FuncExit FuncEntryArguments
+
+// TODO:
+//
+#define FuncEntry(X) TraceVerbose(X, "->")
+#define FuncExitNoReturn(X) TraceVerbose(X, "<-")
+#define FuncExitVoid FuncExitNoReturn
+
+#if defined(__cplusplus)
+}
+#endif // defined(__cplusplus)
+
+#endif
 
 // eof: DmfTrace.h
 //

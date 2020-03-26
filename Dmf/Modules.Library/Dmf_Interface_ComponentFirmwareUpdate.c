@@ -22,7 +22,10 @@ Environment:
 #include "DmfModule.h"
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
+
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Interface_ComponentFirmwareUpdate.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interface Validation

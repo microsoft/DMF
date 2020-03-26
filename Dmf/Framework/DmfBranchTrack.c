@@ -27,7 +27,9 @@ Environment:
 #include "DmfModule.h"
 #include "DmfIncludeInternal.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfBranchTrack.tmh"
+#endif
 
 #pragma code_seg("PAGE")
 VOID

@@ -26,7 +26,9 @@ Environment:
 #include "DmfModules.Template.h"
 #include "DmfModules.Template.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_LegacyTransportB.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
