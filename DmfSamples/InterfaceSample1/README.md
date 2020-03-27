@@ -19,12 +19,135 @@ data" via the bus the sensor is attached to.
 The idea of connecting Modules this way is similar to how a function driver can act as a protocol and a lower filter driver can act as a
 transport.
 
-TODO: Discuss the Protocol and Transport Modules's code:<br>
+The "Code Tour" below discusses hows how the Client Driver connects the various components at run-time. However, it is important to
+understand each of the components and the specific role each one plays. The individual components are:
 
-    Dmf_Interface_SampleInterface.c and Dmf_Interface_SampleInterface.h<br>
-    Dmf_SampleInterfaceProtocol1.c and Dmf_SampleInterfaceProtocol1.h<br>
-    Dmf_SampleInterfaceTransport1.c and Dmf_SampleInterfaceTransport1.h<br>
-    Dmf_SampleInterfaceTransport2.c and Dmf_SampleInterfaceTransport2.h<br>
+##### Dmf_Interface_SampleInterface.h
+This is the first file that one writes when designing a DMF Protocol-Transport Interface. It is the map that determines the organization
+and contents of all the other components. Specifically, this file defines following:
+1. Context related to the binding of the Protocol used by the Protocol: `DMF_INTERFACE_PROTOCOL_SampleInterface_BIND_DATA`.
+2. Context related to the binding of the Transport used by the Transport: `DMF_INTERFACE_TRANSPORT_SampleInterface_BIND_DATA`.
+3. Definitions of optional Callbacks (zero or more) into the Protocol that allow the Transport to callback into the Protocol: `EVT_DMF_INTERFACE_SampleInterface_ProtocolCallback1`.
+4. The definitions of a structure that connects DMF specific information to the Client defined Protocol: `DMF_INTERFACE_PROTOCOL_SampleInterface_DECLARATION_DATA`.
+5. The declaration of the function that initializes the Protocol interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional
+Protocol callbacks: `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`.
+6. The definition of a callback that binds instances of the a Protocol and Transport data defined above: `DMF_INTERFACE_SampleInterface_TransportBind`. This information is stored
+in a construct defined by DMF (`DMFINTERFACE`).
+7. The declaration of a callback that unbinds a previously bound Protocol-Transport pair: `DMF_INTERFACE_SampleInterface_TransportUnbind`.
+8. Declarations of optional Methods (zero or more) defined by the Transport Module: `DMF_INTERFACE_SampleInterface_TransportMethod1`.
+9. Similar to #4 above, definition of a structure that connects DMF specific information to the Client defined Transport: `DMF_INTERFACE_TRANSPORT_SampleInterface_DECLARATION_DATA`.
+10. Similar to #5 above, the declaration of the function that initializes the Transport interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well
+as any optional Methods: `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`.
+11. Prototypes of Methods exposed to the Protocol that Clients that instantiate the Protocol can call.
+12. Prototypes of Callbacks exposed to the transport that Transport can call.
+13. The Macro that internally defines several constructs used by both DMF and the Client.
+14. This file should be included in the Module Library Include file in the "Interfaces" section.
+
+Once the above items are properly defined, it serves as a map for how to write the code in the rest of the related files. The Client
+also uses this file to know how to instantiate and use the Protocol-Transport interface.
+
+When creating a new interface, it is best practice to copy this file as a new file giving it a new name for the new interface.
+For example, if the new interface is called "MyInterface", one would copy Dmf_Interface_SampleInterface.h as Dmf_Interface_MyInterface.h
+and then rename all the "SampleInterface" in the file as "MyInterface". Then populate all the above 13 items above as needed
+by "MyInterface".
+
+##### Dmf_Interface_SampleInterface.c
+This file contains the definitions of the functions declared in its companion .h file. The purpose of this file is to perform the transition
+between calls to the abstract interface to the instantiated Protocol and Transport code:
+
+1. First, make sure to include the same DMF Includes used by Modules.
+2. Define the function that initializes the Protocol interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional
+Protocol callbacks: `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`. This function simply calls `DMF_INTERFACE_PROTOCOL_DESCRIPTOR_INIT` to 
+initialize the descriptor with mandatory fields. Then, sets the optional callbacks into the Protocol.
+3. Define the function that initializes the Transport interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well
+as any optional Methods: `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`. This function simply calls `DMF_INTERFACE_TRANSPORT_DESCRIPTOR_INIT` to 
+initialize the descriptor with mandatory fields. Then, sets the optional Bind/Unbind functions as well as any optional Methods that are declared in the companion
+.h file. When the Client calls those Methods, the call comes to this file. This file will then route that call to the proper instantiated
+Transport.
+4. Define the function that performs the bind between the DMFINTERFACE, Protocol data and Transport data: `DMF_SampleInterface_TransportBind`. This function
+will route the Bind call to the transport appropriate Bind call.
+5. Define the function that performs the unbind of the DMFINTERFACE and its associated Protocol/Transport: `DMF_SampleInterface_TransportUnbind`. This function
+will route the Unbind call to the transport appropriate Unbind call.
+6. Define the Callback that is exposed by the Protocol to the Transport: `EVT_SampleInterface_ProtocolCallback1`.
+
+Once this file is written, the abstract Protocol-Transport layer is finished. Clients will call the Methods exposed by these two files and, in turn, the
+instantiated versions of the Protocol-Transport are called on behalf of the Client.
+
+Once the companion .h file is written, the code in this file is not difficult to write as it is simply "glue". Again, the best practice it copy the
+template version an use it as a basis for new interfaces.
+
+##### Dmf_SampleInterfaceProtocol1.h
+Now that the abstract versions of these files are written, the implemented versions can be written. Note that the
+organization of this file is the same as any other Module .h file however it is also based on the "map" written above.
+
+1. The Module's Config is defined: `DMF_CONFIG_SampleInterfaceProtocol1`.
+2. The Module is declared using the Module Macro `DECLARE_DMF_MODULE(SampleInterfaceProtocol1)`.
+3. The Module's Method's, if any, are declared: `DMF_SampleInterfaceProtocol1_TestMethod`.
+
+##### Dmf_SampleInterfaceProtocol1.c
+This file contains the definitions of the declarations in the companion .h file above. The basic structure of this file
+is the same as that of other Modules. However, to satisfy the requirements of the DMF Protocol Interface a
+few other definitions are included.
+
+1. Define the Module's Context as well as the Macros that enable access to the Module's Config and Context.
+2. Define the Module's Create function as well as all the necessary DMF/WDF callbacks.
+3. Define the Module's Methods.
+4. In addition, an optional Protocol Interface can be defined: `DMF_INTERFACE_PROTOCOL1_CONTEXT` as well as the macro
+that allows access to it.
+5. The Protocol's Bind/Unbind/PostBind/PreUnbind callbacks are defined:<br>
+   `DMF_SampleInterfaceProtocol1_Bind`<br>
+   `DMF_SampleInterfaceProtocol1_Unbind`<br>
+   `DMF_SampleInterfaceProtocol1_PostBind`<br>
+   `DMF_SampleInterfaceProtocol1_PreUnbind`<br>
+6. The Protocol's callbacks (called by the Transport) are defined: `DMF_SampleInterfaceProtocol1_Callback1`.
+5. Next, the Module's Create function must contain a call to the Protocol's Descriptor initialization function:
+    `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`. 
+6. The optional Protocol Context defined in step 4 is assigned using `DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE`.
+7. Finally, `DMF_ModuleInterfaceDescriptorAdd` is called using the descriptor populated in step 5.
+
+##### Dmf_SampleInterfaceTransport1.h
+Now that the abstract versions of these files are written, the implemented versions can be written. Note that the
+organization of this file is the same as any other Module .h file however it is also based on the "map" written above.
+
+1. The Module's Config is defined: `DMF_CONFIG_SampleInterfaceTransport1`.
+2. The Module is declared using the Module Macro `DECLARE_DMF_MODULE(SampleInterfaceTransport1)`.
+3. Unlike non-Protocol/Transport Modules, this Module does not need to declare the Methods used by the Protocol-Transport interface
+because those Methods are internally used by the Module.
+4. The Module may optionally define Methods that the Client that instantiates the Module can use. (This sample does not do so.)
+
+Of course, there can be multiple implementations of the Transport defined by the Interface. Each implementation has its own
+Module .h file.
+
+##### Dmf_SampleInterfaceTransport1.c
+This file contains the definitions of the declarations in the companion .h file above. The basic structure of this file
+is the same as that of other Modules. However, to satisfy the requirements of the DMF Transport Interface a
+few other definitions are included.
+
+1. Define the Module's Context as well as the Macros that enable access to the Module's Config and Context.
+2. Define the Module's Create function as well as all the necessary DMF/WDF callbacks.
+3. Define the Module's Methods.
+4. In addition, an optional Protocol Interface can be defined: `DMF_INTERFACE_TRANSPORT1_CONTEXT` as well as the macro
+that allows access to it.
+5. The Protocol's Bind/Unbind/PostBind/PreUnbind callbacks are defined:<br>
+   `DMF_SampleInterfaceTransport1_Bind`<br>
+   `DMF_SampleInterfaceTransport1_Unbind`<br>
+   `DMF_SampleInterfaceTransport1_PostBind`<br>
+   `DMF_SampleInterfaceTransport1_PreUnbind`<br>
+6. The Transport's Methods (called by the Protocol) are defined: `DMF_SampleInterfaceTransport1_Method1`.
+7. Next, the Module's Create function must contain a call to the Protocol's Descriptor initialization function:
+    `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`. 
+8. The optional Transport Context defined in step 4 is assigned using `DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE1`.
+9. Finally, `DMF_ModuleInterfaceDescriptorAdd` is called using the descriptor populated in step 5.
+
+Of course, there can be multiple implementations of the Transport defined by the Interface. Each implementation has its own
+Module .c file.
+
+##### Summary
+
+While there are many steps to creating a proper DMF Protocol-Transport interface, many of the steps are mechanical and relatively
+easy. Once the Protocol-Transport declaration and definition exists, it is easy to create new Transports. The benefit is that
+the new Transports can be easily "plugged-in" at run-time and the programmer has confidence that the Protocol's code remains
+unchanged.
 
 Code Tour
 =========
@@ -1023,9 +1146,9 @@ Testing the driver
 ==================
 
 1. Use Traceview to load the driver's .pdb file and turn set logging settings to log "information".
-2. Install this sample using this command with Devcon.exe from DDK: `devcon install InterfaceClientServer.inf root\Transport1`. This will install the driver such that it uses Transport 1.
+2. Install this sample using this command with Devcon.exe from DDK: `devcon install InterfaceSample1.inf root\Transport1`. This will install the driver such that it uses Transport 1.
 3. Using Traceview you can see logging showing that Transport1's Method is called when the driver starts.
-4. Uninstall the driver.
-4. Install this sample using this command with Devcon.exe from DDK: `devcon install InterfaceClientServer.inf root\Transport2`. This will install the driver such that it uses Transport 2.
-5. Using Traceview you can see logging showing that Transport2's Method is called when the driver starts.
-
+5. Uninstall the driver.
+6. Install this sample using this command with Devcon.exe from DDK: `devcon install InterfaceSample1.inf root\Transport2`. This will install the driver such that it uses Transport 2.
+7. Using Traceview you can see logging showing that Transport2's Method is called when the driver starts.
+8. Uninstall the driver.

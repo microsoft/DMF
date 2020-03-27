@@ -40,37 +40,13 @@
     <DriverType>KMDF</DriverType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
@@ -78,20 +54,16 @@
   </PropertyGroup>
   <PropertyGroup>
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <SigningCertPath Condition="'$(SigningCertPath)'==''">$(SigningCertificatesDir)OEMTest_OS_DRIVER.pfx</SigningCertPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)$(ConfigurationName)\$(PlatformName)\individual_libs\$(ProjectName)\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -121,10 +93,6 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -149,10 +117,6 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
@@ -177,10 +141,6 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -205,10 +165,6 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -233,10 +189,6 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
@@ -261,30 +213,25 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <FilesToPackage Include="$(TargetPath)" />
-    <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.md" />
-    <Text Include="..\..\Modules.Template\Dmf_Template.md" />
-    <Text Include="..\..\Modules.Template\Dmf_ToasterBus.md" />
-  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Public.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_Interface_SampleInterfaceLower.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_Interface_SampleInterfaceUpper.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_NonPnp.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_NonPnp_Public.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerTransport1.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerTransport2.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceProtocol1.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerProtocol.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperProtocol.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport1.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport2.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyProtocol.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperTransport1.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperTransport2.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_Template.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_ToasterBus.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_ToasterBus_Public.h" />
@@ -294,22 +241,29 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportA.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportB.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterfaceLower.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterfaceUpper.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_NonPnp.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerTransport1.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerTransport2.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceProtocol1.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerProtocol.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperProtocol.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport1.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceTransport2.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyProtocol.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperTransport1.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperTransport2.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_ToasterBus.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_OsrFx2.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyTransportA.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_LegacyTransportB.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.c" />
-  </ItemGroup>
-  <ItemGroup>
+    <Text Include="..\..\Modules.Template\Dmf_OsrFx2.md" />
+    <Text Include="..\..\Modules.Template\Dmf_Template.md" />
+    <Text Include="..\..\Modules.Template\Dmf_ToasterBus.md" />
     <None Include="..\..\Modules.Template\Dmf_LegacyProtocol.md" />
     <None Include="..\..\Modules.Template\Dmf_LegacyTransportA.md" />
     <None Include="..\..\Modules.Template\Dmf_LegacyTransportB.md" />

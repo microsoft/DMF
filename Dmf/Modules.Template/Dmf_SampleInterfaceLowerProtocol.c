@@ -4,14 +4,13 @@
 
 Module Name:
 
-    Dmf_SampleInterfaceProtocol1.c
+    Dmf_SampleInterfaceLowerProtocol.c
 
 Abstract:
 
-    Interface Protocol (1) for "Sample Interface".
-    NOTE: Generally speaking only a single Protocol is present, but it is possible to
-          simultaneously use multiple Protocols. For this reason the "1" is part of the
-          name of the Protocol. However, in the sample only a single Protocol is shown.
+    This is an example DMF Protocol Module. It is called "Lower" to make the example
+    clear, but there is nothing special that makes it "lower". Any Client can instantiate
+    this Module.
 
 Environment:
 
@@ -27,7 +26,7 @@ Environment:
 #include "DmfModules.Template.Trace.h"
 
 #if defined(DMF_INCLUDE_TMH)
-#include "Dmf_SampleInterfaceProtocol1.tmh"
+#include "Dmf_SampleInterfaceLowerProtocol.tmh"
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,17 +44,17 @@ typedef struct
     // Stores the DMF Module of the Transport this Module is bound to.
     //
     DMFINTERFACE SampleInterfaceHandle;
-} DMF_CONTEXT_SampleInterfaceProtocol1;
+} DMF_CONTEXT_SampleInterfaceLowerProtocol;
 
 // This macro declares the following function:
 // DMF_CONTEXT_GET()
 //
-DMF_MODULE_DECLARE_CONTEXT(SampleInterfaceProtocol1)
+DMF_MODULE_DECLARE_CONTEXT(SampleInterfaceLowerProtocol)
 
 // This macro declares the following function:
 // DMF_CONFIG_GET()
 //
-DMF_MODULE_DECLARE_CONFIG(SampleInterfaceProtocol1)
+DMF_MODULE_DECLARE_CONFIG(SampleInterfaceLowerProtocol)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code
@@ -64,13 +63,13 @@ DMF_MODULE_DECLARE_CONFIG(SampleInterfaceProtocol1)
 
 // Private context the Protocol Module associates with an Interface.
 //
-typedef struct _DMF_INTERFACE_PROTOCOL1_CONTEXT
+typedef struct _DMF_INTERFACE_LOWERPROTOCOL1_CONTEXT
 {
     // Stores the Id of the Transport Module.
     //
     ULONG TransportId;
-} DMF_INTERFACE_PROTOCOL1_CONTEXT;
-WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_PROTOCOL1_CONTEXT, DMF_SampleInterfaceProtocolContextGet)
+} DMF_INTERFACE_LOWERPROTOCOL1_CONTEXT;
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_LOWERPROTOCOL1_CONTEXT, DMF_SampleInterfaceLowerProtocolContextGet)
 
 // Protocol Specific Callbacks
 //
@@ -79,7 +78,7 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_PROTOCOL1_CONTEXT, DMF_SampleIn
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
-DMF_SampleInterfaceProtocol1_Callback1(
+DMF_SampleInterfaceLowerProtocol_Callback1(
     _In_ DMFINTERFACE DmfInterface
     )
 /*++
@@ -101,8 +100,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMFMODULE protocolModule;
-    DMF_CONFIG_SampleInterfaceProtocol1* moduleConfig;
-    DMF_INTERFACE_PROTOCOL1_CONTEXT* protocolContext;
+    DMF_CONFIG_SampleInterfaceLowerProtocol* moduleConfig;
+    DMF_INTERFACE_LOWERPROTOCOL1_CONTEXT* protocolContext;
 
     PAGED_CODE();
 
@@ -114,7 +113,7 @@ Return Value:
 
     // Get the Protocol's Private Context associated with this connection.
     //
-    protocolContext = DMF_SampleInterfaceProtocolContextGet(DmfInterface);
+    protocolContext = DMF_SampleInterfaceLowerProtocolContextGet(DmfInterface);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
                 "SampleInterface TestCallback1: ProtocolId=%d ProtocolName=%s TransportId=%d ntStatus=%!STATUS!",
@@ -137,7 +136,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-DMF_SampleInterfaceProtocol1_ModuleD0Entry(
+DMF_SampleInterfaceLowerProtocol_ModuleD0Entry(
     _In_ DMFMODULE DmfModule,
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     )
@@ -145,7 +144,7 @@ DMF_SampleInterfaceProtocol1_ModuleD0Entry(
 
 Routine Description:
 
-    SampleInterfaceProtocol1 callback for ModuleD0Entry for a given DMF Module.
+    SampleInterfaceLowerProtocol callback for ModuleD0Entry for a given DMF Module.
 
 Arguments:
 
@@ -176,7 +175,7 @@ _Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
-DMF_SampleInterfaceProtocol1_ModuleD0Exit(
+DMF_SampleInterfaceLowerProtocol_ModuleD0Exit(
     _In_ DMFMODULE DmfModule,
     _In_ WDF_POWER_DEVICE_STATE TargetState
     )
@@ -184,7 +183,7 @@ DMF_SampleInterfaceProtocol1_ModuleD0Exit(
 
 Routine Description:
 
-    SampleInterfaceProtocol1 callback for ModuleD0Exit for a given DMF Module.
+    SampleInterfaceLowerProtocol callback for ModuleD0Exit for a given DMF Module.
 
 Arguments:
 
@@ -224,7 +223,7 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
-DMF_SampleInterfaceProtocol1_PostBind(
+DMF_SampleInterfaceLowerProtocol_PostBind(
     _In_ DMFINTERFACE DmfInterface
     )
 /*++
@@ -266,7 +265,7 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
-DMF_SampleInterfaceProtocol1_PreUnbind(
+DMF_SampleInterfaceLowerProtocol_PreUnbind(
     _In_ DMFINTERFACE DmfInterface
     )
 /*++
@@ -307,7 +306,7 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
-DMF_SampleInterfaceProtocol1_Bind(
+DMF_SampleInterfaceLowerProtocol_Bind(
     _In_ DMFINTERFACE DmfInterface
     )
 /*++
@@ -328,11 +327,11 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMF_INTERFACE_PROTOCOL_SampleInterface_BIND_DATA protocolBindData;
-    DMF_INTERFACE_TRANSPORT_SampleInterface_BIND_DATA transportBindData;
-    DMF_CONTEXT_SampleInterfaceProtocol1* moduleContext;
-    DMF_CONFIG_SampleInterfaceProtocol1* moduleConfig;
-    DMF_INTERFACE_PROTOCOL1_CONTEXT* protocolContext;
+    DMF_INTERFACE_PROTOCOL_SampleInterfaceLower_BIND_DATA protocolBindData;
+    DMF_INTERFACE_TRANSPORT_SampleInterfaceLower_BIND_DATA transportBindData;
+    DMF_CONTEXT_SampleInterfaceLowerProtocol* moduleContext;
+    DMF_CONFIG_SampleInterfaceLowerProtocol* moduleConfig;
+    DMF_INTERFACE_LOWERPROTOCOL1_CONTEXT* protocolContext;
     DMFMODULE protocolModule;
 
     PAGED_CODE();
@@ -351,12 +350,12 @@ Return Value:
 
     // Call the Interface's Bind function.
     //
-    ntStatus = DMF_SampleInterface_TransportBind(DmfInterface,
-                                                 &protocolBindData,
-                                                 &transportBindData);
+    ntStatus = DMF_SampleInterfaceLower_TransportBind(DmfInterface,
+                                                      &protocolBindData,
+                                                      &transportBindData);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SampleInterface_TransportBind fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SampleInterfaceLower_TransportBind fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -364,10 +363,10 @@ Return Value:
     //
     moduleContext->SampleInterfaceHandle = DmfInterface;
 
-    protocolContext = DMF_SampleInterfaceProtocolContextGet(DmfInterface);
+    protocolContext = DMF_SampleInterfaceLowerProtocolContextGet(DmfInterface);
     protocolContext->TransportId = transportBindData.TransportId;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SampleInterfaceProtocol1_Bind success");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SampleInterfaceLowerProtocol_Bind success");
 
 Exit:
 
@@ -381,7 +380,7 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
-DMF_SampleInterfaceProtocol1_Unbind(
+DMF_SampleInterfaceLowerProtocol_Unbind(
     _In_ DMFINTERFACE DmfInterface
     )
 /*++
@@ -407,7 +406,7 @@ Return Value:
 
     // Call the Interface's Unbind function.
     //
-    DMF_SampleInterface_TransportUnbind(DmfInterface);
+    DMF_SampleInterfaceLower_TransportUnbind(DmfInterface);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -419,14 +418,14 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-DMF_SampleInterfaceProtocol1_Open(
+DMF_SampleInterfaceLowerProtocol_Open(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Initialize an instance of a DMF Module of type SampleInterfaceProtocol1.
+    Initialize an instance of a DMF Module of type SampleInterfaceLowerProtocol.
 
 Arguments:
 
@@ -459,14 +458,14 @@ _Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
-DMF_SampleInterfaceProtocol1_Close(
+DMF_SampleInterfaceLowerProtocol_Close(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Uninitialize an instance of a DMF Module of type SampleInterfaceProtocol1.
+    Uninitialize an instance of a DMF Module of type SampleInterfaceLowerProtocol.
 
 Arguments:
 
@@ -497,7 +496,7 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
-DMF_SampleInterfaceProtocol1_Create(
+DMF_SampleInterfaceLowerProtocol_Create(
     _In_ WDFDEVICE Device,
     _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
     _In_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes,
@@ -507,7 +506,7 @@ DMF_SampleInterfaceProtocol1_Create(
 
 Routine Description:
 
-    Create an instance of a DMF Module of type SampleInterfaceProtocol1.
+    Create an instance of a DMF Module of type SampleInterfaceLowerProtocol.
 
 Arguments:
 
@@ -523,36 +522,36 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMF_INTERFACE_PROTOCOL_SampleInterface_DECLARATION_DATA protocolDeclarationData;
-    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SampleInterfaceProtocol1;
-    DMF_CALLBACKS_DMF dmfCallbacksDmf_SampleInterfaceProtocol1;
-    DMF_CALLBACKS_WDF dmfCallbacksWdf_SampleInterfaceProtocol1;
+    DMF_INTERFACE_PROTOCOL_SampleInterfaceLower_DECLARATION_DATA protocolDeclarationData;
+    DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SampleInterfaceLowerProtocol;
+    DMF_CALLBACKS_DMF dmfCallbacksDmf_SampleInterfaceLowerProtocol;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_SampleInterfaceLowerProtocol;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_SampleInterfaceProtocol1);
-    dmfCallbacksDmf_SampleInterfaceProtocol1.DeviceOpen = DMF_SampleInterfaceProtocol1_Open;
-    dmfCallbacksDmf_SampleInterfaceProtocol1.DeviceClose = DMF_SampleInterfaceProtocol1_Close;
+    DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_SampleInterfaceLowerProtocol);
+    dmfCallbacksDmf_SampleInterfaceLowerProtocol.DeviceOpen = DMF_SampleInterfaceLowerProtocol_Open;
+    dmfCallbacksDmf_SampleInterfaceLowerProtocol.DeviceClose = DMF_SampleInterfaceLowerProtocol_Close;
 
-    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_SampleInterfaceProtocol1);
-    dmfCallbacksWdf_SampleInterfaceProtocol1.ModuleD0Entry = DMF_SampleInterfaceProtocol1_ModuleD0Entry;
-    dmfCallbacksWdf_SampleInterfaceProtocol1.ModuleD0Exit = DMF_SampleInterfaceProtocol1_ModuleD0Exit;
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_SampleInterfaceLowerProtocol);
+    dmfCallbacksWdf_SampleInterfaceLowerProtocol.ModuleD0Entry = DMF_SampleInterfaceLowerProtocol_ModuleD0Entry;
+    dmfCallbacksWdf_SampleInterfaceLowerProtocol.ModuleD0Exit = DMF_SampleInterfaceLowerProtocol_ModuleD0Exit;
 
-    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_SampleInterfaceProtocol1,
-                                            SampleInterfaceProtocol1,
-                                            DMF_CONTEXT_SampleInterfaceProtocol1,
+    DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_SampleInterfaceLowerProtocol,
+                                            SampleInterfaceLowerProtocol,
+                                            DMF_CONTEXT_SampleInterfaceLowerProtocol,
                                             DMF_MODULE_OPTIONS_PASSIVE,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
-    dmfModuleDescriptor_SampleInterfaceProtocol1.CallbacksDmf = &dmfCallbacksDmf_SampleInterfaceProtocol1;
-    dmfModuleDescriptor_SampleInterfaceProtocol1.CallbacksWdf = &dmfCallbacksWdf_SampleInterfaceProtocol1;
+    dmfModuleDescriptor_SampleInterfaceLowerProtocol.CallbacksDmf = &dmfCallbacksDmf_SampleInterfaceLowerProtocol;
+    dmfModuleDescriptor_SampleInterfaceLowerProtocol.CallbacksWdf = &dmfCallbacksWdf_SampleInterfaceLowerProtocol;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
                                 ObjectAttributes,
-                                &dmfModuleDescriptor_SampleInterfaceProtocol1,
+                                &dmfModuleDescriptor_SampleInterfaceLowerProtocol,
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -562,20 +561,20 @@ Return Value:
 
     // Initialize Protocol's declaration data.
     //
-    DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT(&protocolDeclarationData,
-                                                           DMF_SampleInterfaceProtocol1_Bind,
-                                                           DMF_SampleInterfaceProtocol1_Unbind,
-                                                           DMF_SampleInterfaceProtocol1_PostBind,
-                                                           DMF_SampleInterfaceProtocol1_PreUnbind,
-                                                           DMF_SampleInterfaceProtocol1_Callback1);
+    DMF_INTERFACE_PROTOCOL_SampleInterfaceLower_DESCRIPTOR_INIT(&protocolDeclarationData,
+                                                                DMF_SampleInterfaceLowerProtocol_Bind,
+                                                                DMF_SampleInterfaceLowerProtocol_Unbind,
+                                                                DMF_SampleInterfaceLowerProtocol_PostBind,
+                                                                DMF_SampleInterfaceLowerProtocol_PreUnbind,
+                                                                DMF_SampleInterfaceLowerProtocol_Callback1);
 
     // An optional context can be set by the Protocol module on the bind instance
     // This is a unique context for each instance of Protocol Transport binding. 
-    // E.g. in case a protocol module is bound to multiple modules, the protocol 
-    // module will get a unique instance of this context each binding. 
+    // E.g. in case a protocol module is bound to multiple modules, the Protocol 
+    // Module will get a unique instance of this context each binding. 
     // 
     DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE(&protocolDeclarationData, 
-                                              DMF_INTERFACE_PROTOCOL1_CONTEXT);
+                                              DMF_INTERFACE_LOWERPROTOCOL1_CONTEXT);
 
     // Add the interface to the Protocol Module.
     //
@@ -602,7 +601,7 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
-DMF_SampleInterfaceProtocol1_TestMethod(
+DMF_SampleInterfaceLowerProtocol_TestMethod(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -621,7 +620,7 @@ Return Value:
 
 --*/
 {
-    DMF_CONTEXT_SampleInterfaceProtocol1* moduleContext;
+    DMF_CONTEXT_SampleInterfaceLowerProtocol* moduleContext;
     NTSTATUS ntStatus;
 
     PAGED_CODE();
@@ -634,15 +633,15 @@ Return Value:
 
     // Call the Interface's Method1.
     //
-    ntStatus = DMF_SampleInterface_TransportMethod1(moduleContext->SampleInterfaceHandle);
+    ntStatus = DMF_SampleInterfaceLower_TransportMethod1(moduleContext->SampleInterfaceHandle);
 
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SampleInterface_TransportMethod1 fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SampleInterfaceLower_TransportMethod1 fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SampleInterface_TransportMethod1 success: ntStatus=%!STATUS!", ntStatus);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SampleInterfaceLower_TransportMethod1 success: ntStatus=%!STATUS!", ntStatus);
 
 Exit:
 
@@ -653,5 +652,5 @@ Exit:
 }
 #pragma code_seg()
 
-// eof: Dmf_SampleInterfaceProtocol1.c
+// eof: Dmf_SampleInterfaceLowerProtocol.c
 //

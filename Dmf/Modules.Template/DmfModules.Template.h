@@ -38,18 +38,30 @@ extern "C"
 // Interfaces in this Library.
 //
 #include "Dmf_Interface_SampleInterface.h"
+#include "Dmf_Interface_SampleInterfaceUpper.h"
+#include "Dmf_Interface_SampleInterfaceLower.h"
 
 // All the Modules in this Library.
 //
 #include "Dmf_Template.h"
 #include "Dmf_ToasterBus.h"
 #include "Dmf_OsrFx2.h"
+
 #include "Dmf_LegacyProtocol.h"
 #include "Dmf_LegacyTransportA.h"
 #include "Dmf_LegacyTransportB.h"
+
 #include "Dmf_SampleInterfaceProtocol1.h"
 #include "Dmf_SampleInterfaceTransport1.h"
 #include "Dmf_SampleInterfaceTransport2.h"
+
+#include "Dmf_SampleInterfaceUpperProtocol.h"
+#include "Dmf_SampleInterfaceLowerProtocol.h"
+#include "Dmf_SampleInterfaceUpperTransport1.h"
+#include "Dmf_SampleInterfaceUpperTransport2.h"
+#include "Dmf_SampleInterfaceLowerTransport1.h"
+#include "Dmf_SampleInterfaceLowerTransport2.h"
+
 #include "Dmf_NonPnp.h"
 #include "Dmf_VirtualHidMiniSample.h"
 
