@@ -23,7 +23,9 @@ Environment:
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Tests_BufferPool.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -62,7 +64,7 @@ typedef enum _TEST_ACTION {
     TEST_ACTION_RETURN,
     TEST_ACTION_ENUMERATE,
     TEST_ACTION_COUNT,
-    TEST_ACTION_MINIUM      = TEST_ACTION_AQUIRE,
+    TEST_ACTION_MINIMUM     = TEST_ACTION_AQUIRE,
     TEST_ACTION_MAXIMUM     = TEST_ACTION_COUNT
 } TEST_ACTION;
 
@@ -574,7 +576,7 @@ Tests_BufferPool_WorkThread(
 
     // Generate a random test action Id for a current iteration.
     //
-    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIMUM,
                                                                 TEST_ACTION_MAXIMUM);
     // Execute the test action.
     //

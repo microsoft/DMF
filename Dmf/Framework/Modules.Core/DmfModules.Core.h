@@ -43,9 +43,12 @@ extern "C"
 #include "Dmf_RingBuffer.h"
 #include "Dmf_BranchTrack.h"
 #include "Dmf_Bridge.h"
+#if defined(DMF_WDF_DRIVER)
 #include "Dmf_LiveKernelDump.h"
+#endif
 #include "Dmf_BufferQueue.h"
 #include "Dmf_IoctlHandler.h"
+#include "Dmf_String.h"
 
 #if defined(__cplusplus)
 }

@@ -27,7 +27,9 @@ Environment:
 
 #include "DmfIncludeInternal.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfCore.tmh"
+#endif
 
 // Internal Callbacks for PASSIVE_LEVEL.
 //
@@ -481,7 +483,7 @@ Return Value:
                                (VOID* *)&DmfObject->ModuleDescriptor.CallbacksDmf);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Callbacks Dmf");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -496,7 +498,7 @@ Return Value:
                                (VOID* *)&DmfObject->ModuleDescriptor.CallbacksWdf);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Callbacks Dmf");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -819,7 +821,7 @@ DmfModuleParentUpdate(
 
 Routine Description:
 
-    Updates Parent-Child references when a child module is created.
+    Updates Parent-Child references when a Child Module is created.
 
 Arguments:
 
@@ -949,7 +951,7 @@ Return Value:
 {
     PAGED_CODE();
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
 
     RECORDER_LOG recorder;
 
@@ -1258,9 +1260,9 @@ Return Value:
     // Initialize child objects.
     //
     ntStatus = DmfModuleChildObjectsInitialize(dmfObject, 
-                                              memoryDmfObject,
-                                              DmfModuleAttributes,
-                                              ModuleDescriptor);
+                                               memoryDmfObject,
+                                               DmfModuleAttributes,
+                                               ModuleDescriptor);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleChildObjectsInitialize fails: ntStatus=%!STATUS!", ntStatus);
@@ -1682,7 +1684,7 @@ Exit:
     return completed;
 }
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
 RECORDER_LOG
 DMF_InFlightRecorderGet(
     _In_ DMFMODULE DmfModule

@@ -31,6 +31,7 @@
     <TemplateGuid>{2177f19c-eb4c-4687-9e7f-f9eec1f12cf1}</TemplateGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <RootNamespace>DmfUModules.Library</RootNamespace>
     <ProjectName>DmfUModules.Library</ProjectName>
     <SccProjectName>SAK</SccProjectName>
     <SccAuxPath>SAK</SccAuxPath>
@@ -100,18 +101,13 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>
       <ShowIncludes>false</ShowIncludes>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</PreprocessToFile>
       <DisableSpecificWarnings />
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</TreatWarningAsError>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MultiProcessorCompilation>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OldStyle</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">OldStyle</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OldStyle</DebugInformationFormat>
@@ -192,7 +188,6 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_SimpleOrientation.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SpbTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
@@ -224,7 +219,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_SimpleOrientation.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
@@ -258,7 +252,6 @@
     <None Include="..\..\Modules.Library\Dmf_SimpleOrientation.md" />
     <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_Thread.md" />
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />

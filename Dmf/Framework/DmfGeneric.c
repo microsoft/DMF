@@ -27,7 +27,9 @@ Environment:
 
 #include "DmfIncludeInternal.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfGeneric.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1846,7 +1848,7 @@ Arguments:
 
 Return Value:
 
-    None
+    FALSE indicating the Module did not handle this callback.
 
 --*/
 {
@@ -1894,7 +1896,7 @@ Arguments:
 
 Return Value:
 
-    None
+    FALSE indicating the Module did not handle this callback.
 
 --*/
 {

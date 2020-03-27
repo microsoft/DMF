@@ -820,7 +820,7 @@ DMF_ModuleRequestCompleteOrForward(
     _In_ NTSTATUS NtStatus
     );
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
 RECORDER_LOG
 DMF_InFlightRecorderGet(
     _In_ DMFMODULE DmfModule

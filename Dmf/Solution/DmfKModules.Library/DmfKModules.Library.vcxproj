@@ -54,7 +54,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpiTarget.c" />
-    <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
@@ -97,7 +96,6 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SpbTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SpiTarget.h" />
-    <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
@@ -179,6 +177,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WppEnabled>true</WppEnabled>
@@ -190,7 +193,6 @@
       <WarningLevel>Level4</WarningLevel>
       <WppPreprocessorDefinitions>%(WppPreprocessorDefinitions)</WppPreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
@@ -392,7 +394,6 @@
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
-    <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />

@@ -23,7 +23,9 @@ Environment:
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Tests_DeviceInterfaceTarget.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -35,6 +37,9 @@ Environment:
 // Keep synchronous maximum time short to make driver disable faster.
 //
 #define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (1000)
+// Asynchronous minimum sleep time to make sure request can be cancelled.
+//
+#define MINIMUM_SLEEP_TIME_MS                   (4000)
 
 typedef enum _TEST_ACTION
 {
@@ -142,14 +147,13 @@ Tests_DeviceInterfaceTarget_BufferOutput(
 
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
     UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(CompletionStatus);
 
     DMF_DeviceInterfaceTarget_GuidGet(DmfModule,
                                       &guid);
 
-    if (!NT_SUCCESS(CompletionStatus))
-    {
-        DmfAssert(FALSE);
-    }
+    DmfAssert(NT_SUCCESS(CompletionStatus) ||
+              (CompletionStatus == STATUS_CANCELLED));
     if (OutputBufferSize != sizeof(DWORD))
     {
         DmfAssert(FALSE);
@@ -264,7 +268,7 @@ Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    //DmfAssert(STATUS_CANCELLED == CompletionStatus);
+    DmfAssert(STATUS_CANCELLED == CompletionStatus);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
 }
@@ -348,7 +352,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
     RequestTarget_DmfRequest DmfRequest;
-    BOOLEAN requestCancelled;
+    BOOLEAN requestCanceled;
 
     PAGED_CODE();
 
@@ -379,9 +383,16 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 &DmfRequest);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
+                                     0);
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
-                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 4);
     if (!NT_SUCCESS(ntStatus))
     {
         // Driver is shutting down...get out.
@@ -391,8 +402,8 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
 
     // Cancel the request if possible.
     //
-    requestCancelled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
-                                                        DmfRequest);
+    requestCanceled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
+                                                       DmfRequest);
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
@@ -409,16 +420,21 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 NULL,
                                                 &DmfRequest);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
                                      0);
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
-                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 4);
 
     // Cancel the request if possible.
     //
-    requestCancelled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
-                                                        DmfRequest);
+    requestCanceled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
+                                                       DmfRequest);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request immediately after sending it. It may or may not be canceled.
@@ -440,11 +456,15 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 &DmfRequest);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     // Cancel the request immediately after sending it.
     //
-    requestCancelled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
-                                                DmfRequest);
+    requestCanceled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
+                                                       DmfRequest);
 
     sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
@@ -461,17 +481,21 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 NULL,
                                                 &DmfRequest);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     // Cancel the request if possible right after sending it.
     //
-    requestCancelled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
-                                                        DmfRequest);
+    requestCanceled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
+                                                       DmfRequest);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request before it is normally completed. It should always cancel.
     //
 
-    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(4, 
+    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendEx(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
@@ -487,9 +511,26 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 &DmfRequest);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
-                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 4);
+    // Cancel the request if possible.
+    // It should always cancel since the time just waited is 1/4 the time that was sent above.
+    //
+    requestCanceled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
+                                                       DmfRequest);
+    // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
+    // that the cancel call happens just as the underlying driver is going away. In that case,
+    // the request is not canceled by this call, but it will be canceled by the underlying
+    // driver. (In this case the call to cancel returns FALSE.) Thus, no assert is possible here.
+    // This case happens often as the underlying driver comes and goes every second.
+    //
+
     if (!NT_SUCCESS(ntStatus))
     {
         // Driver is shutting down...get out.
@@ -497,14 +538,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
         goto Exit;
     }
 
-    // Cancel the request if possible.
-    // It should always cancel since the time just waited is 1/2 the time that was sent above.
-    //
-    requestCancelled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
-                                                        DmfRequest);
-    //DmfAssert(requestCancelled);
-
-    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(4, 
+    sleepIoctlBuffer.TimeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendEx(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
@@ -519,18 +553,28 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 NULL,
                                                 &DmfRequest);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     DMF_AlertableSleep_ResetForReuse(DmfModuleAlertableSleep,
                                      0);
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
-                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 2);
+                                        sleepIoctlBuffer.TimeToSleepMilliSeconds / 4);
 
     // Cancel the request if possible.
-    // It should always cancel since the time just waited is 1/2 the time that was sent above.
+    // It should always cancel since the time just waited is 1/4 the time that was sent above.
     //
-    requestCancelled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
-                                                        DmfRequest);
-    //DmfAssert(requestCancelled);
+    requestCanceled = DMF_DeviceInterfaceTarget_Cancel(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
+                                                       DmfRequest);
+    // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
+    // that the cancel call happens just as the underlying driver is going away. In that case,
+    // the request is not canceled by this call, but it will be canceled by the underlying
+    // driver. (In this case the call to cancel returns FALSE.) Thus, no assert is possible here.
+    // This case happens often as the underlying driver comes and goes every second.
+    //
 
 Exit:
     ;
@@ -1134,6 +1178,54 @@ Return Value:
 }
 #pragma code_seg()
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeInput(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceTarget_StateType IoTargetState
+    )
+{
+    if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemove)
+    {
+        DMFMODULE dmfModuleParent;
+
+        dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+
+        DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+        Tests_DeviceInterfaceTarget_NonContinousStopManualInput(dmfModuleParent);
+    }
+    else if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemoveCancelled)
+    {
+        // TODO: This path is not currently tested.
+        //
+    }
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeOutput(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceTarget_StateType IoTargetState
+    )
+{
+    if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemove)
+    {
+        DMFMODULE dmfModuleParent;
+
+        dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+
+        DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+        Tests_DeviceInterfaceTarget_NonContinousStopManualOutput(dmfModuleParent);
+    }
+    else if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemoveCancelled)
+    {
+        // TODO: This path is not currently tested.
+        //
+    }
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -1305,6 +1397,7 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceTarget_BufferInput;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChange = Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeInput;
 
     moduleAttributes.PassiveLevel = TRUE;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousInput;
@@ -1330,6 +1423,8 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DeviceInterfaceTarget_BufferOutput;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChange = Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeOutput;
+
     moduleAttributes.PassiveLevel = TRUE;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousOutput;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousOutput;

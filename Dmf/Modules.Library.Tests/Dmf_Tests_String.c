@@ -23,7 +23,9 @@ Environment:
 #include "DmfModules.Library.Tests.h"
 #include "DmfModules.Library.Tests.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_Tests_String.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -53,6 +55,10 @@ DMF_MODULE_DECLARE_CONTEXT(Tests_String)
 // This Module has no Config.
 //
 DMF_MODULE_DECLARE_NO_CONFIG(Tests_String)
+
+// Memory pool tag.
+//
+#define MemoryTag 'rtST'
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code
@@ -650,7 +656,7 @@ Tests_String_EventLog(
 
 Routine Description:
 
-    Performs unit tests on the Methods.
+    Performs unit tests on logging helper function.
 
 Arguments:
 
@@ -718,8 +724,99 @@ Return Value:
                               256,
                               256,
                               L"string");
+
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
+
+#if !defined(DMF_WDF_DRIVER)
+
+#pragma code_seg("PAGE")
+static
+VOID
+Tests_String_Tracing(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Performs unit tests on trace logging functions.
+    (non-Native WDF Platforms only.)
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 String);
+
+    // The WPP preprocessor does not understand the above #if. And it does not
+    // like some of the format strings below. So, hide original call so the 
+    // preprocessor does not see it.
+    //
+    #define TraceEventsHideFromWppPreprocessor   TraceEvents
+
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "");
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "a");
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "1=%d", 1);
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "0x100=0x%x", 0x100);
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "abc=%s", "abc");
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ABC=%S", L"ABC");
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "... success: ntStatus=%!STATUS!", STATUS_SUCCESS);
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "... fails: ntStatus=%!STATUS!", STATUS_UNSUCCESSFUL);
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "... success: ntStatus=%!STATUS", STATUS_SUCCESS);
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "0x%x=0x80000000", 0x80000000);
+    TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%08d=00000123", 123);
+
+    // NOTE: Strings like "%b" will be caught by debug build assert.
+    //
+
+    // Test trying to output a string that is too long for internal trace buffer.
+    //
+    WDFMEMORY memory;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    CHAR* longString;
+    NTSTATUS ntStatus;
+    size_t extraLongSize = DMF_PLATFORM_TRACE_BUFFER_SIZE + 1;
+
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               extraLongSize,
+                               &memory,
+                               (VOID**)&longString);
+    if (NT_SUCCESS(ntStatus))
+    {
+        memset(longString,
+               'X',
+               extraLongSize - 1);
+        longString[0] = '%';
+        longString[1] = 's';
+        longString[extraLongSize - 2] = 'L';
+        longString[extraLongSize - 1] = '\0';
+        TraceEventsHideFromWppPreprocessor(TRACE_LEVEL_INFORMATION, DMF_TRACE, longString, longString);
+        WdfObjectDelete(memory);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#endif // !defined(DMF_WDF_DRIVER)
 
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
@@ -749,6 +846,12 @@ Tests_String_WorkThread(
     // Test event logging function.
     //
     Tests_String_EventLog(moduleContext->DmfModuleString);
+
+    #if !defined(DMF_WDF_DRIVER)
+        // Test trace logging functions in non-native WDF Platforms.
+        //
+        Tests_String_Tracing(moduleContext->DmfModuleString);
+    #endif // !defined(DMF_WDF_DRIVER)
 
     // Repeat the test, until stop is signaled or the function stopped because the
     // driver is stopping.

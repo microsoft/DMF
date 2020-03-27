@@ -31,6 +31,7 @@
     <TemplateGuid>{2177f19c-eb4c-4687-9e7f-f9eec1f12cf1}</TemplateGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <RootNamespace>DmfUFramework</RootNamespace>
     <ProjectName>DmfUFramework</ProjectName>
     <SccProjectName>SAK</SccProjectName>
     <SccAuxPath>SAK</SccAuxPath>
@@ -100,18 +101,13 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>
       <ShowIncludes>false</ShowIncludes>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</PreprocessToFile>
       <DisableSpecificWarnings />
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</TreatWarningAsError>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MultiProcessorCompilation>
-      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MultiProcessorCompilation>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OldStyle</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">OldStyle</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OldStyle</DebugInformationFormat>
@@ -130,24 +126,8 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories);..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppRecorderEnabled>
-      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppRecorderEnabled>
-      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppRecorderEnabled>
-      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</WppRecorderEnabled>
-      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</WppRecorderEnabled>
-      <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WppRecorderEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</WppEnabled>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">stdcpp17</LanguageStandard>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">stdcpp17</LanguageStandard>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpp17</LanguageStandard>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
+      <WppRecorderEnabled>true</WppRecorderEnabled>
+      <WppEnabled>true</WppEnabled>
     </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
@@ -186,9 +166,13 @@
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.c" />
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.c" />
+    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_String.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\DmfIncludeInternal.h" />
+    <ClInclude Include="..\..\Framework\DmfDefinitions.h" />
+    <ClInclude Include="..\..\Framework\DmfIncludes.h" />
+    <ClInclude Include="..\..\Framework\DmfIncludes_USER_MODE.h" />
     <ClInclude Include="..\..\Framework\DmfTrace.h" />
     <ClInclude Include="..\..\Framework\DmfModule.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\DmfInterface.h" />
@@ -201,9 +185,9 @@
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_HashTable.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.h" />
-    <ClInclude Include="..\..\Framework\DmfDefinitions.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Trace.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.h" />
+    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_String.h" />
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
@@ -216,6 +200,7 @@
     <None Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md" />
     <None Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md" />
     <None Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.md" />
+    <None Include="..\..\Framework\Modules.Core\Dmf_String.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

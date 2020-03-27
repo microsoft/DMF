@@ -25,7 +25,9 @@ Environment:
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_HidTarget.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -2733,7 +2735,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGet(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _Out_ UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy

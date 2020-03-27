@@ -162,9 +162,6 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h">
       <Filter>Headers\Modules\Driver Patterns</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
-      <Filter>Headers\Modules\Driver Patterns</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Registry.h">
       <Filter>Headers\Modules\Driver Patterns</Filter>
     </ClInclude>
@@ -240,9 +237,6 @@
       <Filter>Modules\Targets</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c">
-      <Filter>Modules\Driver Patterns</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.c">
@@ -331,9 +325,6 @@
       <Filter>Documentation\Modules\Protocols</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_String.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_CmApi.md">

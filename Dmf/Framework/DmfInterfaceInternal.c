@@ -24,7 +24,10 @@ Environment:
 --*/
 
 #include "DmfIncludeInternal.h"
+
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfInterfaceInternal.tmh"
+#endif
 
 DMFMODULE
 DMF_InterfaceTransportModuleGet(

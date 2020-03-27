@@ -25,7 +25,9 @@ Environment:
 #include "DmfModules.Library.h"
 #include "DmfModules.Library.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_ContinuousRequestTarget.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -2469,16 +2471,27 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  ContinuousRequestTarget);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolOutput,
                        ClientBuffer);
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -2508,11 +2521,19 @@ Return Value:
 --*/
 {
     BOOLEAN returnValue;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  ContinuousRequestTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        returnValue = FALSE;
+        goto Exit;
+    }
 
     returnValue = ContinuousRequestTarget_PendingCollectionListSearchAndRemove(DmfModule,
                                                                                (WDFREQUEST)DmfRequest);
@@ -2522,6 +2543,10 @@ Return Value:
         //
         returnValue = WdfRequestCancelSentRequest((WDFREQUEST)DmfRequest);
     }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     return returnValue;
 }
@@ -2548,17 +2573,28 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  ContinuousRequestTarget);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     DmfAssert(moduleContext->IoTarget != NULL);
     DmfAssert(moduleContext->Stopping);
 
     moduleContext->IoTarget = NULL;
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -2594,13 +2630,21 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  ContinuousRequestTarget);
 
-    ntStatus = STATUS_SUCCESS;
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     DmfAssert(IoTarget != NULL);
     DmfAssert(moduleContext->IoTarget == NULL);
 
     moduleContext->IoTarget = IoTarget;
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -2836,6 +2880,12 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  ContinuousRequestTarget);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     ntStatus = ContinuousRequestTarget_RequestCreateAndSend(DmfModule,
                                                             TRUE,
                                                             RequestBuffer,
@@ -2853,8 +2903,9 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
+
+    DMF_ModuleDereference(DmfModule);
 
 Exit:
 
@@ -2891,6 +2942,12 @@ Return Value:
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  ContinuousRequestTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto ExitNoDereference;
+    }
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -2947,6 +3004,10 @@ Return Value:
     }
 
 Exit:
+
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoDereference:
 
     return ntStatus;
 }

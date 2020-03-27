@@ -26,7 +26,9 @@ Environment:
 #include "DmfModule.h"
 #include "DmfIncludeInternal.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "DmfLiveKernelDump.tmh"
+#endif
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID

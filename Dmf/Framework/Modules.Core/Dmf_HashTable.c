@@ -24,7 +24,9 @@ Environment:
 #include "DmfModules.Core.h"
 #include "DmfModules.Core.Trace.h"
 
+#if defined(DMF_INCLUDE_TMH)
 #include "Dmf_HashTable.tmh"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
