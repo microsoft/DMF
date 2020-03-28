@@ -29,15 +29,12 @@ and contents of all the other components. Specifically, this file defines follow
 2. Context related to the binding of the Transport used by the Transport: `DMF_INTERFACE_TRANSPORT_SampleInterface_BIND_DATA`.
 3. Definitions of optional Callbacks (zero or more) into the Protocol that allow the Transport to callback into the Protocol: `EVT_DMF_INTERFACE_SampleInterface_ProtocolCallback1`.
 4. The definitions of a structure that connects DMF specific information to the Client defined Protocol: `DMF_INTERFACE_PROTOCOL_SampleInterface_DECLARATION_DATA`.
-5. The declaration of the function that initializes the Protocol interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional
-Protocol callbacks: `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`.
-6. The definition of a callback that binds instances of the a Protocol and Transport data defined above: `DMF_INTERFACE_SampleInterface_TransportBind`. This information is stored
-in a construct defined by DMF (`DMFINTERFACE`).
+5. The declaration of the function that initializes the Protocol interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional Protocol callbacks: `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`.
+6. The definition of a callback that binds instances of the a Protocol and Transport data defined above: `DMF_INTERFACE_SampleInterface_TransportBind`. This information is stored in a construct defined by DMF (`DMFINTERFACE`).
 7. The declaration of a callback that unbinds a previously bound Protocol-Transport pair: `DMF_INTERFACE_SampleInterface_TransportUnbind`.
 8. Declarations of optional Methods (zero or more) defined by the Transport Module: `DMF_INTERFACE_SampleInterface_TransportMethod1`.
 9. Similar to #4 above, definition of a structure that connects DMF specific information to the Client defined Transport: `DMF_INTERFACE_TRANSPORT_SampleInterface_DECLARATION_DATA`.
-10. Similar to #5 above, the declaration of the function that initializes the Transport interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well
-as any optional Methods: `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`.
+10. Similar to #5 above, the declaration of the function that initializes the Transport interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional Methods: `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`.
 11. Prototypes of Methods exposed to the Protocol that Clients that instantiate the Protocol can call.
 12. Prototypes of Callbacks exposed to the transport that Transport can call.
 13. The Macro that internally defines several constructs used by both DMF and the Client.
@@ -56,18 +53,10 @@ This file contains the definitions of the functions declared in its companion .h
 between calls to the abstract interface to the instantiated Protocol and Transport code:
 
 1. First, make sure to include the same DMF Includes used by Modules.
-2. Define the function that initializes the Protocol interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional
-Protocol callbacks: `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`. This function simply calls `DMF_INTERFACE_PROTOCOL_DESCRIPTOR_INIT` to 
-initialize the descriptor with mandatory fields. Then, sets the optional callbacks into the Protocol.
-3. Define the function that initializes the Transport interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well
-as any optional Methods: `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`. This function simply calls `DMF_INTERFACE_TRANSPORT_DESCRIPTOR_INIT` to 
-initialize the descriptor with mandatory fields. Then, sets the optional Bind/Unbind functions as well as any optional Methods that are declared in the companion
-.h file. When the Client calls those Methods, the call comes to this file. This file will then route that call to the proper instantiated
-Transport.
-4. Define the function that performs the bind between the DMFINTERFACE, Protocol data and Transport data: `DMF_SampleInterface_TransportBind`. This function
-will route the Bind call to the transport appropriate Bind call.
-5. Define the function that performs the unbind of the DMFINTERFACE and its associated Protocol/Transport: `DMF_SampleInterface_TransportUnbind`. This function
-will route the Unbind call to the transport appropriate Unbind call.
+2. Define the function that initializes the Protocol interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional Protocol callbacks: `DMF_INTERFACE_PROTOCOL_SampleInterface_DESCRIPTOR_INIT`. This function simply calls `DMF_INTERFACE_PROTOCOL_DESCRIPTOR_INIT` to  initialize the descriptor with mandatory fields. Then, sets the optional callbacks into the Protocol.
+3. Define the function that initializes the Transport interface which populates the above structure with the mandatory Bind (DMF defined) callbacks as well as any optional Methods: `DMF_INTERFACE_TRANSPORT_SampleInterface_DESCRIPTOR_INIT`. This function simply calls `DMF_INTERFACE_TRANSPORT_DESCRIPTOR_INIT` to  initialize the descriptor with mandatory fields. Then, sets the optional Bind/Unbind functions as well as any optional Methods that are declared in the companion .h file. When the Client calls those Methods, the call comes to this file. This file will then route that call to the proper instantiated Transport.
+4. Define the function that performs the bind between the DMFINTERFACE, Protocol data and Transport data: `DMF_SampleInterface_TransportBind`. This function will route the Bind call to the transport appropriate Bind call.
+5. Define the function that performs the unbind of the DMFINTERFACE and its associated Protocol/Transport: `DMF_SampleInterface_TransportUnbind`. This function will route the Unbind call to the transport appropriate Unbind call.
 6. Define the Callback that is exposed by the Protocol to the Transport: `EVT_SampleInterface_ProtocolCallback1`.
 
 Once this file is written, the abstract Protocol-Transport layer is finished. Clients will call the Methods exposed by these two files and, in turn, the

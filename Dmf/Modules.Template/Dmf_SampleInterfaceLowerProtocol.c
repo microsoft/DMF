@@ -240,7 +240,7 @@ Arguments:
 
 Return Value:
 
-    NTSTATUS
+    None
 
 --*/
 {
