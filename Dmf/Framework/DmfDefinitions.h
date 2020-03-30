@@ -869,7 +869,7 @@ DMF_ModuleInterfaceDescriptorAdd(
 // ----------------------------------
 //
 
-// Defines an accessor methods for the Protocol and Transport Declaration Data. 
+// Defines an accessory methods for the Protocol and Transport Declaration Data. 
 //
 #define DECLARE_DMF_INTERFACE(InterfaceName)                                                                                                                                                 \
                                                                                                                                                                                     \

@@ -5604,8 +5604,8 @@ Return Value:
 
     // An optional context can be set by the Protocol module on the bind instance
     // This is a unique context for each instance of Protocol Transport binding. 
-    // E.g. in case a protocol module is bound to multiple modules, the protocol 
-    // module will get a unique instance of this context each bidning. 
+    // E.g. in case a protocol module is bound to multiple modules, the Protocol 
+    // Module will get a unique instance of this context each binding. 
     // 
     DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE(&protocolDeclarationData, 
                                               CONTEXT_ComponentFirmwareUpdateTransport);
