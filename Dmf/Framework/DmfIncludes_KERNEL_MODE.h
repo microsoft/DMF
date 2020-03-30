@@ -88,9 +88,13 @@ Environment:
 //
 #define IS_WIN10_RS5_OR_LATER (NTDDI_WIN10_RS5 && (NTDDI_VERSION >= NTDDI_WIN10_RS5))
 
-// Check that the Windows version is 19H1 or earlier. The supported versions are defined in sdkddkver.h.
+// Check that the Windows version is 19H1 or EARLIER. The supported versions are defined in sdkddkver.h.
 //
 #define IS_WIN10_19H1_OR_EARLIER (!(NTDDI_WIN10_19H1 && (NTDDI_VERSION > NTDDI_WIN10_19H1)))
+
+// Check that the Windows version is 19H1 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_19H1_OR_LATER (NTDDI_WIN10_19H1 && (NTDDI_VERSION >= NTDDI_WIN10_19H1))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
