@@ -881,6 +881,12 @@ Return Value:
 
     WdfIoTargetCloseForQueryRemove(moduleContext->IoTarget);
 
+    // Clear the IoTarget in ModuleContext.
+    // QueryRemove will be followed by QueryRemoveCancel or QueryRemoveComplete. 
+    // IoTarget in ModuleContext will be reinitialized in QueryRemoveCancel. 
+    //
+    moduleContext->IoTarget = NULL;
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
@@ -923,7 +929,8 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
-    DmfAssert(moduleContext->IoTarget == IoTarget);
+    DmfAssert(moduleContext->IoTarget == NULL);
+    moduleContext->IoTarget = IoTarget;
 
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
@@ -1013,10 +1020,10 @@ Return Value:
                                                             DeviceInterfaceTarget_StateType_QueryRemoveComplete);
     }
 
-    // The underlying target has been removed and is no longer accessible.
-    // Close the Module and destroy the IoTarget.
+    // Module is already closed in QueryRemove, and the stream is stopped. 
+    // Destroy the IoTarget here. 
     //
-    DeviceInterfaceTarget_ModuleCloseAndTargetDestroyAsNeeded(*dmfModuleAddress);
+    WdfObjectDelete(IoTarget);
 
     FuncExitVoid(DMF_TRACE);
 }
