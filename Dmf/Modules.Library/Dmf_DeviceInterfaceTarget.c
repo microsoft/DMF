@@ -1392,7 +1392,7 @@ Return Value:
 
         if (ioTargetOpen)
         {
-            // Iotarget will be opened. Save symbolic link name to make sure removal is referenced to correct interface.
+            // IoTarget will be opened. Save symbolic link name to make sure removal is referenced to correct interface.
             //
             if (NULL == moduleContext->SymbolicLinkName.Buffer)
             {

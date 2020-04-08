@@ -765,8 +765,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 Thread);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            Thread);
 
     threadStopPending = Thread_IsThreadStopPending(DmfModule);
 

@@ -326,7 +326,7 @@ Return Value:
                 TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestMarkCancelableEx success: Request=0x%p", Request);
                 DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
                                                   clientBuffer,
-                                                  sleepRequestBuffer->TimeToSleepMilliSeconds,
+                                                  sleepRequestBuffer->TimeToSleepMilliseconds,
                                                   Test_IoctlHandler_BufferPool_TimerCallback,
                                                   NULL);
                 ntStatus = STATUS_PENDING;
