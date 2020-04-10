@@ -32,7 +32,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                            (2)
+#define THREAD_COUNT                            (1)
 #define MAXIMUM_SLEEP_TIME_MS                   (15000)
 // Keep synchronous maximum time short to make driver disable faster.
 //
@@ -1102,6 +1102,8 @@ Return Value:
                                          0);
     }
 
+    // Start the threads. Streaming is automatically started.
+    //
     ntStatus = Tests_DeviceInterfaceTarget_NonContinousStartAuto(dmfModuleParent);
     DmfAssert(NT_SUCCESS(ntStatus));
 
@@ -1141,6 +1143,8 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
+    // Stop the threads. Streaming is automatically stopped.
+    //
     Tests_DeviceInterfaceTarget_NonContinousStopAuto(dmfModuleParent);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
@@ -1200,9 +1204,13 @@ Return Value:
                                          0);
     }
 
+    // Start streaming.
+    //
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
     {
+        // Start threads.
+        //
         Tests_DeviceInterfaceTarget_NonContinousStartManualInput(dmfModuleParent);
     }
     DmfAssert(NT_SUCCESS(ntStatus));
@@ -1264,9 +1272,13 @@ Return Value:
                                          0);
     }
 
+    // Start streaming.
+    //
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
     if (NT_SUCCESS(ntStatus))
     {
+        // Start threads.
+        //
         Tests_DeviceInterfaceTarget_NonContinousStartManualOutput(dmfModuleParent);
     }
     DmfAssert(NT_SUCCESS(ntStatus));
@@ -1274,54 +1286,6 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 #pragma code_seg()
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-VOID
-Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeInput(
-    _In_ DMFMODULE DmfModule,
-    _In_ DeviceInterfaceTarget_StateType IoTargetState
-    )
-{
-    if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemove)
-    {
-        DMFMODULE dmfModuleParent;
-
-        dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-
-        DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
-        Tests_DeviceInterfaceTarget_NonContinousStopManualInput(dmfModuleParent);
-    }
-    else if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemoveCancelled)
-    {
-        // TODO: This path is not currently tested.
-        //
-    }
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-VOID
-Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeOutput(
-    _In_ DMFMODULE DmfModule,
-    _In_ DeviceInterfaceTarget_StateType IoTargetState
-    )
-{
-    if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemove)
-    {
-        DMFMODULE dmfModuleParent;
-
-        dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-
-        DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
-        Tests_DeviceInterfaceTarget_NonContinousStopManualOutput(dmfModuleParent);
-    }
-    else if (IoTargetState == DeviceInterfaceTarget_StateType_QueryRemoveCancelled)
-    {
-        // TODO: This path is not currently tested.
-        //
-    }
-}
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1356,7 +1320,11 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
+    // Stop streaming.
+    //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    // Stop threads.
+    //
     Tests_DeviceInterfaceTarget_NonContinousStopManualInput(dmfModuleParent);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
@@ -1396,7 +1364,11 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
+    // Stop streaming.
+    //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+    // Stop threads.
+    //
     Tests_DeviceInterfaceTarget_NonContinousStopManualOutput(dmfModuleParent);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
@@ -1509,7 +1481,6 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceTarget_BufferInput;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
-    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChange = Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeInput;
 
     moduleAttributes.PassiveLevel = TRUE;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousInput;
@@ -1535,7 +1506,6 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DeviceInterfaceTarget_BufferOutput;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
-    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChange = Tests_DeviceInterfaceTarget__DeviceInterfaceTarget_OnStateChangeOutput;
 
     moduleAttributes.PassiveLevel = TRUE;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousOutput;

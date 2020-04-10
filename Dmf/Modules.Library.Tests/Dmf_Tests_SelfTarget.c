@@ -32,7 +32,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                            (2)
+#define THREAD_COUNT                            (1)
 #define MAXIMUM_SLEEP_TIME_MS                   (15000)
 // This timeout is necessary for causing asynchronous single requests to complete fast so that
 // driver disable works well (since it is not possible to cancel asynchronous requests at this time.

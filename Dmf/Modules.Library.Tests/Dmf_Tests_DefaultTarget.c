@@ -32,7 +32,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define THREAD_COUNT                            (2)
+#define THREAD_COUNT                            (1)
 #define MAXIMUM_SLEEP_TIME_MS                   (15000)
 
 // Keep synchronous maximum time short to make driver disable faster.
@@ -155,6 +155,8 @@ Tests_DefaultTarget_BufferOutput(
     _In_ NTSTATUS CompletionStatus
     )
 {
+    ContinuousRequestTarget_BufferDisposition returnValue;
+
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferSize);
@@ -163,9 +165,20 @@ Tests_DefaultTarget_BufferOutput(
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%!FUNC!:  ntStatus=%!STATUS!", CompletionStatus);
 
     DmfAssert((NT_SUCCESS(CompletionStatus) && (OutputBufferSize == sizeof(DWORD)) && (OutputBuffer != NULL)) ||
-              (CompletionStatus == ERROR_INCORRECT_FUNCTION));
+              (CompletionStatus == ERROR_INCORRECT_FUNCTION) ||
+              (CompletionStatus == STATUS_CANCELLED));
 
-    return ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    if ((CompletionStatus == STATUS_CANCELLED) ||
+        (CompletionStatus == ERROR_INCORRECT_FUNCTION))
+    {
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+    }
+    else
+    {
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    }
+
+    return returnValue;
 }
 
 #pragma code_seg("PAGE")

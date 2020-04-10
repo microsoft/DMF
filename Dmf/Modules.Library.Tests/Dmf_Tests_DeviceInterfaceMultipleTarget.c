@@ -201,6 +201,13 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // This is just for test purposes to test the API.
+    //
+    WDFIOTARGET ioTarget;
+    ntStatus = DMF_DeviceInterfaceMultipleTarget_Get(InstanceToSendTo,
+                                                     Target,
+                                                     &ioTarget);
+
     RtlZeroMemory(&sleepIoctlBuffer,
                   sizeof(sleepIoctlBuffer));
 
@@ -1311,7 +1318,8 @@ Return Value:
 
 --*/
 {
-    if (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open)
+    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
+        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
     {
         Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DmfModule,
                                                             Target,
@@ -1325,13 +1333,8 @@ Return Value:
         {
             targetContext->Closed = TRUE;
             Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DmfModule,
-                                                                            Target);
+                                                                Target);
         }
-    }
-    else if (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled)
-    {
-        // TODO: This path is not currently tested.
-        //
     }
 }
 
@@ -1361,7 +1364,8 @@ Return Value:
 
 --*/
 {
-    if (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open)
+    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
+        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
     {
         Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DmfModule,
                                                             Target,
@@ -1377,11 +1381,6 @@ Return Value:
             Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DmfModule,
                                                                 Target);
         }
-    }
-    else if (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled)
-    {
-        // TODO: This path is not currently tested.
-        //
     }
 }
 
