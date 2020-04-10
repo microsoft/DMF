@@ -34,7 +34,7 @@ typedef struct
 {
     // Wait this long and then complete the request.
     //
-    LONG TimeToSleepMilliSeconds;
+    LONG TimeToSleepMilliseconds;
 } Tests_IoctlHandler_Sleep;
 #pragma pack(pop)
 

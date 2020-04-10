@@ -287,6 +287,7 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceMultipleTarget.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.h" />
@@ -305,6 +306,7 @@
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_BufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DefaultTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceMultipleTarget.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c" />

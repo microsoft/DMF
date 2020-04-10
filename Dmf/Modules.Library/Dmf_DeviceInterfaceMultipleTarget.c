@@ -48,6 +48,9 @@ typedef struct
     // Underlying Device Target.
     //
     WDFIOTARGET IoTarget;
+    // Support proper rundown per target.
+    //
+    DMFMODULE DmfModuleRundown;
     // Save Symbolic Link Name to be able to deal with multiple instances of the same
     // device interface.
     //
@@ -55,6 +58,10 @@ typedef struct
     UNICODE_STRING SymbolicLinkName;
     DMFMODULE DmfModuleRequestTarget;
     DeviceInterfaceMultipleTarget_Target DmfIoTarget;
+    // On resume from hibernate, QueryRemove seems to not happen before
+    // RemoveComplete.
+    //
+    BOOLEAN QueryRemoveHappened;
 } DeviceInterfaceMultipleTarget_IoTarget;
 
 typedef struct
@@ -89,6 +96,14 @@ typedef struct
 //
 
 typedef
+BOOLEAN
+RequestSink_Cancel_Type(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    );
+
+typedef
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
@@ -117,6 +132,23 @@ RequestSink_Send_Type(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
+    );
+
+typedef
+NTSTATUS
+RequestSink_SendEx_Type(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
     );
 
 typedef
@@ -178,6 +210,8 @@ typedef struct
     //
     RequestSink_SendSynchronously_Type* RequestSink_SendSynchronously;
     RequestSink_Send_Type* RequestSink_Send;
+    RequestSink_SendEx_Type* RequestSink_SendEx;
+    RequestSink_Cancel_Type* RequestSink_Cancel;
     RequestSink_IoTargetSet_Type* RequestSink_IoTargetSet;
     RequestSink_IoTargetClear_Type* RequestSink_IoTargetClear;
 
@@ -202,63 +236,6 @@ DMF_MODULE_DECLARE_CONFIG(DeviceInterfaceMultipleTarget)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
-VOID
-DeviceInterfaceMultipleTarget_IoTargetDestroy(
-    _In_ DMFMODULE DmfModule,
-    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target
-    )
-/*++
-
-Routine Description:
-
-    Destroy the Io Target opened by this Module.
-
-Arguments:
-
-    ModuleContext - This Module's Module Context.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
-    DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    // Depending on what happened before, the IoTarget may or may not be
-    // valid. So, check here.
-    //
-    if (Target->IoTarget != NULL)
-    {
-        WdfIoTargetClose(Target->IoTarget);
-        if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
-        {
-            moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
-                                                                        Target->DmfIoTarget,
-                                                                        DeviceInterfaceMultipleTarget_StateType_Close);
-        }
-        moduleContext->RequestSink_IoTargetClear(DmfModule,
-                                                 Target);
-        WdfObjectDelete(Target->IoTarget);
-        Target->IoTarget = NULL;
-    }
-
-    FuncExitVoid(DMF_TRACE);
-}
-#pragma code_seg()
 
 VOID
 DeviceInterfaceMultipleTarget_SymbolicLinkNameClear(
@@ -380,7 +357,156 @@ DeviceInterfaceMultipleTarget_TargetDestroy(
 Routine Description:
 
     Destroy the underlying IoTarget. 
-    NOTE: IoTarget close is different in QueryRemove.
+    NOTE: This code executes in two paths: 
+          1. QueryRemove/RemoveComplete (Underlying target is removed.)
+          2. When device is removed normally (Driver disable).
+    In the first case this call is not necessary because the Module has already
+    been closed, but the call is benign because the IoTarget is already NULL.
+    In the second path, however, this call is necessary.
+
+Arguments:
+
+    DmfModule - The given Module.
+    Target - Stores the IoTarget to destroy.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // Ensure that all Methods running against this Target finish executing
+    // and prevent new Methods from starting because the IoTarget will be 
+    // set to NULL.
+    //
+    DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
+
+    // It is important to check the IoTarget because it may have been closed via 
+    // two asynchronous removal paths: 1. Device is removed. 2. Underlying target is removed.
+    //
+    WDFIOTARGET ioTarget;
+    DMF_ModuleLock(DmfModule);
+    if (Target->IoTarget != NULL)
+    {
+        ioTarget = Target->IoTarget;
+        Target->IoTarget = NULL;
+    }
+    else
+    {
+        ioTarget = NULL;
+    }
+    DMF_ModuleUnlock(DmfModule);
+
+    if (ioTarget != NULL)
+    {
+        if (Target->DmfModuleRequestTarget != NULL)
+        {
+            if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+            {
+                // By calling this function here, callbacks at the Client will happen only before the Module is closed.
+                //
+                DMF_ContinuousRequestTarget_StopAndWait(Target->DmfModuleRequestTarget);
+            }
+        }
+
+        // Destroy the underlying IoTarget.
+        //
+        WdfIoTargetClose(ioTarget);
+        if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+        {
+            moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
+                                                                        Target->DmfIoTarget,
+                                                                        DeviceInterfaceMultipleTarget_StateType_Close);
+        }
+        // The target is about to go away...Wait for all pending Methods using the target
+        // to finish executing and don't let new Methods start.
+        //
+        moduleContext->RequestSink_IoTargetClear(DmfModule,
+                                                 Target);
+        WdfObjectDelete(ioTarget);
+    }
+
+    // Delete stored symbolic link if set. (This will never be set in User-mode.)
+    //
+    DeviceInterfaceMultipleTarget_SymbolicLinkNameClear(DmfModule,
+                                                        Target);
+
+    if (Target->DmfIoTarget)
+    {
+        WdfObjectDelete(Target->DmfIoTarget);
+        Target->DmfIoTarget = NULL;
+    }
+
+    DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
+                          (VOID *)Target);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Open the given Module there are no open Targets.
+
+Arguments:
+
+    DmfModule - The given Module.
+
+Return Value:
+
+    NSTATUS of Module's Open callback.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    // No lock is used here, since the PnP callback is synchronous.
+    //
+    if (InterlockedIncrement(&moduleContext->NumberOfTargetsCreated) == 1)
+    {
+        // Open the Module.
+        //
+        ntStatus = DMF_ModuleOpen(DmfModule);
+    }
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Close the given Module there are no open Targets.
 
 Arguments:
 
@@ -398,36 +524,13 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // It is important to check the IoTarget because it may have been closed via 
-    // two asynchronous removal paths: 1. Device is removed. 2. Underlying target is removed.
+    // No lock is used here, since the PnP callback is synchronous.
     //
-    if (Target->IoTarget != NULL)
+    if (InterlockedDecrement(&moduleContext->NumberOfTargetsCreated) == 0)
     {
-        if (Target->DmfModuleRequestTarget != NULL)
-        {
-            if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
-            {
-                // By calling this function here, callbacks at the Client will happen only before the Module is closed.
-                //
-                DMF_ContinuousRequestTarget_StopAndWait(Target->DmfModuleRequestTarget);
-            }
-        }
-
-        // Destroy the underlying IoTarget.
+        // Close the Module.
         //
-        DeviceInterfaceMultipleTarget_IoTargetDestroy(DmfModule,
-                                                      Target);
-        DmfAssert(Target->IoTarget == NULL);
-    }
-
-    // Delete stored symbolic link if set. (This will never be set in User-mode.)
-    //
-    DeviceInterfaceMultipleTarget_SymbolicLinkNameClear(DmfModule,
-                                                        Target);
-
-    if (Target->DmfIoTarget)
-    {
-        WdfObjectDelete(Target->DmfIoTarget);
+        DMF_ModuleClose(DmfModule);
     }
 }
 #pragma code_seg()
@@ -467,23 +570,33 @@ Return Value:
 
     DeviceInterfaceMultipleTarget_TargetDestroy(DmfModule,
                                                 Target);
-    DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
-                          (VOID *)Target);
 
-    // No lock is used here, since the pnp callback is synchronous.
-    //
-    if (InterlockedDecrement(&moduleContext->NumberOfTargetsCreated) == 0)
-    {
-        // Close the Module.
-        //
-        DMF_ModuleClose(DmfModule);
-    }
+    DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule);
 }
 #pragma code_seg()
 
 // ContinuousRequestTarget Methods
 // -------------------------------
 //
+
+BOOLEAN
+DeviceInterfaceMultipleTarget_Stream_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->ContinuousReaderMode);
+    returnValue = DMF_ContinuousRequestTarget_Cancel(Target->DmfModuleRequestTarget,
+                                                     DmfRequest);
+
+    return returnValue;
+}
 
 NTSTATUS
 DeviceInterfaceMultipleTarget_Stream_SendSynchronously(
@@ -547,6 +660,40 @@ DeviceInterfaceMultipleTarget_Stream_Send(
                                             SingleAsynchronousRequestClientContext);
 }
 
+NTSTATUS
+DeviceInterfaceMultipleTarget_Stream_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    )
+{
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->ContinuousReaderMode);
+    return DMF_ContinuousRequestTarget_SendEx(Target->DmfModuleRequestTarget,
+                                              RequestBuffer,
+                                              RequestLength,
+                                              ResponseBuffer,
+                                              ResponseLength,
+                                              RequestType,
+                                              RequestIoctl,
+                                              RequestTimeoutMilliseconds,
+                                              EvtRequestSinkSingleAsynchronousRequest,
+                                              SingleAsynchronousRequestClientContext,
+                                              DmfRequest);
+}
+
 VOID
 DeviceInterfaceMultipleTarget_Stream_IoTargetSet(
     _In_ DMFMODULE DmfModule,
@@ -580,6 +727,26 @@ DeviceInterfaceMultipleTarget_Stream_IoTargetClear(
 // RequestTarget Methods
 // ---------------------
 //
+
+BOOLEAN
+DeviceInterfaceMultipleTarget_Target_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->ContinuousReaderMode);
+
+    returnValue = DMF_RequestTarget_Cancel(Target->DmfModuleRequestTarget,
+                                           DmfRequest);
+
+    return returnValue;
+}
 
 NTSTATUS
 DeviceInterfaceMultipleTarget_Target_SendSynchronously(
@@ -645,6 +812,43 @@ DeviceInterfaceMultipleTarget_Target_Send(
                                       RequestTimeoutMilliseconds,
                                       EvtRequestSinkSingleAsynchronousRequest,
                                       SingleAsynchronousRequestClientContext);
+
+    return ntStatus;
+}
+
+NTSTATUS
+DeviceInterfaceMultipleTarget_Target_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    )
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->ContinuousReaderMode);
+    ntStatus = DMF_RequestTarget_SendEx(Target->DmfModuleRequestTarget,
+                                        RequestBuffer,
+                                        RequestLength,
+                                        ResponseBuffer,
+                                        ResponseLength,
+                                        RequestType,
+                                        RequestIoctl,
+                                        RequestTimeoutMilliseconds,
+                                        EvtRequestSinkSingleAsynchronousRequest,
+                                        SingleAsynchronousRequestClientContext,
+                                        DmfRequest);
 
     return ntStatus;
 }
@@ -725,7 +929,8 @@ Return Value:
     target = (DeviceInterfaceMultipleTarget_IoTarget *)ClientBuffer;
     DmfAssert(target->SymbolicLinkName.Length != 0);
     DmfAssert(target->SymbolicLinkName.Buffer != NULL);
-    DmfAssert(target->IoTarget != NULL);
+    // After RemoveComplete IoTarget is NULL because it was cleared in QueryRemove.
+    //
 
     callbackContext = (DeviceInterfaceMultipleTarget_EnumerationContext*)ClientDriverCallbackContext;
     // 'Dereferencing NULL pointer. 'callbackContext'
@@ -854,7 +1059,7 @@ Return Value:
     size_t bufferSize;
 
     target = (DeviceInterfaceMultipleTarget_IoTarget*)WdfMemoryGetBuffer((WDFMEMORY)Target,
-                                                                       &bufferSize);
+                                                                         &bufferSize);
 
     DmfAssert(bufferSize == sizeof(DeviceInterfaceMultipleTarget_IoTarget));
 
@@ -976,10 +1181,8 @@ Return Value:
     return bufferDisposition;
 }
 
-EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove;
-
 NTSTATUS
-DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove(
+DeviceInterfaceMultipleTarget_QueryRemoveWork(
     _In_ WDFIOTARGET IoTarget
     )
 /*++
@@ -1035,7 +1238,63 @@ Return Value:
                                                      target->DmfIoTarget);
     }
 
+    // Don't let Methods call while in QueryRemoved state.
+    // 
+    DMF_Rundown_EndAndWait(target->DmfModuleRundown);
+
+    // QueryRemove will Close the Module but not remove the Target from the Queue.
+    //
+    DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(dmfModule);
+
     WdfIoTargetCloseForQueryRemove(IoTarget);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove;
+
+NTSTATUS
+DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove(
+    _In_ WDFIOTARGET IoTarget
+    )
+/*++
+
+Routine Description:
+
+    Indicates whether the framework can safely remove a specified remote I/O target's device.
+
+Arguments:
+
+    IoTarget - A handle to an I/O target object.
+
+Return Value:
+
+    NT_SUCCESS.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DeviceInterfaceMultipleTarget_IoTargetContext* targetContext;
+    DeviceInterfaceMultipleTarget_IoTarget* target;
+
+    ntStatus = STATUS_SUCCESS;
+
+    FuncEntry(DMF_TRACE);
+
+    // The IoTarget's Module Context area has the DMF Module.
+    //
+    targetContext = WdfObjectGet_DeviceInterfaceMultipleTarget_IoTargetContext(IoTarget);
+    target = targetContext->Target;
+
+    // Remember this happened so that we can adjust for cases where it does not.
+    //
+    target->QueryRemoveHappened = TRUE;
+
+    // Do what is necessary in this callback.
+    //
+    DeviceInterfaceMultipleTarget_QueryRemoveWork(IoTarget);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1083,6 +1342,8 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
+    target->IoTarget = IoTarget;
+
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
     ntStatus = WdfIoTargetOpen(IoTarget,
@@ -1093,6 +1354,20 @@ Return Value:
         WdfObjectDelete(IoTarget);
         goto Exit;
     }
+
+    // Now, the Counters which are not matched will become matched again.
+    // The counters became mismatched in QueryRemove.
+    //
+    ntStatus = DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(dmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Rundown ended in QueryRemove. Restart again. Allow Clients to call Methods.
+    //
+    DMF_Rundown_Start(target->DmfModuleRundown);
 
     // If the client has registered for device interface state changes, call the notification callback.
     //
@@ -1176,6 +1451,19 @@ Return Value:
         goto Exit;
     }
 
+    if (!target->QueryRemoveHappened)
+    {
+        // Do what should have been done in QueryRemove.
+        //
+        DeviceInterfaceMultipleTarget_QueryRemoveWork(IoTarget);
+    }
+    else
+    {
+        // Clear for next time.
+        //
+        target->QueryRemoveHappened = FALSE;
+    }
+
     if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
     {
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
@@ -1184,10 +1472,11 @@ Return Value:
     }
 
     // The underlying target has been removed and is no longer accessible.
-    // Close the Module and destroy the IoTarget.
+    // Module is already closed in QueryRemove path.
     //
-    DeviceInterfaceMultipleTarget_TargetDestroyAndCloseModule(dmfModule,
-                                                              target);
+    DeviceInterfaceMultipleTarget_TargetDestroy(dmfModule,
+                                                target);
+
 Exit:
 
     FuncExitVoid(DMF_TRACE);
@@ -1275,6 +1564,8 @@ Return Value:
         moduleContext->RequestSink_IoTargetClear = DeviceInterfaceMultipleTarget_Stream_IoTargetClear;
         moduleContext->RequestSink_IoTargetSet = DeviceInterfaceMultipleTarget_Stream_IoTargetSet;
         moduleContext->RequestSink_Send = DeviceInterfaceMultipleTarget_Stream_Send;
+        moduleContext->RequestSink_SendEx = DeviceInterfaceMultipleTarget_Stream_SendEx;
+        moduleContext->RequestSink_Cancel = DeviceInterfaceMultipleTarget_Stream_Cancel;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceMultipleTarget_Stream_SendSynchronously;
         moduleContext->ContinuousReaderMode = TRUE;
         // Remember Client's choice so this Module can start/stop streaming appropriately.
@@ -1308,8 +1599,21 @@ Return Value:
         moduleContext->RequestSink_IoTargetClear = DeviceInterfaceMultipleTarget_Target_IoTargetClear;
         moduleContext->RequestSink_IoTargetSet = DeviceInterfaceMultipleTarget_Target_IoTargetSet;
         moduleContext->RequestSink_Send = DeviceInterfaceMultipleTarget_Target_Send;
+        moduleContext->RequestSink_SendEx = DeviceInterfaceMultipleTarget_Target_SendEx;
+        moduleContext->RequestSink_Cancel = DeviceInterfaceMultipleTarget_Target_Cancel;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceMultipleTarget_Target_SendSynchronously;
         moduleContext->ContinuousReaderMode = FALSE;
+    }
+
+    DMF_Rundown_ATTRIBUTES_INIT(&moduleAttributes);
+    ntStatus = DMF_Rundown_Create(device,
+                                  &moduleAttributes,
+                                  &objectAttributes,
+                                  &Target->DmfModuleRundown);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Create fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
 Exit:
@@ -1414,6 +1718,10 @@ Return Value:
     moduleContext->RequestSink_IoTargetSet(DmfModule,
                                            Target,
                                            Target->IoTarget);
+
+    // Allow Methods to be called against the Target.
+    //
+    DMF_Rundown_Start(Target->DmfModuleRundown);
 
     if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
     {
@@ -1557,18 +1865,11 @@ Return Value:
             goto Exit;
         }
 
-        // Open the Module if its the first target.
-        // No lock is used here, since the PnP callback is synchronous.
-        // TODO: Optimize the callback, by queuing a workitem to do all the work. 
-        //
-        if (InterlockedIncrement(&moduleContext->NumberOfTargetsCreated) == 1)
+        ntStatus = DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule);
+        if (!NT_SUCCESS(ntStatus))
         {
-            ntStatus = DMF_ModuleOpen(DmfModule);
-            if (!NT_SUCCESS(ntStatus))
-            {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
-                goto Exit;
-            }
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets() fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
         }
 
         // Create and open the underlying target.
@@ -1580,6 +1881,7 @@ Return Value:
         {
             // TODO: Display SymbolicLinkName.
             //
+            DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceMultipleTarget_DeviceCreateNewIoTargetByName() fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -1592,6 +1894,7 @@ Return Value:
             ntStatus = DMF_ContinuousRequestTarget_Start(target->DmfModuleRequestTarget);
             if (!NT_SUCCESS(ntStatus))
             {
+                DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule);
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
@@ -1610,8 +1913,8 @@ Exit:
     {
         if (target != NULL)
         {
-            DeviceInterfaceMultipleTarget_TargetDestroyAndCloseModule(DmfModule,
-                                                                      target);
+            DeviceInterfaceMultipleTarget_TargetDestroy(DmfModule,
+                                                        target);
         }
     }
 
@@ -1704,6 +2007,7 @@ Return Value:
 {
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
     DeviceInterfaceMultipleTarget_IoTarget* target;
+    LONG targetCount;
 
     PAGED_CODE();
 
@@ -1714,14 +2018,17 @@ Return Value:
     // Already unregistered from PnP notification.
     // Clean the buffer queue here since the notifications callback will no longer be called.
     //
-    while (DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) != 0)
+    while ((targetCount = DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue)) != 0)
     {
+        DmfAssert(targetCount == moduleContext->NumberOfTargetsCreated);
         DMF_BufferQueue_Dequeue(moduleContext->DmfModuleBufferQueue,
                                 (VOID**)&target,
                                 NULL);
         DeviceInterfaceMultipleTarget_TargetDestroyAndCloseModule(DmfModule,
                                                                   target);
+        DmfAssert((LONG)DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) == moduleContext->NumberOfTargetsCreated);
     }
+    DmfAssert(moduleContext->NumberOfTargetsCreated == 0);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -2474,10 +2781,21 @@ Return Value:
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // Ensure Target structure is valid during the duration of this Method.
+    //
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
     DmfAssert(moduleContext->ContinuousReaderMode);
     DMF_ContinuousRequestTarget_BufferPut(target->DmfModuleRequestTarget,
                                           ClientBuffer);
 
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
 
 Exit:
@@ -2485,6 +2803,79 @@ Exit:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_DeviceInterfaceMultipleTarget_Cancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_ RequestTarget_DmfRequest DmfRequest
+    )
+/*++
+
+Routine Description:
+
+    Cancels a given WDFREQUEST associated with DmfRequest that has been sent to a given Target.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Target - The given Target.
+    DmfRequest - The given DmfRequest.
+
+Return Value:
+
+    TRUE if the given WDFREQUEST was has been canceled.
+    FALSE if the given WDFREQUEST is not canceled because it has already been completed or deleted.
+
+--*/
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    NTSTATUS ntStatus;
+    DeviceInterfaceMultipleTarget_IoTarget* target;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceMultipleTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        returnValue = FALSE;
+        goto Exit;
+    }
+
+    target = DeviceInterfaceMultipleTarget_BufferGet(Target);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Ensure Target structure is valid during the duration of this Method.
+    //
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        returnValue = FALSE;
+        goto Exit;
+    }
+
+    // Needs to be checked after rundown check.
+    //
+    DmfAssert(target->IoTarget != NULL);
+    returnValue = moduleContext->RequestSink_Cancel(DmfModule,
+                                                    target,
+                                                    DmfRequest);
+
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    return returnValue;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -2534,8 +2925,21 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     DmfAssert(target->IoTarget != NULL);
 
+    // Ensure Target structure is valid during the duration of this Method.
+    // This is here for consistency's sake. It also ensures Client never receives
+    // a NULL target.
+    //
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
     *IoTarget = target->IoTarget;
 
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
 
 Exit:
@@ -2663,7 +3067,19 @@ Return Value:
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
     DmfAssert(target->IoTarget != NULL);
+    // This assert will fail if the Target is valid the it is sent to a wrong Module instance
+    // that is not properly initialized.
+    //
+    DmfAssert(moduleContext->RequestSink_Send != NULL);
     ntStatus = moduleContext->RequestSink_Send(DmfModule,
                                                target,
                                                RequestBuffer,
@@ -2676,6 +3092,107 @@ Return Value:
                                                EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                SingleAsynchronousRequestClientContext);
 
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    )
+/*++
+
+Routine Description:
+
+    Creates and sends an Asynchronous request to the IoTarget given a buffer, IOCTL and other information.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    RequestBuffer - Buffer of data to attach to request to be sent.
+    RequestLength - Number of bytes to in RequestBuffer to send.
+    ResponseBuffer - Buffer of data that is returned by the request.
+    ResponseLength - Size of Response Buffer in bytes.
+    RequestType - Read or Write or Ioctl
+    RequestIoctl - The given IOCTL.
+    RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
+    EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
+    SingleAsynchronousRequestClientContext - Client context sent in callback
+
+Return Value:
+
+    STATUS_SUCCESS if a buffer is added to the list.
+    Other NTSTATUS if there is an error.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    DeviceInterfaceMultipleTarget_IoTarget* target;
+
+    FuncEntry(DMF_TRACE);
+
+    // This Module Method can be called when SSH is removed or being removed. The code in this function is 
+    // protected due to call to ModuleAcquire.
+    //
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceMultipleTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        goto Exit;
+    }
+
+    target = DeviceInterfaceMultipleTarget_BufferGet(Target);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
+    DmfAssert(target->IoTarget != NULL);
+    // This assert will fail if the Target is valid the it is sent to a wrong Module instance
+    // that is not properly initialized.
+    //
+    DmfAssert(moduleContext->RequestSink_SendEx != NULL);
+    ntStatus = moduleContext->RequestSink_SendEx(DmfModule,
+                                                 target,
+                                                 RequestBuffer,
+                                                 RequestLength,
+                                                 ResponseBuffer,
+                                                 ResponseLength,
+                                                 RequestType,
+                                                 RequestIoctl,
+                                                 RequestTimeoutMilliseconds,
+                                                 EvtContinuousRequestTargetSingleAsynchronousRequest,
+                                                 SingleAsynchronousRequestClientContext,
+                                                 DmfRequest);
+
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
 
 Exit:
@@ -2746,6 +3263,14 @@ Return Value:
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
     DmfAssert(target->IoTarget != NULL);
 
     ntStatus = moduleContext->RequestSink_SendSynchronously(DmfModule,
@@ -2759,6 +3284,7 @@ Return Value:
                                                             RequestTimeoutMilliseconds,
                                                             BytesWritten);
 
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
 
 Exit:
@@ -2810,11 +3336,20 @@ Return Value:
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
     DmfAssert(target->IoTarget != NULL);
 
     DmfAssert(moduleContext->ContinuousReaderMode);
     ntStatus = DMF_ContinuousRequestTarget_Start(target->DmfModuleRequestTarget);
 
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
 
 Exit:
@@ -2865,11 +3400,20 @@ Return Value:
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    ntStatus = DMF_Rundown_Reference(target->DmfModuleRundown);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleDereference(DmfModule);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        goto Exit;
+    }
+
     DmfAssert(target->IoTarget != NULL);
 
     DmfAssert(moduleContext->ContinuousReaderMode);
     DMF_ContinuousRequestTarget_StopAndWait(target->DmfModuleRequestTarget);
 
+    DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
 
 Exit:

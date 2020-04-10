@@ -43,6 +43,9 @@ Environment:
 #define PDO_ENABLE_KERNELMODE
 #define PDO_ENABLE_USERMODE
 
+#define FAST_PDO_TIMEOUT_SECONDS    (30)
+#define SLOW_PDO_TIMEOUT_SECONDS    (60)
+
 typedef enum _TEST_ACTION
 {
     TEST_ACTION_SLOW,
@@ -270,7 +273,7 @@ Tests_Pdo_ThreadAction_Fast(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           1000 * 30,
+                           1000 * FAST_PDO_TIMEOUT_SECONDS,
                            ThreadIndex);
 }
 #pragma code_seg()
@@ -286,7 +289,7 @@ Tests_Pdo_ThreadAction_Slow(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
-                           1000 * 60,
+                           1000 * SLOW_PDO_TIMEOUT_SECONDS,
                            ThreadIndex);
 }
 #pragma code_seg()

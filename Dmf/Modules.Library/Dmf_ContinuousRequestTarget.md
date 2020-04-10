@@ -457,7 +457,7 @@ DMF_ContinuousRequestTarget_SendEx(
 ````
 
 This Method uses the given parameters to create a Request and send it asynchronously to the Module's underlying WDFIOTARGET.
-Ex version of DMF_RequestTarget_Send, allows the clients to specify ContinuousRequestTarget_CompletionOptions, which controls how completion routine will be called. 
+Ex version of DMF_ContinuousRequestTarget_Send allows the clients to specify ContinuousRequestTarget_CompletionOptions, which controls how completion routine will be called. 
 Ex version also allows caller to retrieve the WDFREQUEST sent to the underlying target for later cancellation.
 
 ##### Returns
