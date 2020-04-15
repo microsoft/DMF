@@ -25,6 +25,9 @@ Detailed documentation about each Module is available on the wiki: https://githu
 #### Samples:
 [DmfSamples](https://github.com/Microsoft/DMF/tree/master/DmfSamples) has all the sample drivers that show in incremental steps how to use DMF in a driver. 
 
+#### Questions/Feedback
+Please send email to: dmf-feedback@microsoft.com
+
 To build DMF and the sample drivers, follow the steps [here](https://docs.microsoft.com/en-us/windows-hardware/drivers/develop/building-a-driver).
 
 # Contributing
