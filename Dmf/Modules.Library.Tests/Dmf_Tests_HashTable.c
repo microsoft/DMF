@@ -525,7 +525,9 @@ Tests_HashTable_WorkThread(
         DMF_Thread_WorkReady(DmfModuleThread);
     }
 
-    TestsUtility_YieldExecution();
+    // Reduce CPU usage.
+    //
+    DMF_Utility_DelayMilliseconds(1000);
 }
 #pragma code_seg()
 

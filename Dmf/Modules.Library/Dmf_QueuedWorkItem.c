@@ -441,7 +441,6 @@ Return Value:
                                  QueuedWorkItem);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     // Get an empty buffer to place parameters for this call.
@@ -464,9 +463,22 @@ Return Value:
     RtlZeroMemory(queuedWorkItemWaitBlock,
                   sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
 
-    // Copy over the parameters.
+    // Validate the size of the passed by caller.
     //
-    DmfAssert(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
+    if (ContextBufferSize > moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK))
+    {
+        // Because the driver has set the size of the target buffers, there is never a scenario
+        // when the driver would send an invalid size. However, this check is made at run time
+        // to prevent data corruption.
+        //
+        DmfAssert(FALSE);
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    // Copy the buffer which contains the Client's deferred work.
+    // Caller is allowed to free that buffer immediately after this call.
+    //
     RtlCopyMemory(clientBuffer,
                   ContextBuffer,
                   ContextBufferSize);

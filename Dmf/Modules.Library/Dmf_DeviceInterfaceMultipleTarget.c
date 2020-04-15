@@ -58,8 +58,9 @@ typedef struct
     UNICODE_STRING SymbolicLinkName;
     DMFMODULE DmfModuleRequestTarget;
     DeviceInterfaceMultipleTarget_Target DmfIoTarget;
-    // On resume from hibernate, QueryRemove seems to not happen before
-    // RemoveComplete.
+    // Surprise removal path does not send a QueryRemove, only a RemoveComplete
+    // notification. This flag tracks that so that RemoveComplete path properly
+    // stops target and Closes Module during surprise-removal path.
     //
     BOOLEAN QueryRemoveHappened;
 } DeviceInterfaceMultipleTarget_IoTarget;
@@ -1181,8 +1182,68 @@ Return Value:
     return bufferDisposition;
 }
 
+VOID
+DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(
+    _In_ WDFIOTARGET IoTarget
+    )
+/*++
+
+Routine Description:
+
+    Stops the target and Closes the Module. This is called from QueryRemove.
+    It is also called from RemoveComplete in the surprise-removal case because
+    QueryRemove does not happen in that path.
+
+Arguments:
+
+    IoTarget - A handle to an I/O target object.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
+    DeviceInterfaceMultipleTarget_IoTargetContext* targetContext;
+    DeviceInterfaceMultipleTarget_IoTarget* target;
+
+    FuncEntry(DMF_TRACE);
+
+    // The IoTarget's Module Context area has the DMF Module.
+    //
+    targetContext = WdfObjectGet_DeviceInterfaceMultipleTarget_IoTargetContext(IoTarget);
+    dmfModule = targetContext->DmfModuleDeviceInterfaceMultipleTarget;
+    target = targetContext->Target;
+
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModule);
+
+    // Transparently stop the stream in automatic mode.
+    //
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        DMF_DeviceInterfaceMultipleTarget_StreamStop(dmfModule,
+                                                     target->DmfIoTarget);
+    }
+
+    // Don't let Methods call while in QueryRemoved state.
+    // 
+    DMF_Rundown_EndAndWait(target->DmfModuleRundown);
+
+    // QueryRemove will Close the Module but not remove the Target from the Queue.
+    //
+    DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(dmfModule);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove;
+
 NTSTATUS
-DeviceInterfaceMultipleTarget_QueryRemoveWork(
+DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove(
     _In_ WDFIOTARGET IoTarget
     )
 /*++
@@ -1221,7 +1282,12 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
-    // If the client has registered for device interface state changes, call the notification callback.
+    // Remember this happened so that we can adjust for cases where it does not.
+    //
+    ASSERT(!target->QueryRemoveHappened);
+    target->QueryRemoveHappened = TRUE;
+
+    // If the Client has registered for device interface state changes, call the notification callback.
     //
     if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
     {
@@ -1230,71 +1296,11 @@ Return Value:
                                                                     DeviceInterfaceMultipleTarget_StateType_QueryRemove);
     }
 
-    // Transparently stop the stream in automatic mode.
+    // Stop the target and Close the Module.
     //
-    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
-    {
-        DMF_DeviceInterfaceMultipleTarget_StreamStop(dmfModule,
-                                                     target->DmfIoTarget);
-    }
-
-    // Don't let Methods call while in QueryRemoved state.
-    // 
-    DMF_Rundown_EndAndWait(target->DmfModuleRundown);
-
-    // QueryRemove will Close the Module but not remove the Target from the Queue.
-    //
-    DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(dmfModule);
+    DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(IoTarget);
 
     WdfIoTargetCloseForQueryRemove(IoTarget);
-
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
-}
-
-EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove;
-
-NTSTATUS
-DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove(
-    _In_ WDFIOTARGET IoTarget
-    )
-/*++
-
-Routine Description:
-
-    Indicates whether the framework can safely remove a specified remote I/O target's device.
-
-Arguments:
-
-    IoTarget - A handle to an I/O target object.
-
-Return Value:
-
-    NT_SUCCESS.
-
---*/
-{
-    NTSTATUS ntStatus;
-    DeviceInterfaceMultipleTarget_IoTargetContext* targetContext;
-    DeviceInterfaceMultipleTarget_IoTarget* target;
-
-    ntStatus = STATUS_SUCCESS;
-
-    FuncEntry(DMF_TRACE);
-
-    // The IoTarget's Module Context area has the DMF Module.
-    //
-    targetContext = WdfObjectGet_DeviceInterfaceMultipleTarget_IoTargetContext(IoTarget);
-    target = targetContext->Target;
-
-    // Remember this happened so that we can adjust for cases where it does not.
-    //
-    target->QueryRemoveHappened = TRUE;
-
-    // Do what is necessary in this callback.
-    //
-    DeviceInterfaceMultipleTarget_QueryRemoveWork(IoTarget);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1453,9 +1459,10 @@ Return Value:
 
     if (!target->QueryRemoveHappened)
     {
-        // Do what should have been done in QueryRemove.
+        // Surprise Remove happened, so QueryRemove did not happen. The Target
+        // still needs to be stopped and Module Closed.
         //
-        DeviceInterfaceMultipleTarget_QueryRemoveWork(IoTarget);
+        DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(IoTarget);
     }
     else
     {
@@ -2923,7 +2930,6 @@ Return Value:
 
     target = DeviceInterfaceMultipleTarget_BufferGet(Target);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    DmfAssert(target->IoTarget != NULL);
 
     // Ensure Target structure is valid during the duration of this Method.
     // This is here for consistency's sake. It also ensures Client never receives
@@ -2937,6 +2943,9 @@ Return Value:
         goto Exit;
     }
 
+    // It will only be NULL if Module is closed or closing due to rundown protection.
+    //
+    DmfAssert(target->IoTarget != NULL);
     *IoTarget = target->IoTarget;
 
     DMF_Rundown_Dereference(target->DmfModuleRundown);
