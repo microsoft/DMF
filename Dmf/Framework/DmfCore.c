@@ -1529,13 +1529,13 @@ Return Value:
     WdfObjectDelete(dmfObject->ClientModuleInstanceNameMemory);
     dmfObject->ClientModuleInstanceNameMemory = NULL;
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     if (dmfObject->InFlightRecorder != NULL)
     {
         WppRecorderLogDelete(dmfObject->InFlightRecorder);
         dmfObject->InFlightRecorder = NULL;
     }
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 
     if (dmfObject->ModuleConfigMemory != NULL)
     {

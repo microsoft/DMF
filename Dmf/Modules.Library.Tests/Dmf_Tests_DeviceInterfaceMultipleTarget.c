@@ -67,6 +67,8 @@ typedef struct
     //
     DMFMODULE DmfModuleDeviceInterfaceMultipleTargetDispatchInput;
     DMFMODULE DmfModuleDeviceInterfaceMultipleTargetPassiveInput;
+    DMFMODULE DmfModuleDeviceInterfaceMultipleTargetDispatchInputNonContinuous;
+    DMFMODULE DmfModuleDeviceInterfaceMultipleTargetPassiveInputNonContinuous;
     // Source of buffers sent asynchronously.
     //
     DMFMODULE DmfModuleBufferPool;
@@ -242,7 +244,7 @@ Tests_DeviceInterfaceMultipleTarget_ThreadAction_SynchronousDispatchInput(
 
 Routine Description:
 
-    Sends synchronous requests to a given Target on the PassiveInput instance.
+    Sends synchronous requests to a given Target on the DispatchInput instance.
 
 Arguments:
 
@@ -268,6 +270,47 @@ Return Value:
                                                                  DmfModuleAlertableSleep,
                                                                  Target,
                                                                  moduleContext->DmfModuleDeviceInterfaceMultipleTargetDispatchInput);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
+Tests_DeviceInterfaceMultipleTarget_ThreadAction_SynchronousDispatchInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Sends synchronous requests to a given Target on the DispatchInputNonContinuous instance.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    DmfModuleAlertableSleep - Used to wait.
+    Target - The given Target.
+    
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    Tests_DeviceInterfaceMultipleTarget_ThreadAction_Synchronous(DmfModule,
+                                                                 DmfModuleAlertableSleep,
+                                                                 Target,
+                                                                 moduleContext->DmfModuleDeviceInterfaceMultipleTargetDispatchInputNonContinuous);
 }
 #pragma code_seg()
 
@@ -309,6 +352,47 @@ Return Value:
                                                                  DmfModuleAlertableSleep,
                                                                  Target,
                                                                  moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInput);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
+Tests_DeviceInterfaceMultipleTarget_ThreadAction_SynchronousPassiveInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Sends synchronous requests to a given Target on the PassiveInputNonContinuous instance.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    DmfModuleAlertableSleep - Used to wait.
+    Target - The given Target.
+    
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    Tests_DeviceInterfaceMultipleTarget_ThreadAction_Synchronous(DmfModule,
+                                                                 DmfModuleAlertableSleep,
+                                                                 Target,
+                                                                 moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInputNonContinuous);
 }
 #pragma code_seg()
 
@@ -361,6 +445,11 @@ Return Value:
 
     moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget*)ClientRequestContext;
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
+                sleepIoctlBuffer->TimeToSleepMilliseconds,
+                InputBuffer);
+
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
 }
@@ -545,6 +634,48 @@ Return Value:
 #pragma code_seg("PAGE")
 static
 void
+Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousDispatchInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Sends asynchronous requests to a Target of the DispatchInputNonContinuous instance.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    DmfModuleAlertableSleep - Used to wait.
+    Target - The given Target.
+    InstanceToSendTo - Which of the instantiated Modules to send to.
+    
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    Tests_DeviceInterfaceMultipleTarget_ThreadAction_Asynchronous(DmfModule,
+                                                                  DmfModuleAlertableSleep,
+                                                                  Target,
+                                                                  moduleContext->DmfModuleDeviceInterfaceMultipleTargetDispatchInputNonContinuous);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
 Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousPassiveInput(
     _In_ DMFMODULE DmfModule,
     _In_ DMFMODULE DmfModuleAlertableSleep,
@@ -587,6 +718,48 @@ Return Value:
 #pragma code_seg("PAGE")
 static
 void
+Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousPassiveInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Sends asynchronous requests to a given Target of the PassiveInputNonContinuous instance.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    DmfModuleAlertableSleep - Used to wait.
+    Target - The given Target.
+    InstanceToSendTo - Which of the instantiated Modules to send to.
+    
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    Tests_DeviceInterfaceMultipleTarget_ThreadAction_Asynchronous(DmfModule,
+                                                                  DmfModuleAlertableSleep,
+                                                                  Target,
+                                                                  moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInputNonContinuous);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
 Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancel(
     _In_ DMFMODULE DmfModule,
     _In_ DMFMODULE DmfModuleAlertableSleep,
@@ -615,7 +788,7 @@ Return Value:
     DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
     NTSTATUS ntStatus;
     size_t bytesWritten;
-    RequestTarget_DmfRequest DmfRequest;
+    RequestTarget_DmfRequest DmfRequestId;
     BOOLEAN requestCanceled;
     LONG timeToSleepMilliseconds;
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
@@ -651,7 +824,7 @@ Return Value:
                                                         0,
                                                         Tests_DeviceInterfaceMultipleTarget_SendCompletion,
                                                         moduleContext,
-                                                        &DmfRequest);
+                                                        &DmfRequestId);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -659,9 +832,11 @@ Return Value:
         goto Exit;
     }
 
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
-                                        timeToSleepMilliseconds / 4);
+                                        timeToSleepMilliseconds);
     if (!NT_SUCCESS(ntStatus))
     {
         // Driver is shutting down...get out.
@@ -673,7 +848,65 @@ Return Value:
     //
     requestCanceled = DMF_DeviceInterfaceMultipleTarget_Cancel(InstanceToSendTo,
                                                                Target,
-                                                               DmfRequest);
+                                                               DmfRequestId);
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    ASSERT(NT_SUCCESS(ntStatus));
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request after waiting the same time sent in timeout. 
+    // It may or may not be canceled.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    ASSERT(NT_SUCCESS(ntStatus));
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    bytesWritten = 0;
+    ntStatus = DMF_DeviceInterfaceMultipleTarget_SendEx(InstanceToSendTo,
+                                                        Target,
+                                                        sleepIoctlBuffer,
+                                                        sizeof(Tests_IoctlHandler_Sleep),
+                                                        NULL,
+                                                        NULL,
+                                                        ContinuousRequestTarget_RequestType_Ioctl,
+                                                        IOCTL_Tests_IoctlHandler_SLEEP,
+                                                        0,
+                                                        Tests_DeviceInterfaceMultipleTarget_SendCompletion,
+                                                        moduleContext,
+                                                        &DmfRequestId);
+
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        timeToSleepMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
+
+    // Cancel the request if possible.
+    //
+    requestCanceled = DMF_DeviceInterfaceMultipleTarget_Cancel(InstanceToSendTo,
+                                                               Target,
+                                                               DmfRequestId);
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -708,7 +941,7 @@ Return Value:
                                                         0,
                                                         Tests_DeviceInterfaceMultipleTarget_SendCompletion,
                                                         moduleContext,
-                                                        &DmfRequest);
+                                                        &DmfRequestId);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -720,7 +953,65 @@ Return Value:
     //
     requestCanceled = DMF_DeviceInterfaceMultipleTarget_Cancel(InstanceToSendTo,
                                                                Target,
-                                                               DmfRequest);
+                                                               DmfRequestId);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request after it is normally completed. It should never cancel unless driver is shutting down.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    ASSERT(NT_SUCCESS(ntStatus));
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+    
+    DmfAssert(timeToSleepMilliseconds >= MINIMUM_SLEEP_TIME_MS);
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SEND: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+                timeToSleepMilliseconds,
+                sleepIoctlBuffer);
+    bytesWritten = 0;
+    ntStatus = DMF_DeviceInterfaceMultipleTarget_SendEx(InstanceToSendTo,
+                                                        Target,
+                                                        sleepIoctlBuffer,
+                                                        sizeof(Tests_IoctlHandler_Sleep),
+                                                        NULL,
+                                                        NULL,
+                                                        ContinuousRequestTarget_RequestType_Ioctl,
+                                                        IOCTL_Tests_IoctlHandler_SLEEP,
+                                                        0,
+                                                        Tests_DeviceInterfaceMultipleTarget_SendCompletion,
+                                                        moduleContext,
+                                                        &DmfRequestId);
+
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        timeToSleepMilliseconds * 4);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
+
+    // Cancel the request if possible.
+    // It should never cancel since the time just waited is 4 times what was sent above.
+    //
+    requestCanceled = DMF_DeviceInterfaceMultipleTarget_Cancel(InstanceToSendTo,
+                                                               Target,
+                                                               DmfRequestId);
+    DmfAssert(! requestCanceled);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "END: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+                timeToSleepMilliseconds,
+                sleepIoctlBuffer);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request before it is normally completed. It should always cancel.
@@ -734,6 +1025,7 @@ Return Value:
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
 
+    DmfAssert(timeToSleepMilliseconds >= MINIMUM_SLEEP_TIME_MS);
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceMultipleTarget_SendEx(InstanceToSendTo,
@@ -747,7 +1039,7 @@ Return Value:
                                                         0,
                                                         Tests_DeviceInterfaceMultipleTarget_SendCompletionMustBeCancelled,
                                                         moduleContext,
-                                                        &DmfRequest);
+                                                        &DmfRequestId);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -763,7 +1055,7 @@ Return Value:
     //
     requestCanceled = DMF_DeviceInterfaceMultipleTarget_Cancel(InstanceToSendTo,
                                                                Target,
-                                                               DmfRequest);
+                                                               DmfRequestId);
     // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
     // that the cancel call happens just as the underlying driver is going away. In that case,
     // the request is not canceled by this call, but it will be canceled by the underlying
@@ -825,6 +1117,45 @@ Return Value:
 #pragma code_seg("PAGE")
 static
 void
+Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelDispatchInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Sends requests to a Target of a DispatchInputNonContinous instance and cancels them.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    DmfModuleAlertableSleep - Used to wait.
+    Target - The given Target.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancel(DmfModule,
+                                                                        DmfModuleAlertableSleep,
+                                                                        Target,
+                                                                        moduleContext->DmfModuleDeviceInterfaceMultipleTargetDispatchInputNonContinuous);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
 Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelPassiveInput(
     _In_ DMFMODULE DmfModule,
     _In_ DMFMODULE DmfModuleAlertableSleep,
@@ -858,6 +1189,45 @@ Return Value:
                                                                         DmfModuleAlertableSleep,
                                                                         Target,
                                                                         moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInput);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
+Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelPassiveInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Sends requests to a Target of a PassiveInputNonContinuous instance and cancels them.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    DmfModuleAlertableSleep - Used to wait.
+    Target - The given Target.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancel(DmfModule,
+                                                                        DmfModuleAlertableSleep,
+                                                                        Target,
+                                                                        moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInputNonContinuous);
 }
 #pragma code_seg()
 
@@ -903,18 +1273,89 @@ Return Value:
     {
         case TEST_ACTION_SYNCHRONOUS:
             Tests_DeviceInterfaceMultipleTarget_ThreadAction_SynchronousDispatchInput(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
-                                                                                 threadContext->DmfModuleAlertableSleep,
-                                                                                 threadContext->Target);
+                                                                                      threadContext->DmfModuleAlertableSleep,
+                                                                                      threadContext->Target);
             break;
         case TEST_ACTION_ASYNCHRONOUS:
             Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousDispatchInput(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
-                                                                                  threadContext->DmfModuleAlertableSleep,
-                                                                                  threadContext->Target);
+                                                                                       threadContext->DmfModuleAlertableSleep,
+                                                                                       threadContext->Target);
             break;
         case TEST_ACTION_ASYNCHRONOUSCANCEL:
             Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelDispatchInput(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
-                                                                                        threadContext->DmfModuleAlertableSleep,
-                                                                                        threadContext->Target);
+                                                                                             threadContext->DmfModuleAlertableSleep,
+                                                                                             threadContext->Target);
+            break;
+        default:
+            DmfAssert(FALSE);
+            break;
+    }
+
+    // Repeat the test, until stop is signaled.
+    //
+    if (!DMF_Thread_IsStopPending(DmfModuleThread))
+    {
+        DMF_Thread_WorkReady(DmfModuleThread);
+    }
+
+    TestsUtility_YieldExecution();
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_DeviceInterfaceMultipleTarget_WorkThreadDispatchInputNonContinuous(
+    _In_ DMFMODULE DmfModuleThread
+    )
+/*++
+
+Routine Description:
+
+    Thread work callback for DispatchInput instance.
+
+Arguments:
+
+    DmfModule - DMF_Thread.
+
+Return Value:
+
+    None
+
+--*/
+{
+    TEST_ACTION testAction;
+    THREAD_CONTEXT* threadContext;
+
+    PAGED_CODE();
+
+    threadContext = WdfObjectGet_THREAD_CONTEXT(DmfModuleThread);
+
+    // Generate a random test action Id for a current iteration.
+    //
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+                                                                TEST_ACTION_MAXIMUM);
+
+    // Execute the test action.
+    //
+    switch (testAction)
+    {
+        case TEST_ACTION_SYNCHRONOUS:
+            Tests_DeviceInterfaceMultipleTarget_ThreadAction_SynchronousDispatchInputNonContinuous(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                                                   threadContext->DmfModuleAlertableSleep,
+                                                                                                   threadContext->Target);
+            break;
+        case TEST_ACTION_ASYNCHRONOUS:
+            Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousDispatchInputNonContinuous(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                                                    threadContext->DmfModuleAlertableSleep,
+                                                                                                    threadContext->Target);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSCANCEL:
+            Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelDispatchInputNonContinuous(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                                                          threadContext->DmfModuleAlertableSleep,
+                                                                                                          threadContext->Target);
             break;
         default:
             DmfAssert(FALSE);
@@ -986,6 +1427,77 @@ Return Value:
             Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelPassiveInput(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
                                                                                             threadContext->DmfModuleAlertableSleep,
                                                                                             threadContext->Target);
+            break;
+        default:
+            DmfAssert(FALSE);
+            break;
+    }
+
+    // Repeat the test, until stop is signaled.
+    //
+    if (!DMF_Thread_IsStopPending(DmfModuleThread))
+    {
+        DMF_Thread_WorkReady(DmfModuleThread);
+    }
+
+    TestsUtility_YieldExecution();
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInputNonContinuous(
+    _In_ DMFMODULE DmfModuleThread
+    )
+/*++
+
+Routine Description:
+
+    Thread work callback for PassiveInput instance.
+
+Arguments:
+
+    DmfModule - DMF_Thread.
+
+Return Value:
+
+    None
+
+--*/
+{
+    TEST_ACTION testAction;
+    THREAD_CONTEXT* threadContext;
+
+    PAGED_CODE();
+
+    threadContext = WdfObjectGet_THREAD_CONTEXT(DmfModuleThread);
+
+    // Generate a random test action Id for a current iteration.
+    //
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+                                                                TEST_ACTION_MAXIMUM);
+
+    // Execute the test action.
+    //
+    switch (testAction)
+    {
+        case TEST_ACTION_SYNCHRONOUS:
+            Tests_DeviceInterfaceMultipleTarget_ThreadAction_SynchronousPassiveInputNonContinuous(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                                                  threadContext->DmfModuleAlertableSleep,
+                                                                                                  threadContext->Target);
+            break;
+        case TEST_ACTION_ASYNCHRONOUS:
+            Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousPassiveInputNonContinuous(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                                                   threadContext->DmfModuleAlertableSleep,
+                                                                                                   threadContext->Target);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSCANCEL:
+            Tests_DeviceInterfaceMultipleTarget_ThreadAction_AsynchronousCancelPassiveInputNonContinuous(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                                                         threadContext->DmfModuleAlertableSleep,
+                                                                                                         threadContext->Target);
             break;
         default:
             DmfAssert(FALSE);
@@ -1341,6 +1853,52 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
+Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_ DeviceInterfaceMultipleTarget_StateType IoTargetState
+    )
+/*++
+
+Routine Description:
+
+    Called when a given Target arrives or is being removed.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceMultipleTarget.
+    Target - The given target.
+    IoTargetState - Indicates how the given Target state is changing.
+
+Return Value:
+
+    None
+
+--*/
+{
+    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
+        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
+    {
+        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DmfModule,
+                                                            Target,
+                                                            Tests_DeviceInterfaceMultipleTarget_WorkThreadDispatchInputNonContinuous);
+    }
+    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
+             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
+    {
+        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
+        if (! targetContext->Closed)
+        {
+            targetContext->Closed = TRUE;
+            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DmfModule,
+                                                                Target);
+        }
+    }
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
 Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInput(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
@@ -1370,6 +1928,52 @@ Return Value:
         Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DmfModule,
                                                             Target,
                                                             Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInput);
+    }
+    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
+             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
+    {
+        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
+        if (! targetContext->Closed)
+        {
+            targetContext->Closed = TRUE;
+            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DmfModule,
+                                                                Target);
+        }
+    }
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInputNonContinuous(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_ DeviceInterfaceMultipleTarget_StateType IoTargetState
+    )
+/*++
+
+Routine Description:
+
+    Called when a given Target arrives or is being removed.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceMultipleTarget.
+    Target - The given target.
+    IoTargetState - Indicates how the given Target state is changing.
+
+Return Value:
+
+    None
+
+--*/
+{
+    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
+        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
+    {
+        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DmfModule,
+                                                            Target,
+                                                            Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInputNonContinuous);
     }
     else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
              (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
@@ -1470,6 +2074,19 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleDeviceInterfaceMultipleTargetDispatchInput);
 
+    // DeviceInterfaceMultipleTarget (DISPATCH_LEVEL)
+    // Processes Input Buffers.
+    //
+    DMF_CONFIG_DeviceInterfaceMultipleTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceMultipleTarget,
+                                                                 &moduleAttributes);
+    moduleConfigDeviceInterfaceMultipleTarget.DeviceInterfaceMultipleTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChange = Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInputNonContinuous;
+
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceMultipleTargetDispatchInputNonContinuous);
+
     // DeviceInterfaceMultipleTarget (PASSIVE_LEVEL)
     // Processes Input Buffers.
     //
@@ -1492,6 +2109,20 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInput);
+
+    // DeviceInterfaceMultipleTarget (PASSIVE_LEVEL)
+    // Processes Input Buffers.
+    //
+    DMF_CONFIG_DeviceInterfaceMultipleTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceMultipleTarget,
+                                                                 &moduleAttributes);
+    moduleConfigDeviceInterfaceMultipleTarget.DeviceInterfaceMultipleTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChange = Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInputNonContinuous;
+
+    moduleAttributes.PassiveLevel = TRUE;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceMultipleTargetPassiveInputNonContinuous);
 
     FuncExitVoid(DMF_TRACE);
 }

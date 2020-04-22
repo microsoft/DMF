@@ -641,7 +641,7 @@ Return Value:
     for (ULONG stringIndex = 0; stringIndex < NumberOfStringsInStringList; stringIndex++)
     {
         DmfAssert(StringList[stringIndex] != NULL);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Compare StringList[%u]=[%s] with [%s]", 
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Compare StringList[%u]=[%s] with [%s]", 
                     stringIndex,
                     StringList[stringIndex],
                     LookFor);
@@ -649,7 +649,7 @@ Return Value:
                                StringList[stringIndex],
                                LookFor) == 0)
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Compare StringList[%u]=[%s] with [%s]: Match", 
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Compare StringList[%u]=[%s] with [%s]: Match", 
                         stringIndex,
                         StringList[stringIndex],
                         LookFor);
@@ -971,7 +971,7 @@ Return Value:
     DmfAssert(DestinationString != NULL);
     DmfAssert(SourceString != NULL);
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     // Kernel-mode directly supports the conversion.
     //
     ntStatus = RtlAnsiStringToUnicodeString(DestinationString,
@@ -1023,7 +1023,7 @@ Return Value:
 
 Exit:
     ;
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 
     // AnsiString has the converted string.
     //
@@ -1072,7 +1072,7 @@ Return Value:
     DmfAssert(DestinationString != NULL);
     DmfAssert(SourceString != NULL);
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     // Kernel-mode directly supports the conversion.
     //
     ntStatus = RtlUnicodeStringToAnsiString(DestinationString,
@@ -1124,7 +1124,7 @@ Return Value:
 
 Exit:
     ;
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 
     // AnsiString has the converted string.
     //

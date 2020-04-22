@@ -247,7 +247,7 @@ Return Value:
 
 #endif // defined(DMF_USER_MODE)
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
 
 #pragma code_seg("PAGE")
 _Must_inspect_result_
@@ -332,7 +332,7 @@ Exit:
 }
 #pragma code_seg()
 
-#endif // !defined(DMF_USER_MODE)
+#endif // defined(DMF_KERNEL_MODE)
 
 #pragma code_seg("PAGE")
 VOID
@@ -1041,7 +1041,7 @@ Exit:
     FuncExitNoReturn(DMF_TRACE);
 }
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
 
 // Event log support for Kernel-mode Drivers.
 //
@@ -1885,7 +1885,7 @@ Exit:
 
     FuncExitNoReturn(DMF_TRACE);
 }
-#endif // !defined(DMF_USER_MODE)
+#endif // defined(DMF_KERNEL_MODE)
 
 // eof: DmfUtility.c
 //

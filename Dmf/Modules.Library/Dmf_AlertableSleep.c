@@ -479,7 +479,7 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait EventIndex=%u: Milliseconds%d-ms DoNotWait=%d Closing=%!bool!",
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wait EventIndex=%u: Milliseconds%d-ms DoNotWait=%d Closing=%!bool!",
                 EventIndex,
                 Milliseconds,
                 moduleContext->DoNotWait[EventIndex],
@@ -489,17 +489,17 @@ Return Value:
     {
         // Don't wait on the event if the Module is closing.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%u] closing. Do not wait.", EventIndex);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Event[%u] closing. Do not wait.", EventIndex);
     }
     else if (moduleContext->DoNotWait[EventIndex])
     {
         // The event has already been set. Do not wait and return unsuccessful.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Event[%u] already interrupted. Do not wait.", EventIndex);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Event[%u] already interrupted. Do not wait.", EventIndex);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] for %d-ms...", EventIndex, Milliseconds);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wait[%u] for %d-ms...", EventIndex, Milliseconds);
 
         DmfAssert(! moduleContext->CurrentlyWaiting[EventIndex]);
         moduleContext->CurrentlyWaiting[EventIndex] = TRUE;
@@ -523,7 +523,7 @@ Return Value:
             // The thread delayed for the time specified by the caller. It is considered success.
             //
             ntStatus = STATUS_SUCCESS;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] Satisfied", EventIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] Satisfied Milliseconds=%d DmfModule=0x%p", EventIndex, Milliseconds, DmfModule);
         }
         else
         {
@@ -531,7 +531,7 @@ Return Value:
             // did not happen. It is considered unsuccessful.
             //
             ntStatus = STATUS_UNSUCCESSFUL;
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] Interrupted", EventIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wait[%u] Interrupted Milliseconds=%d DmfModule=0x%p", EventIndex, Milliseconds, DmfModule);
         }
 
         moduleContext->CurrentlyWaiting[EventIndex] = FALSE;

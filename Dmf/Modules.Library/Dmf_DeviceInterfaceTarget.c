@@ -44,7 +44,7 @@ typedef
 BOOLEAN
 RequestSink_Cancel_Type(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     );
 
 typedef
@@ -89,7 +89,7 @@ RequestSink_SendEx_Type(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     );
 
 typedef
@@ -413,7 +413,7 @@ Return Value:
 BOOLEAN
 DeviceInterfaceTarget_Stream_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 {
     BOOLEAN returnValue;
@@ -423,7 +423,7 @@ DeviceInterfaceTarget_Stream_Cancel(
 
     DmfAssert(moduleContext->ContinuousReaderMode);
     returnValue = DMF_ContinuousRequestTarget_Cancel(moduleContext->DmfModuleContinuousRequestTarget,
-                                                     DmfRequest);
+                                                     DmfRequestId);
 
     return returnValue;
 }
@@ -501,7 +501,7 @@ DeviceInterfaceTarget_Stream_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 {
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
@@ -520,7 +520,7 @@ DeviceInterfaceTarget_Stream_SendEx(
                                               RequestTimeoutMilliseconds,
                                               EvtRequestSinkSingleAsynchronousRequest,
                                               SingleAsynchronousRequestClientContext,
-                                              DmfRequest);
+                                              DmfRequestId);
 }
 
 VOID
@@ -558,7 +558,7 @@ DeviceInterfaceTarget_Stream_IoTargetClear(
 BOOLEAN
 DeviceInterfaceTarget_Target_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 {
     BOOLEAN returnValue;
@@ -569,7 +569,7 @@ DeviceInterfaceTarget_Target_Cancel(
     DmfAssert(! moduleContext->ContinuousReaderMode);
 
     returnValue = DMF_RequestTarget_Cancel(moduleContext->DmfModuleRequestTarget,
-                                           DmfRequest);
+                                           DmfRequestId);
 
     return returnValue;
 }
@@ -651,7 +651,7 @@ DeviceInterfaceTarget_Target_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 {
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
@@ -670,7 +670,7 @@ DeviceInterfaceTarget_Target_SendEx(
                                     RequestTimeoutMilliseconds,
                                     EvtRequestSinkSingleAsynchronousRequest,
                                     SingleAsynchronousRequestClientContext,
-                                    DmfRequest);
+                                    DmfRequestId);
 }
 
 VOID
@@ -2138,18 +2138,18 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_DeviceInterfaceTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 /*++
 
 Routine Description:
 
-    Cancels a given WDFREQUEST associated with DmfRequest.
+    Cancels a given WDFREQUEST associated with DmfRequestId.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    DmfRequest - The given DmfRequest.
+    DmfRequestId - The given DmfRequestId.
 
 Return Value:
 
@@ -2177,7 +2177,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     returnValue = moduleContext->RequestSink_Cancel(DmfModule,
-                                                    DmfRequest);
+                                                    DmfRequestId);
 
     DMF_ModuleDereference(DmfModule);
 
@@ -2390,7 +2390,7 @@ DMF_DeviceInterfaceTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 /*++
 
@@ -2450,7 +2450,7 @@ Return Value:
                                                  RequestTimeoutMilliseconds,
                                                  EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                  SingleAsynchronousRequestClientContext,
-                                                 DmfRequest);
+                                                 DmfRequestId);
 
     DMF_ModuleDereference(DmfModule);
 

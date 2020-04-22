@@ -142,7 +142,7 @@ Return Value:
     DmfAssert(RingBuffer != NULL);
     DmfAssert(RingBuffer->ItemSize > 0);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "ReadPointer=%d", (LONG)((RingBuffer->ReadPointer - RingBuffer->Items) / RingBuffer->ItemSize));
 
     RingBuffer->ReadPointer += RingBuffer->ItemSize;
@@ -151,7 +151,7 @@ Return Value:
     if (RingBuffer->ReadPointer == RingBuffer->BufferEnd)
     {
         RingBuffer->ReadPointer = RingBuffer->Items;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wrap Read RingBuffer->ReadPointer");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wrap Read RingBuffer->ReadPointer");
     }
 
     // An item has been read. There is now one less item.
@@ -379,7 +379,7 @@ Return Value:
         }
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "WritePointer=%d BufferSize=%d",
                 (LONG)((RingBuffer->WritePointer - RingBuffer->Items) / RingBuffer->ItemSize),
                 BufferSize);
@@ -420,7 +420,7 @@ Return Value:
     if (RingBuffer->WritePointer == RingBuffer->BufferEnd)
     {
         RingBuffer->WritePointer = RingBuffer->Items;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Wrap Read RingBuffer->WritePointer");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wrap Read RingBuffer->WritePointer");
     }
 
     // An item has just been written (added), so increment the number of items in the buffer.
@@ -482,7 +482,7 @@ Return Value:
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "ReadPointer=%d", (LONG)((RingBuffer->ReadPointer - RingBuffer->Items) / RingBuffer->ItemSize));
 
     DmfAssert(BufferSize == RingBuffer->ItemSize);
