@@ -443,7 +443,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     NTSTATUS ntStatus;
     size_t bytesWritten;
-    RequestTarget_DmfRequest DmfRequest;
+    RequestTarget_DmfRequest DmfRequestId;
     BOOLEAN requestCanceled;
     LONG timeToSleepMilliseconds;
 
@@ -481,7 +481,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequest);
+                                        &DmfRequestId);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -502,7 +502,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request if possible.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequest);
+                                               DmfRequestId);
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -527,7 +527,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequest);
+                                        &DmfRequestId);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
     {
@@ -541,7 +541,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request if possible.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                               DmfRequest);
+                                               DmfRequestId);
 
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
@@ -578,7 +578,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequest);
+                                        &DmfRequestId);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -589,7 +589,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request immediately after sending it.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequest);
+                                               DmfRequestId);
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -614,7 +614,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequest);
+                                        &DmfRequestId);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
     {
@@ -624,7 +624,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request if possible right after sending it.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                               DmfRequest);
+                                               DmfRequestId);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request before it is normally completed. It should always cancel.
@@ -653,7 +653,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletionMustBeCancelled,
                                         moduleContext,
-                                        &DmfRequest);
+                                        &DmfRequestId);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -668,7 +668,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // It should always cancel since the time just waited is 1/4 the time that was sent above.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequest);
+                                               DmfRequestId);
     // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
     // that the cancel call happens just as the underlying driver is going away. In that case,
     // the request is not canceled by this call, but it will be canceled by the underlying
@@ -706,7 +706,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequest);
+                                        &DmfRequestId);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
     {
@@ -721,7 +721,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // It should always cancel since the time just waited is 1/4 the time that was sent above.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                               DmfRequest);
+                                               DmfRequestId);
     // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
     // that the cancel call happens just as the underlying driver is going away. In that case,
     // the request is not canceled by this call, but it will be canceled by the underlying

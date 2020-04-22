@@ -208,7 +208,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_ContinuousRequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -252,7 +252,7 @@ DMF_ContinuousRequestTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

@@ -29,7 +29,7 @@ Environment:
 #include "DmfFilter.tmh"
 #endif
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
 
 typedef struct
 {
@@ -455,7 +455,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
-#endif // !defined(DMF_USER_MODE)
+#endif // defined(DMF_KERNEL_MODE)
 
 // eof: DmfFilter.c
 //

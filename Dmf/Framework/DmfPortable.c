@@ -606,7 +606,7 @@ Return Value:
 
 --*/
 {
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     ExInitializeRundownProtection(&RundownRef->RundownRef);
 #else
     // TODO: Equivalent code will go here. Change is pending.
@@ -615,7 +615,7 @@ Return Value:
     //
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 }
 
 VOID
@@ -638,7 +638,7 @@ Return Value:
 
 --*/
 {
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     ExReInitializeRundownProtection(&RundownRef->RundownRef);
 #else
     // TODO: Equivalent code will go here. Change is pending.
@@ -647,7 +647,7 @@ Return Value:
     //
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 }
 
 BOOLEAN
@@ -673,7 +673,7 @@ Return Value:
 {
     BOOLEAN returnValue;
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     returnValue = ExAcquireRundownProtection(&RundownRef->RundownRef);
 #else
     // TODO: Equivalent code will go here. Change is pending.
@@ -683,7 +683,7 @@ Return Value:
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
     returnValue = FALSE;
-#endif
+#endif // defined(DMF_KERNEL_MODE)
     
     return returnValue;
 }
@@ -708,7 +708,7 @@ Return Value:
 
 --*/
 {
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     ExReleaseRundownProtection(&RundownRef->RundownRef);
 #else
     // TODO: Equivalent code will go here. Change is pending.
@@ -717,7 +717,7 @@ Return Value:
     //
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 }
 
 VOID
@@ -741,7 +741,7 @@ Return Value:
 
 --*/
 {
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     ExWaitForRundownProtectionRelease(&RundownRef->RundownRef);
 #else
     // TODO: Equivalent code will go here. Change is pending.
@@ -750,7 +750,7 @@ Return Value:
     //
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 }
 
 VOID
@@ -774,7 +774,7 @@ Return Value:
 
 --*/
 {
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
     ExRundownCompleted(&RundownRef->RundownRef);
 #else
     // TODO: Equivalent code will go here. Change is pending.
@@ -783,7 +783,7 @@ Return Value:
     //
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
-#endif
+#endif // defined(DMF_KERNEL_MODE)
 }
 
 // eof: DmfPortable.c

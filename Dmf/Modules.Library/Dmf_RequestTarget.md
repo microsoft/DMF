@@ -98,11 +98,11 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_RequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     );
 ````
 
-This Method cancels the underlying WDFREQUEST associated with a given DmfRequest.
+This Method cancels the underlying WDFREQUEST associated with a given DmfRequestId.
 
 ##### Returns
 
@@ -113,10 +113,10 @@ FALSE if the underlying WDFREQUEST could not be canceled because it has been com
 Parameter | Description
 ----|----
 DmfModule | An open DMF_RequestTarget Module handle.
-DmfRequest | A handle to a WDFREQUEST that is returned by `DMF_RequestTarget_SendEx()`.
+DmfRequestId | The unique request id returned by `DMF_RequestTarget_SendEx()`.
 
 ##### Remarks
-* **Caller must use DMF_RequestTarget_Cancel() to cancel the DmfRequest returned by `DMF_RequestTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
+* **Caller must use DMF_RequestTarget_Cancel() to cancel the DmfRequestId returned by `DMF_RequestTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
 
@@ -233,7 +233,7 @@ DMF_RequestTarget_SendEx(
   _In_ ULONG RequestTimeoutMilliseconds,
   _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-  _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+  _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
   );
 ````
 
@@ -257,16 +257,16 @@ RequestIoctl | The IOCTL code to send to the underlying WDFIOTARGET.
 RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
 EvtRequestTargetSingleAsynchronousRequest | The Client callback that is called when request completes.
 SingleAsynchronousRequestClientContext | A Client specific context that is sent to the Client callback that is called when the request completes.
-DmfRequest | Optional address of the handle to the handle to the WDFREQUEST that has been sent.
+DmfRequestId | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
 
 ##### Remarks
 
-* Caller passes `DmfRequest` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
+* Caller passes `DmfRequestId` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
 sent to the underlying WDFIOTARGET.
-* **Caller must use `DMF_RequestTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequest. Caller may not use WdfRequestCancel() because 
+* **Caller must use `DMF_RequestTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestId. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
-* **Caller must not use value returned in DmfRequest for any purpose except to pass it `DMF_RequestTarget_Cancel()`.** For example, do not assign a context to the handle.
+* **Caller must not use value returned in DmfRequestId for any purpose except to pass it `DMF_RequestTarget_Cancel()`.** For example, do not assign a context to the handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_RequestTarget_SendSynchronously

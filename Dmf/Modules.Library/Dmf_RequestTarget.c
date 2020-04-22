@@ -68,6 +68,19 @@ DMF_MODULE_DECLARE_NO_CONFIG(RequestTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// WDFREQUEST handles have the potential for being reused depending on the allocation
+// strategy used by WDF. To prevent that from being a problem this globally unique 
+// counter is used. Only a single counter should be used per driver since WDFREQUESTS
+// potentially come from that same pool for all instances of all Modules.
+//
+extern LONGLONG g_ContinuousRequestTargetUniqueId;
+
+typedef struct
+{
+    LONGLONG UniqueRequestId;
+} UNIQUE_REQUEST;
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(UNIQUE_REQUEST, UniqueRequestContextGet)
+
 typedef struct
 {
     DMFMODULE DmfModule;
@@ -295,6 +308,79 @@ Return Value:
     DMF_ModuleUnlock(DmfModule);
 
 Exit:
+
+    return returnValue;
+}
+
+static
+BOOLEAN 
+RequestTarget_PendingCollectionListSearchAndReference(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequest UniqueRequestId,
+    _Out_ WDFREQUEST* RequestToCancel
+    )
+/*++
+
+Routine Description:
+
+    If the given UniqueRequestId is in the pending asynchronous request list, add a reference to it.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    UniqueRequestId - The given unique request id.
+
+    NOTE: DmfRequestId is an ever increasing integer, so it is always safe to use as
+          a comparison value in the list.
+
+Return Value:
+
+    TRUE if the UniqueRequestId was found and a reference added to it.
+    FALSE if the given UniqueRequestId was not found in the list or is invalid.
+
+--*/
+{
+    DMF_CONTEXT_RequestTarget* moduleContext;
+    WDFREQUEST currentRequestFromList;
+    ULONG currentItemIndex;
+    BOOLEAN returnValue;
+
+    *RequestToCancel = NULL;
+    returnValue = FALSE;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_ModuleLock(DmfModule);
+    
+    currentItemIndex = 0;
+    do 
+    {
+        currentRequestFromList = (WDFREQUEST)WdfCollectionGetItem(moduleContext->PendingAsynchronousRequests,
+                                                                  currentItemIndex);
+        if (NULL == currentRequestFromList)
+        {
+            // No request left in the list.
+            //
+            break;
+        }
+
+        UNIQUE_REQUEST* uniqueRequestId = UniqueRequestContextGet(currentRequestFromList);
+
+        if (uniqueRequestId->UniqueRequestId == (LONGLONG)UniqueRequestId)
+        {
+            // Acquire a reference to the request so that if its completion routine
+            // happens just after the unlock before the caller can cancel the request
+            // the caller can still cancel the request safely.
+            //
+            WdfObjectReferenceWithTag(currentRequestFromList,
+                                      (VOID*)DmfModule);
+            *RequestToCancel = currentRequestFromList;
+            returnValue = TRUE;
+            break;
+        }
+        currentItemIndex++;
+    } while (currentRequestFromList != NULL);
+    
+    DMF_ModuleUnlock(DmfModule);
 
     return returnValue;
 }
@@ -643,7 +729,7 @@ RequestTarget_RequestCreateAndSend(
     _Out_opt_ size_t* BytesWritten,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 /*++
 
@@ -664,8 +750,7 @@ Arguments:
     BytesWritten - Bytes returned by the transaction.
     EvtContinuousRequestTargetSingleAsynchronousRequest - Completion routine. 
     SingleAsynchronousRequestClientContext - Client context returned in completion routine. 
-    DmfRequest - Contains a handle to the WDFREQUEST that was sent to the underlying IoTarget so that caller
-                 can cancel the WDFREQUEST using DMF_RequestTarget_Cancel().
+    DmfRequestId - Contains a unique request Id that is sent back by the Client to cancel the asynchronous transaction.
 
 Return Value:
 
@@ -705,7 +790,8 @@ Return Value:
 
     device = DMF_ParentDeviceGet(DmfModule);
 
-    WDF_OBJECT_ATTRIBUTES_INIT(&requestAttributes);
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&requestAttributes,
+                                            UNIQUE_REQUEST);
     requestAttributes.ParentObject = DmfModule;
     request = NULL;
     ntStatus = WdfRequestCreate(&requestAttributes,
@@ -717,6 +803,8 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate fails: ntStatus=%!STATUS!", ntStatus);
         return ntStatus;
     }
+
+    UNIQUE_REQUEST* uniqueRequestId = UniqueRequestContextGet(request);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&memoryAttributes);
     memoryAttributes.ParentObject = request;
@@ -767,7 +855,7 @@ Return Value:
 
     if (IsSynchronousRequest)
     {
-        DmfAssert(NULL == DmfRequest);
+        DmfAssert(NULL == DmfRequestId);
         WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions,
                                       WDF_REQUEST_SEND_OPTION_SYNCHRONOUS | WDF_REQUEST_SEND_OPTION_TIMEOUT);
     }
@@ -817,8 +905,13 @@ Return Value:
         // Add to list of pending requests so that when Client cancels the request it can be done safely
         // in case this Module has already deleted the request.
         //
-        if (DmfRequest != NULL)
+        if (DmfRequestId != NULL)
         {
+            // Generate and save a globally unique request id in the context so that the Module can guard
+            // against requests that are assigned the same handle value.
+            //
+            uniqueRequestId->UniqueRequestId = InterlockedIncrement64(&g_ContinuousRequestTargetUniqueId);
+
             ntStatus = RequestTarget_PendingCollectionListAdd(DmfModule,
                                                               request);
             if (! NT_SUCCESS(ntStatus))
@@ -845,7 +938,7 @@ Return Value:
 
     if (! requestSendResult || IsSynchronousRequest)
     {
-        if (DmfRequest != NULL)
+        if (DmfRequestId != NULL)
         {
             // Request is not pending, so remove it from the list.
             //
@@ -867,13 +960,14 @@ Return Value:
     }
     else
     {
-        if (DmfRequest != NULL)
+        if (DmfRequestId != NULL)
         {
-            // Return the request so the Client can add a context if necessary.
-            // But Client must not cancel the request directly. Client must use
-            // this Module's Method to do so.
+            // Return an ever increasing number so that in case WDF allocates the same handle
+            // in rapid succession cancellation still works. The Client cancels using this
+            // number so that we are certain to cancel exactly the correct WDFREQUEST even
+            // if there is a collision in the handle value.
             //
-            *DmfRequest = (RequestTarget_DmfRequest)request;
+            *DmfRequestId = (RequestTarget_DmfRequest)uniqueRequestId->UniqueRequestId;
         }
     }
 
@@ -1211,18 +1305,18 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_RequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 /*++
 
 Routine Description:
 
-    Cancels a given WDFREQUEST associated with DmfRequest.
+    Cancels a given WDFREQUEST associated with DmfRequestId.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    DmfRequest - The given DmfRequest.
+    DmfRequestId - The given DmfRequestId.
 
 Return Value:
 
@@ -1232,20 +1326,27 @@ Return Value:
 --*/
 {
     BOOLEAN returnValue;
+    WDFREQUEST requestToCancel;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  RequestTarget);
 
-    returnValue = RequestTarget_PendingCollectionListSearchAndRemove(DmfModule,
-                                                                     (WDFREQUEST)DmfRequest);
+    // NOTE: DmfRequestId is an ever increasing integer, so it is always safe to use as
+    //       a comparison value in the list.
+    //
+    returnValue = RequestTarget_PendingCollectionListSearchAndReference(DmfModule,
+                                                                        DmfRequestId,
+                                                                        &requestToCancel);
     if (returnValue)
     {
-        // The request has not been completed or deleted yet.
-        // Cancel it on behalf of the Client and let Client know if it was canceled.
+        // Even if the request has been canceled or completed after the above call
+        // since a the above call acquired a reference count, it is still safe to try to cancel it.
         //
-        returnValue = WdfRequestCancelSentRequest((WDFREQUEST)DmfRequest);
+        returnValue = WdfRequestCancelSentRequest(requestToCancel);
+        WdfObjectDereferenceWithTag(requestToCancel,
+                                    (VOID*)DmfModule);
     }
 
     return returnValue;
@@ -1427,7 +1528,7 @@ DMF_RequestTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 /*++
 
@@ -1448,7 +1549,7 @@ Arguments:
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
     EvtRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
     SingleAsynchronousRequestClientContext - Client context sent in callback.
-    DmfRequest - Allows Client to retrieve asynchronous request for possible later cancellation.
+    DmfRequestId - Allows Client to retrieve asynchronous request for possible later cancellation.
 
 Return Value:
 
@@ -1487,7 +1588,7 @@ Return Value:
                                                   NULL,
                                                   EvtRequestTargetSingleAsynchronousRequest,
                                                   SingleAsynchronousRequestClientContext,
-                                                  DmfRequest);
+                                                  DmfRequestId);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RequestTarget_RequestCreateAndSend fails: ntStatus=%!STATUS!", ntStatus);

@@ -101,7 +101,7 @@ BOOLEAN
 RequestSink_Cancel_Type(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     );
 
 typedef
@@ -149,7 +149,7 @@ RequestSink_SendEx_Type(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     );
 
 typedef
@@ -584,7 +584,7 @@ BOOLEAN
 DeviceInterfaceMultipleTarget_Stream_Cancel(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 {
     BOOLEAN returnValue;
@@ -594,7 +594,7 @@ DeviceInterfaceMultipleTarget_Stream_Cancel(
 
     DmfAssert(moduleContext->ContinuousReaderMode);
     returnValue = DMF_ContinuousRequestTarget_Cancel(Target->DmfModuleRequestTarget,
-                                                     DmfRequest);
+                                                     DmfRequestId);
 
     return returnValue;
 }
@@ -674,7 +674,7 @@ DeviceInterfaceMultipleTarget_Stream_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 {
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
@@ -692,7 +692,7 @@ DeviceInterfaceMultipleTarget_Stream_SendEx(
                                               RequestTimeoutMilliseconds,
                                               EvtRequestSinkSingleAsynchronousRequest,
                                               SingleAsynchronousRequestClientContext,
-                                              DmfRequest);
+                                              DmfRequestId);
 }
 
 VOID
@@ -733,7 +733,7 @@ BOOLEAN
 DeviceInterfaceMultipleTarget_Target_Cancel(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 {
     BOOLEAN returnValue;
@@ -744,7 +744,7 @@ DeviceInterfaceMultipleTarget_Target_Cancel(
     DmfAssert(! moduleContext->ContinuousReaderMode);
 
     returnValue = DMF_RequestTarget_Cancel(Target->DmfModuleRequestTarget,
-                                           DmfRequest);
+                                           DmfRequestId);
 
     return returnValue;
 }
@@ -830,7 +830,7 @@ DeviceInterfaceMultipleTarget_Target_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 {
     NTSTATUS ntStatus;
@@ -849,7 +849,7 @@ DeviceInterfaceMultipleTarget_Target_SendEx(
                                         RequestTimeoutMilliseconds,
                                         EvtRequestSinkSingleAsynchronousRequest,
                                         SingleAsynchronousRequestClientContext,
-                                        DmfRequest);
+                                        DmfRequestId);
 
     return ntStatus;
 }
@@ -2817,19 +2817,19 @@ BOOLEAN
 DMF_DeviceInterfaceMultipleTarget_Cancel(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
-    _In_ RequestTarget_DmfRequest DmfRequest
+    _In_ RequestTarget_DmfRequest DmfRequestId
     )
 /*++
 
 Routine Description:
 
-    Cancels a given WDFREQUEST associated with DmfRequest that has been sent to a given Target.
+    Cancels a given WDFREQUEST associated with DmfRequestId that has been sent to a given Target.
 
 Arguments:
 
     DmfModule - This Module's handle.
     Target - The given Target.
-    DmfRequest - The given DmfRequest.
+    DmfRequestId - The given DmfRequestId.
 
 Return Value:
 
@@ -2875,7 +2875,7 @@ Return Value:
     DmfAssert(target->IoTarget != NULL);
     returnValue = moduleContext->RequestSink_Cancel(DmfModule,
                                                     target,
-                                                    DmfRequest);
+                                                    DmfRequestId);
 
     DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);
@@ -3125,7 +3125,7 @@ DMF_DeviceInterfaceMultipleTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequest
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 /*++
 
@@ -3199,7 +3199,7 @@ Return Value:
                                                  RequestTimeoutMilliseconds,
                                                  EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                  SingleAsynchronousRequestClientContext,
-                                                 DmfRequest);
+                                                 DmfRequestId);
 
     DMF_Rundown_Dereference(target->DmfModuleRundown);
     DMF_ModuleDereference(DmfModule);

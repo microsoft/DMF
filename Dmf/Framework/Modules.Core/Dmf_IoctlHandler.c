@@ -370,7 +370,7 @@ Return Value:
         ioctlRecord = &moduleConfig->IoctlRecords[tableIndex];
         if ((ULONG)(ioctlRecord->IoctlCode) == IoControlCode)
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                         "Matching IOCTL Found: 0x%08X tableIndex=%d",
                         IoControlCode,
                         tableIndex);
@@ -471,7 +471,7 @@ Return Value:
                 }
             }
 
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                         "InputBufferSize=%d OutputBufferSize=%d tableIndex=%d",
                         (ULONG)inputBufferSize,
                         (ULONG)outputBufferSize,
@@ -509,11 +509,11 @@ Exit:
                                               ntStatus,
                                               bytesReturned);
         }
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Handled: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Handled: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Not Handled: Request=0x%p", Request);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Not Handled: Request=0x%p", Request);
     }
 
     // NOTE: No entry/exit logging to eliminate spurious logging.
@@ -585,7 +585,7 @@ Return Value:
         // Callback does nothing...just do what WDF would normally do.
         // This call supports both filter and non-filter drivers correctly.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IoctlHandler_AccessModeDefault");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "IoctlHandler_AccessModeDefault");
         if (DMF_ModuleIsInFilterDriver(DmfModule))
         {
             handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
@@ -605,7 +605,7 @@ Return Value:
         WdfRequestGetParameters(Request,
                                 &requestParameters);
 
-#if !defined(DMF_USER_MODE)
+#if defined(DMF_KERNEL_MODE)
         PIO_SECURITY_CONTEXT ioSecurityContext;
         PACCESS_TOKEN accessToken;
 
@@ -668,7 +668,7 @@ RequestComplete:
 
 #endif // !defined(DMF_USER_MODE)
 
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministrator* ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministrator* ntStatus=%!STATUS!", ntStatus);
         if (!NT_SUCCESS(ntStatus))
         {
             // This call completes the request correctly for both filter and non-filter drivers.
@@ -682,7 +682,7 @@ RequestComplete:
     {
         // Allow the Client to determine if the connection to User-mode should be allowed.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         DmfAssert(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
         // NOTE: This callback must use DMF_ModuleRequestCompleteOrForward() to complete the request if the 
         //       return status is not STATUS_SUCCESS; or, return FALSE.
