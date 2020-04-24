@@ -3124,6 +3124,7 @@ Return Value:
 
     return lockHeld;
 }
+#endif // defined(DEBUG)
 
 BOOLEAN
 DMF_ModuleLockIsPassive(
@@ -3134,7 +3135,6 @@ DMF_ModuleLockIsPassive(
 Routine Description:
 
     Indicates if the Module lock is a passive level lock.
-    NOTE: This function is for debug purposes only.
 
 Arguments:
 
@@ -3174,7 +3174,6 @@ DMF_IsPoolTypePassiveLevel(
 Routine Description:
 
     Indicates if the given pool type is passive level.
-    NOTE: This function is for debug purposes only.
 
 Arguments:
 
@@ -3199,7 +3198,7 @@ Return Value:
         case NonPagedPoolCacheAlignedSession:
         case NonPagedPoolCacheAlignedMustSSession:
 #if (!defined(_ARM_) && !defined(_ARM64_)) || (!defined(POOL_NX_OPTIN_AUTO))
-        // If POOL_NX_OPTIN_AUTO is defined, it means that NonPagedPoolNx = NonPagedPool.
+        // If POOL_NX_OPTION_AUTO is defined, it means that NonPagedPoolNx = NonPagedPool.
         // So, don't include this case as it is a duplicate. This is the case for ARM and ARM64.
         //
         // NOTE: The condition has the OR so that the check is compatible with EWDK that does
@@ -3223,7 +3222,6 @@ Return Value:
 
     return returnValue;
 }
-#endif // defined(DEBUG)
 
 VOID
 DMF_ModuleAuxiliaryLock(

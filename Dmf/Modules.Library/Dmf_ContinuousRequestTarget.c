@@ -2127,7 +2127,14 @@ Return Value:
         moduleConfigBufferPoolInput.Mode.SourceSettings.BufferSize = moduleConfig->BufferInputSize;
         moduleConfigBufferPoolInput.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextInputSize;
         moduleAttributes.ClientModuleInstanceName = "BufferPoolInput";
-        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        // Automatically select the proper lock/pool type based on parameters passed by Client.
+        //
+        if (DMF_IsPoolTypePassiveLevel(moduleConfigBufferPoolInput.Mode.SourceSettings.PoolType))
+        {
+            // Client pool type is passive so this Module must run using PASSIVE_LEVEL lock
+            //
+            moduleAttributes.PassiveLevel = TRUE;
+        }
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
@@ -2152,7 +2159,14 @@ Return Value:
         moduleConfigBufferPoolOutput.Mode.SourceSettings.BufferSize = moduleConfig->BufferOutputSize;
         moduleConfigBufferPoolOutput.Mode.SourceSettings.BufferContextSize = moduleConfig->BufferContextOutputSize;
         moduleAttributes.ClientModuleInstanceName = "BufferPoolOutput";
-        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        // Automatically select the proper lock/pool type based on parameters passed by Client.
+        //
+        if (DMF_IsPoolTypePassiveLevel(moduleConfigBufferPoolOutput.Mode.SourceSettings.PoolType))
+        {
+            // Client pool type is passive so this Module must run using PASSIVE_LEVEL lock
+            //
+            moduleAttributes.PassiveLevel = TRUE;
+        }
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
