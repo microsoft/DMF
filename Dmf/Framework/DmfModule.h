@@ -742,6 +742,7 @@ BOOLEAN
 DMF_ModuleIsLocked(
     _In_ DMFMODULE DmfModule
     );
+#endif // defined(DEBUG)
 
 BOOLEAN
 DMF_ModuleLockIsPassive(
@@ -752,7 +753,6 @@ BOOLEAN
 DMF_IsPoolTypePassiveLevel(
     _In_ POOL_TYPE PoolType
     );
-#endif // defined(DEBUG)
 
 VOID
 DMF_ModuleAuxiliaryLock(

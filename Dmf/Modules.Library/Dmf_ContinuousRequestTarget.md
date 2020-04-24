@@ -82,8 +82,8 @@ BufferContextInputSize | Size of each input DMF_BufferPool's buffer's context.
 BufferOutputSize | Size of each output DMF_BufferPool buffer.
 BufferContextOutputSize | Size of each output DMF_BufferPool's buffer's context.
 EnableLookAsideOutput | Indicates whether or not the underlying DMF_BufferPool’s are opened in Infinite Mode.
-PoolTypeInput | Type if memory for input buffers.
-PoolTypeOutput | Type of memory for output buffers.
+PoolTypeInput | Type of memory for input buffers. See remarks section below for more information.
+PoolTypeOutput | Type of memory for output buffers. See remarks section below for more information.
 EvtContinuousRequestTargetBufferInput | The callback that allows the Client to populate input buffers before they are sent to the underlying target.
 EvtContinuousRequestTargetBufferOutput | The callback that allows the Client to read data from output buffers that have been returned by the underlying target.
 ClientContext | Client specific context that is sent to the Client callback functions.
@@ -618,6 +618,9 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 * This Module does all the work of allocating the buffers and Requests as specified by the Client.
 * This Module stops and start streaming automatically during power transition.
 * This Module is similar to the USB Continuous Reader in WDF but for any WDFIOTARGET.
+* Child BufferPool Module's locks are automatically set based on the PoolType chosen by the Client. That is, if the Client chooses a paged pool type, then the
+Child BufferPool Module is automatically created using PASSIVE_LEVEL locks, otherwise it is created using DISPATCH_LEVEL locks.'
+* Using non-paged pool type input/output buffers and PASSIVE_LEVEL locks for the Child Module is not supported at this time, but may be later if needed.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -639,6 +642,8 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### To Do
+
+* Support non-paged pool type input/output buffers and PASSIVE_LEVEL locks for BufferPool.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Category

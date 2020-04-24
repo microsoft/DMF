@@ -1494,7 +1494,6 @@ Return Value:
         goto Exit;
     }
 
-#if defined(DEBUG)
     // If Client wants to use paged pool buffers, then Client must instantiate this Module at Passive Level (which this Module allows).
     // To do so, the DmfModuleAttributes->PassiveLevel must equal TRUE.
     //
@@ -1507,9 +1506,9 @@ Return Value:
     if ((moduleConfig->BufferPoolMode == BufferPool_Mode_Source) &&
         (DMF_IsPoolTypePassiveLevel(moduleConfig->Mode.SourceSettings.PoolType)))
     {
-        DmfAssert(DMF_ModuleLockIsPassive(*DmfModule));
+        DmfVerifierAssert("Invalid Pool/Lock combination",
+                          DMF_ModuleLockIsPassive(*DmfModule));
     }
-#endif
 
 Exit:
 
