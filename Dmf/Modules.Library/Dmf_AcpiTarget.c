@@ -461,8 +461,7 @@ Arguments:
 
 Return Value:
 
-    STATUS_OBJECT_NAME_NOT_FOUND if the _DSM method does not exist. This status
-    may be returned for other reasons as well.
+    STATUS_NOT_SUPPORTED if the _DSM method does not exist.
 
     STATUS_INSUFFICIENT_RESOURCES on failure to allocate memory.
 
@@ -516,12 +515,19 @@ Return Value:
                                              &outputBufferSize,
                                              MemoryTag);
 
-    // N.B. If _DSM does not exist, STATUS_OBJECT_NAME_NOT_FOUND is returned
-    // here.
-    //
     if (! NT_SUCCESS(ntStatus))
     {
         outputBuffer = NULL;
+
+        // WdfIoTargetSendIoctlSynchronously call inside the above function can return
+        // ntStatus failure of STATUS_INVALID_DEVICE_REQUEST in case when _DSM does not exist.
+        // We need to distinguish between this and other failures.
+        // ntStatus is updated to STATUS_NOT_SUPPORTED so it's more intuitive to read code in client driver.
+        //
+        if (ntStatus == STATUS_INVALID_DEVICE_REQUEST)
+        {
+            ntStatus = STATUS_NOT_SUPPORTED;
+        }
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiTarget_EvaluateAcpiMethod ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }

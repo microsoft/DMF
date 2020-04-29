@@ -1904,6 +1904,21 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
 
+    // This instance allows for arrival/removal on demand.
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_DISK;
+    moduleConfigDeviceInterfaceTarget.OpenMode = GENERIC_READ;
+    moduleConfigDeviceInterfaceTarget.ShareAccess = FILE_SHARE_READ;
+ 
+    // NOTE: No Module handle is needed since no Methods are called.
+    //
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
