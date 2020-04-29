@@ -158,6 +158,11 @@ typedef struct
     RequestSink_IoTargetSet_Type* RequestSink_IoTargetSet;
     RequestSink_IoTargetClear_Type* RequestSink_IoTargetClear;
     ContinuousRequestTarget_CompletionOptions DefaultCompletionOption;
+    // Surprise removal path does not send a QueryRemove, only a RemoveComplete
+    // notification. This flag tracks that so that RemoveComplete path properly
+    // stops target and Closes Module during surprise-removal path.
+    //
+    BOOLEAN QueryRemoveHappened;
 } DMF_CONTEXT_DeviceInterfaceTarget;
 
 // This macro declares the following function:
@@ -868,6 +873,8 @@ Return Value:
                                                             DeviceInterfaceTarget_StateType_QueryRemove);
     }
 
+    moduleContext->QueryRemoveHappened = TRUE;
+
     // Transparently stop the stream in automatic mode.
     //
     if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
@@ -1020,10 +1027,19 @@ Return Value:
                                                             DeviceInterfaceTarget_StateType_QueryRemoveComplete);
     }
 
-    // Module is already closed in QueryRemove, and the stream is stopped. 
-    // Destroy the IoTarget here. 
-    //
-    WdfObjectDelete(IoTarget);
+    if (!moduleContext->QueryRemoveHappened)
+    {
+        // QueryRemove did not happen so make sure Module is closed and context is cleaned up.
+        //
+        DeviceInterfaceTarget_ModuleCloseAndTargetDestroyAsNeeded(*dmfModuleAddress);
+    }
+    else
+    {
+        // Module is already closed in QueryRemove, and the stream is stopped. 
+        // Destroy the IoTarget here. 
+        //
+        WdfObjectDelete(IoTarget);
+    }
 
     FuncExitVoid(DMF_TRACE);
 }
