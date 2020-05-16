@@ -195,6 +195,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_MobileBroadband.h">
       <Filter>Headers\Modules\Network</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Rundown.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -277,6 +280,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_MobileBroadband.cpp">
       <Filter>Modules\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Rundown.c">
+      <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -362,6 +368,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_MobileBroadband.md">
       <Filter>Documentation\Modules\Network</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Rundown.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>

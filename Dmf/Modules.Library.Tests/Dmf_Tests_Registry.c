@@ -2007,7 +2007,6 @@ Return Value:
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
                                         0,
                                         5000);
-    DmfAssert(STATUS_SUCCESS == ntStatus);
 
     DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep,
                                      0);

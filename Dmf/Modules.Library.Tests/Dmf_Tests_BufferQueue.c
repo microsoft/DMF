@@ -37,7 +37,11 @@ Environment:
 #define BUFFER_SIZE                 (32)
 // Number of preallocated buffers in Source
 //
+#if defined(DMF_KERNEL_MODE)
 #define BUFFER_COUNT_PREALLOCATED   (16)
+#else
+#define BUFFER_COUNT_PREALLOCATED   (64)
+#endif
 // Max number of buffers we get from Source, preallocated + dynamic
 //
 #define BUFFER_COUNT_MAX            (24)
