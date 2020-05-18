@@ -184,6 +184,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RequestTarget.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Rundown.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_ScheduledTask.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SimpleOrientation.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SmbiosWmi.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ContinuousRequestTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Registry.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RequestTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Rundown.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SimpleOrientation.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
@@ -248,6 +250,7 @@
     <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md" />
     <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />
     <None Include="..\..\Modules.Library\Dmf_Registry.md" />
+    <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_ScheduledTask.md" />
     <None Include="..\..\Modules.Library\Dmf_SimpleOrientation.md" />
     <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md" />

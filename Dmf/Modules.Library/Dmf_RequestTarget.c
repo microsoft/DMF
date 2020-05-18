@@ -773,6 +773,7 @@ Return Value:
     EVT_WDF_REQUEST_COMPLETION_ROUTINE* completionRoutineSingle;
     RequestTarget_SingleAsynchronousRequestContext* singleAsynchronousRequestContext;
     VOID* singleBufferContext;
+    RequestTarget_DmfRequest dmfRequestId;
 
     PAGED_CODE();
 
@@ -805,6 +806,7 @@ Return Value:
     }
 
     UNIQUE_REQUEST* uniqueRequestId = UniqueRequestContextGet(request);
+    dmfRequestId = 0;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&memoryAttributes);
     memoryAttributes.ParentObject = request;
@@ -911,6 +913,9 @@ Return Value:
             // against requests that are assigned the same handle value.
             //
             uniqueRequestId->UniqueRequestId = InterlockedIncrement64(&g_ContinuousRequestTargetUniqueId);
+            // Prepare to write to caller's return address when function succeeds.
+            //
+            dmfRequestId = (RequestTarget_DmfRequest)uniqueRequestId->UniqueRequestId;
 
             ntStatus = RequestTarget_PendingCollectionListAdd(DmfModule,
                                                               request);
@@ -966,8 +971,10 @@ Return Value:
             // in rapid succession cancellation still works. The Client cancels using this
             // number so that we are certain to cancel exactly the correct WDFREQUEST even
             // if there is a collision in the handle value.
+            // (Do not access the request's context because the request may no longer exist,
+            // so used value saved in local variable.)
             //
-            *DmfRequestId = (RequestTarget_DmfRequest)uniqueRequestId->UniqueRequestId;
+            *DmfRequestId = dmfRequestId;
         }
     }
 

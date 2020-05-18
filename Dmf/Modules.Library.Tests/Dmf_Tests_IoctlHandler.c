@@ -60,6 +60,9 @@ typedef struct
     // Module that stores all pending sleep contexts.
     //
     DMFMODULE DmfModuleBufferPoolPending;
+    // Holds pending requests.
+    //
+    WDFQUEUE CancelableQueue;
 } DMF_CONTEXT_Tests_IoctlHandler;
 
 // This macro declares the following function:
@@ -77,6 +80,140 @@ DMF_MODULE_DECLARE_CONFIG(Tests_IoctlHandler)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+typedef
+BOOLEAN
+(*Tests_IoctlHandler_RequestCompare)(_In_ WDFREQUEST, _In_ VOID*);
+
+WDFREQUEST
+Tests_IoctHandler_FindRequestWithMatchingData(
+    __in WDFQUEUE Queue,
+    __in Tests_IoctlHandler_RequestCompare CallbackCompare,
+    __in VOID* CallbackCompareContext
+    )
+{
+    WDFREQUEST previousTagRequest;
+    WDFREQUEST tagRequest;
+    WDFREQUEST outRequest;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    previousTagRequest = NULL;
+    tagRequest = NULL;
+    outRequest = NULL;
+    ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+
+    do 
+    {
+        ntStatus = WdfIoQueueFindRequest(Queue,
+                                         previousTagRequest,
+                                         NULL,
+                                         NULL,
+                                         &tagRequest);
+        if (previousTagRequest)
+        {
+            // WdfIoQueueFindRequest incremented the reference count of the prevTagRequest object,
+            // so decrement the count here.
+            //
+            WdfObjectDereference(previousTagRequest);
+        }
+        if (ntStatus == STATUS_NO_MORE_ENTRIES) 
+        {
+            break;
+        }
+        if (ntStatus == STATUS_NOT_FOUND) 
+        {
+            // The previousTagRequest object is no longer
+            // in the queue.
+            //
+            previousTagRequest = tagRequest = NULL;
+            continue;
+        }
+        if ( !NT_SUCCESS(ntStatus))
+        {
+            break;
+        }
+
+        // Determine if this is the request that is being searched for.
+        //
+        if (CallbackCompare(tagRequest,
+                            CallbackCompareContext))
+        {
+            // Found a match. Get the request handle.
+            // 
+            ntStatus = WdfIoQueueRetrieveFoundRequest(Queue,
+                                                      tagRequest,
+                                                      &outRequest);
+            // WdfIoQueueRetrieveFoundRequest incremented the
+            // reference count of the TagRequest object,
+            // so we decrement the count here.
+            //
+            WdfObjectDereference(tagRequest);
+
+            if (ntStatus == STATUS_NOT_FOUND) 
+            {
+                // The TagRequest object is no longer in the queue. But other requests might
+                // match our criteria, so we restart the search.
+                //
+                previousTagRequest = tagRequest = NULL;
+                continue;
+            }
+
+            // We found the request we were looking for. 
+            //
+            break;
+        } 
+        else 
+        {
+            // The request did not match our criteria. Get another request.
+            //
+            previousTagRequest = tagRequest;
+            continue;
+        }
+    }
+    while(TRUE);
+
+    return outRequest;
+ }
+
+BOOLEAN
+Test_IoctlHandler_RequestCompare(
+    __in WDFREQUEST Request,
+    __in VOID* CallbackCompareContext
+    )
+{
+    BOOLEAN returnValue;
+    WDFREQUEST* lookForRequest;
+
+    PAGED_CODE();
+
+    lookForRequest = (WDFREQUEST*)CallbackCompareContext;
+    if (Request == *lookForRequest)
+    {
+        returnValue = TRUE;
+    }
+    else 
+    {
+        returnValue = FALSE;
+    }
+
+    return returnValue;
+}
+
+BOOLEAN
+Test_IoctlHandler_SelectAll(
+    __in WDFREQUEST Request,
+    __in VOID* CallbackCompareContext
+    )
+{
+    UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(CallbackCompareContext);
+
+    PAGED_CODE();
+
+    return TRUE;
+}
+
 _Function_class_(EVT_DMF_BufferPool_TimerCallback)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
@@ -91,7 +228,7 @@ Test_IoctlHandler_BufferPool_TimerCallback(
     DMFMODULE dmfModuleParent;
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
     SleepContext* sleepContext;
-    NTSTATUS ntStatus;
+    WDFREQUEST request;
 
     UNREFERENCED_PARAMETER(ClientBufferContext);
     UNREFERENCED_PARAMETER(ClientDriverCallbackContext);
@@ -101,29 +238,32 @@ Test_IoctlHandler_BufferPool_TimerCallback(
 
     sleepContext = (SleepContext*)ClientBuffer;
 
-    ntStatus = WdfRequestUnmarkCancelable(sleepContext->Request);
-    if (ntStatus == STATUS_CANCELLED)
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BufferPool=0x%p Test_IoctlHandler_BufferPool_TimerCallback: Request=0x%p", DmfModule, sleepContext->Request);
+
+    DMF_ModuleLock(dmfModuleParent);
+    request = Tests_IoctHandler_FindRequestWithMatchingData(moduleContext->CancelableQueue,
+                                                            Test_IoctlHandler_RequestCompare,
+                                                            (VOID*)&sleepContext->Request);
+    DMF_ModuleUnlock(dmfModuleParent);
+
+    if (request == NULL)
     {
-        // Per Verifier rules, complete request in Cancel Routine which will be called.
+        // Request has been canceled or will be canceled soon.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestUnmarkCancelable: already canceled Request=0x%p TimeToSleepMilliseconds=%d", sleepContext->Request, sleepContext->SleepRequest.TimeToSleepMilliseconds);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfIoQueueFindRequest: pending or already canceled Request=0x%p TimeToSleepMilliseconds=%d", sleepContext->Request, sleepContext->SleepRequest.TimeToSleepMilliseconds);
+        goto Exit;
     }
-    else if (NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Complete: Request=0x%p TimeToSleepMilliseconds=%d", sleepContext->Request, sleepContext->SleepRequest.TimeToSleepMilliseconds);
-        // Cancel routine will not be called. Complete request now.
-        //
-        WdfRequestComplete(sleepContext->Request,
-                            STATUS_SUCCESS);
-        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolFree,
-                           ClientBuffer);
-    }
-    else
-    {
-        // TODO: Temporarily remove this assert until pending fix goes in.
-        //
-        // DmfAssert(FALSE);
-    }
+
+    // Cancel routine will not be called. Complete request now.
+    //
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Complete: Request=0x%p TimeToSleepMilliseconds=%d", sleepContext->Request, sleepContext->SleepRequest.TimeToSleepMilliseconds);  
+    WdfRequestComplete(sleepContext->Request,
+                       STATUS_SUCCESS);
+
+Exit:
+
+    DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolFree,
+                        ClientBuffer);
 }
 
 // Context for passing to enumeration function.
@@ -133,6 +273,7 @@ typedef struct
     // The request to look for in the list.
     //
     WDFREQUEST Request;
+    BOOLEAN Found;
 } ENUMERATION_CONTEXT;
 
 _Function_class_(EVT_DMF_BufferPool_Enumeration)
@@ -165,26 +306,51 @@ Test_IoctlHandler_BufferPool_EnumerationToCancel(
     #pragma warning(suppress:28182)
     if (sleepContext->Request == enumerationContext->Request)
     {
-        // Since this is called from Cancel Callback, it is not necessary to
-        // "unmark" cancelable. This path also replaces the associated context (sleepContext).
-        //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Test_IoctlHandler_BufferPool_EnumerationToCancel: found Request=0x%p (stop searching)", sleepContext->Request);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BufferPool=0x%p Test_IoctlHandler_BufferPool_EnumerationToCancel: found Request=0x%p (stop searching)", DmfModule, sleepContext->Request);
+        enumerationContext->Found = TRUE;
         enumerationDispositionType = BufferPool_EnumerationDisposition_RemoveAndStopEnumeration;
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Test_IoctlHandler_BufferPool_EnumerationToCancel: Request=0x%p not found. currentRequest=0x%p (keep searching)", enumerationContext->Request, sleepContext->Request);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "BufferPool=0x%p Test_IoctlHandler_BufferPool_EnumerationToCancel: Request=0x%p not found. currentRequest=0x%p (keep searching)", DmfModule, enumerationContext->Request, sleepContext->Request);
         enumerationDispositionType = BufferPool_EnumerationDisposition_ContinueEnumeration;
     }
 
     return enumerationDispositionType;
 }
 
-_Function_class_(EVT_WDF_REQUEST_CANCEL)
-_IRQL_requires_same_
+_Function_class_(EVT_DMF_BufferPool_Enumeration)
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BufferPool_EnumerationDispositionType
+Test_IoctlHandler_BufferPool_EnumerationToDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ VOID* ClientBufferContext,
+    _In_opt_ VOID* ClientDriverCallbackContext
+    )
+{
+    BufferPool_EnumerationDispositionType enumerationDispositionType;
+
+	UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientBufferContext);
+
+    if (ClientBuffer == ClientDriverCallbackContext)
+    {
+        enumerationDispositionType = BufferPool_EnumerationDisposition_RemoveAndStopEnumeration;
+    }
+    else
+    {
+        enumerationDispositionType = BufferPool_EnumerationDisposition_ContinueEnumeration;
+    }
+
+    return enumerationDispositionType;
+}
+
+_Function_class_(EVT_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE)
 VOID
-Tests_IoctlHandler_RequestCancel(
+Tests_IoctlHandler_CancelOnQueue(
+    _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request
     )
 {
@@ -192,6 +358,8 @@ Tests_IoctlHandler_RequestCancel(
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
     SleepContext* sleepContext;
     ENUMERATION_CONTEXT enumerationContext;
+
+    UNREFERENCED_PARAMETER(Queue);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_RequestCancel: Request=0x%p", Request);
 
@@ -213,12 +381,17 @@ Tests_IoctlHandler_RequestCancel(
                              (VOID**)&sleepContext,
                              NULL);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_RequestCancel: Complete Request=0x%p STATUS_CANCELLED sleepContext=0x%p", Request, sleepContext);
+    if (enumerationContext.Found)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_RequestCancel: Request=0x%p FOUND", Request);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_RequestCancel: Request=0x%p NOT FOUND", Request);
+    }
 
-    // Verifier forces us to always complete the request here.
-    //
     WdfRequestComplete(Request,
-                       STATUS_CANCELLED);
+                        STATUS_CANCELLED);
 
     // This buffer may or may not have been removed by the timer callback.
     //
@@ -320,26 +493,31 @@ Return Value:
                           sleepRequestBuffer,
                           sizeof(Tests_IoctlHandler_Sleep));
 
-            // Mark cancelable after the context is set and it is in the list.
-            //
-            ntStatus = WdfRequestMarkCancelableEx(Request,
-                                                  Tests_IoctlHandler_RequestCancel);
+            DMF_ModuleLock(dmfModuleParent);
+            DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
+                                              clientBuffer,
+                                              sleepRequestBuffer->TimeToSleepMilliseconds,
+                                              Test_IoctlHandler_BufferPool_TimerCallback,
+                                              NULL);
+            ntStatus = WdfRequestForwardToIoQueue(Request,
+                                                  moduleContext->CancelableQueue);
             if (NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestMarkCancelableEx success: Request=0x%p TimeToSleepMilliseconds=%d", sleepContext->Request, sleepContext->SleepRequest.TimeToSleepMilliseconds);
-                DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
-                                                  clientBuffer,
-                                                  sleepRequestBuffer->TimeToSleepMilliseconds,
-                                                  Test_IoctlHandler_BufferPool_TimerCallback,
-                                                  NULL);
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestForwardToIoQueue success: Request=0x%p TimeToSleepMilliseconds=%d", sleepContext->Request, sleepContext->SleepRequest.TimeToSleepMilliseconds);
                 ntStatus = STATUS_PENDING;
             }
             else
             {
-                // Cancel routine will not be called. Underlying Module completes request.
+                // It will not be pended so remove the entry added just above.
                 //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestMarkCancelableEx fails: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
+                DMF_BufferPool_Enumerate(moduleContext->DmfModuleBufferPoolPending,
+                                         Test_IoctlHandler_BufferPool_EnumerationToDelete,
+                                         clientBuffer,
+                                         NULL,
+                                         NULL);
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestForwardToIoQueue fails: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
             }
+            DMF_ModuleUnlock(dmfModuleParent);
             break;
         }
         case IOCTL_Tests_IoctlHandler_ZEROBUFFER:
@@ -380,26 +558,31 @@ Return Value:
             sleepContext = (SleepContext*)clientBuffer;
             sleepContext->Request = Request;
 
-            // Mark cancelable after the context is set and it is in the list.
-            //
-            ntStatus = WdfRequestMarkCancelableEx(Request,
-                                                  Tests_IoctlHandler_RequestCancel);
+            DMF_ModuleLock(dmfModuleParent);
+            DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
+                                                clientBuffer,
+                                                1000,
+                                                Test_IoctlHandler_BufferPool_TimerCallback,
+                                                NULL);
+            ntStatus = WdfRequestForwardToIoQueue(Request,
+                                                  moduleContext->CancelableQueue);
             if (NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestMarkCancelableEx success: Request=0x%p", Request);
-                DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolPending,
-                                                  clientBuffer,
-                                                  1000,
-                                                  Test_IoctlHandler_BufferPool_TimerCallback,
-                                                  NULL);
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfRequestForwardToIoQueue success: Request=0x%p", Request);
                 ntStatus = STATUS_PENDING;
             }
             else
             {
-                // Cancel routine will not be called. Underlying Module completes request.
+                // It will not be pended so remove the entry added just above.
                 //
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfRequestMarkCancelableEx fails: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
+                DMF_BufferPool_Enumerate(moduleContext->DmfModuleBufferPoolPending,
+                                         Test_IoctlHandler_BufferPool_EnumerationToDelete,
+                                         clientBuffer,
+                                         NULL,
+                                         NULL);
+                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfRequestForwardToIoQueue fails: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
             }
+            DMF_ModuleUnlock(dmfModuleParent);
             break;
         }
     }
@@ -525,6 +708,120 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+DMF_Tests_IoctlHandler_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type Tests_IoctlHandler.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    WDF_IO_QUEUE_CONFIG ioQueueConfig;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    DMF_CONTEXT_Tests_IoctlHandler* moduleContext = DMF_CONTEXT_GET(DmfModule);
+    WDFDEVICE device = DMF_ParentDeviceGet(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig,
+                             WdfIoQueueDispatchManual);
+    ioQueueConfig.EvtIoCanceledOnQueue = Tests_IoctlHandler_CancelOnQueue;
+    ntStatus = WdfIoQueueCreate(device,
+                                &ioQueueConfig,
+                                WDF_NO_OBJECT_ATTRIBUTES,
+                                &moduleContext->CancelableQueue);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoQueueCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+DMF_Tests_IoctlHandler_Close(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Uninitialize an instance of a DMF Module of type Tests_IoctlHandler.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
+    WDFREQUEST request;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    do 
+    {
+        request = Tests_IoctHandler_FindRequestWithMatchingData(moduleContext->CancelableQueue,
+                                                                Test_IoctlHandler_SelectAll,
+                                                                NULL);
+        if (request != NULL)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Tests_IoctHandler_FindRequestWithMatchingData cancels Request=0x%p in Close", request);
+            WdfRequestComplete(request,
+                               STATUS_CANCELLED);
+        }
+    }
+    while (request != NULL);
+
+    WdfObjectDelete(moduleContext->CancelableQueue);
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -567,6 +864,8 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_IoctlHandler);
     dmfCallbacksDmf_Tests_IoctlHandler.ChildModulesAdd = DMF_Tests_IoctlHandler_ChildModulesAdd;
+    dmfCallbacksDmf_Tests_IoctlHandler.DeviceOpen = DMF_Tests_IoctlHandler_Open;
+    dmfCallbacksDmf_Tests_IoctlHandler.DeviceClose = DMF_Tests_IoctlHandler_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_IoctlHandler,
                                             Tests_IoctlHandler,
@@ -584,7 +883,10 @@ Return Value:
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
+
+Exit:
 
     return(ntStatus);
 }

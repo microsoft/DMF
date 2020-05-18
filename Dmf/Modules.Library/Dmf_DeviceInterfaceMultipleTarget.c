@@ -1350,6 +1350,10 @@ Return Value:
 
     target->IoTarget = IoTarget;
 
+    // Clear this flag in case it was set during QueryRemove.
+    //
+    target->QueryRemoveHappened = FALSE;
+
     WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
 
     ntStatus = WdfIoTargetOpen(IoTarget,
