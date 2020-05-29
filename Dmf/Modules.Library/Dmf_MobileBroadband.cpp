@@ -1014,7 +1014,7 @@ Return Value:
 
     --*/
 {
-NTSTATUS ntStatus;
+    NTSTATUS ntStatus;
     DMF_CONTEXT_MobileBroadband* moduleContext;
 
     PAGED_CODE();
@@ -1093,6 +1093,7 @@ NTSTATUS ntStatus;
                 auto antenna = moduleContext->ModemDevice->sarManager.Antennas().GetAt(antennaIndex);
                 antennas.push_back({antenna.AntennaIndex(),
                                     AntennaBackOffTableIndex[antennaIndex]});
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "antenna index from modem is %d", antenna.AntennaIndex());
 
             }
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Map Antenna No.%d back off index to %d success",

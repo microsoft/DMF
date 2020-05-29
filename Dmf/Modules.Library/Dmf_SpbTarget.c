@@ -717,6 +717,268 @@ Return Value:
 }
 #pragma code_seg()
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbTarget_TransportAddressWrite(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    STATUS_NOT_IMPLEMENTED for now.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(Payload);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbTarget_TransportAddressRead(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Write and read data from Spb.
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write and read
+
+Return Value:
+
+    ntStatus
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE BusTransportModule;
+
+    BusTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
+
+    ntStatus = DMF_SpbTarget_BufferWriteRead(BusTransportModule,
+                                             Payload->AddressRead.Address,
+                                             Payload->AddressRead.AddressLength,
+                                             Payload->AddressRead.Buffer,
+                                             Payload->AddressRead.BufferLength);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SpbTarget_BufferWriteRead fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return(ntStatus);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbTarget_TransportBufferWrite(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Write and read data from Spb.
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    ntStatus
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE BusTransportModule;
+
+    BusTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
+
+    ntStatus = DMF_SpbTarget_BufferWrite(BusTransportModule,
+                                         Payload->BufferWrite.Buffer,
+                                         Payload->BufferWrite.BufferLength);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SpbTarget_BufferWrite fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return(ntStatus);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbTarget_TransportBufferRead(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    STATUS_NOT_IMPLEMENTED for now.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(Payload);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbBusTarget_TransportBind(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
+    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    ProtocolBindData
+    TransportBindData
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(ProtocolBindData);
+    UNREFERENCED_PARAMETER(TransportBindData);
+
+    return STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_SpbBusTarget_TransportUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_SpbTarget_TransportPostBind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_SpbTarget_TransportPreUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -754,6 +1016,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_SpbTarget;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_SpbTarget;
+    DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA BusTargetDeclarationData;
 
     PAGED_CODE();
 
@@ -779,6 +1042,26 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    DMF_INTERFACE_TRANSPORT_BusTarget_DESCRIPTOR_INIT(&BusTargetDeclarationData,
+                                                      DMF_SpbTarget_TransportPostBind,
+                                                      DMF_SpbTarget_TransportPreUnbind,
+                                                      DMF_SpbBusTarget_TransportBind,
+                                                      DMF_SpbBusTarget_TransportUnbind,
+                                                      DMF_SpbTarget_TransportAddressWrite,
+                                                      DMF_SpbTarget_TransportAddressRead,
+                                                      DMF_SpbTarget_TransportBufferWrite,
+                                                      DMF_SpbTarget_TransportBufferRead);
+
+    // Add the interface to the Transport Module.
+    //
+    ntStatus = DMF_ModuleInterfaceDescriptorAdd(*DmfModule,
+                                                (DMF_INTERFACE_DESCRIPTOR*)&BusTargetDeclarationData);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleInterfaceDescriptorAdd fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1221,7 +1504,6 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
 // eof: Dmf_SpbTarget.c
 //

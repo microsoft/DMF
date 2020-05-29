@@ -2495,6 +2495,234 @@ Return Value:
 }
 #pragma code_seg()
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_HidTarget_TransportAddressWrite(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    STATUS_NOT_IMPLEMENTED for now.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(Payload);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_HidTarget_TransportAddressRead(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    STATUS_NOT_IMPLEMENTED for now.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(Payload);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_HidTarget_TransportBufferWrite(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    STATUS_NOT_IMPLEMENTED for now.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(Payload);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_HidTarget_TransportBufferRead(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+
+Return Value:
+
+    STATUS_NOT_IMPLEMENTED for now.
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(Payload);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_HidTarget_TransportBind(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
+    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    ProtocolBindData
+    TransportBindData
+
+Return Value:
+
+    STATUS_SUCCESS
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+    UNREFERENCED_PARAMETER(ProtocolBindData);
+    UNREFERENCED_PARAMETER(TransportBindData);
+
+    return STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_HidTarget_TransportUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_HidTarget_TransportPostBind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+DMF_HidTarget_TransportPreUnbind(
+    _In_ DMFINTERFACE DmfInterface
+    )
+/*++
+
+Routine Description:
+
+    Does nothing
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfInterface);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2532,6 +2760,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Hid;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_HidTarget;
+    DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA BusTargetDeclarationData;
 
     PAGED_CODE();
 
@@ -2556,10 +2785,28 @@ Return Value:
                                 DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "DMF_ModuleCreate fails: ntStatus=%!STATUS!",
-                    ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    DMF_INTERFACE_TRANSPORT_BusTarget_DESCRIPTOR_INIT(&BusTargetDeclarationData,
+                                                      DMF_HidTarget_TransportPostBind,
+                                                      DMF_HidTarget_TransportPreUnbind,
+                                                      DMF_HidTarget_TransportBind,
+                                                      DMF_HidTarget_TransportUnbind,
+                                                      DMF_HidTarget_TransportAddressWrite,
+                                                      DMF_HidTarget_TransportAddressRead,
+                                                      DMF_HidTarget_TransportBufferWrite,
+                                                      DMF_HidTarget_TransportBufferRead);
+
+    // Add the interface to the Transport Module.
+    //
+    ntStatus = DMF_ModuleInterfaceDescriptorAdd(*DmfModule,
+                                                (DMF_INTERFACE_DESCRIPTOR*)&BusTargetDeclarationData);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleInterfaceDescriptorAdd fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3846,6 +4093,7 @@ ExitNoRelease:
     return ntStatus;
 }
 #pragma code_seg()
+
 
 // eof: Dmf_HidTarget.c
 //

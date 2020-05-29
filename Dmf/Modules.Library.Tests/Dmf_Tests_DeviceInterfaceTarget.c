@@ -34,6 +34,11 @@ Environment:
 
 #include <initguid.h>
 
+// Define TEST_CANCEL_SIMPLE to only execute simple tests that test cancel.
+//
+#define NO_TEST_CANCEL
+#define NO_TEST_CANCEL_SIMPLE
+
 // {5F4F3758-D11E-4684-B5AD-FE6D19D82A51}
 //
 DEFINE_GUID(GUID_NO_DEVICE, 0x5f4f3758, 0xd11e, 0x4684, 0xb5, 0xad, 0xfe, 0x6d, 0x19, 0xd8, 0x2a, 0x51);
@@ -42,7 +47,12 @@ DEFINE_GUID(GUID_NO_DEVICE, 0x5f4f3758, 0xd11e, 0x4684, 0xb5, 0xad, 0xfe, 0x6d, 
 #define MAXIMUM_SLEEP_TIME_MS                   (15000)
 // Keep synchronous maximum time short to make driver disable faster.
 //
+#if !defined(TEST_CANCEL_SIMPLE)
 #define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (1000)
+#else
+#define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (30000)
+#endif
+
 // Asynchronous minimum sleep time to make sure request can be canceled.
 //
 #define MINIMUM_SLEEP_TIME_MS                   (4000)
@@ -52,6 +62,8 @@ DEFINE_GUID(GUID_NO_DEVICE, 0x5f4f3758, 0xd11e, 0x4684, 0xb5, 0xad, 0xfe, 0x6d, 
 #define TIMEOUT_FAST_MS             100
 #define TIMEOUT_SLOW_MS             5000
 #define TIMEOUT_TRAFFIC_DELAY_MS    250
+#define TIMEOUT_CANCEL_MS           15
+#define TIMEOUT_CANCEL_LONG_MS      250
 
 #define NUMBER_OF_CONTINUOUS_REQUESTS   32
 
@@ -194,6 +206,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
     NTSTATUS ntStatus;
     Tests_IoctlHandler_Sleep sleepIoctlBuffer;
     size_t bytesWritten;
+    ULONG timeoutMs;
 
     UNREFERENCED_PARAMETER(DmfModuleAlertableSleep);
 
@@ -204,8 +217,17 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
     RtlZeroMemory(&sleepIoctlBuffer,
                   sizeof(sleepIoctlBuffer));
 
+#if defined(TEST_CANCEL)
+    // Test buffer never completes, always cancels.
+    //
+    sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+    timeoutMs = TIMEOUT_CANCEL_MS;
+#else
     sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+    timeoutMs = 0;
+#endif
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
                                                            &sleepIoctlBuffer,
@@ -214,14 +236,48 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                                                            NULL,
                                                            ContinuousRequestTarget_RequestType_Ioctl,
                                                            IOCTL_Tests_IoctlHandler_SLEEP,
-                                                           0,
+                                                           timeoutMs,
+                                                           &bytesWritten);
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    // TODO: Get time and compare with send time.
+    //
+	
+#if defined(TEST_CANCEL)
+    // Test buffer always completes, no timeout.
+    //
+    sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 TIMEOUT_CANCEL_LONG_MS);
+    timeoutMs = MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS;
+#else
+    sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+    timeoutMs = 0;
+#endif
+    bytesWritten = 0;
+    ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput,
+                                                           &sleepIoctlBuffer,
+                                                           sizeof(Tests_IoctlHandler_Sleep),
+                                                           NULL,
+                                                           NULL,
+                                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                                           timeoutMs,
                                                            &bytesWritten);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
 
+#if defined(TEST_CANCEL)
+    // Test buffer never completes, always cancels.
+    //
+    sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+    timeoutMs = TIMEOUT_CANCEL_MS;
+#else
     sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+#endif
+
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
                                                            &sleepIoctlBuffer,
@@ -230,7 +286,31 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                                                            NULL,
                                                            ContinuousRequestTarget_RequestType_Ioctl,
                                                            IOCTL_Tests_IoctlHandler_SLEEP,
-                                                           0,
+                                                           timeoutMs,
+                                                           &bytesWritten);
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    // TODO: Get time and compare with send time.
+    //
+
+#if defined(TEST_CANCEL)
+    // Test buffer always completes, no timeout.
+    //
+    sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 TIMEOUT_CANCEL_LONG_MS);
+    timeoutMs = MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS;
+#else
+    sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                                 MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+#endif
+    bytesWritten = 0;
+    ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput,
+                                                           &sleepIoctlBuffer,
+                                                           sizeof(Tests_IoctlHandler_Sleep),
+                                                           NULL,
+                                                           NULL,
+                                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                                           timeoutMs,
                                                            &bytesWritten);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
@@ -329,11 +409,12 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
 
+#if !defined(TEST_CANCEL)
     if (TestsUtility_GenerateRandomNumber(0,
                                           1))
     {
@@ -344,6 +425,9 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
     {
         timeoutMs = 0;
     }
+#else
+    timeoutMs = TIMEOUT_CANCEL_MS;
+#endif
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                   MAXIMUM_SLEEP_TIME_MS);
@@ -363,7 +447,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -412,6 +496,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     RequestTarget_DmfRequest DmfRequestId;
     BOOLEAN requestCanceled;
     LONG timeToSleepMilliseconds;
+    Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
 
     PAGED_CODE();
 
@@ -423,11 +508,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request after it is normally completed. It should never cancel unless driver is shutting down.
     //
 
-    Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -481,7 +565,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SEND: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
@@ -532,7 +616,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -580,7 +664,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -620,7 +704,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -666,7 +750,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -706,7 +790,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -739,7 +823,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -775,7 +859,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -800,6 +884,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
                                         timeToSleepMilliseconds / 4);
+
     // Cancel the request if possible.
     // It should always cancel since the time just waited is 1/4 the time that was sent above.
     //
@@ -825,7 +910,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -887,10 +972,14 @@ Tests_DeviceInterfaceTarget_WorkThread(
     threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
+#if !defined(TEST_CANCEL_SIMPLE)
     // Generate a random test action Id for a current iteration.
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
+#else
+    testAction = TEST_ACTION_SYNCHRONOUS;
+#endif
 
     // Execute the test action.
     //
@@ -1268,8 +1357,6 @@ Return Value:
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
@@ -1295,8 +1382,6 @@ Return Value:
     //
     ntStatus = Tests_DeviceInterfaceTarget_NonContinousStartAuto(dmfModuleParent);
     DmfAssert(NT_SUCCESS(ntStatus));
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -1328,15 +1413,11 @@ Return Value:
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
     // Stop the threads. Streaming is automatically stopped.
     //
     Tests_DeviceInterfaceTarget_NonContinousStopAuto(dmfModuleParent);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -1370,10 +1451,10 @@ Return Value:
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+#if !defined(TEST_CANCEL_SIMPLE)
 
     for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
@@ -1404,7 +1485,7 @@ Return Value:
     }
     DmfAssert(NT_SUCCESS(ntStatus));
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
+#endif
 }
 #pragma code_seg()
 
@@ -1438,8 +1519,6 @@ Return Value:
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
@@ -1471,8 +1550,6 @@ Return Value:
         Tests_DeviceInterfaceTarget_NonContinousStartManualOutput(dmfModuleParent);
     }
     DmfAssert(NT_SUCCESS(ntStatus));
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -1505,18 +1582,16 @@ Return Value:
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
+#if !defined(TEST_CANCEL_SIMPLE)
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
     // Stop threads.
     //
     Tests_DeviceInterfaceTarget_NonContinousStopManualInput(dmfModuleParent);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
+#endif
 }
 #pragma code_seg()
 
@@ -1549,8 +1624,6 @@ Return Value:
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
     // Stop streaming.
@@ -1559,8 +1632,6 @@ Return Value:
     // Stop threads.
     //
     Tests_DeviceInterfaceTarget_NonContinousStopManualOutput(dmfModuleParent);
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 #pragma code_seg()
 
@@ -1631,80 +1702,6 @@ Return Value:
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleBufferPool);
 
-    // DeviceInterfaceTarget (DISPATCH_LEVEL)
-    // Processes Input Buffers.
-    //
-    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
-                                                         &moduleAttributes);
-    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = 1;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferInputSize = sizeof(Tests_IoctlHandler_Sleep);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeInput = NonPagedPoolNx;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_SLEEP;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceTarget_BufferInput;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
-
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_AutoContinous;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_AutoContinous;
-    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                        &moduleAttributes,
-                        WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
-
-    // DeviceInterfaceTarget (PASSIVE_LEVEL)
-    // Processes Input Buffers.
-    //
-    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
-                                                         &moduleAttributes);
-    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = 1;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferInputSize = sizeof(Tests_IoctlHandler_Sleep);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeInput = NonPagedPoolNx;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_SLEEP;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceTarget_BufferInput;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
-
-    moduleAttributes.PassiveLevel = TRUE;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousInput;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousInput;
-    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput);
-
-    // DeviceInterfaceTarget (PASSIVE_LEVEL)
-    // Processes Output Buffers.
-    //
-    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
-                                                         &moduleAttributes);
-    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = NUMBER_OF_CONTINUOUS_REQUESTS;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(DWORD);
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = NUMBER_OF_CONTINUOUS_REQUESTS;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_ZEROBUFFER;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DeviceInterfaceTarget_BufferOutput;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
-    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
-
-    moduleAttributes.PassiveLevel = TRUE;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousOutput;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousOutput;
-    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleDeviceInterfaceTargetPassiveOutput);
-
     // Thread
     // ------
     //
@@ -1719,6 +1716,7 @@ Return Value:
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleThreadAuto[threadIndex]);
 
+#if !defined(TEST_CANCEL_SIMPLE)
         DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
                                               &moduleAttributes);
         moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
@@ -1736,6 +1734,7 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleThreadManualOutput[threadIndex]);
+#endif
 
         // AlertableSleep Auto
         // -------------------
@@ -1773,6 +1772,84 @@ Return Value:
                             WDF_NO_OBJECT_ATTRIBUTES,
                             &moduleContext->DmfModuleAlertableSleepManualOutput[threadIndex]);
     }
+
+    // DeviceInterfaceTarget (DISPATCH_LEVEL)
+    // Processes Input Buffers.
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+#if !defined(TEST_CANCEL_SIMPLE)
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = 1;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferInputSize = sizeof(Tests_IoctlHandler_Sleep);
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeInput = NonPagedPoolNx;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_SLEEP;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceTarget_BufferInput;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
+#endif
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_AutoContinous;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_AutoContinous;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
+
+    // DeviceInterfaceTarget (PASSIVE_LEVEL)
+    // Processes Input Buffers.
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+#if !defined(TEST_CANCEL_SIMPLE)
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = 1;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferInputSize = sizeof(Tests_IoctlHandler_Sleep);
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeInput = NonPagedPoolNx;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_SLEEP;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceTarget_BufferInput;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
+#endif
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousInput;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousInput;
+    moduleAttributes.PassiveLevel = TRUE;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput);
+
+#if !defined(TEST_CANCEL_SIMPLE)
+
+    // DeviceInterfaceTarget (PASSIVE_LEVEL)
+    // Processes Output Buffers.
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = NUMBER_OF_CONTINUOUS_REQUESTS;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(DWORD);
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = NUMBER_OF_CONTINUOUS_REQUESTS;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_ZEROBUFFER;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DeviceInterfaceTarget_BufferOutput;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
+    moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
+
+    moduleAttributes.PassiveLevel = TRUE;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_ManualContinousOutput;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_ManualContinousOutput;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceTargetPassiveOutput);
 
     // Test valid combinations of pool types.
     //
@@ -1942,6 +2019,8 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
+
+#endif
 
     FuncExitVoid(DMF_TRACE);
 }

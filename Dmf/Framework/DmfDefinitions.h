@@ -1266,6 +1266,16 @@ typedef struct _DMF_PORTABLE_RUNDOWN
 #endif // !defined(DMF_USER_MODE)
 } DMF_PORTABLE_RUNDOWN_REF;
 
+// Definitions used to determine OS version to determine
+// availability of some OS features.
+//
+#define DMF_VERSIONCHECK_BUILD_NUMBER_RS2  15063
+#define DMF_VERSIONCHECK_BUILD_NUMBER_RS3  16299
+#define DMF_VERSIONCHECK_BUILD_NUMBER_RS4  17134
+#define DMF_VERSIONCHECK_BUILD_NUMBER_RS5  17763
+#define DMF_VERSIONCHECK_BUILD_NUMBER_19H1  18362
+#define DMF_VERSIONCHECK_BUILD_NUMBER_20H1  19041
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID 
 DMF_Portable_EventCreate(
@@ -1360,6 +1370,12 @@ DMF_Portable_Rundown_WaitForRundownProtectionRelease(
 VOID
 DMF_Portable_Rundown_Completed(
     _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
+    );
+
+BOOLEAN
+DMF_Portable_VersionCheck(
+    _In_ ULONG MinimumOsVersion,
+    _Out_ BOOLEAN* IsOsEqualOrGreater
     );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1463,78 +1479,6 @@ DMF_Utility_LogEmitString(
     _In_ DMFMODULE DmfModule,
     _In_ DmfLogDataSeverity DmfLogDataSeverity,
     _In_ WCHAR* FormatString,
-    ...
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Utility_EventLogEntryWriteDriverObject(
-    _In_ PDRIVER_OBJECT DriverObject,
-    _In_ NTSTATUS ErrorCode,
-    _In_ NTSTATUS FinalNtStatus,
-    _In_ ULONG UniqueId,
-    _In_ ULONG TextLength,
-    _In_opt_ PCWSTR Text,
-    _In_ INT NumberOfFormatStrings,
-    _In_opt_ PWCHAR* FormatStrings,
-    _In_ INT NumberOfInsertionStrings,
-    ...
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Utility_EventLogEntryWriteDriver(
-    _In_ WDFDRIVER Driver,
-    _In_ NTSTATUS ErrorCode,
-    _In_ NTSTATUS Status,
-    _In_ ULONG UniqueId,
-    _In_ ULONG TextLength,
-    _In_opt_ PCWSTR Text,
-    _In_ INT NumberOfFormatStrings,
-    _In_opt_ PWCHAR* FormatStrings,
-    _In_ INT NumberOfInsertionStrings,
-    ...
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Utility_EventLogEntryWriteDevice(
-    _In_ WDFDEVICE Device,
-    _In_ NTSTATUS ErrorCode,
-    _In_ NTSTATUS Status,
-    _In_ ULONG UniqueId,
-    _In_ ULONG TextLength,
-    _In_opt_ PCWSTR Text,
-    _In_ INT NumberOfFormatStrings,
-    _In_opt_ PWCHAR* FormatStrings,
-    _In_ INT NumberOfInsertionStrings,
-    ...
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Utility_EventLogEntryWriteDmfModule(
-    _In_ DMFMODULE DmfModule,
-    _In_ NTSTATUS ErrorCode,
-    _In_ NTSTATUS Status,
-    _In_ ULONG UniqueId,
-    _In_ ULONG TextLength,
-    _In_opt_ PCWSTR Text,
-    _In_ INT NumberOfFormatStrings,
-    _In_opt_ PWCHAR* FormatStrings,
-    _In_ INT NumberOfInsertionStrings,
-    ...
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_Utility_EventLogEntryWriteUserMode(
-    _In_ PWSTR Provider,
-    _In_ WORD EventType,
-    _In_ DWORD EventID,
-    _In_ INT NumberOfFormatStrings,
-    _In_opt_ PWCHAR* FormatStrings,
-    _In_ INT NumberOfInsertionStrings,
     ...
     );
 

@@ -609,6 +609,7 @@ Return:
     DMFMODULE dmfModule;
     DMF_CONTEXT_BufferPool* moduleContext;
     EVT_DMF_BufferPool_TimerCallback* timerExpirationCallback;
+    VOID* timerExpirationCallbackContext;
     LIST_ENTRY* listEntry;
 
     FuncEntry(DMF_TRACE);
@@ -628,6 +629,7 @@ Return:
     DMF_ModuleLock(dmfModule);
 
     timerExpirationCallback = NULL;
+    timerExpirationCallbackContext = NULL;
     // If timer callback executed, buffer associated with the timer should be present in the list.
     // But it might not be the first one. Search for it.
     //
@@ -663,7 +665,11 @@ Return:
                                        moduleContext,
                                        bufferPoolEntryTimer);
 
+            // These fields are both cleared in the next call. Save off so they can be passed to
+            // Client, otherwise they are NULL.
+            //
             timerExpirationCallback = bufferPoolEntryTimer->TimerExpirationCallback;
+            timerExpirationCallbackContext = bufferPoolEntryTimer->TimerExpirationCallbackContext;
             BufferPool_TimerFieldsClear(dmfModule,
                                         bufferPoolEntryTimer);
             
@@ -688,7 +694,7 @@ Return:
         timerExpirationCallback(dmfModule,
                                 bufferPoolEntryTimer->ClientBuffer,
                                 bufferPoolEntryTimer->ClientBufferContext,
-                                bufferPoolEntryTimer->TimerExpirationCallbackContext);
+                                timerExpirationCallbackContext);
     }
     else
     {
