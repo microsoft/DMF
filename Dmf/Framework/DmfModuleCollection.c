@@ -1717,7 +1717,6 @@ Exit:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_ModuleCollectionSelfManagedIoSuspend(
@@ -1742,8 +1741,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-
-    PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
@@ -1772,9 +1769,7 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_ModuleCollectionSelfManagedIoRestart(
@@ -1799,8 +1794,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-
-    PAGED_CODE();
 
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
@@ -1829,9 +1822,7 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_ModuleCollectionSurpriseRemoval(
@@ -1854,8 +1845,6 @@ Return Value:
 
 --*/
 {
-    PAGED_CODE();
-
     FuncEntryArguments(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 
     DMF_MODULE_COLLECTION* moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
@@ -1880,7 +1869,6 @@ Exit:
 
     FuncExit(DMF_TRACE, "DmfCollection=0x%p", DmfCollection);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -3906,6 +3894,11 @@ Return Value:
         goto Exit;
     }
 
+    // Store the collection in Container Context.
+    // Do this as soon as possible because DmfCollection may be needed during DMF_ModuleCollectionPostCreate().
+    //
+    dmfDeviceContext->DmfCollection = dmfCollection;
+
     // Open or register for notification for OPEN_Create or NOTIFY_Create Modules.
     //
     ntStatus = DMF_ModuleCollectionPostCreate(&moduleCollectionConfig,
@@ -3916,9 +3909,8 @@ Return Value:
         goto Exit;
     }
 
-    // Store the collection in Container Context.
+    // Remember if the Client supports DeviceAdd.
     //
-    dmfDeviceContext->DmfCollection = dmfCollection;
     dmfDeviceContext->ClientImplementsEvtWdfDriverDeviceAdd = DMF_DmfDeviceInitClientImplementsDeviceAdd(dmfDeviceInit);
 
     // Store information needed to automatically call DMF_Invoke_DeviceCallbacksDestroy() when the

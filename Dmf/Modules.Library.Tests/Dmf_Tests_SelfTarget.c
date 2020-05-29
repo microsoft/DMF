@@ -125,7 +125,7 @@ Tests_SelfTarget_ThreadAction_Synchronous(
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_SelfTarget_ThreadAction_Synchronous");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -134,6 +134,7 @@ Tests_SelfTarget_ThreadAction_Synchronous(
 
     sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
+
     bytesWritten = 0;
     ntStatus = DMF_SelfTarget_SendSynchronously(moduleContext->DmfModuleSelfTargetDispatch,
                                                 &sleepIoctlBuffer,
@@ -215,13 +216,15 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_SelfTarget_ThreadAction_Asynchronous");
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -255,7 +258,7 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -298,7 +301,7 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_SelfTarget_ThreadAction_AsynchronousCancel");
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -306,7 +309,7 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -341,7 +344,7 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -387,7 +390,7 @@ Tests_SelfTarget_WorkThread(
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_SelfTarget_WorkThread");
 
     dmfModule = DMF_ParentModuleGet(DmfModuleThread);
     threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
@@ -595,6 +598,7 @@ Return Value:
     // SelfTarget (DISPATCH_LEVEL)
     //
     DMF_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
+    moduleAttributes.ClientModuleInstanceName = "DmfModuleSelfTargetDispatch";
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
@@ -604,6 +608,7 @@ Return Value:
     //
     DMF_SelfTarget_ATTRIBUTES_INIT(&moduleAttributes);
     moduleAttributes.PassiveLevel = TRUE;
+    moduleAttributes.ClientModuleInstanceName = "DmfModuleSelfTargetPassive";
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,

@@ -551,7 +551,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -806,7 +806,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -856,7 +856,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request after waiting the same time sent in timeout. 
@@ -866,7 +866,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -914,7 +914,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request immediately after sending it. It may or may not be canceled.
@@ -923,7 +923,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -962,7 +962,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -1020,7 +1020,7 @@ Return Value:
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    ASSERT(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus));
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -1542,30 +1542,15 @@ Return Value:
     DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget* moduleContext;
     NTSTATUS ntStatus;
     LONG threadIndex;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
     TARGET_CONTEXT* targetContext;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     ntStatus = STATUS_SUCCESS;
-
-    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
-                                            TARGET_CONTEXT);
-
-    ntStatus = WdfObjectAllocateContext(Target,
-                                        &objectAttributes,
-                                        (VOID**)&targetContext);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    targetContext->Target = Target;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {

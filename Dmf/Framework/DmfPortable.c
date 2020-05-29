@@ -29,6 +29,9 @@ Environment:
 #include "DmfPortable.tmh"
 #endif
 
+#define MAJOR_VERSION_WINDOWS_10  10
+#define MINOR_VERSION_WINDOWS_10  0
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Portable_EventCreate(
@@ -784,6 +787,101 @@ Return Value:
     UNREFERENCED_PARAMETER(RundownRef);
     DmfAssert(FALSE);
 #endif // defined(DMF_KERNEL_MODE)
+}
+
+BOOLEAN
+DMF_Portable_VersionCheck(
+    _In_ ULONG MinimumOsVersion,
+    _Out_ BOOLEAN *IsOsEqualOrGreater
+    )
+/*++
+
+Routine Description:
+
+    Read the Windows 10 OS version to check for feature availability.
+
+Arguments:
+
+    MinimumOsVersion - The minimum OS version to check for.
+    IsOsEqualOrGreater - Flag to indicate if the running OS is greater
+                         than or equal to the minimum passed in.
+
+Return Value:
+
+    TRUE if able to read the OS version.
+
+--*/
+{
+    BOOLEAN returnStatus;
+    static ULONG s_OsBuildNumber = 0;
+
+    returnStatus = FALSE;
+    *IsOsEqualOrGreater = FALSE;
+
+    if (s_OsBuildNumber == 0)
+    {
+#if defined(DMF_KERNEL_MODE)
+        NTSTATUS ntStatus;
+        RTL_OSVERSIONINFOW versionInfo;
+
+        versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+        ntStatus = RtlGetVersion(&versionInfo);
+        if (NT_SUCCESS(ntStatus))
+        {
+            if (versionInfo.dwMajorVersion >= MAJOR_VERSION_WINDOWS_10 &&
+                versionInfo.dwMinorVersion == MINOR_VERSION_WINDOWS_10)
+            {
+                s_OsBuildNumber = versionInfo.dwBuildNumber;
+            }
+        }
+#else
+        OSVERSIONINFOEXW versionInfo = { 0 };
+        LONG status = 0;
+
+        typedef LONG(WINAPI* PFN_RTL_GET_VERSION)(OSVERSIONINFOEXW*);
+        PFN_RTL_GET_VERSION functionRtlGetVersion = NULL;
+        
+        versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+
+        HMODULE ntDll = GetModuleHandleW(L"ntdll.dll");
+        if (ntDll != NULL)
+        {
+            functionRtlGetVersion = (PFN_RTL_GET_VERSION)GetProcAddress(ntDll,
+                                                                        "RtlGetVersion");
+            if (functionRtlGetVersion)
+            {
+                status = functionRtlGetVersion(&versionInfo);
+                if (status == S_OK)
+                {
+                    // Expecting major version 10 and minor version 0.
+                    // Otherwise, unknown or unsupported os version.
+                    //
+                    if (versionInfo.dwMajorVersion >= MAJOR_VERSION_WINDOWS_10 &&
+                        versionInfo.dwMinorVersion == MINOR_VERSION_WINDOWS_10)
+                    {
+                        // Everything worked, so store the os build number.
+                        //
+                        s_OsBuildNumber = versionInfo.dwBuildNumber;
+                    }
+                }
+            }
+        }
+#endif // defined(DMF_KERNEL_MODE)
+    }
+
+    // 0 is an unsupported OS build version. It is overloaded here to
+    // indicate an error in retrieving the OS version.
+    //
+    if (s_OsBuildNumber != 0)
+    {
+        returnStatus = TRUE;
+        if (s_OsBuildNumber >= MinimumOsVersion)
+        {
+            *IsOsEqualOrGreater = TRUE;
+        }
+    }
+
+    return returnStatus;
 }
 
 // eof: DmfPortable.c

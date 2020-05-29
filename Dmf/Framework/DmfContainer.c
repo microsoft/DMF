@@ -796,7 +796,6 @@ Return Value:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Use_decl_annotations_
 NTSTATUS
 DmfContainerEvtDeviceSelfManagedIoSuspend(
@@ -823,8 +822,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     dmfDeviceContext = DmfDeviceContextGet(Device);
     DmfAssert(dmfDeviceContext != NULL);
 
@@ -836,9 +833,7 @@ Return Value:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Use_decl_annotations_
 NTSTATUS
 DmfContainerEvtDeviceSelfManagedIoRestart(
@@ -865,8 +860,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     dmfDeviceContext = DmfDeviceContextGet(Device);
     DmfAssert(dmfDeviceContext != NULL);
 
@@ -878,9 +871,7 @@ Return Value:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Use_decl_annotations_
 VOID
 DmfContainerEvtDeviceSurpriseRemoval(
@@ -906,8 +897,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     dmfDeviceContext = DmfDeviceContextGet(Device);
     DmfAssert(dmfDeviceContext != NULL);
 
@@ -917,7 +906,6 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _Use_decl_annotations_
