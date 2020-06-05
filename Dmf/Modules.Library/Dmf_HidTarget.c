@@ -64,6 +64,17 @@ typedef struct
     // These remains constant for a specific hid device.
     WDFMEMORY PreparsedDataMemory;
     HIDP_CAPS HidCaps;
+    // Child ContinuousRequestTarget DMF Module.
+    //
+    DMFMODULE DmfModuleContinuousRequestTarget;
+    // BufferPool for input report read requests sent using
+    // Dmf_HidTarget_InputRead().
+    //
+    DMFMODULE DmfModuleBufferPoolInputReport;
+    // ThreadedBufferQueue for processing returned input report read requests
+    // sent using Dmf_HidTarget_InputReadEx().
+    //
+    DMFMODULE DmfModuleThreadedBufferQueueInputReport;
 } DMF_CONTEXT_HidTarget;
 
 // This macro declares the following function:
@@ -89,31 +100,149 @@ DMF_MODULE_DECLARE_CONFIG(HidTarget)
 //
 #include <hidsdi.h>
 
+// Used to determine number of buffers pre-allocated for input report read requests sent using
+// Dmf_HidTarget_InputRead(). PendedInputReadRequestCount in the module config is not
+// used because the client controls the number of requests to pend when using Dmf_HidTarget_InputRead().
+//
+#define DEFAULT_NUMBER_OF_PENDING_INPUT_READS 4
+
 // {55F3D844-8F9E-4EBD-AE33-EB778524CEEF}
 DEFINE_GUID(GUID_CUSTOM_DEVINTERFACE, 0x55f3d844, 0x8f9e, 0x4ebd, 0xae, 0x33, 0xeb, 0x77, 0x85, 0x24, 0xce, 0xef);
 
-EVT_WDF_REQUEST_COMPLETION_ROUTINE HidTarget_ReadCompletionRoutine;
-
-_Use_decl_annotations_
-VOID
-HidTarget_ReadCompletionRoutine(
-    _In_ WDFREQUEST Request,
-    _In_ WDFIOTARGET Target,
-    _In_ PWDF_REQUEST_COMPLETION_PARAMS Params,
-    _In_ WDFCONTEXT Context
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
+ContinuousRequestTarget_BufferDisposition
+HidTarget_InputReadExCompletionCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _Inout_ VOID* ClientBufferContextOutput,
+    _In_ NTSTATUS CompletionStatus
     )
 /*++
 
 Routine Description:
 
-    Called when the read request completes.
+    Callback function called when the input report read requests sent using Dmf_HidTarget_InputReadEx() completes.
+    It provides the output buffer and the return status of the request. Here we get the InputReport
+    from the output buffer.
 
 Arguments:
 
-    Request - The completed read request
-    Target - IO target
-    Params - Request completion parameters
-    Context - Request context
+    DmfModule - The Child Module from which this callback is called.
+    OutputBuffer - Pointer to output data.
+    OutputBufferSize - Size of output data.
+    ClientBufferContextOutput - Context associated with the given output buffer.
+    CompletionStatus - Return status of Request.
+
+Return Value:
+
+    ContinuousRequestTarget_BufferDisposition - Indicates who owns the output buffer after return.
+
+--*/
+{
+    ContinuousRequestTarget_BufferDisposition returnValue;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    PVOID clientBufferInputReport;
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleHidTarget;
+
+    FuncEntry(DMF_TRACE);
+
+    UNREFERENCED_PARAMETER(ClientBufferContextOutput);
+
+    dmfModuleHidTarget = DMF_ParentModuleGet(DmfModule);
+
+    moduleContext = DMF_CONTEXT_GET(dmfModuleHidTarget);
+
+    ntStatus = DMF_ModuleReference(dmfModuleHidTarget);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus= %!STATUS!", ntStatus);
+        goto ExitNoRelease;
+    }
+
+    if (CompletionStatus == STATUS_CANCELLED || CompletionStatus == STATUS_DEVICE_NOT_CONNECTED)
+    {
+        // Stop streaming if the requests are cancelled or the device is disconnected.
+        // This means that the streaming has either been stopped by the client or the iotarget is disconnected
+        // respectively.
+        //
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Input report read requests will no longer be pended: CompletionStatus=%!STATUS!", CompletionStatus);
+        goto Exit;
+    }
+    else if (! NT_SUCCESS(CompletionStatus))
+    {
+        // Other failure conditions do not necessitate that streaming needs to be stopped.
+        //
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Input report read request fails: CompletionStatus=%!STATUS!", CompletionStatus);
+        goto Exit;
+    }
+
+    returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+
+    ntStatus = DMF_ThreadedBufferQueue_Fetch(moduleContext->DmfModuleThreadedBufferQueueInputReport,
+                                             &clientBufferInputReport,
+                                             NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Copy input report from callback buffer.
+    //
+    RtlCopyMemory(clientBufferInputReport,
+                  OutputBuffer,
+                  OutputBufferSize);
+
+    // Write input report to consumer buffer.
+    //
+    DMF_ThreadedBufferQueue_Enqueue(moduleContext->DmfModuleThreadedBufferQueueInputReport,
+                                    clientBufferInputReport);
+Exit:
+
+    DMF_ModuleDereference(dmfModuleHidTarget);
+
+ExitNoRelease:
+
+    FuncExit(DMF_TRACE, "ContinuousRequestTarget_BufferDisposition=%d", returnValue);
+
+    return returnValue;
+}
+
+_Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+HidTarget_InputReadCompletionCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientRequestContext,
+    _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
+    _In_ size_t InputBufferBytesWritten,
+    _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesRead,
+    _In_ NTSTATUS CompletionStatus
+    )
+/*++
+
+Routine Description:
+
+    Callback function called when the input report read requests sent using Dmf_HidTarget_InputRead() completes.
+    It provides the output buffer and the return status of the request. Here we get the InputReport
+    from the output buffer.
+
+Arguments:
+
+    DmfModule - Module handle.
+    ClientRequestContext - This Module's context which was set as request context during send.
+    InputBuffer - Input Buffer sent as part of the request.
+    InputBufferBytesWritten - Size of InputBuffer
+    OutputBuffer - Output Buffer sent as part of the request.
+    OutputBufferBytesRead - Size of OutputBuffer
+    CompletionStatus - Request completion status.
 
 Return Value:
 
@@ -121,43 +250,117 @@ Return Value:
 
 --*/
 {
-    UCHAR* buffer;
-    size_t length;
+    NTSTATUS ntStatus;
     DMF_CONTEXT_HidTarget* moduleContext;
-    DMFMODULE dmfModule;
+    DMFMODULE dmfModuleHidTarget;
 
-    UNREFERENCED_PARAMETER(Target);
+    FuncEntry(DMF_TRACE);
 
-    buffer = NULL;
-    length = 0;
-    dmfModule = DMFMODULEVOID_TO_MODULE(Context);
-    DmfAssert(dmfModule != NULL);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
+    UNREFERENCED_PARAMETER(InputBuffer);
+    UNREFERENCED_PARAMETER(InputBufferBytesWritten);
 
-    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    dmfModuleHidTarget = DMF_ParentModuleGet(DmfModule);
 
-    if (! NT_SUCCESS(Params->IoStatus.Status))
+    moduleContext = DMF_CONTEXT_GET(dmfModuleHidTarget);
+
+    ntStatus = DMF_ModuleReference(dmfModuleHidTarget);
+    if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus= %!STATUS!", ntStatus);
+        goto ExitNoRelease;
+    }
+
+    if (! NT_SUCCESS(CompletionStatus))
+    {
+        TraceEvents(TRACE_LEVEL_WARNING,
                     DMF_TRACE,
                     "ReadCompletionRoutine fails: ntStatus=%!STATUS!",
-                    Params->IoStatus.Status);
+                    CompletionStatus);
+        goto Exit;
     }
-    else if (Params->Type == WdfRequestTypeRead)
+
+    moduleContext->EvtHidInputReport(dmfModuleHidTarget,
+                                     (UCHAR*)OutputBuffer,
+                                     (ULONG)OutputBufferBytesRead);
+
+Exit:
+
+    DMF_ModuleDereference(dmfModuleHidTarget);
+
+ExitNoRelease:
+
+    DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolInputReport,
+                       OutputBuffer);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_Function_class_(EVT_DMF_ThreadedBufferQueue_Callback)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+ThreadedBufferQueue_BufferDisposition
+HidTarget_InputReportConsumeWork(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR* ClientWorkBuffer,
+    _In_ ULONG ClientWorkBufferSize,
+    _In_ VOID* ClientWorkBufferContext,
+    _Out_ NTSTATUS* NtStatus
+    )
+/*++
+
+Routine Description:
+
+    Callback function for threaded buffer queue when there is an input report to process.
+    This is triggered in the request completion callback for input report read requests sent using
+    Dmf_HidTarget_InputReadEx().
+
+Arguments:
+
+    DmfModule - DmfModuleThreadedBufferQueueInputReport Module's handle.
+    ClientWorkBuffer - Work buffer sent from the Client (Input Report).
+    ClientWorkBufferSize - Size of ClientWorkBuffer.
+    ClientWorkBufferContext - Work buffer context.
+    NtStatus - Status returned.
+
+Return Value:
+
+    ThreadedBufferQueue_BufferDisposition
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    DMFMODULE dmfModuleHidTarget;
+
+    FuncEntry(DMF_TRACE);
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientWorkBufferContext);
+    UNREFERENCED_PARAMETER(NtStatus);
+
+    dmfModuleHidTarget = DMF_ParentModuleGet(DmfModule);
+
+    moduleContext = DMF_CONTEXT_GET(dmfModuleHidTarget);
+
+    ntStatus = DMF_ModuleReference(dmfModuleHidTarget);
+    if (! NT_SUCCESS(ntStatus))
     {
-        buffer = (UCHAR*)WdfMemoryGetBuffer(Params->Parameters.Read.Buffer,
-                                            NULL);
-
-        length = Params->Parameters.Read.Length;
-
-        moduleContext->EvtHidInputReport(dmfModule,
-                                         buffer,
-                                         (ULONG)length);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleRefrence fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
-    if (Request != NULL)
-    {
-        WdfObjectDelete(Request);
-    }
+    moduleContext->EvtHidInputReport(dmfModuleHidTarget,
+                                     ClientWorkBuffer,
+                                     ClientWorkBufferSize);
+
+    DMF_ModuleDereference(dmfModuleHidTarget);
+
+Exit:
+
+    FuncExitVoid(DMF_TRACE);
+
+    return ThreadedBufferQueue_BufferDisposition_WorkComplete;
 }
 
 #pragma code_seg("PAGE")
@@ -720,7 +923,8 @@ NTSTATUS
 HidTarget_MatchCheckForRemote(
     _In_ DMFMODULE DmfModule,
     _In_ PUNICODE_STRING DevicePath,
-    _Out_ BOOLEAN* IsDeviceMatched)
+    _Out_ BOOLEAN* IsDeviceMatched
+    )
 /*++
 
 Routine Description:
@@ -887,7 +1091,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "IOCTL_Hid_GET_COLLECTION_DESCRIPTOR fails: %!STATUS!",
+                    "IOCTL_Hid_GET_COLLECTION_DESCRIPTOR fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -898,7 +1102,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "HidP_GetCaps() fails: %!STATUS!",
+                    "HidP_GetCaps() fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -962,7 +1166,8 @@ NTSTATUS
 HidTarget_MatchCheckForLocal(
     _In_ DMFMODULE DmfModule,
     _In_ PUNICODE_STRING DevicePath,
-    _Out_ BOOLEAN* IsDeviceMatched)
+    _Out_ BOOLEAN* IsDeviceMatched
+    )
 /*++
 
 Routine Description:
@@ -1107,11 +1312,11 @@ Return Value:
                                                 &matchedDeviceFound);
     }
 
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
-                    "HidTarget_MatchCheck fails: %!STATUS!",
+                    "HidTarget_MatchCheck fails: ntStatus=%!STATUS!",
                     ntStatus);
         goto Exit;
     }
@@ -1255,10 +1460,10 @@ Return Value:
     if (NULL == moduleContext->IoTarget)
     {
         ntStatus = HidTarget_IoTargetCreateByName(device,
-                                            SymbolicLinkName,
-                                            moduleConfig->OpenMode,
-                                            moduleConfig->ShareAccess,
-                                            &moduleContext->IoTarget);
+                                                  SymbolicLinkName,
+                                                  moduleConfig->OpenMode,
+                                                  moduleConfig->ShareAccess,
+                                                  &moduleContext->IoTarget);
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR,
@@ -1298,7 +1503,7 @@ Return Value:
         {
             TraceEvents(TRACE_LEVEL_INFORMATION,
                         DMF_TRACE,
-                        "Module Open Fails; Destroying IOTarget for target HID device,ntStatus=%!STATUS!",
+                        "DMF_ModuleOpen fails: ntStatus=%!STATUS!. Destroying IOTarget for target HID device",
                         ntStatus);
 
             HidTarget_IoTargetDestroy(moduleContext);
@@ -1567,7 +1772,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 DMF_TRACE,
-                "IoRegisterPlugPlayNotification: Notification Entry 0x%p ntStatus = %!STATUS!",
+                "IoRegisterPlugPlayNotification: Notification Entry 0x%p ntStatus=%!STATUS!",
                 moduleContext->HidInterfaceNotification, ntStatus);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1969,7 +2174,7 @@ Return Value:
                              currentInterface);
 
         ntStatus = HidTarget_MatchedTargetGet(DmfModule,
-                                        &symbolicLinkName);
+                                              &symbolicLinkName);
 
         // Break if a matching target was found.
         //
@@ -2125,7 +2330,7 @@ Return Value:
     ntStatus = WdfIoTargetCreate(moduleConfig->HidTargetToConnect,
                                  &attributes,
                                  &target);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
@@ -2139,7 +2344,7 @@ Return Value:
                                                 NULL);
     ntStatus = WdfIoTargetOpen(target,
                                &openParams);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
@@ -2456,6 +2661,186 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_HidTarget_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type HidTarget.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+   NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_HidTarget* moduleConfig;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_BufferPool moduleConfigBufferPool;
+    DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
+    DMF_CONFIG_ThreadedBufferQueue moduleConfigThreadedBufferQueue;
+    WDFDEVICE device;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    // Set HidTarget Modules as parent object for dynamically created Modules.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+
+    // Create Threaded Buffer Queue to handle processing of Input Report with client callback.
+    //
+    DMF_CONFIG_ThreadedBufferQueue_AND_ATTRIBUTES_INIT(&moduleConfigThreadedBufferQueue,
+                                                       &moduleAttributes);
+    moduleConfigThreadedBufferQueue.EvtThreadedBufferQueueWork = HidTarget_InputReportConsumeWork;
+    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferContextSize = 0;
+    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferCount = moduleConfig->PendedInputReadRequestCount;
+    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
+    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.PoolType = NonPagedPool;
+    moduleAttributes.ClientModuleInstanceName = "ThreadedBufferQueueInputReport";
+    moduleAttributes.PassiveLevel = TRUE;
+    ntStatus = DMF_ThreadedBufferQueue_Create(device,
+                                              &moduleAttributes,
+                                              &objectAttributes,
+                                              &moduleContext->DmfModuleThreadedBufferQueueInputReport);
+
+    // Create Continuous Request for streaming Input Reports of size retrieved from the HID capability.
+    // NOTE: Hid class would not complete the pended input report read if there is mismatch in buffer size with
+    // HidCaps.InputReportByteLength.
+    //
+    DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&moduleConfigContinuousRequestTarget,
+                                                           &moduleAttributes);
+    moduleConfigContinuousRequestTarget.BufferContextInputSize = 0;
+    moduleConfigContinuousRequestTarget.BufferContextOutputSize = 0;
+    moduleConfigContinuousRequestTarget.BufferInputSize = 0;
+    moduleConfigContinuousRequestTarget.BufferOutputSize = moduleContext->HidCaps.InputReportByteLength;;
+    moduleConfigContinuousRequestTarget.BufferCountInput = 0;
+    moduleConfigContinuousRequestTarget.BufferCountOutput = moduleConfig->PendedInputReadRequestCount;
+    moduleConfigContinuousRequestTarget.ContinuousRequestCount = moduleConfig->PendedInputReadRequestCount;
+    moduleConfigContinuousRequestTarget.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
+    moduleConfigContinuousRequestTarget.RequestType = ContinuousRequestTarget_RequestType_Read;
+    moduleConfigContinuousRequestTarget.EnableLookAsideOutput = TRUE;
+    moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferInput = NULL;
+    moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferOutput = HidTarget_InputReadExCompletionCallback;
+    moduleConfigContinuousRequestTarget.PoolTypeOutput = NonPagedPoolNx;
+    moduleConfigContinuousRequestTarget.CancelAndResendRequestInD0Callbacks = FALSE;
+    moduleConfigContinuousRequestTarget.PurgeAndStartTargetInD0Callbacks = FALSE;
+    moduleAttributes.ClientModuleInstanceName = "ContinuousRequestTargetInputReport";
+    moduleAttributes.PassiveLevel = TRUE;
+    ntStatus = DMF_ContinuousRequestTarget_Create(device,
+                                                  &moduleAttributes,
+                                                  &objectAttributes,
+                                                  &moduleContext->DmfModuleContinuousRequestTarget);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Create fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Create Buffer Pool for Input Reports of size retrieved from the HID capability.
+    // This will be used for buffers of input report read requests sent using Dmf_HidTarget_InputRead().
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                              &moduleAttributes);
+    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_INPUT_READS;
+    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
+    moduleAttributes.ClientModuleInstanceName = "BufferPoolInputReports";
+    moduleAttributes.PassiveLevel = TRUE;
+    ntStatus = DMF_BufferPool_Create(device,
+                                     &moduleAttributes,
+                                     &objectAttributes,
+                                     &moduleContext->DmfModuleBufferPoolInputReport);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // IoTarget needs to be set for the reset target module after it has been assigned.
+    // It is cleared in the close function of the module.
+    //
+     DMF_ContinuousRequestTarget_IoTargetSet(moduleContext->DmfModuleContinuousRequestTarget,
+                                             moduleContext->IoTarget);
+
+    // Start the thread for the Threaded Buffer Queue module.
+    //
+    ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    // Perform clean-up if error occurs i.e. module cannot be opened.
+    //
+    if (! NT_SUCCESS(ntStatus))
+    {
+        // Stop the thread for the Threaded Buffer Queue module.
+        //
+        if (moduleContext->DmfModuleThreadedBufferQueueInputReport != NULL)
+        {
+            DMF_ThreadedBufferQueue_Stop(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+        }
+
+        // Clear the IoTarget in the DMF_RequestTarget module.
+        //
+        DMF_ContinuousRequestTarget_IoTargetClear(moduleContext->DmfModuleContinuousRequestTarget);
+
+        // Delete dynamically created Modules.
+        //
+        if (moduleContext->DmfModuleThreadedBufferQueueInputReport != NULL)
+        {
+            WdfObjectDelete(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+            moduleContext->DmfModuleThreadedBufferQueueInputReport = NULL;
+        }
+
+        if (moduleContext->DmfModuleContinuousRequestTarget != NULL)
+        {
+            WdfObjectDelete(moduleContext->DmfModuleContinuousRequestTarget);
+            moduleContext->DmfModuleContinuousRequestTarget = NULL;
+        }
+
+        if (moduleContext->DmfModuleBufferPoolInputReport != NULL)
+        {
+            WdfObjectDelete(moduleContext->DmfModuleBufferPoolInputReport);
+            moduleContext->DmfModuleBufferPoolInputReport = NULL;
+        }
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+#pragma code_seg()
+#pragma code_seg("PAGE")
 _Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -2467,7 +2852,7 @@ DMF_HidTarget_Close(
 
 Routine Description:
 
-    Uninitialize an instance of a DMF Module of type Hid.
+    Uninitialize an instance of a DMF Module of type HidTarget.
 
 Arguments:
 
@@ -2486,6 +2871,34 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Stop the thread for the Threaded Buffer Queue module.
+    //
+    DMF_ThreadedBufferQueue_Stop(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+
+    // Clear the IoTarget in the DMF_RequestTarget module.
+    //
+    DMF_ContinuousRequestTarget_IoTargetClear(moduleContext->DmfModuleContinuousRequestTarget);
+
+    // Delete dynamically created Modules.
+    //
+    if (moduleContext->DmfModuleThreadedBufferQueueInputReport != NULL)
+    {
+        WdfObjectDelete(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+        moduleContext->DmfModuleThreadedBufferQueueInputReport = NULL;
+    }
+
+    if (moduleContext->DmfModuleContinuousRequestTarget != NULL)
+    {
+        WdfObjectDelete(moduleContext->DmfModuleContinuousRequestTarget);
+        moduleContext->DmfModuleContinuousRequestTarget = NULL;
+    }
+
+    if (moduleContext->DmfModuleBufferPoolInputReport != NULL)
+    {
+        WdfObjectDelete(moduleContext->DmfModuleBufferPoolInputReport);
+        moduleContext->DmfModuleBufferPoolInputReport = NULL;
+    }
 
     // Close the associated target.
     //
@@ -2766,6 +3179,7 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_HidTarget);
     dmfCallbacksDmf_HidTarget.ModuleInstanceDestroy = DMF_HidTarget_Destroy;
+    dmfCallbacksDmf_HidTarget.DeviceOpen = DMF_HidTarget_Open;
     dmfCallbacksDmf_HidTarget.DeviceClose = DMF_HidTarget_Close;
     dmfCallbacksDmf_HidTarget.DeviceNotificationRegister = DMF_HidTarget_NotificationRegister;
     dmfCallbacksDmf_HidTarget.DeviceNotificationUnregister = DMF_HidTarget_NotificationUnregister;
@@ -2849,8 +3263,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_MEMORY_DESCRIPTOR memoryDescriptor;
-    WDF_REQUEST_SEND_OPTIONS options;
     DMF_CONTEXT_HidTarget* moduleContext;
 
     PAGED_CODE();
@@ -2863,34 +3275,32 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
-        goto Exit;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoRelease;
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&memoryDescriptor,
-                                      Buffer,
-                                      BufferLength);
-
-    WDF_REQUEST_SEND_OPTIONS_INIT(&options,
-                                  WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
-    if (TimeoutMs > 0)
+    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                             NULL,
+                                                             0,
+                                                             Buffer,
+                                                             BufferLength,
+                                                             ContinuousRequestTarget_RequestType_Read,
+                                                             0,
+                                                             TimeoutMs,
+                                                             NULL);
+    if (! NT_SUCCESS(ntStatus))
     {
-        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&options,
-                                             WDF_REL_TIMEOUT_IN_MS(TimeoutMs));
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
-    ntStatus = WdfIoTargetSendReadSynchronously(moduleContext->IoTarget,
-                                                NULL,
-                                                &memoryDescriptor,
-                                                NULL,
-                                                &options,
-                                                NULL);
+Exit:
 
     DMF_ModuleDereference(DmfModule);
 
-Exit:
+ExitNoRelease:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -2928,8 +3338,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_MEMORY_DESCRIPTOR memoryDescriptor;
-    WDF_REQUEST_SEND_OPTIONS options;
     DMF_CONTEXT_HidTarget* moduleContext;
 
     PAGED_CODE();
@@ -2942,33 +3350,32 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
-        goto Exit;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoRelease;
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&memoryDescriptor,
-                                      Buffer,
-                                      BufferLength);
-    WDF_REQUEST_SEND_OPTIONS_INIT(&options,
-                                  WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
-    if (TimeoutMs > 0)
+    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                             Buffer,
+                                                             BufferLength,
+                                                             NULL,
+                                                             0,
+                                                             ContinuousRequestTarget_RequestType_Write,
+                                                             0,
+                                                             TimeoutMs,
+                                                             NULL);
+    if (! NT_SUCCESS(ntStatus))
     {
-        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&options,
-                                             WDF_REL_TIMEOUT_IN_MS(TimeoutMs));
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
-    ntStatus = WdfIoTargetSendWriteSynchronously(moduleContext->IoTarget,
-                                                 NULL,
-                                                 &memoryDescriptor,
-                                                 NULL,
-                                                 &options,
-                                                 NULL);
+Exit:
 
     DMF_ModuleDereference(DmfModule);
 
-Exit:
+ExitNoRelease:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -3008,7 +3415,6 @@ Return Value:
 
 --*/
 {
-    WDF_MEMORY_DESCRIPTOR outputDescriptor;
     PHIDP_PREPARSED_DATA preparsedData;
     CHAR* report;
     NTSTATUS ntStatus;
@@ -3031,9 +3437,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
@@ -3050,7 +3454,6 @@ Return Value:
                     "Insufficient buffer length: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-
 
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = DmfModule;
@@ -3089,22 +3492,18 @@ Return Value:
         goto Exit;
     }
 
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
-                                      report,
-                                      moduleContext->HidCaps.FeatureReportByteLength);
-    ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
-                                                 NULL,
-                                                 IOCTL_HID_GET_FEATURE,
-                                                 NULL,
-                                                 &outputDescriptor,
-                                                 NULL,
-                                                 NULL);
+    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                             NULL,
+                                                             0,
+                                                             report,
+                                                             moduleContext->HidCaps.FeatureReportByteLength,
+                                                             ContinuousRequestTarget_RequestType_Ioctl,
+                                                             IOCTL_HID_GET_FEATURE,
+                                                             0,
+                                                             NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!",
-                    ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3172,7 +3571,6 @@ Return Value:
 
 --*/
 {
-    WDF_MEMORY_DESCRIPTOR outputDescriptor;
     PHIDP_PREPARSED_DATA preparsedData;
     CHAR* report;
     NTSTATUS ntStatus;
@@ -3194,7 +3592,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
@@ -3248,10 +3646,6 @@ Return Value:
         goto Exit;
     }
 
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
-                                      report,
-                                      moduleContext->HidCaps.FeatureReportByteLength);
-
     // When the data to copy is partial, get the full feature report
     // so that the partial contents can be copied into it.
     //
@@ -3259,16 +3653,18 @@ Return Value:
     {
         // Get the Feature report Buffer
         //
-        ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
-                                                     NULL,
-                                                     IOCTL_HID_GET_FEATURE,
-                                                     NULL,
-                                                     &outputDescriptor,
-                                                     NULL,
-                                                     NULL);
+        ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                                 NULL,
+                                                                 0,
+                                                                 report,
+                                                                 moduleContext->HidCaps.FeatureReportByteLength,
+                                                                 ContinuousRequestTarget_RequestType_Ioctl,
+                                                                 IOCTL_HID_GET_FEATURE,
+                                                                 0,
+                                                                 NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -3279,16 +3675,18 @@ Return Value:
                   Buffer,
                   NumberOfBytesToCopy);
 
-    ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
-                                                 NULL,
-                                                 IOCTL_HID_SET_FEATURE,
-                                                 &outputDescriptor,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL);
+    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                             report,
+                                                             moduleContext->HidCaps.FeatureReportByteLength,
+                                                             NULL,
+                                                             0,
+                                                             ContinuousRequestTarget_RequestType_Ioctl,
+                                                             IOCTL_HID_SET_FEATURE,
+                                                             0,
+                                                             NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3344,7 +3742,6 @@ Return Value:
 
 --*/
 {
-    WDF_MEMORY_DESCRIPTOR outputDescriptor;
     PHIDP_PREPARSED_DATA preparsedData;
     CHAR* report;
     NTSTATUS ntStatus;
@@ -3370,7 +3767,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
@@ -3405,7 +3802,7 @@ Return Value:
                                sizeof(HIDP_VALUE_CAPS) * moduleContext->HidCaps.NumberFeatureValueCaps,
                                &memoryValueCaps,
                                (PVOID*)&valueCaps);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceError(DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -3416,7 +3813,7 @@ Return Value:
                                  valueCaps, 
                                  &capsCountFound, 
                                  preparsedData);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceError(DMF_TRACE, "HidP_GetValueCaps fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -3490,10 +3887,6 @@ Return Value:
         }
     }
 
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
-                                      report,
-                                      featureReportByteLength);
-
     // When the data to copy is partial, get the full feature report
     // so that the partial contents can be copied into it.
     //
@@ -3501,16 +3894,18 @@ Return Value:
     {
         // Get the Feature report Buffer
         //
-        ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
-                                                     NULL,
-                                                     IOCTL_HID_GET_FEATURE,
-                                                     NULL,
-                                                     &outputDescriptor,
-                                                     NULL,
-                                                     NULL);
+        ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                                 NULL,
+                                                                 0,
+                                                                 report,
+                                                                 featureReportByteLength,
+                                                                 ContinuousRequestTarget_RequestType_Ioctl,
+                                                                 IOCTL_HID_GET_FEATURE,
+                                                                 0,
+                                                                 NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -3521,16 +3916,18 @@ Return Value:
                   Buffer,
                   NumberOfBytesToCopy);
 
-    ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
-                                                 NULL,
-                                                 IOCTL_HID_SET_FEATURE,
-                                                 &outputDescriptor,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL);
+    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                             report,
+                                                             featureReportByteLength,
+                                                             NULL,
+                                                             0,
+                                                             ContinuousRequestTarget_RequestType_Ioctl,
+                                                             IOCTL_HID_SET_FEATURE,
+                                                             0,
+                                                             NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3567,7 +3964,7 @@ DMF_HidTarget_InputRead(
 
 Routine Description:
 
-    Submits an input report read request. This function allocate a buffer and sends it to the target. 
+    Submits a single input report read request. This function retrieves a buffer and sends it to the target.
     The size of this buffer matches with the input report size the hid expects.
 
 Arguments:
@@ -3581,10 +3978,91 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    PUCHAR buffer;
     DMF_CONTEXT_HidTarget* moduleContext;
-    WDFREQUEST  request;
-    WDFMEMORY  memory;
-    WDF_OBJECT_ATTRIBUTES attributes;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
+
+    buffer = NULL;
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoRelease;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolInputReport,
+                                  (PVOID*)&buffer,
+                                  NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Get fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = DMF_ContinuousRequestTarget_Send(moduleContext->DmfModuleContinuousRequestTarget,
+                                                NULL,
+                                                0,
+                                                buffer,
+                                                moduleContext->HidCaps.InputReportByteLength,
+                                                ContinuousRequestTarget_RequestType_Read,
+                                                0,
+                                                0,
+                                                HidTarget_InputReadCompletionCallback,
+                                                NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolInputReport,
+                           buffer);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Send fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoRelease:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_HidTarget_InputReadCancel(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+   Cancels all pending input report read requests for Input Reports and waits for all requests to return.
+   This function should only be used if DMF_HidTarget_InputReadEx() was used to pend the requests.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
 
     PAGED_CODE();
 
@@ -3596,68 +4074,74 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus= %!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Stop streaming asynchronous requests and wait for request cancellation to complete.
+    //
+    DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_InputReadEx(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Submits a number of input report read requests. The number is determined by PendedInputReadRequestCount
+    in the module config. The size of the request buffer matches with the input report size the hid expects.
+    If this function is used, the read requests can be cancelled using Dmf_InputReadCancel.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus= %!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    ntStatus = WdfRequestCreate(&attributes,
-                                moduleContext->IoTarget,
-                                &request);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestCreate ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Create a buffer of size retrieved from the HID capability.
-    // NOTE: Hid class would not complete the pended input read if there is mismatch in buffer size with
-    // HidCaps.InputReportByteLength.
+    // Start streaming asynchronous requests.
     //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = request;
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               MemoryTag,
-                               moduleContext->HidCaps.InputReportByteLength,
-                               &memory,
-                               NULL);
+    ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Format and send the request.
-    //
-    ntStatus = WdfIoTargetFormatRequestForRead(moduleContext->IoTarget,
-                                               request,
-                                               memory,
-                                               NULL,
-                                               NULL);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetFormatRequestForRead ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    WdfRequestSetCompletionRoutine(request,
-                                   HidTarget_ReadCompletionRoutine,
-                                   DmfModule);
-
-    if (! WdfRequestSend(request,
-                         moduleContext->IoTarget,
-                         NULL))
-    {
-        ntStatus = WdfRequestGetStatus(request);
-        if (NT_SUCCESS(ntStatus))
-        {
-            ntStatus = STATUS_INVALID_DEVICE_STATE;
-        }
-
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3690,8 +4174,8 @@ Routine Description:
     NOTE: This function is not normally used to read Input Reports. Use it only if 
           the underlying device is known to not asynchronously respond reliably. If 
           there is no data available within 5 seconds, this call will complete
-          regardless whereas the normally used Method (DMF_HidTarget_InputRead)
-          will continue to wait.
+          regardless whereas the normally used Methods (DMF_HidTarget_InputRead) and
+          (DMF_HidTarget_InputReadEx) will continue to wait.
 
 Arguments:
 
@@ -3718,9 +4202,9 @@ Return Value:
                                  HidTarget);
 
     ntStatus = DMF_ModuleReference(DmfModule);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
@@ -3807,8 +4291,6 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_HidTarget* moduleContext;
-    WDF_MEMORY_DESCRIPTOR outputDescriptor;
-    WDF_REQUEST_SEND_OPTIONS options;
 
     PAGED_CODE();
 
@@ -3820,39 +4302,24 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputDescriptor,
-                                      Buffer,
-                                      BufferSize);
-
-    WDF_REQUEST_SEND_OPTIONS_INIT(&options,
-                                  WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
-    if (TimeoutMs > 0)
-    {
-        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&options,
-                                             WDF_REL_TIMEOUT_IN_MS(TimeoutMs));
-    }
-
-    ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
-                                                 NULL,
-                                                 IOCTL_HID_SET_OUTPUT_REPORT,
-                                                 &outputDescriptor,
-                                                 NULL,
-                                                 &options,
-                                                 NULL);
+    ntStatus = DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
+                                                             Buffer,
+                                                             BufferSize,
+                                                             NULL,
+                                                             0,
+                                                             ContinuousRequestTarget_RequestType_Ioctl,
+                                                             IOCTL_HID_SET_OUTPUT_REPORT,
+                                                             TimeoutMs,
+                                                             NULL);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "WdfIoTargetSendIoctlSynchronously fails: ntStatus=%!STATUS!",
-                    ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_SendSynchronously fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3907,9 +4374,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
@@ -4007,7 +4472,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoRelease;
     }
 
@@ -4064,7 +4529,7 @@ Return Value:
                                           reportLength);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HidP_InitializeReportForID ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HidP_InitializeReportForID fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

@@ -85,6 +85,9 @@ typedef struct
     // a device, based on the look up criteria the client provided.
     //
     EVT_DMF_HidTarget_DeviceSelectionCallback* EvtHidTargetDeviceSelectionCallback;
+    // Number of input report read requests to pend asynchronously.
+    //
+    ULONG PendedInputReadRequestCount;
 } DMF_CONFIG_HidTarget;
 
 // This macro declares the following functions:
@@ -157,6 +160,19 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_InputRead(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_HidTarget_InputReadCancel(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_InputReadEx(
     _In_ DMFMODULE DmfModule
     );
 
