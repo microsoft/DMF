@@ -388,7 +388,15 @@ Return Value:
     // and prevent new Methods from starting because the IoTarget will be 
     // set to NULL.
     //
-    DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
+    if (Target->DmfModuleRundown != NULL)
+    {
+        // This Module is only created after the target has been opened. So, if the
+        // underlying target cannot open and returns error, this Module is not created.
+        // In that case, this clean up function must check to see if the handle is
+        // valid otherwise a BSOD will happen.
+        //
+        DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
+    }
 
     // It is important to check the IoTarget because it may have been closed via 
     // two asynchronous removal paths: 1. Device is removed. 2. Underlying target is removed.

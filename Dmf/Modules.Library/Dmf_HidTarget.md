@@ -56,6 +56,9 @@ typedef struct
   // a device, based on the look up criteria the client provided.
   //
   EVT_DMF_HidTarget_DeviceSelectionCallback* EvtHidTargetDeviceSelectionCallback;
+  // Number of input report read requests to pend asynchronously.
+  //
+  ULONG PendedInputReadRequestCount;
 } DMF_CONFIG_HidTarget;
 ````
 Member | Description
@@ -74,7 +77,8 @@ ShareAccess | Indicates if the HID device is opened in exclusive or shared mode.
 EvtHidTargetInputReport | Allows the Client to populate the Input report buffer that the instance of this Module has created.
 SkipHidDeviceEnumerationSearch | Indicates that this instance of the Module will not search for the HID device. Instead, a WDFIOTARGET will be passed using HidTargetToConnect.
 HidTargetToConnect | The HID device to connect to when SkipHidDeviceEnumerationSearch is TRUE.
-
+EvtHidTargetDeviceSelectionCallback | Allows the Client to select the exact target the Client wants to open.
+PendedInputReadRequestCount | The number of input read requests to pend aynchronously.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
@@ -328,10 +332,61 @@ DMF_HidTarget_InputRead(
   );
 ````
 
-Allows the Client to send a "Input Report Read" command to the HID device connected the instance of this Module.
+Allows the Client to send a single input report read request to the HID device connected the instance of this Module.
 
 NOTE: This call is asynchronous. Please see comments for DMF_HidTarget_InputReportRead() for
       more information.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_HidTarget_InputReadCancel
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+VOID
+DMF_HidTarget_InputReadCancel(
+  _In_ DMFMODULE DmfModule
+  );
+````
+
+Allows the client to cancel all pended input report read requests sent to the HID device connected the instance of this Module using _DMF_HidTarget_InputReadEx()_.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_HidTarget_InputReadEx
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_InputReadEx(
+  _In_ DMFMODULE DmfModule
+  );
+````
+
+Allows the Client to send _PendedInputReadRequestCount_ number of input report read requests to the HID device connected the instance of this Module.
+
+NOTE: The requests sent here are automatically sent back to the HID device after completion unless
+      the request is cancelled or device disconnected.
 
 ##### Returns
 

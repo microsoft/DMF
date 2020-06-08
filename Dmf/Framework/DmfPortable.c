@@ -33,11 +33,11 @@ Environment:
 #define MINOR_VERSION_WINDOWS_10  0
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
+NTSTATUS
 DMF_Portable_EventCreate(
     _Out_ DMF_PORTABLE_EVENT* EventPointer,
     _In_ EVENT_TYPE EventType,
-    _In_ BOOLEAN State
+    _In_ BOOLEAN InitialState
     )
 /*++
 
@@ -48,33 +48,61 @@ Routine Description:
 Arguments:
 
     EventPointer - Pointer to Event Object Storage.
-    EventType - Notification or Synchronization. Used only in Kernel-mode.
-    State - Initial State of the Event.
+    EventType - Notification or Synchronization.
+    InitialState - Initial State of the Event.
 
 Return Value:
 
-    None
+    NTSTATUS.
 
 --*/
 {
+    NTSTATUS ntStatus;
+
     FuncEntry(DMF_TRACE);
 
     DmfAssert(EventPointer != NULL);
+    DmfAssert((EventType == SynchronizationEvent) ||
+              (EventType == NotificationEvent));
+
+    ntStatus = STATUS_SUCCESS;
 
 #if defined(DMF_USER_MODE)
-    UNREFERENCED_PARAMETER(EventType);
+    BOOL manualReset;
+
+    if (EventType == SynchronizationEvent)
+    {
+        manualReset = FALSE;
+    }
+    else if (EventType == NotificationEvent)
+    {
+        manualReset = TRUE;
+    }
+    else
+    {
+        DmfAssert(FALSE);
+        manualReset = FALSE;
+    }
 
     EventPointer->Handle = CreateEvent(NULL,
-                                       FALSE,
-                                       State,
+                                       manualReset,
+                                       InitialState,
                                        NULL);
+
+    if (EventPointer->Handle == NULL)
+    {
+        ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CreateEvent fails: %!STATUS!", ntStatus);
+    }
 #else
     KeInitializeEvent(&EventPointer->Handle,
                       EventType,
-                      State);
+                      InitialState);
 #endif // defined(DMF_USER_MODE)
 
-    FuncExitVoid(DMF_TRACE);
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

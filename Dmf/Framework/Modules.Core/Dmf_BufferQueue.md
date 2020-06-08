@@ -29,7 +29,7 @@ typedef struct
 ````
 Member | Description.
 ----|----
-SourceSettings | Indicates the settings for a producer list. Since the producer list is internally implemented as a DMF_BufferPool source-mode list, kindly refer to the [DMF_BufferPool](DMF_BufferPool.md) for details of this structure.
+SourceSettings | Indicates the settings for a producer list. Since the producer list is internally implemented as a DMF_BufferPool source-mode list, kindly refer to the [DMF_BufferPool](Dmf_BufferPool.md) for details of this structure.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -212,8 +212,8 @@ ClientBufferContext | ClientBufferContext is used to return a DMF_BufferQueue bu
 ##### Remarks
 
 * Clients use this Method when they need to search or perform actions on all the buffers in a DMF_BufferQueue's Consumer list.
-* Since the consumer list is implemented as a DMF_BufferPool, the enumeration callback type is defined by the [DMF_BufferPool](DMF_BufferPool.md). It is important to note that the DMFMODULE handle received in the callback is the handle of the internal DMF_BufferPool and not DMF_BufferQueue object. The Client must call DMF_ParentModuleGet to retrieve the handle to DMF_BufferQueue. The Client must not use the handle to the internal DMF_BufferPool Module for any other purpose. 
-* The EntryEnumerationCallback is called with an internal lock held. Kindly review the documentation for the [callback](DMF_BufferPool.md).  
+* Since the consumer list is implemented as a DMF_BufferPool, the enumeration callback type is defined by the [DMF_BufferPool](Dmf_BufferPool.md). It is important to note that the DMFMODULE handle received in the callback is the handle of the internal DMF_BufferPool and not DMF_BufferQueue object. The Client must call DMF_ParentModuleGet to retrieve the handle to DMF_BufferQueue. The Client must not use the handle to the internal DMF_BufferPool Module for any other purpose. 
+* The EntryEnumerationCallback is called with an internal lock held. Kindly review the documentation for the [callback](Dmf_BufferPool.md).  
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -332,7 +332,7 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 #### Module Implementation Details
 
 * Internally the module is composed of two lists: producer and consumer. The producer list acts as a source of unused buffers and consumer list tracks to-be-done work. During creation, a specificed set of empty buffers are allocated and added to the producer list and the consumer list is empty.
-* This Module instantiates two instances of DMF_BufferPool. The Producer is a source-mode [DMF_BufferPool](DMF_BufferPool.md) instance. The Consumer is a sink-mode DMF_BufferPool instance.
+* This Module instantiates two instances of DMF_BufferPool. The Producer is a source-mode [DMF_BufferPool](Dmf_BufferPool.md) instance. The Consumer is a sink-mode DMF_BufferPool instance.
 
 
 ![DMF_BufferPool Types](./images/DMF_BufferQueue-1.png)

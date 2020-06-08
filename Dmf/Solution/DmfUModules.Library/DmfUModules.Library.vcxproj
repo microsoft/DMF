@@ -175,6 +175,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_File.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HingeAngle.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_I2cTarget.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_File.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HingeAngle.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_I2cTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c" />

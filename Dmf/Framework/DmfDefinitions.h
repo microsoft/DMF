@@ -1277,11 +1277,11 @@ typedef struct _DMF_PORTABLE_RUNDOWN
 #define DMF_VERSIONCHECK_BUILD_NUMBER_20H1  19041
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-VOID 
+NTSTATUS
 DMF_Portable_EventCreate(
     _Out_ DMF_PORTABLE_EVENT* EventPointer,
     _In_ EVENT_TYPE EventType,
-    _In_ BOOLEAN State
+    _In_ BOOLEAN InitialState
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
