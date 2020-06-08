@@ -1303,6 +1303,7 @@ Return Value:
     // Create the auxiliary locks based on Module Options.
     //
     ntStatus = DMF_SynchronizationCreate(dmfObject,
+                                         memoryDmfObject,
                                          DmfModuleAttributes->PassiveLevel);
     if (!NT_SUCCESS(ntStatus))
     {

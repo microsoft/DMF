@@ -398,6 +398,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_SynchronizationCreate(
     _In_ DMF_OBJECT* DmfObject,
+    _In_ WDFMEMORY ParentObject,
     _In_ BOOLEAN PassiveLevel
     )
 /*++
@@ -467,7 +468,7 @@ Return Value:
         for (lockIndex = 0; lockIndex < moduleDescriptor->NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS; lockIndex++)
         {
             WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-            attributes.ParentObject = DmfObject->ParentDevice;
+            attributes.ParentObject = ParentObject;
             ntStatus = WdfWaitLockCreate(&attributes,
                                          &DmfObject->Synchronizations[lockIndex].SynchronizationPassiveWaitLock);
             if (! NT_SUCCESS(ntStatus))
@@ -486,7 +487,7 @@ Return Value:
         for (lockIndex = 0; lockIndex < moduleDescriptor->NumberOfAuxiliaryLocks + DMF_NUMBER_OF_DEFAULT_LOCKS; lockIndex++)
         {
             WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-            attributes.ParentObject = DmfObject->ParentDevice;
+            attributes.ParentObject = ParentObject;
             ntStatus = WdfSpinLockCreate(&attributes,
                                          &DmfObject->Synchronizations[lockIndex].SynchronizationDispatchSpinLock);
             if (! NT_SUCCESS(ntStatus))
