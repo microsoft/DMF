@@ -548,6 +548,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_SynchronizationCreate(
     _In_ DMF_OBJECT* DmfObject,
+    _In_ WDFMEMORY ParentObject,
     _In_ BOOLEAN PassiveLevel
     );
 
