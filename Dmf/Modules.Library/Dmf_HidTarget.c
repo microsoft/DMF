@@ -2688,9 +2688,7 @@ Return Value:
     DMF_CONFIG_HidTarget* moduleConfig;
     DMF_CONTEXT_HidTarget* moduleContext;
     DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMF_CONFIG_BufferPool moduleConfigBufferPool;
     DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
-    DMF_CONFIG_ThreadedBufferQueue moduleConfigThreadedBufferQueue;
     WDFDEVICE device;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
 
@@ -2698,6 +2696,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -2708,22 +2707,64 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
 
-    // Create Threaded Buffer Queue to handle processing of Input Report with client callback.
-    //
-    DMF_CONFIG_ThreadedBufferQueue_AND_ATTRIBUTES_INIT(&moduleConfigThreadedBufferQueue,
-                                                       &moduleAttributes);
-    moduleConfigThreadedBufferQueue.EvtThreadedBufferQueueWork = HidTarget_InputReportConsumeWork;
-    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferContextSize = 0;
-    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferCount = moduleConfig->PendedInputReadRequestCount;
-    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
-    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.PoolType = NonPagedPool;
-    moduleAttributes.ClientModuleInstanceName = "ThreadedBufferQueueInputReport";
-    moduleAttributes.PassiveLevel = TRUE;
-    ntStatus = DMF_ThreadedBufferQueue_Create(device,
-                                              &moduleAttributes,
-                                              &objectAttributes,
-                                              &moduleContext->DmfModuleThreadedBufferQueueInputReport);
+    if (moduleContext->HidCaps.InputReportByteLength > 0)
+    {
+        // Modules created in this if block support sending and processing input reports.
+        // They are not necessary if the HID descriptor has input report length greater than zero.
+        //
+
+        DMF_CONFIG_BufferPool moduleConfigBufferPool;
+        DMF_CONFIG_ThreadedBufferQueue moduleConfigThreadedBufferQueue;
+
+        // Create Threaded Buffer Queue to handle processing of Input Report with client callback.
+        //
+        DMF_CONFIG_ThreadedBufferQueue_AND_ATTRIBUTES_INIT(&moduleConfigThreadedBufferQueue,
+                                                           &moduleAttributes);
+        moduleConfigThreadedBufferQueue.EvtThreadedBufferQueueWork = HidTarget_InputReportConsumeWork;
+        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferContextSize = 0;
+        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferCount = moduleConfig->PendedInputReadRequestCount;
+        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
+        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
+        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.PoolType = NonPagedPool;
+        moduleAttributes.ClientModuleInstanceName = "ThreadedBufferQueueInputReport";
+        moduleAttributes.PassiveLevel = TRUE;
+        ntStatus = DMF_ThreadedBufferQueue_Create(device,
+                                                  &moduleAttributes,
+                                                  &objectAttributes,
+                                                  &moduleContext->DmfModuleThreadedBufferQueueInputReport);
+
+        // Create Buffer Pool for Input Reports of size retrieved from the HID capability.
+        // This will be used for buffers of input report read requests sent using Dmf_HidTarget_InputRead().
+        //
+        DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                                  &moduleAttributes);
+        moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+        moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_INPUT_READS;
+        moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
+        moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
+        moduleAttributes.ClientModuleInstanceName = "BufferPoolInputReports";
+        moduleAttributes.PassiveLevel = TRUE;
+        ntStatus = DMF_BufferPool_Create(device,
+                                         &moduleAttributes,
+                                         &objectAttributes,
+                                         &moduleContext->DmfModuleBufferPoolInputReport);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        // Start the thread for the Threaded Buffer Queue module.
+        //
+        ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
 
     // Create Continuous Request for streaming Input Reports of size retrieved from the HID capability.
     // NOTE: Hid class would not complete the pended input report read if there is mismatch in buffer size with
@@ -2758,43 +2799,11 @@ Return Value:
         goto Exit;
     }
 
-    // Create Buffer Pool for Input Reports of size retrieved from the HID capability.
-    // This will be used for buffers of input report read requests sent using Dmf_HidTarget_InputRead().
-    //
-    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
-                                              &moduleAttributes);
-    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
-    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_INPUT_READS;
-    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
-    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
-    moduleAttributes.ClientModuleInstanceName = "BufferPoolInputReports";
-    moduleAttributes.PassiveLevel = TRUE;
-    ntStatus = DMF_BufferPool_Create(device,
-                                     &moduleAttributes,
-                                     &objectAttributes,
-                                     &moduleContext->DmfModuleBufferPoolInputReport);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
     // IoTarget needs to be set for the reset target module after it has been assigned.
     // It is cleared in the close function of the module.
     //
      DMF_ContinuousRequestTarget_IoTargetSet(moduleContext->DmfModuleContinuousRequestTarget,
                                              moduleContext->IoTarget);
-
-    // Start the thread for the Threaded Buffer Queue module.
-    //
-    ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
 
 Exit:
 
@@ -2872,9 +2881,16 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // Close the associated target.
+    //
+    HidTarget_IoTargetDestroy(moduleContext);
+
     // Stop the thread for the Threaded Buffer Queue module.
     //
-    DMF_ThreadedBufferQueue_Stop(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+    if (moduleContext->DmfModuleThreadedBufferQueueInputReport != NULL)
+    {
+        DMF_ThreadedBufferQueue_Stop(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+    }
 
     // Clear the IoTarget in the DMF_RequestTarget module.
     //
@@ -2899,10 +2915,6 @@ Return Value:
         WdfObjectDelete(moduleContext->DmfModuleBufferPoolInputReport);
         moduleContext->DmfModuleBufferPoolInputReport = NULL;
     }
-
-    // Close the associated target.
-    //
-    HidTarget_IoTargetDestroy(moduleContext);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -3218,7 +3230,7 @@ Return Value:
     ntStatus = DMF_ModuleInterfaceDescriptorAdd(*DmfModule,
                                                 (DMF_INTERFACE_DESCRIPTOR*)&BusTargetDeclarationData);
 
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleInterfaceDescriptorAdd fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -3999,6 +4011,16 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // Input read should not be pended if the input report size is zero.
+    //
+    if (moduleContext->HidCaps.InputReportByteLength > 0)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Cannot pend input report with InputReportByteLength of size %d", moduleContext->HidCaps.InputReportByteLength);
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+        goto Exit;
+    }
+
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolInputReport,
                                   (PVOID*)&buffer,
                                   NULL);
@@ -4135,6 +4157,16 @@ Return Value:
     }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Input read should not be pended if the input report size is zero.
+    //
+    if (moduleContext->HidCaps.InputReportByteLength > 0)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Cannot pend input report with InputReportByteLength of size %d", moduleContext->HidCaps.InputReportByteLength);
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+        goto Exit;
+    }
 
     // Start streaming asynchronous requests.
     //

@@ -73,8 +73,11 @@ typedef enum _COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_PLATFORM = 0x05,               // The offer's Platform ID does not correlate to the receiving hardware product. 
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_MILESTONE = 0x06,              // The offer's Milestone does not correlate to the receiving hardware's Build ID. 
     COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_PCOL_REV = 0x07,           // The offer indicates an interface Protocol Revision that the receiving product does not support. 
-    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VARIANT = 0x08,                // The combination of Milestone & Compatibility Variants Mask did not match the HW. 
+    COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VARIANT = 0x08,                // The combination of Milestone & Compatibility Variants Mask did not match the HW.
 } COMPONENT_FIRMWARE_UPDATE_OFFER_RESPONSE_REJECT_REASON;
+
+#define COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VENDOR_SPECIFIC_MIN 0XE0   // The vendor specific reject reasons range between 0XE0 - 0XFF
+#define COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VENDOR_SPECIFIC_MAX 0XFF   
 
 typedef enum _COMPONENT_FIRMWARE_UPDATE_FLAG
 {
