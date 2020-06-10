@@ -96,9 +96,11 @@ DMF_MODULE_DECLARE_NO_CONFIG(Tests_RingBuffer)
                                    sizeof(data));                         \
     if (NT_SUCCESS(ntStatus))                                             \
     {                                                                     \
+        ntStatus = STATUS_UNSUCCESSFUL;                                   \
         DmfAssert(FALSE);                                                 \
         goto Exit;                                                        \
-    }
+    }                                                                     \
+    ntStatus = STATUS_SUCCESS;
 
 #define ENUM_AND_VERIFY(FirstItem, NumberOfItems)                         \
 {                                                                         \
