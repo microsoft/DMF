@@ -446,7 +446,7 @@ Return Value:
     moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget*)ClientRequestContext;
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MDI: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
                 sleepIoctlBuffer->TimeToSleepMilliseconds,
                 InputBuffer);
 
@@ -502,10 +502,17 @@ Return Value:
 
     moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget*)ClientRequestContext;
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MDI: CANCELED sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
+                sleepIoctlBuffer->TimeToSleepMilliseconds,
+                InputBuffer);
+
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
 
+#if !defined(DMF_WIN32_MODE)
     DmfAssert(STATUS_CANCELLED == CompletionStatus);
+#endif
 }
 
 #pragma code_seg("PAGE")
@@ -795,8 +802,6 @@ Return Value:
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -969,7 +974,7 @@ Return Value:
     
     DmfAssert(timeToSleepMilliseconds >= MINIMUM_SLEEP_TIME_MS);
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SEND: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MDI: SEND: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
                 timeToSleepMilliseconds,
                 sleepIoctlBuffer);
     bytesWritten = 0;
@@ -1008,8 +1013,10 @@ Return Value:
     requestCanceled = DMF_DeviceInterfaceMultipleTarget_Cancel(InstanceToSendTo,
                                                                Target,
                                                                DmfRequestId);
+#if !defined(DMF_WIN32_MODE)
     DmfAssert(! requestCanceled);
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "END: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+#endif
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MDI: CANCELED: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
                 timeToSleepMilliseconds,
                 sleepIoctlBuffer);
 
@@ -1027,6 +1034,9 @@ Return Value:
 
     DmfAssert(timeToSleepMilliseconds >= MINIMUM_SLEEP_TIME_MS);
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MDI: SEND: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+                timeToSleepMilliseconds,
+                sleepIoctlBuffer);
     bytesWritten = 0;
     ntStatus = DMF_DeviceInterfaceMultipleTarget_SendEx(InstanceToSendTo,
                                                         Target,
@@ -1557,7 +1567,6 @@ Return Value:
         ntStatus = DMF_Thread_Start(targetContext->DmfModuleThread[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -1662,8 +1671,6 @@ Return Value:
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
     targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
@@ -1677,7 +1684,6 @@ Return Value:
                                         (VOID**)&targetContext);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1701,7 +1707,6 @@ Return Value:
                                      &targetContext->DmfModuleThread[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1715,7 +1720,6 @@ Return Value:
                                              &targetContext->DmfModuleAlertableSleep[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Create fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1737,8 +1741,7 @@ Return Value:
     DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
+    ;
 }
 #pragma code_seg()
 
@@ -1771,8 +1774,6 @@ Return Value:
 
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->%!FUNC!");
-
     targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
 
     Tests_DeviceInterfaceMultipleTarget_TargetThreadsStop(DmfModule,
@@ -1784,8 +1785,6 @@ Return Value:
         WdfObjectDelete(targetContext->DmfModuleAlertableSleep[threadIndex]);
         targetContext->DmfModuleAlertableSleep[threadIndex] = NULL;
     }
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--%!FUNC!");
 }
 #pragma code_seg()
 

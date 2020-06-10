@@ -311,8 +311,16 @@ ComponentFirmwareUpdateOfferResponseRejectString(
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_INV_PCOL_REV);
         MAKE_CASE(COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VARIANT);
         default:
-            DmfAssert(FALSE);
-            return "Unknown";
+            if (FirmwareUpdateOfferRejectReason >= COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VENDOR_SPECIFIC_MIN &&
+                FirmwareUpdateOfferRejectReason <= COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VENDOR_SPECIFIC_MAX)
+            {
+                return "COMPONENT_FIRMWARE_UPDATE_OFFER_REJECT_VENDOR_SPECIFIC"; 
+            }
+            else 
+            {
+                DmfAssert(FALSE);
+                return "Unknown";
+            }
     }
 }
 
