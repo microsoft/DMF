@@ -107,7 +107,7 @@ public:
 
 // MobileBroadband's module context.
 //
-typedef struct
+typedef struct _DMF_CONTEXT_MobileBroadband
 {
     // MobileBroadbandModemDevice class instance pointer.
     //
