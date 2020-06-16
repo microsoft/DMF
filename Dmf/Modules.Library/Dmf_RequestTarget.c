@@ -1104,14 +1104,10 @@ Return Value:
     moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
     moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
     moduleConfigBufferPool.Mode.SourceSettings.BufferCount = 1;
-    if (DmfParentModuleAttributes->PassiveLevel)
-    {
-        moduleConfigBufferPool.Mode.SourceSettings.PoolType = PagedPool;
-    }
-    else
-    {
-        moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
-    }
+    // NOTE: BufferPool context must always be NonPagedPool because it is accessed in the
+    //       completion routine running at DISPATCH_LEVEL.
+    //
+    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
     moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(RequestTarget_SingleAsynchronousRequestContext);
     moduleAttributes.ClientModuleInstanceName = "BufferPoolContext";
     moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;

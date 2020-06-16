@@ -28,9 +28,6 @@
     <ClCompile Include="ioctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bulkrwr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Interrupt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -52,16 +49,7 @@
     <ClCompile Include="Interrupt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; Interrupt.c">
+    <ClCompile Include="driver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,19 +62,19 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <Inf Include="osrusbfx2dmf3.inx">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="osrusbfx2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

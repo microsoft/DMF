@@ -260,10 +260,11 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Exclude="@(ClInclude)" Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd" />
+    <Inf Include="osrusbfx2dmf4.inx" />
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="osrusbfx2dmf4.inx" />
+    <ClInclude Include="osrusbfx2.h" />
+    <ClInclude Include="trace.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

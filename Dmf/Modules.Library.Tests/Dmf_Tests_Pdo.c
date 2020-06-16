@@ -43,8 +43,14 @@ Environment:
 #define PDO_ENABLE_KERNELMODE
 #define PDO_ENABLE_USERMODE
 
-#define FAST_PDO_TIMEOUT_SECONDS    (30)
-#define SLOW_PDO_TIMEOUT_SECONDS    (60)
+// Remove PDOs slowly or fast only.
+//
+#define PDO_SLOW_TIMEOUT_ONLY
+#define NO_PDO_FAST_TIMEOUT_ONLY
+
+#define MINIMUM_PDO_TIMEOUT_SECONDS     (5)
+#define FAST_PDO_TIMEOUT_SECONDS        (60)
+#define SLOW_PDO_TIMEOUT_SECONDS        (3600)  // 60 minutes for PnPDTest
 
 typedef enum _TEST_ACTION
 {
@@ -120,7 +126,8 @@ Tests_Pdo_DmfModulesAdd(
     //
     DMF_CONFIG_Tests_IoctlHandler_AND_ATTRIBUTES_INIT(&moduleConfigTests_IoctlHandler,
                                                       &moduleAttributes);
-    // This instance will only be access from attached targets. Do not create a device interface.
+    // This instance will only be accessed from attached targets. Do not create a device interface.
+    // (To be clear, this is the target for DMF_Tests_DefaultTarget.)
     //
     moduleConfigTests_IoctlHandler.CreateDeviceInterface = FALSE;
     DMF_DmfModuleAdd(DmfModuleInit,
@@ -134,6 +141,7 @@ static
 void
 Tests_Pdo_ThreadAction(
     _In_ DMFMODULE DmfModule,
+    _In_ ULONG MinimumTimeMilliseconds,
     _In_ ULONG MaximumTimeMilliseconds,
     _In_ ULONG ThreadIndex
     )
@@ -193,6 +201,7 @@ Tests_Pdo_ThreadAction(
                                     &pdoRecord,
                                     &devicePair[0]);
     DmfAssert(NT_SUCCESS(ntStatus));
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: PLUG [%S] device=0x%p", pdoRecord.Description, devicePair[0]);
 #endif
 
 #if defined(PDO_ENABLE_USERMODE)
@@ -210,11 +219,12 @@ Tests_Pdo_ThreadAction(
                                     &pdoRecord,
                                     &devicePair[1]);
     DmfAssert(NT_SUCCESS(ntStatus));
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: PLUG [%S] device=0x%p", pdoRecord.Description, devicePair[1]);
 #endif
 
     // Wait some time.
     //
-    timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(1000, 
+    timeToSleepMilliSeconds = TestsUtility_GenerateRandomNumber(MinimumTimeMilliseconds, 
                                                                 MaximumTimeMilliseconds);
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
                                         0,
@@ -229,12 +239,16 @@ Tests_Pdo_ThreadAction(
     // Destroy the PDOs.
     //
 #if defined(PDO_ENABLE_KERNELMODE)
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: UNPLUG START device=0x%p", devicePair[0]);
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
                                     devicePair[0]);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: UNPLUG END device=0x%p", devicePair[0]);
 #endif
 #if defined(PDO_ENABLE_USERMODE)
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: UNPLUG START device=0x%p", devicePair[1]);
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
                                     devicePair[1]);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: UNPLUG END device=0x%p", devicePair[1]);
 #endif
 
     // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
@@ -273,6 +287,7 @@ Tests_Pdo_ThreadAction_Fast(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
+                           1000 * MINIMUM_PDO_TIMEOUT_SECONDS,
                            1000 * FAST_PDO_TIMEOUT_SECONDS,
                            ThreadIndex);
 }
@@ -289,6 +304,7 @@ Tests_Pdo_ThreadAction_Slow(
     PAGED_CODE();
 
     Tests_Pdo_ThreadAction(DmfModule,
+                           1000 * FAST_PDO_TIMEOUT_SECONDS,
                            1000 * SLOW_PDO_TIMEOUT_SECONDS,
                            ThreadIndex);
 }
@@ -316,8 +332,14 @@ Tests_Pdo_WorkThread(
 
     // Generate a random test action Id for a current iteration.
     //
+#if defined(PDO_SLOW_TIMEOUT_ONLY)
+    testAction = TEST_ACTION_SLOW;
+#elif defined(PDO_FAST_TIMEOUT_ONLY)
+    testAction = TEST_ACTION_FAST;
+#else
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
+#endif
 
     // Execute the test action.
     //
@@ -399,10 +421,14 @@ Return Value:
                                  (PVOID*)&threadIndexContext);
         threadIndexContext->ThreadIndex = threadIndex;
 
+        // Reset the alertable sleep in case it was stopped.
+        //
+        DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep[threadIndex],
+                                         0);
+
         ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread[threadIndex]);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }

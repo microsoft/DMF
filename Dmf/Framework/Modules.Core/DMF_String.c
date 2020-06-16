@@ -347,7 +347,6 @@ Return Value:
     if (stringLength + sizeof(WCHAR) > UnicodeString->MaximumLength)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "UnicodeString's buffer is too small");
         goto Exit;
     }
 
@@ -438,7 +437,6 @@ Return Value:
     if (stringLength + sizeof(CHAR) > AnsiString->MaximumLength)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AnsiString's buffer is too small");
         goto Exit;
     }
 

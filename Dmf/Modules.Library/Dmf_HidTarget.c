@@ -2775,7 +2775,7 @@ Return Value:
     moduleConfigContinuousRequestTarget.BufferContextInputSize = 0;
     moduleConfigContinuousRequestTarget.BufferContextOutputSize = 0;
     moduleConfigContinuousRequestTarget.BufferInputSize = 0;
-    moduleConfigContinuousRequestTarget.BufferOutputSize = moduleContext->HidCaps.InputReportByteLength;;
+    moduleConfigContinuousRequestTarget.BufferOutputSize = moduleContext->HidCaps.InputReportByteLength;
     moduleConfigContinuousRequestTarget.BufferCountInput = 0;
     moduleConfigContinuousRequestTarget.BufferCountOutput = moduleConfig->PendedInputReadRequestCount;
     moduleConfigContinuousRequestTarget.ContinuousRequestCount = moduleConfig->PendedInputReadRequestCount;

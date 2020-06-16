@@ -792,7 +792,7 @@ Return Value:
                                            DMFMODULE);
 
     // Use WdfDevice instead of DmfModule as a parent, so that the work item is not disposed 
-    // prematurely when this module is deleted as a part of a dynamic module tree.
+    // prematurely when this module is deleted as a part of a Dynamic Module tree.
     //
     objectAttributes.ParentObject = device;
 
