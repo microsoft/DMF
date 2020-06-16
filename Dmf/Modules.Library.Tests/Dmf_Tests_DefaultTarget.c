@@ -46,7 +46,7 @@ Environment:
 //
 #define TIMEOUT_FAST_MS             100
 #define TIMEOUT_SLOW_MS             5000
-#define TIMEOUT_TRAFFIC_DELAY_MS    250
+#define TIMEOUT_TRAFFIC_DELAY_MS    1000
 
 // This is returned from User-mode stack sometimes.
 // TODO: Investigate root cause.
@@ -75,6 +75,12 @@ typedef struct
     DMFMODULE DmfModuleDefaultTargetDispatchInput;
     DMFMODULE DmfModuleDefaultTargetPassiveInput;
     DMFMODULE DmfModuleDefaultTargetPassiveOutput;
+    // These are needed to purge IO during D0Entry/D0Exit transitions.
+    // TODO: Allows Clients to do this without getting WDFIOTARGET directly.
+    //
+    WDFIOTARGET IoTargetDispatchInput;
+    WDFIOTARGET IoTargetPassiveInput;
+    WDFIOTARGET IoTargetPassiveOutput;
     // Source of buffers sent asynchronously.
     //
     DMFMODULE DmfModuleBufferPool;
@@ -492,17 +498,18 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
                                         timeToSleepMilliseconds / 4);
+
+    // Cancel the request if possible.
+    //
+    requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
+                                               DmfRequestId);
+
     if (!NT_SUCCESS(ntStatus))
     {
         // Driver is shutting down...get out.
         //
         goto Exit;
     }
-
-    // Cancel the request if possible.
-    //
-    requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequestId);
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -794,10 +801,12 @@ Tests_DefaultTarget_WorkThreadAuto(
     //
     if (!DMF_Thread_IsStopPending(DmfModuleThread))
     {
+        // Short delay to reduce traffic.
+        //
+        DMF_Utility_DelayMilliseconds(TIMEOUT_TRAFFIC_DELAY_MS);
         DMF_Thread_WorkReady(DmfModuleThread);
     }
 
-    DMF_Utility_DelayMilliseconds(1000);
     TestsUtility_YieldExecution();
 }
 #pragma code_seg()
@@ -1106,14 +1115,27 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
 
-    UNREFERENCED_PARAMETER(PreviousState);
-
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // The PASSIVE_LEVEL targets are manually started (although they don't need to be).
-    //
+    if (PreviousState == WdfPowerDeviceD3Final)
+    {
+        DMF_DefaultTarget_Get(moduleContext->DmfModuleDefaultTargetDispatchInput,
+                              &moduleContext->IoTargetDispatchInput);
+        DMF_DefaultTarget_Get(moduleContext->DmfModuleDefaultTargetPassiveInput,
+                              &moduleContext->IoTargetPassiveInput);
+        DMF_DefaultTarget_Get(moduleContext->DmfModuleDefaultTargetPassiveOutput,
+                              &moduleContext->IoTargetPassiveOutput);;
+    }
+    else
+    {
+        // Targets are started by default.
+        //
+        WdfIoTargetStart(moduleContext->IoTargetDispatchInput);
+        WdfIoTargetStart(moduleContext->IoTargetPassiveInput);
+        WdfIoTargetStart(moduleContext->IoTargetPassiveOutput);
+    }
 
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveInput);
     DmfAssert(NT_SUCCESS(ntStatus));
@@ -1166,11 +1188,18 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // Purge Targets to prevent stuck IO during synchronous transactions.
+    //
+    WdfIoTargetPurge(moduleContext->IoTargetDispatchInput,
+                     WdfIoTargetPurgeIoAndWait);
+    WdfIoTargetPurge(moduleContext->IoTargetPassiveInput,
+                     WdfIoTargetPurgeIoAndWait);
+    WdfIoTargetPurge(moduleContext->IoTargetPassiveOutput,
+                     WdfIoTargetPurgeIoAndWait);
+
     Tests_DefaultTarget_NonContinousStopAuto(DmfModule);
     Tests_DefaultTarget_NonContinousStopManual(DmfModule);
 
-    // The PASSIVE_LEVEL targets are manually started (although they don't need to be).
-    //
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveInput);
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveOutput);
 
@@ -1472,7 +1501,7 @@ Return Value:
                                             Tests_DefaultTarget,
                                             DMF_CONTEXT_Tests_DefaultTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     dmfModuleDescriptor_Tests_DefaultTarget.CallbacksDmf = &dmfCallbacksDmf_Tests_DefaultTarget;
     dmfModuleDescriptor_Tests_DefaultTarget.CallbacksWdf = &dmfCallbacksWdf_Tests_DefaultTarget;

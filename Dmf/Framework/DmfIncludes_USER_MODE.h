@@ -172,7 +172,7 @@ Environment:
         #include <assert.h>
         #define DmfAssertMessage(Message, Expression) (!(Expression) ? assert(Expression), FALSE : TRUE)
     #else
-        #define DmfAssertMessage(Message, Expression) (!(Expression) ? DbgBreakPoint(), OutputDebugStringA(Message), FALSE : TRUE)
+        #define DmfAssertMessage(Message, Expression) (!(Expression) ? DebugBreak(), OutputDebugStringA(Message), FALSE : TRUE)
     #endif
 #else
     #define DmfAssertMessage(Message, Expression) TRUE        
@@ -181,10 +181,14 @@ Environment:
     if ((WdfDriverGlobals->DriverFlags & WdfVerifyOn) && !(Expression)) \
     {                                                                   \
         OutputDebugStringA(Message);                                    \
-        DbgBreakPoint();                                                \
+        DebugBreak();                                                   \
     }
 
 #define DmfAssert(Expression) DmfAssertMessage(#Expression, Expression)
+
+// Kernel-mode Breakpoint
+//
+#define DmfBreak    DebugBreak
 
 // eof: DmfIncludes_USER_MODE.h
 //

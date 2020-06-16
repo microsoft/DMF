@@ -112,6 +112,15 @@ typedef struct
   // The callback that instantiates DMF Modules, if applicable.
   //
   EVT_DMF_DEVICE_MODULES_ADD* EvtDmfDeviceModulesAdd;
+  // The table entry for this device's properties.
+  //
+  Pdo_DeviceProperty_Table* DeviceProperties;
+  // Set this to true if the PDO has non-default address.
+  //
+  BOOLEAN UseAddress;
+  // The address of the PDO that is to be created.
+  //
+  ULONG Address
 } PDO_RECORD;
 ````
 Member | Description
@@ -127,6 +136,9 @@ RawDevice | Set to TRUE if the PDO exposes a raw device.
 RawDeviceClassGuid | Raw device GUID if the PDO exposes a raw device.
 EnableDmf | Indicates if the PDO will instantiate DMF Modules.
 EvtDmfDeviceModulesAdd | The callback that instantiates DMF Modules, if applicable.
+DeviceProperties | The table entry for this device's properties.
+UseAddress | Set this to true if the PDO has non-default address.
+Address | The address of the PDO that is to be created.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

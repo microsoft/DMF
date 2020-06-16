@@ -63,6 +63,11 @@ typedef struct
     // stops target and Closes Module during surprise-removal path.
     //
     BOOLEAN QueryRemoveHappened;
+    // This flag tells the rest of ensures the target rundown code executes exactly one time.
+    // Using this flag allows the IoTarget handle to remain set while rundown is happening,
+    // but *after* the target has closed (so that all pending buffers will be canceled).
+    //
+    BOOLEAN TargetClosedOrClosing;
 } DeviceInterfaceMultipleTarget_IoTarget;
 
 typedef struct
@@ -384,37 +389,26 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    // Ensure that all Methods running against this Target finish executing
-    // and prevent new Methods from starting because the IoTarget will be 
-    // set to NULL.
-    //
-    if (Target->DmfModuleRundown != NULL)
-    {
-        // This Module is only created after the target has been opened. So, if the
-        // underlying target cannot open and returns error, this Module is not created.
-        // In that case, this clean up function must check to see if the handle is
-        // valid otherwise a BSOD will happen.
-        //
-        DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
-    }
-
     // It is important to check the IoTarget because it may have been closed via 
     // two asynchronous removal paths: 1. Device is removed. 2. Underlying target is removed.
     //
-    WDFIOTARGET ioTarget;
+    BOOLEAN closeTarget;
     DMF_ModuleLock(DmfModule);
-    if (Target->IoTarget != NULL)
+    if (!Target->TargetClosedOrClosing)
     {
-        ioTarget = Target->IoTarget;
-        Target->IoTarget = NULL;
+        // This code path indicates that target close and rundown will start.
+        //
+        DmfAssert(Target->IoTarget != NULL);
+        Target->TargetClosedOrClosing = TRUE;
+        closeTarget = TRUE;
     }
     else
     {
-        ioTarget = NULL;
+        closeTarget = FALSE;
     }
     DMF_ModuleUnlock(DmfModule);
 
-    if (ioTarget != NULL)
+    if (closeTarget)
     {
         if (Target->DmfModuleRequestTarget != NULL)
         {
@@ -426,9 +420,26 @@ Return Value:
             }
         }
 
-        // Destroy the underlying IoTarget.
+        // Destroy the underlying IoTarget. NOTE: This will cancel all pending requests including
+        // synchronous requests. This needs to happen before Rundown waits otherwise Rundown waits
+        // forever for synchronous requests.
         //
-        WdfIoTargetClose(ioTarget);
+        WdfIoTargetClose(Target->IoTarget);
+
+        // Ensure that all Methods running against this Target finish executing
+        // and prevent new Methods from starting because the IoTarget will be 
+        // set to NULL.
+        //
+        if (Target->DmfModuleRundown != NULL)
+        {
+            // This Module is only created after the target has been opened. So, if the
+            // underlying target cannot open and returns error, this Module is not created.
+            // In that case, this clean up function must check to see if the handle is
+            // valid otherwise a BSOD will happen.
+            //
+            DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
+        }
+
         if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
         {
             moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
@@ -440,7 +451,11 @@ Return Value:
         //
         moduleContext->RequestSink_IoTargetClear(DmfModule,
                                                  Target);
-        WdfObjectDelete(ioTarget);
+        WdfObjectDelete(Target->IoTarget);
+        // Now, the Target's handle can be cleared because no other thread will use it.
+        // (It is not necessary to clear it as it will be deleted just below.)
+        //
+        Target->IoTarget = NULL;
     }
 
     // Delete stored symbolic link if set. (This will never be set in User-mode.)

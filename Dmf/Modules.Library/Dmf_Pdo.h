@@ -164,6 +164,12 @@ typedef struct
     // The table entry for this device's properties.
     //
     Pdo_DeviceProperty_Table* DeviceProperties;
+    // Set this to true if the PDO has non-default address.
+    //
+    BOOLEAN UseAddress;
+    // The address of the PDO that is to be created.
+    //
+    ULONG Address;
 } PDO_RECORD;
 
 // Client uses this structure to configure the Module specific parameters.

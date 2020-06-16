@@ -163,5 +163,9 @@ Environment:
 
 #define DmfAssert(Expression) DmfAssertMessage(#Expression, Expression)
 
+// Kernel-mode Breakpoint
+//
+#define DmfBreak    DbgBreakPoint
+
 // eof: DmfIncludes_KERNEL_MODE.h
 //

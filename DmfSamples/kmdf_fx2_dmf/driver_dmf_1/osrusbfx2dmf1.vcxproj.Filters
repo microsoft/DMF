@@ -19,23 +19,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.c; device.c; ioctl.c; bulkrwr.c; Interrupt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <MessageCompile Include="osrusbfx2.man">
       <Filter>Resource Files</Filter>
     </MessageCompile>
@@ -44,19 +27,36 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <Inf Include="osrusbfx2dmf1.inx">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="bulkrwr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="device.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Interrupt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ioctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="osrusbfx2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -519,9 +519,15 @@ Return Value:
     pnpCapabilities.Removable = WdfUseDefault;
     pnpCapabilities.EjectSupported = WdfUseDefault;
     pnpCapabilities.SurpriseRemovalOK = WdfUseDefault;
-
-    pnpCapabilities.Address = PdoRecord->SerialNumber;
     pnpCapabilities.UINumber = PdoRecord->SerialNumber;
+
+    // Only set the address if UseAddress is true.
+    // All other PDOs get default address (-1).
+    //
+    if (PdoRecord->UseAddress)
+    {
+        pnpCapabilities.Address = PdoRecord->Address;
+    }
 
     if (moduleConfig->EvtPdoPnpCapabilities != NULL)
     {

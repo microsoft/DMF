@@ -47,7 +47,7 @@ Environment:
 //
 #define TIMEOUT_FAST_MS             100
 #define TIMEOUT_SLOW_MS             5000
-#define TIMEOUT_TRAFFIC_DELAY_MS    250
+#define TIMEOUT_TRAFFIC_DELAY_MS    1000
 
 #define NO_TEST_SIMPLE
 #define NO_TEST_SYNCHRONOUS_ONLY
@@ -85,6 +85,10 @@ typedef struct
     // Use alertable sleep to allow driver to unload faster.
     //
     DMFMODULE DmfModuleAlertableSleep[THREAD_COUNT + 1];
+    // Used to Purge Target as needed.
+    //
+    WDFIOTARGET IoTargetDispatch;
+    WDFIOTARGET IoTargetPassive;
 } DMF_CONTEXT_Tests_SelfTarget;
 
 // This macro declares the following function:
@@ -292,10 +296,6 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
                                    moduleContext);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
 #endif
-
-    // Short delay so to reduce traffic.
-    //
-    DMF_Utility_DelayMilliseconds(TIMEOUT_TRAFFIC_DELAY_MS);
 }
 #pragma code_seg()
 
@@ -445,6 +445,9 @@ Tests_SelfTarget_WorkThread(
     //
     if (!DMF_Thread_IsStopPending(DmfModuleThread))
     {
+        // Short delay to reduce traffic.
+        //
+        DMF_Utility_DelayMilliseconds(TIMEOUT_TRAFFIC_DELAY_MS);
         DMF_Thread_WorkReady(DmfModuleThread);
     }
 
@@ -492,6 +495,21 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (PreviousState == WdfPowerDeviceD3Final)
+    {
+        DMF_SelfTarget_Get(moduleContext->DmfModuleSelfTargetDispatch,
+                           &moduleContext->IoTargetDispatch);
+        DMF_SelfTarget_Get(moduleContext->DmfModuleSelfTargetPassive,
+                           &moduleContext->IoTargetPassive);
+    }
+    else
+    {
+        // Targets are started by default.
+        //
+        WdfIoTargetStart(moduleContext->IoTargetDispatch);
+        WdfIoTargetStart(moduleContext->IoTargetPassive);
+    }
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
@@ -561,6 +579,13 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Purge Targets to prevent stuck IO during synchronous transactions.
+    //
+    WdfIoTargetPurge(moduleContext->IoTargetDispatch,
+                     WdfIoTargetPurgeIoAndWait);
+    WdfIoTargetPurge(moduleContext->IoTargetPassive,
+                     WdfIoTargetPurgeIoAndWait);
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
@@ -741,7 +766,7 @@ Return Value:
                                             Tests_SelfTarget,
                                             DMF_CONTEXT_Tests_SelfTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     dmfModuleDescriptor_Tests_SelfTarget.CallbacksDmf = &dmfCallbacksDmf_Tests_SelfTarget;
     dmfModuleDescriptor_Tests_SelfTarget.CallbacksWdf = &dmfCallbacksWdf_Tests_SelfTarget;

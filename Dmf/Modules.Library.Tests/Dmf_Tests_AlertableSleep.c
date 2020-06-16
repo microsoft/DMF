@@ -51,7 +51,8 @@ typedef struct
     // Thread that interrupts.
     //
     DMFMODULE DmfModuleThreadInterrupt;
-    // Indicates Module has started closing so that new waits are not started.
+    // Indicates Module has started started running or is stopping.
+    // When it is stopping, all sleeps are interrupted.
     //
     BOOLEAN Closing;
 } DMF_CONTEXT_Tests_AlertableSleep;
@@ -94,10 +95,18 @@ Tests_AlertableSleep_WorkThreadSleep(
     timeout = TestsUtility_GenerateRandomNumber(0, 
                                                 TIMEOUT_MS_MAXIMUM);
 
+    // Wait for a while. The wait may or may not be interrupted based on what the
+    // other thread does.
+    //
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleepTest,
                                         0,
                                         timeout);
-    
+
+    // Reset from previous iteration.
+    //
+    DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleepTest,
+                                     0);
+
     // Repeat the test, until stop is signaled or the function stopped because the
     // driver is stopping.
     //
@@ -135,12 +144,27 @@ Tests_AlertableSleep_WorkThreadInterrupt(
 
     // Wait for a while.
     // 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Waiting to interrupt...");
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleepInternal,
                                         0,
                                         timeout);
 
+    if (NT_SUCCESS(ntStatus))
+    {
+        // Reset for next time.
+        //
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "RESET Wait to interrupt...");
+        DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleepInternal,
+                                         0);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "INTERRUPTED Wait to interrupt...");
+    }
+
     // Abort the current sleep.
     //
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interrupt...");
     DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepTest,
                              0);
 
@@ -173,7 +197,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
-Tests_AlertableSleep_Open(
+DMF_Tests_AlertableSleep_Open(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -222,7 +246,7 @@ _Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
-Tests_AlertableSleep_Close(
+DMF_Tests_AlertableSleep_Close(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -395,8 +419,8 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_Tests_AlertableSleep);
     dmfCallbacksDmf_Tests_AlertableSleep.ChildModulesAdd = DMF_Tests_AlertableSleep_ChildModulesAdd;
-    dmfCallbacksDmf_Tests_AlertableSleep.DeviceOpen = Tests_AlertableSleep_Open;
-    dmfCallbacksDmf_Tests_AlertableSleep.DeviceClose = Tests_AlertableSleep_Close;
+    dmfCallbacksDmf_Tests_AlertableSleep.DeviceOpen = DMF_Tests_AlertableSleep_Open;
+    dmfCallbacksDmf_Tests_AlertableSleep.DeviceClose = DMF_Tests_AlertableSleep_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Tests_AlertableSleep,
                                             Tests_AlertableSleep,
