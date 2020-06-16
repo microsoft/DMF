@@ -169,7 +169,7 @@ public:
 
 // SimpleOrientation module's context.
 //
-typedef struct
+typedef struct _DMF_CONTEXT_SimpleOrientation
 {
     // SimpleOrientationDevice class instance pointer.
     //

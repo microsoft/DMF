@@ -18,6 +18,7 @@ ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
 Provider=%ProviderString%
 DriverVer= ; Set in target output .inf
 CatalogFile=DmfKTest.cat
+PnpLockdown=1
 
 ; ================= Class section =====================
 
