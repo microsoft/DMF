@@ -4013,7 +4013,7 @@ Return Value:
 
     // Input read should not be pended if the input report size is zero.
     //
-    if (moduleContext->HidCaps.InputReportByteLength > 0)
+    if (moduleContext->HidCaps.InputReportByteLength == 0)
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Cannot pend input report with InputReportByteLength of size %d", moduleContext->HidCaps.InputReportByteLength);
         DmfAssert(FALSE);
@@ -4160,7 +4160,7 @@ Return Value:
 
     // Input read should not be pended if the input report size is zero.
     //
-    if (moduleContext->HidCaps.InputReportByteLength > 0)
+    if (moduleContext->HidCaps.InputReportByteLength == 0)
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Cannot pend input report with InputReportByteLength of size %d", moduleContext->HidCaps.InputReportByteLength);
         DmfAssert(FALSE);
