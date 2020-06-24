@@ -115,7 +115,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Registry
 {
 #if !defined(DMF_USER_MODE)
     // Deferred Tree Write is not supported in User-mode.

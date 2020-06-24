@@ -143,7 +143,7 @@ typedef struct _CONTEXT_ComponentFirmwareUpdateTransport
 } CONTEXT_ComponentFirmwareUpdateTransport;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_ComponentFirmwareUpdateTransport, ComponentFirmwareUpdateTransportContextGet)
 
-typedef struct
+typedef struct _DMF_CONTEXT_ComponentFirmwareUpdate
 {
     // Protocol sequence Thread Handle.
     //

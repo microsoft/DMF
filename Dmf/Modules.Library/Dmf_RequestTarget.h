@@ -69,9 +69,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_RequestTarget_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -84,9 +84,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_RequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -100,9 +100,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_RequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,

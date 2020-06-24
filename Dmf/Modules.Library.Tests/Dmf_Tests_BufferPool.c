@@ -88,7 +88,7 @@ typedef enum _PUT_ACTION {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Tests_BufferPool
 {
     // BufferPool source Module to test
     //

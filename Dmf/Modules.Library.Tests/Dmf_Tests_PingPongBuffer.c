@@ -49,7 +49,7 @@ typedef enum _TEST_ACTION {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Tests_PingPongBuffer
 {
     // Buffer for test sample data
     //

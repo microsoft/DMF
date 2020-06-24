@@ -48,7 +48,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_ThreadedBufferQueue
 {
     // BufferQueue that holds empty buffers and pending work.
     //

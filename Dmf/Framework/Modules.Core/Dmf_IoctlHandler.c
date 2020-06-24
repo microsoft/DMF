@@ -39,7 +39,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_IoctlHandler
 {
     // It is a collection of all the Open File Objects that are running "As Administrator".
     //

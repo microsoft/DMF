@@ -78,7 +78,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_HidPortableDeviceButtons
 {
     // Thread for processing requests for HID.
     //

@@ -40,7 +40,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Rundown
 {
     // Reference counter for DMF Object references.
     //
@@ -51,7 +51,6 @@ typedef struct
     // using the resource.
     //
     BOOLEAN WaitingForRundown;
-
 } DMF_CONTEXT_Rundown;
 
 // This macro declares the following function:

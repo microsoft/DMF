@@ -111,9 +111,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Information for the Crash Dump Management.
-//
-typedef struct
+typedef struct _DMF_CONTEXT_CrashDump
 {
 #if !defined(DMF_USER_MODE)
     // Number of data sources. It includes the Client Driver's Ring Buffer as well as

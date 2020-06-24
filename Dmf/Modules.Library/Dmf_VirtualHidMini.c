@@ -39,7 +39,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_VirtualHidMini
 {
     // This Module automatically queues Read requests. They are periodically 
     // dequeued. Then, data to copy into the requests is retrieved from the Client.

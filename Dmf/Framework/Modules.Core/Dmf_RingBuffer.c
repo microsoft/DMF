@@ -90,7 +90,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_RingBuffer
 {
     // Contains all the Ring Buffer management constructs.
     //

@@ -80,9 +80,9 @@ typedef
 NTSTATUS
 RequestSink_SendEx_Type(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -145,7 +145,7 @@ typedef enum
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_DeviceInterfaceTarget
 {
     // Device Interface arrival/removal notification handle.
     // 
@@ -466,9 +466,9 @@ DeviceInterfaceTarget_Stream_Cancel(
 NTSTATUS
 DeviceInterfaceTarget_Stream_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -495,9 +495,9 @@ DeviceInterfaceTarget_Stream_SendSynchronously(
 NTSTATUS
 DeviceInterfaceTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -527,9 +527,9 @@ DeviceInterfaceTarget_Stream_Send(
 NTSTATUS
 DeviceInterfaceTarget_Stream_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -612,9 +612,9 @@ DeviceInterfaceTarget_Target_Cancel(
 NTSTATUS
 DeviceInterfaceTarget_Target_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -644,9 +644,9 @@ DeviceInterfaceTarget_Target_SendSynchronously(
 NTSTATUS
 DeviceInterfaceTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -677,9 +677,9 @@ DeviceInterfaceTarget_Target_Send(
 NTSTATUS
 DeviceInterfaceTarget_Target_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -2457,9 +2457,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DeviceInterfaceTarget_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -2538,9 +2538,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DeviceInterfaceTarget_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -2622,9 +2622,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DeviceInterfaceTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,

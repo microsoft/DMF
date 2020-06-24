@@ -105,8 +105,6 @@ public:
     VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStop();
 };
 
-// MobileBroadband's module context.
-//
 typedef struct _DMF_CONTEXT_MobileBroadband
 {
     // MobileBroadbandModemDevice class instance pointer.
@@ -115,7 +113,6 @@ typedef struct _DMF_CONTEXT_MobileBroadband
     // Wireless state change callback.
     //
     EVT_DMF_MobileBroadband_WirelessStateChangeCallback* EvtMobileBroadbandWirelessStateChangeCallback;
-
 } DMF_CONTEXT_MobileBroadband;
 
 // This macro declares the following function:

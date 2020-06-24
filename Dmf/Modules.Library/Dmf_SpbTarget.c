@@ -45,7 +45,7 @@ Environment:
 //
 
 #pragma warning(pop)
-typedef struct
+typedef struct _DMF_CONTEXT_SpbTarget
 {
     // Resources assigned.
     //

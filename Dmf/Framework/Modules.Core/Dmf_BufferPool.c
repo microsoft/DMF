@@ -42,10 +42,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Contains a list of buffers and a lookaside buffer from which to allocate more
-// buffers if necessary.
-//
-typedef struct
+typedef struct _DMF_CONTEXT_BufferPool
 {
     // Allocations are done from a look aside list if the call requests a buffer but there are
     // no buffers in the list.
