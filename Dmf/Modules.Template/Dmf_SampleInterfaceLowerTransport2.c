@@ -37,7 +37,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_SampleInterfaceLowerTransport2
 {
     // Stores the DMF Module of the Protocol this Module is bound to.
     //

@@ -52,7 +52,7 @@ WDF_DECLARE_CONTEXT_TYPE(REQUEST_CONTEXT);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Tests_IoctlHandler
 {
     // Allocates buffers to be inserted into pending pool.
     //

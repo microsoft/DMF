@@ -72,7 +72,7 @@ typedef enum _TEST_ACTION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Tests_HashTable
 {
     // Automatically generated data that is used for tests.
     //

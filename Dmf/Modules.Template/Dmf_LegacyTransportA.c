@@ -40,7 +40,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_LegacyTransportA
 {
     // TEMPLATE: Put data needed to support this DMF Module.
     //

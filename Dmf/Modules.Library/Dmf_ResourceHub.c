@@ -50,10 +50,7 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(RESOURCEHUB_FILEOBJECT_CONTEXT, ResourceHub_F
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Contains the WDF IO Target as well as all the structures needed for
-// streaming requests.
-//
-typedef struct
+typedef struct _DMF_CONTEXT_ResourceHub
 {
     WDFIOTARGET ResourceHubTarget;
 } DMF_CONTEXT_ResourceHub;

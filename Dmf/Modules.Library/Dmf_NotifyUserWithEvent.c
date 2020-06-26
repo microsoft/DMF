@@ -38,7 +38,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_NotifyUserWithEvent
 {
     // This event is shared between Kernel-mode and User-mode.
     // NOTE: This array can be allocated dynamically but it is not very big.

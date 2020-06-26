@@ -33,14 +33,14 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#define DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES 4
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define DEFAULT_NUMBER_OF_PENDING_PASSIVE_LEVEL_COMPLETION_ROUTINES 4
-
-typedef struct
+typedef struct _DMF_CONTEXT_RequestTarget
 {
     // Context Buffer List.
     //
@@ -595,8 +595,8 @@ RequestTarget_FormatRequestForRequestType(
     _In_ WDFREQUEST   Request,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctlCode,
-    _In_opt_ WDFMEMORY    InputMemory,
-    _In_opt_ WDFMEMORY    OutputMemory
+    _In_opt_ WDFMEMORY InputMemory,
+    _In_opt_ WDFMEMORY OutputMemory
     )
 /*++
 
@@ -718,9 +718,9 @@ NTSTATUS
 RequestTarget_RequestCreateAndSend(
     _In_ DMFMODULE DmfModule,
     _In_ BOOLEAN IsSynchronousRequest,
-    _In_ VOID* RequestBuffer,
+    _In_reads_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_ VOID* ResponseBuffer,
+    _Out_writes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -1438,9 +1438,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_RequestTarget_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -1522,9 +1522,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_RequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -1607,9 +1607,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_RequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,

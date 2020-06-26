@@ -38,7 +38,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Bridge
 {
     PFN_WDF_OBJECT_CONTEXT_CLEANUP EvtDeviceContextCleanup;
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;

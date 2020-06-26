@@ -73,7 +73,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Tests_BufferQueue
 {
     // BufferQueue Module to test
     //
@@ -81,7 +81,7 @@ typedef struct
     // Work threads
     //
     DMFMODULE DmfModuleThread[THREAD_COUNT];
-} DMF_CONTEXT_Tests_BufferQueue, *PDMF_CONTEXT_Tests_BufferQueue;
+} DMF_CONTEXT_Tests_BufferQueue;
 
 // This macro declares the following function:
 // DMF_CONTEXT_GET()
@@ -131,7 +131,7 @@ Tests_BufferQueue_EnumerationCallback(
     )
 {
     DMFMODULE dmfModule;
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     PENUM_CONTEXT_Tests_BufferQueue enumContext;
 
     dmfModule = DMF_ParentModuleGet(DmfModuleBufferPool);
@@ -159,7 +159,7 @@ Tests_BufferQueue_ThreadAction_Enqueue(
     _In_ DMFMODULE DmfModule
     )
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     PUINT8 clientBuffer;
     PCLIENT_BUFFER_CONTEXT clientBufferContext;
     NTSTATUS ntStatus;
@@ -214,7 +214,7 @@ Tests_BufferQueue_ThreadAction_Dequeue(
     _In_ DMFMODULE DmfModule
 )
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     PUINT8 clientBuffer;
     PCLIENT_BUFFER_CONTEXT clientBufferContext;
     NTSTATUS ntStatus;
@@ -257,7 +257,7 @@ Tests_BufferQueue_ThreadAction_Enumerate(
     _In_ DMFMODULE DmfModule
 )
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     ENUM_CONTEXT_Tests_BufferQueue enumContext;
     PUINT8 clientBuffer;
     ULONG randomNumber;
@@ -309,7 +309,7 @@ Tests_BufferQueue_ThreadAction_Count(
     _In_ DMFMODULE DmfModule
     )
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     ULONG currentCount;
 
     PAGED_CODE();
@@ -335,7 +335,7 @@ Tests_BufferQueue_ThreadAction_Flush(
     _In_ DMFMODULE DmfModule
 )
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
 
     PAGED_CODE();
 
@@ -367,7 +367,7 @@ Tests_BufferQueue_WorkThread(
     )
 {
     DMFMODULE dmfModule;
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     ULONG testActionIndex;
     Tests_BufferQueue_TestAction testAction;
 
@@ -432,7 +432,7 @@ Return Value:
 
 --*/
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     NTSTATUS ntStatus;
     LONG index;
 
@@ -491,7 +491,7 @@ Return Value:
 
 --*/
 {
-    PDMF_CONTEXT_Tests_BufferQueue moduleContext;
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
     LONG index;
 
     PAGED_CODE();

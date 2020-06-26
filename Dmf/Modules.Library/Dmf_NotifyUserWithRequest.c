@@ -38,7 +38,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_NotifyUserWithRequest
 {
     // Queue of pending requests from Client Applications who want to know when
     // processes appear or disappear.

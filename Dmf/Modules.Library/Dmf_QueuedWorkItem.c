@@ -46,7 +46,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_QueuedWorkItem
 {
     // ScheduledTask Module ensures every enqueued workitem executes.
     //

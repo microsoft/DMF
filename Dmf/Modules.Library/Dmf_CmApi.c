@@ -37,7 +37,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_CmApi
 {
     // Device Interface arrival/removal notification handle for devices.
     //

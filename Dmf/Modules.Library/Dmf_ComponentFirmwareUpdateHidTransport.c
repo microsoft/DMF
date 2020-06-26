@@ -77,7 +77,7 @@ const ULONG HIDDEVICE_RECOMMENDED_WAIT_TIMEOUT_MS = 90000;
 
 // This Module's context.
 //
-typedef struct
+typedef struct _DMF_CONTEXT_ComponentFirmwareUpdateHidTransport
 {
     // HID Handle.
     //

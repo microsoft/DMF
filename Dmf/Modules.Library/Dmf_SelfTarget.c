@@ -37,14 +37,12 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Contains elements needed to send Requests to this driver.
-//
-typedef struct
+typedef struct _DMF_CONTEXT_SelfTarget
 {
-    // Underlying target.
+    // "This driver's" target.
     //
     WDFIOTARGET IoTarget;
-    //
+    // Used to send/receive data requests.
     //
     DMFMODULE DmfModuleRequestTarget;
 } DMF_CONTEXT_SelfTarget;
@@ -351,9 +349,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_SelfTarget_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -419,9 +417,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_SelfTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,

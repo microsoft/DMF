@@ -53,7 +53,7 @@ typedef struct _HIDMINI_INPUT_REPORT
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_VirtualHidMiniSample
 {
     // Underlying VHIDMINI2 support.
     //

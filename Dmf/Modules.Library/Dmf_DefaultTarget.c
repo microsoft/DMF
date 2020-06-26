@@ -51,9 +51,9 @@ typedef
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -65,9 +65,9 @@ typedef
 NTSTATUS
 RequestSink_Send_Type(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -80,9 +80,9 @@ typedef
 NTSTATUS
 RequestSink_SendEx_Type(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -110,7 +110,7 @@ RequestSink_IoTargetClear_Type(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_DefaultTarget
 {
     // Underlying Device Target.
     //
@@ -191,9 +191,9 @@ DefaultTarget_Stream_Cancel(
 NTSTATUS
 DefaultTarget_Stream_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -220,9 +220,9 @@ DefaultTarget_Stream_SendSynchronously(
 NTSTATUS
 DefaultTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -251,9 +251,9 @@ DefaultTarget_Stream_Send(
 NTSTATUS
 DefaultTarget_Stream_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -336,9 +336,9 @@ DefaultTarget_Target_Cancel(
 NTSTATUS
 DefaultTarget_Target_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -368,9 +368,9 @@ DefaultTarget_Target_SendSynchronously(
 NTSTATUS
 DefaultTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -402,9 +402,9 @@ DefaultTarget_Target_Send(
 NTSTATUS
 DefaultTarget_Target_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -1162,9 +1162,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DefaultTarget_Send(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -1243,9 +1243,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DefaultTarget_SendEx(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -1326,9 +1326,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_DefaultTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,

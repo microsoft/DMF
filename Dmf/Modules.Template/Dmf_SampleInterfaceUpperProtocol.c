@@ -39,7 +39,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_SampleInterfaceUpperProtocol
 {
     // Stores the DMF Module of the Transport this Module is bound to.
     //

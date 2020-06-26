@@ -61,7 +61,7 @@ typedef enum _TEST_ACTION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-typedef struct
+typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceMultipleTarget
 {
     // Modules under test.
     //

@@ -75,9 +75,7 @@ typedef struct
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Information for the Crash Dump Management.
-//
-typedef struct
+typedef struct _DMF_CONTEXT_LiveKernelDump
 {
     // Data buffer source to store pointers to data structures.
     //

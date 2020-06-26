@@ -38,9 +38,7 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// Contains elements needed to send Requests to this driver.
-//
-typedef struct
+typedef struct _DMF_CONTEXT_ScheduledTask
 {
     // It is for the deferred callback.
     //
