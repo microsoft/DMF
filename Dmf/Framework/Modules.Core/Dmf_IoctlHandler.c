@@ -69,6 +69,63 @@ DMF_MODULE_DECLARE_CONFIG(IoctlHandler)
 
 #include <devpkey.h>
 
+NTSTATUS
+IoctlHandler_RequestForward(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
+    )
+/*++
+
+Routine Description:
+
+    Forward the request down. WdfDeviceGetIoTarget returns the default
+    target, which represents the device attached to the Client below in
+    the stack. No post processing on the IRP is done so fire and forget.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Request - Handle to a framework request object.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    WDFDEVICE device;
+    WDFIOTARGET ioTarget;
+    WDF_REQUEST_SEND_OPTIONS options;
+    BOOLEAN returnValue;
+    NTSTATUS ntStatus;
+
+    ntStatus = STATUS_SUCCESS;
+    device = DMF_ParentDeviceGet(DmfModule);
+    ioTarget = WdfDeviceGetIoTarget(device);
+
+    WdfRequestFormatRequestUsingCurrentType(Request);
+
+    WDF_REQUEST_SEND_OPTIONS_INIT(&options,
+                                  WDF_REQUEST_SEND_OPTION_SEND_AND_FORGET);
+
+    returnValue = WdfRequestSend(Request,
+                                 ioTarget,
+                                 &options);
+    if (returnValue == FALSE)
+    {
+        ntStatus = WdfRequestGetStatus(Request);
+
+        WdfRequestComplete(Request,
+                           ntStatus);
+
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "WdfRequestSend fails. ntStatus=%!STATUS!",
+                    ntStatus);
+    }
+    return ntStatus;
+}
+
 #pragma code_seg("PAGE")
 static
 _Must_inspect_result_
@@ -253,7 +310,8 @@ Return Value:
     device = DMF_ParentDeviceGet(DmfModule);
 
     // Register a device interface so applications/drivers can find and open this device.
-    //   
+    // TODO: Add ability to set reference string.
+    //
     ntStatus = WdfDeviceCreateDeviceInterface(device,
                                               (LPGUID)&moduleConfig->DeviceInterfaceGuid,
                                               NULL);
@@ -349,6 +407,10 @@ Return Value:
     handled = FALSE;
     bytesReturned = 0;
     ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+
+    // If the table is empty, this Module must set up request forwarding.
+    //
+    DmfAssert((moduleConfig->IoctlRecordCount > 0) || (moduleConfig->ForwardUnhandledRequests));
 
     // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
     // 
@@ -510,6 +572,20 @@ Exit:
                                               bytesReturned);
         }
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Handled: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
+    }
+    else if (moduleConfig->ForwardUnhandledRequests == TRUE)
+    {
+        // This unhandled request will be passed down to the next driver
+        // in the stack.
+        //
+        ntStatus = IoctlHandler_RequestForward(DmfModule,
+                                               Request);
+
+        // Set handled because this Module handled it by forwarding it.
+        //
+        handled = TRUE;
+
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Forwarded: Request=0x%p ntStatus=%!STATUS!", Request, ntStatus);
     }
     else
     {
@@ -882,9 +958,18 @@ Return Value:
         // Register a device interface so applications/drivers can find and open this device.
         //
         ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_DeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
+        // Allow the Client to enable the interface manually if desired.
+        //
         if (moduleConfig->ManualMode)
         {
+            // TODO: Add ability to set reference string.
+            //
             WdfDeviceSetDeviceInterfaceState(device,
                                              &moduleConfig->DeviceInterfaceGuid,
                                              NULL,

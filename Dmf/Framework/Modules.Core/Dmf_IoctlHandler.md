@@ -48,6 +48,9 @@ typedef struct
   // Allows Client to perform actions after the Device Interface is created.
   //
   EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate* PostDeviceInterfaceCreate;
+  // Allows request forwarding for IOCTLs not handled by this Module.
+  //
+  BOOLEAN ForwardUnhandledRequests;
 } DMF_CONFIG_IoctlHandler;
 ````
 Member | Description
@@ -61,6 +64,7 @@ KernelModeRequestsOnly | This allows the module to handle only requests from ker
 CustomCapabilities | Windows Store App access capabilities string.
 IsRestricted | If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.
 PostDeviceInterfaceCreate | Allows Client to perform actions after the Device Interface is created.
+ForwardUnhandledRequests | Allows request forwarding for IOCTLs not handled by this Module.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -280,6 +284,7 @@ Enable | If true, enable the device interface. Otherwise, disable the device int
 
 * This Module removes the need for the programmer to validate the input and output buffers for all IOCTLs since the Module does this work.
 * In case, validation by the Module is not desired, simply pass zero as the minimum size for the input and output buffers. Then, the IOCTL callback can perform its own Client specific validation.
+* This Module optionally allows Clients to forward the unhandled requests down. For forwarding all requests, simply add this Module with empty IoctlRecords and ForwardUnhandledRequests set to TRUE.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

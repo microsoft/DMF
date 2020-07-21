@@ -1695,7 +1695,8 @@ Return Value:
 
         TraceEvents(TRACE_LEVEL_INFORMATION,
                     DMF_TRACE,
-                    "GUID_DEVICE_INTERFACE_ARRIVAL Found HID Device...Query state collection");
+                    "GUID_DEVICE_INTERFACE_ARRIVAL Found HID Device %S",
+                    info->SymbolicLinkName->Buffer);
 
         ntStatus = HidTarget_MatchedTargetGet(dmfModule,
                                               info->SymbolicLinkName);
@@ -1705,7 +1706,8 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION,
                     DMF_TRACE,
-                    "GUID_DEVICE_INTERFACE_REMOVAL");
+                    "GUID_DEVICE_INTERFACE_REMOVAL %S",
+                    info->SymbolicLinkName->Buffer);
 
         ntStatus = HidTarget_MatchedTargetDestroy(dmfModule,
                                                   info->SymbolicLinkName);

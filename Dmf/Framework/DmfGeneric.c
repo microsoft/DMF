@@ -977,8 +977,9 @@ Return Value:
 --*/
 {
     DMF_OBJECT* dmfObject;
+    WDFDEVICE device;
+    DMF_DEVICE_CONTEXT* dmfDeviceContext;
 
-    UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(Request);
     UNREFERENCED_PARAMETER(OutputBufferLength);
@@ -989,10 +990,19 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
+    device =  DMF_ParentDeviceGet(DmfModule);
+    dmfDeviceContext =  DmfDeviceContextGet(device);
+
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    // This validation is not done for filter devices because they can receive requests 
+    // meant for the physical device before the Module is opened.
+    //
+    if (dmfDeviceContext->IsFilterDevice == FALSE)
+    {
+        DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    }
 
     // Tell Client Driver this dispatch is still unhandled.
     //
