@@ -4191,6 +4191,7 @@ ExitNoRelease:
 }
 #pragma code_seg()
 
+#if defined(DMF_USER_MODE)
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -4293,6 +4294,7 @@ ExitNoRelease:
     return ntStatus;
 }
 #pragma code_seg()
+#endif
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
