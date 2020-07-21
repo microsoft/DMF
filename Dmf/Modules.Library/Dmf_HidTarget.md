@@ -412,7 +412,7 @@ DMF_HidTarget_InputReportGet(
     )
 ````
 
-Synchronously reads an Input Report.
+Synchronously reads an Input Report. This interface is available only for User-mode.
 
 NOTE: This function is not normally used to read Input Reports. Use it only if 
         the underlying device is known to not asynchronously respond reliably. If 

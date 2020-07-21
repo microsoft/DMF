@@ -176,6 +176,7 @@ DMF_HidTarget_InputReadEx(
     _In_ DMFMODULE DmfModule
     );
 
+#if defined(DMF_USER_MODE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -184,6 +185,7 @@ DMF_HidTarget_InputReportGet(
     _In_ WDFMEMORY InputReportMemory,
     _Out_ ULONG* InputReportLength
     );
+#endif
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_

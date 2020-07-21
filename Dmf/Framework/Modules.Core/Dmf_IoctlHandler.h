@@ -172,6 +172,9 @@ typedef struct
     // Allows Client to perform actions after the Device Interface is created.
     //
     EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate* PostDeviceInterfaceCreate;
+    // Allows request forwarding for IOCTLs not handled by this Module.
+    //
+    BOOLEAN ForwardUnhandledRequests;
 } DMF_CONFIG_IoctlHandler;
 
 // This macro declares the following functions:
