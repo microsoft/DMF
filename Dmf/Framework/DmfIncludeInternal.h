@@ -551,9 +551,6 @@ DMF_SynchronizationCreate(
     _In_ BOOLEAN PassiveLevel
     );
 
-// DmfValidate.c
-//
-
 VOID
 DMF_HandleValidate_Create(
     _In_ DMF_OBJECT* DmfObject

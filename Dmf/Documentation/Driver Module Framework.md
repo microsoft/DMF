@@ -1306,8 +1306,7 @@ DMF_[ModuleName]_NotificationRegister callback*.
 2.  Declare a **DMF_CONFIG_[ModuleName]** if the Module has a Config
     structure.
 
-3.  Populate the above two structures properly. (Parent object is the
-    Client Driver's **WDFDEVICE**.)
+3.  Populate the above two structures properly.
 
 4.  Declare a **DMFMODULE** object.
 
@@ -1339,8 +1338,7 @@ a DMF_[ModuleName]_NotificationRegister callback.*
 2.  Declare a **DMF_CONFIG_[ModuleName]** if the Module has a Config
     structure.
 
-3.  Populate the above two structures properly. (Parent object is the
-    Client Driver's **WDFDEVICE**.)
+3.  Populate the above two structures properly.
 
 4.  Declare a **DMFMODULE** object.
 
