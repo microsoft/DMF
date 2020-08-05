@@ -644,7 +644,6 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     UNREFERENCED_PARAMETER(Device);
-    UNREFERENCED_PARAMETER(FileObject);
 
     // Assume this handler does nothing.
     // If the request is returned, handled must be set to TRUE to 
@@ -760,8 +759,12 @@ RequestComplete:
         //
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         DmfAssert(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
-        // NOTE: This callback must use DMF_ModuleRequestCompleteOrForward() to complete the request if the 
-        //       return status is not STATUS_SUCCESS; or, return FALSE.
+        // If Client wishes to deny access, the callback should:
+        // 1. Complete Request with STATUS_ACCESS_DENIED.
+        // 2. Return TRUE.
+        //
+        // If Client wishes to allow access, the callback should:
+        // 1. Return FALSE without completing the Request.
         //
         handled = moduleConfig->EvtIoctlHandlerAccessModeFilter(DmfModule,
                                                                 Device,
@@ -825,7 +828,9 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    handled = TRUE;
+    // Allow Client driver and other Modules to process this callback.
+    //
+    handled = FALSE;
 
     // (Optimize to add to list only in mode where the list is used.)
     //

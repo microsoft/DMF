@@ -1080,11 +1080,10 @@ Return Value:
     NTSTATUS ntStatus;
     WDFMEMORY memoryDmfObject;
     DMF_OBJECT* dmfObject;
-    BOOLEAN childModuleCreate;
+    BOOLEAN isParentObjectDmfModule;
     DMFMODULE dmfModule;
     DMF_MODULE_COLLECTION_CONFIG moduleCollectionConfig;
     DMFCOLLECTION childModuleCollection;
-    BOOLEAN chainClientCleanupCallback;
     PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
     WDF_OBJECT_ATTRIBUTES copyOfDmfModuleObjectAttributes;
     WDFOBJECT parentObject;
@@ -1105,7 +1104,6 @@ Return Value:
     dmfModule = NULL;
     dmfObject = NULL;
     childModuleCollection = NULL;
-    chainClientCleanupCallback = FALSE;
     clientEvtCleanupCallback = NULL;
 
     // Parent object of the DMFMODULE to create should always be set to one of the following:
@@ -1143,30 +1141,6 @@ Return Value:
                   sizeof(WDF_OBJECT_ATTRIBUTES));
     DmfModuleObjectAttributes = &copyOfDmfModuleObjectAttributes;
 
-    // Check if ParentObject is of type DMFMODULE.
-    // If it is, create a ChildModule.
-    //
-    childModuleCreate = WdfObjectIsCustomType(parentObject,
-                                              DMFMODULE_TYPE);
-    if (childModuleCreate)
-    {
-        // Client is creating a Child Module.
-        //
-    }
-    else
-    {
-        // Client is not creating a Child Module.
-        //
-
-        // Use CleanUp callback for Dynamic Modules so that caller can call
-        // WdfObjectDelete() or delete automatically via Parent.
-        //
-        if (DmfModuleAttributes->DynamicModuleImmediate)
-        {
-            chainClientCleanupCallback = TRUE;
-        }
-    }
-
     // Don't create Dynamic Module if the Module supports WDF callbacks since those
     // callbacks might not happen and the Module will not execute as originally planned.
     //
@@ -1190,9 +1164,10 @@ Return Value:
         goto Exit;
     }
 
-    // Chain the Client's clean up callback.
+    // Chain the Client's clean up callback if the Module is created dynamically.
+    // so that its Close callback is called when the Module is deleted.
     //
-    if (chainClientCleanupCallback)
+    if (DmfModuleAttributes->DynamicModuleImmediate)
     {
         clientEvtCleanupCallback = DmfModuleObjectAttributes->EvtCleanupCallback;
         DmfModuleObjectAttributes->EvtCleanupCallback = DmfEvtDynamicModuleCleanupCallback;
@@ -1331,7 +1306,14 @@ Return Value:
     DmfAssert(ModuleState_Invalid == dmfObject->ModuleState);
     dmfObject->ModuleState = ModuleState_Created;
 
-    if (childModuleCreate)
+    // Check if ParentObject is of type DMFMODULE.
+    // If it is and it is not a Dynamic Module, add this Module
+    // to the Parent Module's list of children and update its Parent.
+    // Otherwise, just set the Module's Parent.
+    //
+    isParentObjectDmfModule = WdfObjectIsCustomType(parentObject,
+                                                    DMFMODULE_TYPE);
+    if (isParentObjectDmfModule)
     {
         ntStatus = DmfModuleParentUpdate(Device,
                                          parentObject,
