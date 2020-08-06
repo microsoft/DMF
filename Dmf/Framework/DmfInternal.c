@@ -670,7 +670,6 @@ Return Value:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Internal_ModuleSelfManagedIoSuspend(
@@ -695,8 +694,6 @@ Return Value:
     DMF_OBJECT* dmfObject;
     NTSTATUS ntStatus;
 
-    PAGED_CODE();
-
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -710,9 +707,7 @@ Return Value:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Internal_ModuleSelfManagedIoRestart(
@@ -737,8 +732,6 @@ Return Value:
     DMF_OBJECT* dmfObject;
     NTSTATUS ntStatus;
 
-    PAGED_CODE();
-
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -752,9 +745,7 @@ Return Value:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Internal_ModuleSurpriseRemoval(
@@ -778,8 +769,6 @@ Return Value:
 {
     DMF_OBJECT* dmfObject;
 
-    PAGED_CODE();
-
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
@@ -791,7 +780,6 @@ Return Value:
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)

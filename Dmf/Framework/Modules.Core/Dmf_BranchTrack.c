@@ -1191,11 +1191,10 @@ Return Value:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleDeviceIoControl)
 static
 _Check_return_
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_ModuleDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -1240,8 +1239,6 @@ Return Value:
     UNREFERENCED_PARAMETER(Queue);
     UNREFERENCED_PARAMETER(InputBufferLength);
     UNREFERENCED_PARAMETER(OutputBufferLength);
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -1297,7 +1294,6 @@ Return Value:
 
     return handled;
 }
-#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks

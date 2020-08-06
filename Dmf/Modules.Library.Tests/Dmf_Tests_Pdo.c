@@ -562,7 +562,6 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
-#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -587,8 +586,6 @@ Return Value:
 {
     NTSTATUS ntStatus;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     ntStatus = Tests_Pdo_Start(DmfModule);
@@ -597,7 +594,6 @@ Return Value:
 
     return ntStatus;
 }
-#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks

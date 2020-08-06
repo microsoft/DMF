@@ -432,7 +432,6 @@ Return Value:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_SUSPEND)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -459,15 +458,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_RESTART)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -494,15 +489,11 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", STATUS_SUCCESS);
 
     return STATUS_SUCCESS;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_SURPRISE_REMOVAL)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -529,11 +520,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_QUERY_REMOVE)
@@ -1015,7 +1003,7 @@ Exit:
 #pragma code_seg()
 
 _Function_class_(DMF_ModuleD0Entry)
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
 NTSTATUS
@@ -1125,7 +1113,7 @@ Exit:
 }
 
 _Function_class_(DMF_ModuleD0ExitPreInterruptsDisabled)
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
 DMF_Bridge_ModuleD0ExitPreInterruptsDisabled(
