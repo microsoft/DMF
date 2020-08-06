@@ -21,6 +21,9 @@ typedef struct
   // GUID of the device interface that allows User-mode access.
   //
   GUID DeviceInterfaceGuid;
+  // Device Interface Reference String (optional).
+  //
+  WCHAR* ReferenceString;
   // Allows Client to filter access to IOCTLs.
   //
   IoctlHandler_AccessModeFilterType AccessModeFilter;
@@ -65,6 +68,7 @@ CustomCapabilities | Windows Store App access capabilities string.
 IsRestricted | If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.
 PostDeviceInterfaceCreate | Allows Client to perform actions after the Device Interface is created.
 ForwardUnhandledRequests | Allows request forwarding for IOCTLs not handled by this Module.
+ReferenceString | Optional device interface instance reference string. It must remain in memory while for the lifetime of the driver.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

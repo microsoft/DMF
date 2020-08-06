@@ -50,6 +50,10 @@ typedef struct _DMF_CONTEXT_IoctlHandler
     // Access to IoSetDeviceInterfacePropertyData().
     //
     IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfacePropertyData;
+    // ReferenceString.
+    //
+    UNICODE_STRING ReferenceStringUnicode;
+    UNICODE_STRING* ReferenceStringUnicodePointer;
 } DMF_CONTEXT_IoctlHandler;
 
 // This macro declares the following function:
@@ -163,7 +167,7 @@ IoctlHandler_PostDeviceInterfaceCreate(
 
     ntStatus = WdfDeviceRetrieveDeviceInterfaceString(device,
                                                       &moduleConfig->DeviceInterfaceGuid,
-                                                      NULL,
+                                                      moduleContext->ReferenceStringUnicodePointer,
                                                       symbolicLinkNameString);
     if (!NT_SUCCESS(ntStatus)) 
     {
@@ -310,11 +314,10 @@ Return Value:
     device = DMF_ParentDeviceGet(DmfModule);
 
     // Register a device interface so applications/drivers can find and open this device.
-    // TODO: Add ability to set reference string.
     //
     ntStatus = WdfDeviceCreateDeviceInterface(device,
                                               (LPGUID)&moduleConfig->DeviceInterfaceGuid,
-                                              NULL);
+                                              moduleContext->ReferenceStringUnicodePointer);
     if (! NT_SUCCESS(ntStatus)) 
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreateDeviceInterface fails: ntStatus=%!STATUS!", ntStatus);
@@ -960,6 +963,16 @@ Return Value:
     if (! DMF_Utility_IsEqualGUID(&nullGuid,
                                   &moduleConfig->DeviceInterfaceGuid))
     {
+        if (moduleConfig->ReferenceString != NULL)
+        {
+            RtlInitUnicodeString(&moduleContext->ReferenceStringUnicode,
+                                 moduleConfig->ReferenceString);
+            moduleContext->ReferenceStringUnicodePointer = &moduleContext->ReferenceStringUnicode;
+        }
+        else
+        {
+            moduleContext->ReferenceStringUnicodePointer = NULL;
+        }
         // Register a device interface so applications/drivers can find and open this device.
         //
         ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
@@ -973,11 +986,9 @@ Return Value:
         //
         if (moduleConfig->ManualMode)
         {
-            // TODO: Add ability to set reference string.
-            //
             WdfDeviceSetDeviceInterfaceState(device,
                                              &moduleConfig->DeviceInterfaceGuid,
-                                             NULL,
+                                             moduleContext->ReferenceStringUnicodePointer,
                                              FALSE);
         }
     }
@@ -1179,6 +1190,7 @@ Return Value:
 --*/
 {
     DMF_CONFIG_IoctlHandler* moduleConfig;
+    DMF_CONTEXT_IoctlHandler* moduleContext;
     WDFDEVICE device;
 
     PAGED_CODE();
@@ -1188,13 +1200,14 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  IoctlHandler);
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
     WdfDeviceSetDeviceInterfaceState(device,
                                      &moduleConfig->DeviceInterfaceGuid,
-                                     NULL,
+                                     moduleContext->ReferenceStringUnicodePointer,
                                      Enable);
 
     FuncExitVoid(DMF_TRACE);

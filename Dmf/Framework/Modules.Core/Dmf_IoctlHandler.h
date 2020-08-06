@@ -175,6 +175,9 @@ typedef struct
     // Allows request forwarding for IOCTLs not handled by this Module.
     //
     BOOLEAN ForwardUnhandledRequests;
+    // Device Interface Reference String (optional).
+    //
+    WCHAR* ReferenceString;
 } DMF_CONFIG_IoctlHandler;
 
 // This macro declares the following functions:
