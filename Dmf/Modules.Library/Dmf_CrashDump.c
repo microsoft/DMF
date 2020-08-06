@@ -2903,7 +2903,6 @@ DMF_CrashDump_FileClose(
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSurpriseRemoval)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -2928,8 +2927,6 @@ Return Value:
 {
     DMF_CONTEXT_CrashDump* moduleContext;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -2938,7 +2935,6 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
 #endif // !defined(DMF_USER_MODE)
 
