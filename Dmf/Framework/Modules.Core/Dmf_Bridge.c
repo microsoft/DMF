@@ -1614,7 +1614,6 @@ Exit:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSelfManagedIoSuspend)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -1644,8 +1643,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     ntStatus = STATUS_SUCCESS;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1665,9 +1662,7 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -1697,8 +1692,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     ntStatus = STATUS_SUCCESS;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -1718,9 +1711,7 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSurpriseRemoval)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -1749,8 +1740,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     device = DMF_ParentDeviceGet(DmfModule);
@@ -1760,7 +1749,6 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleQueryRemove)
@@ -2691,7 +2679,6 @@ Return Value:
     return ntStatus;
 }
 #pragma code_seg()
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
