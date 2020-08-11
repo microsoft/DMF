@@ -350,7 +350,6 @@ Exit:
     return ntStatus;
 }
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -369,7 +368,8 @@ Routine Description:
     In the first case this call is not necessary because the Module has already
     been closed, but the call is benign because the IoTarget is already NULL.
     In the second path, however, this call is necessary.
-
+    NOTE: This function is not paged because it can acquire a spinlock.
+          
 Arguments:
 
     DmfModule - The given Module.
@@ -383,8 +383,6 @@ Return Value:
 {
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
     DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
-
-    PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -472,7 +470,6 @@ Return Value:
     DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
                           (VOID *)Target);
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
