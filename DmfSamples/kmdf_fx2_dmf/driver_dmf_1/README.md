@@ -3,12 +3,12 @@ Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 1)
 
 This sample shows the minimum steps needed to use DMF in an existing driver.
 
-This sample uses the OSR FX2 sample as the driver that is updated to use DMF.
+This sample uses the [OSR FX2 sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2) as the driver that is updated to use DMF.
 
 To keep this sample very simple, no DMF Modules are instantiated. The second sample uses this sample
 as a base and shows how to add and use a single Module.
 
-IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the original (non-DMF) sample. This sample is designed to do everything
+IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the [original (non-DMF) sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2). This sample is designed to do everything
 the original sample does but also perform the minimum steps necessary to initialize DMF.
 
 Please perform a file compare between all the files in this sample and the files in the original sample. That is the best way to see the differences.
@@ -146,10 +146,10 @@ set EnableWpp = TRUE because the DMF library requires that setting.
 Code tour
 ---------
 
-There are no changes between the original sample and this sample. Please see the original sample for details.
+There are no changes between the original sample and this sample. Please see the [original sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2) for details.
 
 Testing the driver
 ------------------
 
-Please see the original sample for details. Nothing is changed in the DMF version.
+Please see the [original sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2) for details. Nothing is changed in the DMF version.
 

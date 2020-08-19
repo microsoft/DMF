@@ -22,7 +22,7 @@ transport.
 The "Code Tour" below discusses hows how the Client Driver connects the various components at run-time. However, it is important to
 understand each of the components and the specific role each one plays. The individual components are:
 
-##### Dmf_Interface_SampleInterface.h
+##### [Dmf_Interface_SampleInterface.h](../../Dmf/Modules.Template/Dmf_Interface_SampleInterface.h)
 This is the first file that one writes when designing a DMF Protocol-Transport Interface. It is the map that determines the organization
 and contents of all the other components. Specifically, this file defines following:
 1. Context related to the binding of the Protocol used by the Protocol: `DMF_INTERFACE_PROTOCOL_SampleInterface_BIND_DATA`.
@@ -48,7 +48,7 @@ For example, if the new interface is called "MyInterface", one would copy Dmf_In
 and then rename all the "SampleInterface" in the file as "MyInterface". Then populate all the above 13 items above as needed
 by "MyInterface".
 
-##### Dmf_Interface_SampleInterface.c
+##### [Dmf_Interface_SampleInterface.c](../../Dmf/Modules.Template/Dmf_Interface_SampleInterface.c)
 This file contains the definitions of the functions declared in its companion .h file. The purpose of this file is to perform the transition
 between calls to the abstract interface to the instantiated Protocol and Transport code:
 
@@ -65,7 +65,7 @@ instantiated versions of the Protocol-Transport are called on behalf of the Clie
 Once the companion .h file is written, the code in this file is not difficult to write as it is simply "glue". Again, the best practice it copy the
 template version an use it as a basis for new interfaces.
 
-##### Dmf_SampleInterfaceProtocol1.h
+##### [](../../Dmf/Modules.Template/Dmf_SampleInterfaceProtocol1.h)
 Now that the abstract versions of these files are written, the implemented versions can be written. Note that the
 organization of this file is the same as any other Module .h file however it is also based on the "map" written above.
 
@@ -73,7 +73,7 @@ organization of this file is the same as any other Module .h file however it is 
 2. The Module is declared using the Module Macro `DECLARE_DMF_MODULE(SampleInterfaceProtocol1)`.
 3. The Module's Method's, if any, are declared: `DMF_SampleInterfaceProtocol1_TestMethod`.
 
-##### Dmf_SampleInterfaceProtocol1.c
+##### [Dmf_SampleInterfaceProtocol1.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceProtocol1.c)
 This file contains the definitions of the declarations in the companion .h file above. The basic structure of this file
 is the same as that of other Modules. However, to satisfy the requirements of the DMF Protocol Interface a
 few other definitions are included.
@@ -94,7 +94,7 @@ that allows access to it.
 6. The optional Protocol Context defined in step 4 is assigned using `DMF_INTERFACE_DESCRIPTOR_SET_CONTEXT_TYPE`.
 7. Finally, `DMF_ModuleInterfaceDescriptorAdd` is called using the descriptor populated in step 5.
 
-##### Dmf_SampleInterfaceTransport1.h
+##### [Dmf_SampleInterfaceTransport1.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceTransport1.h)
 Now that the abstract versions of these files are written, the implemented versions can be written. Note that the
 organization of this file is the same as any other Module .h file however it is also based on the "map" written above.
 
@@ -107,7 +107,7 @@ because those Methods are internally used by the Module.
 Of course, there can be multiple implementations of the Transport defined by the Interface. Each implementation has its own
 Module .h file.
 
-##### Dmf_SampleInterfaceTransport1.c
+##### [Dmf_SampleInterfaceTransport1.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceTransport1.c)
 This file contains the definitions of the declarations in the companion .h file above. The basic structure of this file
 is the same as that of other Modules. However, to satisfy the requirements of the DMF Transport Interface a
 few other definitions are included.
@@ -140,7 +140,7 @@ unchanged.
 
 Code Tour
 =========
-Using DMF and the default libraries distributed with DMF the above driver is easy to write. The code is small. All of the code is in the file, DmfInterface.c.
+Using DMF and the default libraries distributed with DMF the above driver is easy to write. The code is small. All of the code is in the file, [DmfInterface.c](DmfInterface.c).
 The code for the *entire* driver (minus .rc and .inx file) is listed here:
 
 ```

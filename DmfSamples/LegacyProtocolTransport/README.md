@@ -24,7 +24,7 @@ transport.
 
 Code Tour
 =========
-Using DMF and the default libraries distributed with DMF the above driver is easy to write. The code is small. All of the code is in the file, DmfInterface.c.
+Using DMF and the default libraries distributed with DMF the above driver is easy to write. The code is small. All of the code is in the file, [DmfInterface.c](DmfInterface.c).
 The code for the *entire* driver (minus .rc and .inx file) is listed here:
 
 ````

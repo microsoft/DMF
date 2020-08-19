@@ -4,7 +4,7 @@ Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 3)
 This sample is an incremental change from the third DMF Sample driver. It shows how to create a DMF Module. Specifically, this sample shows the
 following:
 
-1. The OSR-FX2 sample converted into a Module called Dmf_OsrFx2.
+1. The [OSR-FX2 sample](../driver_dmf_2/readme.md) converted into a Module called Dmf_OsrFx2.
 2. The Module performs most, but not all, the functions that the original driver performs. In this case, some of the functionality 
 is left in the Client driver (which hosts the new Dmf_OsrFx2 Module).
 3. The Dmf_OsrFx2 Module has a callback into the Client. In this case, when data from the interrupt Read-pipe arrives, the Dmf_OsrFx2 Module
@@ -14,17 +14,16 @@ drivers can handle IOCTLs) one IOCTL is handled by the Client.
 5. IMPORTANT: This sample shows how to add a new Module to a Module Library. In this case, it is added to the Template Library. In most cases,
 teams will use the Template Library to build a new private Library.
 
-IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the original (non-DMF) sample. This sample is designed to do everything
+IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the [original (non-DMF) sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2). This sample is designed to do everything
            the original sample does but also perform the minimum steps necessary to initialize DMF.
 
 Overview
 ========
 
-Please compare this sample with the previous sample (DMF Sample 2). Also, to really understand this sample, it is necessary to read the documentation
-that is included with DMF in the Documentation folder. Also, there will be a PowerPoint slide deck to summarize the important points of the documentation
-uploaded to the repository soon.
+Please compare this sample with the previous sample ([DMF Sample 2](../driver_dmf_2/readme.md)). Also, to really understand this sample, it is necessary to read the documentation
+that is included with DMF in the [Documentation folder](../../../Dmf/Documentation/Driver%20Module%20Framework.md). Also, there is a [PowerPoint slide deck](../../../Dmf/Documentation/DmfGit-v1.0.pptx) ([pdf](../../../Dmf/Documentation/DmfGit-v1.0.pdf)) that summarizes the important points of the documentation.
 
-This sample works almost identically to the original OSR FX2 sample. But, the OSR FX2 code resides mostly in the Template Library in the Dmf_OsrFx2
+This sample works almost identically to the [original OSR FX2 sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2). But, the OSR FX2 code resides mostly in the Template Library in the Dmf_OsrFx2
 Module. The Client driver initializes DMF in the same way as the previous sample. However, since the Client driver does not directly handle
 the PnP callbacks (because all that functionality is now in the Dmf_OsrFx2 Module), the Client driver does not need to register for PnP callbacks. 
 The Client driver only needs to hook DMF.
@@ -40,11 +39,11 @@ Code tour
 
 DmfKModules.Template has four new files:
 
-1. Dmf_OsrFx2.c - This is the new Module (Dmf_OsrFx2) that supports the OSR FX2 board. The code is based on the previous samples.
-2. Dmf_OsrFx2.h - This is the Module Include file for Dmf_OsrFx2. It contains all the definitions for the Module that are externally available.
-3. Dmf_OsrFx2_Public.h This is the Module's Public Include file. It contains all the definitions needed by applications or drivers that send
+1. [Dmf_OsrFx2.c](../../../Dmf/Modules.Template/Dmf_OsrFx2.c) - This is the new Module (Dmf_OsrFx2) that supports the OSR FX2 board. The code is based on the previous samples.
+2. [Dmf_OsrFx2.h](../../../Dmf/Modules.Template/Dmf_OsrFx2.h) - This is the Module Include file for Dmf_OsrFx2. It contains all the definitions for the Module that are externally available.
+3. [Dmf_OsrFx2_Public.h](../../../Dmf/Modules.Template/Dmf_OsrFx2_Public.h) This is the Module's Public Include file. It contains all the definitions needed by applications or drivers that send
 commands to the OSR FX2 driver.
-4. Dmf_OsrFx2.txt - This the Dmf_OsrFx2 documentation file. It follows a specific format that is identical to all other Module documentation 
+4. [Dmf_OsrFx2.md](../../../Dmf/Modules.Template/Dmf_OsrFx2.md) - This the Dmf_OsrFx2 documentation file. It follows a specific format that is identical to all other Module documentation 
 files. It contains information that programmers that use the Module will find useful.
 
 Client Driver Code
@@ -53,12 +52,12 @@ Client Driver Code
 The Client Driver has substantial changes:
 
 1. Bulkwr.c is removed because all that logic is now in Dmf_OsrFx2 Module.
-2. Most of the code in ioctl.c and interrupt.c is removed. The missing code is in Dmf_OsrFx2.c.
-3. There are corresponding changes in device.c.
+2. Most of the code in [ioctl.c](ioctl.c) and [interrupt.c](interrupt.c) is removed. The missing code is in [Dmf_OsrFx2.c](../../../Dmf/Modules.Template/Dmf_OsrFx2.c).
+3. There are corresponding changes in [device.c](device.c).
 
-Device.c changes:
+[Device.c](Device.c) changes:
 
-1. These callbacks are completely removed as their code has been moved to Dmf_OsrFx2.c:
+1. These callbacks are completely removed as their code has been moved to [Dmf_OsrFx2.c](../../../Dmf/Modules.Template/Dmf_OsrFx2.c):
 ```
 OsrFxEvtDevicePrepareHardware()
 OsrFxEvtDeviceD0Exit
@@ -76,18 +75,18 @@ directly by the Dmf_OsrFx2 Module. This IOCTL is left here for to show that both
 4. Finally, in OsrDmfModulesAdd(), in addition to the Dmf_IoctlHandler being instantiated the Dmf_OsrFx2 Module is instantiated. Its Config
 has a single element which is a callback that the Module calls when the interrupt endpoint reads data.
 
-Ioctl.c changes:
+[Ioctl.c](Ioctl.c) changes:
 
 1. Code to support all IOCTLs (except one) is removed. That code has been moved to the Dmf_OsrFx2 Module as well.
 
-Interrupt.c changes:
+[Interrupt.c](Interrupt.c) changes:
 
 1. The callback from the Dmf_OsrFx2 Module (OsrFx2InterruptPipeCallback) is located in this file.
 
 Module Code
 -----------
 
-1. Dmf_OsrFx2.c:
+1. [Dmf_OsrFx2.c](../../../Dmf/Modules.Template/Dmf_OsrFx2.c):
 
 * DMF_OsrFx2_Create() - Creates the Dmf_OsrFx2 Module and its Child Modules. This function executes in DeviceAdd(). Any code that should execute 
 in DeviceAdd() should be called here for now.
@@ -130,20 +129,20 @@ OsrFx2_SetPowerPolicy()
 OsrFx2_StartAllPipes()
 OsrFx2_StopAllPipes()
 ```
-2. Dmf_OsrFx2.h:
+2. [Dmf_OsrFx2.h](../../../Dmf/Modules.Template/Dmf_OsrFx2.h):
 
 This file contains the external definitions Clients need to instantiate this Module and use its callbacks/Methods.
 
-3. Dmf_OsrFx2_Public.h:
+3. [Dmf_OsrFx2_Public.h](../../../Dmf/Modules.Template/Dmf_OsrFx2_Public.h):
 
 This file contains the external definitions applications and drivers need to communicate with this Module.
 
-4. Dmf_OsrFx2.txt:
+4. [Dmf_OsrFx2.md](../../../Dmf/Modules.Template/Dmf_OsrFx2.md):
 
 This is the documentation file for Dmf_OsrF2x.
 
 Testing the driver
 ==================
 
-Please see the original sample for details. All the functionality exposed by the application is supported.
+Please see the [original sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2) for details. All the functionality exposed by the application is supported.
 
