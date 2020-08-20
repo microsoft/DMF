@@ -1,0 +1,825 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style>
+.AlignLeft { text-align: left; }
+.AlignCenter { text-align: center; }
+.AlignRight { text-align: right; }
+body { font-family: sans-serif; font-size: 11pt; }
+img.AutoScale { max-width: 100%; max-height: 100%; }
+td { vertical-align: top; padding-left: 4px; padding-right: 4px; }
+
+tr.SectionGap td { font-size: 4px; border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionBegin td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionMiddle td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SubsectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+tr.SubsectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+table.fc { border-top: 1px solid Black; border-left: 1px solid Black; width: 100%; font-family: monospace; font-size: 10pt; }
+td.TextItemInsigMod { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigOrphan { color: #000000; background-color: #FAEEFF; }
+td.TextItemNum { color: #696969; background-color: #F0F0F0; }
+td.TextItemSame { color: #000000; background-color: #FFFFFF; }
+td.TextItemSigMod { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigOrphan { color: #000000; background-color: #F1E3FF; }
+.TextSegInsigDiff { color: #0000FF; }
+.TextSegReplacedDiff { color: #0000FF; font-style: italic; }
+.TextSegSigDiff { color: #FF0000; }
+td.TextItemInsigAdd { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigDel { color: #000000; background-color: #EEEEFF; text-decoration: line-through; }
+td.TextItemSigAdd { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigDel { color: #000000; background-color: #FFE3E3; text-decoration: line-through; }
+</style>
+<title>Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf</title>
+</head>
+<body>
+Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf<br>
+Produced: 8/20/2020 11:07:03 AM<br>
+&nbsp; &nbsp;
+<br>
+Mode:&nbsp; All &nbsp;
+<br>
+File: DMF\DmfSamples\kmdf_fx2_dmf\driver_dmf_1\README.md &nbsp;
+<br>
+<table class="fc" cellspacing="0" cellpadding="0">
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">-+</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">KMDF/DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">OSR</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">USB-FX2</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">1)</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">==============================================================</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">shows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">minimum</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">steps</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">needed</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">in</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">an</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">existing</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">uses</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">[OSR</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">FX2</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2)</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">as</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">updated</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">To</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">keep</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">very</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">simple,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">no</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">The</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">second</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">uses</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">as</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">base</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">shows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">how</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">add</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">single</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Module.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">IMPORTANT:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">For</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">details</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">about</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">how</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">OSR</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">USB-FX2</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">device</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">operates,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">please</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">see</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">[original</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(non-DMF)</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2).</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">designed</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">do</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">everything</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">original</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">but</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">also</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">perform</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">minimum</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">steps</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">necessary</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">initialize</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Please</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">perform</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">file</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">compare</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">between</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">all</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">files</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">in</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">files</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">in</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">original</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">That</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">best</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">way</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">see</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">differences.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Overview</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">--------</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">In</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">following</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">changes</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">made:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">OsrFxEvtDeviceAdd:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">1.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Declare</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">two</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">variables</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">used</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">initialize</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">PDMFDEVICE_INIT</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">dmfDeviceInit;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_EVENT_CALLBACKS</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">dmfEventCallbacks;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">2.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Allocate</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PDMFDEVICE_INIT</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structure.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">an</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">opaque</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structure</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">uses</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">keep</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">track</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">what</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">uses</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">called</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver)</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">doing</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">during</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">initialization.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Create</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PDMFDEVICE_INIT</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structure.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">dmfDeviceInit</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">=</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF_DmfDeviceInitAllocate(DeviceInit);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">3.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Hook</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver's</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">WDF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">so</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF's</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">be</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">called.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NOTE:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">These</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">three</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">calls</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">ALWAYS</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">necessary</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">even</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">register</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">any</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">those</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">In</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">case,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">only</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">registers</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PnP</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Hook</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Pnp</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">allows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">receive</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">first</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">so</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">can</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">dispatch</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">them</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">If</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Pnp</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">you</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">must</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">call</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">with</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NULL</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">as</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">second</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">parameter.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">prevent</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">developers</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">from</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">forgetting</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">step</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">adds</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">support</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Pnp</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">later.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_DmfDeviceInitHookPnpPowerEventCallbacks(dmfDeviceInit,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">&amp;pnpPowerCallbacks);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">&amp;pnpPowerCallbacks);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Hook</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Policy</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">allows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">receive</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">first</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">so</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">can</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">dispatch</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">them</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">If</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Policy</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">you</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">must</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">call</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">with</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NULL</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">as</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">second</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">parameter.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">prevent</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">developers</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">from</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">forgetting</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">step</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">adds</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">support</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Power</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Policy</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">later.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_DmfDeviceInitHookPowerPolicyEventCallbacks(dmfDeviceInit,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NULL);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Hook</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">File</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Object</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">allows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">receive</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">first</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">so</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">can</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">dispatch</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">them</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">If</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">File</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Object</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">you</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">must</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">call</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">with</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NULL</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">as</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">second</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">parameter.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">prevent</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">developers</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">from</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">forgetting</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">step</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">adds</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">support</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">File</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Object</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">later.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NULL);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">4.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Hook</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">default</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">queue</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">step</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">optional</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">default</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">queue.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">In</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">2,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">queue</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">necessary</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">because</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">default</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">queue</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">creates.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Hook</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Default</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Queue</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Config</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Callbacks.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">allows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">receive</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callbacks</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">first</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">so</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">can</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">dispatch</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">them</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">If</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">not</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">default</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">queue,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NOT</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">NECESSARY</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">call</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(unlike</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">above</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">three</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">functions)</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">because</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">set</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">up</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">default</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">queue</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">itself.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_DmfDeviceInitHookQueueConfig(dmfDeviceInit,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">&amp;ioQueueConfig);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">5.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Initialize</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Module</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Add</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callback</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">called</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">by</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">ask</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">initialize</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">In</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">no</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">used</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">by</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">but</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callback</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">set</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">illustration</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">purposes.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Initialize</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF_EVENT_CALLBACKS</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">set</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callback</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">call</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">get</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">list</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiate.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_EVENT_CALLBACKS_INIT(&amp;dmfEventCallbacks);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">dmfEventCallbacks.EvtDmfDeviceModulesAdd</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">=</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">OsrDmfModulesAdd;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF_DmfDeviceInitSetEventCallbacks(dmfDeviceInit,</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">&amp;dmfEventCallbacks);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">6.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Initialize</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">allows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF's</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">core</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">ask</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">what</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">wants</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">then</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">create</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Tell</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">create</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">its</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">data</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structures</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">create</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">has</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">specified</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(using</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">above</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callback).</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">After</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">call</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">succeeds</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">has</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">all</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">information</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">needs</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">dispatch</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">WDF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">entry</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">points</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tree</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">status</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">=</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF_ModulesCreate(device,</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">&amp;dmfDeviceInit);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">7.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tells</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">what</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">uses</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">no</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">so</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">does</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">nothing.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">See</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">2</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">see</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">how</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF:</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">This</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">callback</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">function</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">called</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">by</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">allows</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver)</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">set</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">CONFIG</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">each</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Module</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">use.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">_IRQL_requires_max_(PASSIVE_LEVEL)</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">VOID</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">OsrDmfModulesAdd(</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">_In_</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">WDFDEVICE</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Device,</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">_In_</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PDMFMODULE_INIT</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DmfModuleInit</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">)</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">/*++</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">Routine</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Description:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">EvtDmfDeviceModulesAdd</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">called</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">by</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">during</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver's</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">DeviceAdd</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">call</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">from</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PnP</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">manager.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Here</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">declares</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">a</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">CONFIG</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structure</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">every</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instance</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">every</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Module</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span><span class="TextSegInsigDiff">&nbsp;</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">uses.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Each</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">CONFIG</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structure</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">properly</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">initialized</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">its</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">specific</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">use.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Then,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">each</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">CONFIG</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">structure</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">added</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">list</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">of</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">will</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiate.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">Arguments:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">Device</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">-</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">The</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Client</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver's</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">WDFDEVICE.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">DmfModuleInit</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">-</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">An</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">opaque</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PDMFMODULE_INIT</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">used</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">by</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">Return</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Value:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">None</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">--*/</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">{</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">UNREFERENCED_PARAMETER(Device);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">UNREFERENCED_PARAMETER(DmfModuleInit);</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">In</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">no</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Modules</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">instantiated.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">}</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">```</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">8.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Finally,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">project</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">settings</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">modified</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">set</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">include</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">paths</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">link</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">library</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">names.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Also,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">it</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">necessary</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">to</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">set</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">EnableWpp</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">=</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRUE</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">because</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">library</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">requires</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">that</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">setting.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Code</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">tour</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">---------</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">There</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">are</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">no</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">changes</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">between</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">original</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">and</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">this</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Please</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">see</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">[original</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2)</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">details.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Testing</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">driver</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">------------------</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegSigDiff">Please</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">see</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">[original</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2)</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">for</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">details.</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Nothing</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">is</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">changed</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">in</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">the</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">version.</span></td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">&nbsp;</td>
+</tr>
+</table>
+<br>
+</body>
+</html>

@@ -11,7 +11,7 @@ as a base and shows how to add and use a single Module.
 IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the [original (non-DMF) sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2). This sample is designed to do everything
 the original sample does but also perform the minimum steps necessary to initialize DMF.
 
-Please perform a file compare between all the files in this sample and the files in the original sample. That is the best way to see the differences.
+We have provided [a file compare](../../Documentation/Compare-kmdf_fx2-to-kmdf_fx2_dmf/Comparison.html) between all the files in this sample and the files in the original sample. That is the best way to see the differences.
 
 Overview
 --------

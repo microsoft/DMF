@@ -1,0 +1,697 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+.AlignLeft { text-align: left; }
+.AlignCenter { text-align: center; }
+.AlignRight { text-align: right; }
+body { font-family: sans-serif; font-size: 11pt; }
+img.AutoScale { max-width: 100%; max-height: 100%; }
+td { vertical-align: top; padding-left: 4px; padding-right: 4px; }
+
+tr.SectionGap td { font-size: 4px; border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionBegin td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionMiddle td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SubsectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+tr.SubsectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+table.fc { border-top: 1px solid Black; border-left: 1px solid Black; width: 100%; font-family: monospace; font-size: 10pt; }
+td.TextItemInsigMod { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigOrphan { color: #000000; background-color: #FAEEFF; }
+td.TextItemNum { color: #696969; background-color: #F0F0F0; }
+td.TextItemSame { color: #000000; background-color: #FFFFFF; }
+td.TextItemSigMod { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigOrphan { color: #000000; background-color: #F1E3FF; }
+.TextSegInsigDiff { color: #0000FF; }
+.TextSegReplacedDiff { color: #0000FF; font-style: italic; }
+.TextSegSigDiff { color: #FF0000; }
+td.TextItemInsigAdd { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigDel { color: #000000; background-color: #EEEEFF; text-decoration: line-through; }
+td.TextItemSigAdd { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigDel { color: #000000; background-color: #FFE3E3; text-decoration: line-through; }
+</style>
+<title>Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf</title>
+</head>
+<body>
+Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf<br>
+Produced: 8/20/2020 11:07:03 AM<br>
+&nbsp; &nbsp;
+<br>
+Mode:&nbsp; All &nbsp;
+<br>
+Left file: Windows-driver-samples\usb\kmdf_fx2\driver\osrusbfx2.inx &nbsp;
+<br>
+Right file: DMF\DmfSamples\kmdf_fx2_dmf\driver_dmf_1\osrusbfx2dmf1.inx &nbsp;
+<br>
+<table class="fc" cellspacing="0" cellpadding="0">
+<tr class="SectionBegin">
+<td class="TextItemSame">;/*++</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">;/*++</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;Copyright (c) Microsoft Corporation.&nbsp; All rights reserved.</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;Copyright (c) Microsoft Corporation.&nbsp; All rights reserved.</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;&nbsp;&nbsp; THIS CODE AND INFORMATION IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;&nbsp;&nbsp; THIS CODE AND INFORMATION IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;&nbsp;&nbsp; KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;&nbsp;&nbsp; KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;&nbsp;&nbsp; IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;&nbsp;&nbsp; IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;&nbsp;&nbsp; PURPOSE.</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;&nbsp;&nbsp; PURPOSE.</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;Module Name:</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;Module Name:</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod">;&nbsp; &nbsp; OSRUSBFX2.INF</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">;&nbsp; &nbsp; OSRUSBFX2<span class="TextSegSigDiff">DMF1</span>.INF</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">;Abstract:</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;Abstract:</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod">;&nbsp; &nbsp; Installation inf for OSR USB-FX2 Learning Kit</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">;&nbsp; &nbsp; Installation inf for OSR USB-FX2 Learning Kit<span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">1)</span></td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;--*/</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;--*/</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[Version]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[Version]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">Signature=&quot;$WINDOWS NT$&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">Signature=&quot;$WINDOWS NT$&quot;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">Class=Sample</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">Class=Sample</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">Provider=%ProviderName%</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">Provider=%ProviderName%</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">DriverVer=03/20/2003,5.00.3788</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">DriverVer=03/20/2003,5.00.3788</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">CatalogFile=KmdfSamples.cat</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">CatalogFile=KmdfSamples.cat</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; ================= Class section =====================</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; ================= Class section =====================</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[ClassInstall32]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[ClassInstall32]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">Addreg=SampleClassReg</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">Addreg=SampleClassReg</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[SampleClassReg]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[SampleClassReg]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">HKR,,,0,%ClassName%</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">HKR,,,0,%ClassName%</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">HKR,,Icon,,-5</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">HKR,,Icon,,-5</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; ================= Device section =====================</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; ================= Device section =====================</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[Manufacturer]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[Manufacturer]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">%MfgName%=OSR,NT$ARCH$</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">%MfgName%=OSR,NT$ARCH$</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[OSR.NT$ARCH$]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[OSR.NT$ARCH$]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">%USB\VID_045E&amp;PID_930A.DeviceDesc%=osrusbfx2.Dev, USB\VID_0547&amp;PID_1002</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">%USB\VID_045E&amp;PID_930A.DeviceDesc%=osrusbfx2.Dev, USB\VID_0547&amp;PID_1002</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">%Switch.DeviceDesc%=Switch.Dev, {6FDE7521-1B65-48ae-B628-80BE62016026}\OsrUsbFxRawPdo</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">%Switch.DeviceDesc%=Switch.Dev, {6FDE7521-1B65-48ae-B628-80BE62016026}\OsrUsbFxRawPdo</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[osrusbfx2.Dev.NT]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2.Dev.NT]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">CopyFiles=osrusbfx2.Files.Ext</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">CopyFiles=osrusbfx2.Files.Ext</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[Switch.Dev.NT]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[Switch.Dev.NT]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;dummy section</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;dummy section</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[Switch.Dev.NT.Services]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[Switch.Dev.NT.Services]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">AddService = , %SPSVCINST_ASSOCSERVICE%,&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">AddService = , %SPSVCINST_ASSOCSERVICE%,&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[osrusbfx2.Dev.NT.Services]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2.Dev.NT.Services]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">AddService = osrusbfx2, %SPSVCINST_ASSOCSERVICE%, osrusbfx2.AddService</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">AddService = osrusbfx2, %SPSVCINST_ASSOCSERVICE%, osrusbfx2.AddService</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[osrusbfx2.AddService]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2.AddService]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">DisplayName&nbsp; &nbsp; = %osrusbfx2.SvcDesc%</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">DisplayName&nbsp; &nbsp; = %osrusbfx2.SvcDesc%</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">ServiceType&nbsp; &nbsp; = 1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ; SERVICE_KERNEL_DRIVER</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">ServiceType&nbsp; &nbsp; = 1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ; SERVICE_KERNEL_DRIVER</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">StartType&nbsp; &nbsp; &nbsp; = 3&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ; SERVICE_DEMAND_START</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">StartType&nbsp; &nbsp; &nbsp; = 3&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ; SERVICE_DEMAND_START</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">ErrorControl&nbsp;&nbsp; = 1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ; SERVICE_ERROR_NORMAL</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">ErrorControl&nbsp;&nbsp; = 1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ; SERVICE_ERROR_NORMAL</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod">ServiceBinary&nbsp; = %10%\System32\Drivers\osrusbfx2.sys</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">ServiceBinary&nbsp; = %10%\System32\Drivers\osrusbfx2<span class="TextSegSigDiff">dmf1</span>.sys</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">[osrusbfx2.Files.Ext]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2.Files.Ext]</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod">osrusbfx2.sys</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">osrusbfx2<span class="TextSegSigDiff">dmf1</span>.sys</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[SourceDisksNames]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[SourceDisksNames]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">1=%Disk_Description%,,,</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">1=%Disk_Description%,,,</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; ================= OsrUsb Interface Installation ============================</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; ================= OsrUsb Interface Installation ============================</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; This sample sets the custom capability programatically in the code which</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; This sample sets the custom capability programatically in the code which</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; allows Windows store apps for device to access this device interface through&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; allows Windows store apps for device to access this device interface through&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; Windows.Devices.Custom namespace. If you prefer to set this in INF, uncomment</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; Windows.Devices.Custom namespace. If you prefer to set this in INF, uncomment</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; the below section (including relevant Strings) and remove the block of&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; the below section (including relevant Strings) and remove the block of&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">; code which refers to &quot;Adding Custom Capability&quot;.</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">; code which refers to &quot;Adding Custom Capability&quot;.</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;[OsrUsb_Install.NT.Interfaces]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;[OsrUsb_Install.NT.Interfaces]</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">;AddInterface=&quot;{%GUID_DEVINTERFACE_OSRUSBFX2%}&quot;, , OsrUsbAddInterface</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;AddInterface=&quot;{%GUID_DEVINTERFACE_OSRUSBFX2%}&quot;, , OsrUsbAddInterface</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod"><span class="TextSegSigDiff"> </span></td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">&nbsp;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">;[OsrUsbAddInterface]&nbsp;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">;[OsrUsbAddInterface]&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">;AddProperty=OsrUsbAddInterface.AddProps&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;AddProperty=OsrUsbAddInterface.AddProps&nbsp;</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod"><span class="TextSegSigDiff"> </span></td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">&nbsp;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">;[OsrUsbAddInterface.AddProps]</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">;[OsrUsbAddInterface.AddProps]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;{%DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities%}, 8, 0x2012,, %CustomCapability%</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;{%DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities%}, 8, 0x2012,, %CustomCapability%</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;-------------- WDF Coinstaller installation</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;-------------- WDF Coinstaller installation</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[DestinationDirs]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[DestinationDirs]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">DefaultDestDir = 12</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">DefaultDestDir = 12</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">CoInstaller_CopyFiles = 11</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">CoInstaller_CopyFiles = 11</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[osrusbfx2.Dev.NT.CoInstallers]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2.Dev.NT.CoInstallers]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">AddReg=CoInstaller_AddReg</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">AddReg=CoInstaller_AddReg</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">CopyFiles=CoInstaller_CopyFiles</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">CopyFiles=CoInstaller_CopyFiles</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[CoInstaller_CopyFiles]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[CoInstaller_CopyFiles]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">[SourceDisksFiles]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[SourceDisksFiles]</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSigMod">osrusbfx2.sys = 1</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">osrusbfx2<span class="TextSegSigDiff">dmf1</span>.sys = 1</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[CoInstaller_AddReg]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[CoInstaller_AddReg]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">HKR,,CoInstallers32,0x00010000, &quot;WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">HKR,,CoInstallers32,0x00010000, &quot;WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller&quot;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[osrusbfx2.Dev.NT.Wdf]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2.Dev.NT.Wdf]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">KmdfService = osrusbfx2, osrusbfx2_wdfsect</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">KmdfService = osrusbfx2, osrusbfx2_wdfsect</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[osrusbfx2_wdfsect]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[osrusbfx2_wdfsect]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">KmdfLibraryVersion = $KMDFVERSION$</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">KmdfLibraryVersion = $KMDFVERSION$</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;---------------------------------------------------------------;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;---------------------------------------------------------------;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">[Strings]</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">[Strings]</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">ProviderName=&quot;TODO-Set-Provider&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">ProviderName=&quot;TODO-Set-Provider&quot;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">MfgName=&quot;OSR&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">MfgName=&quot;OSR&quot;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">Disk_Description=&quot;OSRUSBFX2 Installation Disk&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">Disk_Description=&quot;OSRUSBFX2 Installation Disk&quot;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSigMod">USB\VID_045E&amp;PID_930A.DeviceDesc=&quot;WDF Sample Driver for OSR USB-FX2 Learning Kit&quot;</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod">USB\VID_045E&amp;PID_930A.DeviceDesc=&quot;WDF Sample Driver <span class="TextSegSigDiff">(DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">1)</span><span class="TextSegInsigDiff"> </span>for OSR USB-FX2 Learning Kit&quot;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSigMod">osrusbfx2.SvcDesc=&quot;WDF Sample Driver for OSR USB-FX2 Learning Kit&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod">osrusbfx2.SvcDesc=&quot;WDF Sample Driver <span class="TextSegSigDiff">(DMF</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">Sample</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">1)</span><span class="TextSegInsigDiff"> </span>for OSR USB-FX2 Learning Kit&quot;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">ClassName&nbsp; &nbsp; &nbsp;&nbsp; = &quot;Sample Device&quot;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">ClassName&nbsp; &nbsp; &nbsp;&nbsp; = &quot;Sample Device&quot;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">Switch.DeviceDesc = &quot;OsrUsbFX2 RawPdo For Switch&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">Switch.DeviceDesc = &quot;OsrUsbFX2 RawPdo For Switch&quot;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">SPSVCINST_ASSOCSERVICE= 0x00000002</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">SPSVCINST_ASSOCSERVICE= 0x00000002</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;GUID_DEVINTERFACE_OSRUSBFX2=&quot;573E8C73-0CB4-4471-A1BF-FAB26C31D384&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;GUID_DEVINTERFACE_OSRUSBFX2=&quot;573E8C73-0CB4-4471-A1BF-FAB26C31D384&quot;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">;DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities=&quot;026e516e-b814-414b-83cd-856d6fef4822&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities=&quot;026e516e-b814-414b-83cd-856d6fef4822&quot;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">;CustomCapability=&quot;microsoft.hsaTestCustomCapability_q536wpkpf5cy2&quot;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">;CustomCapability=&quot;microsoft.hsaTestCustomCapability_q536wpkpf5cy2&quot;</td>
+</tr>
+</table>
+<br>
+</body>
+</html>
