@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 12.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OsrUsbFx2Dmf1", "OsrUsbFx2Dmf1", "{BCB7D745-20C8-48E1-A792-F708EF65B29F}"
 EndProject
@@ -69,6 +69,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InterfaceSample2", "InterfaceSample2", "{9F6C44C8-2D6F-4146-B0D3-8B03B63A9444}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InterfaceSample2", "InterfaceSample2\InterfaceSample2.vcxproj", "{11E86F65-056C-4D0B-841A-9E8AB068932E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EyeGazeGhost", "EyeGazeGhost\EyeGazeGhost.vcxproj", "{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -214,6 +216,14 @@ Global
 		{11E86F65-056C-4D0B-841A-9E8AB068932E}.Release|Win32.Build.0 = Release|Win32
 		{11E86F65-056C-4D0B-841A-9E8AB068932E}.Release|x64.ActiveCfg = Release|x64
 		{11E86F65-056C-4D0B-841A-9E8AB068932E}.Release|x64.Build.0 = Release|x64
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Debug|Win32.Build.0 = Debug|Win32
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Debug|x64.ActiveCfg = Debug|x64
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Debug|x64.Build.0 = Debug|x64
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Release|Win32.ActiveCfg = Release|Win32
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Release|Win32.Build.0 = Release|Win32
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Release|x64.ActiveCfg = Release|x64
+		{BFCE6917-FAD0-4EEC-AB8D-2FEE9BD3B68F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

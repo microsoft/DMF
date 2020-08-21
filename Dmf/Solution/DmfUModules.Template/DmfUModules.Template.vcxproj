@@ -99,14 +99,20 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Modules.Template\Dmf_EyeGazeGhost.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_VirtualEyeGaze.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.c" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Public.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_EyeGazeGhost.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_Template.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Trace.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_VirtualEyeGaze.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.h" />
+    <None Include="..\..\Modules.Template\Dmf_EyeGazeGhost.md" />
     <None Include="..\..\Modules.Template\Dmf_Template.md" />
+    <None Include="..\..\Modules.Template\Dmf_VirtualEyeGaze.md" />
     <None Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
