@@ -112,8 +112,11 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c">
-      <Filter>Modules\Targets</Filter>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.c">
+      <Filter>Modules\Hid</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -240,8 +243,14 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h">
       <Filter>Headers\Targets</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h">
-      <Filter>Headers\Targets</Filter>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl_Public.h">
+      <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.h">
+      <Filter>Headers\Hid</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -422,6 +431,12 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md">
+      <Filter>Documentation\Modules\Hid</Filter>
     </None>
   </ItemGroup>
 </Project>

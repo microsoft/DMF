@@ -1,4 +1,4 @@
-## DMF_EyeGazeGhost
+## DMF_EyeGazeIoctl
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ for more information.
 #### Module Configuration
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### DMF_CONFIG_EyeGazeGhost
+##### DMF_CONFIG_EyeGazeIoctl
 Client uses this structure to configure the Module specific parameters.
 
 ````
@@ -23,7 +23,7 @@ Client uses this structure to configure the Module specific parameters.
 typedef struct
 {
     ULONG ReadFromRegistry;
-} DMF_CONFIG_EyeGazeGhost;
+} DMF_CONFIG_EyeGazeIoctl;
 ````
 Member | Description
 ----|----

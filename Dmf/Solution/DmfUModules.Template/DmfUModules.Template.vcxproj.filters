@@ -21,12 +21,6 @@
     <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.c">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Template\Dmf_VirtualEyeGaze.c">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Template\Dmf_EyeGazeGhost.c">
-      <Filter>Modules</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Template\Dmf_Template.h">
@@ -44,24 +38,12 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Template\Dmf_VirtualEyeGaze.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Template\Dmf_EyeGazeGhost.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Template\Dmf_Template.md">
       <Filter>Documentation</Filter>
     </None>
     <None Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="..\..\Modules.Template\Dmf_VirtualEyeGaze.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="..\..\Modules.Template\Dmf_EyeGazeGhost.md">
       <Filter>Documentation</Filter>
     </None>
   </ItemGroup>

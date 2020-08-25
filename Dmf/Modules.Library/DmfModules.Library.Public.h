@@ -32,6 +32,7 @@ extern "C"
 #include "..\Framework\Modules.Core\DmfModules.Core.Public.h"
 
 #include "Dmf_CrashDump_Public.h"
+#include "Dmf_EyeGazeIoctl_Public.h"
 
 #if defined(__cplusplus)
 }

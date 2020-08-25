@@ -1,7 +1,6 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
-    Licensed under the MIT license.
 
 Module Name:
 
@@ -9,7 +8,7 @@ Module Name:
 
 Abstract:
 
-    DMF version of Eye Gaze HID sample.
+    Support for creating a virtual keyboard device that "types" keys into the host.
 
 Environment:
 
@@ -21,8 +20,8 @@ Environment:
 // DMF and this Module's Library specific definitions.
 //
 #include "DmfModule.h"
-#include "DmfModules.Template.h"
-#include "DmfModules.Template.Trace.h"
+#include "DmfModules.Library.h"
+#include "DmfModules.Library.Trace.h"
 
 #if defined(DMF_INCLUDE_TMH)
 #include "Dmf_VirtualEyeGaze.tmh"
@@ -36,8 +35,6 @@ Environment:
 typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 
 #include <pshpack1.h>
-
-#pragma once
 
 #define HID_USAGE_PAGE_EYE_HEAD_TRACKER             (0x0012)
 #define HID_USAGE_PAGE_NAME_EYE_HEAD_TRACKER        "Eye and Head Trackers"
@@ -110,17 +107,13 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 #define MODE_REQUEST_ENABLE_EYE_POSITION            2
 #define MODE_REQUEST_ENABLE_HEAD_POSITION           3
 
-// Input from device to system.
-//
-typedef struct _HIDMINI_INPUT_REPORT
+#define HID_USAGE_TRACKING_DATA                     (0x10)        // CP
+
+typedef struct _GAZE_REPORT
 {
-    // Report Id.
-    //
     UCHAR ReportId;
-    // Data in the Read Report.
-    //
-    UCHAR Data; 
-} HIDMINI_INPUT_REPORT;
+    GAZE_DATA GazeData;
+} GAZE_REPORT, *PGAZE_REPORT;
 
 typedef struct _CAPABILITIES_REPORT
 {
@@ -168,9 +161,9 @@ typedef struct _TRACKER_CONTROL_REPORT
 
 typedef struct _DMF_CONTEXT_VirtualEyeGaze
 {
-    // Underlying VHIDMINI2 support.
+    // Virtual Hid Device via Vhf.
     //
-    DMFMODULE DmfModuleVirtualHidMini;
+    DMFMODULE DmfModuleVirtualHidDeviceVhf;
 
     CAPABILITIES_REPORT CapabilitiesReport;
     CONFIGURATION_REPORT ConfigurationReport;
@@ -190,7 +183,7 @@ DMF_MODULE_DECLARE_CONFIG(VirtualEyeGaze)
 
 // MemoryTag.
 //
-#define MemoryTag 'mDHV'
+#define MemoryTag 'zgEV'
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code
@@ -222,15 +215,6 @@ DMF_MODULE_DECLARE_CONFIG(VirtualEyeGaze)
 #define VHIDMINI_DEVICE_STRING_INDEX    5
 
 #define CONTROL_FEATURE_REPORT_ID   0x01
-
-// TODO: Fix PID and VID
-//
-// These are the device attributes returned by the mini driver in response
-// to IOCTL_HID_GET_DEVICE_ATTRIBUTES.
-//
-#define HIDMINI_PID             0xFEED
-#define HIDMINI_VID             0xDEED
-#define HIDMINI_VERSION         0x0101
 
 #include <pshpack1.h>
 
@@ -298,7 +282,7 @@ typedef UCHAR HID_REPORT_DESCRIPTOR;
 // by the mini driver in response to IOCTL_HID_GET_REPORT_DESCRIPTOR.
 //
 HID_REPORT_DESCRIPTOR
-g_VirtualEyeGaze_DefaultReportDescriptor[] = 
+g_VirtualEyeGaze_HidReportDescriptor[] = 
 {
     HID_USAGE_PAGE(HID_USAGE_PAGE_EYE_HEAD_TRACKER),
     HID_USAGE(HID_USAGE_EYE_TRACKER),
@@ -463,7 +447,7 @@ g_VirtualEyeGaze_DefaultReportDescriptor[] =
 // of report descriptor is currently the size of g_DefaultReportDescriptor.
 //
 HID_DESCRIPTOR
-g_VirtualEyeGaze_DefaultHidDescriptor = 
+g_VirtualEyeGaze_HidDescriptor = 
 {
     0x09,   // length of HID descriptor
     0x21,   // descriptor type == HID  0x21
@@ -472,150 +456,34 @@ g_VirtualEyeGaze_DefaultHidDescriptor =
     0x01,   // number of HID class descriptors
     {                                       //DescriptorList[0]
         0x22,                               //report descriptor type 0x22
-        sizeof(g_VirtualEyeGaze_DefaultReportDescriptor)   //total length of report descriptor
+        sizeof(g_VirtualEyeGaze_HidReportDescriptor)   //total length of report descriptor
     }
 };
 
-NTSTATUS
-VirtualEyeGaze_WriteReport(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _In_ HID_XFER_PACKET* Packet,
-    _Out_ ULONG* ReportSize
+_Function_class_(EVT_VHF_ASYNC_OPERATION)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+VirtualEyeGaze_GET_FEATURE(
+    _In_ PVOID VhfClientContext,
+    _In_ VHFOPERATIONHANDLE VhfOperationHandle,
+    _In_opt_ PVOID VhfOperationContext,
+    _In_ PHID_XFER_PACKET HidTransferPacket
     )
-/*++
-
-Routine Description:
-
-    Callback function that allows this Module to support "WriteReport".
-
-Arguments:
-
-    DmfModule - Child Module that makes calls this callback.
-    Packet - Extracted HID packet.
-    ReportSize - Size of the Report Buffer read.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-    ULONG reportSize;
-    HIDMINI_OUTPUT_REPORT* outputReport;
-    DMFMODULE dmfModuleParent;
-
-    UNREFERENCED_PARAMETER(Request);
-
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-
-    if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
-    {
-        // Return error for unknown collection
-        //
-        ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualEyeGaze_WriteReport: unknown report id %d", Packet->reportId);
-        goto Exit;
-    }
-
-    // Before touching buffer make sure buffer is big enough.
-    //
-    reportSize = sizeof(HIDMINI_OUTPUT_REPORT);
-
-    if (Packet->reportBufferLen < reportSize)
-    {
-        ntStatus = STATUS_INVALID_BUFFER_SIZE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualEyeGaze_WriteReport: invalid input buffer. size %d, expect %d", Packet->reportBufferLen, reportSize);
-        goto Exit;
-    }
-
-    outputReport = (HIDMINI_OUTPUT_REPORT*)Packet->reportBuffer;
-
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-
-    // Store the device data in the Module Context.
-    //
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-    //moduleContext->DeviceData = outputReport->Data;
-
-    *ReportSize = reportSize;
-    ntStatus = STATUS_SUCCESS;
-
-Exit:
-
-    return ntStatus;
-}
-
-NTSTATUS
-VirtualEyeGaze_GetFeature(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _In_ HID_XFER_PACKET* Packet,
-    _Out_ ULONG* ReportSize
-    )
-/*++
-
-Routine Description:
-
-    Handles IOCTL_HID_GET_FEATURE for all the collection.
-
-Arguments:
-
-    DmfModule - Child (DMF_VirtualHidMini) Module's handle.
-    Packet - Contains the target buffer.
-    ReportSize - Indicates how much data is written to target buffer.
-
-Return Value:
-
-    NTSTATUS
-
---*/
 {
     NTSTATUS ntStatus;
     ULONG reportSize;
     UCHAR* reportData;
     DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    DMFMODULE dmfModuleParent;
+    DMFMODULE dmfModule;
 
-    UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(VhfOperationContext);
 
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+    ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+    dmfModule = DMFMODULEVOID_TO_MODULE(VhfClientContext);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
-    {
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
-        //
-        ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualEyeGaze_GetFeature fails: invalid report id %d", Packet->reportId);
-        goto Exit;
-    }
-
-    // Since output buffer is for write only (no read allowed by UMDF in output
-    // buffer), any read from output buffer would be reading garbage), so don't
-    // let app embed custom control code in output buffer. The minidriver can
-    // support multiple features using separate report ID instead of using
-    // custom control code. Since this is targeted at report ID 1, we know it
-    // is a request for getting attributes.
-    //
-    // While KMDF does not enforce the rule (disallow read from output buffer),
-    // it is good practice to not do so.
-    //
-
-    reportSize = sizeof(MY_DEVICE_ATTRIBUTES) + sizeof(Packet->reportId);
-    if (Packet->reportBufferLen < reportSize) 
-    {
-        ntStatus = STATUS_INVALID_BUFFER_SIZE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
-                    "VirtualEyeGaze_GetFeature fails: output buffer too small. Size %d, expect %d",
-                    Packet->reportBufferLen,
-                    reportSize);
-        goto Exit;
-    }
-
-    switch (Packet->reportId)
+    switch (HidTransferPacket->reportId)
     {
         case HID_USAGE_CAPABILITIES:
             reportSize = sizeof(CAPABILITIES_REPORT);
@@ -631,405 +499,31 @@ Return Value:
             break;
         default:
             ntStatus = STATUS_INVALID_PARAMETER;
-            KdPrint(("GetFeature: invalid report id %d\n", Packet->reportId));
             goto Exit;
     }
 
-    memcpy(Packet->reportBuffer,
-           reportData,
-           reportSize);
-
-    // Report how many bytes were written.
-    //
-    *ReportSize = reportSize;
-    ntStatus = STATUS_SUCCESS;
-
-Exit:
-
-    return ntStatus;
-}
-
-NTSTATUS
-VirtualEyeGaze_SetFeature(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _In_ HID_XFER_PACKET* Packet,
-    _Out_ ULONG* ReportSize
-    )
-/*++
-
-Routine Description:
-
-    Handles IOCTL_HID_SET_FEATURE for all the collection.
-    For control collection (custom defined collection) it handles
-    the user-defined control codes for sideband communication
-
-Arguments:
-
-    DmfModule - Child (DMF_VirtualHidMini) Module's handle.
-    Packet - Contains the source buffer.
-    ReportSize - Indicates how much data is read from source buffer.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-    ULONG reportSize;
-    TRACKER_CONTROL_REPORT* trackerControlReport;
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    DMFMODULE dmfModuleParent;
-
-    UNREFERENCED_PARAMETER(Request);
-    UNREFERENCED_PARAMETER(ReportSize);
-
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-
-    if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
+    reportSize = sizeof(MY_DEVICE_ATTRIBUTES) + sizeof(HidTransferPacket->reportId);
+    if (HidTransferPacket->reportBufferLen < reportSize) 
     {
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
-        //
-        ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualEyeGaze_SetFeature fails: invalid report id %d", Packet->reportId);
         goto Exit;
     }
 
-    // Before touching control code make sure buffer is big enough.
-    //
-    reportSize = sizeof(TRACKER_CONTROL_REPORT);
-
-    if (Packet->reportBufferLen < reportSize) 
+    if (HidTransferPacket->reportId != CONTROL_COLLECTION_REPORT_ID)
     {
-        ntStatus = STATUS_INVALID_BUFFER_SIZE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
-                    "VirtualEyeGaze_SetFeature fails: invalid input buffer. size %d, expect %d",
-                    Packet->reportBufferLen, reportSize);
         goto Exit;
     }
 
-    trackerControlReport = (TRACKER_CONTROL_REPORT*)Packet->reportBuffer;
-
-    // TODO: Handle mode request.
-    //
+    RtlCopyMemory(HidTransferPacket->reportBuffer,
+                  reportData,
+                  reportSize);
 
     ntStatus = STATUS_SUCCESS;
 
 Exit:
 
-    return ntStatus;
-}
-
-NTSTATUS
-VirtualEyeGaze_GetInputReport(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _In_ HID_XFER_PACKET* Packet,
-    _Out_ ULONG* ReportSize
-    )
-/*++
-
-Routine Description:
-
-    Handles IOCTL_HID_GET_INPUT_REPORT for all the collection.
-
-Arguments:
-
-    DmfModule - Child (DMF_VirtualHidMini) Module's handle.
-    Packet - Contains the target buffer.
-    ReportSize - Indicates how much data is written to target buffer.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-    ULONG reportSize;
-    HIDMINI_INPUT_REPORT* reportBuffer;
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    DMFMODULE dmfModuleParent;
-
-    UNREFERENCED_PARAMETER(Request);
-
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-
-    if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
-    {
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
-        //
-        ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualEyeGaze_GetInputReport fails: invalid report id %d", Packet->reportId);
-        goto Exit;
-    }
-
-    reportSize = sizeof(HIDMINI_INPUT_REPORT);
-    if (Packet->reportBufferLen < reportSize)
-    {
-        ntStatus = STATUS_INVALID_BUFFER_SIZE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
-                    "VirtualEyeGaze_GetInputReport fails: output buffer too small. Size %d, expect %d",
-                    Packet->reportBufferLen,
-                    reportSize);
-        goto Exit;
-    }
-
-    reportBuffer = (HIDMINI_INPUT_REPORT*)(Packet->reportBuffer);
-
-    reportBuffer->ReportId = CONTROL_COLLECTION_REPORT_ID;
-    //reportBuffer->Data     = moduleContext->OutputReport;
-
-    // Report how many bytes were copied.
-    //
-    *ReportSize = reportSize;
-    ntStatus = STATUS_SUCCESS;
-
-Exit:
-
-    return ntStatus;
-}
-
-NTSTATUS
-VirtualEyeGaze_SetOutputReport(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _In_ HID_XFER_PACKET* Packet,
-    _Out_ ULONG* ReportSize
-    )
-/*++
-
-Routine Description:
-
-    Handles IOCTL_HID_SET_OUTPUT_REPORT for all the collection.
-
-Arguments:
-
-    DmfModule - Child (DMF_VirtualHidMini) Module's handle.
-    Packet - Contains the source buffer.
-    ReportSize - Indicates how much data is read from source buffer.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-    ULONG reportSize;
-    HIDMINI_OUTPUT_REPORT* reportBuffer;
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    DMFMODULE dmfModuleParent;
-
-    UNREFERENCED_PARAMETER(Request);
-
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-
-    if (Packet->reportId != CONTROL_COLLECTION_REPORT_ID)
-    {
-        // If collection ID is not for control collection then handle
-        // this request just as you would for a regular collection.
-        //
-        ntStatus = STATUS_INVALID_PARAMETER;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualEyeGaze_SetOutputReport fails: unknown report id %d", Packet->reportId);
-        goto Exit;
-    }
-
-    // before touching buffer make sure buffer is big enough.
-    //
-    reportSize = sizeof(HIDMINI_OUTPUT_REPORT);
-
-    if (Packet->reportBufferLen < reportSize)
-    {
-        ntStatus = STATUS_INVALID_BUFFER_SIZE;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
-                    "VirtualEyeGaze_SetOutputReport fails: invalid input buffer. size %d, expect %d",
-                    Packet->reportBufferLen,
-                    reportSize);
-        goto Exit;
-    }
-
-    reportBuffer = (HIDMINI_OUTPUT_REPORT*)Packet->reportBuffer;
-
-    //moduleContext->OutputReport = reportBuffer->Data;
-
-    // Report how many bytes were written.
-    //
-    *ReportSize = reportSize;
-    ntStatus = STATUS_SUCCESS;
-
-Exit:
-
-    return ntStatus;
-}
-
-NTSTATUS
-VirtualEyeGaze_InputReportTrackerStatus(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _Out_ UCHAR** Buffer,
-    _Out_ ULONG* BufferSize
-    )
-/*++
-
-Routine Description:
-
-    Called by Child to allow Parent to populate an input report.
-
-Arguments:
-
-    DmfModule - Child Module's handle.
-    Request - Request containing input report. Client may opt to keep this request and return it later.
-    Buffer - Address of buffer with input report data returned buffer to caller.
-    BufferSize - Size of data in buffer returned to caller.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    DMFMODULE dmfModuleParent;
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    //HIDMINI_INPUT_REPORT* readReport;
-
-    UNREFERENCED_PARAMETER(Request);
-
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-
-    //readReport = &moduleContext->ReadReport;
-
-    // Populate data to return to caller.
-    //
-    //readReport->ReportId = CONTROL_FEATURE_REPORT_ID;
-    //readReport->Data = moduleContext->DeviceData;
-
-    // Return to caller.
-    //
-    *Buffer = (UCHAR*)&moduleContext->TrackerStatusReport;
-    *BufferSize = sizeof(TRACKER_STATUS_REPORT);
-
-    return STATUS_SUCCESS;
-}
-
-NTSTATUS
-VirtualEyeGaze_InputReportGazeReport(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFREQUEST Request,
-    _Out_ UCHAR** Buffer,
-    _Out_ ULONG* BufferSize
-    )
-/*++
-
-Routine Description:
-
-    Called by Child to allow Parent to populate an input report.
-
-Arguments:
-
-    DmfModule - Child Module's handle.
-    Request - Request containing input report. Client may opt to keep this request and return it later.
-    Buffer - Address of buffer with input report data returned buffer to caller.
-    BufferSize - Size of data in buffer returned to caller.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    DMFMODULE dmfModuleParent;
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    //HIDMINI_INPUT_REPORT* readReport;
-
-    UNREFERENCED_PARAMETER(Request);
-
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-
-    //readReport = &moduleContext->ReadReport;
-
-    // Populate data to return to caller.
-    //
-    //readReport->ReportId = CONTROL_FEATURE_REPORT_ID;
-    //readReport->Data = moduleContext->DeviceData;
-
-    // Return to caller.
-    //
-    *Buffer = (UCHAR*)&moduleContext->GazeReport;
-    *BufferSize = sizeof(GAZE_REPORT);
-
-    return STATUS_SUCCESS;
-}
-
-#include <SetupAPI.h>
-#include <initguid.h>
-#include <cfgmgr32.h>
-DEFINE_GUID(GUID_CLASS_MONITOR, 0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18);
-
-void
-VirtualEyeGaze_PrimaryMonitorInfoGet(
-    _In_ DMFMODULE DmfModule
-    )
-{
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    HDEVINFO devInfo = SetupDiGetClassDevsEx(&GUID_CLASS_MONITOR, NULL, NULL, DIGCF_PRESENT | DIGCF_PROFILE, NULL, NULL, NULL);
-    if (NULL == devInfo)
-    {
-        return;
-    }
-
-    for (ULONG i = 0; ERROR_NO_MORE_ITEMS != GetLastError(); ++i)
-    {
-        SP_DEVINFO_DATA devInfoData;
-
-        memset(&devInfoData, 0, sizeof(devInfoData));
-        devInfoData.cbSize = sizeof(devInfoData);
-
-        if (!SetupDiEnumDeviceInfo(devInfo, i, &devInfoData))
-        {
-            return;
-        }
-        TCHAR Instance[MAX_DEVICE_ID_LEN];
-        if (!SetupDiGetDeviceInstanceId(devInfo, &devInfoData, Instance, MAX_PATH, NULL))
-        {
-            return;
-        }
-
-        HKEY hEDIDRegKey = SetupDiOpenDevRegKey(devInfo, &devInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
-
-        if (!hEDIDRegKey || (hEDIDRegKey == INVALID_HANDLE_VALUE))
-        {
-            continue;
-        }
-
-        BYTE EDIDdata[1024];
-        DWORD edidsize = sizeof(EDIDdata);
-
-        if (ERROR_SUCCESS != RegQueryValueEx(hEDIDRegKey, L"EDID", NULL, NULL, EDIDdata, &edidsize))
-        {
-            RegCloseKey(hEDIDRegKey);
-            continue;
-        }
-        moduleContext->ConfigurationReport.CalibratedScreenWidth = ((EDIDdata[68] & 0xF0) << 4) + EDIDdata[66];
-        moduleContext->ConfigurationReport.CalibratedScreenHeight = ((EDIDdata[68] & 0x0F) << 8) + EDIDdata[67];
-
-        RegCloseKey(hEDIDRegKey);
-
-        // this only handles the case of the primary monitor
-        break;
-    }
-    SetupDiDestroyDeviceInfoList(devInfo);
+    DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                          VhfOperationHandle,
+                                                          ntStatus);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1042,15 +536,63 @@ VirtualEyeGaze_PrimaryMonitorInfoGet(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-PWSTR g_VirtualEyeGaze_Strings[] =
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Open)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+static
+NTSTATUS
+DMF_VirtualEyeGaze_Open(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Initialize an instance of a DMF Module of type VirtualEyeGaze.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
 {
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    VHIDMINI_DEVICE_STRING
-};
+    NTSTATUS ntStatus;
+    DMF_CONFIG_VirtualEyeGaze* moduleConfig;
+    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    ntStatus = STATUS_SUCCESS;
+
+    // Set default values that are overwritten by Client if necessary.
+    //
+    moduleContext->CapabilitiesReport.ReportId = HID_USAGE_CAPABILITIES;
+    moduleContext->CapabilitiesReport.TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
+    moduleContext->CapabilitiesReport.MinimumTrackingDistance = 50000;
+    moduleContext->CapabilitiesReport.OptimumTrackingDistance = 65000;
+    moduleContext->CapabilitiesReport.MaximumTrackingDistance = 90000;
+
+    TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
+    trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
+    trackerStatus->ConfigurationStatus = TRACKER_STATUS_RESERVED;
+
+    // TODO: After we use User-mode VHF, get primary monitor information.
+    //
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ChildModulesAdd)
@@ -1082,7 +624,7 @@ Return Value:
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     DMF_CONFIG_VirtualEyeGaze* moduleConfig;
     DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-    DMF_CONFIG_VirtualHidMini virtualHidDeviceMiniModuleConfig;
+    DMF_CONFIG_VirtualHidDeviceVhf virtualHidDeviceVhfModuleConfig;
 
     PAGED_CODE();
 
@@ -1093,149 +635,37 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    if (moduleConfig->ReadFromRegistry)
-    {
-        // TODO: Read HID descriptors from Registry.
-        //
-    }
-
-    // VirtualHidMini
-    // --------------
+    // VirtualHidDeviceVhf
+    // -------------------
     //
-    DMF_CONFIG_VirtualHidMini_AND_ATTRIBUTES_INIT(&virtualHidDeviceMiniModuleConfig,
-                                                  &moduleAttributes);
+    DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&virtualHidDeviceVhfModuleConfig,
+                                                        &moduleAttributes);
 
-    virtualHidDeviceMiniModuleConfig.VendorId = HIDMINI_VID;
-    virtualHidDeviceMiniModuleConfig.ProductId = HIDMINI_PID;
-    virtualHidDeviceMiniModuleConfig.VersionNumber = HIDMINI_VERSION;
+    virtualHidDeviceVhfModuleConfig.VendorId = moduleConfig->VendorId;
+    virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
+    virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
 
-    virtualHidDeviceMiniModuleConfig.HidDescriptor = &g_VirtualEyeGaze_DefaultHidDescriptor;
-    virtualHidDeviceMiniModuleConfig.HidDescriptorLength = sizeof(g_VirtualEyeGaze_DefaultHidDescriptor);
-    virtualHidDeviceMiniModuleConfig.HidReportDescriptor = g_VirtualEyeGaze_DefaultReportDescriptor;
-    virtualHidDeviceMiniModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualEyeGaze_DefaultReportDescriptor);
+    virtualHidDeviceVhfModuleConfig.HidDescriptor = &g_VirtualEyeGaze_HidDescriptor;
+    virtualHidDeviceVhfModuleConfig.HidDescriptorLength = sizeof(g_VirtualEyeGaze_HidDescriptor);
+    virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualEyeGaze_HidReportDescriptor;
+    virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualEyeGaze_HidReportDescriptor);
 
     // Set virtual device attributes.
     //
-    virtualHidDeviceMiniModuleConfig.HidDeviceAttributes.VendorID = HIDMINI_VID;
-    virtualHidDeviceMiniModuleConfig.HidDeviceAttributes.ProductID = HIDMINI_PID;
-    virtualHidDeviceMiniModuleConfig.HidDeviceAttributes.VersionNumber = HIDMINI_VERSION;
-    virtualHidDeviceMiniModuleConfig.HidDeviceAttributes.Size = sizeof(HID_DEVICE_ATTRIBUTES);
+    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.VendorID = moduleConfig->VendorId;
+    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.ProductID = moduleConfig->ProductId;
+    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.VersionNumber = moduleConfig->VersionNumber;
+    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.Size = sizeof(virtualHidDeviceVhfModuleConfig.HidDeviceAttributes);
 
-    virtualHidDeviceMiniModuleConfig.GetInputReport = VirtualEyeGaze_GetInputReport;
-    virtualHidDeviceMiniModuleConfig.GetFeature = VirtualEyeGaze_GetFeature;
-    virtualHidDeviceMiniModuleConfig.SetFeature = VirtualEyeGaze_SetFeature;
-    //virtualHidDeviceMiniModuleConfig.SetOutputReport = VirtualEyeGaze_SetOutputReport;
-    virtualHidDeviceMiniModuleConfig.WriteReport = VirtualEyeGaze_WriteReport;
+    virtualHidDeviceVhfModuleConfig.StartOnOpen = TRUE;
+    virtualHidDeviceVhfModuleConfig.VhfClientContext = DmfModule;
 
-    virtualHidDeviceMiniModuleConfig.StringSizeCbManufacturer = sizeof(VHIDMINI_MANUFACTURER_STRING);
-    virtualHidDeviceMiniModuleConfig.StringManufacturer = VHIDMINI_MANUFACTURER_STRING;
-    virtualHidDeviceMiniModuleConfig.StringSizeCbProduct = sizeof(VHIDMINI_PRODUCT_STRING);
-    virtualHidDeviceMiniModuleConfig.StringProduct = VHIDMINI_PRODUCT_STRING;
-    virtualHidDeviceMiniModuleConfig.StringSizeCbSerialNumber = sizeof(VHIDMINI_SERIAL_NUMBER_STRING);
-    virtualHidDeviceMiniModuleConfig.StringSerialNumber = VHIDMINI_SERIAL_NUMBER_STRING;
-
-    virtualHidDeviceMiniModuleConfig.Strings = g_VirtualEyeGaze_Strings;
-    virtualHidDeviceMiniModuleConfig.NumberOfStrings = ARRAYSIZE(g_VirtualEyeGaze_Strings);
+    virtualHidDeviceVhfModuleConfig.IoctlCallback_IOCTL_HID_GET_FEATURE = VirtualEyeGaze_GET_FEATURE;
 
     DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleVirtualHidMini);
-
-    FuncExitVoid(DMF_TRACE);
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_Function_class_(DMF_Open)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-DMF_VirtualEyeGaze_Open(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Initialize an instance of a DMF Module of type VirtualEyeGaze.
-
-Arguments:
-
-    DmfModule - The given DMF Module.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-    DMF_CONFIG_VirtualEyeGaze* moduleConfig;
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    // Initialize the device's data.
-    // TODO: This should come from the Config.
-    //
-    moduleContext->CapabilitiesReport.ReportId = HID_USAGE_CAPABILITIES;
-    moduleContext->CapabilitiesReport.TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
-    moduleContext->CapabilitiesReport.MinimumTrackingDistance = 50000;
-    moduleContext->CapabilitiesReport.OptimumTrackingDistance = 65000;
-    moduleContext->CapabilitiesReport.MaximumTrackingDistance = 90000;
-
-    TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
-    trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
-    trackerStatus->ConfigurationStatus = TRACKER_STATUS_RESERVED;
-
-    VirtualEyeGaze_PrimaryMonitorInfoGet(DmfModule);
-
-    ntStatus = STATUS_SUCCESS;
-
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_Function_class_(DMF_Close)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
-VOID
-DMF_VirtualEyeGaze_Close(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Uninitialize an instance of a DMF Module of type VirtualEyeGaze.
-
-Arguments:
-
-    DmfModule - The given DMF Module.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleVirtualHidDeviceVhf);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1284,9 +714,8 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_VirtualEyeGaze);
-    dmfCallbacksDmf_VirtualEyeGaze.ChildModulesAdd = DMF_VirtualEyeGaze_ChildModulesAdd;
     dmfCallbacksDmf_VirtualEyeGaze.DeviceOpen = DMF_VirtualEyeGaze_Open;
-    dmfCallbacksDmf_VirtualEyeGaze.DeviceClose = DMF_VirtualEyeGaze_Close;
+    dmfCallbacksDmf_VirtualEyeGaze.ChildModulesAdd = DMF_VirtualEyeGaze_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualEyeGaze,
                                             VirtualEyeGaze,
@@ -1304,10 +733,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
     }
-
-Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1322,49 +748,88 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_VirtualEyeGaze_GazeReportSend(
     _In_ DMFMODULE DmfModule,
-    _In_ GAZE_REPORT* GazeReport
+    _In_ GAZE_DATA* GazeData
     )
 /*++
 
 Routine Description:
 
-    Send a gaze report.
+    Sends the given gaze data from Client to HID stack.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    GazeReport - The report to send.
+    GazeData - The given gaze data.
 
 Return Value:
 
-    STATUS_SUCCESS if the key was toggled.
-    Other NTSTATUS if there is an error.
+    NTSTATUS
 
 --*/
 {
     NTSTATUS ntStatus;
-    DMF_CONFIG_VirtualEyeGaze* moduleConfig;
     DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-
-    FuncEntry(DMF_TRACE);
+    HID_XFER_PACKET hidXferPacket;
+    GAZE_REPORT inputReport;
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  VirtualEyeGaze);
 
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    RtlCopyMemory(&moduleContext->GazeReport,
-                  GazeReport,
-                  sizeof(GAZE_REPORT));
-
-    // Tell Child Module to dequeue next pending request and call this Module's 
-    // callback function to populate it.
+    inputReport.GazeData = *GazeData;
+    // TODO: Perhaps pass this value in the Config so that Client can 
+    //       configure it?
     //
-    ntStatus = DMF_VirtualHidMini_InputReportGenerate(moduleContext->DmfModuleVirtualHidMini,
-                                                      VirtualEyeGaze_InputReportGazeReport);
+    inputReport.ReportId = HID_USAGE_TRACKING_DATA;
 
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+    hidXferPacket.reportBuffer = (UCHAR*)&inputReport;
+    hidXferPacket.reportBufferLen = sizeof(GAZE_REPORT);
+    hidXferPacket.reportId = inputReport.ReportId;
+
+    ntStatus = DMF_VirtualHidDeviceVhf_ReadReportSend(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                      &hidXferPacket);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_VirtualEyeGaze_PrimaryMonitorSettingsSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ MONITOR_RESOLUTION* MonitorResolution
+    )
+/*++
+
+Routine Description:
+
+    Sets the given monitor resolution from Client.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    MonitorResolution - The given monitor resolution.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 VirtualEyeGaze);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // TODO: Validate settings.
+    //
+    moduleContext->ConfigurationReport.CalibratedScreenHeight = MonitorResolution->Height;
+    moduleContext->ConfigurationReport.CalibratedScreenWidth = MonitorResolution->Width;
+
+    ntStatus = STATUS_SUCCESS;
 
     return ntStatus;
 }
@@ -1379,25 +844,24 @@ DMF_VirtualEyeGaze_TrackerStatusReportSend(
 
 Routine Description:
 
-    Send a gaze report.
+    Sends the given tracker status from Client to HID stack.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    GazeReport - The report to send.
+    TrackerStatus - The given tracker status.
 
 Return Value:
 
-    STATUS_SUCCESS if the key was toggled.
-    Other NTSTATUS if there is an error.
+    NTSTATUS
 
 --*/
 {
     NTSTATUS ntStatus;
     DMF_CONFIG_VirtualEyeGaze* moduleConfig;
     DMF_CONTEXT_VirtualEyeGaze* moduleContext;
-
-    FuncEntry(DMF_TRACE);
+    HID_XFER_PACKET hidXferPacket;
+    TRACKER_STATUS_REPORT inputReport;
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  VirtualEyeGaze);
@@ -1405,15 +869,17 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    moduleContext->TrackerStatusReport.ConfigurationStatus = TrackerStatus;
+    RtlZeroMemory(&inputReport,
+                  sizeof(inputReport));
+    inputReport.ConfigurationStatus = TrackerStatus;
+    inputReport.ReportId = moduleContext->TrackerStatusReport.ReportId;
 
-    // Tell Child Module to dequeue next pending request and call this Module's 
-    // callback function to populate it.
-    //
-    ntStatus = DMF_VirtualHidMini_InputReportGenerate(moduleContext->DmfModuleVirtualHidMini,
-                                                      VirtualEyeGaze_InputReportTrackerStatus);
+    hidXferPacket.reportBuffer = (UCHAR*)&inputReport;
+    hidXferPacket.reportBufferLen = sizeof(TRACKER_STATUS_REPORT);
+    hidXferPacket.reportId = inputReport.ReportId;
 
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+    ntStatus = DMF_VirtualHidDeviceVhf_ReadReportSend(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                      &hidXferPacket);
 
     return ntStatus;
 }

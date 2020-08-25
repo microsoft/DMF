@@ -1,7 +1,6 @@
 /*++
 
     Copyright (c) Microsoft Corporation. All rights reserved.
-    Licensed under the MIT license.
 
 Module Name:
 
@@ -20,40 +19,19 @@ Environment:
 
 #pragma once
 
-#include <pshpack1.h>
-
-#define HID_USAGE_TRACKING_DATA                     (0x10)        // CP
-
-typedef struct _POINT2D
-{
-    LONG    X;
-    LONG    Y;
-} POINT2D, *PPOINT2D;
-
-typedef struct _POINT3D
-{
-    LONG    X;
-    LONG    Y;
-    LONG    Z;
-} POINT3D, *PPOINT3D;
-
-typedef struct _GAZE_REPORT
-{
-    UCHAR     ReportId;
-    UCHAR     Reserved[3];
-    ULONGLONG    TimeStamp;
-    POINT2D     GazePoint;
-    POINT3D     LeftEyePosition;
-    POINT3D     RightEyePosition;
-} GAZE_REPORT, *PGAZE_REPORT;
-
-#include <poppack.h>
-
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
 {
-    ULONG ReadFromRegistry;
+    // Vendor Id of the virtual keyboard.
+    //
+    USHORT VendorId;
+    // Product Id of the virtual keyboard.
+    //
+    USHORT ProductId;
+    // Version number of the virtual keyboard.
+    //
+    USHORT VersionNumber;
 } DMF_CONFIG_VirtualEyeGaze;
 
 // This macro declares the following functions:
@@ -70,7 +48,14 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_VirtualEyeGaze_GazeReportSend(
     _In_ DMFMODULE DmfModule,
-    _In_ GAZE_REPORT* GazeReport
+    _In_ GAZE_DATA* GazeData
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_VirtualEyeGaze_PrimaryMonitorSettingsSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ MONITOR_RESOLUTION* MonitorResolution
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
