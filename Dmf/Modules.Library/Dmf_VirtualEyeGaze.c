@@ -169,11 +169,6 @@ typedef struct _DMF_CONTEXT_VirtualEyeGaze
     CONFIGURATION_REPORT ConfigurationReport;
     TRACKER_STATUS_REPORT TrackerStatusReport;
     GAZE_REPORT GazeReport;
-
-    // Pending configuration report.
-    //
-    VOID* VhfOperationContext;
-    BOOLEAN ConfigurationDataReady;
 } DMF_CONTEXT_VirtualEyeGaze;
 
 // This macro declares the following function:
@@ -453,17 +448,6 @@ VirtualEyeGaze_GET_FEATURE(
 
     ntStatus = STATUS_SUCCESS;
 
-    DMF_ModuleLock(moduleContext->DmfModuleVirtualHidDeviceVhf);
-    if (HidTransferPacket->reportId == HID_USAGE_CONFIGURATION)
-    {
-        if (!moduleContext->ConfigurationDataReady)
-        {
-            moduleContext->VhfOperationContext = VhfOperationContext;
-            ntStatus = STATUS_PENDING;
-        }
-    }
-    DMF_ModuleUnlock(moduleContext->DmfModuleVirtualHidDeviceVhf);
-
 Exit:
 
     if (ntStatus != STATUS_PENDING)
@@ -531,7 +515,10 @@ Return Value:
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
     trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
-    trackerStatus->ConfigurationStatus = TRACKER_STATUS_CONFIGURING;
+    trackerStatus->ConfigurationStatus = TRACKER_STATUS_SCREEN_SETUP_NEEDED;
+
+    ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
+                                                          TRACKER_STATUS_SCREEN_SETUP_NEEDED);
 
     // TODO: After we use User-mode VHF, get primary monitor information.
     //
@@ -777,25 +764,8 @@ Return Value:
     moduleContext->ConfigurationReport.CalibratedScreenHeight = MonitorResolution->Height;
     moduleContext->ConfigurationReport.CalibratedScreenWidth = MonitorResolution->Width;
 
-    DMF_ModuleLock(moduleContext->DmfModuleVirtualHidDeviceVhf);
-
-    moduleContext->ConfigurationDataReady = TRUE;
-    if (moduleContext->VhfOperationContext != NULL)
-    {
-        DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
-                                                              moduleContext->VhfOperationContext,
-                                                              STATUS_SUCCESS);
-        moduleContext->VhfOperationContext = NULL;
-
-        TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
-        trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
-        // Now indicate that configuration is ready.
-        //
-        trackerStatus->ConfigurationStatus = TRACKER_STATUS_READY;
-    }
-    DMF_ModuleUnlock(moduleContext->DmfModuleVirtualHidDeviceVhf);
-
-    ntStatus = STATUS_SUCCESS;
+    ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
+                                                          TRACKER_STATUS_READY);
 
     return ntStatus;
 }
@@ -829,8 +799,8 @@ Return Value:
     HID_XFER_PACKET hidXferPacket;
     TRACKER_STATUS_REPORT inputReport;
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 VirtualEyeGaze);
+    DMFMODULE_VALIDATE_IN_METHOD_OPENING_OK(DmfModule,
+                                            VirtualEyeGaze);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
