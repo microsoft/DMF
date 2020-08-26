@@ -117,39 +117,39 @@ typedef struct _GAZE_REPORT
 
 typedef struct _CAPABILITIES_REPORT
 {
-    UCHAR         ReportId;
-    UCHAR         TrackerQuality;
-    ULONG        MinimumTrackingDistance;
-    ULONG        OptimumTrackingDistance;
-    ULONG        MaximumTrackingDistance;
-    ULONG        MaximumScreenPlaneWidth;
-    ULONG        MaximumScreenPlaneHeight;
+    UCHAR ReportId;
+    UCHAR TrackerQuality;
+    ULONG MinimumTrackingDistance;
+    ULONG OptimumTrackingDistance;
+    ULONG MaximumTrackingDistance;
+    ULONG MaximumScreenPlaneWidth;
+    ULONG MaximumScreenPlaneHeight;
 } CAPABILITIES_REPORT, *PCAPABILITIES_REPORT;
 
 typedef struct _CONFIGURATION_REPORT
 {
-    UCHAR         ReportId;
-    UCHAR         Reserved;
-    USHORT        DisplayManufacturerId;
-    USHORT        DisplayProductId;
-    ULONG        DisplaySerialNumber;
-    USHORT        DisplayManufacturerDate;
-    LONG         CalibratedScreenWidth;
-    LONG         CalibratedScreenHeight;
+    UCHAR ReportId;
+    UCHAR Reserved;
+    USHORT DisplayManufacturerId;
+    USHORT DisplayProductId;
+    ULONG DisplaySerialNumber;
+    USHORT DisplayManufacturerDate;
+    LONG CalibratedScreenWidth;
+    LONG CalibratedScreenHeight;
 } CONFIGURATION_REPORT, *PCONFIGURATION_REPORT;
 
 typedef struct _TRACKER_STATUS_REPORT
 {
-    UCHAR         ReportId;
-    UCHAR         Reserved;
-    UCHAR         ConfigurationStatus;
-    USHORT        SamplingFrequency;
+    UCHAR ReportId;
+    UCHAR Reserved;
+    UCHAR ConfigurationStatus;
+    USHORT SamplingFrequency;
 } TRACKER_STATUS_REPORT, *PTRACKER_STATUS_REPORT;
 
 typedef struct _TRACKER_CONTROL_REPORT
 {
-    UCHAR         ReportId;
-    UCHAR         ModeRequest;
+    UCHAR ReportId;
+    UCHAR ModeRequest;
 } TRACKER_CONTROL_REPORT, *PTRACKER_CONTROL_REPORT;
 
 #include <poppack.h>
@@ -169,6 +169,11 @@ typedef struct _DMF_CONTEXT_VirtualEyeGaze
     CONFIGURATION_REPORT ConfigurationReport;
     TRACKER_STATUS_REPORT TrackerStatusReport;
     GAZE_REPORT GazeReport;
+
+    // Pending configuration report.
+    //
+    VOID* VhfOperationContext;
+    BOOLEAN ConfigurationDataReady;
 } DMF_CONTEXT_VirtualEyeGaze;
 
 // This macro declares the following function:
@@ -190,31 +195,9 @@ DMF_MODULE_DECLARE_CONFIG(VirtualEyeGaze)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-//
-// Custom control codes are defined here. They are to be used for sideband 
-// communication with the hid minidriver. These control codes are sent to 
-// the hid minidriver using Hid_SetFeature() API to a custom collection 
-// defined especially to handle such requests.
-//
-#define  HIDMINI_CONTROL_CODE_SET_ATTRIBUTES              0x00
-#define  HIDMINI_CONTROL_CODE_DUMMY1                      0x01
-#define  HIDMINI_CONTROL_CODE_DUMMY2                      0x02
-
-//
 // This is the report id of the collection to which the control codes are sent
 //
 #define CONTROL_COLLECTION_REPORT_ID                      0x01
-#define TEST_COLLECTION_REPORT_ID                         0x02
-
-#define MAXIMUM_STRING_LENGTH           (126 * sizeof(WCHAR))
-#define VHIDMINI_DEVICE_STRING          L"UMDF Virtual hidmini device"  
-#define VHIDMINI_MANUFACTURER_STRING    L"UMDF Virtual hidmini device Manufacturer string"  
-#define VHIDMINI_PRODUCT_STRING         L"UMDF Virtual hidmini device Product string"  
-#define VHIDMINI_SERIAL_NUMBER_STRING   L"UMDF Virtual hidmini device Serial Number string"  
-#define VHIDMINI_DEVICE_STRING          L"UMDF Virtual hidmini device"  
-#define VHIDMINI_DEVICE_STRING_INDEX    5
-
-#define CONTROL_FEATURE_REPORT_ID   0x01
 
 #include <pshpack1.h>
 
@@ -225,56 +208,7 @@ typedef struct _MY_DEVICE_ATTRIBUTES
     USHORT VersionNumber;
 } MY_DEVICE_ATTRIBUTES;
 
-typedef struct _HIDMINI_CONTROL_INFO
-{
-    // Report ID of the collection to which the control request is sent
-    //
-    UCHAR ReportId;
-
-    // One byte control code (user-defined) for communication with hid 
-    // mini driver.
-    //
-    UCHAR ControlCode;
-
-    //
-    // This union contains input data for the control request.
-    //
-    union 
-    {
-        MY_DEVICE_ATTRIBUTES Attributes;
-        struct 
-        {
-            ULONG Dummy1;
-            ULONG Dummy2;
-        } Dummy;
-    } u;
-} HIDMINI_CONTROL_INFO;
-
-// Output to device from system.
-//
-typedef struct _HIDMINI_OUTPUT_REPORT
-{
-    UCHAR ReportId;
-
-    UCHAR Data; 
-
-    USHORT Pad1;
-
-    ULONG Pad2;
-} HIDMINI_OUTPUT_REPORT;
-
 #include <poppack.h>
-
-// SetFeature request requires that the feature report buffer size be exactly 
-// same as the size of report described in the hid report descriptor (
-// excluding the report ID). Since HIDMINI_CONTROL_INFO includes report ID,
-// we subtract one from the size.
-//
-#define FEATURE_REPORT_SIZE_CB      ((USHORT)(sizeof(HIDMINI_CONTROL_INFO) - 1))
-#define INPUT_REPORT_SIZE_CB        ((USHORT)(sizeof(HIDMINI_INPUT_REPORT) - 1))
-#define OUTPUT_REPORT_SIZE_CB       ((USHORT)(sizeof(HIDMINI_OUTPUT_REPORT) - 1))
-
-#define CONTROL_FEATURE_REPORT_ID   0x01
 
 typedef UCHAR HID_REPORT_DESCRIPTOR;
 
@@ -487,15 +421,15 @@ VirtualEyeGaze_GET_FEATURE(
     {
         case HID_USAGE_CAPABILITIES:
             reportSize = sizeof(CAPABILITIES_REPORT);
-            reportData = (PUCHAR)&moduleContext->CapabilitiesReport;
+            reportData = (UCHAR*)&moduleContext->CapabilitiesReport;
             break;
         case HID_USAGE_CONFIGURATION:
             reportSize = sizeof(CONFIGURATION_REPORT);
-            reportData = (PUCHAR)&moduleContext->ConfigurationReport;
+            reportData = (UCHAR*)&moduleContext->ConfigurationReport;
             break;
         case HID_USAGE_TRACKER_STATUS:
             reportSize = sizeof(TRACKER_STATUS_REPORT);
-            reportData = (PUCHAR)&moduleContext->TrackerStatusReport;
+            reportData = (UCHAR*)&moduleContext->TrackerStatusReport;
             break;
         default:
             ntStatus = STATUS_INVALID_PARAMETER;
@@ -519,11 +453,25 @@ VirtualEyeGaze_GET_FEATURE(
 
     ntStatus = STATUS_SUCCESS;
 
+    DMF_ModuleLock(moduleContext->DmfModuleVirtualHidDeviceVhf);
+    if (HidTransferPacket->reportId == HID_USAGE_CONFIGURATION)
+    {
+        if (!moduleContext->ConfigurationDataReady)
+        {
+            moduleContext->VhfOperationContext = VhfOperationContext;
+            ntStatus = STATUS_PENDING;
+        }
+    }
+    DMF_ModuleUnlock(moduleContext->DmfModuleVirtualHidDeviceVhf);
+
 Exit:
 
-    DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
-                                                          VhfOperationHandle,
-                                                          ntStatus);
+    if (ntStatus != STATUS_PENDING)
+    {
+        DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                              VhfOperationHandle,
+                                                              ntStatus);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -583,7 +531,7 @@ Return Value:
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
     trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
-    trackerStatus->ConfigurationStatus = TRACKER_STATUS_RESERVED;
+    trackerStatus->ConfigurationStatus = TRACKER_STATUS_CONFIGURING;
 
     // TODO: After we use User-mode VHF, get primary monitor information.
     //
@@ -828,6 +776,24 @@ Return Value:
     //
     moduleContext->ConfigurationReport.CalibratedScreenHeight = MonitorResolution->Height;
     moduleContext->ConfigurationReport.CalibratedScreenWidth = MonitorResolution->Width;
+
+    DMF_ModuleLock(moduleContext->DmfModuleVirtualHidDeviceVhf);
+
+    moduleContext->ConfigurationDataReady = TRUE;
+    if (moduleContext->VhfOperationContext != NULL)
+    {
+        DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                              moduleContext->VhfOperationContext,
+                                                              STATUS_SUCCESS);
+        moduleContext->VhfOperationContext = NULL;
+
+        TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
+        trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
+        // Now indicate that configuration is ready.
+        //
+        trackerStatus->ConfigurationStatus = TRACKER_STATUS_READY;
+    }
+    DMF_ModuleUnlock(moduleContext->DmfModuleVirtualHidDeviceVhf);
 
     ntStatus = STATUS_SUCCESS;
 
