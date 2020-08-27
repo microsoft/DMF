@@ -708,7 +708,6 @@ Exit:
     return ntStatus;
 }
 
-#pragma code_seg("PAGE")
 #pragma warning(suppress:6101)
 // Prevent SAL "returning uninitialized memory" error.
 // Buffer is associated with request object.
@@ -774,8 +773,6 @@ Return Value:
     RequestTarget_SingleAsynchronousRequestContext* singleAsynchronousRequestContext;
     VOID* singleBufferContext;
     RequestTarget_DmfRequest dmfRequestId;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -1004,7 +1001,6 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
 _Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 ScheduledTask_Result_Type
