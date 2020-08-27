@@ -1,0 +1,681 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style>
+.AlignLeft { text-align: left; }
+.AlignCenter { text-align: center; }
+.AlignRight { text-align: right; }
+body { font-family: sans-serif; font-size: 11pt; }
+img.AutoScale { max-width: 100%; max-height: 100%; }
+td { vertical-align: top; padding-left: 4px; padding-right: 4px; }
+
+tr.SectionGap td { font-size: 4px; border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionBegin td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionMiddle td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SubsectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+tr.SubsectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+table.fc { border-top: 1px solid Black; border-left: 1px solid Black; width: 100%; font-family: monospace; font-size: 10pt; }
+td.TextItemInsigMod { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigOrphan { color: #000000; background-color: #FAEEFF; }
+td.TextItemNum { color: #696969; background-color: #F0F0F0; }
+td.TextItemSame { color: #000000; background-color: #FFFFFF; }
+td.TextItemSigMod { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigOrphan { color: #000000; background-color: #F1E3FF; }
+.TextSegInsigDiff { color: #0000FF; }
+.TextSegReplacedDiff { color: #0000FF; font-style: italic; }
+.TextSegSigDiff { color: #FF0000; }
+td.TextItemInsigAdd { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigDel { color: #000000; background-color: #EEEEFF; text-decoration: line-through; }
+td.TextItemSigAdd { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigDel { color: #000000; background-color: #FFE3E3; text-decoration: line-through; }
+.TextSegElementIdentifier { }
+.TextSegElementCompiler_32Directive { color: #681717; }
+.TextSegElementComment { color: #786A41; }
+.TextSegElementOperator { }
+</style>
+<title>Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf</title>
+</head>
+<body>
+Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf<br>
+Produced: 8/20/2020 11:07:03 AM<br>
+&nbsp; &nbsp;
+<br>
+Mode:&nbsp; All &nbsp;
+<br>
+Left file: Windows-driver-samples\usb\kmdf_fx2\driver\trace.h &nbsp;
+<br>
+Right file: DMF\DmfSamples\kmdf_fx2_dmf\driver_dmf_1\trace.h &nbsp;
+<br>
+<table class="fc" cellspacing="0" cellpadding="0">
+<tr class="SectionBegin">
+<td class="TextItemSame"><span class="TextSegElementComment">/*++</span></td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame"><span class="TextSegElementComment">/*++</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">Copyright (c) Microsoft Corporation.&nbsp; All rights reserved.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">Copyright (c) Microsoft Corporation.&nbsp; All rights reserved.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; THIS CODE AND INFORMATION IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; THIS CODE AND INFORMATION IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; PURPOSE.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; PURPOSE.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">Module Name:</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">Module Name:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; TRACE.h</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; TRACE.h</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">Abstract:</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">Abstract:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; Header file for the debug tracing related function defintions and macros.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; Header file for the debug tracing related function defintions and macros.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">Environment:</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">Environment:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; Kernel mode</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp;&nbsp; Kernel mode</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">--*/</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">--*/</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#include</span> <span class="TextSegElementOperator">&lt;</span><span class="TextSegElementIdentifier">evntrace</span><span class="TextSegElementOperator">.</span><span class="TextSegElementIdentifier">h</span><span class="TextSegElementOperator">&gt;</span> <span class="TextSegElementComment">// For TRACE_LEVEL definitions</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#include</span> <span class="TextSegElementOperator">&lt;</span><span class="TextSegElementIdentifier">evntrace</span><span class="TextSegElementOperator">.</span><span class="TextSegElementIdentifier">h</span><span class="TextSegElementOperator">&gt;</span> <span class="TextSegElementComment">// For TRACE_LEVEL definitions</span></td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">!</span><span class="TextSegSigDiff">defined</span><span class="TextSegSigDiff">(</span><span class="TextSegSigDiff">EV</span><span class="TextSegSigDiff">E</span><span class="TextSegSigDiff">N</span><span class="TextSegSigDiff">T_</span><span class="TextSegSigDiff">TRACING</span><span class="TextSegSigDiff">)</span></td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">//</span><span class="TextSegInsigDiff"> NOT</span><span class="TextSegInsigDiff">E: When&nbsp; using DMF, it is mandatory to use WPP tracing because DMF uses it internally.</span></td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">// TODO: These defines are missing in evntrace.h</span></td>
+<td class="AlignCenter">+-</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">// in some DDK build environments (XP).</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#if</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">!</span><span class="TextSegSigDiff">defined</span><span class="TextSegSigDiff">(</span><span class="TextSegSigDiff">TRACE_LEVEL_NONE</span><span class="TextSegSigDiff">)</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_NONE</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">0</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_CRITICAL</span><span class="TextSegInsigDiff">&nbsp; &nbsp; </span><span class="TextSegSigDiff">1</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_FATAL</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">1</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_ERROR</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">2</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_WARNING</span><span class="TextSegInsigDiff">&nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">3</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_INFORMATION</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">4</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_VERBOSE</span><span class="TextSegInsigDiff">&nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">5</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_RESERVED6</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">6</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_RESERVED7</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">7</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_RESERVED8</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">8</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">TRACE_LEVEL_RESERVED9</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">9</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#endif</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">+-</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">// Define Debug Flags</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_INIT</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">0x00000001</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_PNP</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">0x00000002</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_POWER</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">0x00000004</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_WMI</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">0x00000008</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_CREATE_CLOSE</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">0x00000010</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_IOCTL</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">0x00000020</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_WRITE</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">0x00000040</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">DBG_READ</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="TextSegSigDiff">0x00000080</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">VOID</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">TraceEvents</span><span class="TextSegInsigDiff">&nbsp; &nbsp; </span><span class="TextSegSigDiff">(</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">_In_</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">ULONG</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">DebugPrintLevel</span><span class="TextSegSigDiff">,</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">_In_</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">ULONG</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">DebugPrintFlag</span><span class="TextSegSigDiff">,</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">_Printf_format_string_</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">_In_</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">PCSTR</span><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">DebugMessage</span><span class="TextSegSigDiff">,</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">...</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp;&nbsp; </span><span class="TextSegSigDiff">);</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">WPP_INIT_TRACING</span><span class="TextSegSigDiff">(</span><span class="TextSegSigDiff">DriverObject</span><span class="TextSegSigDiff">,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">RegistryPath</span><span class="TextSegSigDiff">)</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#define</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">WPP_CLEANUP</span><span class="TextSegSigDiff">(</span><span class="TextSegSigDiff">DriverObject</span><span class="TextSegSigDiff">)</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#else</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame"><span class="TextSegElementComment">// If software tracing is defined in the sources file..</span></td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// If software tracing is defined in the sources file..</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// WPP_DEFINE_CONTROL_GUID specifies the GUID used for this driver.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// WPP_DEFINE_CONTROL_GUID specifies the GUID used for this driver.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// *** REPLACE THE GUID WITH YOUR OWN UNIQUE ID ***</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// *** REPLACE THE GUID WITH YOUR OWN UNIQUE ID ***</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// WPP_DEFINE_BIT allows setting debug bit masks to selectively print.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// WPP_DEFINE_BIT allows setting debug bit masks to selectively print.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// The names defined in the WPP_DEFINE_BIT call define the actual names</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// The names defined in the WPP_DEFINE_BIT call define the actual names</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// that are used to control the level of tracing for the control guid</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// that are used to control the level of tracing for the control guid</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// specified.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// specified.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">// NOTE: If you are adopting this sample for your driver, please generate</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">// NOTE: If you are adopting this sample for your driver, please generate</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">//&nbsp; &nbsp; &nbsp;&nbsp; a new guid, using tools\other\i386\guidgen.exe present in the</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">//&nbsp; &nbsp; &nbsp;&nbsp; a new guid, using tools\other\i386\guidgen.exe present in the</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">//&nbsp; &nbsp; &nbsp;&nbsp; DDK.</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">//&nbsp; &nbsp; &nbsp;&nbsp; DDK.</span></td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">// Tracing GUIDs:</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">// Client Driver - {82997013-8858-45D1-B175-1E12B0B7F973}</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">// NOTE: Every driver must define a unique GUID otherwise tracing from multiple drivers</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">//&nbsp; &nbsp; <span class="TextSegInsigDiff">Name of</span> the <span class="TextSegInsigDiff">logger is OSRUSBFX2 and th</span>e <span class="TextSegInsigDiff">guid </span><span class="TextSegInsigDiff">is</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">//&nbsp;&nbsp; &nbsp;<span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff">&nbsp;</span> th<span class="TextSegInsigDiff">at us</span>e <span class="TextSegInsigDiff">th</span><span class="TextSegInsigDiff">e</span><span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff">s</span><span class="TextSegInsigDiff">am</span>e <span class="TextSegInsigDiff">GUID will appear.</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">//<span class="TextSegInsigDiff">&nbsp;&nbsp; {D23A0C5A-D307-4f0e-AE8E-E2A355AD5DAB}</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">//</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemInsigMod">//&nbsp;&nbsp; <span class="TextSegInsigDiff">(0xd23a0c5a, 0xd307, 0x4f0e, 0xae, 0x8e, 0xe2, 0xa3, 0x</span>55<span class="TextSegInsigDiff">, 0xa</span><span class="TextSegInsigDiff">d, 0x5d, 0xab);</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemInsigMod">// <span class="TextSegInsigDiff">DMF&nbsp;</span> &nbsp;<span class="TextSegInsigDiff">&nbsp; </span><span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff"> </span><span class="TextSegInsigDiff"> -</span><span class="TextSegInsigDiff"> {12C2</span>55<span class="TextSegInsigDiff">E8-E614-4D</span><span class="TextSegInsigDiff">D2-B93B-5624E48C119E}</span></td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame"><span class="TextSegElementComment">//</span></td>
+</tr>
+<tr class="SectionAll">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">-+</td>
+<td class="TextItemInsigMod"><span class="TextSegInsigDiff">//</span></td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_CHECK_FOR_NULL_STRING</span>&nbsp; <span class="TextSegElementComment">//to prevent exceptions due to NULL strings</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_CHECK_FOR_NULL_STRING</span>&nbsp; <span class="TextSegElementComment">//to prevent exceptions due to NULL strings</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_CONTROL_GUIDS</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_CONTROL_GUIDS</span> \</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&lt;&gt;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; </span><span class="TextSegSigDiff">WPP_DEFINE_CONTROL_GUID</span><span class="TextSegSigDiff">(</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">\</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">DmfTraceGuid</span><span class="TextSegSigDiff">,</span><span class="TextSegInsigDiff"> </span><span class="TextSegSigDiff">(</span><span class="TextSegSigDiff">12</span><span class="TextSegSigDiff">C255E8</span><span class="TextSegSigDiff">,</span><span class="TextSegSigDiff">E614</span><span class="TextSegSigDiff">,</span><span class="TextSegSigDiff">4</span><span class="TextSegSigDiff">DD2</span><span class="TextSegSigDiff">,</span><span class="TextSegSigDiff">B93B</span><span class="TextSegSigDiff">,</span><span class="TextSegSigDiff">5624E48</span><span class="TextSegSigDiff">C119E</span><span class="TextSegSigDiff">),</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">\</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">WPP_DEFINE_BIT</span><span class="TextSegSigDiff">(</span><span class="TextSegSigDiff">DMF_TRACE</span><span class="TextSegSigDiff">)</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">\</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod"><span class="TextSegInsigDiff">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">)</span><span class="TextSegInsigDiff">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="TextSegSigDiff">\</span></td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSigMod">&nbsp;&nbsp;&nbsp; WPP_DEFINE_CONTROL_GUID(OsrUsbFxTraceGuid,(<span class="TextSegSigDiff">d2</span><span class="TextSegSigDiff">3a0c5a</span><span class="TextSegSigDiff">,</span><span class="TextSegSigDiff">d307</span>,4<span class="TextSegSigDiff">f0e</span>,<span class="TextSegSigDiff">ae8e</span>,<span class="TextSegSigDiff">E</span><span class="TextSegSigDiff">2A</span><span class="TextSegSigDiff">355AD5DAB</span>), \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSigMod">&nbsp;&nbsp;&nbsp; WPP_DEFINE_CONTROL_GUID(OsrUsbFxTraceGuid,(<span class="TextSegSigDiff">82997013</span><span class="TextSegSigDiff">,</span><span class="TextSegSigDiff">8858</span>,4<span class="TextSegSigDiff">5</span><span class="TextSegSigDiff">D1</span>,<span class="TextSegSigDiff">B175</span>,<span class="TextSegSigDiff">1E12</span><span class="TextSegSigDiff">B0B7F973</span>), \</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_INIT</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementComment">/* bit&nbsp; 0 = 0x00000001 */</span> \</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_INIT</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementComment">/* bit&nbsp; 0 = 0x00000001 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_PNP</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 1 = 0x00000002 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_PNP</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 1 = 0x00000002 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_POWER</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 2 = 0x00000004 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_POWER</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 2 = 0x00000004 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_WMI</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 3 = 0x00000008 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_WMI</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 3 = 0x00000008 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_CREATE_CLOSE</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp;&nbsp; <span class="TextSegElementComment">/* bit&nbsp; 4 = 0x00000010 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_CREATE_CLOSE</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp;&nbsp; <span class="TextSegElementComment">/* bit&nbsp; 4 = 0x00000010 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_IOCTL</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 5 = 0x00000020 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_IOCTL</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 5 = 0x00000020 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_WRITE</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 6 = 0x00000040 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_WRITE</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="TextSegElementComment">/* bit&nbsp; 6 = 0x00000040 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_READ</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementComment">/* bit&nbsp; 7 = 0x00000080 */</span> \</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementIdentifier">WPP_DEFINE_BIT</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">DBG_READ</span><span class="TextSegElementOperator">)</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementComment">/* bit&nbsp; 7 = 0x00000080 */</span> \</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;<span class="TextSegElementComment">/* You can have up to 32 defines. If you want more than that,\</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;<span class="TextSegElementComment">/* You can have up to 32 defines. If you want more than that,\</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp; you have to provide another trace control GUID */</span>\</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementComment">&nbsp;&nbsp; you have to provide another trace control GUID */</span>\</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementOperator">)</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <span class="TextSegElementOperator">)</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_LEVEL_FLAGS_LOGGER</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">lvl</span><span class="TextSegElementOperator">,</span><span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span> <span class="TextSegElementIdentifier">WPP_LEVEL_LOGGER</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_LEVEL_FLAGS_LOGGER</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">lvl</span><span class="TextSegElementOperator">,</span><span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span> <span class="TextSegElementIdentifier">WPP_LEVEL_LOGGER</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span></td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_LEVEL_FLAGS_ENABLED</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">lvl</span><span class="TextSegElementOperator">,</span> <span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span> <span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">WPP_LEVEL_ENABLED</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span> <span class="TextSegElementOperator">&amp;&amp;</span> <span class="TextSegElementIdentifier">WPP_CONTROL</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">WPP_BIT_</span> ## <span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">).</span><span class="TextSegElementIdentifier">Level</span>&nbsp; <span class="TextSegElementOperator">&gt;=</span> <span class="TextSegElementIdentifier">lvl</span><span class="TextSegElementOperator">)</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame"><span class="TextSegElementCompiler_32Directive">#define</span> <span class="TextSegElementIdentifier">WPP_LEVEL_FLAGS_ENABLED</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">lvl</span><span class="TextSegElementOperator">,</span> <span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span> <span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">WPP_LEVEL_ENABLED</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">)</span> <span class="TextSegElementOperator">&amp;&amp;</span> <span class="TextSegElementIdentifier">WPP_CONTROL</span><span class="TextSegElementOperator">(</span><span class="TextSegElementIdentifier">WPP_BIT_</span> ## <span class="TextSegElementIdentifier">flags</span><span class="TextSegElementOperator">).</span><span class="TextSegElementIdentifier">Level</span>&nbsp; <span class="TextSegElementOperator">&gt;=</span> <span class="TextSegElementIdentifier">lvl</span><span class="TextSegElementOperator">)</span></td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionBegin">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">+-</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSigMod"><span class="TextSegSigDiff">#endif</span></td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemInsigMod">&nbsp;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;</td>
+</tr>
+</table>
+<br>
+</body>
+</html>

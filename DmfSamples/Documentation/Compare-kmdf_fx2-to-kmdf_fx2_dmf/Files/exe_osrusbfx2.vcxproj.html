@@ -1,0 +1,1012 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+.AlignLeft { text-align: left; }
+.AlignCenter { text-align: center; }
+.AlignRight { text-align: right; }
+body { font-family: sans-serif; font-size: 11pt; }
+img.AutoScale { max-width: 100%; max-height: 100%; }
+td { vertical-align: top; padding-left: 4px; padding-right: 4px; }
+
+tr.SectionGap td { font-size: 4px; border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionBegin td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Black; border-right: 1px solid Black; }
+tr.SectionMiddle td { border-left: none; border-top: none; border-right: 1px solid Black; }
+tr.SubsectionAll td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+tr.SubsectionEnd td { border-left: none; border-top: none; border-bottom: 1px solid Gray; border-right: 1px solid Black; }
+table.fc { border-top: 1px solid Black; border-left: 1px solid Black; width: 100%; font-family: monospace; font-size: 10pt; }
+td.TextItemInsigMod { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigOrphan { color: #000000; background-color: #FAEEFF; }
+td.TextItemNum { color: #696969; background-color: #F0F0F0; }
+td.TextItemSame { color: #000000; background-color: #FFFFFF; }
+td.TextItemSigMod { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigOrphan { color: #000000; background-color: #F1E3FF; }
+.TextSegInsigDiff { color: #0000FF; }
+.TextSegReplacedDiff { color: #0000FF; font-style: italic; }
+.TextSegSigDiff { color: #FF0000; }
+td.TextItemInsigAdd { color: #000000; background-color: #EEEEFF; }
+td.TextItemInsigDel { color: #000000; background-color: #EEEEFF; text-decoration: line-through; }
+td.TextItemSigAdd { color: #000000; background-color: #FFE3E3; }
+td.TextItemSigDel { color: #000000; background-color: #FFE3E3; text-decoration: line-through; }
+</style>
+<title>Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf</title>
+</head>
+<body>
+Compare Windows-driver-samples\usb\kmdf_fx2 to DMF\DmfSamples\kmdf_fx2_dmf<br>
+Produced: 8/20/2020 11:07:03 AM<br>
+&nbsp; &nbsp;
+<br>
+Mode:&nbsp; All &nbsp;
+<br>
+Left file: Windows-driver-samples\usb\kmdf_fx2\exe\osrusbfx2.vcxproj &nbsp;
+<br>
+Right file: DMF\DmfSamples\kmdf_fx2_dmf\exe\osrusbfx2.vcxproj &nbsp;
+<br>
+<table class="fc" cellspacing="0" cellpadding="0">
+<tr class="SectionBegin">
+<td class="TextItemSame">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</td>
+<td class="AlignCenter">=</td>
+<td class="TextItemSame">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&lt;Project DefaultTargets=&quot;Build&quot; ToolsVersion=&quot;12.0&quot; xmlns=&quot;http://schemas.microsoft.com/developer/msbuild/2003&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&lt;Project DefaultTargets=&quot;Build&quot; ToolsVersion=&quot;12.0&quot; xmlns=&quot;http://schemas.microsoft.com/developer/msbuild/2003&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemGroup Label=&quot;ProjectConfigurations&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemGroup Label=&quot;ProjectConfigurations&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Debug|Win32&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Debug|Win32&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Debug&lt;/Configuration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Debug&lt;/Configuration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;Win32&lt;/Platform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;Win32&lt;/Platform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Release|Win32&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Release|Win32&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Release&lt;/Configuration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Release&lt;/Configuration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;Win32&lt;/Platform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;Win32&lt;/Platform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Debug|x64&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Debug|x64&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Debug&lt;/Configuration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Debug&lt;/Configuration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;x64&lt;/Platform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;x64&lt;/Platform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Release|x64&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectConfiguration Include=&quot;Release|x64&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Release&lt;/Configuration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Configuration&gt;Release&lt;/Configuration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;x64&lt;/Platform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;Platform&gt;x64&lt;/Platform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ProjectConfiguration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Globals&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Globals&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectGuid&gt;{6EED5CDD-5526-40DC-97F9-582857E10187}&lt;/ProjectGuid&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ProjectGuid&gt;{6EED5CDD-5526-40DC-97F9-582857E10187}&lt;/ProjectGuid&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;RootNamespace&gt;$(MSBuildProjectName)&lt;/RootNamespace&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;RootNamespace&gt;$(MSBuildProjectName)&lt;/RootNamespace&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Configuration Condition=&quot;'$(Configuration)' == ''&quot;&gt;Debug&lt;/Configuration&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Configuration Condition=&quot;'$(Configuration)' == ''&quot;&gt;Debug&lt;/Configuration&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Platform Condition=&quot;'$(Platform)' == ''&quot;&gt;Win32&lt;/Platform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Platform Condition=&quot;'$(Platform)' == ''&quot;&gt;Win32&lt;/Platform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;SampleGuid&gt;{F19E45AF-8B05-4204-A66B-9BDBFE333233}&lt;/SampleGuid&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;SampleGuid&gt;{F19E45AF-8B05-4204-A66B-9BDBFE333233}&lt;/SampleGuid&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;Import Project=&quot;$(VCTargetsPath)\Microsoft.Cpp.Default.props&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;Import Project=&quot;$(VCTargetsPath)\Microsoft.Cpp.Default.props&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;False&lt;/UseDebugLibraries&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;False&lt;/UseDebugLibraries&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;True&lt;/UseDebugLibraries&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;True&lt;/UseDebugLibraries&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;False&lt;/UseDebugLibraries&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;False&lt;/UseDebugLibraries&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Label=&quot;Configuration&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetVersion&gt;Windows10&lt;/TargetVersion&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;True&lt;/UseDebugLibraries&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;UseDebugLibraries&gt;True&lt;/UseDebugLibraries&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverTargetPlatform&gt;Universal&lt;/DriverTargetPlatform&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;DriverType /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;PlatformToolset&gt;WindowsApplicationForDrivers10.0&lt;/PlatformToolset&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ConfigurationType&gt;Application&lt;/ConfigurationType&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;Import Project=&quot;$(VCTargetsPath)\Microsoft.Cpp.props&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;Import Project=&quot;$(VCTargetsPath)\Microsoft.Cpp.props&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;OutDir&gt;$(IntDir)&lt;/OutDir&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;OutDir&gt;$(IntDir)&lt;/OutDir&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ImportGroup Label=&quot;PropertySheets&quot; Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Import Project=&quot;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&quot; Condition=&quot;exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ImportGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemGroup Label=&quot;WrappedTaskItems&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemGroup Label=&quot;WrappedTaskItems&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;PropertyGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;TargetName&gt;osrusbfx2&lt;/TargetName&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/PropertyGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|x64'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Release|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemDefinitionGroup Condition=&quot;'$(Configuration)|$(Platform)'=='Debug|Win32'&quot;&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;TreatWarningAsError&gt;true&lt;/TreatWarningAsError&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;WarningLevel&gt;Level4&lt;/WarningLevel&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;/ExceptionHandling&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ClCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/ResourceCompile&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalIncludeDirectories&gt;%(AdditionalIncludeDirectories);$(DDK_INC_PATH);..\inc;..\sys\inc&lt;/AdditionalIncludeDirectories&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;PreprocessorDefinitions&gt;%(PreprocessorDefinitions);UNICODE;_UNICODE&lt;/PreprocessorDefinitions&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Midl&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp; &nbsp;&nbsp; &lt;AdditionalDependencies&gt;%(AdditionalDependencies);mincore.lib&lt;/AdditionalDependencies&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;/Link&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemDefinitionGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile Include=&quot;dump.c&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile Include=&quot;dump.c&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile Include=&quot;testapp.c&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClCompile Include=&quot;testapp.c&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile Include=&quot;testapp.rc&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ResourceCompile Include=&quot;testapp.rc&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Inf Exclude=&quot;@(Inf)&quot; Include=&quot;*.inf&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;Inf Exclude=&quot;@(Inf)&quot; Include=&quot;*.inf&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;FilesToPackage Include=&quot;$(TargetPath)&quot; Condition=&quot;'$(ConfigurationType)'=='Driver' or '$(ConfigurationType)'=='DynamicLibrary'&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;FilesToPackage Include=&quot;$(TargetPath)&quot; Condition=&quot;'$(ConfigurationType)'=='Driver' or '$(ConfigurationType)'=='DynamicLibrary'&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;None Exclude=&quot;@(None)&quot; Include=&quot;*.txt;*.htm;*.html&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;None Exclude=&quot;@(None)&quot; Include=&quot;*.txt;*.htm;*.html&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;None Exclude=&quot;@(None)&quot; Include=&quot;*.ico;*.cur;*.bmp;*.dlg;*.rct;*.gif;*.jpg;*.jpeg;*.wav;*.jpe;*.tiff;*.tif;*.png;*.rc2&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;None Exclude=&quot;@(None)&quot; Include=&quot;*.ico;*.cur;*.bmp;*.dlg;*.rct;*.gif;*.jpg;*.jpeg;*.wav;*.jpe;*.tiff;*.tif;*.png;*.rc2&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;None Exclude=&quot;@(None)&quot; Include=&quot;*.def;*.bat;*.hpj;*.asmx&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;None Exclude=&quot;@(None)&quot; Include=&quot;*.def;*.bat;*.hpj;*.asmx&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClInclude Exclude=&quot;@(ClInclude)&quot; Include=&quot;*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp;&nbsp;&nbsp; &lt;ClInclude Exclude=&quot;@(ClInclude)&quot; Include=&quot;*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd&quot; /&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;/ItemGroup&gt;</td>
+</tr>
+<tr class="SectionMiddle">
+<td class="TextItemSame">&nbsp; &lt;Import Project=&quot;$(VCTargetsPath)\Microsoft.Cpp.targets&quot; /&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&nbsp; &lt;Import Project=&quot;$(VCTargetsPath)\Microsoft.Cpp.targets&quot; /&gt;</td>
+</tr>
+<tr class="SectionEnd">
+<td class="TextItemSame">&lt;/Project&gt;</td>
+<td class="AlignCenter">&nbsp;</td>
+<td class="TextItemSame">&lt;/Project&gt;</td>
+</tr>
+</table>
+<br>
+</body>
+</html>

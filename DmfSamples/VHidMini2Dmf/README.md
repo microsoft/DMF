@@ -5,8 +5,8 @@ These samples show how to write Virtual HID Mini-drivers that are compatible wit
 ***VHidMini2DmfU is also a good sample of a basic DMF User-mode driver. (All the other samples are Kernel-mode drivers.
 This sample can be used for drivers that are not doing HID related work.)***
 
-These samples use the DMF_VirtualHidMini Module. This Module contains all the *generic* code listed in the MSDN VHIDMINI2
-sample. The *non-generic* code from VHIDMINI2 is in the DMF_VirtualHidMiniSample. The best practice is for the code that
+These samples use the DMF_VirtualHidMini Module. This Module contains all the *generic* code listed in the [MSDN VHIDMINI2
+sample](https://github.com/microsoft/Windows-driver-samples/tree/master/hid/vhidmini2). The *non-generic* code from VHIDMINI2 is in the DMF_VirtualHidMiniSample. The best practice is for the code that
 is specific to the device the driver is written for is in a Module similar to DMF_VirtualHidMiniSample. That Module will,
 in turn use DMF_VirtualHidMini Module as a Child Module.
 
