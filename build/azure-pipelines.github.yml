@@ -1,5 +1,5 @@
 extends:
-  template: /build/build.yml
+  template: build.yml
   parameters:
     TargetOS:
       - 20H1
