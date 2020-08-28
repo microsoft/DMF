@@ -1,12 +1,7 @@
 parameters:
   - name: TargetOS
     type: object
-    default:
-      - 20H1
-      - 19H1
-      - RS5
-      - RS4
-      - RS3
+    default: []
   - name: Platform
     type: object
     default:
@@ -106,3 +101,8 @@ stages:
               .\build\Build.ps1 @splat
             displayName: Tag Git commit
             condition: and(not(in(variables['Build.Reason'], 'PullRequest')), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/feature/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+          - task: NuGetCommand@2
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+              nuGetFeedType: 'internal'

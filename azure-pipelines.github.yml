@@ -1,0 +1,9 @@
+extends:
+  template: /build/build.yml
+  parameters:
+    TargetOS:
+      - 20H1
+      - 19H1
+      - RS5
+      - RS4
+      - RS3
