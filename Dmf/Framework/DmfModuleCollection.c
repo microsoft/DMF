@@ -2858,9 +2858,20 @@ Return Value:
 
     // Copy the Module Config into the list entry.
     //
-    RtlCopyMemory(moduleConfig,
-                  ModuleAttributes->ModuleConfigPointer,
-                  ModuleAttributes->SizeOfModuleSpecificConfig);
+    if (ModuleAttributes->ModuleConfigPointer != NULL)
+    {
+        DmfAssert(ModuleAttributes->SizeOfModuleSpecificConfig > 0);
+        RtlCopyMemory(moduleConfig,
+                      ModuleAttributes->ModuleConfigPointer,
+                      ModuleAttributes->SizeOfModuleSpecificConfig);
+    }
+    else
+    {
+        // It means Client has decided to not use/initialize the Module's Config.
+        // (This can happen in cases where a Module has a new Config due to a
+        // change in the Module's interface.)
+        //
+    }
 
     // If Module defines a Config, change ModuleConfigPointer from Client's buffer (no longer valid after this call)
     // to the Config inside the newly allocated memory (which will be valid for later use).

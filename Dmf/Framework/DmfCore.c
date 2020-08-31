@@ -389,23 +389,33 @@ Return Value:
             goto Exit;
         }
 
-        // ModuleConfig will be fully overwritten in RtlCopyMemory below. 
-        // So zeroing out the buffer is not necessary.
-        //
-
         // Save off the Module Config information for when the Open happens later.
+        // If Client calls DMF_##ModuleName##_ATTRIBUTES_INIT instead of
+        // DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT, then Client does not 
+        // provide any configuration information. 
+        // Drivers that use Modules that do not have a Config use this path when
+        // a Config is added afterward. It enables the existing drivers to compile
+        // and run.
+        // In this case, when the Module retrieves its config pointer the contents
+        // will be zero.
         //
-        DmfAssert(DmfModuleAttributes->ModuleConfigPointer != NULL);
-        DmfAssert(DmfObject->ModuleConfig != NULL);
-        RtlCopyMemory(DmfObject->ModuleConfig,
-                      DmfModuleAttributes->ModuleConfigPointer,
-                      ModuleDescriptor->ModuleConfigSize);
+        if (DmfModuleAttributes->ModuleConfigPointer != NULL)
+        {
+            RtlCopyMemory(DmfObject->ModuleConfig,
+                          DmfModuleAttributes->ModuleConfigPointer,
+                          ModuleDescriptor->ModuleConfigSize);
+        }
+        else
+        {
+            RtlZeroMemory(DmfObject->ModuleConfig,
+                          ModuleDescriptor->ModuleConfigSize);
+        }
     }
     else
     {
         // NOTE: Because only proper Config initialization macros are exposed, there is no way for the 
         //       Client to improperly initialize the Config (as it was in the past). It means, that if 
-        //       this path executes, the Module Author has not defined a Config.
+        //       this path executes, the Module author has not defined a Config.
         //
     }
 

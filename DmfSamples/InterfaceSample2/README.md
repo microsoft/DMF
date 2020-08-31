@@ -5,7 +5,7 @@ shows how to create a driver and Modules that use a single Protocol-Transport In
 similar driver with the key difference that the Transport (chosen by the Client Driver) itself uses a different Protocol
 for which the underlying Transport is also selected by the Client Driver.
 
-Please see IntrerfaceSample1 to learn the basics of how to build a Protocol-Transport Driver. This sample will discuss the
+Please see [IntrerfaceSample1](../InterfaceSample1/readme.md) to learn the basics of how to build a Protocol-Transport Driver. This sample will discuss the
 differences between that sample and an n-layer Protocol-Transport architecture. Note that this sample shows a 2-layer implementation
 but the concept can be easily extended to create an n-layer architecture.
 
@@ -64,17 +64,17 @@ This example uses two new Protocols and Transports defined by these files:
 
 **Upper Protocol-Transport**
 
-* Dmf_Interface_SampleInterfaceUpper.c and Dmf_Interface_SampleInterfaceUpper.h
-* Dmf_SampleInterfaceUpperProtocol.c and Dmf_SampleInterfaceUpperProtocol.h
-* Dmf_SampleInterfaceUpperTransport1.c and Dmf_SampleInterfaceUpperTransport1.h
-* Dmf_SampleInterfaceUpperTransport2.c and Dmf_SampleInterfaceUpperTransport2.h
+* [Dmf_Interface_SampleInterfaceUpper.c](../../Dmf/Modules.Template/Dmf_Interface_SampleInterfaceUpper.c) and [Dmf_Interface_SampleInterfaceUpper.h](../../Dmf/Modules.Template/Dmf_Interface_SampleInterfaceUpper.h)
+* [Dmf_SampleInterfaceUpperProtocol.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceUpperProtocol.c) and [Dmf_SampleInterfaceUpperProtocol.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceUpperProtocol.h)
+* [Dmf_SampleInterfaceUpperTransport1.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceUpperTransport1.c) and [Dmf_SampleInterfaceUpperTransport1.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceUpperTransport1.h)
+* [Dmf_SampleInterfaceUpperTransport2.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceUpperTransport2.c) and [Dmf_SampleInterfaceUpperTransport2.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceUpperTransport2.h)
 
 **Lower Protocol-Transport**
 
-* Dmf_Interface_SampleInterfaceLower.c and Dmf_Interface_SampleInterfaceLower.h
-* Dmf_SampleInterfaceLowerProtocol.c and Dmf_SampleInterfaceLowerProtocol.h
-* Dmf_SampleInterfaceLowerTransport1.c and Dmf_SampleInterfaceLowerTransport1.h
-* Dmf_SampleInterfaceLowerTransport2.c and Dmf_SampleInterfaceLowerTransport2.h
+* [Dmf_Interface_SampleInterfaceLower.c](../../Dmf/Modules.Template/Dmf_Interface_SampleInterfaceLower.c) and [Dmf_Interface_SampleInterfaceLower.h](../../Dmf/Modules.Template/Dmf_Interface_SampleInterfaceLower.h)
+* [Dmf_SampleInterfaceLowerProtocol.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceLowerProtocol.c) and [Dmf_SampleInterfaceLowerProtocol.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceLowerProtocol.h)
+* [Dmf_SampleInterfaceLowerTransport1.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceLowerTransport1.c) and [Dmf_SampleInterfaceLowerTransport1.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceLowerTransport1.h)
+* [Dmf_SampleInterfaceLowerTransport2.c](../../Dmf/Modules.Template/Dmf_SampleInterfaceLowerTransport2.c) and [Dmf_SampleInterfaceLowerTransport2.h](../../Dmf/Modules.Template/Dmf_SampleInterfaceLowerTransport2.h)
 
 In the description above:
 * "UpperProtocol" corresponds to the "Power-meter Interface To OS".
@@ -92,7 +92,7 @@ show the Client Driver instantiates those Modules and binds them.
 
 Code Tour
 =========
-Using DMF and the default libraries distributed with DMF the above driver is easy to write. The code is small. All of the code is in the file, DmfInterface.c.
+Using DMF and the default libraries distributed with DMF the above driver is easy to write. The code is small. All of the code is in the file, [DmfInterface.c](DmfInterface.c).
 The code for the *entire* driver (minus .rc and .inx file) is listed here:
 
 ```

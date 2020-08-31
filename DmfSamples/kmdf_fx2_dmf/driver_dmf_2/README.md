@@ -1,10 +1,10 @@
 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 2)
 ==============================================================
 
-This sample is an incremental change from the first DMF Sample driver. It shows how to instantiate a DMF Module. This sample instantiates the 
+This sample is an incremental change from the [first DMF Sample driver](../driver_dmf_1/readme.md). It shows how to instantiate a DMF Module. This sample instantiates the 
 Dmf_IoctlHandler Module which simplifies IOCTL handling in a driver.
 
-IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the original (non-DMF) sample. This sample is designed to do everything
+IMPORTANT: For details about how the OSR USB-FX2 device operates, please see the [original (non-DMF) sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2). This sample is designed to do everything
 the original sample does but also perform the minimum steps necessary to initialize DMF.
 
 Please perform a file compare between all the files in this sample and the files in the original sample. That is the best way to see the differences.
@@ -22,7 +22,7 @@ can process the IOCTL without needing to validate the parameters.
 
 Thus, in this sample, the following changes are made:
 
-1. In Device.c a table is created which contains all the information about the IOCTLs that the driver supports. This information
+1. In [Device.c](Device.c) a table is created which contains all the information about the IOCTLs that the driver supports. This information
 is based on the code in the original sample.
 
 2. In the function DmfModulesAdd, this variable is declared. It needs to be declared a single time regardless of how many Modules
@@ -60,12 +60,12 @@ call DMF_DmfModuleAdd() again using the same moduleAttributes and the new Module
 Code tour
 ---------
 
-There are no changes between the original sample and this sample. Please see the original sample for details.
+There are no changes between the original sample and this sample. Please see the [original sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2) for details.
 
 Testing the driver
 ------------------
 
-Please see the original sample for details. Nothing is changed in the DMF version. You can place a breakpoint in the IOCTL handler
+Please see the [original sample](https://github.com/microsoft/Windows-driver-samples/tree/master/usb/kmdf_fx2) for details. Nothing is changed in the DMF version. You can place a breakpoint in the IOCTL handler
 specified by the Client driver to single step and see how it works. You will it contains less code and is simpler. Of course,
 this is a trivial example of using a Module, but it is useful for demonstration purposes.
 
