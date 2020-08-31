@@ -248,10 +248,11 @@ function Invoke-Pack {
     # Calculate the version of the package
     $version = Request-GitVersion /nofetch /config "${PSScriptRoot}\GitVersion.yml"
     $packageVersion = $version.NuGetVersion
+    $provider = if ($env:BUILD_REPOSITORY_PROVIDER -eq 'TfsGit') { 'Devices' } else { 'Microsoft' }
 
     # Package each target OS separately
     foreach ($tos in $TargetOS.Split(',').Trim()) {
-        $packageName = 'Devices.Library.DMF.{0}' -f $tos
+        $provider = if ($env:BUILD_REPOSITORY_PROVIDER -eq 'TfsGit') { 'Devices' } else { 'Microsoft' }
         $packageDir = Join-Path $script:BinariesDirectory -ChildPath $packageName
         $packageIncDir = Join-Path $packageDir -ChildPath 'include'
         $nuspecPath = Join-Path $packageDir -ChildPath "${packageName}.nuspec"
