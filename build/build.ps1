@@ -253,7 +253,7 @@ function Invoke-Pack {
 
     # Package each target OS separately
     foreach ($tos in $TargetOS.Split(',').Trim()) {
-        $provider = if ($env:BUILD_REPOSITORY_PROVIDER -eq 'TfsGit') { 'Devices' } else { 'Microsoft' }
+        $packageName = '{0}.Library.DMF.{1}' -f $provider, $tos
         $packageDir = Join-Path $script:BinariesDirectory -ChildPath $packageName
         $packageIncDir = Join-Path $packageDir -ChildPath 'include'
         $nuspecPath = Join-Path $packageDir -ChildPath "${packageName}.nuspec"
