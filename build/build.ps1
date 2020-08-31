@@ -131,6 +131,7 @@ function Save-Ewdk {
             if (Test-Path $isoFile -PathType Leaf) {
                 Remove-Item $isoFile -Force
             }
+            throw $_
         }
         finally {
             $ProgressPreference = $backupProgressPreference
