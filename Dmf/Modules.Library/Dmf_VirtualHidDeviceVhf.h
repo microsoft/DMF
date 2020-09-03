@@ -1113,7 +1113,7 @@ Environment:
 
 //#define HID_USAGE_PAGE(usagePage)               (HID_GLOBAL_USAGE_PAGE | HID_SIZE_BYTE), usagePage
 //#define HID_USAGE(usage)                        (HID_LOCAL_USAGE  | HID_SIZE_BYTE), usage
-#define HID_USAGE_WORD(usage)                   (HID_LOCAL_USAGE  | HID_SIZE_WORD), (usage & 0xFF), ((usage << 8) & 0xFF)
+#define HID_USAGE_WORD(usage)                   (HID_LOCAL_USAGE  | HID_SIZE_WORD), (usage & 0xFF), ((usage >> 8) & 0xFF)
 
 #define HID_BEGIN_COLLECTION_EX(type)           (HID_MAIN_BEGIN_COLLECTION | HID_SIZE_BYTE), type
 #define HID_BEGIN_PHYSICAL_COLLECTION()         HID_BEGIN_COLLECTION_EX(HID_COLLECTION_PHYSICAL)
@@ -1138,10 +1138,10 @@ Environment:
 
 #define HID_LOGICAL_MINIMUM(val)                (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_BYTE), val
 #define HID_LOGICAL_MAXIMUM(val)                (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_BYTE), val
-#define HID_LOGICAL_MINIMUM_WORD(val)           (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_WORD), (val & 0xFF), ((val << 8) & 0xFF)
-#define HID_LOGICAL_MAXIMUM_WORD(val)           (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_WORD), (val & 0xFF), ((val << 8) & 0xFF)
-#define HID_LOGICAL_MINIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val << 8) & 0xFF), ((val << 16) & 0xFF), ((val << 24) & 0xFF)
-#define HID_LOGICAL_MAXIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val << 8) & 0xFF), ((val << 16) & 0xFF), ((val << 24) & 0xFF)
+#define HID_LOGICAL_MINIMUM_WORD(val)           (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
+#define HID_LOGICAL_MAXIMUM_WORD(val)           (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
+#define HID_LOGICAL_MINIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
+#define HID_LOGICAL_MAXIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 
 // This Module is only supported in Kernel-mode because VHF only support Kernel-mode.
 //
