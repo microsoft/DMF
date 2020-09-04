@@ -1136,12 +1136,26 @@ Environment:
 #define HID_OUTPUT_DYNAMIC_VALUE()              (HID_MAIN_OUTPUT | HID_SIZE_BYTE), (HID_MAIN_DATA | HID_MAIN_VARIABLE | HID_MAIN_ABSOLUTE)
 
 
-#define HID_LOGICAL_MINIMUM(val)                (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_BYTE), val
-#define HID_LOGICAL_MAXIMUM(val)                (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_BYTE), val
+#define HID_LOGICAL_MINIMUM_BYTE(val)           (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_BYTE), val
+#define HID_LOGICAL_MAXIMUM_BYTE(val)           (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_BYTE), val
 #define HID_LOGICAL_MINIMUM_WORD(val)           (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
 #define HID_LOGICAL_MAXIMUM_WORD(val)           (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
 #define HID_LOGICAL_MINIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MINIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 #define HID_LOGICAL_MAXIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
+
+#define HID_UNIT_EXPONENT_BYTE(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_BYTE), val
+#define HID_UNIT_EXPONENT_BYTE(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_BYTE), val
+#define HID_UNIT_EXPONENT_WORD(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
+#define HID_UNIT_EXPONENT_WORD(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
+#define HID_UNIT_EXPONENT_DWORD(val)            (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
+#define HID_UNIT_EXPONENT_DWORD(val)            (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
+
+#define HID_UNIT_BYTE(val)                      (HID_GLOBAL_UNIT | HID_SIZE_BYTE), val
+#define HID_UNIT_BYTE(val)                      (HID_GLOBAL_UNIT | HID_SIZE_BYTE), val
+#define HID_UNIT_WORD(val)                      (HID_GLOBAL_UNIT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
+#define HID_UNIT_WORD(val)                      (HID_GLOBAL_UNIT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
+#define HID_UNIT_DWORD(val)                     (HID_GLOBAL_UNIT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
+#define HID_UNIT_DWORD(val)                     (HID_GLOBAL_UNIT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 
 // This Module is only supported in Kernel-mode because VHF only support Kernel-mode.
 //

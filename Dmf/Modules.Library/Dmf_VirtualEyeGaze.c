@@ -36,6 +36,9 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 
 #include <pshpack1.h>
 
+#pragma region Eye Tracker HID Usages
+// From HUTRR74 - https://www.usb.org/sites/default/files/hutrr74_-_usage_page_for_head_and_eye_trackers_0.pdf
+
 #define HID_USAGE_PAGE_EYE_HEAD_TRACKER             (0x0012)
 #define HID_USAGE_PAGE_NAME_EYE_HEAD_TRACKER        "Eye and Head Trackers"
 
@@ -61,10 +64,11 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 #define HID_USAGE_LEFT_EYE_POSITION                 (0x0025)        // CP
 #define HID_USAGE_RIGHT_EYE_POSITION                (0x0026)        // CP
 #define HID_USAGE_HEAD_POSITION                     (0x0027)        // CP
-#define HID_USAGE_ROTATION_ABOUT_X_AXIS             (0x0028)        // DV
-#define HID_USAGE_ROTATION_ABOUT_Y_AXIS             (0x0029)        // DV
-#define HID_USAGE_ROTATION_ABOUT_Z_AXIS             (0x002A)        // DV
-//RESERVED                                          0x002B-0x00FF
+#define HID_USAGE_HEAD_DIRECTION                    (0x0028)        // CP
+#define HID_USAGE_ROTATION_ABOUT_X_AXIS             (0x0029)        // DV
+#define HID_USAGE_ROTATION_ABOUT_Y_AXIS             (0x002A)        // DV
+#define HID_USAGE_ROTATION_ABOUT_Z_AXIS             (0x002B)        // DV
+//RESERVED                                          0x002C-0x00FF
 
 // HID_USAGE_CAPABILITIES - Feature Collection 
 #define HID_USAGE_TRACKER_QUALITY                   (0x0100)        // SV
@@ -91,23 +95,27 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 
 // HID_USAGE_TRACKER_CONTROL - Feature Collection 
 #define HID_USAGE_MODE_REQUEST                      (0x0400)        // DV
+#pragma endregion Eye Tracker HID Usages
 
+#pragma region Eye Tracker HID Usage Constant Definitions
 // TODO: API Validator has to be turned off for the driver. This needs to be fixed.
 
+// Tracker Quality
 #define TRACKER_QUALITY_RESERVED                    0
 #define TRACKER_QUALITY_FINE_GAZE                   1
 
+// Tracker Status
 #define TRACKER_STATUS_RESERVED                     0
 #define TRACKER_STATUS_READY                        1
 #define TRACKER_STATUS_CONFIGURING                  2
 #define TRACKER_STATUS_SCREEN_SETUP_NEEDED          3
 #define TRACKER_STATUS_USER_CALIBRATION_NEEDED      4
 
+// Device Mode Request
 #define MODE_REQUEST_ENABLE_GAZE_POINT              1
 #define MODE_REQUEST_ENABLE_EYE_POSITION            2
-#define MODE_REQUEST_ENABLE_HEAD_POSITION           3
-
-#define HID_USAGE_TRACKING_DATA                     (0x10)        // CP
+#define MODE_REQUEST_ENABLE_HEAD_POSITION           4
+#pragma endregion Eye Tracker HID Usage Constant Definitions
 
 typedef struct _GAZE_REPORT
 {
@@ -217,30 +225,35 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
     HID_USAGE(HID_USAGE_EYE_TRACKER),
     HID_BEGIN_APPLICATION_COLLECTION(),
 #pragma region HID_USAGE_TRACKING_DATA
+        HID_USAGE(HID_USAGE_TRACKING_DATA),
         HID_BEGIN_LOGICAL_COLLECTION(),
             HID_REPORT_ID(HID_USAGE_TRACKING_DATA),
 
-            HID_LOGICAL_MINIMUM(0x00),
-            HID_LOGICAL_MAXIMUM(0xFF),
+            HID_LOGICAL_MINIMUM_BYTE(0x00),
+            HID_LOGICAL_MAXIMUM_WORD(0x00FF),
             HID_REPORT_SIZE_UINT8(),
-            HID_REPORT_COUNT(3),
+            HID_REPORT_COUNT(7),
             HID_INPUT_STATIC_VALUE(),
 
             HID_USAGE(HID_USAGE_TIMESTAMP),
+            HID_UNIT_WORD(0x1001),                      // SI Linear
+            HID_UNIT_EXPONENT_BYTE(0x0A),               // -6
             HID_REPORT_COUNT(8),
             HID_INPUT_DYNAMIC_VALUE(),
 
             HID_REPORT_COUNT(1),
             HID_REPORT_SIZE_UINT32(),
-            HID_LOGICAL_MINIMUM_DWORD(0x80000000),
-            HID_LOGICAL_MAXIMUM_DWORD(0x7FFFFFFF),
+            HID_UNIT_BYTE(0x11),                        // Centimeter
+            HID_UNIT_EXPONENT_BYTE(0x0C),               // -4, micrometers
+            HID_LOGICAL_MINIMUM_DWORD(0xFFE17B80),      // -2000000
+            HID_LOGICAL_MAXIMUM_DWORD(0x001E8480),      //  2000000
 
             HID_USAGE(HID_USAGE_GAZE_LOCATION),
             HID_BEGIN_PHYSICAL_COLLECTION(),
                 HID_REPORT_COUNT(2),
                 HID_USAGE(HID_USAGE_POSITION_X),
                 HID_USAGE(HID_USAGE_POSITION_Y),
-                HID_INPUT_DYNAMIC_VALUE(),
+                HID_INPUT_STATIC_VALUE(),
             HID_END_COLLECTION_EX(),
 
             HID_USAGE(HID_USAGE_LEFT_EYE_POSITION),
@@ -249,59 +262,70 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
                 HID_USAGE(HID_USAGE_POSITION_X),
                 HID_USAGE(HID_USAGE_POSITION_Y),
                 HID_USAGE(HID_USAGE_POSITION_Z),
-                HID_INPUT_DYNAMIC_VALUE(),
+                HID_INPUT_STATIC_VALUE(),
             HID_END_COLLECTION_EX(),
 
             HID_USAGE(HID_USAGE_RIGHT_EYE_POSITION),
             HID_BEGIN_PHYSICAL_COLLECTION(),
-                HID_REPORT_COUNT(3),
+                //HID_REPORT_COUNT(3),
                 HID_USAGE(HID_USAGE_POSITION_X),
                 HID_USAGE(HID_USAGE_POSITION_Y),
                 HID_USAGE(HID_USAGE_POSITION_Z),
-                HID_INPUT_DYNAMIC_VALUE(),
+                HID_INPUT_STATIC_VALUE(),
             HID_END_COLLECTION_EX(),
         HID_END_COLLECTION_EX(),
 #pragma endregion
 #pragma region HID_USAGE_CAPABILITIES
+        HID_USAGE(HID_USAGE_CAPABILITIES),
         HID_BEGIN_LOGICAL_COLLECTION(),
             HID_REPORT_ID(HID_USAGE_CAPABILITIES),
 
             HID_REPORT_SIZE_UINT8(),
             HID_REPORT_COUNT(1),
-            HID_LOGICAL_MINIMUM(0x01),
-            HID_LOGICAL_MAXIMUM(0x04),
             HID_USAGE_WORD(HID_USAGE_TRACKER_QUALITY),
+            HID_LOGICAL_MINIMUM_BYTE(0x00),
+            HID_LOGICAL_MAXIMUM_BYTE(0x01),
+            HID_UNIT_BYTE(0x00),                        // None
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
             HID_FEATURE_STATIC_VALUE(),
 
-            HID_REPORT_COUNT(5),
-            HID_REPORT_SIZE_UINT32(),
-            HID_LOGICAL_MINIMUM(0x00),
-            HID_LOGICAL_MAXIMUM_DWORD(0x7FFFFFFF),
-
-            HID_USAGE_WORD(HID_USAGE_MINIMUM_TRACKING_DISTANCE),
-            HID_USAGE_WORD(HID_USAGE_OPTIMUM_TRACKING_DISTANCE),
-            HID_USAGE_WORD(HID_USAGE_MAXIMUM_TRACKING_DISTANCE),
-            HID_USAGE_WORD(HID_USAGE_MAXIMUM_SCREEN_PLANE_WIDTH),
-            HID_USAGE_WORD(HID_USAGE_MAXIMUM_SCREEN_PLANE_HEIGHT),
+            HID_REPORT_COUNT(1),
+            HID_REPORT_SIZE_UINT16(),
+            //HID_LOGICAL_MINIMUM_BYTE(0x00),
+            HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
             HID_FEATURE_STATIC_VALUE(),
 
-            //HID_REPORT_SIZE_UINT32(),
-            //HID_LOGICAL_MINIMUM_WORD(0x00000000),
-            //HID_LOGICAL_MAXIMUM_WORD(0x7FFFFFFF),
+            HID_BEGIN_PHYSICAL_COLLECTION(),
+                HID_REPORT_COUNT(5),
+                HID_REPORT_SIZE_UINT32(),
+                HID_LOGICAL_MINIMUM_DWORD(0xFFE17B80),      // -2000000
+                HID_LOGICAL_MAXIMUM_DWORD(0x001E8480),      //  2000000
+                HID_UNIT_BYTE(0x11),                        // Centimeter
+                HID_UNIT_EXPONENT_BYTE(0x0C),               // -4, micrometers
+                HID_USAGE_WORD(HID_USAGE_MINIMUM_TRACKING_DISTANCE),
+                HID_USAGE_WORD(HID_USAGE_OPTIMUM_TRACKING_DISTANCE),
+                HID_USAGE_WORD(HID_USAGE_MAXIMUM_TRACKING_DISTANCE),
+                HID_USAGE_WORD(HID_USAGE_MAXIMUM_SCREEN_PLANE_WIDTH),
+                HID_USAGE_WORD(HID_USAGE_MAXIMUM_SCREEN_PLANE_HEIGHT),
+                HID_FEATURE_STATIC_VALUE(),
+            HID_END_COLLECTION_EX(),
         HID_END_COLLECTION_EX(),
 #pragma endregion
 #pragma region HID_USAGE_CONFIGURATION
+        HID_USAGE(HID_USAGE_CONFIGURATION),
         HID_BEGIN_LOGICAL_COLLECTION(),
             HID_REPORT_ID(HID_USAGE_CONFIGURATION),
-            HID_REPORT_SIZE_UINT8(),
-            HID_REPORT_COUNT(1),
 
+            HID_REPORT_SIZE_UINT8(),
+            HID_LOGICAL_MINIMUM_BYTE(0x00),
+            HID_LOGICAL_MAXIMUM_WORD(0x00FF),
+            HID_REPORT_COUNT(1),
             HID_FEATURE_STATIC_VALUE(),
 
             HID_REPORT_SIZE_UINT16(),
-            HID_LOGICAL_MINIMUM(0x00),
             HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
-
+            HID_UNIT_BYTE(0x00),                        // None
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
             HID_USAGE_WORD(HID_USAGE_DISPLAY_MANUFACTURER_ID),
             HID_FEATURE_STATIC_VALUE(),
 
@@ -309,61 +333,79 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
             HID_FEATURE_STATIC_VALUE(),
 
             HID_REPORT_SIZE_UINT32(),
-            HID_LOGICAL_MINIMUM(0x00),
             HID_LOGICAL_MAXIMUM_DWORD(0x7FFFFFFF),
-
             HID_USAGE_WORD(HID_USAGE_DISPLAY_SERIAL_NUMBER),
             HID_FEATURE_STATIC_VALUE(),
 
             HID_REPORT_SIZE_UINT16(),
-            HID_LOGICAL_MINIMUM(0x00),
+            //HID_LOGICAL_MINIMUM_BYTE(0x00),
             HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
-
             HID_USAGE_WORD(HID_USAGE_DISPLAY_MANUFACTURER_DATE),
             HID_FEATURE_STATIC_VALUE(),
+                
+            HID_BEGIN_PHYSICAL_COLLECTION(),
+                HID_UNIT_BYTE(0x11),                        // Centimeter
+                HID_UNIT_EXPONENT_BYTE(0x0C),               // -4, micrometers
+                HID_LOGICAL_MAXIMUM_DWORD(0x7FFFFFFF),
+                HID_REPORT_SIZE_UINT32(),
+                HID_USAGE_WORD(HID_USAGE_CALIBRATED_SCREEN_WIDTH),
+                HID_FEATURE_STATIC_VALUE(),
 
-            HID_REPORT_SIZE_UINT32(),
-            HID_REPORT_COUNT(2),
-            HID_LOGICAL_MINIMUM(0x00),
-            HID_LOGICAL_MAXIMUM_DWORD(0x7FFFFFFF),
-
-            HID_USAGE_WORD(HID_USAGE_CALIBRATED_SCREEN_WIDTH),
-            HID_USAGE_WORD(HID_USAGE_CALIBRATED_SCREEN_HEIGHT),
-            HID_FEATURE_STATIC_VALUE(),
+                HID_USAGE_WORD(HID_USAGE_CALIBRATED_SCREEN_HEIGHT),
+                HID_FEATURE_STATIC_VALUE(),
+            HID_END_COLLECTION_EX(),
 
         HID_END_COLLECTION_EX(),
 #pragma endregion
-#pragma region HID_USAGE_TRACKER_STATUS
+#pragma region HID_USAGE_TRACKER_STATUS (Feature)
+        HID_USAGE(HID_USAGE_TRACKER_STATUS),
         HID_BEGIN_LOGICAL_COLLECTION(),
             HID_REPORT_ID(HID_USAGE_TRACKER_STATUS),
 
             HID_REPORT_SIZE_UINT8(),
-            HID_REPORT_COUNT(1),
-            HID_FEATURE_STATIC_VALUE(),
-
-            HID_LOGICAL_MINIMUM(0x00),
-            HID_LOGICAL_MAXIMUM(0x04),
+            HID_UNIT_BYTE(0x00),                        // None
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
+            HID_LOGICAL_MAXIMUM_BYTE(0x04),
             HID_USAGE_WORD(HID_USAGE_CONFIGURATION_STATUS),
             HID_FEATURE_DYNAMIC_VALUE(),
 
             HID_REPORT_SIZE_UINT16(),
-            HID_LOGICAL_MINIMUM(0x00),
-            HID_LOGICAL_MAXIMUM_WORD(0x7FFF),
-
+            HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
+            HID_UNIT_WORD(0xF001),                      // SI Linear
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
             HID_USAGE_WORD(HID_USAGE_SAMPLING_FREQUENCY),
             HID_FEATURE_DYNAMIC_VALUE(),
         HID_END_COLLECTION_EX(),
 #pragma endregion
+#pragma region HID_USAGE_TRACKER_STATUS (Input)
+        HID_USAGE(HID_USAGE_TRACKER_STATUS),
+        HID_BEGIN_LOGICAL_COLLECTION(),
+            HID_REPORT_ID(HID_USAGE_TRACKER_STATUS),
+
+            HID_REPORT_SIZE_UINT8(),
+            //HID_UNIT_BYTE(0x00),                        // None
+            //HID_UNIT_EXPONENT_BYTE(0x00),               // 0
+            HID_LOGICAL_MAXIMUM_BYTE(0x04),
+            HID_USAGE_WORD(HID_USAGE_CONFIGURATION_STATUS),
+            HID_INPUT_DYNAMIC_VALUE(),
+
+            HID_REPORT_SIZE_UINT16(),
+            HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
+            HID_UNIT_WORD(0xF001),                      // SI Linear
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
+            HID_USAGE_WORD(HID_USAGE_SAMPLING_FREQUENCY),
+            HID_INPUT_DYNAMIC_VALUE(),
+        HID_END_COLLECTION_EX(),
+#pragma endregion
 #pragma region HID_USAGE_TRACKER_CONTROL
+        HID_USAGE(HID_USAGE_TRACKER_CONTROL),
         HID_BEGIN_LOGICAL_COLLECTION(),
             HID_REPORT_ID(HID_USAGE_TRACKER_CONTROL),
-            HID_REPORT_SIZE_UINT8(),
-            HID_REPORT_COUNT(1),
 
             HID_REPORT_SIZE_UINT8(),
-            HID_LOGICAL_MINIMUM(0x00),
-            HID_LOGICAL_MAXIMUM(0x01),
-
+            HID_LOGICAL_MAXIMUM_BYTE(0x07),
+            HID_UNIT_BYTE(0x00),                        // None
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
             HID_USAGE_WORD(HID_USAGE_MODE_REQUEST),
             HID_FEATURE_DYNAMIC_VALUE(),
         HID_END_COLLECTION_EX(),
