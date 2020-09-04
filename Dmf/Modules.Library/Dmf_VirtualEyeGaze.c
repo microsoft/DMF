@@ -119,13 +119,13 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 
 typedef struct _GAZE_REPORT
 {
-    UCHAR ReportId;
+    const UCHAR ReportId = HID_USAGE_TRACKING_DATA;
     GAZE_DATA GazeData;
 } GAZE_REPORT, *PGAZE_REPORT;
 
 typedef struct _CAPABILITIES_REPORT
 {
-    UCHAR ReportId;
+    const UCHAR ReportId = HID_USAGE_CAPABILITIES;
     UCHAR TrackerQuality;
     ULONG MinimumTrackingDistance;
     ULONG OptimumTrackingDistance;
@@ -136,7 +136,7 @@ typedef struct _CAPABILITIES_REPORT
 
 typedef struct _CONFIGURATION_REPORT
 {
-    UCHAR ReportId;
+    const UCHAR ReportId = HID_USAGE_CONFIGURATION;
     UCHAR Reserved;
     USHORT DisplayManufacturerId;
     USHORT DisplayProductId;
@@ -148,7 +148,7 @@ typedef struct _CONFIGURATION_REPORT
 
 typedef struct _TRACKER_STATUS_REPORT
 {
-    UCHAR ReportId;
+    const UCHAR ReportId = HID_USAGE_TRACKER_STATUS;
     UCHAR Reserved;
     UCHAR ConfigurationStatus;
     USHORT SamplingFrequency;
@@ -156,7 +156,7 @@ typedef struct _TRACKER_STATUS_REPORT
 
 typedef struct _TRACKER_CONTROL_REPORT
 {
-    UCHAR ReportId;
+    const UCHAR ReportId = HID_USAGE_TRACKER_CONTROL;
     UCHAR ModeRequest;
 } TRACKER_CONTROL_REPORT, *PTRACKER_CONTROL_REPORT;
 
@@ -545,14 +545,12 @@ Return Value:
 
     // Set default values that are overwritten by Client if necessary.
     //
-    moduleContext->CapabilitiesReport.ReportId = HID_USAGE_CAPABILITIES;
     moduleContext->CapabilitiesReport.TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
     moduleContext->CapabilitiesReport.MinimumTrackingDistance = 50000;
     moduleContext->CapabilitiesReport.OptimumTrackingDistance = 65000;
     moduleContext->CapabilitiesReport.MaximumTrackingDistance = 90000;
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
-    trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
     trackerStatus->ConfigurationStatus = TRACKER_STATUS_SCREEN_SETUP_NEEDED;
 
     ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
@@ -754,7 +752,6 @@ Return Value:
     // TODO: Perhaps pass this value in the Config so that Client can 
     //       configure it?
     //
-    inputReport.ReportId = HID_USAGE_TRACKING_DATA;
 
     hidXferPacket.reportBuffer = (UCHAR*)&inputReport;
     hidXferPacket.reportBufferLen = sizeof(GAZE_REPORT);
@@ -846,7 +843,6 @@ Return Value:
     RtlZeroMemory(&inputReport,
                   sizeof(inputReport));
     inputReport.ConfigurationStatus = TrackerStatus;
-    inputReport.ReportId = moduleContext->TrackerStatusReport.ReportId;
 
     hidXferPacket.reportBuffer = (UCHAR*)&inputReport;
     hidXferPacket.reportBufferLen = sizeof(TRACKER_STATUS_REPORT);
