@@ -198,10 +198,6 @@ DMF_MODULE_DECLARE_CONFIG(VirtualEyeGaze)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-// This is the report id of the collection to which the control codes are sent
-//
-#define CONTROL_COLLECTION_REPORT_ID                      0x01
-
 #include <pshpack1.h>
 
 typedef struct _MY_DEVICE_ATTRIBUTES
@@ -479,7 +475,7 @@ VirtualEyeGaze_GET_FEATURE(
         goto Exit;
     }
 
-    if (HidTransferPacket->reportId != CONTROL_COLLECTION_REPORT_ID)
+    if (ntStatus == STATUS_INVALID_PARAMETER)
     {
         goto Exit;
     }
