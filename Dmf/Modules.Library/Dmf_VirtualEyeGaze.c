@@ -117,6 +117,7 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 #define MODE_REQUEST_ENABLE_HEAD_POSITION           4
 #pragma endregion Eye Tracker HID Usage Constant Definitions
 
+#pragma region HID Report Struct Definitions
 typedef struct _GAZE_REPORT
 {
     const UCHAR ReportId = HID_USAGE_TRACKING_DATA;
@@ -149,7 +150,6 @@ typedef struct _CONFIGURATION_REPORT
 typedef struct _TRACKER_STATUS_REPORT
 {
     const UCHAR ReportId = HID_USAGE_TRACKER_STATUS;
-    UCHAR Reserved;
     UCHAR ConfigurationStatus;
     USHORT SamplingFrequency;
 } TRACKER_STATUS_REPORT, *PTRACKER_STATUS_REPORT;
@@ -159,6 +159,7 @@ typedef struct _TRACKER_CONTROL_REPORT
     const UCHAR ReportId = HID_USAGE_TRACKER_CONTROL;
     UCHAR ModeRequest;
 } TRACKER_CONTROL_REPORT, *PTRACKER_CONTROL_REPORT;
+#pragma endregion HID Report Struct Definitions
 
 #include <poppack.h>
 
