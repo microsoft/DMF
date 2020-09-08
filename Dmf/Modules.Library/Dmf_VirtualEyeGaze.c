@@ -150,6 +150,7 @@ typedef struct _CONFIGURATION_REPORT
 typedef struct _TRACKER_STATUS_REPORT
 {
     const UCHAR ReportId = HID_USAGE_TRACKER_STATUS;
+    UCHAR Reserved;
     UCHAR ConfigurationStatus;
     USHORT SamplingFrequency;
 } TRACKER_STATUS_REPORT, *PTRACKER_STATUS_REPORT;
