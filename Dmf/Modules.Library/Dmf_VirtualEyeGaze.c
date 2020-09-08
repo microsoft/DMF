@@ -150,7 +150,6 @@ typedef struct _CONFIGURATION_REPORT
 typedef struct _TRACKER_STATUS_REPORT
 {
     const UCHAR ReportId = HID_USAGE_TRACKER_STATUS;
-    UCHAR Reserved;
     UCHAR ConfigurationStatus;
     USHORT SamplingFrequency;
 } TRACKER_STATUS_REPORT, *PTRACKER_STATUS_REPORT;
@@ -554,6 +553,7 @@ Return Value:
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
     trackerStatus->ConfigurationStatus = TRACKER_STATUS_SCREEN_SETUP_NEEDED;
+    trackerStatus->SamplingFrequency = 100; // TODO: make this configurble
 
     ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
                                                           TRACKER_STATUS_SCREEN_SETUP_NEEDED);
