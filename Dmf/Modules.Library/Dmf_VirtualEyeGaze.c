@@ -106,10 +106,10 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 
 // Tracker Status
 #define TRACKER_STATUS_RESERVED                     0
-#define TRACKER_STATUS_READY                        2 // Windows Bug - 1 in HID spec
+#define TRACKER_STATUS_READY                        1
 #define TRACKER_STATUS_CONFIGURING                  2
-#define TRACKER_STATUS_SCREEN_SETUP_NEEDED          0 // Windows Bug - 3 in HID spec
-#define TRACKER_STATUS_USER_CALIBRATION_NEEDED      1 // Windows Bug - 4 in HID spec
+#define TRACKER_STATUS_SCREEN_SETUP_NEEDED          3
+#define TRACKER_STATUS_USER_CALIBRATION_NEEDED      4
 
 // Device Mode Request
 #define MODE_REQUEST_ENABLE_GAZE_POINT              1
