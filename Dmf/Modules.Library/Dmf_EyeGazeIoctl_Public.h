@@ -35,11 +35,12 @@ typedef struct _POINT3D
 
 typedef struct _GAZE_DATA
 {
-    UCHAR Reserved[3];
     ULONGLONG TimeStamp;
     POINT2D GazePoint;
     POINT3D LeftEyePosition;
     POINT3D RightEyePosition;
+    POINT3D HeadPosition;
+    POINT3D HeadDirection;
 } GAZE_DATA, *PGAZE_DATA;
 
 typedef struct _MONITOR_RESOLUTION

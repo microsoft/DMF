@@ -138,13 +138,12 @@ typedef struct _CAPABILITIES_REPORT
 typedef struct _CONFIGURATION_REPORT
 {
     const UCHAR ReportId = HID_USAGE_CONFIGURATION;
-    UCHAR Reserved;
     USHORT DisplayManufacturerId;
     USHORT DisplayProductId;
     ULONG DisplaySerialNumber;
     USHORT DisplayManufacturerDate;
-    LONG CalibratedScreenWidth;
-    LONG CalibratedScreenHeight;
+    ULONG CalibratedScreenWidth;
+    ULONG CalibratedScreenHeight;
 } CONFIGURATION_REPORT, *PCONFIGURATION_REPORT;
 
 typedef struct _TRACKER_STATUS_REPORT
@@ -229,8 +228,6 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
             HID_LOGICAL_MINIMUM_BYTE(0x00),
             HID_LOGICAL_MAXIMUM_WORD(0x00FF),
             HID_REPORT_SIZE_UINT8(),
-            HID_REPORT_COUNT(7),
-            HID_INPUT_STATIC_VALUE(),
 
             HID_USAGE(HID_USAGE_TIMESTAMP),
             HID_UNIT_WORD(0x1001),                      // SI Linear
@@ -264,12 +261,14 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
 
             HID_USAGE(HID_USAGE_RIGHT_EYE_POSITION),
             HID_BEGIN_PHYSICAL_COLLECTION(),
-                //HID_REPORT_COUNT(3),
+                HID_REPORT_COUNT(3),
                 HID_USAGE(HID_USAGE_POSITION_X),
                 HID_USAGE(HID_USAGE_POSITION_Y),
                 HID_USAGE(HID_USAGE_POSITION_Z),
                 HID_INPUT_STATIC_VALUE(),
             HID_END_COLLECTION_EX(),
+            HID_REPORT_COUNT(6),
+            HID_INPUT_STATIC_VALUE(),                 // 6x 32-bit fields, for head position/rotation
         HID_END_COLLECTION_EX(),
 #pragma endregion
 #pragma region HID_USAGE_CAPABILITIES
@@ -288,7 +287,7 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
 
             HID_REPORT_COUNT(1),
             HID_REPORT_SIZE_UINT16(),
-            //HID_LOGICAL_MINIMUM_BYTE(0x00),
+            HID_LOGICAL_MINIMUM_BYTE(0x00),
             HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
             HID_FEATURE_STATIC_VALUE(),
 
@@ -317,7 +316,6 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
             HID_LOGICAL_MINIMUM_BYTE(0x00),
             HID_LOGICAL_MAXIMUM_WORD(0x00FF),
             HID_REPORT_COUNT(1),
-            HID_FEATURE_STATIC_VALUE(),
 
             HID_REPORT_SIZE_UINT16(),
             HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
@@ -335,11 +333,11 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
             HID_FEATURE_STATIC_VALUE(),
 
             HID_REPORT_SIZE_UINT16(),
-            //HID_LOGICAL_MINIMUM_BYTE(0x00),
+            HID_LOGICAL_MINIMUM_BYTE(0x00),
             HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
             HID_USAGE_WORD(HID_USAGE_DISPLAY_MANUFACTURER_DATE),
             HID_FEATURE_STATIC_VALUE(),
-                
+
             HID_BEGIN_PHYSICAL_COLLECTION(),
                 HID_UNIT_BYTE(0x11),                        // Centimeter
                 HID_UNIT_EXPONENT_BYTE(0x0C),               // -4, micrometers
@@ -380,8 +378,8 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
             HID_REPORT_ID(HID_USAGE_TRACKER_STATUS),
 
             HID_REPORT_SIZE_UINT8(),
-            //HID_UNIT_BYTE(0x00),                        // None
-            //HID_UNIT_EXPONENT_BYTE(0x00),               // 0
+            HID_UNIT_BYTE(0x00),                        // None
+            HID_UNIT_EXPONENT_BYTE(0x00),               // 0
             HID_LOGICAL_MAXIMUM_BYTE(0x04),
             HID_USAGE_WORD(HID_USAGE_CONFIGURATION_STATUS),
             HID_INPUT_DYNAMIC_VALUE(),
