@@ -45,8 +45,12 @@ typedef struct _GAZE_DATA
 
 typedef struct _MONITOR_RESOLUTION
 {
-    ULONG Height;
-    ULONG Width;
+    USHORT DisplayManufacturerId;
+    USHORT DisplayProductId;
+    ULONG DisplaySerialNumber;
+    USHORT DisplayManufacturerDate;
+    ULONG CalibratedScreenWidth;
+    ULONG CalibratedScreenHeight;
 } MONITOR_RESOLUTION, *PMONITOR_RESOLUTION;
 
 #pragma pack(pop)

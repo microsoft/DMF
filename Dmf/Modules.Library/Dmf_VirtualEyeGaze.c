@@ -112,6 +112,7 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 #define TRACKER_STATUS_USER_CALIBRATION_NEEDED      4
 
 // Device Mode Request
+#define MODE_REQUEST_RESERVED                       0
 #define MODE_REQUEST_ENABLE_GAZE_POINT              1
 #define MODE_REQUEST_ENABLE_EYE_POSITION            2
 #define MODE_REQUEST_ENABLE_HEAD_POSITION           4
@@ -120,13 +121,13 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 #pragma region HID Report Struct Definitions
 typedef struct _GAZE_REPORT
 {
-    const UCHAR ReportId = HID_USAGE_TRACKING_DATA;
+    UCHAR ReportId;
     GAZE_DATA GazeData;
 } GAZE_REPORT, *PGAZE_REPORT;
 
 typedef struct _CAPABILITIES_REPORT
 {
-    const UCHAR ReportId = HID_USAGE_CAPABILITIES;
+    UCHAR ReportId;
     UCHAR TrackerQuality;
     ULONG MinimumTrackingDistance;
     ULONG OptimumTrackingDistance;
@@ -137,25 +138,20 @@ typedef struct _CAPABILITIES_REPORT
 
 typedef struct _CONFIGURATION_REPORT
 {
-    const UCHAR ReportId = HID_USAGE_CONFIGURATION;
-    USHORT DisplayManufacturerId;
-    USHORT DisplayProductId;
-    ULONG DisplaySerialNumber;
-    USHORT DisplayManufacturerDate;
-    ULONG CalibratedScreenWidth;
-    ULONG CalibratedScreenHeight;
+    UCHAR ReportId;
+    MONITOR_RESOLUTION monitorResolution;
 } CONFIGURATION_REPORT, *PCONFIGURATION_REPORT;
 
 typedef struct _TRACKER_STATUS_REPORT
 {
-    const UCHAR ReportId = HID_USAGE_TRACKER_STATUS;
+    UCHAR ReportId;
     UCHAR ConfigurationStatus;
     USHORT SamplingFrequency;
 } TRACKER_STATUS_REPORT, *PTRACKER_STATUS_REPORT;
 
 typedef struct _TRACKER_CONTROL_REPORT
 {
-    const UCHAR ReportId = HID_USAGE_TRACKER_CONTROL;
+    UCHAR ReportId;
     UCHAR ModeRequest;
 } TRACKER_CONTROL_REPORT, *PTRACKER_CONTROL_REPORT;
 #pragma endregion HID Report Struct Definitions
@@ -176,6 +172,7 @@ typedef struct _DMF_CONTEXT_VirtualEyeGaze
     CAPABILITIES_REPORT CapabilitiesReport;
     CONFIGURATION_REPORT ConfigurationReport;
     TRACKER_STATUS_REPORT TrackerStatusReport;
+    TRACKER_CONTROL_REPORT TrackerControlReport;
     GAZE_REPORT GazeReport;
 } DMF_CONTEXT_VirtualEyeGaze;
 
@@ -468,8 +465,67 @@ VirtualEyeGaze_GET_FEATURE(
             goto Exit;
     }
 
-    reportSize = sizeof(MY_DEVICE_ATTRIBUTES) + sizeof(HidTransferPacket->reportId);
     if (HidTransferPacket->reportBufferLen < reportSize) 
+    {
+        goto Exit;
+    }
+
+    if (ntStatus == STATUS_INVALID_PARAMETER)
+    {
+        goto Exit;
+    }
+
+    RtlCopyMemory(HidTransferPacket->reportBuffer,
+                  reportData,
+                  reportSize);
+
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+
+    if (ntStatus != STATUS_PENDING)
+    {
+        DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
+                                                              VhfOperationHandle,
+                                                              ntStatus);
+    }
+}
+
+_Function_class_(EVT_VHF_ASYNC_OPERATION)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+VirtualEyeGaze_SET_FEATURE(
+    _In_ PVOID VhfClientContext,
+    _In_ VHFOPERATIONHANDLE VhfOperationHandle,
+    _In_opt_ PVOID VhfOperationContext,
+    _In_ PHID_XFER_PACKET HidTransferPacket
+)
+{
+    NTSTATUS ntStatus;
+    ULONG reportSize;
+    UCHAR* reportData;
+    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
+    DMFMODULE dmfModule;
+
+    UNREFERENCED_PARAMETER(VhfOperationContext);
+
+    ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+    dmfModule = DMFMODULEVOID_TO_MODULE(VhfClientContext);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    switch (HidTransferPacket->reportId)
+    {
+    case HID_USAGE_TRACKER_CONTROL:
+        reportSize = sizeof(TRACKER_CONTROL_REPORT);
+        reportData = (UCHAR*)&moduleContext->TrackerControlReport;
+        break;
+    default:
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
+    if (HidTransferPacket->reportBufferLen < reportSize)
     {
         goto Exit;
     }
@@ -544,17 +600,28 @@ Return Value:
 
     // Set default values that are overwritten by Client if necessary.
     //
-    moduleContext->CapabilitiesReport.TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
-    moduleContext->CapabilitiesReport.MinimumTrackingDistance = 50000;
-    moduleContext->CapabilitiesReport.OptimumTrackingDistance = 65000;
-    moduleContext->CapabilitiesReport.MaximumTrackingDistance = 90000;
+    CAPABILITIES_REPORT* capabilitiesReport = &moduleContext->CapabilitiesReport;
+    capabilitiesReport->ReportId = HID_USAGE_CAPABILITIES;
+    capabilitiesReport->TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
+    capabilitiesReport->MinimumTrackingDistance = 50000;
+    capabilitiesReport->OptimumTrackingDistance = 65000;
+    capabilitiesReport->MaximumTrackingDistance = 90000;
+
+    CONFIGURATION_REPORT* configurationReport = &moduleContext->ConfigurationReport;
+    configurationReport->ReportId = HID_USAGE_CONFIGURATION;
+    RtlZeroMemory(&configurationReport->monitorResolution, sizeof(MONITOR_RESOLUTION));
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
+    trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
     trackerStatus->ConfigurationStatus = TRACKER_STATUS_SCREEN_SETUP_NEEDED;
     trackerStatus->SamplingFrequency = 100; // TODO: make this configurble
 
+    TRACKER_CONTROL_REPORT* controlReport = &moduleContext->TrackerControlReport;
+    controlReport->ReportId = HID_USAGE_TRACKER_CONTROL;
+    controlReport->ModeRequest = MODE_REQUEST_RESERVED;
+
     ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
-                                                          TRACKER_STATUS_SCREEN_SETUP_NEEDED);
+                                                          trackerStatus->ConfigurationStatus);
 
     // TODO: After we use User-mode VHF, get primary monitor information.
     //
@@ -632,6 +699,7 @@ Return Value:
     virtualHidDeviceVhfModuleConfig.VhfClientContext = DmfModule;
 
     virtualHidDeviceVhfModuleConfig.IoctlCallback_IOCTL_HID_GET_FEATURE = VirtualEyeGaze_GET_FEATURE;
+    virtualHidDeviceVhfModuleConfig.IoctlCallback_IOCTL_HID_SET_FEATURE = VirtualEyeGaze_SET_FEATURE;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                         &moduleAttributes,
@@ -719,7 +787,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_VirtualEyeGaze_GazeReportSend(
     _In_ DMFMODULE DmfModule,
-    _In_ GAZE_DATA* GazeData
+    _In_ GAZE_DATA* pGazeData
     )
 /*++
 
@@ -738,20 +806,20 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus;
+    NTSTATUS ntStatus = STATUS_SUCCESS;
     DMF_CONTEXT_VirtualEyeGaze* moduleContext;
     HID_XFER_PACKET hidXferPacket;
     GAZE_REPORT inputReport;
+
+    RtlZeroMemory(&inputReport, sizeof(GAZE_REPORT));
+    inputReport.ReportId = HID_USAGE_TRACKING_DATA;
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  VirtualEyeGaze);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    inputReport.GazeData = *GazeData;
-    // TODO: Perhaps pass this value in the Config so that Client can 
-    //       configure it?
-    //
+    memcpy_s(&inputReport.GazeData, sizeof(GAZE_DATA), pGazeData, sizeof(GAZE_DATA));
 
     hidXferPacket.reportBuffer = (UCHAR*)&inputReport;
     hidXferPacket.reportBufferLen = sizeof(GAZE_REPORT);
@@ -767,7 +835,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_VirtualEyeGaze_PrimaryMonitorSettingsSet(
     _In_ DMFMODULE DmfModule,
-    _In_ MONITOR_RESOLUTION* MonitorResolution
+    _In_ MONITOR_RESOLUTION* pMonitorResolution
     )
 /*++
 
@@ -794,13 +862,18 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // TODO: Validate settings.
-    //
-    moduleContext->ConfigurationReport.CalibratedScreenHeight = MonitorResolution->Height;
-    moduleContext->ConfigurationReport.CalibratedScreenWidth = MonitorResolution->Width;
+    CONFIGURATION_REPORT* configurationReport = &moduleContext->ConfigurationReport;
+    memcpy_s(&configurationReport->monitorResolution,
+        sizeof(MONITOR_RESOLUTION),
+        pMonitorResolution,
+        sizeof(MONITOR_RESOLUTION));
+
+    TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
+    trackerStatus->ConfigurationStatus = TRACKER_STATUS_READY;
 
     ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
-                                                          TRACKER_STATUS_READY);
+                                                          trackerStatus->ConfigurationStatus);
+
 
     return ntStatus;
 }
@@ -842,6 +915,7 @@ Return Value:
 
     RtlZeroMemory(&inputReport,
                   sizeof(inputReport));
+    inputReport.ReportId = HID_USAGE_TRACKER_STATUS;
     inputReport.ConfigurationStatus = TrackerStatus;
 
     hidXferPacket.reportBuffer = (UCHAR*)&inputReport;
