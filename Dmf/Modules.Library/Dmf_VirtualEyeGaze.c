@@ -128,18 +128,13 @@ typedef struct _GAZE_REPORT
 typedef struct _CAPABILITIES_REPORT
 {
     UCHAR ReportId;
-    UCHAR TrackerQuality;
-    ULONG MinimumTrackingDistance;
-    ULONG OptimumTrackingDistance;
-    ULONG MaximumTrackingDistance;
-    ULONG MaximumScreenPlaneWidth;
-    ULONG MaximumScreenPlaneHeight;
+    CAPABILITIES_DATA CapabilitiesData;
 } CAPABILITIES_REPORT, *PCAPABILITIES_REPORT;
 
 typedef struct _CONFIGURATION_REPORT
 {
     UCHAR ReportId;
-    MONITOR_RESOLUTION monitorResolution;
+    CONFIGURATION_DATA ConfigurationData;
 } CONFIGURATION_REPORT, *PCONFIGURATION_REPORT;
 
 typedef struct _TRACKER_STATUS_REPORT
@@ -602,14 +597,15 @@ Return Value:
     //
     CAPABILITIES_REPORT* capabilitiesReport = &moduleContext->CapabilitiesReport;
     capabilitiesReport->ReportId = HID_USAGE_CAPABILITIES;
-    capabilitiesReport->TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
-    capabilitiesReport->MinimumTrackingDistance = 50000;
-    capabilitiesReport->OptimumTrackingDistance = 65000;
-    capabilitiesReport->MaximumTrackingDistance = 90000;
+    RtlZeroMemory(&capabilitiesReport->CapabilitiesData, sizeof(CAPABILITIES_DATA));
+    capabilitiesReport->CapabilitiesData.TrackerQuality = TRACKER_QUALITY_FINE_GAZE;
+    capabilitiesReport->CapabilitiesData.MinimumTrackingDistance = 50000;
+    capabilitiesReport->CapabilitiesData.OptimumTrackingDistance = 65000;
+    capabilitiesReport->CapabilitiesData.MaximumTrackingDistance = 90000;
 
     CONFIGURATION_REPORT* configurationReport = &moduleContext->ConfigurationReport;
     configurationReport->ReportId = HID_USAGE_CONFIGURATION;
-    RtlZeroMemory(&configurationReport->monitorResolution, sizeof(MONITOR_RESOLUTION));
+    RtlZeroMemory(&configurationReport->ConfigurationData, sizeof(CONFIGURATION_DATA));
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
     trackerStatus->ReportId = HID_USAGE_TRACKER_STATUS;
@@ -833,9 +829,9 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_VirtualEyeGaze_PrimaryMonitorSettingsSet(
+DMF_VirtualEyeGaze_ConfigurationDataSet(
     _In_ DMFMODULE DmfModule,
-    _In_ MONITOR_RESOLUTION* pMonitorResolution
+    _In_ CONFIGURATION_DATA* pConfigurationData
     )
 /*++
 
@@ -863,10 +859,10 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     CONFIGURATION_REPORT* configurationReport = &moduleContext->ConfigurationReport;
-    memcpy_s(&configurationReport->monitorResolution,
-        sizeof(MONITOR_RESOLUTION),
-        pMonitorResolution,
-        sizeof(MONITOR_RESOLUTION));
+    memcpy_s(&configurationReport->ConfigurationData,
+        sizeof(CONFIGURATION_DATA),
+        pConfigurationData,
+        sizeof(CONFIGURATION_DATA));
 
     TRACKER_STATUS_REPORT* trackerStatus = &moduleContext->TrackerStatusReport;
     trackerStatus->ConfigurationStatus = TRACKER_STATUS_READY;
@@ -874,6 +870,46 @@ Return Value:
     ntStatus = DMF_VirtualEyeGaze_TrackerStatusReportSend(DmfModule,
                                                           trackerStatus->ConfigurationStatus);
 
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_VirtualEyeGaze_CapabilitiesDataSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ CAPABILITIES_DATA* pCapabilitiesData
+)
+/*++
+
+Routine Description:
+
+    Sets the given monitor resolution from Client.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    MonitorResolution - The given monitor resolution.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus = STATUS_SUCCESS;
+    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+        VirtualEyeGaze);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    CAPABILITIES_REPORT* capabilitiesReport = &moduleContext->CapabilitiesReport;
+    memcpy_s(&capabilitiesReport->CapabilitiesData,
+        sizeof(CAPABILITIES_DATA),
+        pCapabilitiesData,
+        sizeof(CAPABILITIES_DATA));
 
     return ntStatus;
 }
@@ -924,6 +960,43 @@ Return Value:
 
     ntStatus = DMF_VirtualHidDeviceVhf_ReadReportSend(moduleContext->DmfModuleVirtualHidDeviceVhf,
                                                       &hidXferPacket);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_VirtualEyeGaze_TrackerControlModeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ UCHAR* pMode
+)
+/*++
+
+Routine Description:
+
+    Sets the given monitor resolution from Client.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    MonitorResolution - The given monitor resolution.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus = STATUS_SUCCESS;
+    DMF_CONTEXT_VirtualEyeGaze* moduleContext;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+        VirtualEyeGaze);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    TRACKER_CONTROL_REPORT* trackerControlReport = &moduleContext->TrackerControlReport;
+    *pMode = trackerControlReport->ModeRequest;
 
     return ntStatus;
 }

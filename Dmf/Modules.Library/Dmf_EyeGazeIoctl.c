@@ -151,7 +151,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 NTSTATUS
-EyeGazeIoctl_IoctlHandler_MonitorResolution(
+EyeGazeIoctl_IoctlHandler_Configuration_Data(
     _In_ DMFMODULE DmfModule,
     _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
@@ -189,7 +189,7 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    MONITOR_RESOLUTION* monitorResolution;
+    CONFIGURATION_DATA* pConfigurationData;
     DMFMODULE dmfModuleEyeGazeIoctl;
     DMF_CONTEXT_EyeGazeIoctl* moduleContext;
 
@@ -206,10 +206,10 @@ Return Value:
     dmfModuleEyeGazeIoctl = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleEyeGazeIoctl);
 
-    monitorResolution = (MONITOR_RESOLUTION*)InputBuffer;
+    pConfigurationData = (CONFIGURATION_DATA*)InputBuffer;
 
-    ntStatus = DMF_VirtualEyeGaze_PrimaryMonitorSettingsSet(moduleContext->DmfModuleVirtualEyeGaze,
-                                                            monitorResolution);
+    ntStatus = DMF_VirtualEyeGaze_ConfigurationDataSet(moduleContext->DmfModuleVirtualEyeGaze,
+        pConfigurationData);
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -218,6 +218,167 @@ Return Value:
     // Tell application this driver read the input buffer.
     //
     *BytesReturned = InputBufferSize;
+
+Exit:
+
+    // Causes DMF to complete the WDFREQUEST.
+    //
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+NTSTATUS
+EyeGazeIoctl_IoctlHandler_Capabilities_Data(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ ULONG IoControlCode,
+    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_ size_t InputBufferSize,
+    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _Out_ size_t* BytesReturned
+)
+/*++
+
+Routine Description:
+
+    Processes Monitor Resolution IOCTL.
+
+Arguments:
+
+    DmfModule - DMF_IoctlHandler Module handle.
+    Queue - Handle to the framework queue object that is associated
+            with the I/O request.
+    Request - Handle to a framework request object.
+    OutputBufferLength - length of the request's output buffer,
+                        if an output buffer is available.
+    InputBufferLength - length of the request's input buffer,
+                        if an input buffer is available.
+    IoControlCode - the driver-defined or system-defined I/O control code
+                    (IOCTL) that is associated with the request.
+
+Return Value:
+
+    STATUS_PENDING - DMF does not complete the WDFREQUEST and Client Driver owns the WDFREQUEST.
+    Other - DMF completes the WDFREQUEST with that NTSTATUS.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    CAPABILITIES_DATA* pCapabilitiesData;
+    DMFMODULE dmfModuleEyeGazeIoctl;
+    DMF_CONTEXT_EyeGazeIoctl* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(Queue);
+    UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(IoControlCode);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
+
+    PAGED_CODE();
+
+    *BytesReturned = 0;
+    dmfModuleEyeGazeIoctl = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleEyeGazeIoctl);
+
+    pCapabilitiesData = (CAPABILITIES_DATA*)InputBuffer;
+
+    ntStatus = DMF_VirtualEyeGaze_CapabilitiesDataSet(moduleContext->DmfModuleVirtualEyeGaze,
+        pCapabilitiesData);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Tell application this driver read the input buffer.
+    //
+    *BytesReturned = InputBufferSize;
+
+Exit:
+
+    // Causes DMF to complete the WDFREQUEST.
+    //
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+NTSTATUS
+EyeGazeIoctl_IoctlHandler_Control_Mode(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ ULONG IoControlCode,
+    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_ size_t InputBufferSize,
+    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _Out_ size_t* BytesReturned
+)
+/*++
+
+Routine Description:
+
+    Processes Monitor Resolution IOCTL.
+
+Arguments:
+
+    DmfModule - DMF_IoctlHandler Module handle.
+    Queue - Handle to the framework queue object that is associated
+            with the I/O request.
+    Request - Handle to a framework request object.
+    OutputBufferLength - length of the request's output buffer,
+                        if an output buffer is available.
+    InputBufferLength - length of the request's input buffer,
+                        if an input buffer is available.
+    IoControlCode - the driver-defined or system-defined I/O control code
+                    (IOCTL) that is associated with the request.
+
+Return Value:
+
+    STATUS_PENDING - DMF does not complete the WDFREQUEST and Client Driver owns the WDFREQUEST.
+    Other - DMF completes the WDFREQUEST with that NTSTATUS.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    UCHAR controlMode;
+    DMFMODULE dmfModuleEyeGazeIoctl;
+    DMF_CONTEXT_EyeGazeIoctl* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(Queue);
+    UNREFERENCED_PARAMETER(Request);
+    UNREFERENCED_PARAMETER(IoControlCode);
+    UNREFERENCED_PARAMETER(InputBuffer);
+    UNREFERENCED_PARAMETER(InputBufferSize);
+
+    PAGED_CODE();
+
+    *BytesReturned = 0;
+    dmfModuleEyeGazeIoctl = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleEyeGazeIoctl);
+
+    ntStatus = DMF_VirtualEyeGaze_TrackerControlModeGet(moduleContext->DmfModuleVirtualEyeGaze,
+        &controlMode);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    *BytesReturned = sizeof(UCHAR);
+    if (OutputBufferSize <= *BytesReturned)
+    {
+        KdPrint(("OutputBufferSize too small %d expected %d\n", OutputBufferSize, *BytesReturned));
+        goto Exit;
+    }
+
+    RtlCopyMemory(OutputBuffer, &controlMode, *BytesReturned);
+    
 
 Exit:
 
@@ -242,7 +403,9 @@ Exit:
 IoctlHandler_IoctlRecord EyeGazeIoctl_IoctlHandlerTable[] =
 {
     { (LONG)IOCTL_EYEGAZE_GAZE_DATA, sizeof(GAZE_DATA), 0, EyeGazeIoctl_IoctlHandler_GazeReport, FALSE },
-    { (LONG)IOCTL_EYEGAZE_MONITOR_RESOLUTION, sizeof(MONITOR_RESOLUTION), 0, EyeGazeIoctl_IoctlHandler_MonitorResolution, FALSE },
+    { (LONG)IOCTL_EYEGAZE_CONFIGURATION_REPORT, sizeof(CONFIGURATION_DATA), 0, EyeGazeIoctl_IoctlHandler_Configuration_Data, FALSE },
+    { (LONG)IOCTL_EYEGAZE_CAPABILITIES_REPORT, sizeof(CAPABILITIES_DATA), 0, EyeGazeIoctl_IoctlHandler_Capabilities_Data, FALSE },
+    { (LONG)IOCTL_EYEGAZE_CONTROL_REPORT, sizeof(UCHAR), 0, EyeGazeIoctl_IoctlHandler_Control_Mode, FALSE },
 };
 
 #pragma code_seg("PAGE")

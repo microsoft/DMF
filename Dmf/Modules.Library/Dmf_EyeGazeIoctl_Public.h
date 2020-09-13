@@ -43,7 +43,7 @@ typedef struct _GAZE_DATA
     POINT3D HeadDirection;
 } GAZE_DATA, *PGAZE_DATA;
 
-typedef struct _MONITOR_RESOLUTION
+typedef struct _CONFIGURATION_DATA
 {
     USHORT DisplayManufacturerId;
     USHORT DisplayProductId;
@@ -51,7 +51,18 @@ typedef struct _MONITOR_RESOLUTION
     USHORT DisplayManufacturerDate;
     ULONG CalibratedScreenWidth;
     ULONG CalibratedScreenHeight;
-} MONITOR_RESOLUTION, *PMONITOR_RESOLUTION;
+} CONFIGURATION_DATA, *PCONFIGURATION_DATA;
+
+typedef struct _CAPABILITIES_DATA
+{
+    UCHAR ReportId;
+    UCHAR TrackerQuality;
+    ULONG MinimumTrackingDistance;
+    ULONG OptimumTrackingDistance;
+    ULONG MaximumTrackingDistance;
+    ULONG MaximumScreenPlaneWidth;
+    ULONG MaximumScreenPlaneHeight;
+} CAPABILITIES_DATA, * PCAPABILITIES_DATA;
 
 #pragma pack(pop)
 
@@ -64,8 +75,18 @@ DEFINE_GUID(VirtualEyeGaze_GUID,
                                                      METHOD_BUFFERED, \
                                                      FILE_WRITE_ACCESS)
 
-#define IOCTL_EYEGAZE_MONITOR_RESOLUTION    CTL_CODE(FILE_DEVICE_UNKNOWN,\
+#define IOCTL_EYEGAZE_CONFIGURATION_REPORT  CTL_CODE(FILE_DEVICE_UNKNOWN,\
                                                      0x101, \
+                                                     METHOD_BUFFERED, \
+                                                     FILE_WRITE_ACCESS)
+
+#define IOCTL_EYEGAZE_CAPABILITIES_REPORT   CTL_CODE(FILE_DEVICE_UNKNOWN,\
+                                                     0x102, \
+                                                     METHOD_BUFFERED, \
+                                                     FILE_WRITE_ACCESS)
+
+#define IOCTL_EYEGAZE_CONTROL_REPORT        CTL_CODE(FILE_DEVICE_UNKNOWN,\
+                                                     0x103, \
                                                      METHOD_BUFFERED, \
                                                      FILE_WRITE_ACCESS)
 
