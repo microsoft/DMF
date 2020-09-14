@@ -277,12 +277,6 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
             HID_UNIT_EXPONENT_BYTE(0x00),               // 0
             HID_FEATURE_STATIC_VALUE(),
 
-            HID_REPORT_COUNT(1),
-            HID_REPORT_SIZE_UINT16(),
-            HID_LOGICAL_MINIMUM_BYTE(0x00),
-            HID_LOGICAL_MAXIMUM_DWORD(0x0000FFFF),
-            HID_FEATURE_STATIC_VALUE(),
-
             HID_BEGIN_PHYSICAL_COLLECTION(),
                 HID_REPORT_COUNT(5),
                 HID_REPORT_SIZE_UINT32(),
