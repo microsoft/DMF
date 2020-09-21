@@ -115,6 +115,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c">
+      <Filter>Modules\Task Execution</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -242,6 +245,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h">
       <Filter>Headers\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h">
+      <Filter>Headers\Task Execution</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -422,6 +428,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Doorbell.md">
+      <Filter>Documentation\Modules\Task Execution</Filter>
     </None>
   </ItemGroup>
 </Project>

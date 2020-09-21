@@ -29,6 +29,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c" />
@@ -68,6 +70,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
@@ -391,6 +395,7 @@
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />

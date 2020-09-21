@@ -154,7 +154,6 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
-#pragma code_seg("PAGE")
 ULONG
 NotifyUserWithRequest_EventRequestReturn(
     _In_ DMFMODULE DmfModule,
@@ -187,8 +186,6 @@ Return Value:
     NTSTATUS ntStatus;
     ULONG numberOfRequestsCompleted;
     WDFREQUEST request;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -238,7 +235,6 @@ Return Value:
 
     return numberOfRequestsCompleted;
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 NTSTATUS
