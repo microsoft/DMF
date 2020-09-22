@@ -29,6 +29,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
@@ -58,6 +60,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
@@ -69,6 +72,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl_Public.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
@@ -101,6 +107,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
@@ -393,9 +400,12 @@
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md" />
+    <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />

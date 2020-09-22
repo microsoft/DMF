@@ -9,18 +9,14 @@ Module Name:
 
 Abstract:
 
-    Supports client to synchronize the registered callback by ensuring
-    to have one Workitem enqueue/running at a time which invokes the client's
-    registered callback by tracking the doorbell ring.
-    It doesn't matter how many times the client rings the doorbell,
-    this Module will invoke the client's registered callbacks once before
-    it clears the tracking. And double check the tracking for any doorbell ring
-    before completes its Work Item, to ensure not to miss any doorbell ring.
+    Allows the Client to enqueue multiple requests to a callback such that
+    only a single workitem is equeued regardless of how many times the 
+    enqueue Method is called. If several enqueues occur prior to the
+    corresponding callback being called, the callback is only called one time.
 
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -58,11 +54,11 @@ typedef struct
     // even though the Client has rung the doorbell more than one time.
     // This ensures that multiple workitems do not run in parallel.
     //
-    BOOLEAN WorkItemScehduled;
+    BOOLEAN WorkItemScheduled;
 
-    // Workitem.
+    // This is the internally managed WorkItem.
     //
-    WDFWORKITEM Workitem;
+    WDFWORKITEM WorkItem;
 } DMF_CONTEXT_Doorbell;
 
 // This macro declares the following function:
@@ -80,7 +76,7 @@ DMF_MODULE_DECLARE_CONFIG(Doorbell)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-EVT_WDF_WORKITEM Doorbell_WorkitemHandler;
+EVT_WDF_WORKITEM Doorbell_WorkItemHandler;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Support Code
@@ -91,18 +87,18 @@ _Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-Doorbell_WorkitemHandler(
-    _In_ WDFWORKITEM Workitem
+Doorbell_WorkItemHandler(
+    _In_ WDFWORKITEM WorkItem
     )
 /*++
 
 Routine Description:
 
-    Workitem handler.
+    WorkItem handler.
 
 Arguments:
 
-    Workitem - WDFORKITEM which gives access to necessary context including this
+    WorkItem - WDFORKITEM which gives access to necessary context including this
                Module's DMF Module.
 
 Return Value:
@@ -119,7 +115,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    dmfModule = (DMFMODULE)WdfWorkItemGetParentObject(Workitem);
+    dmfModule = (DMFMODULE)WdfWorkItemGetParentObject(WorkItem);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
@@ -127,7 +123,6 @@ Return Value:
 
     while (1)
     {
-
         moduleContext->TrackDoorbellRing = FALSE;
 
         DMF_ModuleUnlock(dmfModule);
@@ -146,12 +141,11 @@ Return Value:
         }
 
         // Here, current instance of the workitem will no longer
-        // handle any more doorbells, thus set WorkItemScehduled to FALSE.
+        // handle any more doorbells, thus set WorkItemScheduled to FALSE.
         //
-        moduleContext->WorkItemScehduled = FALSE;
+        moduleContext->WorkItemScheduled = FALSE;
         DMF_ModuleUnlock(dmfModule);
         break;
-
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -180,7 +174,7 @@ DMF_Doorbell_Open(
 
 Routine Description:
 
-    Initialize an instance of a DMF Module of type RequestTarget.
+    Initialize an instance of a DMF Module of type Doorbell.
 
 Arguments:
 
@@ -205,9 +199,9 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // Create the Passive Level Workitem.
+    // Create the Passive Level WorkItem.
     //
-    WDF_WORKITEM_CONFIG_INIT(&workItemConfiguration, Doorbell_WorkitemHandler);
+    WDF_WORKITEM_CONFIG_INIT(&workItemConfiguration, Doorbell_WorkItemHandler);
     workItemConfiguration.AutomaticSerialization = WdfFalse;
     
     WDF_OBJECT_ATTRIBUTES_INIT(&workItemAttributes);
@@ -215,7 +209,7 @@ Return Value:
 
     ntStatus = WdfWorkItemCreate(&workItemConfiguration,
                                  &workItemAttributes,
-                                 &moduleContext->Workitem);
+                                 &moduleContext->WorkItem);
 
     if (!NT_SUCCESS(ntStatus))
     {
@@ -242,7 +236,7 @@ DMF_Doorbell_Close(
 
 Routine Description:
 
-    Uninitialize an instance of a DMF Module of type RequestTarget.
+    Uninitialize an instance of a DMF Module of type Doorbell.
 
 Arguments:
 
@@ -266,9 +260,9 @@ Return Value:
 
     // Wait for pending work to finish.
     //
-    WdfWorkItemFlush(moduleContext->Workitem);
-    WdfObjectDelete(moduleContext->Workitem);
-    moduleContext->Workitem = NULL;
+    WdfWorkItemFlush(moduleContext->WorkItem);
+    WdfObjectDelete(moduleContext->WorkItem);
+    moduleContext->WorkItem = NULL;
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -353,7 +347,7 @@ DMF_Doorbell_Flush(
 
 Routine Description:
 
-    Flush WotkItem Single.
+    Client calls this Method to flush and wait for pending callbacks to complete.
 
 Arguments:
 
@@ -375,7 +369,7 @@ Return Value:
 
     // Wait for pending work to finish.
     //
-    WdfWorkItemFlush(moduleContext->Workitem);
+    WdfWorkItemFlush(moduleContext->WorkItem);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -389,7 +383,7 @@ DMF_Doorbell_Ring(
 
 Routine Description:
 
-    Rings the Doorbell and the work item is enqueued if it is not already.
+    Rings the doorbell and the work item is enqueued if it is not already.
 
 Arguments:
 
@@ -402,7 +396,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Doorbell* moduleContext;
-    BOOLEAN enqueueWorkitem = FALSE;
+    BOOLEAN enqueueWorkItem = FALSE;
 
     FuncEntry(DMF_TRACE);
 
@@ -410,19 +404,19 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    if (moduleContext->WorkItemScehduled == FALSE)
+    if (moduleContext->WorkItemScheduled == FALSE)
     {
-        enqueueWorkitem = TRUE;
+        enqueueWorkItem = TRUE;
     }
 
     moduleContext->TrackDoorbellRing = TRUE;
-    moduleContext->WorkItemScehduled = TRUE;
+    moduleContext->WorkItemScheduled = TRUE;
 
     DMF_ModuleUnlock(DmfModule);
 
-    if (enqueueWorkitem)
+    if (enqueueWorkItem)
     {
-        WdfWorkItemEnqueue(moduleContext->Workitem);
+        WdfWorkItemEnqueue(moduleContext->WorkItem);
     }
 
     FuncExitVoid(DMF_TRACE);

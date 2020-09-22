@@ -13,7 +13,6 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -32,7 +31,7 @@ EVT_DMF_Doorbell_ClientCallback(
 //
 typedef struct
 {
-    // Function to call from Work Item once the Doorbell is ringed.
+    // Callback called when the doorbell is rung.
     //
     EVT_DMF_Doorbell_ClientCallback* WorkItemCallback;
 } DMF_CONFIG_Doorbell;

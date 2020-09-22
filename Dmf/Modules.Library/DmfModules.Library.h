@@ -84,6 +84,9 @@ extern "C"
 #include "Dmf_MobileBroadband.h"
 #include "Dmf_HingeAngle.h"
 #include "Dmf_SimpleOrientation.h"
+#include "Dmf_Doorbell.h"
+#include "Dmf_VirtualEyeGaze.h"
+#include "Dmf_EyeGazeIoctl.h"
 
 #if defined(DMF_WDF_DRIVER)
 #include "Dmf_Wmi.h"
