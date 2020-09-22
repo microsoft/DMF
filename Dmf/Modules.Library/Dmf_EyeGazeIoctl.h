@@ -5,11 +5,11 @@
 
 Module Name:
 
-    Dmf_EyeGazeGhost.h
+    Dmf_EyeGazeIoctl.h
 
 Abstract:
 
-    Companion file to Dmf_EyeGazeGhost.c.
+    Companion file to Dmf_EyeGazeIoctl.c.
 
 Environment:
 
