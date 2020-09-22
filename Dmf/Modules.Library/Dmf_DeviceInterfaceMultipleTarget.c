@@ -395,8 +395,8 @@ Return Value:
     if (!Target->TargetClosedOrClosing)
     {
         // This code path indicates that target close and rundown will start.
+        // Target->IoTarget can be NULL if create/open failed.
         //
-        DmfAssert(Target->IoTarget != NULL);
         Target->TargetClosedOrClosing = TRUE;
         closeTarget = TRUE;
     }
@@ -422,38 +422,47 @@ Return Value:
         // synchronous requests. This needs to happen before Rundown waits otherwise Rundown waits
         // forever for synchronous requests.
         //
-        WdfIoTargetClose(Target->IoTarget);
-
-        // Ensure that all Methods running against this Target finish executing
-        // and prevent new Methods from starting because the IoTarget will be 
-        // set to NULL.
-        //
-        if (Target->DmfModuleRundown != NULL)
+        if (Target->IoTarget != NULL)
         {
-            // This Module is only created after the target has been opened. So, if the
-            // underlying target cannot open and returns error, this Module is not created.
-            // In that case, this clean up function must check to see if the handle is
-            // valid otherwise a BSOD will happen.
+            WdfIoTargetClose(Target->IoTarget);
+
+            // Ensure that all Methods running against this Target finish executing
+            // and prevent new Methods from starting because the IoTarget will be 
+            // set to NULL.
             //
-            DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
-        }
+            if (Target->DmfModuleRundown != NULL)
+            {
+                // This Module is only created after the target has been opened. So, if the
+                // underlying target cannot open and returns error, this Module is not created.
+                // In that case, this clean up function must check to see if the handle is
+                // valid otherwise a BSOD will happen.
+                //
+                DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
+            }
 
-        if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
-        {
-            moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
-                                                                        Target->DmfIoTarget,
-                                                                        DeviceInterfaceMultipleTarget_StateType_Close);
+            if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+            {
+                moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
+                                                                            Target->DmfIoTarget,
+                                                                            DeviceInterfaceMultipleTarget_StateType_Close);
+            }
+            // The target is about to go away...Wait for all pending Methods using the target
+            // to finish executing and don't let new Methods start.
+            //
+            moduleContext->RequestSink_IoTargetClear(DmfModule,
+                                                     Target);
+            WdfObjectDelete(Target->IoTarget);
+            // Now, the Target's handle can be cleared because no other thread will use it.
+            // (It is not necessary to clear it as it will be deleted just below.)
+            //
+            Target->IoTarget = NULL;
         }
-        // The target is about to go away...Wait for all pending Methods using the target
-        // to finish executing and don't let new Methods start.
-        //
-        moduleContext->RequestSink_IoTargetClear(DmfModule,
-                                                 Target);
-        WdfObjectDelete(Target->IoTarget);
-        // Now, the Target's handle can be cleared because no other thread will use it.
-        // (It is not necessary to clear it as it will be deleted just below.)
-        //
-        Target->IoTarget = NULL;
+        else
+        {
+            // This path means that the WDFIOTARGET appeared but the Client decided not to 
+            // open it or it cannot be opened.
+            //
+        }
     }
 
     // Delete stored symbolic link if set. (This will never be set in User-mode.)
