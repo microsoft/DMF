@@ -78,7 +78,7 @@ Return Value:
 --*/
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
-    DMF_CONFIG_EyeGazeIoctl moduleConfigEyeGazeGhost;
+    DMF_CONFIG_EyeGazeIoctl moduleConfigEyeGazeIoctl;
 
     UNREFERENCED_PARAMETER(Device);
 
@@ -89,11 +89,11 @@ Return Value:
     // EyeGazeIoctl
     // ------------
     //
-    DMF_CONFIG_EyeGazeIoctl_AND_ATTRIBUTES_INIT(&moduleConfigEyeGazeGhost,
+    DMF_CONFIG_EyeGazeIoctl_AND_ATTRIBUTES_INIT(&moduleConfigEyeGazeIoctl,
                                                 &moduleAttributes);
-    moduleConfigEyeGazeGhost.ProductId = HIDMINI_PRODUCT_ID;
-    moduleConfigEyeGazeGhost.VendorId = HIDMINI_VENDOR_ID;
-    moduleConfigEyeGazeGhost.VersionId = HIDMINI_VERSION;
+    moduleConfigEyeGazeIoctl.ProductId = HIDMINI_PRODUCT_ID;
+    moduleConfigEyeGazeIoctl.VendorId = HIDMINI_VENDOR_ID;
+    moduleConfigEyeGazeIoctl.VersionId = HIDMINI_VERSION;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
