@@ -307,6 +307,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
 HashTable_ContextInitialize(
+    _In_ DMFMODULE DmfModule,
     _In_ DMF_CONFIG_HashTable* ModuleConfig,
     _Inout_ DMF_CONTEXT_HashTable* ModuleContext
     )
@@ -318,6 +319,7 @@ Routine Description:
 
 Arguments:
 
+    DmfModule - This Module's handle.
     ModuleConfig - This Module's Config.
     ModuleContext - This Module's Context to initialize.
 
@@ -378,6 +380,7 @@ Return Value:
     sizeToAllocate = ModuleContext->HashMapSize * sizeof(ULONG);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
     // 'Error annotation: __formal(3,BufferSize) cannot be zero.'.
     //
     #pragma warning(suppress:28160)
@@ -401,6 +404,7 @@ Return Value:
     DmfAssert(sizeToAllocate != 0);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
     // 'Error annotation: __formal(3,BufferSize) cannot be zero.'.
     //
     #pragma warning(suppress:28160)
@@ -759,10 +763,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ntStatus = HashTable_ContextInitialize(moduleConfig,
+    ntStatus = HashTable_ContextInitialize(DmfModule,
+                                           moduleConfig,
                                            moduleContext);
     if (! NT_SUCCESS(ntStatus))
     {
