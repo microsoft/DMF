@@ -307,8 +307,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
 HashTable_ContextInitialize(
-    _In_ DMF_CONFIG_HashTable* ModuleConfig,
-    _Inout_ DMF_CONTEXT_HashTable* ModuleContext
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
@@ -318,8 +317,7 @@ Routine Description:
 
 Arguments:
 
-    ModuleConfig - This Module's Config.
-    ModuleContext - This Module's Context to initialize.
+    DmfModule - This Module's handle.
 
 Return Value:
 
@@ -330,54 +328,59 @@ Return Value:
     NTSTATUS ntStatus;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
     size_t sizeToAllocate;
+    DMF_CONTEXT_HashTable* moduleContext;
+    DMF_CONFIG_HashTable* moduleConfig;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DmfAssert(NULL != ModuleConfig);
-    DmfAssert(NULL != ModuleContext);
-    DmfAssert(NULL == ModuleContext->HashMap);
-    DmfAssert(NULL == ModuleContext->DataTable);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    ModuleContext->MaximumKeyLength = ModuleConfig->MaximumKeyLength;
-    ModuleContext->MaximumValueLength = ModuleConfig->MaximumValueLength;
+    DmfAssert(NULL == moduleContext->HashMap);
+    DmfAssert(NULL == moduleContext->DataTable);
+
+    moduleContext->MaximumKeyLength = moduleConfig->MaximumKeyLength;
+    moduleContext->MaximumValueLength = moduleConfig->MaximumValueLength;
 
     // Calculate the size of DATA_ENTRY structure and make sure it's properly aligned.
     //
-    ModuleContext->DataEntrySize = FIELD_OFFSET(DATA_ENTRY, RawData[ModuleConfig->MaximumKeyLength + ModuleConfig->MaximumValueLength]);
-    ModuleContext->DataEntrySize = (ModuleContext->DataEntrySize + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);
+    moduleContext->DataEntrySize = FIELD_OFFSET(DATA_ENTRY,
+                                                RawData[moduleConfig->MaximumKeyLength + moduleConfig->MaximumValueLength]);
+    moduleContext->DataEntrySize = (moduleContext->DataEntrySize + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);
 
-    ModuleContext->HashMapSize = ModuleConfig->MaximumTableSize * HASH_MAP_SIZE_MULTIPLIER;
-    ModuleContext->DataTableSize = ModuleConfig->MaximumTableSize;
+    moduleContext->HashMapSize = moduleConfig->MaximumTableSize * HASH_MAP_SIZE_MULTIPLIER;
+    moduleContext->DataTableSize = moduleConfig->MaximumTableSize;
 
-    ModuleContext->DataEntriesAllocated = 0;
+    moduleContext->DataEntriesAllocated = 0;
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "Create hash table: MaximumKeyLength=%u, MaximumValueLength=%u, DataEntrySize=%u, MaximumTableSize=%u",
-                ModuleContext->MaximumKeyLength,
-                ModuleContext->MaximumValueLength,
-                ModuleContext->DataEntrySize,
-                ModuleConfig->MaximumTableSize);
+                moduleContext->MaximumKeyLength,
+                moduleContext->MaximumValueLength,
+                moduleContext->DataEntrySize,
+                moduleConfig->MaximumTableSize);
 
     // Use the default hash function, if a custom function is not specified.
     //
-    if (ModuleConfig->EvtHashTableHashCalculate != NULL)
+    if (moduleConfig->EvtHashTableHashCalculate != NULL)
     {
         // Custom function.
         //
-        ModuleContext->EvtHashTableHashCalculate = ModuleConfig->EvtHashTableHashCalculate;
+        moduleContext->EvtHashTableHashCalculate = moduleConfig->EvtHashTableHashCalculate;
     }
     else
     {
         // Default function.
         //
-        ModuleContext->EvtHashTableHashCalculate = HashTable_HashCalculate;
+        moduleContext->EvtHashTableHashCalculate = HashTable_HashCalculate;
     }
 
-    sizeToAllocate = ModuleContext->HashMapSize * sizeof(ULONG);
+    sizeToAllocate = moduleContext->HashMapSize * sizeof(ULONG);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
     // 'Error annotation: __formal(3,BufferSize) cannot be zero.'.
     //
     #pragma warning(suppress:28160)
@@ -385,22 +388,23 @@ Return Value:
                                NonPagedPoolNx,
                                MemoryTag,
                                sizeToAllocate,
-                               &ModuleContext->HashMapMemory,
-                               (VOID**)&ModuleContext->HashMap);
+                               &moduleContext->HashMapMemory,
+                               (VOID**)&moduleContext->HashMap);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    RtlFillMemory(ModuleContext->HashMap,
+    RtlFillMemory(moduleContext->HashMap,
                   sizeToAllocate,
                   INVALID_INDEX);
 
-    sizeToAllocate = ModuleContext->DataTableSize * ModuleContext->DataEntrySize;
+    sizeToAllocate = moduleContext->DataTableSize * moduleContext->DataEntrySize;
     DmfAssert(sizeToAllocate != 0);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
     // 'Error annotation: __formal(3,BufferSize) cannot be zero.'.
     //
     #pragma warning(suppress:28160)
@@ -408,15 +412,15 @@ Return Value:
                                NonPagedPoolNx,
                                MemoryTag,
                                sizeToAllocate,
-                               &ModuleContext->DataTableMemory,
-                               (VOID**)&ModuleContext->DataTable);
+                               &moduleContext->DataTableMemory,
+                               (VOID**)&moduleContext->DataTable);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    RtlZeroMemory(ModuleContext->DataTable,
+    RtlZeroMemory(moduleContext->DataTable,
                   sizeToAllocate);
 
     ntStatus = STATUS_SUCCESS;
@@ -425,7 +429,7 @@ Exit:
 
     if (! NT_SUCCESS(ntStatus))
     {
-        HashTable_ContextCleanup(ModuleContext);
+        HashTable_ContextCleanup(moduleContext);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -759,11 +763,9 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    ntStatus = HashTable_ContextInitialize(moduleConfig,
-                                           moduleContext);
+    ntStatus = HashTable_ContextInitialize(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
