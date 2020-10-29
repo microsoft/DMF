@@ -37,6 +37,12 @@ typedef struct
   // Callback to notify Interface arrival.
   //
   EVT_DMF_DeviceInterfaceTarget_OnPnpNotification* EvtDeviceInterfaceTargetOnPnpNotification;
+  // To maintain compatability with existing drivers, this option tells the 
+  // Module to perform non-standard behavior: When target disables the device interface
+  // close the associated open handle. (WDF does not do this by default.) New drivers 
+  // should not use this option.
+  //
+  BOOLEAN CloseUnderlyingTargetOnDeviceInterfaceDisable;
 } DMF_CONFIG_DeviceInterfaceTarget;
 ````
 Member | Description
@@ -47,6 +53,7 @@ ShareAccess | The Share Access mask used when opening the underlying WDFIOTARGET
 ContinuousRequestTargetModuleConfig | Contains the settings for the underlying RequesetStream.
 EvtDeviceInterfaceTargetOnStateChange | Callback to the Client that indicates the state of the target has changed.
 EvtDeviceInterfaceTargetOnPnpNotification | Callback to the Client that allows the Client to indicate if the target should open.
+CloseUnderlyingTargetOnDeviceInterfaceDisable | *This option should not be used by new drivers.* Setting this flag causes the PreClose() callback to be called everytime the underlying device interface is disabled. WDF does not close open handles when a device interface is disabled. However some legacy drivers close the open handles when the associated remove notification is sent. This option is added to simplyfy porting of such drivers.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

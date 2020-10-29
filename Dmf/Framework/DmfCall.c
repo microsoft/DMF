@@ -680,7 +680,6 @@ Return Value:
         goto Exit;
     }
 
-
 Exit:
 
     return ntStatus;
@@ -1498,6 +1497,10 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoInit)(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
 Exit:
 
@@ -1538,6 +1541,10 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoSuspend)(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     // Dispatch callback to Child DMF Modules next.
     //
@@ -1597,6 +1604,10 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleSelfManagedIoRestart)(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
 Exit:
 
@@ -1678,13 +1689,17 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryRemove)(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     // Dispatch callback to Child DMF Modules next.
     //
     ntStatus = DMF_ChildDispatchSingleParameterNtStatus(DmfModule,
                                                         DMF_Module_QueryRemove,
                                                         &DmfChildObjectIterateBackward);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
     }
@@ -1728,13 +1743,17 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleQueryStop)(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     // Dispatch callback to Child DMF Modules next.
     //
     ntStatus = DMF_ChildDispatchSingleParameterNtStatus(DmfModule,
                                                         DMF_Module_QueryStop,
                                                         &DmfChildObjectIterateBackward);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
     }
@@ -1900,6 +1919,10 @@ Return Value:
     //
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0 != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromS0)(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     // Dispatch callback to Child DMF Modules next.
     //
@@ -2040,7 +2063,7 @@ Return Value:
     ntStatus = (parentDmfObject->ModuleDescriptor.CallbacksWdf->ModuleArmWakeFromSxWithReason)(DmfModule,
                                                                                                DeviceWakeEnabled,
                                                                                                ChildrenArmedForWake);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
     }
@@ -3448,7 +3471,7 @@ Return Value:
     ntStatus = (parentDmfObject->InternalCallbacksDmf.DeviceResourcesAssign)(DmfModule,
                                                                              ResourcesRaw,
                                                                              ResourcesTranslated);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
     }

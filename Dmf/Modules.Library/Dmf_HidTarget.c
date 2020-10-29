@@ -3150,6 +3150,54 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfInterface);
 }
 
+_Function_class_(DMF_ModuleQueryRemove)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_HidTarget_ModuleQueryRemove(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback for Module's Query Remove.
+    If the Module is configured to be working in-stack, returns failure, else returns success.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_HidTarget* moduleConfig;
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    // If the driver is loaded on the Hidstack, returning failure here prevents HidClass from handling the QueryRemove. 
+    // During QueryRemove Hidclass cancels all input report reads from Client drivers prematurely, thus breaking the input report handling path.
+    // Return failure for in-stack use. (SkipHidDeviceEnumerationSearch means in-stack).
+    //
+    if (moduleConfig->SkipHidDeviceEnumerationSearch)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+    }
+    else
+    {
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_HidTarget_ModuleQueryRemove returns ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3187,6 +3235,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_Hid;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_HidTarget;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_HidTarget;
     DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA BusTargetDeclarationData;
 
     PAGED_CODE();
@@ -3198,6 +3247,9 @@ Return Value:
     dmfCallbacksDmf_HidTarget.DeviceNotificationRegister = DMF_HidTarget_NotificationRegister;
     dmfCallbacksDmf_HidTarget.DeviceNotificationUnregister = DMF_HidTarget_NotificationUnregister;
 
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_HidTarget);
+    dmfCallbacksWdf_HidTarget.ModuleQueryRemove = DMF_HidTarget_ModuleQueryRemove;
+
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Hid,
                                             HidTarget,
                                             DMF_CONTEXT_HidTarget,
@@ -3205,6 +3257,7 @@ Return Value:
                                             DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware);
 
     dmfModuleDescriptor_Hid.CallbacksDmf = &dmfCallbacksDmf_HidTarget;
+    dmfModuleDescriptor_Hid.CallbacksWdf = &dmfCallbacksWdf_HidTarget;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
