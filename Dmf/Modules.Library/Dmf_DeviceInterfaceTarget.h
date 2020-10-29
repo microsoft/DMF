@@ -76,6 +76,12 @@ typedef struct
     // Callback to notify Interface arrival.
     //
     EVT_DMF_DeviceInterfaceTarget_OnPnpNotification* EvtDeviceInterfaceTargetOnPnpNotification;
+    // To maintain compatability with existing drivers, this option tells the 
+    // Module to perform non-standard behavior: When target disables the device interface
+    // close the associated open handle. (WDF does not do this by default.) New drivers 
+    // should not use this option.
+    //
+    BOOLEAN CloseUnderlyingTargetOnDeviceInterfaceDisable;
 } DMF_CONFIG_DeviceInterfaceTarget;
 
 // This macro declares the following functions:
