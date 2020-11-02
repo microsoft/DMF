@@ -321,9 +321,9 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleClose 174](#dmf_moduleclose)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleAcquire 175](#dmf_moduleacquire)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleReference 175](#dmf_modulereference)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleRelease 176](#dmf_modulerelease)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDereference 176](#dmf_moduledereference)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDestroy 177](#dmf_moduledestroy-1)
 
@@ -392,6 +392,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Meaning of Open and Close Module](#meaning-of-open-and-close-module)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Notification Module Concepts](#notification-module-concepts)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Using Internal Module Resources](#using-internal-module-resources)
 
 [DMF Coding Conventions](#dmf-coding-conventions)
 
@@ -4082,12 +4084,12 @@ it tells DMF when to call the Module's Open and Close callbacks.
   **Value**                                         |        **Meaning**
   ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   **DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware**  |  Tells DMF that the Module's **Open** callback should be called when the Client Driver receives an **EvtDevicePrepareHardware** callback. The Module's **Close** callback will be called when the Client Driver receives an **EvtDeviceReleaseHardware** callback.
-  **DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware** |  Tells DMF that the Module's **NotificationRegister** callback should be called when the Client Driver receives an **EvtDevicePrepareHardware** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceReleaseHardware** callback. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()**. (See [Notification Module Concepts](#notification-module-concepts).).
+  **DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware** |  Tells DMF that the Module's **NotificationRegister** callback should be called when the Client Driver receives an **EvtDevicePrepareHardware** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceReleaseHardware** callback. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleReference()** and **DMF_ModuleDereference()**. (See [Notification Module Concepts](#notification-module-concepts).).
   **DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp** |  Tells DMF that the Module's **Open** callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback while the system is transitioning from Sx to S0 power state. The Module's **Close** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback while the system is transitioning from S0 to Sx power state.
   **DMF_MODULE_OPEN_OPTION_OPEN_D0Entry**          |  Tells DMF that the Module's **Open** callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback. The Module's **Close** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback.
-  **DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry**        |  Tells DMF that the Module's notification register callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()**. (See [Notification Module Concepts](#notification-module-concepts).).
+  **DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry**        |  Tells DMF that the Module's notification register callback should be called when the Client Driver receives an **EvtDeviceD0Entry** callback. In this case, the Module will decide when the Open/Close callbacks are called (usually when the underlying interface has appeared/disappeared). The Module's **NotificationUnregister** callback will be called when the Client Driver receives an **EvtDeviceD0Exit** callback. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleReference()** and **DMF_ModuleDereference()**. (See [Notification Module Concepts](#notification-module-concepts).).
   **DMF_MODULE_OPEN_OPTION_OPEN_Create**           |  Tells DMF that the Module should be opened/closed when the Module is created/destroyed. This is common for Modules that do not interact with hardware and, instead, expose support for data structures that just require memory resources. DMF will call the Module's **Open** callback soon after the Module is created. DMF will call the Module's **Close** callback right before the Module is destroyed.
-  **DMF_MODULE_OPEN_OPTION_NOTIFY_Create**         |  Tells DMF that the Module's Notification register/unregister callbacks should called when the Module is created/destroyed. DMF will call the Module's **NotificationRegister** callback soon after the Module is created. DMF will call the Module's **NotificationUnregister** callback right before the Module is destroyed. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()**. (See [Notification Module Concepts](#notification-module-concepts).).
+  **DMF_MODULE_OPEN_OPTION_NOTIFY_Create**         |  Tells DMF that the Module's Notification register/unregister callbacks should called when the Module is created/destroyed. DMF will call the Module's **NotificationRegister** callback soon after the Module is created. DMF will call the Module's **NotificationUnregister** callback right before the Module is destroyed. Modules using this option must call **DMF_ModuleOpen()** and **DMF_ModuleClose()** from an asynchronous notification callback. In addition, the Module's Methods must also call **DMF_ModuleReference()** and **DMF_ModuleDereference()**. (See [Notification Module Concepts](#notification-module-concepts).).
 
 Module Structures
 -----------------
@@ -6357,7 +6359,7 @@ None
 
 -   If asynchronous threads are executing any of the Module's Methods when **DMF_ModuleClose()** is called, **DMF_ModuleClose()** will automatically wait for those Method's to finish executing prior 
     to calling the Module's Close callback. In addition, **DMF_ModuleClose()** prevents asynchronous threads from making new calls into the Module's Methods. **NOTE: For this 
-    behavior to happen, the Module's Methods must call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** at the start and end of the Methods.**
+    behavior to happen, the Module's Methods must call **DMF_ModuleReference()** and **DMF_ModuleDereference()** at the start and end of the Methods.**
 
 -   (See [Notification Module Concepts](#notification-module-concepts).).
 
@@ -6365,10 +6367,10 @@ None
 
 -   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
-### DMF_ModuleAcquire
+### DMF_ModuleReference
 ```
 NTSTATUS
-DMF_ModuleAcquire(
+DMF_ModuleReference(
     _In_ DMFMODULE DmfModule
     )
 ```
@@ -6382,12 +6384,12 @@ Increments an the internal Module's reference count that tells DMF that the Modu
 
 #### Returns
 
-STATUS_SUCCESS: A reference has been acquired and indicating the Module's Methods can be called. It means the Module will remain open until the corresponding `DMF_ModuleRelease()` is called.
+STATUS_SUCCESS: A reference has been acquired and indicating the Module's Methods can be called. It means the Module will remain open until the corresponding `DMF_ModuleDereference()` is called.
 STATUS_UNSUCCESSFUL: The Module has closed or is closing. The Module's Methods should not execute.
 
 #### Remarks
 
--   If this call succeeds, the Method must always call `DMF_ModuleRelease()` before to release the reference
+-   If this call succeeds, the Method must always call `DMF_ModuleDereference()` before to release the reference
     count acquired by this function.
 
 -   Use of this function allows DMF to prevent the underlying resource's handle from being closed while the Method is
@@ -6398,18 +6400,18 @@ STATUS_UNSUCCESSFUL: The Module has closed or is closing. The Module's Methods s
 
 -   All Module Methods may call `DMF_ModuleAqcquire()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
 
--   It is permissible for Clients (Drivers or Modules) to call `DMF_ModuleAcquire()` to keep the underlying Module open, however it is rarely needed.
+-   It is permissible for Clients (Drivers or Modules) to call `DMF_ModuleReference()` to keep the underlying Module open, however it is rarely needed.
 
 -   (See [Notification Module Concepts](#notification-module-concepts).).
 
--   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleAcquire()` and the associated programming pattern.
+-   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleReference()` and the associated programming pattern.
 
 -   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
-### DMF_ModuleRelease
+### DMF_ModuleDereference
 ```
 VOID
-DMF_ModuleRelease(
+DMF_ModuleDereference(
     _In_ DMFMODULE DmfModule
     )
 ```
@@ -6427,18 +6429,18 @@ None
 
 #### Remarks
 
--   Always call `DMF_ModuleRelease()` to release the reference count acquired by `DMF_ModuleAcquire()`.
+-   Always call `DMF_ModuleDereference()` to release the reference count acquired by `DMF_ModuleReference()`.
 
 -   Use of this function allows DMF to prevent the underlying resource's handle from being closed while its Methods are
     executing.
 
--   Modules that support **DMF_[ModuleName]_NotificationRegister()** should call `DMF_ModuleRelease()` at the end of their Methods.
+-   Modules that support **DMF_[ModuleName]_NotificationRegister()** should call `DMF_ModuleDereference()` at the end of their Methods.
 
--   All Module Methods may call `DMF_ModuleRelease()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
+-   All Module Methods may call `DMF_ModuleDereference()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
 
 -   (See [Notification Module Concepts](#notification-module-concepts).).
 
--   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleRelease()` and the associated programming pattern.
+-   `DMF_DeviceInterfaceTarget` is an example of a Module that uses `DMF_ModuleDereference()` and the associated programming pattern.
 
 -   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
@@ -7327,11 +7329,15 @@ However, the meaning and purpose of these callbacks is often not understood.
 
 Authors use **DMF_[ModuleName]_Open()** to do the following:
 1. Prepare the Module's Context for use by the Module (which is the only code that uses that Context directly).
-2. Allocate resources and store handles to those resources in the Context. Those resources are used while the Module is open (either by the Module's internal suport code or the Module's Methods.)
+2. Allocate resources and store handles to those resources in the Context. Those resources are used while the Module is open (either by the Module's internal support code or the Module's Methods.)
+<br>__Important__: Resources that are parented to the DMFMODULE can be allocated in the Module's **DMF_[ModuleName]_Create** callback. In this case, because
+their corresponding deallocation will happen when the DMFMODULE is deleted, it is not necessary to explicitly deallocate them in the **DMF_[ModuleName]_Close** callback.
+Note, however, that all resources allocated in **DMF_[ModuleName]_Open()**, **must be explicitly deallocated** in **DMF_[ModuleName]_Close()** because there are
+cases where a Module can be opened and closed repeatedly before it is destroyed. Not doing cause will cause a memory leak while the Module remains created.
 3. Prepare the Module's Context so that Clients may call the Module's Methods.
 4. **Indicate to DMF that the Module's Methods may now be called.** DMF receives this indication when **DMF_[ModuleName]_Open()**
 returns STATUS_SUCCESS. Any other NTSTATUS tells DMF that the Module's Methods may not be called. This synchronization occurs when
-Module Methods call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** at the beginning and end of each Method.
+Module Methods call **DMF_ModuleReference()** and **DMF_ModuleDereference()** at the beginning and end of each Method.
 
 Once a Module's Open Callback has executed and returned STATUS_SUCCESS, the Client may call any of the Module's Methods. Note that the Module's Methods
 may be called at any time by multiple simultaneous threads. It is the responsibility of the Module to synchronize such calls
@@ -7342,7 +7348,7 @@ Authors use **DMF_[ModuleName]_Close()** to do the following:
 1. Flush and wait for any pending operations the Module started to finish.
 2. Undo any allocations of resources that **DMF_[ModuleName]_Open()** made.
 3. **Indicate to DMF that the Module's Methods may no longer be called.** DMF receives this indication when **DMF_[ModuleName]_Close()** returns.
-This synchronization occurs when Module Methods call **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** at the beginning and end of each Method.
+This synchronization occurs when Module Methods call **DMF_ModuleReference()** and **DMF_ModuleDereference()** at the beginning and end of each Method.
 
 Other notes:
 1. When **DMF_[ModuleName]_Open()** executes, it means that the Module's Child Modules have all successfully opened and any of their Methods may be called.
@@ -7357,7 +7363,7 @@ one to understand these concepts better.
 Additionally, note that some Modules do not need these callbacks. Even in that case, however, DMF still calls an internal version of the callbacks.
 
 Finally, it is possible for Child Modules to callback into Parent Modules. In that case, it is the responsibility of the Module author to synchronize those
-calls with the Module's Open/Close callbacks. This can also be done using **DMF_ModuleAcquire()** and **DMF_ModuleRelease()** or other means.
+calls with the Module's Open/Close callbacks. This can also be done using **DMF_ModuleReference()** and **DMF_ModuleDereference()** or other means.
 
 Notification Module Concepts
 ----------------------------
@@ -7417,8 +7423,8 @@ The Module's Notification Unregister performs the work of stopping up the asynch
 
 When the underlying resource appears the asynchronous notification function that was set up in the Notification Register callback executes. From that callback, the Module determines if it needs to access that resource. If so, it makes a call to DMF_ModuleOpen(). In turn, DMF executes the following code:
 1. DMF calls the Module's Open callback. (See DMF_DeviceInterfaceTarget_Open). Here is where the Module prepares the resource for use.
-2. DMF calls the Module's Post Open callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is now ready for use. It means that its resource is available and the Client may call the Module's Methods at will. (See SwitchBar_OnDeviceArrivalNotification).
-Note: A Module's Post Open callback is called for any Module after its Open callback has returned STATUS_SUCCESS, regardless of whether or not it is a Notification Module.
+2. DMF calls the Module's PostOpen() callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is now ready for use. It means that its resource is available and the Client may call the Module's Methods at will. (See SwitchBar_OnDeviceArrivalNotification).
+Note: A Module's PostOpen() callback is called for any Module after its Open callback has returned STATUS_SUCCESS, regardless of whether or not it is a Notification Module.
 
 #### Resource Removal
 
@@ -7426,18 +7432,96 @@ When the underlying resource disappears the asynchronous notification function t
 
  1. DMF sets a flag that tells all the Module's Methods that the resource is no longer available and that Methods should not read or write to the Module's Context. If a Client makes a new call to one of the Module's Methods, the Method will immediately return an error to the Client without accessing the Module's Context.
  2. **DMF waits for the all Methods that were already executing to finish executing. This leaves the Module's Context in a proper synchronized state while the exiting Methods are running. (The underlying resource may return an error when accessed, but the Module's Context remains valid while the Method executes.) During this wait, any new calls to the Module's Methods are immediately rejected with an error.**
- 3. After the above wait is satisfied, DMF calls the Module's Pre Close callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is no longer ready for use. It means that its resource is no longer available and the Client *should* stop  calling the Module's Methods. (See SwitchBar_OnDeviceRemovalNotification).
+ 3. After the above wait is satisfied, DMF calls the Module's PreClose callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is no longer ready for use. It means that its resource is no longer available and the Client *should* stop  calling the Module's Methods. (See SwitchBar_OnDeviceRemovalNotification).
  4. DMF calls the Module's Close callback. (See DMF_DeviceInterfaceTarget_Close). Here is where the Module closes the resource and deallocates any associated allocations.
 
-Note: A Module's Pre Close callback is called for any Module before its Close  callback is called, regardless of whether or not it is a Notification Module.
+Note: A Module's PreClose() callback is called for any Module before its Close  callback is called, regardless of whether or not it is a Notification Module.
 
 #### Summary
 
 Using the above constructs allows the Module author to clear the Module's Context and associated resource handles as soon as its Close callback executes without worry that another thread will try to use an invalid Context. The Module author does not need to worry that a Method will be called by a Client during or after that time.
-Similarly, the Client does not need to worry about exiting code that executing Methods when the Module's Pre Close callback happens.
+Similarly, the Client does not need to worry about exiting code that executing Methods when the Module's PreClose() callback happens.
 
 Using Notification Modules properly eliminates common race conditions that are difficult to find and fix in drivers. Furthermore, by simply writing code in the correct locations, neither the Module author nor the Client have to worry about such race conditions.
 There are various examples of Notification Modules in the DMF Library. To find the examples, search for `DMF_MODULE_OPEN_OPTION_NOTIFY` (partial word).
+
+Using Internal Module Resources
+-------------------------------
+
+In some cases, Modules provide Clients with internally managed resources so that Client's can use those resources to call corresponding WDF APIs directly.
+
+The reason for this is that some resources such as WDFIOTARGET have many corresponding APIs that a Client may want to use. Unless DMF provides access to the corresponding WDFIOTARGET, DMF is left with
+either (1) preventing the Client from calling the WDF APIs or (2) requiring that the Module author provide Methods that map to the entire WDF API set for WDFIOTARGET. Both options are bad. Therefore, in these
+cases DMF provides a Method that gives the Client access to the resource directly. Then, the Client can use that Method to get the resource and then call WDF APIs directly using that resource.
+
+This, however, has a severe problem: The resource lifetime is managed and hidden from the Client. Thus, after the Client has acquired the resource, it is possible that while the Client is using the resource,
+the Module deletes the resource. To resolve this issue, it is necessary for the Client to use a specific programming pattern:
+
+````
+ntStatus = DMF_ModuleReference(DmfModule);
+if (!NT_SUCCESS(ntStatus))
+{
+    goto Exit;
+}
+
+// Get access to the internally managed resource.
+//
+DMF_[ModuleName]_Get(DmfModule, &[Resource]);
+
+// Client uses [Resource].
+//
+
+DMF_ModuleDereference(DmfModule);
+
+Exit:
+````
+
+The above pattern ensures that the Module will keep the resource available to the Client between the calls to `DMF_ModuleReference()` and `DMF_ModuleDereference()`. If the underlying resource has
+been deleted, the call the `DMF_ModuleReference()` will fail.
+
+Here is an example of this pattern:
+
+````
+ntStatus = DMF_ModuleReference(DmfModule);
+if (!NT_SUCCESS(ntStatus))
+{
+    goto Exit;
+}
+
+// Get access the Module's WDFIOTARGET.
+//
+WDFIOTARGET ioTarget;
+DMF_DeviceInterface_Get(DmfModule, &ioTarget);
+
+// Use the internal WDFIOTARGET directly.
+//
+ntStatus = WdfIoTargetStart(ioTarget);
+if (!NT_SUCCESS(ntStatus))
+{
+    DMF_ModuleDereference(DmfModule);
+    goto Exit;
+}
+
+// Perform other operations using the internal WDFIOTARGET.
+//
+// ...
+
+// Tell DMF the Client is no longer using the internal WDFIOTARGET.
+//
+DMF_ModuleDereference(DmfModule);
+
+Exit:
+````
+
+Another example of a Method where this pattern needs to be used is:
+
+````
+NTSTATUS
+DMF_HidTarget_PreparsedDataGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ PHIDP_PREPARSED_DATA* PreparsedData
+    );
+````
 
 DMF Coding Conventions
 ======================
@@ -7624,8 +7708,8 @@ Modules.
   **[DMF_ModuleCreate]**                        |  Modules use this call to tell DMF to create an instance of themselves. Modules can also use this call to create instances of Dynamic Modules of other Modules.
   **DMF_ModuleOpen**                            |  Modules that manually control when they open/close use this call to open.
   **DMF_ModuleClose**                           |  Modules that manually control when they open/close use this call to close.
-  **DMF_ModuleAcquire**                         |  Modules that manually control when they open/close use this call at the **beginning** of their Methods to ensure that the Module's context is valid during the Method's execution. Using this call ensures that the Module remains open for the duration of the Method's execution.
-  **DMF_ModuleRelease**                         |  Modules that manually control when they open/close use this call at the **end** of their Methods to ensure that the Module's context is valid during the Method's execution. Using this call ensures that the Module remains open for the duration of the Method's execution.
+  **DMF_ModuleReference**                       |  Modules that manually control when they open/close use this call at the **beginning** of their Methods to ensure that the Module's context is valid during the Method's execution. Using this call ensures that the Module remains open for the duration of the Method's execution.
+  **DMF_ModuleDereference**                     |  Modules that manually control when they open/close use this call at the **end** of their Methods to ensure that the Module's context is valid during the Method's execution. Using this call ensures that the Module remains open for the duration of the Method's execution.
   **DMF_ModuleIsInFilterDriver**                |  Modules use this call to determine if the Client Driver is a Filter Driver.
   **DMF_ModuleRequestCompleteOrForward**        |  Modules can use this helper function to complete or forward requests appropriately based on whether or not the Client Driver is a filter driver.
   **DMF_[ModuleName]_TransportMethod**          |  Protocol Modules use this function to execute the underlying Transport Module's generic Method.
