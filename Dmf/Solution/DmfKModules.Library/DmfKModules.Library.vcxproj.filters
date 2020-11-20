@@ -124,6 +124,12 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c">
       <Filter>Modules\Hid</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_File.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -263,6 +269,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl_Public.h">
       <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_File.h">
+      <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -452,6 +464,12 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md">
       <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_File.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>

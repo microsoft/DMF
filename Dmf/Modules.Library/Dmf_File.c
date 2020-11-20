@@ -13,7 +13,7 @@ Abstract:
 
 Environment:
 
-    Kernel-mode Driver Framework (pending)
+    Kernel-mode Driver Framework
     User-mode Driver Framework
 
 --*/
@@ -162,7 +162,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    BOOL returnValue;
     LONGLONG bytesRemaining;
     BYTE* readBuffer;
     DWORD sizeOfOneRead;
@@ -188,10 +187,12 @@ Return Value:
                 fileNameString.Buffer);
 
     device = DMF_ParentDeviceGet(DmfModule);
-    returnValue = FALSE;
     fileContentsMemory = WDF_NO_HANDLE;
     *FileContentMemory = WDF_NO_HANDLE;
+    fileSize.QuadPart = 0;
 
+#if defined(DMF_USER_MODE)
+    BOOL returnValue = FALSE;
     HANDLE hFile = CreateFile(fileNameString.Buffer,
                               GENERIC_READ,
                               FILE_SHARE_READ,
@@ -221,6 +222,50 @@ Return Value:
                    ntStatus);
         goto Exit;
     }
+#elif defined(DMF_KERNEL_MODE)
+    OBJECT_ATTRIBUTES fileAttributes;
+    IO_STATUS_BLOCK fileIoStatusBlockOpen;
+    IO_STATUS_BLOCK fileIoStatusBlockStatus;
+    IO_STATUS_BLOCK fileIoStatusBlockRead;
+    LARGE_INTEGER byteOffset;
+    FILE_STANDARD_INFORMATION fileInformation;
+    HANDLE fileHandle;
+
+    InitializeObjectAttributes(&fileAttributes,
+                               &fileNameString,
+                               OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                               NULL,
+                               NULL);
+
+    fileHandle = NULL;
+    ntStatus = ZwOpenFile(&fileHandle,
+                          GENERIC_READ | SYNCHRONIZE,
+                          &fileAttributes,
+                          &fileIoStatusBlockOpen,
+                          0,
+                          FILE_SYNCHRONOUS_IO_NONALERT);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    fileIoStatusBlockStatus = fileIoStatusBlockOpen;
+    fileIoStatusBlockRead = fileIoStatusBlockOpen;
+
+    ntStatus = ZwQueryInformationFile(fileHandle,
+                                      &fileIoStatusBlockStatus,
+                                      &fileInformation,
+                                      sizeof(fileInformation),
+                                      FileStandardInformation);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    fileSize.QuadPart = sizeof(CHAR) * ((size_t)fileInformation.EndOfFile.QuadPart);
+    byteOffset.QuadPart = 0;
+
+#endif
 
     // Allocate the required buffer to read the file content.
     //
@@ -243,6 +288,10 @@ Return Value:
         goto Exit;
     }
 
+#if !defined(MAXDWORD)
+#define MAXDWORD 0xFFFFFFFF
+#endif
+
     // Now read the contents.
     //
     bytesRemaining = fileSize.QuadPart;
@@ -256,6 +305,7 @@ Return Value:
             sizeOfOneRead = (DWORD) bytesRemaining;
         }
 
+#if defined(DMF_USER_MODE)
         returnValue = ReadFile(hFile,
                                readBuffer,
                                sizeOfOneRead,
@@ -270,6 +320,24 @@ Return Value:
                        ntStatus);
             break;
         }
+#elif defined(DMF_KERNEL_MODE)
+        ntStatus = ZwReadFile(fileHandle,
+                              NULL,
+                              NULL,
+                              NULL,
+                              &fileIoStatusBlockRead,
+                              readBuffer,
+                              sizeOfOneRead,
+                              &byteOffset,
+                              NULL);
+        if ((!NT_SUCCESS(ntStatus)) ||
+            (fileIoStatusBlockRead.Information == 0))
+        {
+            ntStatus = STATUS_FILE_NOT_AVAILABLE;
+            goto Exit;
+        }
+        numberOfBytesRead = (ULONG)fileIoStatusBlockRead.Information;
+#endif
 
         readBuffer += numberOfBytesRead;
         bytesRemaining -= numberOfBytesRead;
@@ -284,10 +352,110 @@ Return Value:
 
 Exit:
 
+#if defined(DMF_USER_MODE)
     if (hFile != INVALID_HANDLE_VALUE)
     {
         CloseHandle(hFile);
         hFile = INVALID_HANDLE_VALUE;
+    }
+#elif defined(DMF_KERNEL_MODE)
+    if (fileHandle != NULL)
+    {
+        ZwClose(fileHandle);
+        fileHandle = NULL;
+    }
+#endif
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+NTSTATUS
+DMF_File_ReadEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ WCHAR* FileName, 
+    _Out_ WDFMEMORY* FileContentMemory,
+    _Out_opt_ UCHAR** Buffer,
+    _Out_opt_ size_t* BufferLength
+    )
+/*++
+
+Routine Description:
+
+    Reads the contents of a file into a buffer that is allocated for the Client. Client is responsible
+    for freeing the allocated memory.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FileName - Name of the file.
+    FileContentMemory - Buffer handle where read file contents are copied. The caller owns this memory.
+    Buffer - The buffer containing the read data.
+    BufferLength - The length of the returned data.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    UNICODE_STRING unicodeFileName;
+    WDFSTRING wdfFileNameString;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 File);
+
+    wdfFileNameString = NULL;
+
+    // Convert from WCHAR* to WDFSTRING.
+    //
+    RtlInitUnicodeString(&unicodeFileName,
+                         FileName);
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    ntStatus = WdfStringCreate(&unicodeFileName,
+                               &objectAttributes,
+                               &wdfFileNameString);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = DMF_File_Read(DmfModule,
+                             wdfFileNameString,
+                             FileContentMemory);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    if (Buffer != NULL ||
+        BufferLength != NULL)
+    {
+        size_t bufferLength;
+        UCHAR* buffer = (UCHAR*)WdfMemoryGetBuffer(*FileContentMemory,
+                                                   &bufferLength);
+        if (Buffer != NULL)
+        {
+            *Buffer = buffer;
+        }
+        if (BufferLength != NULL)
+        {
+            *BufferLength = bufferLength;
+        }
+    }
+
+Exit:
+
+    if (wdfFileNameString != NULL)
+    {
+        WdfObjectDelete(wdfFileNameString);
     }
 
     return ntStatus;

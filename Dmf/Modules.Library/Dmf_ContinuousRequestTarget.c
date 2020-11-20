@@ -614,6 +614,15 @@ Return Value:
                                                                           &outputBuffer,
                                                                           &outputBufferSize);
 
+    // Make sure the reference count to the input and output buffers such that the callback function 
+    // can delete the buffer returned without leaving a dangling reference in the memory manager.
+    // E.g. Suppose the buffer in the callback is part of another buffer (like in the case of BufferPool) and 
+    // the buffer pool deletes it during the callback, the memory manager will trigger verifier bugcheck.
+    // Since the buffer is preallocated and attached to the request, delete the request before calling the 
+    // callback so that the dangling reference is removed, and the callback is free to delete the buffer.
+    //
+    WdfObjectDelete(Request);
+
     // Call the Client's callback function
     //
     if (SingleAsynchronousRequestContext->EvtContinuousRequestTargetSingleAsynchronousRequest != NULL)
@@ -632,8 +641,6 @@ Return Value:
     //
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolContext,
                        SingleAsynchronousRequestContext);
-
-    WdfObjectDelete(Request);
 
     DMF_ModuleDereference(DmfModule);
 
@@ -2191,7 +2198,7 @@ Return Value:
                                               &moduleAttributes);
     moduleConfigBufferPoolContext.BufferPoolMode = BufferPool_Mode_Source;
     moduleConfigBufferPoolContext.Mode.SourceSettings.EnableLookAside = TRUE;
-    moduleConfigBufferPoolContext.Mode.SourceSettings.BufferCount = 1;
+    moduleConfigBufferPoolContext.Mode.SourceSettings.BufferCount = 8;
     // NOTE: BufferPool context must always be NonPagedPool because it is accessed in the
     //       completion routine running at DISPATCH_LEVEL.
     //

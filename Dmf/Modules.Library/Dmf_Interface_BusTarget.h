@@ -149,6 +149,26 @@ typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
+DMF_INTERFACE_BusTarget_AddressReadEx(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload,
+    _In_ ULONG RequestTimeoutMilliseconds
+    );
+
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_INTERFACE_BusTarget_BufferWriteEx(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload,
+    _In_ ULONG RequestTimeoutMilliseconds
+    );
+
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
 DMF_INTERFACE_BusTarget_BufferWrite(
     _In_ DMFINTERFACE DmfInterface,
     _In_ BusTransport_TransportPayload* Payload
@@ -180,6 +200,8 @@ typedef struct _DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA
     DMF_INTERFACE_BusTarget_AddressRead* DMF_BusTarget_AddressRead;
     DMF_INTERFACE_BusTarget_BufferWrite* DMF_BusTarget_BufferWrite;
     DMF_INTERFACE_BusTarget_BufferRead* DMF_BusTarget_BufferRead;
+    DMF_INTERFACE_BusTarget_AddressReadEx* DMF_BusTarget_AddressReadEx;
+    DMF_INTERFACE_BusTarget_BufferWriteEx* DMF_BusTarget_BufferWriteEx;
 } DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA;
 
 // Methods used to initialize Transport's Declaration Data.
@@ -195,7 +217,9 @@ DMF_INTERFACE_TRANSPORT_BusTarget_DESCRIPTOR_INIT(
     _In_ DMF_INTERFACE_BusTarget_AddressWrite* BusTarget_AddressWrite,
     _In_ DMF_INTERFACE_BusTarget_AddressRead* BusTarget_AddressRead,
     _In_ DMF_INTERFACE_BusTarget_BufferWrite* BusTarget_BufferWrite,
-    _In_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead
+    _In_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead,
+    _In_ DMF_INTERFACE_BusTarget_AddressReadEx* BusTarget_AddressReadEx,
+    _In_ DMF_INTERFACE_BusTarget_BufferWriteEx* BusTarget_BufferWriteEx
     );
 
 // Methods exposed to Protocol.
@@ -207,6 +231,8 @@ DMF_INTERFACE_BusTarget_AddressWrite DMF_BusTarget_AddressWrite;
 DMF_INTERFACE_BusTarget_AddressRead Dmf_BusTarget_AddressRead;
 DMF_INTERFACE_BusTarget_BufferWrite Dmf_BusTarget_BufferWrite;
 DMF_INTERFACE_BusTarget_BufferRead Dmf_BusTarget_BufferRead;
+DMF_INTERFACE_BusTarget_AddressReadEx Dmf_BusTarget_AddressReadEx;
+DMF_INTERFACE_BusTarget_BufferWriteEx Dmf_BusTarget_BufferWriteEx;
 
 // This macro defines the BusTargetProtocolDeclarationDataGet and BusTargetTransportDeclarationDataGet.
 // Call this macro after the DMF_INTERFACE_PROTOCOL_BusTarget_DECLARATION_DATA and
