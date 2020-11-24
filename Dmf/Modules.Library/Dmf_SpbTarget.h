@@ -78,6 +78,15 @@ DMF_SpbTarget_BufferWrite(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
+DMF_SpbTarget_BufferWriteEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(NumberOfBytesToWrite) UCHAR* BufferToWrite,
+    _In_ ULONG NumberOfBytesToWrite,
+    _In_ ULONG RequestTimeoutMilliseconds
+);
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
 DMF_SpbTarget_BufferWriteRead(
     _In_ DMFMODULE DmfModule,
     _In_reads_(InputBufferLength) UCHAR* InputBuffer,
@@ -85,6 +94,17 @@ DMF_SpbTarget_BufferWriteRead(
     _Out_writes_(OutputBufferLength) UCHAR* OutputBuffer,
     _In_ ULONG OutputBufferLength
     );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_SpbTarget_BufferWriteReadEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(InputBufferLength) UCHAR* InputBuffer,
+    _In_ ULONG InputBufferLength,
+    _Out_writes_(OutputBufferLength) UCHAR* OutputBuffer,
+    _In_ ULONG OutputBufferLength,
+    _In_ ULONG RequestTimeoutMilliseconds
+);
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS

@@ -720,36 +720,6 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
-DMF_SpbTarget_TransportAddressWrite(
-    _In_ DMFINTERFACE DmfInterface,
-    _In_ BusTransport_TransportPayload* Payload
-    )
-/*++
-
-Routine Description:
-
-    Does nothing
-
-Arguments:
-
-    DmfInterface - Interface module handle.
-    Payload - Data to write.
-
-Return Value:
-
-    STATUS_NOT_IMPLEMENTED for now.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfInterface);
-    UNREFERENCED_PARAMETER(Payload);
-
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-NTSTATUS
 DMF_SpbTarget_TransportAddressRead(
     _In_ DMFINTERFACE DmfInterface,
     _In_ BusTransport_TransportPayload* Payload
@@ -758,7 +728,7 @@ DMF_SpbTarget_TransportAddressRead(
 
 Routine Description:
 
-    Write and read data from Spb.
+    This routine sends a write-read sequence to the SPB controller. It reads a buffer from a particular address.
 
 Arguments:
 
@@ -781,10 +751,107 @@ Return Value:
                                              Payload->AddressRead.AddressLength,
                                              Payload->AddressRead.Buffer,
                                              Payload->AddressRead.BufferLength);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SpbTarget_BufferWriteRead fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return(ntStatus);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbTarget_TransportAddressReadEx(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload,
+    _In_ ULONG RequestTimeoutMilliseconds
+    )
+/*++
+
+Routine Description:
+
+    Write and read data from Spb.
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write and read
+    RequestTimeoutMilliseconds - Timeout in milliseconds.
+
+Return Value:
+
+    ntStatus
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE BusTransportModule;
+
+    BusTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
+
+    ntStatus = DMF_SpbTarget_BufferWriteReadEx(BusTransportModule,
+                                               Payload->AddressRead.Address,
+                                               Payload->AddressRead.AddressLength,
+                                               Payload->AddressRead.Buffer,
+                                               Payload->AddressRead.BufferLength,
+                                               RequestTimeoutMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SpbTarget_BufferWriteReadEx fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return(ntStatus);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+DMF_SpbTarget_TransportBufferWriteEx(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload,
+    _In_ ULONG RequestTimeoutMilliseconds
+    )
+/*++
+
+Routine Description:
+
+    This routine writes to the SPB controller. It also has a timeout for the Request sent down the device stack.
+
+Arguments:
+
+    DmfInterface - Interface module handle.
+    Payload - Data to write.
+    RequestTimeoutMilliseconds - Timeout in milliseconds.
+
+Return Value:
+
+    ntStatus
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE BusTransportModule;
+
+    BusTransportModule = DMF_InterfaceTransportModuleGet(DmfInterface);
+
+    ntStatus = DMF_SpbTarget_BufferWriteEx(BusTransportModule,
+                                           Payload->BufferWrite.Buffer,
+                                           Payload->BufferWrite.BufferLength,
+                                           RequestTimeoutMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SpbTarget_BufferWrite fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -806,7 +873,7 @@ DMF_SpbTarget_TransportBufferWrite(
 
 Routine Description:
 
-    Write and read data from Spb.
+    This routine writes to the SPB controller.
 
 Arguments:
 
@@ -827,7 +894,6 @@ Return Value:
     ntStatus = DMF_SpbTarget_BufferWrite(BusTransportModule,
                                          Payload->BufferWrite.Buffer,
                                          Payload->BufferWrite.BufferLength);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SpbTarget_BufferWrite fails: ntStatus=%!STATUS!", ntStatus);
@@ -839,36 +905,6 @@ Exit:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-NTSTATUS
-DMF_SpbTarget_TransportBufferRead(
-    _In_ DMFINTERFACE DmfInterface,
-    _In_ BusTransport_TransportPayload* Payload
-    )
-/*++
-
-Routine Description:
-
-    Does nothing
-
-Arguments:
-
-    DmfInterface - Interface module handle.
-    Payload - Data to write.
-
-Return Value:
-
-    STATUS_NOT_IMPLEMENTED for now.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfInterface);
-    UNREFERENCED_PARAMETER(Payload);
-
-    return STATUS_NOT_IMPLEMENTED;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1050,10 +1086,12 @@ Return Value:
                                                       DMF_SpbTarget_TransportPreUnbind,
                                                       DMF_SpbBusTarget_TransportBind,
                                                       DMF_SpbBusTarget_TransportUnbind,
-                                                      DMF_SpbTarget_TransportAddressWrite,
+                                                      NULL,
                                                       DMF_SpbTarget_TransportAddressRead,
                                                       DMF_SpbTarget_TransportBufferWrite,
-                                                      DMF_SpbTarget_TransportBufferRead);
+                                                      NULL,
+                                                      DMF_SpbTarget_TransportAddressReadEx,
+                                                      DMF_SpbTarget_TransportBufferWriteEx);
 
     // Add the interface to the Transport Module.
     //
@@ -1230,6 +1268,146 @@ DMF_SpbTarget_BufferWrite(
                                                    ContinuousRequestTarget_RequestType_Write,
                                                    0,
                                                    0,
+                                                   &bytesWritten);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_SpbTarget_BufferWriteEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(NumberOfBytesToWrite) UCHAR* BufferToWrite,
+    _In_ ULONG NumberOfBytesToWrite,
+    _In_ ULONG RequestTimeoutMilliseconds
+    )
+/*++
+ 
+  Routine Description:
+
+    This routine writes to the SPB controller. It also has a timeout for the request sent down the device stack.
+
+  Arguments:
+
+    DmfModule - This Module's Module handle.
+    BufferToWrite- Data to write to the device.
+    NumberOfBytesToWrite - Length of BufferToWrite.
+    RequestTimeoutMilliseconds - Timeout in milliseconds.
+
+  Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_SpbTarget* moduleContext;
+    size_t bytesWritten;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = DMF_RequestTarget_SendSynchronously(moduleContext->DmfModuleRequestTarget,
+                                                   BufferToWrite,
+                                                   NumberOfBytesToWrite,
+                                                   NULL,
+                                                   0,
+                                                   ContinuousRequestTarget_RequestType_Write,
+                                                   0,
+                                                   RequestTimeoutMilliseconds,
+                                                   &bytesWritten);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_SpbTarget_BufferWriteReadEx(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(InputBufferLength) UCHAR* InputBuffer,
+    _In_ ULONG InputBufferLength,
+    _Out_writes_(OutputBufferLength) UCHAR* OutputBuffer,
+    _In_ ULONG OutputBufferLength,
+    _In_ ULONG RequestTimeoutMilliseconds
+    )
+/*++
+ 
+  Routine Description:
+
+    This routine sends a write-read sequence to the SPB controller. It reads a buffer from a particular address.
+
+  Arguments:
+
+    DmfModule - This Module's Module handle.
+    InputBuffer - Address to read buffer from.
+    InputBufferLength - Length of InputBuffer.
+    OutputBuffer - Data read from device.
+    OutputBufferLength - Length of OutputBuffer.
+    RequestTimeoutMilliseconds - Timeout in milliseconds.
+
+  Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_SpbTarget* moduleContext;
+    NTSTATUS ntStatus;
+    size_t bytesWritten;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Build SPB sequence.
+    //
+    const ULONG transfers = 2;
+    
+    SPB_TRANSFER_LIST_AND_ENTRIES(transfers) sequence;
+    SPB_TRANSFER_LIST_INIT(&(sequence.List), transfers);
+
+    // PreFAST cannot figure out the SPB_TRANSFER_LIST_ENTRY
+    // "struct hack" size but using an index variable quiets 
+    // the warning. This is a false positive from OACR.
+    // 
+
+    ULONG index = 0;
+    sequence.List.Transfers[index] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
+                                                                         0,
+                                                                         InputBuffer,
+                                                                         (ULONG)InputBufferLength);
+
+    sequence.List.Transfers[index + 1] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionFromDevice,
+                                                                             0,
+                                                                             OutputBuffer,
+                                                                             (ULONG)OutputBufferLength);
+
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = DMF_RequestTarget_SendSynchronously(moduleContext->DmfModuleRequestTarget,
+                                                   &sequence,
+                                                   sizeof(sequence),
+                                                   NULL,
+                                                   0,
+                                                   ContinuousRequestTarget_RequestType_Ioctl,
+                                                   IOCTL_SPB_EXECUTE_SEQUENCE,
+                                                   RequestTimeoutMilliseconds,
                                                    &bytesWritten);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);

@@ -335,6 +335,13 @@ None
 * The Client is expected to know the size of the returned buffer and also the corresponding context.
 * The Module implementation handles race conditions where different threads are putting, getting or enumerating buffers for a buffer pool instance. This Module handles those race conditions and is multithread safe. 
 
+##### Examples
+
+![Enumeration Example BufferPool_EnumerationDisposition_StopEnumeration](./images/DMF_BufferPool-EnumerationExample-Stop.png)
+
+![Enumeration Example BufferPool_EnumerationDisposition_RemoveAndStopEnumeration](./images/DMF_BufferPool-EnumerationExample-RemoveAndStop.png)
+
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferPool_Get

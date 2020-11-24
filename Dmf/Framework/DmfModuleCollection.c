@@ -3823,14 +3823,20 @@ Return Value:
     //
     if (! isDefaultQueueCreated)
     {
+        WDF_IO_QUEUE_CONFIG* defaultIoQueueConfig;
         WDF_IO_QUEUE_CONFIG ioQueueConfig;
         WDFQUEUE queue;
 
         // Create the Device IO Control queue.
         //
-        WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&ioQueueConfig,
-                                               WdfIoQueueDispatchParallel);
-        DMF_ContainerQueueConfigCallbacksInit(&ioQueueConfig);
+        defaultIoQueueConfig = DMF_DmfDeviceInitDefaultQueueConfigGet(dmfDeviceInit);
+        // Copy the default values that may have been modified by the Client.
+        //
+        ioQueueConfig = *defaultIoQueueConfig;
+        // Hook DMF's callbacks. Allow Client's callbacks to be chained.
+        //
+        DMF_DmfDeviceInitHookQueueConfig(dmfDeviceInit,
+                                         &ioQueueConfig);
 
         ntStatus = WdfIoQueueCreate(Device,
                                     &ioQueueConfig,

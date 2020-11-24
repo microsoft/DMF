@@ -42,7 +42,7 @@ Environment:
 typedef struct _DMF_CONTEXT_HidTarget
 {
     // HID Interface arrival/removal notification handle.
-    // 
+    //
 #if defined(DMF_USER_MODE)
     HCMNOTIFICATION HidInterfaceNotification;
 #else
@@ -421,7 +421,7 @@ Return Value:
                                  &resultIoTarget);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, 
+        TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
                     "WdfIoTargetCreate fails: ntStatus=%!STATUS!",
                     ntStatus);
@@ -430,7 +430,7 @@ Return Value:
 
     // Try to open the target.
     //
-    ntStatus = WdfIoTargetOpen(resultIoTarget, 
+    ntStatus = WdfIoTargetOpen(resultIoTarget,
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -690,7 +690,7 @@ Return Value:
     USHORT readIndex = 0;
     while (readIndex < ((sizeToAllocate / sizeof(WCHAR)) - 1))
     {
-        if ((nameBuffer[readIndex] != L'\\') && 
+        if ((nameBuffer[readIndex] != L'\\') &&
             (nameBuffer[readIndex] != L'/'))
         {
             nameBuffer[writeIndex] = nameBuffer[readIndex];
@@ -974,7 +974,7 @@ Return Value:
                   sizeof(hidCollectionInformation));
 
     // Open the device to be queried.
-    // NOTE: Per OSG (Austin Hodges), when opening HID device for enumeration purposes (to see if 
+    // NOTE: Per OSG (Austin Hodges), when opening HID device for enumeration purposes (to see if
     // it is the required device, the Open Mode should be zero and share should be Read/Write.
     //
     ntStatus = HidTarget_IoTargetCreateByName(device,
@@ -1028,7 +1028,7 @@ Return Value:
                 "IOCTL_Hid_GET_COLLECTION_INFORMATION returned VID = 0x%x",
                 hidCollectionInformation.VendorID);
 
-    // Check VID/PID 
+    // Check VID/PID
     //
     if (hidCollectionInformation.VendorID != moduleConfig->VendorId)
     {
@@ -1295,8 +1295,8 @@ Return Value:
 
     // Check to see if there is a match for the device that is being looked for.
     // Based on the configuration it is either a remote hid target or a local hid target.
-    // Here, Remote means a device which may or may not be on the same devstack and 
-    // local means a device which is on the same stack (which is the case when user 
+    // Here, Remote means a device which may or may not be on the same devstack and
+    // local means a device which is on the same stack (which is the case when user
     // has configured to skip enumerating all the hid devices).
     //
     if (!moduleConfig->SkipHidDeviceEnumerationSearch)
@@ -1658,7 +1658,7 @@ HidTarget_InterfaceArrivalCallbackForLocalOrRemoteKernel(
 
 Routine Description:
 
-    PnP notification function that is called when a HID device is available. 
+    PnP notification function that is called when a HID device is available.
 
 Arguments:
 
@@ -1863,7 +1863,7 @@ HidTarget_NotificationRegisterForRemoteKernel(
 
 Routine Description:
 
-    Register for notification for all hid devices. 
+    Register for notification for all hid devices.
 
 Arguments:
 
@@ -1913,8 +1913,8 @@ Return Value:
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    // The notification routine could be called after the IoUnregisterPlugPlayNotification method 
-    // has returned which was undesirable. UnRegisterNotify prevents the 
+    // The notification routine could be called after the IoUnregisterPlugPlayNotification method
+    // has returned which was undesirable. UnRegisterNotify prevents the
     // notification routine from being called after IoUnregisterPlugPlayNotificationEx/CM_Unregister_Notification returns.
     //
     if (moduleContext->HidInterfaceNotification != NULL)
@@ -2084,7 +2084,7 @@ Return Value:
 
     // Get the existing Device Interfaces for the given Guid.
     // It is recommended to do this in a loop, as the
-    // size can change between the call to CM_Get_Device_Interface_List_Size and 
+    // size can change between the call to CM_Get_Device_Interface_List_Size and
     // CM_Get_Device_Interface_List.
     //
     do
@@ -2190,6 +2190,24 @@ Return Value:
 
 Exit:
 
+    if (deviceInterfaceList != NULL)
+    {
+        if (!HeapFree(GetProcessHeap(),
+                      0,
+                      deviceInterfaceList))
+        {
+            // Not a critical error.
+            //
+            lastError = GetLastError();
+            TraceEvents(TRACE_LEVEL_WARNING,
+                        DMF_TRACE,
+                        "HeapFree failed with lastError %!WINERROR!",
+                        lastError);
+        }
+
+        deviceInterfaceList = NULL;
+    }
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
@@ -2244,7 +2262,7 @@ Return Value:
                                          (PCM_NOTIFY_CALLBACK)HidTarget_InterfaceArrivalCallbackForRemoteUser,
                                          &(moduleContext->HidInterfaceNotification));
     // Target device might already be there. So try now.
-    // 
+    //
     if (configRet == CR_SUCCESS)
     {
         TraceEvents(TRACE_LEVEL_VERBOSE,
@@ -2453,8 +2471,8 @@ Return Value:
     }
     else
     {
-        // The notification routine could be called after the CM_Unregister_Notification method 
-        // has returned which was undesirable. CM_Unregister_Notification prevents the 
+        // The notification routine could be called after the CM_Unregister_Notification method
+        // has returned which was undesirable. CM_Unregister_Notification prevents the
         // notification routine from being called after CM_Unregister_Notification returns.
         //
         if (moduleContext->HidInterfaceNotification != NULL)
@@ -2472,7 +2490,7 @@ Return Value:
                 ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
                 TraceEvents(TRACE_LEVEL_ERROR,
                             DMF_TRACE,
-                            "CM_Unregister_Notification fails: ntStatus=%!STATUS!", 
+                            "CM_Unregister_Notification fails: ntStatus=%!STATUS!",
                             ntStatus);
                 goto Exit;
             }
@@ -2727,13 +2745,18 @@ Return Value:
         moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferCount = moduleConfig->PendedInputReadRequestCount;
         moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.BufferSize = moduleContext->HidCaps.InputReportByteLength;
         moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.EnableLookAside = TRUE;
-        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.PoolType = NonPagedPool;
+        moduleConfigThreadedBufferQueue.BufferQueueConfig.SourceSettings.PoolType = NonPagedPoolNx;
         moduleAttributes.ClientModuleInstanceName = "ThreadedBufferQueueInputReport";
         moduleAttributes.PassiveLevel = TRUE;
         ntStatus = DMF_ThreadedBufferQueue_Create(device,
                                                   &moduleAttributes,
                                                   &objectAttributes,
                                                   &moduleContext->DmfModuleThreadedBufferQueueInputReport);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Create fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
         // Create Buffer Pool for Input Reports of size retrieved from the HID capability.
         // This will be used for buffers of input report read requests sent using Dmf_HidTarget_InputRead().
@@ -2925,126 +2948,6 @@ Return Value:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
-DMF_HidTarget_TransportAddressWrite(
-    _In_ DMFINTERFACE DmfInterface,
-    _In_ BusTransport_TransportPayload* Payload
-    )
-/*++
-
-Routine Description:
-
-    Does nothing
-
-Arguments:
-
-    DmfInterface - Interface module handle.
-    Payload - Data to write.
-
-Return Value:
-
-    STATUS_NOT_IMPLEMENTED for now.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfInterface);
-    UNREFERENCED_PARAMETER(Payload);
-
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-NTSTATUS
-DMF_HidTarget_TransportAddressRead(
-    _In_ DMFINTERFACE DmfInterface,
-    _In_ BusTransport_TransportPayload* Payload
-    )
-/*++
-
-Routine Description:
-
-    Does nothing
-
-Arguments:
-
-    DmfInterface - Interface module handle.
-    Payload - Data to write.
-
-Return Value:
-
-    STATUS_NOT_IMPLEMENTED for now.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfInterface);
-    UNREFERENCED_PARAMETER(Payload);
-
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-NTSTATUS
-DMF_HidTarget_TransportBufferWrite(
-    _In_ DMFINTERFACE DmfInterface,
-    _In_ BusTransport_TransportPayload* Payload
-    )
-/*++
-
-Routine Description:
-
-    Does nothing
-
-Arguments:
-
-    DmfInterface - Interface module handle.
-    Payload - Data to write.
-
-Return Value:
-
-    STATUS_NOT_IMPLEMENTED for now.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfInterface);
-    UNREFERENCED_PARAMETER(Payload);
-
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-NTSTATUS
-DMF_HidTarget_TransportBufferRead(
-    _In_ DMFINTERFACE DmfInterface,
-    _In_ BusTransport_TransportPayload* Payload
-    )
-/*++
-
-Routine Description:
-
-    Does nothing
-
-Arguments:
-
-    DmfInterface - Interface module handle.
-    Payload - Data to write.
-
-Return Value:
-
-    STATUS_NOT_IMPLEMENTED for now.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfInterface);
-    UNREFERENCED_PARAMETER(Payload);
-
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_IRQL_requires_same_
-NTSTATUS
 DMF_HidTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
@@ -3180,7 +3083,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    // If the driver is loaded on the Hidstack, returning failure here prevents HidClass from handling the QueryRemove. 
+    // If the driver is loaded on the Hidstack, returning failure here prevents HidClass from handling the QueryRemove.
     // During QueryRemove Hidclass cancels all input report reads from Client drivers prematurely, thus breaking the input report handling path.
     // Return failure for in-stack use. (SkipHidDeviceEnumerationSearch means in-stack).
     //
@@ -3275,10 +3178,12 @@ Return Value:
                                                       DMF_HidTarget_TransportPreUnbind,
                                                       DMF_HidTarget_TransportBind,
                                                       DMF_HidTarget_TransportUnbind,
-                                                      DMF_HidTarget_TransportAddressWrite,
-                                                      DMF_HidTarget_TransportAddressRead,
-                                                      DMF_HidTarget_TransportBufferWrite,
-                                                      DMF_HidTarget_TransportBufferRead);
+                                                      NULL,
+                                                      NULL,
+                                                      NULL,
+                                                      NULL,
+                                                      NULL,
+                                                      NULL);
 
     // Add the interface to the Transport Module.
     //
@@ -3874,11 +3779,11 @@ Return Value:
         TraceError(DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-        
+
     USHORT capsCountFound = moduleContext->HidCaps.NumberFeatureValueCaps;
-    ntStatus = HidP_GetValueCaps(HidP_Feature, 
-                                 valueCaps, 
-                                 &capsCountFound, 
+    ntStatus = HidP_GetValueCaps(HidP_Feature,
+                                 valueCaps,
+                                 &capsCountFound,
                                  preparsedData);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -4259,8 +4164,8 @@ DMF_HidTarget_InputReportGet(
 Routine Description:
 
     Synchronously reads an Input Report.
-    NOTE: This function is not normally used to read Input Reports. Use it only if 
-          the underlying device is known to not asynchronously respond reliably. If 
+    NOTE: This function is not normally used to read Input Reports. Use it only if
+          the underlying device is known to not asynchronously respond reliably. If
           there is no data available within 5 seconds, this call will complete
           regardless whereas the normally used Methods (DMF_HidTarget_InputRead) and
           (DMF_HidTarget_InputReadEx) will continue to wait.
@@ -4314,8 +4219,8 @@ Return Value:
 
     if (bufferSize < *InputReportLength)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BufferSize too small bufferSize=%d expected=%d", 
-                    (int)bufferSize, 
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BufferSize too small bufferSize=%d expected=%d",
+                    (int)bufferSize,
                     (int)moduleContext->HidCaps.InputReportByteLength);
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         goto Exit;
@@ -4483,9 +4388,9 @@ Return Value:
     // HidP_* method takes these are argument.
     //
     // NOTE:
-    // When the hid device is departed, this PreparsedDataMemory in the context gets freed. 
+    // When the hid device is departed, this PreparsedDataMemory in the context gets freed.
     // Returning a pointer here means client may still have a pointer even when the device had departed.
-    // Hid class HidP_* methods would return HIDP_STATUS_INVALID_PREPARSED_DATA if the client used them 
+    // Hid class HidP_* methods would return HIDP_STATUS_INVALID_PREPARSED_DATA if the client used them
     // after the hid is departed.
     //
     preparsedDataLocal = (PHIDP_PREPARSED_DATA)WdfMemoryGetBuffer(moduleContext->PreparsedDataMemory,

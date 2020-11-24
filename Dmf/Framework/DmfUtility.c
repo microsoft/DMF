@@ -532,13 +532,6 @@ Return Value:
     return activity;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Definition used by the Event Log function.
-//
-////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Utility_LogEmitString(
@@ -697,6 +690,42 @@ Exit:
 
     FuncExitNoReturn(DMF_TRACE);
 }
+
+VOID
+DMF_Utility_TransferList(
+    _Out_ LIST_ENTRY* DestinationList, 
+    _In_ LIST_ENTRY* SourceList
+    )
+/*++
+
+Routine Description:
+
+    Transfers the head in SourceList to DestinationList LIST_ENTRY structure.
+
+Arguments:
+
+    DestinationList - Pointer to LIST_ENTRY destination.
+    SourceList - Pointer to LIST_ENTRY source.
+
+Return Value:
+
+    None
+
+--*/
+{
+    if (IsListEmpty(SourceList))
+    {
+        InitializeListHead(DestinationList);
+    }
+    else
+    {
+        DestinationList->Flink = SourceList->Flink;
+        DestinationList->Blink = SourceList->Blink;
+        DestinationList->Flink->Blink = DestinationList;
+        DestinationList->Blink->Flink = DestinationList;
+        InitializeListHead(SourceList);
+    }
+}  
 
 // eof: DmfUtility.c
 //

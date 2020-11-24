@@ -1158,6 +1158,13 @@ DMF_DmfDeviceInitHookQueueConfig(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
+DMF_DmfDeviceInitOverrideDefaultQueueConfig(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_IO_QUEUE_CONFIG* QueueConfig
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
 DMF_DmfFdoSetFilter(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     );
@@ -1275,6 +1282,7 @@ typedef struct _DMF_PORTABLE_RUNDOWN
 #define DMF_VERSIONCHECK_BUILD_NUMBER_RS5  17763
 #define DMF_VERSIONCHECK_BUILD_NUMBER_19H1  18362
 #define DMF_VERSIONCHECK_BUILD_NUMBER_20H1  19041
+#define DMF_VERSIONCHECK_BUILD_NUMBER_21H1  20251
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -1480,6 +1488,35 @@ DMF_Utility_LogEmitString(
     _In_ DmfLogDataSeverity DmfLogDataSeverity,
     _In_ WCHAR* FormatString,
     ...
+    );
+
+// Iterates through a LIST_ENTRY structure.
+//
+#define DMF_Utility_FOR_ALL_IN_LIST(Type, Head, Field, Current)            \
+    for ((Current) = CONTAINING_RECORD((Head)->Flink, Type, Field);        \
+         (Head) != &(Current)->Field;                                      \
+         (Current) = CONTAINING_RECORD((Current)->Field.Flink,             \
+                                       Type,                               \
+                                       Field)                              \
+       )
+
+// Iterates through a LIST_ENTRY structure and provides the ability to
+// remove current entry from list.
+//
+#define DMF_Utility_FOR_ALL_IN_LIST_SAFE(Type, Head, Field, Current, Next) \
+    for ((Current) = CONTAINING_RECORD((Head)->Flink, Type, Field),        \
+             (Next) = CONTAINING_RECORD((Current)->Field.Flink,            \
+                                        Type, Field);                      \
+         (Head) != &(Current)->Field;                                      \
+         (Current) = (Next),                                               \
+              (Next) = CONTAINING_RECORD((Current)->Field.Flink,           \
+                                         Type, Field)                      \
+        )
+
+VOID
+DMF_Utility_TransferList(
+    _Out_ LIST_ENTRY* DestinationList, 
+    _In_ LIST_ENTRY* SourceList
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

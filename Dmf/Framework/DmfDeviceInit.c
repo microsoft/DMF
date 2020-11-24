@@ -69,6 +69,11 @@ typedef struct DMFDEVICE_INIT
     //
     BOOLEAN QueueConfigHooked;
 
+    // Contains the configuration for the default queue.
+    // DMF assigns a default that can be overridden by the Client.
+    //
+    WDF_IO_QUEUE_CONFIG DefaultQueueConfig;
+
     // DMF Event Callbacks.
     //
     DMF_EVENT_CALLBACKS* DmfEventCallbacks;
@@ -420,6 +425,35 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+WDF_IO_QUEUE_CONFIG*
+DMF_DmfDeviceInitDefaultQueueConfigGet(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    )
+/*++
+
+Routine Description:
+
+    Retrieve DMF's default queue configuration information.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    Pointer to the default queue configuration information.
+
+--*/
+{
+    PAGED_CODE();
+
+    DmfAssert(DmfDeviceInit != NULL);
+    return &DmfDeviceInit->DefaultQueueConfig;
+}
+#pragma code_seg()
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Client Driver APIs related to PDMFDEVICE_INIT
@@ -542,6 +576,12 @@ Return Value:
         dmfDeviceInit->ClientImplementsDeviceAdd = FALSE;
     }
 
+    // Set the default settings for the default IO queue.
+    // Client may override if necessary.
+    //
+    WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&dmfDeviceInit->DefaultQueueConfig,
+                                           WdfIoQueueDispatchParallel);
+
 Exit:
 
     return dmfDeviceInit;
@@ -655,6 +695,12 @@ Return Value:
         dmfDeviceInit->QueueConfigHooked = TRUE;
         dmfDeviceInit->ClientImplementsDeviceAdd = FALSE;
     }
+
+    // Set the default settings for the default IO queue.
+    // Client may override if necessary.
+    //
+    WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&dmfDeviceInit->DefaultQueueConfig,
+                                           WdfIoQueueDispatchParallel);
 
 Exit:
 
@@ -1264,6 +1310,36 @@ Return Value:
         //
         DmfDeviceInit->DmfLiveKernelDumpModuleConfig->ReportType[DMF_LIVEKERNELDUMP_MAXIMUM_REPORT_TYPE_SIZE - 1] = L'\0';
     }
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_DmfDeviceInitOverrideDefaultQueueConfig(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_IO_QUEUE_CONFIG* QueueConfig
+    )
+/*++
+
+Routine Description:
+
+    Retrieve DMF's default queue configuration information.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    Pointer to the default queue configuration information.
+
+--*/
+{
+    PAGED_CODE();
+
+    DmfAssert(DmfDeviceInit != NULL);
+    DmfDeviceInit->DefaultQueueConfig = *QueueConfig;
 }
 #pragma code_seg()
 

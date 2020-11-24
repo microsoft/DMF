@@ -169,6 +169,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitHookQueueConfig](#dmf_dmfdeviceinithookqueueconfig)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitOverrideDefaultQueueConfig](#dmf_dmfdeviceinitoverridedefaultqueueconfig)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitSetEventCallbacks](#dmf_dmfdeviceinitseteventcallbacks)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfFdoSetFilter](#dmf_dmffdosetfilter)
@@ -3157,7 +3159,7 @@ that structure to **DMF_DmfDeviceInitSetEventCallbacks**.
   ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------
   **Size**                                                    | Size of the structure initialized by **DMF_EVENT_CALLBACKS_INIT().**
   **EVT_DMF_DEVICE_MODULES_ADD* EvtDmfDeviceModulesAdd**      | Set the **EvtDmfDeviceModulesAdd** member to the function that the Client Driver uses to add Modules that will be instantiated.
-  **EVT_DMF_DEVICE_LOG* EvtDmfDeviceLog**                     | Set the **EvtDmfDeviceLog** member to the function that the Client Driver uses to to receive event log information from Modules.
+  **EVT_DMF_DEVICE_LOG* EvtDmfDeviceLog**                     | Set the **EvtDmfDeviceLog** member to the function that the Client Driver uses to receive event log information from Modules.
 
 Client Driver DMF Initialization Macros
 ---------------------------------------
@@ -3565,6 +3567,45 @@ None
 -   If the Client Driver does not create a default queue, it is
     [not] necessary for the Client Driver to call this
     function because DMF will do so.
+
+-   Instead of using this function after creating a default queue, the Client driver can just use `DMF_DmfDeviceInitOverrideDefaultQueueConfig()` instead.
+
+### DMF_DmfDeviceInitOverrideDefaultQueueConfig
+```
+VOID
+DMF_DmfDeviceInitOverrideDefaultQueueConfig(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_IO_QUEUE_CONFIG* QueueConfig
+    )
+```
+This function allows the Client driver to override how DMF creates the default IO queue. Generally speaking,
+the default options work for most drivers. But in some cases, the Client driver may need to override the default settings.
+
+#### Parameters
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **PDMFDEVICE_INIT DmfDeviceInit**    |    The data structure created using **DMF_DmfDeviceInitAllocate()**.
+  **PWDF_IO_QUEUE_Config QueueConfig**  | The Client Driver passes an initialized instance of this structure.
+
+#### Returns
+
+None
+
+#### Remarks
+
+-   The Client driver first calls `WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE()` to set the Client
+    driver's preferences. Then, this function is called to override DMF's default settings.
+
+-   It is only necessary to call this function if the default settings need to be changed or if Client driver wants to recieve default queue callbacks.
+
+-   One example where this call may be needed is to cause the queue to deliver requests 
+    sequentially. By default, DMF delivers requests in parallel to Modules and the Client driver.
+
+-   Client driver can also use this function to receive WDF default queue callbacks instead of
+    creating a queue and calling `DMF_DmfDeviceInitHookQueueConfig()`.
+
+-   It is not necessary to call `WdfIoQueueCreate()` when using this function. Simply call it instead of calling
+    `WdfIoQueueCreate()` after calling `WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE()`.
 
 ### DMF_DmfDeviceInitSetEventCallbacks
 ```
@@ -7284,6 +7325,31 @@ None.
 -   The standard printf formatting specification is used to create the string emitted to Client Driver.
 
 -   Can only be called from passive level.
+
+### DMF_Utility_TransferList
+````
+VOID
+DMF_Utility_TransferList(
+    _Out_ LIST_ENTRY* DestinationList, 
+    _In_ LIST_ENTRY* SourceList
+    );
+````
+
+Transfers the head in SourceList to DestinationList LIST_ENTRY structure.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ---------------------------------------------------------------
+  DestinationList | Pointer to LIST_ENTRY destination.
+  SourceList | Pointer to LIST_ENTRY source.
+
+#### Returns
+
+None.
+
+#### Remarks
+
 
 ### DMF_Utility_UserModeAccessCreate
 ```

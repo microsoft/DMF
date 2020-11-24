@@ -20,10 +20,6 @@ Environment:
 
 #pragma once
 
-// TODO: Kernel-mode support is pending.
-//
-#if defined(DMF_USER_MODE)
-
 // This macro declares the following functions:
 // DMF_File_ATTRIBUTES_INIT()
 // DMF_File_Create()
@@ -41,7 +37,15 @@ DMF_File_Read(
     _Out_ WDFMEMORY* FileContentMemory
     );
 
-#endif // defined(DMF_USER_MODE)
+_Must_inspect_result_
+NTSTATUS
+DMF_File_ReadEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ WCHAR* FileName, 
+    _Out_ WDFMEMORY* FileContentMemory,
+    _Out_opt_ UCHAR** Buffer,
+    _Out_opt_ size_t* BufferLength
+    );
 
 // eof: Dmf_File.h
 //

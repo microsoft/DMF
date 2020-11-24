@@ -81,7 +81,9 @@ DMF_INTERFACE_TRANSPORT_BusTarget_DESCRIPTOR_INIT(
     _In_ DMF_INTERFACE_BusTarget_AddressWrite* BusTarget_AddressWrite,
     _In_ DMF_INTERFACE_BusTarget_AddressRead* BusTarget_AddressRead,
     _In_ DMF_INTERFACE_BusTarget_BufferWrite* BusTarget_BufferWrite,
-    _In_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead
+    _In_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead,
+    _In_ DMF_INTERFACE_BusTarget_AddressReadEx* BusTarget_AddressReadEx,
+    _In_ DMF_INTERFACE_BusTarget_BufferWriteEx* BusTarget_BufferWriteEx
     )
 /*++
 
@@ -115,6 +117,8 @@ Return Value:
     TransportDeclarationData->DMF_BusTarget_AddressRead = BusTarget_AddressRead;
     TransportDeclarationData->DMF_BusTarget_BufferWrite = BusTarget_BufferWrite;
     TransportDeclarationData->DMF_BusTarget_BufferRead = BusTarget_BufferRead;
+    TransportDeclarationData->DMF_BusTarget_AddressReadEx = BusTarget_AddressReadEx;
+    TransportDeclarationData->DMF_BusTarget_BufferWriteEx = BusTarget_BufferWriteEx;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,7 +162,6 @@ Return Value:
     ntStatus = transportData->DMF_BusTarget_TransportBind(DmfInterface,
                                                           ProtocolBindData, 
                                                           TransportBindData);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_TransportBind fails: ntStatus=%!STATUS!", ntStatus);
@@ -239,10 +242,58 @@ Return Value:
 
     ntStatus = transportData->DMF_BusTarget_AddressWrite(DmfInterface,
                                                          Payload);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_AddressWrite fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+Dmf_BusTarget_AddressReadEx(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload,
+    _In_ ULONG RequestTimeoutMilliseconds
+    )
+/*++
+
+Routine Description:
+
+    Unregisters the given Protocol Module from the Transport Module. This is called by Protocol Module.
+
+Arguments:
+
+    DmfInterfaceTransportModule - The given Transport Module.
+    DmfInterfaceProtocolModule - The given Protocol Module.
+    RequestTimeoutMilliseconds - Timeout in milliseconds.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA* transportData;
+
+    transportData = (DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
+
+    DmfAssert(transportData != NULL);
+
+    ntStatus = transportData->DMF_BusTarget_AddressReadEx(DmfInterface,
+                                                          Payload,
+                                                          RequestTimeoutMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_AddressRead fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -286,10 +337,58 @@ Return Value:
 
     ntStatus = transportData->DMF_BusTarget_AddressRead(DmfInterface,
                                                         Payload);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_AddressRead fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+Dmf_BusTarget_BufferWriteEx(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ BusTransport_TransportPayload* Payload,
+    _In_ ULONG RequestTimeoutMilliseconds
+    )
+/*++
+
+Routine Description:
+
+    Unregisters the given Protocol Module from the Transport Module. This is called by Protocol Module.
+
+Arguments:
+
+    DmfInterfaceTransportModule - The given Transport Module.
+    DmfInterfaceProtocolModule - The given Protocol Module.
+    RequestTimeoutMilliseconds - Timeout in milliseconds.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA* transportData;
+
+    transportData = (DMF_INTERFACE_TRANSPORT_BusTarget_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
+
+    DmfAssert(transportData != NULL);
+
+    ntStatus = transportData->DMF_BusTarget_BufferWriteEx(DmfInterface,
+                                                          Payload,
+                                                          RequestTimeoutMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_BufferWrite fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -333,7 +432,6 @@ Return Value:
 
     ntStatus = transportData->DMF_BusTarget_BufferWrite(DmfInterface,
                                                         Payload);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_BufferWrite fails: ntStatus=%!STATUS!", ntStatus);
@@ -380,7 +478,6 @@ Return Value:
 
     ntStatus = transportData->DMF_BusTarget_BufferRead(DmfInterface,
                                                        Payload);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BusTarget_BufferRead fails: ntStatus=%!STATUS!", ntStatus);

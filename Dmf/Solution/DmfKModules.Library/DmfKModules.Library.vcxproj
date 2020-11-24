@@ -31,8 +31,10 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_File.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_CrashDump.c" />
@@ -75,8 +77,10 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl_Public.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_File.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Public.h" />
@@ -402,7 +406,9 @@
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md" />
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
+    <None Include="..\..\Modules.Library\Dmf_File.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
+    <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md" />
     <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md" />
