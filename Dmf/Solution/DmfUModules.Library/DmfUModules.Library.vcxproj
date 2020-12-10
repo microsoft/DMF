@@ -178,6 +178,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_QueuedWorkItem.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Registry.h" />
@@ -211,6 +212,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_ComponentFirmwareUpdate.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_QueuedWorkItem.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HidTarget.c" />
@@ -249,6 +251,7 @@
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_MobileBroadband.md" />
     <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.md" />
+    <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md" />
     <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md" />
     <None Include="..\..\Modules.Library\Dmf_QueuedWorkItem.md" />
     <None Include="..\..\Modules.Library\Dmf_Registry.md" />

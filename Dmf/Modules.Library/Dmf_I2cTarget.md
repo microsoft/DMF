@@ -26,10 +26,10 @@ typedef struct
   // Microseconds to delay on SPB Read operations.
   //
   ULONG ReadDelayUs;
-  //Time units(ms) to wait for SPB Read Operation to Complete.
+  // Time units(ms) to wait for SPB Read Operation to Complete.
   //
   ULONGLONG ReadTimeoutMs;
-  //Time units(ms) to wait for SPB Write Operation to Complete.
+  // Time units(ms) to wait for SPB Write Operation to Complete.
   //
   ULONGLONG WriteTimeoutMs;
 } DMF_CONFIG_I2cTarget;
@@ -37,9 +37,9 @@ typedef struct
 Member | Description
 ----|----
 I2cResourceIndex | Indicates the index of I2C resource that the Client wants to access.
-ReadDelayUs | The minimum number of GPIO interrupt lines that the Module must find in order to initialize properly.
-ReadTimeoutMs | The index of the GPIO line that this Module's instance to should access.
-WriteTimeoutMs | Indicates if this Module's instance will read and/or write from/to the GPIO line.
+ReadDelayUs | Microseconds to delay on SPB Read operations.
+ReadTimeoutMs | Time units(ms) to wait for SPB Read Operation to Complete.
+WriteTimeoutMs | Time units(ms) to wait for SPB Write Operation to Complete.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

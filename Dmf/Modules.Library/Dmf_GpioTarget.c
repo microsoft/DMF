@@ -322,16 +322,22 @@ Exit:
         request = NULL;
     }
 
-    if (NT_SUCCESS(ntStatus) &&
-        (data != 0))
+    if (NT_SUCCESS(ntStatus))
     {
-        *PinValue = TRUE;
+        if (data != 0)
+        {
+            *PinValue = TRUE;
+        }
+        else
+        {
+            *PinValue = FALSE;
+        }
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "GPIO value read = 0x%x", data);
     }
     else
     {
         *PinValue = FALSE;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "GPIO value read = 0x%x, ntStatus=%!STATUS!", data, ntStatus);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);

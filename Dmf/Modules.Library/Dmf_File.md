@@ -40,6 +40,43 @@ Support for working with files in drivers.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_File_DriverFileRead
+
+````
+_Must_inspect_result_
+NTSTATUS
+DMF_File_DriverFileRead(
+    _In_ DMFMODULE DmfModule,
+    _In_ WCHAR* FileName, 
+    _Out_ WDFMEMORY* FileContentMemory,
+    _Out_opt_ UCHAR** Buffer,
+    _Out_opt_ size_t* BufferLength
+    );
+````
+
+Reads the contents of a file, located in the same location where the driver's file is installed, into
+a buffer that is allocated for the Client. Client is responsible for freeing the allocated memory.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_File Module handle.
+FileName  | Name of the file.
+FileContentMemory | Buffer handle where read file contents are copied. The caller owns this memory.
+Buffer | Optional pointer to the buffer that contains the read data.
+BufferLength | Optional pointer to the length of the read data.
+
+##### Remarks
+
+* This Method is driver specific, not device specific. A new Method, `DMF_File_DeviceFileRead()`, will be added
+in an upcoming update.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_DMF_File_Read
 
 ````

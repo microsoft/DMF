@@ -50,7 +50,6 @@ typedef struct
     GUID* DeviceInterfaceGuid;
 } Pdo_DevicePropertyEntry;
 
-
 // Holds information for a branch of registry entries which consist of one
 // or more registry entries under a single key.
 //
@@ -170,7 +169,36 @@ typedef struct
     // The address of the PDO that is to be created.
     //
     ULONG Address;
+    // Allows Client to allocate custom context.
+    //
+    WDF_OBJECT_ATTRIBUTES* CustomClientContext;
 } PDO_RECORD;
+
+// Allows Client to perform other operations before the PDO is created.
+//
+typedef
+_Function_class_(EVT_DMF_Pdo_PreCreate)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_Pdo_PreCreate(_In_ DMFMODULE DmfModule,
+                      _In_ PWDFDEVICE_INIT DeviceInit,
+                      _In_ PDMFDEVICE_INIT DmfDeviceInit,
+                      _In_ PDO_RECORD* PdoRecord);
+
+// Allows Client to perform other operations after PDO is created.
+// (This is callback is not necessary to use unless the Client wants to access
+// the DMFDEVICEINIT structure used to create the PDO.)
+//
+typedef
+_Function_class_(EVT_DMF_Pdo_PostCreate)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_Pdo_PostCreate(_In_ DMFMODULE DmfModule,
+                       _In_ WDFDEVICE ChildDevice,
+                       _In_ PDMFDEVICE_INIT DmfDeviceInit,
+                       _In_ PDO_RECORD* PdoRecord);
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -204,6 +232,12 @@ typedef struct
     // Callback to format CompatibleIds strings.
     //
     EVT_DMF_Pdo_DeviceIdentifierFormat* EvtPdoCompatibleIdFormat;
+    // Allows Client to perform other operations before PDO is created.
+    //
+    EVT_DMF_Pdo_PreCreate* EvtPdoPreCreate;
+    // Allows Client to perform other operations after PDO is created.
+    //
+    EVT_DMF_Pdo_PostCreate* EvtPdoPostCreate;
 } DMF_CONFIG_Pdo;
 
 // This macro declares the following functions:
@@ -261,6 +295,13 @@ NTSTATUS
 DMF_Pdo_DeviceUnplug(
     _In_ DMFMODULE DmfModule,
     _In_ WDFDEVICE Device
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DeviceUnplugAll(
+    _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

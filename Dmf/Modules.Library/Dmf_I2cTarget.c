@@ -493,8 +493,6 @@ Return Value:
 
     PAGED_CODE();
 
-    UNREFERENCED_PARAMETER(TimeoutMs);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     request = NULL;
@@ -563,7 +561,8 @@ Return Value:
     WDF_REQUEST_SEND_OPTIONS_INIT(&requestOptions, WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
     if (TimeoutMs > 0)
     {
-        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&requestOptions, WDF_REL_TIMEOUT_IN_SEC(TimeoutMs));
+        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&requestOptions,
+                                             WDF_REL_TIMEOUT_IN_MS(TimeoutMs));
     }
     if (! WdfRequestSend(request,
                          moduleContext->I2cTarget,
@@ -836,6 +835,10 @@ Return Value:
             }
         }
     }
+    
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ResourceIndex=%d: ConnectionAssigned=[%s]",
+                moduleConfig->I2cResourceIndex,
+                moduleContext->I2cConnectionAssigned ? "TRUE" : "FALSE");
 
     //  Validate the configuration parameters.
     //

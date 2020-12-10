@@ -677,6 +677,13 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  NotifyUserWithRequest);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoDereference;
+    }
+
     ntStatus = STATUS_SUCCESS;
     isLocked = FALSE;
 
@@ -753,10 +760,14 @@ Return Value:
 
 Exit:
 
+    DMF_ModuleDereference(DmfModule);
+
     if (isLocked)
     {
         DMF_ModuleUnlock(DmfModule);
     }
+
+ExitNoDereference:
 
     FuncExitVoid(DMF_TRACE);
 

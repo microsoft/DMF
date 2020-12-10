@@ -4364,8 +4364,9 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DmfAssert(DmfModule != NULL);
-    DmfAssert(ValueName != NULL);
-    DmfAssert(*ValueName != L'\0');
+    // NOTE: ValueName is NULL if Client wants to access "Default" value.
+    // NOTE: "Default" value is always SZ.
+    //
     DmfAssert(((Buffer != NULL) && (BufferSize > 0)) ||
               ((NULL == Buffer) && (0 == BufferSize) && (BytesRead != NULL)));
 
@@ -4840,8 +4841,9 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DmfAssert(DmfModule != NULL);
-    DmfAssert(ValueName != NULL);
-    DmfAssert(*ValueName != L'\0');
+    // NOTE: ValueName is NULL if Client wants to access "Default" value.
+    // NOTE: "Default" value is always SZ.
+    //
     DmfAssert(((Buffer != NULL) && (NumberOfCharacters > 0)) ||
               ((NULL == Buffer) && (0 == NumberOfCharacters) && (BytesRead != NULL)));
 
@@ -4901,8 +4903,9 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DmfAssert(DmfModule != NULL);
-    DmfAssert(ValueName != NULL);
-    DmfAssert(*ValueName != L'\0');
+    // NOTE: ValueName is NULL if Client wants to access "Default" value.
+    // NOTE: "Default" value is always SZ.
+    //
     DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
@@ -5244,8 +5247,9 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DmfAssert(DmfModule != NULL);
-    DmfAssert(ValueName != NULL);
-    DmfAssert(*ValueName != L'\0');
+    // NOTE: ValueName is NULL if Client wants to access "Default" value.
+    // NOTE: "Default" value is always SZ.
+    //
     DmfAssert(Buffer != NULL);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,

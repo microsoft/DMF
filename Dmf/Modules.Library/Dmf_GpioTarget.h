@@ -39,7 +39,7 @@ typedef struct
     ULONG GpioConnectionIndex;
     // Open in Read or Write mode.
     //
-    ULONG OpenMode;
+    ACCESS_MASK OpenMode;
     // Share Access.
     //
     ULONG ShareAccess;

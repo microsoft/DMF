@@ -135,6 +135,186 @@ Exit:
 // Module Methods
 //
 
+#include <wdfdriver.h>
+
+_Must_inspect_result_
+NTSTATUS
+DMF_File_DriverFileRead(
+    _In_ DMFMODULE DmfModule,
+    _In_ WCHAR* FileName, 
+    _Out_ WDFMEMORY* FileContentMemory,
+    _Out_opt_ UCHAR** Buffer,
+    _Out_opt_ size_t* BufferLength
+    )
+/*++
+
+Routine Description:
+
+    Reads the contents of a file that has been installed into the directory where the driver was installed into.
+    This Method is useful for drivers installed in "state-separated" version of Windows.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FileName - Name of the file (located in driver installation directory).
+    FileContentMemory - Buffer handle where read file contents are copied. The caller owns this memory.
+    Buffer - The buffer containing the read data.
+    BufferLength - The length of the returned data.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    #if !defined(MAX_PATH)
+        #define MAX_PATH    256
+    #endif
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDFMEMORY driverPathAndFileNameMemory;
+    size_t driverPathAndFileNameSize;
+    wchar_t* driverPathAndFileName;
+    errno_t errorCode;
+    WDFDRIVER driver;
+    size_t maximumNumberOfCharacters;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 File);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE, 
+                DMF_TRACE, 
+                "Reading driver file [%S]",
+                FileName);
+
+    driverPathAndFileNameMemory = NULL;
+
+    // Allocate temporary path name dynamically to save stack space.
+    //
+    driverPathAndFileNameSize = sizeof(WCHAR) * MAX_PATH;
+    maximumNumberOfCharacters = driverPathAndFileNameSize / sizeof(WCHAR);
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               driverPathAndFileNameSize,
+                               &driverPathAndFileNameMemory,
+                               (VOID**)&driverPathAndFileName);
+    if (!NT_SUCCESS(ntStatus)) 
+    {
+        goto Exit;
+    }
+
+    // Zero out full target buffer onto which strings are copied so that the strings
+    // will be zero terminated.
+    //
+    RtlZeroMemory(driverPathAndFileName,
+                  driverPathAndFileNameSize);
+
+    driver = WdfGetDriver();
+
+    // NOTE: Methods for getting driver directory differ between Kernel and User-modes.
+    //
+
+#if defined(DMF_USER_MODE)
+
+    // NOTE: Unable to find this function in any EWDK including 2.27:
+    //       WdfDriverRetrieveDriverDataDirectoryString()
+    //
+    ntStatus = STATUS_NOT_SUPPORTED;
+    // This check avoids unreachable code compilation error.
+    //
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+#elif defined(DMF_KERNEL_MODE)
+
+    DRIVER_OBJECT* driverObject = WdfDriverWdmGetDriverObject(driver);
+
+    UNICODE_STRING fullPath;
+    ntStatus = RtlUnicodeStringInit(&fullPath,
+                                    NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = IoQueryFullDriverPath(driverObject,
+                                     &fullPath);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Get WCHAR from UNICODE so that the string functions can be used.
+    //
+    RtlStringCchCopyUnicodeString(driverPathAndFileName,
+                                  maximumNumberOfCharacters,
+                                  &fullPath);
+
+#endif
+
+    // Look for the final backlash in the driver path.
+    //
+    wchar_t *endOfPath = wcsrchr(driverPathAndFileName,
+                                 L'\\');
+    if (NULL == endOfPath)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid driver path: [%S]", driverPathAndFileName);
+        ntStatus = STATUS_DIRECTORY_NOT_SUPPORTED;
+        goto Exit;
+    }
+
+    // Remove driver file name so that only path remains.
+    //
+    *(endOfPath + 1) = L'\0';
+
+    // Append the name of the file to read.
+    //
+    errorCode = wcscat_s(driverPathAndFileName,
+                         maximumNumberOfCharacters,
+                         FileName);
+    if (errorCode != 0)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "driverPathAndFileName = [%S]", driverPathAndFileName);
+    ntStatus = DMF_File_ReadEx(DmfModule,
+                               driverPathAndFileName,
+                               FileContentMemory,
+                               Buffer,
+                               BufferLength);
+
+Exit:
+
+#if defined(DMF_USER_MODE)
+    #if (KMDF_VERSION_MAJOR >= 2) || (KMDF_VERSION_MINOR >= 27)
+        if (fullPathString != NULL)
+        {
+            WdfObjectDelete(fullPathString);
+        }
+    #endif
+#endif
+
+    if (driverPathAndFileNameMemory != NULL)
+    {
+        WdfObjectDelete(driverPathAndFileNameMemory);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Read(
@@ -366,6 +546,8 @@ Exit:
     }
 #endif
 
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
     return ntStatus;
 }
 
@@ -457,6 +639,8 @@ Exit:
     {
         WdfObjectDelete(wdfFileNameString);
     }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }

@@ -96,6 +96,35 @@ BufferSize | The size in bytes of Buffer.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_SpiTarget_IsResourceAssigned
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_SpiTarget_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_ BOOLEAN* SpiConnectionAssigned
+    );
+````
+
+Allows the Client to determine if the requested resource was assigned.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_SpiTarget Module handle.
+SpiConnectionAssigned | TRUE if the requested resource was found and assigned.
+
+##### Remarks
+
+* Use this Method to allow a single driver that supports different resources to run on multiple platforms.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_SpiTarget_Write
 
 ````

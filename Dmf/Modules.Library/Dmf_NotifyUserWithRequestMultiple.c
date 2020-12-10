@@ -282,7 +282,7 @@ Return Value:
     DMF_CONFIG_NotifyUserWithRequest moduleConfigNotifyUserWithRequest;
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = FileObject;
+    attributes.ParentObject = DmfModule;
 
     DMF_CONFIG_NotifyUserWithRequest_AND_ATTRIBUTES_INIT(&moduleConfigNotifyUserWithRequest,
                                                          &moduleAttributes);
