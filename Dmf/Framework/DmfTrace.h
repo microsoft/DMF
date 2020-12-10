@@ -69,13 +69,6 @@ Environment:
 // USEPREFIX(TraceInformation, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(TraceVerbose, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
-// CUSTOM_TYPE(SMFX_MACHINE_EXCEPTION, ItemEnum(SmFx::MachineException));
-// CUSTOM_TYPE(SMFX_TRANSITION_TYPE, ItemEnum(SmFx::TransitionType));
-// CUSTOM_TYPE(UCMUCSI_PPM_IOCTL, ItemEnum(_UCMUCSI_PPM_IOCTL));
-// CUSTOM_TYPE(MachineException, ItemEnum(StateMachine_MachineException));
-// CUSTOM_TYPE(TransitionType, ItemEnum(StateMachine_TransitionType));
-// CUSTOM_TYPE(ComponentFirmwareUpdateV2Event, ItemEnum(ComponentFirmwareUpdateV2EventId));
-// CUSTOM_TYPE(ComponentFirmwareUpdateV2State, ItemEnum(ComponentFirmwareUpdateV2StateId));
 // end_wpp
 
 #if !defined(DMF_WDF_DRIVER)

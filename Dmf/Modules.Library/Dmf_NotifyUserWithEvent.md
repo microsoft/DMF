@@ -6,8 +6,7 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-Implements a driver pattern that allows the Client to create a table of supported IOCTLs along with information about each IOCTL
-so that the Module can perform automatic validation.
+Implements a driver pattern that allows a Kernel-mode driver to share a named event with a User-mode component.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

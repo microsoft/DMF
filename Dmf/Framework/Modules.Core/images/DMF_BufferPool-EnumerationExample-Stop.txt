@@ -1,0 +1,51 @@
+' This file uses PlanUML. Download the tool from : https://plantuml.com/download
+' You would need to install Java, and run .jar file. 
+@startuml
+header Refer to corresponding .txt file to update this figure. 
+title DMF_BufferPool_Enumerate w/ BufferPool_EnumerationDisposition_StopEnumeration
+hnote over Client
+    Initialize EnumerationContext,
+    it is client's custom context
+endhnote
+Client -> DMF_BufferPool: DMF_BufferPool_Enumerate(.., EvtEnumeration, &EnumerationContext, ..)
+hnote over DMF_BufferPool: Lock
+hnote over DMF_BufferPool 
+    Pull Buffer1,
+    stop the timer for Buffer1 (if applicable)
+endhnote
+Client <- DMF_BufferPool: EvtEnumeration(.., Buffer1, Buffer1Context, EnumerationContext )
+Client --> DMF_BufferPool: return BufferPool_EnumerationDisposition_ContinueEnumeration
+hnote over DMF_BufferPool 
+    Put Buffer1 back
+    continue the timer for Buffer1 (if applicable);
+    Pull Buffer2,
+    stop the Buffer2 timer (if applicable)
+endhnote
+Client <- DMF_BufferPool: EvtEnumeration(.., Buffer2, Buffer2Context, EnumerationContext )
+Client --> DMF_BufferPool: return BufferPool_EnumerationDisposition_ContinueEnumeration
+hnote over DMF_BufferPool
+    Put Buffer2 back,
+    continue the Buffer2 timer (if applicable);
+    Pull next buffer (BufferN),
+    stop the timer for BufferN (if applicable)
+endhnote
+Client <- DMF_BufferPool: EvtEnumeration(.., BufferN, BufferNContext, EnumerationContext )
+hnote over Client
+    Client found the buffer it is looking for,
+    Client no longer wants to continue the enumeration,
+    though does not want to remove the buffer from DMF_BufferPool,
+    Remember this callback is called with a lock held,
+    so Client only records the information in EnumerationContext    
+endhnote
+Client --> DMF_BufferPool: return BufferPool_EnumerationDisposition_StopEnumeration
+hnote over DMF_BufferPool
+    Put BufferN back
+    continue the BufferN timer (if applicable)
+endhnote
+hnote over DMF_BufferPool: Unlock
+Client <-- DMF_BufferPool: return (DMF_BufferPool_Enumerate)
+hnote over Client
+    Client examines EnumerationContext to 
+    get the information it was looking for
+endhnote
+@enduml

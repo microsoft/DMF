@@ -31,6 +31,16 @@ DECLARE_DMF_MODULE_NO_CONFIG(File)
 
 _Must_inspect_result_
 NTSTATUS
+DMF_File_DriverFileRead(
+    _In_ DMFMODULE DmfModule,
+    _In_ WCHAR* FileName, 
+    _Out_ WDFMEMORY* FileContentMemory,
+    _Out_opt_ UCHAR** Buffer,
+    _Out_opt_ size_t* BufferLength
+    );
+
+_Must_inspect_result_
+NTSTATUS
 DMF_File_Read(
     _In_ DMFMODULE DmfModule,
     _In_ WDFSTRING FileName, 

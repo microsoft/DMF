@@ -47,6 +47,9 @@ Environment:
 
 typedef struct _DMF_CONTEXT_SpiTarget
 {
+    // Resources assigned.
+    //
+    BOOLEAN SpiConnectionAssigned;
     // Underlying SPI device.
     //
     WDFIOTARGET Target;
@@ -531,6 +534,17 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    if (! moduleContext->SpiConnectionAssigned)
+    {
+        // Mandatory check was previously done.
+        // If the resource presence is mandatory but the resource is missing, then the 
+        // ResourcesAssign callback will have failed and the Open callback will not happen.
+        //
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No SPI Resources Found");
+        ntStatus = STATUS_SUCCESS;
+        goto Exit;
+    }
+
     device = DMF_ParentDeviceGet(DmfModule);
 
     RtlInitEmptyUnicodeString(&resourcePathString,
@@ -655,7 +669,7 @@ Arguments:
 
 Return Value:
 
-    STATUS_SUCCESS.
+    NTSTATUS
 
 --*/
 {
@@ -718,6 +732,7 @@ Return Value:
                 {
                     moduleContext->ResourceIndex = spiResourceCount;
                     moduleContext->Connection = *resource;
+                    moduleContext->SpiConnectionAssigned = TRUE;
                     resourceAssigned = TRUE;
                 }
                 spiResourceCount++;
@@ -725,9 +740,14 @@ Return Value:
         }
     }
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, " ResourceIndex=%d: ConnectionAssigned = %s",
+                moduleConfig->ResourceIndex,
+                moduleContext->SpiConnectionAssigned ? "TRUE" : "FALSE");
+
     //  Validate the configuration parameters.
     //
-    if (0 == spiResourceCount || (! resourceAssigned))
+    if ((moduleConfig->SpiConnectionMandatory) &&
+        (0 == spiResourceCount || (! resourceAssigned)))
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No SPI Resources assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
@@ -819,6 +839,48 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_SpiTarget_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_ BOOLEAN* SpiConnectionAssigned
+    )
+/*++
+
+Routine Description:
+
+    SPI resources may or may not be present on some systems. This function returns a flag
+    indicating that the SPI resource requested was found.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    SpiConnectionAssigned - Is SPI connection assigned to this Module instance.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_SpiTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 SpiTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    *SpiConnectionAssigned = moduleContext->SpiConnectionAssigned;
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_SpiTarget_Write(
@@ -827,6 +889,23 @@ DMF_SpiTarget_Write(
     _In_ ULONG BufferLength,
     _In_ ULONG TimeoutMilliseconds
     )
+/*++
+ 
+  Routine Description:
+
+    This routine writes to the SPI controller.
+
+  Arguments:
+
+    DmfModule - This Module's Module handle.
+    BufferToWrite- Data to write to the device.
+    NumberOfBytesToWrite - Length of BufferToWrite.
+
+  Return Value:
+
+    None
+
+--*/
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_SpiTarget* moduleContext;
@@ -863,6 +942,25 @@ DMF_SpiTarget_WriteRead(
     _In_ ULONG InDataLength,
     _In_ ULONG TimeoutMilliseconds
     )
+/*++
+ 
+  Routine Description:
+
+    This routine sends a write-read sequence to the SPI controller. It reads a buffer from a particular address.
+
+  Arguments:
+
+    DmfModule - This Module's Module handle.
+    InputBuffer - Address to read buffer from.
+    InputBufferLength - Length of InputBuffer.
+    OutputBuffer - Data read from device.
+    OutputBufferLength - Length of OutputBuffer.
+
+  Return Value:
+
+    NTSTATUS
+
+--*/
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_SpiTarget* moduleContext;

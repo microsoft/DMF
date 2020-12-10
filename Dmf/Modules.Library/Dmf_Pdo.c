@@ -182,7 +182,7 @@ Arguments:
     Device - A handle to a framework driver object.
     PdoRecord - Pdo Record.
     DeviceInit - Pre-allocated WDFDEVICE_INIT structure.
-    Device - the new PDO created (optional).
+    Device - The new PDO created (optional).
 
 Return Value:
 
@@ -193,7 +193,7 @@ Return Value:
     NTSTATUS ntStatus;
     PWDFDEVICE_INIT deviceInit;
     PDO_DEVICE_DATA* pdoData;
-    WDFDEVICE child;
+    WDFDEVICE childDevice;
     WDF_OBJECT_ATTRIBUTES pdoAttributes;
     UNICODE_STRING hardwareId;
     UNICODE_STRING compatibleId;
@@ -224,13 +224,13 @@ Return Value:
               PdoRecord->CompatibleIds != NULL);
     DmfAssert(PdoRecord->Description != NULL);
 
-    child = NULL;
+    childDevice = NULL;
     dmfDeviceInit = NULL;
 
     if (DeviceInit == NULL)
     {
         // Allocate a WDFDEVICE_INIT structure and set the properties
-        // so that a device object for the child can be created.
+        // so that a device object for the childDevice can be created.
         //
         deviceInit = WdfPdoInitAllocate(device);
         if (NULL == deviceInit)
@@ -431,11 +431,13 @@ Return Value:
     // The driver can specify the driver's default locale by calling
     // WdfPdoInitSetDefaultLocale.
     //
+    LCID lcid = MAKELCID(MAKELANGID(LANG_ENGLISH,
+                                    SUBLANG_ENGLISH_US),
+                         SORT_DEFAULT);
     ntStatus = WdfPdoInitAddDeviceText(deviceInit,
                                        &deviceDescription,
                                        &deviceLocation,
-                                       MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-                                       SORT_DEFAULT));
+                                       lcid);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAddDeviceText fails: ntStatus=%!STATUS!", ntStatus);
@@ -443,8 +445,22 @@ Return Value:
     }
 
     WdfPdoInitSetDefaultLocale(deviceInit,
-                               MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-                               SORT_DEFAULT));
+                               lcid);
+
+    // Allow Client to perform other actions prior to the PDO creation.
+    //
+    if (moduleConfig->EvtPdoPreCreate != NULL)
+    {
+        ntStatus = moduleConfig->EvtPdoPreCreate(DmfModule,
+                                                 deviceInit,
+                                                 dmfDeviceInit,
+                                                 PdoRecord);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtPdoPreCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
 
     // Initialize the attributes to specify the size of PDO device extension.
     // All the state information private to the PDO will be tracked here.
@@ -458,12 +474,26 @@ Return Value:
     //
     ntStatus = WdfDeviceCreate(&deviceInit,
                                &pdoAttributes,
-                               &child);
+                               &childDevice);
     if (! NT_SUCCESS(ntStatus))
     {
-        child = NULL;
+        childDevice = NULL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
+    }
+
+    if (PdoRecord->CustomClientContext != NULL)
+    {
+        // Add the Client's custom context.
+        //
+        ntStatus = WdfObjectAllocateContext(childDevice,
+                                            PdoRecord->CustomClientContext,
+                                            NULL);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
 
     // If the product has specified optional product specific properties, add them here.
@@ -480,6 +510,21 @@ Return Value:
         }
     }
 
+    // Allow Client to perform other actions after the PDO creation.
+    //
+    if (moduleConfig->EvtPdoPostCreate != NULL)
+    {
+        ntStatus = moduleConfig->EvtPdoPostCreate(DmfModule,
+                                                  childDevice,
+                                                  dmfDeviceInit,
+                                                  PdoRecord);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtPdoPostCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
     if (PdoRecord->EnableDmf)
     {
         DMF_EVENT_CALLBACKS_INIT(&dmfCallbacks);
@@ -487,7 +532,7 @@ Return Value:
         DMF_DmfDeviceInitSetEventCallbacks(dmfDeviceInit,
                                            &dmfCallbacks);
 
-        ntStatus = DMF_ModulesCreate(child,
+        ntStatus = DMF_ModulesCreate(childDevice,
                                      &dmfDeviceInit);
         if (! NT_SUCCESS(ntStatus))
         {
@@ -498,14 +543,16 @@ Return Value:
 
     // Get the device context.
     //
-    pdoData = PdoGetData(child);
+    pdoData = PdoGetData(childDevice);
 
     pdoData->SerialNumber = PdoRecord->SerialNumber;
 
     // Store the device ID (1st instance of the hardwareID[] in PDO_RECORD) to be used during device removal
     //
-    size_t hardwareIDLength = wcsnlen_s(PdoRecord->HardwareIds[DEVICE_ID_INSTANCE], MAXIMUM_ID_LENGTH);
-    if ((wcsnlen_s(PdoRecord->HardwareIds[DEVICE_ID_INSTANCE], MAXIMUM_ID_LENGTH) > MAXIMUM_ID_LENGTH))
+    size_t hardwareIDLength = wcsnlen_s(PdoRecord->HardwareIds[DEVICE_ID_INSTANCE],
+                                        MAXIMUM_ID_LENGTH);
+    if ((wcsnlen_s(PdoRecord->HardwareIds[DEVICE_ID_INSTANCE],
+                   MAXIMUM_ID_LENGTH) > MAXIMUM_ID_LENGTH))
     {
         hardwareIDLength = MAXIMUM_ID_LENGTH;
     }
@@ -513,7 +560,7 @@ Return Value:
                   PdoRecord->HardwareIds[DEVICE_ID_INSTANCE],
                   (hardwareIDLength * sizeof(WCHAR)));
 
-    // Set properties for the child device, all others inherit from the bus driver.
+    // Set properties for the childDevice device, all others inherit from the bus driver.
     //
     WDF_DEVICE_PNP_CAPABILITIES_INIT(&pnpCapabilities);
     pnpCapabilities.Removable = WdfUseDefault;
@@ -535,7 +582,7 @@ Return Value:
                                             &pnpCapabilities);
     }
 
-    WdfDeviceSetPnpCapabilities(child,
+    WdfDeviceSetPnpCapabilities(childDevice,
                                 &pnpCapabilities);
 
     WDF_DEVICE_POWER_CAPABILITIES_INIT(&powerCapabilities);
@@ -556,13 +603,13 @@ Return Value:
                                               &powerCapabilities);
     }
 
-    WdfDeviceSetPowerCapabilities(child,
+    WdfDeviceSetPowerCapabilities(childDevice,
                                   &powerCapabilities);
 
     if (moduleConfig->EvtPdoQueryInterfaceAdd != NULL)
     {
         ntStatus = moduleConfig->EvtPdoQueryInterfaceAdd(DmfModule,
-                                                         child);
+                                                         childDevice);
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtPdoQueryInterfaceAdd fails: ntStatus=%!STATUS!", ntStatus);
@@ -575,7 +622,7 @@ Return Value:
         // Add this device to the FDO's collection of children.
         // 
         ntStatus = WdfFdoAddStaticChild(device,
-                                        child);
+                                        childDevice);
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfFdoAddStaticChild fails: ntStatus=%!STATUS!", ntStatus);
@@ -583,17 +630,17 @@ Return Value:
         }
     }
 
-    // After the child device is added to the static collection successfully,
+    // After the childDevice device is added to the static collection successfully,
     // driver must call WdfPdoMarkMissing to get the device deleted. It
-    // should not delete the child device directly by calling WdfObjectDelete.
+    // should not delete the childDevice device directly by calling WdfObjectDelete.
     //
 
     if (Device != NULL)
     {
-        *Device = child;
+        *Device = childDevice;
     }
 
-    child = NULL;
+    childDevice = NULL;
 
 Exit:
 
@@ -611,9 +658,9 @@ Exit:
         DMF_DmfDeviceInitFree(&dmfDeviceInit);
     }
 
-    if (child != NULL)
+    if (childDevice != NULL)
     {
-        WdfObjectDelete(child);
+        WdfObjectDelete(childDevice);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1027,7 +1074,7 @@ Return Value:
         // WdfFdoRetrieveNextStaticChild returns reported and to be reported
         // children (ie children who have been added but not yet reported to PNP).
         //
-        // A surprise removed child will not be returned in this list.
+        // A surprise removed childDevice will not be returned in this list.
         //
         pdoData = PdoGetData(childDevice);
 
@@ -1048,7 +1095,7 @@ Return Value:
 
     if (unique)
     {
-        // Create a new child device.
+        // Create a new childDevice device.
         //
         PDO_RECORD pdoRecord;
         RtlZeroMemory(&pdoRecord,
@@ -1138,7 +1185,7 @@ Return Value:
         // WdfFdoRetrieveNextStaticChild returns reported and to be reported
         // children (ie children who have been added but not yet reported to PNP).
         //
-        // A surprise removed child will not be returned in this list.
+        // A surprise removed childDevice will not be returned in this list.
         //
         pdoData = PdoGetData(childDevice);
 
@@ -1183,7 +1230,7 @@ Return Value:
 
     if (unique)
     {
-        // Create a new child device.
+        // Create a new childDevice device.
         //
         ntStatus = Pdo_PdoEx(DmfModule,
                              PdoRecord,
@@ -1245,6 +1292,66 @@ Return Value:
 Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DeviceUnplugAll(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Unplug all childDevice PDOs.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    WDFDEVICE childDevice;
+    WDFDEVICE device;
+    NTSTATUS ntStatus;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Pdo);
+
+    ntStatus = STATUS_SUCCESS;
+    device = DMF_ParentDeviceGet(DmfModule);
+
+    WdfFdoLockStaticChildListForIteration(device);
+
+    // Start at first childDevice PDO.
+    //
+    childDevice = NULL;
+    while ((childDevice = WdfFdoRetrieveNextStaticChild(device,
+                                                        childDevice,
+                                                        WdfRetrieveAddedChildren)) != NULL)
+    {
+        ntStatus = DMF_Pdo_DeviceUnplug(DmfModule,
+                                        childDevice);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "DMF_Pdo_DeviceUnplug fails: ntStatus=%!STATUS!",
+                        ntStatus);
+            break;
+        }
+    }
+
+    WdfFdoUnlockStaticChildListFromIteration(device);
 
     return ntStatus;
 }

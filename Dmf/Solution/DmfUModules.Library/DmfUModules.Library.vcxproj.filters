@@ -201,6 +201,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -290,6 +293,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
@@ -376,6 +382,9 @@
       <Filter>Documentation\Modules\Network</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_Rundown.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>

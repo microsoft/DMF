@@ -121,6 +121,9 @@ typedef struct
   // The address of the PDO that is to be created.
   //
   ULONG Address
+  // Allows Client to allocate custom context.
+  //
+  WDF_OBJECT_ATTRIBUTES* CustomClientContext;
 } PDO_RECORD;
 ````
 Member | Description
@@ -139,6 +142,7 @@ EvtDmfDeviceModulesAdd | The callback that instantiates DMF Modules, if applicab
 DeviceProperties | The table entry for this device's properties.
 UseAddress | Set this to true if the PDO has non-default address.
 Address | The address of the PDO that is to be created.
+CustomClientContext | Allows Client to assign a context type that is added to the PDO's WDFDEVICE WDF contexts. This context is private to the Client.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -260,6 +264,61 @@ DmfModule | An open DMF_Pdo Module handle.
 FormattedIdBuffer | The output buffer to store the formatted device identifier string.
 BufferLength | The length of FormattedIdBuffer buffer, in number of characters.
 FormatString | A string specifying the format of the device identifier.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_Pdo_PreCreate
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_Pdo_PreCreate(_In_ DMFMODULE DmfModule,
+                      _In_ PWDFDEVICE_INIT DeviceInit,
+                      _In_ PDMFDEVICE_INIT DmfDeviceInit,
+                      _In_ PDO_RECORD* PdoRecord);
+````
+
+Allows the Client to set PDO properties that are assigned prior to the PDO's creation. For example, this callback
+is used to assign the PDO's security attributes.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Pdo Module handle.
+DeviceInit | The PWDFDEVICE_INIT data used to create the PDO.
+DmfDeviceInit | The PDMFDEVICE_INIT data used to create the PDO.
+PdoRecord | The PDO record used to create the PDO.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_Pdo_PostCreate
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_Pdo_PostCreate(_In_ DMFMODULE DmfModule,
+                       _In_ WDFDEVICE ChildDevice,
+                       _In_ PDMFDEVICE_INIT DmfDeviceInit,
+                       _In_ PDO_RECORD* PdoRecord);
+````
+
+Allows the Client to set PDO properties that are assigned after the PDO's creation. For example, this callback
+is used to initialize the Client specific PDO context prior to the PDO's static Module's being instantiated (so that
+the Client specific context is initialized when the ModulesAdd() callback is called for the created PDO).
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Pdo Module handle.
+ChildDevice | The WDFDEVICE corresponding to the created PDO.
+DmfDeviceInit | The PDMFDEVICE_INIT data used to create the PDO.
+PdoRecord | The PDO record used to create the PDO.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -429,6 +488,32 @@ Device | PDO to be unplugged.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_Pdo_DeviceUnplugAll
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_Pdo_DeviceUnplugAll(
+  _In_ DMFMODULE DmfModule
+  );
+````
+
+Unplugs and destroys any PDO that is a child of the WDFDEVICE corresponding to the given Module.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Pdo Module handle. (The given Module.)
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_Pdo_DeviceUnPlugEx
 
 ````
@@ -454,7 +539,7 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_Pdo Module handle.
-HardwareId | Wide string represenging Hardware Id of the PDO to be unplugged.
+HardwareId | Wide string representing Hardware Id of the PDO to be unplugged.
 SerialNumber | Serial number of the PDO to be unplugged.
 
 ##### Remarks

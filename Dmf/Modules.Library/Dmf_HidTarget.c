@@ -3387,6 +3387,64 @@ Return Value:
 
 --*/
 {
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
+
+    ntStatus = DMF_HidTarget_FeatureGetWithTimeout(DmfModule,
+                                                   FeatureId,
+                                                   Buffer,
+                                                   BufferSize,
+                                                   OffsetOfDataToCopy,
+                                                   NumberOfBytesToCopy,
+                                                   0);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureGetWithTimeout(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR FeatureId,
+    _Out_ UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_ ULONG OffsetOfDataToCopy,
+    _In_ ULONG NumberOfBytesToCopy,
+    _In_ ULONG TimeoutMs
+    )
+/*++
+
+Routine Description:
+
+    Sends a Get Feature request with a timeout to underlying HID device.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FeatureId - Feature Id to call Get Feature on
+    Buffer - Target buffer where read data will be written to
+    BufferSize - Size of Buffer in bytes
+    OffsetOfDataToCopy - Offset of data from Feature Report buffer to copy from
+    NumberOfBytesToCopy - Number of bytes to copy from offset in Feature Report Buffer
+    TimeoutMs - Timeout value in milliseconds, or zero for no timeout.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
     PHIDP_PREPARSED_DATA preparsedData;
     CHAR* report;
     NTSTATUS ntStatus;
@@ -3471,7 +3529,7 @@ Return Value:
                                                              moduleContext->HidCaps.FeatureReportByteLength,
                                                              ContinuousRequestTarget_RequestType_Ioctl,
                                                              IOCTL_HID_GET_FEATURE,
-                                                             0,
+                                                             TimeoutMs,
                                                              NULL);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -3536,6 +3594,64 @@ Arguments:
     BufferSize - Size of Buffer in bytes
     OffsetOfDataToCopy - Offset of data from Feature Report buffer to write to
     NumberOfBytesToCopy - Number of bytes to copy in Feature Report Buffer
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
+
+    ntStatus = DMF_HidTarget_FeatureSetWithTimeout(DmfModule,
+                                                   FeatureId,
+                                                   Buffer,
+                                                   BufferSize,
+                                                   OffsetOfDataToCopy,
+                                                   NumberOfBytesToCopy,
+                                                   0);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureSetWithTimeout(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR FeatureId,
+    _In_ UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_ ULONG OffsetOfDataToCopy,
+    _In_ ULONG NumberOfBytesToCopy,
+    _In_ ULONG TimeoutMs
+    )
+/*++
+
+Routine Description:
+
+    Sends a Set Feature request with a timeout to underlying HID device.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FeatureId - Feature Id to call Set Feature on
+    Buffer - Source buffer for the data write
+    BufferSize - Size of Buffer in bytes
+    OffsetOfDataToCopy - Offset of data from Feature Report buffer to write to
+    NumberOfBytesToCopy - Number of bytes to copy in Feature Report Buffer
+    TimeoutMs - Timeout value in milliseconds, or zero for no timeout.
 
 Return Value:
 
@@ -3632,7 +3748,7 @@ Return Value:
                                                                  moduleContext->HidCaps.FeatureReportByteLength,
                                                                  ContinuousRequestTarget_RequestType_Ioctl,
                                                                  IOCTL_HID_GET_FEATURE,
-                                                                 0,
+                                                                 TimeoutMs,
                                                                  NULL);
         if (! NT_SUCCESS(ntStatus))
         {
@@ -3654,7 +3770,7 @@ Return Value:
                                                              0,
                                                              ContinuousRequestTarget_RequestType_Ioctl,
                                                              IOCTL_HID_SET_FEATURE,
-                                                             0,
+                                                             TimeoutMs,
                                                              NULL);
     if (! NT_SUCCESS(ntStatus))
     {

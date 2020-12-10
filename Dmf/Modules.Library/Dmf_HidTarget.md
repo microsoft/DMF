@@ -32,11 +32,6 @@ typedef struct
   UINT16 VendorUsage;
   UINT16 VendorUsagePage;
   UINT8 ExpectedReportId;
-  // Transaction Parameters.
-  //
-  ULONG ReadTimeoutMs;
-  ULONG Retries;
-  ULONG ReadTimeouSubsequenttMs;
   // Open in Read or Write mode.
   //
   ULONG OpenMode;
@@ -252,6 +247,42 @@ NumberOfBytesToCopy | The number of bytes that should be received.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_HidTarget_FeatureGetWithTimeout
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureGetWithTimeout(
+  _In_ DMFMODULE DmfModule,
+  _In_ UCHAR FeatureId,
+  _In_ UCHAR* Buffer,
+  _In_ ULONG BufferSize,
+  _In_ ULONG OffsetOfDataToCopy,
+  _In_ ULONG NumberOfBytesToCopy,
+  _In_ ULONG TimeoutMs
+  );
+````
+
+Allows the Client to send a "Get Feature" command with a timeout to the HID device connected the instance of this Module.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+FeatureId | The Feature Id to send.
+Buffer | The Client buffer that will receive data associated with FeatureId.
+BufferSize | The size of Buffer in bytes.
+OffsetOfDataToCopy | The offset in Buffer where received data is written.
+NumberOfBytesToCopy | The number of bytes that should be received.
+TimeoutMs | Timeout value in milliseconds, or zero for no timeout.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_HidTarget_FeatureSet
 
 ````
@@ -283,6 +314,42 @@ Buffer | The Client buffer that contains the data to send to the device associat
 BufferSize | The size of Buffer in bytes.
 OffsetOfDataToCopy | The offset in Buffer where the data to send begins.
 NumberOfBytesToCopy | The number of bytes that should be sent.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_HidTarget_FeatureSetWithTimeout
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureSetWithTimeout(
+  _In_ DMFMODULE DmfModule,
+  _In_ UCHAR FeatureId,
+  _In_ UCHAR* Buffer,
+  _In_ ULONG BufferSize,
+  _In_ ULONG OffsetOfDataToCopy,
+  _In_ ULONG NumberOfBytesToCopy,
+  _In_ ULONG TimeoutMs
+  );
+````
+
+Allows the Client to send a "Set Feature" command with a timeout to the HID device connected the instance of this Module.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+FeatureId | The Feature Id to send.
+Buffer | The Client buffer that contains the data to send to the device associated with FeatureId.
+BufferSize | The size of Buffer in bytes.
+OffsetOfDataToCopy | The offset in Buffer where the data to send begins.
+NumberOfBytesToCopy | The number of bytes that should be sent.
+TimeoutMs | Timeout value in milliseconds, or zero for no timeout.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

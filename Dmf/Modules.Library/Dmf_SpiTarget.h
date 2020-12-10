@@ -41,6 +41,9 @@ EVT_DMF_SpiTarget_LatencyCalculation(_In_ DMFMODULE DmfModule,
 //
 typedef struct
 {
+    // Module will not load if SPI Connection not found.
+    //
+    BOOLEAN SpiConnectionMandatory;
     // Indicates the resource index of the SPI line this instance connects to.
     //
     ULONG ResourceIndex;
@@ -59,6 +62,13 @@ DECLARE_DMF_MODULE(SpiTarget)
 
 // Module Methods
 //
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_SpiTarget_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_ BOOLEAN* SpiConnectionAssigned
+    );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
