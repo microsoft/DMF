@@ -93,6 +93,9 @@ DMF_MODULE_DECLARE_CONFIG(BufferPool)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+WDF_DECLARE_CUSTOM_TYPE(DMF_BufferPool_Buffer)
+
 typedef ULONG BufferPool_SentinelType;
 #define BufferPool_Signature        0x87654321
 #define BufferPool_SentinelContext  0x11112222
@@ -756,6 +759,15 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreateFromLookaside ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Add WDF custom type for buffer memory.
+    //
+    ntStatus = WdfObjectAddCustomType(memory,
+                                      DMF_BufferPool_Buffer);
+    if (!NT_SUCCESS(ntStatus)) {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAddCustomType fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

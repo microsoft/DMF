@@ -236,6 +236,71 @@ Return Value:
     return numberOfRequestsCompleted;
 }
 
+VOID
+NotifyUserWithRequest_EventRequestReturnAll(
+    _In_ DMFMODULE DmfModule,
+    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ ULONG_PTR EventCallbackContext,
+    _In_ NTSTATUS NtStatus
+    )
+/*++
+
+Routine Description:
+
+    Dequeue all requests from this object's queue and complete it using a specific
+    completion handler.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    EventCallbackFunction - The function to call with dequeued requests.
+    EventCallbackContext - Context to pass to EventCallbackFunction.
+    NtStatus - The status to send in completed request.
+
+Return Value:
+
+    None
+
+++*/
+{
+    ULONG numberOfRequestsCompleted;
+    ULONG numberOfRequestsCompletedThisCall;
+    ULONG numberOfRequestsToComplete;
+    DMF_CONTEXT_NotifyUserWithRequest* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    numberOfRequestsCompleted = 0;
+    numberOfRequestsCompletedThisCall = 0;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Find number of requests in queue (There will be at least 1 request per Application).
+    //
+    numberOfRequestsToComplete = moduleContext->EventCountHeld;
+
+    // Complete all the requests in the queue.
+    //
+    do
+    {
+        numberOfRequestsCompletedThisCall = NotifyUserWithRequest_EventRequestReturn(DmfModule,
+                                                                                     EventCallbackFunction,
+                                                                                     EventCallbackContext,
+                                                                                     NtStatus);
+        numberOfRequestsCompleted += numberOfRequestsCompletedThisCall;
+        numberOfRequestsToComplete--;
+    } while ((numberOfRequestsCompletedThisCall > 0) && (numberOfRequestsToComplete > 0));
+
+    if (0 == numberOfRequestsCompleted)
+    {
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Event lost because there are no pending requests!");
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of requests completed = %u", numberOfRequestsCompleted);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 #pragma code_seg("PAGE")
 NTSTATUS
 NotifyUserWithRequest_CompleteRequestWithEventData(
@@ -477,10 +542,10 @@ Return Value:
 
     // Flush any requests held by this object.
     //
-    DMF_NotifyUserWithRequest_RequestReturnAll(DmfModule,
-                                               NULL,
-                                               0,
-                                               STATUS_CANCELLED);
+    NotifyUserWithRequest_EventRequestReturnAll(DmfModule,
+                                                NULL,
+                                                0,
+                                                STATUS_CANCELLED);
 
     WdfObjectDelete(moduleContext->EventRequestQueue);
     moduleContext->EventRequestQueue = NULL;
@@ -1026,24 +1091,14 @@ Return Value:
 
 ++*/
 {
-    ULONG numberOfRequestsCompleted;
-    ULONG numberOfRequestsCompletedThisCall;
-    ULONG numberOfRequestsToComplete;
-    DMF_CONTEXT_NotifyUserWithRequest* moduleContext;
     NTSTATUS ntStatus;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    // By design this Method can be called by Close callback.
-    // (This Method is called to flush any remaining requests when Module is closed.)
-    //
-    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
-                                            NotifyUserWithRequest);
-
-    numberOfRequestsCompleted = 0;
-    numberOfRequestsCompletedThisCall = 0;
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -1052,34 +1107,14 @@ Return Value:
         goto Exit;
     }
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    // Find number of requests in queue (There will be at least 1 request per Application).
-    //
-    numberOfRequestsToComplete = moduleContext->EventCountHeld;
-
-    // Complete all the requests in the queue.
-    //
-    do
-    {
-        numberOfRequestsCompletedThisCall = NotifyUserWithRequest_EventRequestReturn(DmfModule,
-                                                                                     EventCallbackFunction,
-                                                                                     EventCallbackContext,
-                                                                                     NtStatus);
-        numberOfRequestsCompleted += numberOfRequestsCompletedThisCall;
-        numberOfRequestsToComplete--;
-    } while ((numberOfRequestsCompletedThisCall > 0) && (numberOfRequestsToComplete > 0));
-
-    if (0 == numberOfRequestsCompleted)
-    {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Event lost because there are no pending requests!");
-    }
+    NotifyUserWithRequest_EventRequestReturnAll(DmfModule,
+                                                EventCallbackFunction,
+                                                EventCallbackContext,
+                                                NtStatus);
 
     DMF_ModuleDereference(DmfModule);
 
 Exit:
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Number of requests completed = %u", numberOfRequestsCompleted);
 
     FuncExitVoid(DMF_TRACE);
 }

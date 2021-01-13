@@ -648,24 +648,24 @@ typedef struct
     DMF_WdfAddCustomType* WdfAddCustomType;
 } DMF_MODULE_DESCRIPTOR;
 
-#define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)           \
-                                                                                            \
-RtlZeroMemory(&Descriptor,                                                                  \
-              sizeof(DMF_MODULE_DESCRIPTOR));                                               \
-                                                                                            \
-Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);                 \
-Descriptor.ModuleName                      = ""#Name;                                       \
-Descriptor.ModuleOptions                   = Module_Options;                                \
-Descriptor.OpenOption                      = Open_Option;                                   \
-Descriptor.ModuleConfigSize                = sizeof(DMF_CONFIG_##Name##);                   \
-Descriptor.ModuleBranchTrackInitialize     = NULL;                                          \
-Descriptor.NumberOfAuxiliaryLocks          = 0;                                             \
-Descriptor.CallbacksDmf                    = NULL;                                          \
-Descriptor.CallbacksWdf                    = NULL;                                          \
-Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;         \
-Descriptor.ModuleContextAttributes         = WDF_NO_OBJECT_ATTRIBUTES;                      \
-Descriptor.WdfAddCustomType                = WDF_ADD_CUSTOM_TYPE_FUNCTION_NAME(Name);       \
-                                                                                            \
+#define DMF_MODULE_DESCRIPTOR_INIT(Descriptor, Name, Module_Options, Open_Option)                       \
+                                                                                                        \
+RtlZeroMemory(&Descriptor,                                                                              \
+              sizeof(DMF_MODULE_DESCRIPTOR));                                                           \
+                                                                                                        \
+Descriptor.Size                            = sizeof(DMF_MODULE_DESCRIPTOR);                             \
+Descriptor.ModuleName                      = ""#Name;                                                   \
+Descriptor.ModuleOptions                   = Module_Options;                                            \
+Descriptor.OpenOption                      = Open_Option;                                               \
+Descriptor.ModuleConfigSize                = sizeof(DMF_CONFIG_##Name##);                               \
+Descriptor.ModuleBranchTrackInitialize     = NULL;                                                      \
+Descriptor.NumberOfAuxiliaryLocks          = 0;                                                         \
+Descriptor.CallbacksDmf                    = NULL;                                                      \
+Descriptor.CallbacksWdf                    = NULL;                                                      \
+Descriptor.ModuleLiveKernelDumpInitialize  = DMF_##Name##_LiveKernelDumpInitialize;                     \
+Descriptor.ModuleContextAttributes         = WDF_NO_OBJECT_ATTRIBUTES;                                  \
+Descriptor.WdfAddCustomType                = WDF_ADD_CUSTOM_TYPE_FUNCTION_NAME(DMF_##Name);             \
+                                                                                                        \
 
 #define DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(Descriptor, Name, ModuleContext, Module_Options, Open_Option)         \
                                                                                                                       \
@@ -855,7 +855,7 @@ DMF_HandleValidate_ModuleMethod(
 
 #define DMFMODULE_VALIDATE_IN_METHOD(ModuleHandle, ModuleType)                                  \
                                                                                                 \
-     (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                      \
+     (! WdfObjectIsCustomType(ModuleHandle, DMF_##ModuleType)) ?                                \
               (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_ModuleMethod(ModuleHandle))                                   \
 
@@ -869,7 +869,7 @@ DMF_HandleValidate_OpeningOk(
 
 #define DMFMODULE_VALIDATE_IN_METHOD_OPENING_OK(ModuleHandle, ModuleType)                       \
                                                                                                 \
-    (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                       \
+    (! WdfObjectIsCustomType(ModuleHandle, DMF_##ModuleType)) ?                                 \
               (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_OpeningOk(ModuleHandle))                                      \
 
@@ -880,7 +880,7 @@ DMF_HandleValidate_ClosingOk(
 	
 #define DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(ModuleHandle, ModuleType)                       \
                                                                                                 \
-    (! WdfObjectIsCustomType(ModuleHandle, ModuleType)) ?                                       \
+    (! WdfObjectIsCustomType(ModuleHandle, DMF_##ModuleType)) ?                                 \
               (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_ClosingOk(ModuleHandle))                                      \
 
