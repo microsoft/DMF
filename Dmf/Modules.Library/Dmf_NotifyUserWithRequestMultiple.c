@@ -113,7 +113,7 @@ typedef struct
 
 // This context is associated with FileObject and added to BufferQueueFileContextPool.
 // Since a client could be using multiple instance of this module, a WDFFILEOBJECT
-// may have multiple instance of this context, one for each instance of 
+// may have multiple instance of this context, one for each instance of
 // DMF_NotifyUserWithRequestMultiple module.
 //
 typedef struct _FILE_OBJECT_CONTEXT
@@ -138,7 +138,7 @@ typedef struct _FILE_OBJECT_CONTEXT
     BOOLEAN AddedToBroadcastList;
 } FILE_OBJECT_CONTEXT;
 
-// This is a structure that is used to enumerate all the dynamically allocated File contexts. 
+// This is a structure that is used to enumerate all the dynamically allocated File contexts.
 // It is initialized by the caller and passed to Dmf_BufferQueue_Enumerate.
 //
 typedef struct _ENUMERATION_CONTEXT
@@ -147,12 +147,12 @@ typedef struct _ENUMERATION_CONTEXT
     // This is to be set by the caller before calling Dmf_BufferQueue_Enumerate.
     //
     BOOLEAN RemoveBuffer;
-    // This is input search criteria for the enumeration. This is set by the caller before calling 
+    // This is input search criteria for the enumeration. This is set by the caller before calling
     // Dmf_BufferQueue_Enumerate.
     //
     WDFFILEOBJECT FileObjectToFind;
     // The following member must be initialized to NULL by the caller before calling Dmf_BufferQueue_Enumerate
-    // The enumeration callback sets this member if an entry matching FileObject is found. 
+    // The enumeration callback sets this member if an entry matching FileObject is found.
     //
     FILE_OBJECT_CONTEXT* FileObjectContext;
 } ENUMERATION_CONTEXT;
@@ -173,7 +173,7 @@ Routine Description:
 
     Enumeration callback to check if a given FileObject is in the pool.
     Returns FileObjectContext associated with the FileObject
-    if it is found. Can also remove entries if specified in 
+    if it is found. Can also remove entries if specified in
     ClientDriverCallbackContext.
 
 Arguments:
@@ -264,11 +264,11 @@ Return Value:
     FILE_OBJECT_CONTEXT* fileObjectContext;
     WDFDEVICE device;
     WDF_OBJECT_ATTRIBUTES attributes;
-    
+
     PAGED_CODE();
-    
+
     FuncEntry(DMF_TRACE);
-    
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     device = DMF_ParentDeviceGet(DmfModule);
@@ -278,7 +278,7 @@ Return Value:
     // Create DMF Module NotifyUserWithRequest
     // ---------------------------------------
     //
-    DMFMODULE dmfModuleNotifyUserWithRequest; 
+    DMFMODULE dmfModuleNotifyUserWithRequest;
     DMF_CONFIG_NotifyUserWithRequest moduleConfigNotifyUserWithRequest;
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
@@ -371,25 +371,25 @@ Return Value:
     DMF_CONTEXT_NotifyUserWithRequestMultiple* moduleContext;
     ENUMERATION_CONTEXT callbackContext;
     FILE_OBJECT_CONTEXT* fileObjectContext;
-    
+
     PAGED_CODE();
-    
+
     FuncEntry(DMF_TRACE);
-    
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     // Destroy the Dmf NotifyUserWithRequest Module.
     //
     WdfObjectDelete(FileContext->DmfModuleNotifyUserWithRequest);
     FileContext->DmfModuleNotifyUserWithRequest = NULL;
-    
+
     // Set up context for BufferQueue enumerate.
     //
     RtlZeroMemory(&callbackContext,
                   sizeof(ENUMERATION_CONTEXT));
     callbackContext.FileObjectToFind = FileContext->FileObject;
     callbackContext.RemoveBuffer = TRUE;
-    
+
     // Find and remove this context from the BufferQueue.
     //
     DMF_BufferQueue_Enumerate(moduleContext->DmfBufferQueueFileContextPool,
@@ -434,20 +434,20 @@ Return Value:
 {
     DMF_CONTEXT_NotifyUserWithRequestMultiple* moduleContext;
     ENUMERATION_CONTEXT callbackContext;
-    
+
     PAGED_CODE();
-    
+
     FuncEntry(DMF_TRACE);
-    
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    
+
     // Set up context for BufferQueue enumerate.
     //
     RtlZeroMemory(&callbackContext,
                   sizeof(ENUMERATION_CONTEXT));
     callbackContext.FileObjectToFind = FileObject;
     callbackContext.RemoveBuffer = FALSE;
-    
+
     // Find this context from the BufferQueue.
     //
     DMF_BufferQueue_Enumerate(moduleContext->DmfBufferQueueFileContextPool,
@@ -494,6 +494,7 @@ Return Value:
     VOID* clientBufferContext;
     LIST_ENTRY listToAdd;
     LIST_ENTRY listToRemove;
+    WDFFILEOBJECT fileObjectForDereference;
 
     FuncEntry(DMF_TRACE);
 
@@ -521,7 +522,6 @@ Return Value:
                                      fileObjectContext,
                                      fileObjectContextNext)
     {
-
         // Remove from PendingAdd list.
         //
         RemoveEntryList(&fileObjectContext->PendingListEntryAdd);
@@ -579,7 +579,7 @@ Return Value:
         // Add this User to the ListHead.
         //
         InsertTailList(&moduleContext->ListHead,
-                       &fileObjectContext->ProcessingListEntry);
+                        &fileObjectContext->ProcessingListEntry);
 
         // Update the User's fileContext to reflect this.
         //
@@ -623,14 +623,18 @@ Return Value:
         RemoveEntryList(&fileObjectContext->PendingListEntryRemove);
         InitializeListHead(&fileObjectContext->PendingListEntryRemove);
 
-        // Dereference FileObject.
+        // Create a local copy of FileObject.
         //
-        WdfObjectDereference(fileObjectContext->FileObject);
+        fileObjectForDereference = fileObjectContext->FileObject;
 
         // Uninitialize and remove from DmfBufferQueueFileContextPool.
         //
         NotifyUserWithRequestMultiple_DeleteDynamicFileObjectContext(dmfModuleNotifyUserWithRequestMultiple,
                                                                      fileObjectContext);
+
+        // Dereference FileObject.
+        //
+        WdfObjectDereference(fileObjectForDereference);
     }
 
     // 3. Broadcast data to the Clients in the ListHead list.
@@ -686,7 +690,7 @@ Return Value:
                                            (VOID**)&clientBuffer,
                                            &clientBufferContext);
     }
-    // Setting ntStatus to success because unsuccessful status is expected and okay. 
+    // Setting ntStatus to success because unsuccessful status is expected and okay.
     //
     ntStatus = STATUS_SUCCESS;
 
@@ -819,16 +823,16 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    
+
     fileContext = NotifyUserWithRequestMultiple_GetDynamicFileObjectContext(DmfModule,
                                                                             FileObject);
     if (fileContext == NULL)
     {
-        // This can happen if there was a failure during FileCreate. 
+        // This can happen if there was a failure during FileCreate.
         //
         goto Exit;
     }
-    
+
     // Add the Client in to PendingRemoveListHead so it can be removed
     // from the main list.
     //
@@ -846,7 +850,7 @@ Return Value:
     //
     DMF_Doorbell_Ring(moduleContext->DmfModuleDoorbell);
 
-Exit: 
+Exit:
     returnValue = FALSE;
 
     FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
@@ -1042,7 +1046,7 @@ Return Value:
     InitializeListHead(&moduleContext->ListHead);
     InitializeListHead(&moduleContext->PendingAddListHead);
     InitializeListHead(&moduleContext->PendingRemoveListHead);
-    
+
     // Every buffer contains a ClientContext and NtStatus.
     //
     moduleContext->BufferQueueBufferSize = moduleConfig->SizeOfDataBuffer + sizeof(NTSTATUS);
@@ -1063,7 +1067,7 @@ Return Value:
         {
             TraceEvents(TRACE_LEVEL_ERROR,
                         DMF_TRACE,
-                        "WdfMemoryCreate for CachedBuffer fails: ntStatus=%!STATUS!",  
+                        "WdfMemoryCreate for CachedBuffer fails: ntStatus=%!STATUS!",
                         ntStatus);
             goto Exit;
         }
@@ -1177,7 +1181,7 @@ Return Value:
 Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-    
+
     return ntStatus;
 }
 #pragma code_seg()
@@ -1228,7 +1232,7 @@ Return Value:
                                                                                   fileObject);
     if (fileObjectContext == NULL)
     {
-        moduleContext->FailureCountDuringRequestProcess++; 
+        moduleContext->FailureCountDuringRequestProcess++;
         ntStatus = STATUS_NOT_FOUND;
         goto Exit;
     }

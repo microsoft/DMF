@@ -1183,7 +1183,11 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&targetAttributes);
     WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&targetAttributes,
                                            DMFMODULE);
-    targetAttributes.ParentObject = DmfModule;
+
+    // Use WDF device as the parent instead of DMF Module so that the I/O target is not prematurely
+    // disposed when this Module is deleted as part of a Dynamic Module tree.
+    //
+    targetAttributes.ParentObject = device;
 
     // Create an I/O target object.
     //

@@ -89,7 +89,7 @@ typedef struct
 
 #define DECLARE_DMF_MODULE(ModuleName)                                                          \
                                                                                                 \
-WDF_DECLARE_CUSTOM_TYPE(ModuleName);                                                            \
+WDF_DECLARE_CUSTOM_TYPE(DMF_##ModuleName);                                                      \
                                                                                                 \
 _IRQL_requires_max_(PASSIVE_LEVEL)                                                              \
 _Must_inspect_result_                                                                           \
@@ -127,7 +127,7 @@ DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT(                                  
 
 #define DECLARE_DMF_MODULE_NO_CONFIG(ModuleName)                                                \
                                                                                                 \
-WDF_DECLARE_CUSTOM_TYPE(ModuleName);                                                            \
+WDF_DECLARE_CUSTOM_TYPE(DMF_##ModuleName);                                                      \
                                                                                                 \
 _IRQL_requires_max_(PASSIVE_LEVEL)                                                              \
 _Must_inspect_result_                                                                           \
