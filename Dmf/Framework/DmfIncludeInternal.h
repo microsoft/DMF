@@ -159,6 +159,9 @@ struct _DMF_OBJECT_
     // Reference counter for DMF Object references.
     //
     volatile LONG ReferenceCount;
+    // Spin Lock to protect Module's reference count.
+    //
+    WDFSPINLOCK ReferenceCountLock;
     // Associated WDF Device.
     //
     WDFDEVICE ParentDevice;

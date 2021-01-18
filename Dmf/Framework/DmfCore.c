@@ -441,6 +441,19 @@ Return Value:
         goto Exit;
     }
 
+    // Create a spin lock to protect the Module's reference count.
+    // (Reference count must be accessible from both PASSIVE_LEVEL and DISPATCH_LEVEL
+    // code so the Module's synchronization locks cannot be used because they can 
+    // be either waitlocks or spinlocks.)
+    //
+    ntStatus = WdfSpinLockCreate(&attributes,
+                                 &DmfObject->ReferenceCountLock);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ReferenceCountLock create fails.");
+        goto Exit;
+    }
+
 Exit:
 
     return ntStatus;
