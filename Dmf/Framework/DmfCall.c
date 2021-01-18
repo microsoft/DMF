@@ -2684,8 +2684,8 @@ Return Value:
     DMF_HandleValidate_IsAvailable(DmfObject);
 
     // This routine must always be called in locked state.
+    // (This call is locked using internal ReferenceCountLock.)
     //
-    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     returnValue = InterlockedIncrement(&DmfObject->ReferenceCount);
 
@@ -2727,8 +2727,8 @@ Return Value:
 
     DmfAssert(DmfObject->ReferenceCount > 0);
     // This routine must always be called in locked state.
+    // (This call is locked using internal ReferenceCountLock.)
     //
-    DmfAssert(DMF_ModuleIsLocked(DmfModule));
 
     returnValue = InterlockedDecrement(&DmfObject->ReferenceCount);
 
@@ -2767,7 +2767,7 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    DMF_ModuleLock(DmfModule);
+    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
 
     // Increase reference only if Module is open (ReferenceCount >= 1) and if the Module close is not pending.
     // This is to stop new Module method callers from repeatedly accessing the Module when it should be closing.
@@ -2787,7 +2787,7 @@ Return Value:
         ntStatus = STATUS_INVALID_DEVICE_STATE;
     }
 
-    DMF_ModuleUnlock(DmfModule);
+    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
 
     return ntStatus;
 }
@@ -2815,16 +2815,15 @@ Return Value:
 {
     DMF_OBJECT* dmfObject;
 
-    dmfObject = NULL;
-
-    DMF_ModuleLock(DmfModule);
-
     dmfObject = DMF_ModuleToObject(DmfModule);
+
+    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+
     DmfAssert(dmfObject->ReferenceCount >= 1);
 
     DMF_ModuleReferenceDelete(DmfModule);
 
-    DMF_ModuleUnlock(DmfModule);
+    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -2866,7 +2865,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    DMF_ModuleLock(DmfModule);
+    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
 
     // Set IsClosePending to TRUE, to avoid Module Method from acquiring
     // a reference to the Module infinitely and blocking the Module from closing.
@@ -2874,11 +2873,11 @@ Return Value:
     dmfObject->IsClosePending = TRUE;
     referenceCount = dmfObject->ReferenceCount;
 
-    DMF_ModuleUnlock(DmfModule);
+    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
 
     while (referenceCount > 0)
     {
-        DMF_ModuleLock(DmfModule);
+        WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
 
         if (referenceCount == 1)
         {
@@ -2891,7 +2890,7 @@ Return Value:
         }
         referenceCount = dmfObject->ReferenceCount;
 
-        DMF_ModuleUnlock(DmfModule);
+        WdfSpinLockRelease(dmfObject->ReferenceCountLock);
 
         if (referenceCount == 0)
         {
@@ -3049,6 +3048,8 @@ DMF_ModuleLock(
 Routine Description:
 
     Invoke the Lock Callback for a given DMF Module.
+    NOTE: This API should not be used internally by DMF core. It should only be used
+          by Modules because it can be either a waitlock or spinlock.
 
 Arguments:
 
@@ -3082,6 +3083,8 @@ DMF_ModuleUnlock(
 Routine Description:
 
     Invoke the Unlock Callback for a given DMF Module.
+    NOTE: This API should not be used internally by DMF core. It should only be used
+          by Modules because it can be either a waitlock or spinlock.
 
 Arguments:
 
