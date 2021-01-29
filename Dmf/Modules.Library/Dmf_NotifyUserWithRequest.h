@@ -63,7 +63,7 @@ DECLARE_DMF_MODULE(NotifyUserWithRequest)
 // Module Methods
 //
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_DataProcess(
     _In_ DMFMODULE DmfModule,
@@ -72,7 +72,7 @@ DMF_NotifyUserWithRequest_DataProcess(
     _In_ NTSTATUS NtStatus
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequest_EventRequestAdd(
@@ -80,7 +80,7 @@ DMF_NotifyUserWithRequest_EventRequestAdd(
     _In_ WDFREQUEST Request
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequest_RequestProcess(
@@ -88,7 +88,7 @@ DMF_NotifyUserWithRequest_RequestProcess(
     _In_ WDFREQUEST Request
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturn(
     _In_ DMFMODULE DmfModule,
@@ -97,7 +97,7 @@ DMF_NotifyUserWithRequest_RequestReturn(
     _In_ NTSTATUS NtStatus
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturnAll(
     _In_ DMFMODULE DmfModule,
@@ -106,7 +106,7 @@ DMF_NotifyUserWithRequest_RequestReturnAll(
     _In_ NTSTATUS NtStatus
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_NotifyUserWithRequest_RequestReturnEx(
     _In_ DMFMODULE DmfModule,
