@@ -966,7 +966,7 @@ callbacks.]
 There is one more set of important callbacks that must be hooked: The
 **WDFQUEUE** callbacks for the default queue:
 ```
-WDF_IO_QUEUE_Config_INIT_DEFAULT_QUEUE(&queueConfig, WdfIoQueueDispatchParallel);
+WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&queueConfig, WdfIoQueueDispatchParallel);
 queueConfig.PowerManaged = WdfTrue;
 queueConfig.EvtIoDeviceControl = DmfSampleEvtIoDeviceControl;
 queueConfig.EvtIoInternalDeviceControl = DmfSampleEvtIoDeviceControl;
