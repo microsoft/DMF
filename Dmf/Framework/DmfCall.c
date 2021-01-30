@@ -2591,6 +2591,8 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_OBJECT* dmfObject;
+    DMF_OBJECT* childDmfObject;
+    CHILD_OBJECT_INTERATION_CONTEXT childObjectIterationContext;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
@@ -2604,6 +2606,38 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
+    }
+
+    // Make sure OpenOption for this Module is compatible with OpenOption for it's immediate children.
+    //
+    childDmfObject = DmfChildObjectIterateForward.ChildObjectIntialGet(dmfObject,
+                                                                       &childObjectIterationContext);
+    while (childDmfObject != NULL)
+    {
+        // Ensure Parent can open only after its children are opened.
+        //
+        if (childDmfObject->ModuleDescriptor.OpenOption > DMF_MODULE_OPEN_OPTION_OPEN_D0Entry)
+        {
+            // If Child Module's OpenOption is NOTIFY_* the Parent Module is responsible to ensure this.
+            //
+        }
+        else
+        {
+            if (dmfObject->ModuleDescriptor.OpenOption > DMF_MODULE_OPEN_OPTION_OPEN_D0Entry)
+            {
+                // If Parent Module's OpenOption is NOTIFY_* the Parent Module is responsible to ensure this.
+                //
+            } else if (dmfObject->ModuleDescriptor.OpenOption < childDmfObject->ModuleDescriptor.OpenOption)
+            {
+                // Both the Parent and Child Module's OpenOption are not NOTIFY_*.
+                // Parent Module's OpenOption is not compatible with Child Module's OpenOption.
+                //
+                ntStatus = STATUS_INVALID_PARAMETER;
+                DmfAssert(FALSE);
+                goto Exit;
+            }
+        }
+        childDmfObject = DmfChildObjectIterateForward.ChildObjectIterationGet(&childObjectIterationContext);
     }
 
     if (dmfObject->ModuleDescriptor.OpenOption == DMF_MODULE_OPEN_OPTION_OPEN_Create)

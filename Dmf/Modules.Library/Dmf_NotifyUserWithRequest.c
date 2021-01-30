@@ -154,6 +154,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG
 NotifyUserWithRequest_EventRequestReturn(
     _In_ DMFMODULE DmfModule,
@@ -236,6 +237,7 @@ Return Value:
     return numberOfRequestsCompleted;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 NotifyUserWithRequest_EventRequestReturnAll(
     _In_ DMFMODULE DmfModule,
@@ -301,7 +303,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
-#pragma code_seg("PAGE")
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 NotifyUserWithRequest_CompleteRequestWithEventData(
     _In_ DMFMODULE DmfModule
@@ -332,8 +334,6 @@ Return Value:
     USEREVENT_ENTRY* userEventEntry;
     ULONG numberOfRequestsCompleted;
     BOOLEAN clientBufferExtracted;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -423,7 +423,6 @@ Exit:
     return ntStatus;
 
 }
-#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -508,7 +507,9 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
 _Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -552,6 +553,7 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ChildModulesAdd)
@@ -696,8 +698,7 @@ Return Value:
 // Module Methods
 //
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_DataProcess(
     _In_ DMFMODULE DmfModule,
@@ -734,8 +735,6 @@ Return Value:
     VOID* clientBufferContext;
     NTSTATUS ntStatus;
     BOOLEAN isLocked;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -837,10 +836,8 @@ ExitNoDereference:
     FuncExitVoid(DMF_TRACE);
 
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequest_EventRequestAdd(
@@ -867,8 +864,6 @@ Return Value:
     DMF_CONTEXT_NotifyUserWithRequest* moduleContext;
     DMF_CONFIG_NotifyUserWithRequest* moduleConfig;
     NTSTATUS ntStatus;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -918,10 +913,8 @@ ExitNoDereference:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequest_RequestProcess(
@@ -947,8 +940,6 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -991,10 +982,8 @@ ExitNoDereference:
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturn(
     _In_ DMFMODULE DmfModule,
@@ -1027,8 +1016,6 @@ Return Value:
     ULONG numberOfRequestsCompleted;
     NTSTATUS ntStatus;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
@@ -1060,10 +1047,8 @@ Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturnAll(
     _In_ DMFMODULE DmfModule,
@@ -1093,8 +1078,6 @@ Return Value:
 {
     NTSTATUS ntStatus;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
@@ -1118,10 +1101,8 @@ Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_NotifyUserWithRequest_RequestReturnEx(
     _In_ DMFMODULE DmfModule,
@@ -1153,8 +1134,6 @@ Return Value:
 {
     ULONG numberOfRequestsCompleted;
     NTSTATUS ntStatus;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 

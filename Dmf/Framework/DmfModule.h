@@ -557,28 +557,50 @@ DMF_CALLBACKS_WDF_INIT(
 #define DMF_MODULE_RUNS_PASSIVE(DmfObject) (DmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_PASSIVE)
 #define DMF_MODULE_RUNS_DISPATCH(DmfObject) (DmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_DISPATCH)
 
+// Module Open Options
+// -------------------
+// These definitions tell DMF Core when to call the Module's Open() and Close() callbacks.
+//
+// IMPORTANT: These definitions are order dependent. The Core uses an algorithm to prevent 
+//            invalid combinations of options between Parent and Child Modules from being 
+//            created. This algorithm is dependent upon the order of the options listed.
+//
 typedef enum
 {
     DMF_MODULE_OPEN_OPTION_Invalid = 0,
-    // Call DMF_ModuleOpen() in EvtPrepareHardware.
+    // Call DMF_Module_Open() right after the Module is created.
+    // Call DMF_Module_Close() right before the Module is destroyed.
+    //
+    DMF_MODULE_OPEN_OPTION_OPEN_Create,
+    // Call DMF_Module_Open() in EvtPrepareHardware.
+    // Call DMF_Module_Close() in EvtReleaseHardware.
     //
     DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware,
-    // Call DMF_Module_RegisterNotification() in EvtPrepareHardware.
-    //
-    DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware,
-    // Call DMF_ModuleOpen() in EvtD0Entry during system power up.
+    // Call DMF_Module_Open() in EvtD0Entry during system power up.
+    // Call DMF_Module_Close() in EvtD0Exit during system power down.
     //
     DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp,
     // Call DMF_ModuleOpen() in EvtD0Entry.
+    // Call DMF_ModuleClose() in EvtD0Exit.
     //
     DMF_MODULE_OPEN_OPTION_OPEN_D0Entry,
+    // Call DMF_Module_RegisterNotification() in EvtPrepareHardware.
+    // Call DMF_Module_UnregisterNotification() in EvtReleaseHardware.
+    //
+    DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware,
     // Call DMF_Module_RegisterNotification() in EvtD0Entry.
+    // Call DMF_Module_UnregisterNotification() in EvtD0Exit.
+    //
+    // NOTE: This option is provided for legacy drivers to make porting to DMF easier.
+    //       Generally speaking it is not best practice to register/unregister for
+    //       PnP notifications during power events.
     //
     DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry,
-    // Call DMF_ModuleOpen() right after the Module is created.
-    //
-    DMF_MODULE_OPEN_OPTION_OPEN_Create,
-    // Client registers for notification during create from another Modules's callback.
+    // Call DMF_Module_RegisterNotification() after the Module is created.
+    // Call DMF_Module_UnregisterNotification() before the Module is destroyed.
+    // 
+    // NOTE: Generally speaking, this option is useful for cases where a resource appears and
+    //       disappears based on a non-Plug and Play event (such as a message from hardware).
     //
     DMF_MODULE_OPEN_OPTION_NOTIFY_Create,
     // Sentinel.

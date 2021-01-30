@@ -395,6 +395,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Notification Module Concepts](#notification-module-concepts)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Parent-Child Module Open Option Combinations](#parent-child-module-open-option-combinations)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Using Internal Module Resources](#using-internal-module-resources)
 
 [DMF Coding Conventions](#dmf-coding-conventions)
@@ -7502,6 +7504,38 @@ When the underlying resource disappears the asynchronous notification function t
  4. DMF calls the Module's Close callback. (See DMF_DeviceInterfaceTarget_Close). Here is where the Module closes the resource and deallocates any associated allocations.
 
 Note: A Module's PreClose() callback is called for any Module before its Close  callback is called, regardless of whether or not it is a Notification Module.
+
+### Parent-Child Module Open Option Combinations
+
+One of the most common errors in Windows Device Drivers is when one part of the driver tries to access another part of the driver that is not ready either because it has not yet initialized or because it has become uninitialized.
+Often such errors happen due to race conditions in the driver where the driver improperly tries to account for such code paths.
+DMF helps prevent these types of errors by allowing programmers to organize code such that these kinds of errors are, in many cases, eliminated merely by the organization of the code.
+Recall that when DMF **is properly used**, the Framework ensures that a Child Module is always Open when a Parent Module accesses the
+Child Module via the Child Module's Methods. In order to ensure this, the following rules **must** be adhered to:
+
+1. DMF fails to Open a Child Module if its Open Option is incompatible with its Parent's Open Option. The Framework checks
+for such cases and emits an assert (in DEBUG build) and fails to Open the Child Module (leading to the driver failing to load
+in the case of Static Modules). The following table shows all the **invalid** combinations of Module Open Options that the Framework disallows:
+
+Parent | Child
+----------------------------- | ----------------------------------------------------------
+`DMF_MODULE_OPEN_OPTION_OPEN_Create` | `DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware`<br>`DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp`<br>`DMF_MODULE_OPEN_OPTION_OPEN_D0Entry`
+`DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware` | `DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp`<br>`DMF_MODULE_OPEN_OPTION_OPEN_D0Entry`
+`DMF_MODULE_OPEN_OPTION_OPEN_D0EntrySystemPowerUp` | `DMF_MODULE_OPEN_OPTION_OPEN_D0Entry`
+
+2. **For Module Open Options that register for notifications, it is the responsibility of the Module Author to make sure that the Module does the following:**
+<br>
+<br>a. The Parent Module must call `DMF_ModuleOpen()` to cause its own `Open()` Callback to be called when all the Child Modules have opened. The Parent Module knows when the
+Child Modules have opened because the Parent Module must register for the Child's `PostOpen()` callback.
+<br>
+<br>b. The Parent Module must call `DMF_ModuleClose()` to cause its own `Close()` Callback to be called when all the Child Modules are about to close. The Parent Module knows when the
+Child Modules are about to close because the Parent Module must register for the Child's `PreClose()` callback.
+<br>
+<br>c. The Parent Module must call `DMF_ModuleReference()` and `DMF_ModuleDereference()` at the start and end of its Methods. 
+<br><br>d. If the above three steps are followed, then Clients of the Parent Module are free to call the Parent Module's Methods at any time. If they underlying Child Modules are not ready
+an error is returned. ***Race conditions during closing of Child Modules are handled gracefully and robustly by the DMF Framework regardless of the number of threads accessing the Module via Methods.***
+<br>
+<br>e. Note that the above three steps (a, b, c) apply for the case where the Child Module is a Dynamic Module.
 
 #### Summary
 

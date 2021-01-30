@@ -54,6 +54,9 @@ typedef struct _DMF_CONTEXT_IoctlHandler
     //
     UNICODE_STRING ReferenceStringUnicode;
     UNICODE_STRING* ReferenceStringUnicodePointer;
+    // Set to TRUE when device interface is created successfully.
+    //
+    BOOLEAN IsDeviceInterfaceCreated;
 } DMF_CONTEXT_IoctlHandler;
 
 // This macro declares the following function:
@@ -332,6 +335,8 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
+
+    moduleContext->IsDeviceInterfaceCreated = TRUE;
 
 Exit:
 
@@ -952,6 +957,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    ntStatus = STATUS_SUCCESS;
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -973,13 +980,17 @@ Return Value:
         {
             moduleContext->ReferenceStringUnicodePointer = NULL;
         }
-        // Register a device interface so applications/drivers can find and open this device.
-        //
-        ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
-        if (! NT_SUCCESS(ntStatus))
+
+        if (FALSE == moduleConfig->ManualMode)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_DeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
+            // Register a device interface so applications/drivers can find and open this device.
+            //
+            ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_DeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
         }
 
         // Allow the Client to enable the interface manually if desired.
@@ -1192,6 +1203,7 @@ Return Value:
     DMF_CONFIG_IoctlHandler* moduleConfig;
     DMF_CONTEXT_IoctlHandler* moduleContext;
     WDFDEVICE device;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
@@ -1204,11 +1216,31 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     device = DMF_ParentDeviceGet(DmfModule);
+    
+    // The first time this call is made, if the device interface has not yet been
+    // created when it is being enabled, create it. (Device interface is not created
+    // when it is in manual mode during Open callback.)
+    //
+    if (TRUE == moduleConfig->ManualMode &&
+        TRUE == Enable &&
+        FALSE == moduleContext->IsDeviceInterfaceCreated)
+    {
+        // Register a device interface so applications/drivers can find and open this device.
+        //
+        ntStatus = IoctlHandler_DeviceInterfaceCreate(DmfModule);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_DeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
 
     WdfDeviceSetDeviceInterfaceState(device,
                                      &moduleConfig->DeviceInterfaceGuid,
                                      moduleContext->ReferenceStringUnicodePointer,
                                      Enable);
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
