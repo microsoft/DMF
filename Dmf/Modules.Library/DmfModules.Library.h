@@ -88,6 +88,7 @@ extern "C"
 #include "Dmf_Doorbell.h"
 #include "Dmf_VirtualEyeGaze.h"
 #include "Dmf_EyeGazeIoctl.h"
+#include "Dmf_UdeClient.h"
 
 #if defined(DMF_WDF_DRIVER)
 #include "Dmf_Wmi.h"

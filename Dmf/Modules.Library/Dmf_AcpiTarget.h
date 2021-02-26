@@ -54,6 +54,25 @@ DMF_AcpiTarget_EvaluateMethod(
     _In_ ULONG Tag
     );
 
+_Must_inspect_result_
+__drv_requiresIRQL(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiTarget_EvaluateMethodReturningUlong(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG MethodNameAsUlong,
+    _Out_ ULONG* ReturnValue
+    );
+
+_Must_inspect_result_
+__drv_requiresIRQL(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiTarget_EvaluateMethodWithUlongReturningUlong(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG MethodNameAsUlong,
+    _In_ ULONG MethodArgument,
+    _Out_ ULONG* ReturnValue
+    );
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AcpiTarget_InvokeDsm(
