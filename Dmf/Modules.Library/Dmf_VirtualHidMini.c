@@ -341,15 +341,24 @@ Return Value:
     //
     ntStatus = WdfRequestRetrieveOutputMemory(Request,
                                               &outputMemory);
-    if ( !NT_SUCCESS(ntStatus) )
+    if ( !NT_SUCCESS(ntStatus) && ntStatus != STATUS_BUFFER_TOO_SMALL )
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputMemory fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    WdfMemoryGetBuffer(outputMemory,
-                       &outputBufferLength);
-    Packet->reportId = (UCHAR) outputBufferLength;
+    // Indicates a Report ID of 0
+    //
+    if ( ntStatus == STATUS_BUFFER_TOO_SMALL )
+    {
+        Packet->reportId = 0;
+    }
+    else
+    {
+        WdfMemoryGetBuffer(outputMemory,
+            &outputBufferLength);
+        Packet->reportId = (UCHAR)outputBufferLength;
+    }
 
     // Get report buffer from input buffer.
     //
