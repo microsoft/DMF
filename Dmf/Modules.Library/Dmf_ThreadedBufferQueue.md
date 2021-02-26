@@ -205,7 +205,7 @@ NTSTATUS
 DMF_ThreadedBufferQueue_Fetch(
   _In_ DMFMODULE DmfModule,
   _Out_ VOID** ClientBuffer,
-  _Out_ VOID** ClientBufferContext
+  _Outopt_ VOID** ClientBufferContext
   );
 ````
 

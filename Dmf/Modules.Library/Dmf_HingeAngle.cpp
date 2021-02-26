@@ -916,6 +916,12 @@ Return Value:
     }
 
     moduleContext->hingeAngleDevice->thisModuleHandle = DmfModule;
+    if (moduleConfig->DeviceId == NULL)
+    {
+        moduleConfig->DeviceId = L"";
+    }
+
+    moduleContext->hingeAngleDevice->thisModuleHandle = DmfModule;
     moduleContext->hingeAngleDevice->DeviceIdToFind = to_hstring(moduleConfig->DeviceId);
     moduleContext->hingeAngleDevice->EvtHingeAngleReadingChangeCallback = moduleConfig->EvtHingeAngleReadingChangeCallback;
     ntStatus = moduleContext->hingeAngleDevice->Initialize();

@@ -40,7 +40,6 @@ Environment:
 #pragma pack(1)
 typedef struct
 {
-    UCHAR ReportId;
     LONG Illuminance;
     USHORT ChromaticityX;
     USHORT ChromaticityY;

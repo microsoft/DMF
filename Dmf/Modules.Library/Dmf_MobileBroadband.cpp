@@ -259,7 +259,15 @@ Return Value:
 
     // Get MobileBroadbandModem specific selector for device watcher.
     //
-    auto mbbSelector = MobileBroadbandModem::GetDeviceSelector();	
+    // Create device watcher according to the sensor GUID from ModuleConfig.
+    //
+    // Don't call CustomSensor::GetDeviceSelector(moduleConfig->DeviceGUID) as a deviceWatcher parameter. There is a bug in OS at and before 20h1.
+    // This CustomSensor API call will cause appverif failure and potential pre-OOBE driver crash fail.
+    // Manually construct an AQS instead and pass to deviceWatcher will resolve this issue.
+    //
+    hstring mbbSelector = L"System.Devices.InterfaceClassGuid:=\"{CAC88484-7515-4C03-82E6-71A87ABAC361}\""
+                          L" AND System.Devices.Wwan.InterfaceGuid:-[] AND System.Devices.InterfaceEnabled:=System.StructuredQueryType.Boolean#True";
+
     modemWatcher = DeviceInformation::CreateWatcher(mbbSelector, nullptr);
 
     // Using lambda function is necessary here, because it need access variables that outside function scope,
@@ -311,7 +319,7 @@ Return Value:
                             modem = nullptr;
                             break;
                         }
-                        // Open this module.
+                        // Open this Module.
                         //
                         ntStatus = DMF_ModuleOpen(DmfModule);
                         if (!NT_SUCCESS(ntStatus))
@@ -383,7 +391,7 @@ Return Value:
                 // sarManager.TransmissionStateChanged(tokenTransmissionStateChanged) should be called here,
                 // but it will never return.
 
-                // Close this module.
+                // Close this Module.
                 //
                 DMF_ModuleClose(DmfModule);
                 modem = nullptr;
@@ -590,7 +598,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
+    DmfModule - This Module's Dmf Module.
 
 Return Value:
 
@@ -627,7 +635,7 @@ Return Value:
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "mobileBroadbandWirelessState event triggered");
         mobileBroadbandWirelessState.IsTransmitting = (BOOLEAN)args.IsTransmitting();
         mobileBroadbandWirelessState.IsNetworkConnected = MobileBroadband_IsNetworkConnected();
-        // Call back parent module.
+        // Call back parent Module.
         //
         if (moduleContext->EvtMobileBroadbandWirelessStateChangeCallback != nullptr) 
         {
@@ -739,7 +747,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    // Store module config.
+    // Store Module config.
     //
     moduleContext->EvtMobileBroadbandWirelessStateChangeCallback = moduleConfig->EvtMobileBroadbandWirelessStateChangeCallback;
 
@@ -915,7 +923,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
+    DmfModule - This Module's Dmf Module.
     AntennaIndex - The antenna index on device to be control.
     AntennaBackOffTableIndex - The power back off table index to be get.
 
@@ -999,7 +1007,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
+    DmfModule - This Module's Dmf Module.
     AntennaIndex - Index of antenna to set.
     AntennaBackOffTableIndex - Index into the power back-off table to set.
     AntennaCount - Number of antennas present.
@@ -1132,20 +1140,20 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_MobileBroadband_MccMncGet(
     _In_ DMFMODULE DmfModule,
-    _Out_ DWORD* MobileCountryCode,
+    _Out_ DWORD* MobileAreaCode,
     _Out_ DWORD* MobileNetworkCode
     )
 /*++
 
 Routine Description:
 
-    Get the Mobile Country Code and Mobile Network Code of the mobile broadband network 
+    Get the Mobile Area Code and Mobile Network Code of the mobile broadband network 
     to which the device is attached from the modem.
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
-    MobileCountryCode - The three digit number corresponding to the country where the device is connected.
+    DmfModule - This Module's Dmf Module.
+    MobileAreaCode - The three digit number corresponding to the area where the device is connected.
     MobileNetworkCode - The three digit number corresponding to the network where the device is connected.
 
 Return Value:
@@ -1159,8 +1167,8 @@ Return Value:
     MobileBroadbandNetwork currentNetwork = nullptr;
     const wchar_t* providerId;
     uint32_t productIdLength;
-    DWORD mobileCountryCode = 0;
-    DWORD mobileNetworkCode = 0;
+    DWORD mobileAreaCode;
+    DWORD mobileNetworkCode;
     int mccLength;
     int mncLength;
 
@@ -1168,6 +1176,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    mobileAreaCode = 0;
+    mobileNetworkCode = 0;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = DMF_ModuleReference(DmfModule);
@@ -1213,10 +1223,10 @@ Return Value:
     ntStatus = MobileCodeCalulate(providerId, 
                                   0, 
                                   mccLength, 
-                                  &mobileCountryCode);
+                                  &mobileAreaCode);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "mobileCountryCode get fails");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "mobileAreaCode get fails");
         goto Exit;
     }
 
@@ -1229,14 +1239,14 @@ Return Value:
                                   &mobileNetworkCode);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "mobileCountryCode get fails");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "mobileAreaCode get fails");
         goto Exit;
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Mcc = %d, Mnc = %d", 
-                                                    mobileCountryCode, 
+                                                    mobileAreaCode, 
                                                     mobileNetworkCode);
-    *MobileCountryCode = mobileCountryCode;
+    *MobileAreaCode = mobileAreaCode;
     *MobileNetworkCode = mobileNetworkCode;
 
     ntStatus = STATUS_SUCCESS;
@@ -1266,7 +1276,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
+    DmfModule - This Module's Dmf Module.
 
 Return Value:
 
@@ -1367,7 +1377,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
+    DmfModule - This Module's Dmf Module.
 
 Return Value:
 
@@ -1432,7 +1442,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This module's Dmf Module.
+    DmfModule - This Module's Dmf Module.
     MobileBroadbandWirelessState - MobileBroadband wireless state to return.
 
 Return Value:

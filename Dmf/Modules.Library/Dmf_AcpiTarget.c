@@ -401,15 +401,18 @@ Return Value:
             *ReturnBuffer = outputBuffer;
             outputBuffer = NULL;
         }
-        if (ARGUMENT_PRESENT(ReturnBufferSize) != FALSE)
+        if (ARGUMENT_PRESENT(ReturnBufferSize))
         {
             *ReturnBufferSize = (ULONG)sizeReturned;
         }
     }
     else
     {
-        *ReturnBuffer = NULL;
-        if (ARGUMENT_PRESENT(ReturnBufferSize) != FALSE)
+        if (ARGUMENT_PRESENT(ReturnBuffer))
+        {
+            *ReturnBuffer = NULL;
+        }
+        if (ARGUMENT_PRESENT(ReturnBufferSize))
         {
             *ReturnBufferSize = 0;
         }
@@ -425,6 +428,95 @@ Exit:
     {
         ExFreePoolWithTag(outputBuffer,
                           Tag);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+__drv_requiresIRQL(PASSIVE_LEVEL)
+NTSTATUS
+AcpiTarget_EvaluateMethodReturningUlong(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG MethodNameAsUlong,
+    _In_ WDF_MEMORY_DESCRIPTOR *InputMemoryDescriptor,
+    _Out_ ULONG* ReturnValue
+    )
+/*
+
+Routine Description:
+
+    This function sends an IRP to ACPI to evaluate a method. The method is
+    expected to return only a single UONG value.
+    ACPI must be in the device stack (either as a bus or filter driver).
+
+Arguments:
+
+    DmfModule - This Module's Module handle.
+    MethodNameAsUlong - Supplies a packed string identifying the method.
+    InputMemoryDescriptor - Memory discriptor for input buffer.
+    ReturnValue - Returns the ULONG value which is returned from the method.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    ACPI_EVAL_OUTPUT_BUFFER_V1 outputBuffer;
+    WDF_MEMORY_DESCRIPTOR outputMemoryDescriptor;
+    WDFDEVICE device;
+    WDFIOTARGET ioTarget;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    RtlZeroMemory(&outputBuffer,
+                  sizeof(outputBuffer));
+
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&outputMemoryDescriptor,
+                                      &outputBuffer,
+                                      (ULONG)sizeof(outputBuffer));
+
+    device = DMF_ParentDeviceGet(DmfModule);
+    ioTarget = WdfDeviceGetIoTarget(device);
+    ntStatus = WdfIoTargetSendIoctlSynchronously(ioTarget,
+                                                 NULL,
+                                                 IOCTL_ACPI_EVAL_METHOD_V1,
+                                                 InputMemoryDescriptor,
+                                                 &outputMemoryDescriptor,
+                                                 NULL,
+                                                 NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IOCTL_ACPI_EVAL_METHOD_V1 for method 0x%x fails: ntStatus=%!STATUS!",
+                   MethodNameAsUlong,
+                   ntStatus);
+    }
+    else if (outputBuffer.Signature != ACPI_EVAL_OUTPUT_BUFFER_SIGNATURE_V1)
+    {
+        ntStatus = STATUS_ACPI_INVALID_DATA;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ACPI_EVAL_OUTPUT_BUFFER signature is incorrect");
+    }
+    else if (outputBuffer.Count < 1)
+    {
+        ntStatus = STATUS_ACPI_INVALID_DATA;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Method 0x%x didn't return anything", MethodNameAsUlong);
+    }
+    else if (outputBuffer.Argument[0].Type != ACPI_METHOD_ARGUMENT_INTEGER)
+    {
+        ntStatus = STATUS_ACPI_INVALID_DATA;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Method 0x%x returned an unexpected argument of type %d",
+                   MethodNameAsUlong,
+                   outputBuffer.Argument[0].Type);
+    }
+    else
+    {
+        *ReturnValue = outputBuffer.Argument[0].Argument;
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -863,6 +955,119 @@ Return Value:
                                              ReturnBuffer,
                                              ReturnBufferSize,
                                              Tag);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+__drv_requiresIRQL(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiTarget_EvaluateMethodReturningUlong(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG MethodNameAsUlong,
+    _Out_ ULONG* ReturnValue
+    )
+/*
+
+Routine Description:
+
+    This function sends an IRP to ACPI to evaluate a method. The method is
+    expected to take no input and return only a single UONG value.
+    ACPI must be in the device stack (either as a bus or filter driver).
+
+Arguments:
+
+    DmfModule - This Module's Module handle.
+    MethodNameAsUlong - Supplies a packed string identifying the method.
+    ReturnValue - Returns the ULONG value which is returned from the method.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    ACPI_EVAL_INPUT_BUFFER_V1 inputBuffer;
+    WDF_MEMORY_DESCRIPTOR inputMemoryDescriptor;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    RtlZeroMemory(&inputBuffer,
+                  sizeof(inputBuffer));
+    inputBuffer.Signature = ACPI_EVAL_INPUT_BUFFER_SIGNATURE_V1;
+    inputBuffer.MethodNameAsUlong = MethodNameAsUlong;
+
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
+                                      &inputBuffer,
+                                      (ULONG)sizeof(inputBuffer));
+
+    ntStatus = AcpiTarget_EvaluateMethodReturningUlong(DmfModule,
+                                                       MethodNameAsUlong,
+                                                       &inputMemoryDescriptor,
+                                                       ReturnValue);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+__drv_requiresIRQL(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiTarget_EvaluateMethodWithUlongReturningUlong(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG MethodNameAsUlong,
+    _In_ ULONG MethodArgument,
+    _Out_ ULONG* ReturnValue
+    )
+/*
+
+Routine Description:
+
+    This function sends an IRP to ACPI to evaluate a method. The method is
+    expected to take one ULONG input and return only a single UONG value.
+    ACPI must be in the device stack (either as a bus or filter driver).
+
+Arguments:
+
+    DmfModule - This Module's Module handle.
+    MethodNameAsUlong - Supplies a packed string identifying the method.
+    MethodArgument - The single ULONG input value.
+    ReturnValue - Returns the ULONG value which is returned from the method.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    ACPI_EVAL_INPUT_BUFFER_SIMPLE_INTEGER_V1 inputBuffer;
+    WDF_MEMORY_DESCRIPTOR inputMemoryDescriptor;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    RtlZeroMemory(&inputBuffer,
+                  sizeof(inputBuffer));
+    inputBuffer.Signature = ACPI_EVAL_INPUT_BUFFER_SIMPLE_INTEGER_SIGNATURE_V1;
+    inputBuffer.MethodNameAsUlong = MethodNameAsUlong;
+    inputBuffer.IntegerArgument = MethodArgument;
+
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
+                                      &inputBuffer,
+                                      (ULONG)sizeof(inputBuffer));
+
+    ntStatus = AcpiTarget_EvaluateMethodReturningUlong(DmfModule,
+                                                       MethodNameAsUlong,
+                                                       &inputMemoryDescriptor,
+                                                       ReturnValue);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
