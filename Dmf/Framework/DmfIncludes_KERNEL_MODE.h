@@ -151,6 +151,7 @@ Environment:
     #include <lkmdtel.h>
 #endif // IS_WIN10_RS3_OR_LATER
 #include <intrin.h>
+#include <pepfx.h>
 
 // DMF Asserts definitions 
 //

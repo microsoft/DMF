@@ -72,5 +72,13 @@ DMF_QueuedWorkItem_EnqueueAndWait(
     _In_ ULONG ContextBufferSize
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_QueuedWorkItem_StatusSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ NTSTATUS NtStatus
+    );
+
 // eof: Dmf_QueuedWorkItem.h
 //

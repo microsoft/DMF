@@ -417,6 +417,39 @@ Handle | The given registry handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_Registry_HandleOpenByDeviceInterface
+
+````
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+HANDLE
+DMF_Registry_HandleOpenByDeviceInterface(
+    _In_ DMFMODULE DmfModule,
+    _In_ CONST GUID* InterfaceGuid,
+    _In_ int DeviceLinkIndex,
+    _Out_ HANDLE* RegistryHandle
+    )
+````
+
+Open a registry key that is specific to a device interface.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An opened DMF_Registry Module handle.
+InterfaceGuid | Device interface GUID.
+DeviceLinkIndex | Instance index for Device Interface symbolic link's list.
+RegistryHandle | Pointer to opened registry key handle or pointer to NULL if not able to open registry key.
+
+##### Remarks
+Use this Method to avoid hardcoded registry paths which prevent device drivers from being WCOS compliant.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_Registry_HandleOpenByHandle
 
 ````

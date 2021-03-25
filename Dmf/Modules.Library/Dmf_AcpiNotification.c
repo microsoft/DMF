@@ -14,7 +14,6 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -46,6 +45,9 @@ typedef struct _DMF_CONTEXT_AcpiNotification
     // Workitem for PASSIVE_LEVEL work.
     //
     WDFWORKITEM Workitem;
+    // Tracks if registration is enabled.
+    //
+    BOOLEAN Registered;
 } DMF_CONTEXT_AcpiNotification;
 
 // This macro declares the following function:
@@ -277,6 +279,115 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGE")
+_Function_class_(DMF_ModulePrepareHardware)
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_AcpiNotification_ModulePrepareHardware(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFCMRESLIST ResourcesRaw,
+    _In_ WDFCMRESLIST ResourcesTranslated
+    )
+/*++
+
+Routine Description:
+
+    If Module is not instantiated in manual mode, enable notifications from ACPI.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ResourcesRaw: Same as passed to EvtPrepareHardware.
+    ResourcesTranslated: Same as passed to EvtPrepareHardware.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_AcpiNotification* moduleConfig;
+
+    UNREFERENCED_PARAMETER(ResourcesRaw);
+    UNREFERENCED_PARAMETER(ResourcesTranslated);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (! moduleConfig->ManualMode)
+    {
+        ntStatus = DMF_AcpiNotification_EnableDisable(DmfModule,
+                                                      TRUE);
+    }
+    else
+    {
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(DMF_ModuleReleaseHardware)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+NTSTATUS
+DMF_AcpiNotification_ModuleReleaseHardware(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFCMRESLIST ResourcesTranslated
+    )
+/*++
+
+Routine Description:
+
+    If Module is not instantiated in manual mode, disable notifications from ACPI.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_AcpiNotification* moduleConfig;
+
+    UNREFERENCED_PARAMETER(ResourcesTranslated);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (! moduleConfig->ManualMode)
+    {
+        ntStatus = DMF_AcpiNotification_EnableDisable(DmfModule,
+                                                      FALSE);
+    }
+    else
+    {
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,12 +427,12 @@ Return Value:
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     device = DMF_ParentDeviceGet(DmfModule);
 
     // Create the Passive Level Workitem if necessary.
     //
-    WDF_WORKITEM_CONFIG_INIT(&workItemConfiguration, AcpiNotificationWorkitemHandler);
+    WDF_WORKITEM_CONFIG_INIT(&workItemConfiguration,
+                             AcpiNotificationWorkitemHandler);
     workItemConfiguration.AutomaticSerialization = WdfFalse;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&workItemAttributes);
@@ -336,14 +447,9 @@ Return Value:
         goto Exit;
     }
 
-    // Create the ACPI Notification.
+    // NOTE: Do not create the notification here because notifications can begin immediately afterward
+    //       and the Client may not be ready.
     //
-    ntStatus = AcpiNotification_AcpiInterfacesAcquire(DmfModule);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiInterfacesAcquire fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
 
 Exit:
 
@@ -381,9 +487,12 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // Stop getting notifications from ACPI.
+    // Disable notifications in case Client failed to do so.
+    // Do this before work item is deleted in case a notification is 
+    // in process. Any remaining workitem will wait to complete afterward.
     //
-    AcpiNotification_AcpiInterfacesRelease(DmfModule);
+    DMF_AcpiNotification_EnableDisable(DmfModule,
+                                       FALSE);
 
     // Release the Passive Level Workitem if it exists. Make sure it finishes 
     // processing any pending work (including work in progress).
@@ -436,6 +545,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_MODULE_DESCRIPTOR dmfModuleDescriptor_AcpiNotification;
     DMF_CALLBACKS_DMF dmfCallbacksDmf_AcpiNotification;
+    DMF_CALLBACKS_WDF dmfCallbacksWdf_AcpiNotification;
 
     PAGED_CODE();
 
@@ -443,13 +553,18 @@ Return Value:
     dmfCallbacksDmf_AcpiNotification.DeviceOpen = DMF_AcpiNotification_Open;
     dmfCallbacksDmf_AcpiNotification.DeviceClose = DMF_AcpiNotification_Close;
 
+    DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_AcpiNotification);
+    dmfCallbacksWdf_AcpiNotification.ModulePrepareHardware = DMF_AcpiNotification_ModulePrepareHardware;
+    dmfCallbacksWdf_AcpiNotification.ModuleReleaseHardware = DMF_AcpiNotification_ModuleReleaseHardware;
+
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_AcpiNotification,
                                             AcpiNotification,
                                             DMF_CONTEXT_AcpiNotification,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     dmfModuleDescriptor_AcpiNotification.CallbacksDmf = &dmfCallbacksDmf_AcpiNotification;
+    dmfModuleDescriptor_AcpiNotification.CallbacksWdf = &dmfCallbacksWdf_AcpiNotification;
 
     ntStatus = DMF_ModuleCreate(Device,
                                 DmfModuleAttributes,
@@ -462,6 +577,109 @@ Return Value:
     }
 
     return(ntStatus);
+}
+#pragma code_seg()
+
+// Module Methods
+//
+
+#pragma code_seg("PAGE")
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiNotification_EnableDisable(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG EnableNotifications
+    )
+/*++
+
+Routine Description:
+
+    Allows Client to enable/disable notifications.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    EnableNotifications - TRUE to enable notifications. FALSE to disable notifications.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_AcpiNotification* moduleContext;
+    BOOLEAN registered;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiNotification);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    ntStatus = STATUS_UNSUCCESSFUL;
+
+    if (EnableNotifications)
+    {
+        // Registration will be enabled.
+        //
+        DMF_ModuleLock(DmfModule);
+        registered = moduleContext->Registered;
+        moduleContext->Registered = TRUE;
+        DMF_ModuleUnlock(DmfModule);
+
+        if (registered)
+        {
+            // It has already been registered.
+            //
+            ntStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            // Create the ACPI Notification.
+            //
+            ntStatus = AcpiNotification_AcpiInterfacesAcquire(DmfModule);
+            if (! NT_SUCCESS(ntStatus))
+            {
+                // Registration failed. Reset flag.
+                //
+                DMF_ModuleLock(DmfModule);
+                moduleContext->Registered = FALSE;
+                DMF_ModuleUnlock(DmfModule);
+
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiInterfacesAcquire fails: ntStatus=%!STATUS!", ntStatus);
+            }
+        }
+    }
+    else
+    {
+        // Registration will be disabled.
+        //
+        DMF_ModuleLock(DmfModule);
+        registered = moduleContext->Registered;
+        moduleContext->Registered = FALSE;
+        DMF_ModuleUnlock(DmfModule);
+
+        if (! registered)
+        {
+            // It was already unregistered. Do nothing.
+            //
+        }
+        else
+        {
+            // Stop getting notifications from ACPI.
+            //
+            AcpiNotification_AcpiInterfacesRelease(DmfModule);
+        }
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 #pragma code_seg()
 

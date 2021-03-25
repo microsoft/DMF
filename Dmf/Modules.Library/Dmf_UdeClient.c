@@ -971,14 +971,14 @@ Return Value:
     usbDeviceContext->DmfModule = DmfModule;
     usbDeviceContext->UsbDeviceSpeed = UsbDeviceConfig->UsbDeviceSpeed;
 
-    *UdecxUsbDevice = usbDevice;
-    usbDevice =  NULL;
-
     if (moduleConfig->EvtUsbDevicePostCreate)
     {
         moduleConfig->EvtUsbDevicePostCreate(DmfModule,
                                              usbDevice);
     }
+
+    *UdecxUsbDevice = usbDevice;
+    usbDevice = NULL;
 
 Exit:
 
