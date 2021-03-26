@@ -130,6 +130,15 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_File.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_UdeClient.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_AcpiPepDeviceFan.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_AcpiPepDevice.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -274,6 +283,15 @@
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_File.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_UdeClient.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_AcpiPepDeviceFan.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_AcpiPepDevice.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
   </ItemGroup>
@@ -469,6 +487,15 @@
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_File.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_UdeClient.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_AcpiPepDeviceFan.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_AcpiPepDevice.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>

@@ -214,6 +214,16 @@ DMF_Registry_HandleDelete(
 
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenByDeviceInterface(
+    _In_ DMFMODULE DmfModule,
+    _In_ CONST GUID* InterfaceGuid,
+    _In_ int DeviceLinkIndex,
+    _Out_ HANDLE* RegistryHandle
+    );
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 HANDLE
 DMF_Registry_HandleOpenByHandle(
     _In_ DMFMODULE DmfModule,

@@ -17,18 +17,24 @@ This Module allows the Client to request and receive asynchronous notifications 
 ````
 typedef struct
 {
-  // Client's DISPATCH_LEVEL callback when Acpi Notification happens.
-  //
-  EVT_DMF_AcpiNotification_Dispatch* DispatchCallback;
-  // Client's PASSIVE_LEVEL callback when Acpi Notification happens.
-  //
-  EVT_DMF_AcpiNotification_Passive* PassiveCallback;
+    // Client's DISPATCH_LEVEL callback when Acpi Notification happens.
+    //
+    EVT_DMF_AcpiNotification_Dispatch* DispatchCallback;
+    // Client's PASSIVE_LEVEL callback when Acpi Notification happens.
+    //
+    EVT_DMF_AcpiNotification_Passive* PassiveCallback;
+    // Allows Client to start/stop notifications on demand.
+    // Otherwise, notifications start/stop during PrepareHardare/ReleaseHardware.
+    //
+    BOOLEAN ManualMode;
 } DMF_CONFIG_AcpiNotification;
 ````
+
 Member | Description
 ----|----
 DispatchCallback | Optional Client callback that receives notifications at DISPATCH_LEVEL.
 PassiveCallback | Optional Client callback that receives notifications at PASSIVE_LEVEL.
+ManualMode | Allows the Client to control when the notifications are enabled using `DMF_AcpiNotification_EnableDisable`. Default is FALSE which causes the notifications to start when Module receives `EVT_DevicePrepareHardware` and stop when Module receives`EVT_DeviceReleaseHardware`.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -97,7 +103,35 @@ DmfModule | An open DMF_AcpiNotification Module handle.
 
 #### Module Methods
 
-* None
+##### DMF_AcpiNotification_EnableDisable
+
+````
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiNotification_EnableDisable(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG EnableNotifications
+    )
+````
+
+Allows Client to enable/disable notifications from ACPI on demand.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+EnableNotifications | TRUE to enable notifications. FALSE to disable notifications.
+
+##### Remarks
+
+* Use this Method when ManualMode = TRUE in the Module Config.
+* Even if ManualMode == FALSE, the Client may use this Method.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -108,6 +142,8 @@ DmfModule | An open DMF_AcpiNotification Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
+
+* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -132,7 +168,7 @@ DmfModule | An open DMF_AcpiNotification Module handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-Targets
+Driver Patterns
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

@@ -2620,7 +2620,8 @@ Arguments:
     RequestIoctl - The given IOCTL.
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
     EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
-    SingleAsynchronousRequestClientContext - Client context sent in callback
+    SingleAsynchronousRequestClientContext - Client context sent in callback.
+    DmfRequestId - Unique id associated with the underlying WDFREQUEST.
 
 Return Value:
 

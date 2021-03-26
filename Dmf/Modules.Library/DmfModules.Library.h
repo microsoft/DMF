@@ -89,6 +89,8 @@ extern "C"
 #include "Dmf_VirtualEyeGaze.h"
 #include "Dmf_EyeGazeIoctl.h"
 #include "Dmf_UdeClient.h"
+#include "Dmf_AcpiPepDevice.h"
+#include "Dmf_AcpiPepDeviceFan.h"
 
 #if defined(DMF_WDF_DRIVER)
 #include "Dmf_Wmi.h"

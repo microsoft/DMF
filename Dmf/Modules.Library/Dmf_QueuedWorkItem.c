@@ -295,6 +295,19 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // BufferQueue
+    // -----------
+    //
+    DMF_BufferQueue_ATTRIBUTES_INIT(&moduleAttributes);
+    moduleAttributes.ModuleConfigPointer = &moduleConfig->BufferQueueConfig;
+    moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->BufferQueueConfig);
+    moduleConfig->BufferQueueConfig.SourceSettings.BufferSize += sizeof(QUEUEDWORKITEM_WAIT_BLOCK);
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferQueue);
+
     // ScheduledTask
     // -------------
     //
@@ -311,19 +324,6 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleScheduledTask);
-
-    // BufferQueue
-    // -----------
-    //
-    DMF_BufferQueue_ATTRIBUTES_INIT(&moduleAttributes);
-    moduleAttributes.ModuleConfigPointer = &moduleConfig->BufferQueueConfig;
-    moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->BufferQueueConfig);
-    moduleConfig->BufferQueueConfig.SourceSettings.BufferSize += sizeof(QUEUEDWORKITEM_WAIT_BLOCK);
-    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleBufferQueue);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -513,18 +513,20 @@ DMF_QueuedWorkItem_EnqueueAndWait(
 
 Routine Description:
 
-    Enqueues a deferred call that will execute in a different thread soon.
+    Enqueues a deferred call that will execute in a different thread soon. This call
+    blocks until the deferred operation is complete.
 
 Arguments:
 
     DmfModule - This Module's handle.
     ContextBuffer - Contains the parameters the caller wants to send to the deferred
-                       call that does work.
+                    call that does work.
     ContextBufferSize - Size of ContextBuffer in bytes.
 
 Return Value:
 
-    NTSTATUS
+    STATUS_SUCCESS by default or the status set by the callback using
+    DMF_QueuedWorkItem_StatusSet().
 
 --*/
 {
@@ -573,6 +575,10 @@ Return Value:
                              NotificationEvent,
                              FALSE);
 
+    // Default to STATUS_SUCCESS. Let the callback override using
+    // DMF_QueuedWorkItem_StatusSet() if desired.
+    //
+    ntStatusCall = STATUS_SUCCESS;
     queuedWorkItemWaitBlock->Event = &event;
     queuedWorkItemWaitBlock->NtStatus = &ntStatusCall;
 
@@ -592,7 +598,7 @@ Return Value:
                                           NULL,
                                           FALSE);
 
-    // Copy over the NTSTATUS that will be returned.
+    // Return the NTSTATUS set by the callback.
     //
     ntStatus = ntStatusCall;
 
@@ -603,6 +609,49 @@ Exit:
     return ntStatus;
 }
 #pragma code_seg()
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_QueuedWorkItem_StatusSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ NTSTATUS NtStatus
+    )
+/*++
+
+Routine Description:
+
+    Allows the Client to set the given NTSTATUS for the result of the enqueued work indicated by the
+    given Client Buffer. The given NTSTATUS will be read by the caller to DMF_QueuedWorkItem_EnqueueAndWait().
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The given Client Buffer.
+    NtStatus - The given NTSTATUS indicating result of work.
+
+Return Value:
+
+    None
+
+--*/
+{
+    QUEUEDWORKITEM_WAIT_BLOCK* queuedWorkItemWaitBlock;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 QueuedWorkItem);
+
+    queuedWorkItemWaitBlock = QueuedWorkItem_WaitBlockFromClientBuffer(ClientBuffer);
+
+    if (queuedWorkItemWaitBlock->NtStatus != NULL)
+    {
+        *(queuedWorkItemWaitBlock->NtStatus) = NtStatus;
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
 
 // eof: Dmf_QueuedWorkItem.c
 //
