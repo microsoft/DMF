@@ -616,8 +616,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 AcpiNotification);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            AcpiNotification);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     ntStatus = STATUS_UNSUCCESSFUL;
