@@ -33,11 +33,11 @@ Environment:
 #define RINGBUFFER_INDEX_CLIENT_FIRST     (RINGBUFFER_INDEX_SELF + 1)
 
 // Callback function for client driver to inform OS how much space Client Driver needs 
-// to write its data.
+// to write its data.  This is called during BugCheck at IRQL = HIGH_LEVEL so must 
+// be nonpaged and has restrictions on what it may do.
 //
 typedef
 _Function_class_(EVT_DMF_CrashDump_Query)
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_DMF_CrashDump_Query(_In_ DMFMODULE DmfModule,
@@ -46,16 +46,31 @@ EVT_DMF_CrashDump_Query(_In_ DMFMODULE DmfModule,
 
 // Callback function for client driver to write its own data after the system is crashed.
 // Note that this callback is only applicable to the RINGBUFFER_INDEX_SELF instance. Other instances
-// are used by User-mode and cannot use this callback.
+// are used by User-mode and cannot use this callback. This is called during BugCheck 
+// at IRQL = HIGH_LEVEL so must be nonpaged and has restrictions on what it may do.
 //
 typedef
 _Function_class_(EVT_DMF_CrashDump_Write)
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_DMF_CrashDump_Write(_In_ DMFMODULE DmfModule,
                         _Out_ VOID** OutputBuffer,
                         _In_ ULONG* OutputBufferLength);
+
+// Callback for marking memory regions which should be included in the kernel minidump.
+// This is called during BugCheck at IRQL = HIGH_LEVEL so must be nonpaged and
+// has restrictions on what it may do.
+//
+typedef
+_Function_class_(EVT_DMF_CrashDump_StoreTriageDumpData)
+_IRQL_requires_same_
+VOID
+EVT_DMF_CrashDump_StoreTriageDumpData(_In_ DMFMODULE DmfModule,
+                                      _In_ ULONG BugCheckCode,
+                                      _In_ ULONG_PTR BugCheckParameter1,
+                                      _In_ ULONG_PTR BugCheckParameter2,
+                                      _In_ ULONG_PTR BugCheckParameter3,
+                                      _In_ ULONG_PTR BugCheckParameter4);
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -88,6 +103,15 @@ typedef struct
     // Number of Data Sources for other clients.
     //
     ULONG DataSourceCount;
+
+    // Number of triage dump data entries to allocate. This must be
+    // set before using DMF_CrashDumpDataAdd.
+    ULONG TriageDumpDataArraySize;
+    // Callback for adding triage dump ranges during BugCheck processing.
+    // This is optional, even if passing a TriageDumpDataArraySize since
+    // buffers can be added prior to a BugCheck occurring.
+    //
+    EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
 } DMF_CONFIG_CrashDump;
 
 // This macro declares the following functions:
@@ -107,6 +131,14 @@ DMF_CrashDump_DataSourceWriteSelf(
     _In_ UCHAR* Buffer,
     _In_ ULONG BufferLength
     );
+
+_IRQL_requires_same_
+NTSTATUS
+DMF_CrashDump_TriageDumpDataAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR* Data,
+    _In_ ULONG DataLength
+);
 
 // eof: Dmf_CrashDump.h
 //
