@@ -59,7 +59,8 @@ EVT_DMF_CrashDump_Write(_In_ DMFMODULE DmfModule,
 
 // Callback for marking memory regions which should be included in the kernel minidump.
 // This is called during BugCheck at IRQL = HIGH_LEVEL so must be nonpaged and
-// has restrictions on what it may do.
+// has restrictions on what it may do.  The bugcheck code and parameters
+// are provided so the callback may choose to only add data when certain Bug Checks occur.
 //
 typedef
 _Function_class_(EVT_DMF_CrashDump_StoreTriageDumpData)
@@ -132,6 +133,8 @@ DMF_CrashDump_DataSourceWriteSelf(
     _In_ ULONG BufferLength
     );
 
+// Method to mark a data buffer for inclusion in a kernel mini dump
+//
 _IRQL_requires_same_
 NTSTATUS
 DMF_CrashDump_TriageDumpDataAdd(

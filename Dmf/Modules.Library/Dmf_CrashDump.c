@@ -3934,7 +3934,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module's handle.
+    DmfModule - An open DMF_CrashDump Module handle.
     Buffer - The data to write.
     BufferLength - The number of bytes to write.
 
@@ -3978,6 +3978,7 @@ Return Value:
     return ntStatus;
 }
 
+#if !defined(DMF_USER_MODE)
 
 _IRQL_requires_same_
 NTSTATUS
@@ -3996,7 +3997,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module's handle.
+    DmfModule - An open DMF_CrashDump Module handle.
     Data - The data to mark for inclusion in triage dump.
     DataLength - The size of the data.
 
@@ -4030,6 +4031,7 @@ Return Value:
     FuncExit(DMF_TRACE, "Buffer = 0x%p, Length = %d, ntStatus=%!STATUS!", Data, DataLength, ntStatus);
     return ntStatus;
 }
+#endif // !defined(DMF_USER_MODE)
 
 // eof: Dmf_CrashDump.c
 //

@@ -46,6 +46,15 @@ typedef struct
   // Number of Data Sources for other clients.
   //
   ULONG DataSourceCount;
+
+    // Number of triage dump data entries to allocate. This must be
+    // set before using DMF_CrashDumpDataAdd.
+    ULONG TriageDumpDataArraySize;
+    // Callback for adding triage dump ranges during BugCheck processing.
+    // This is optional, even if passing a TriageDumpDataArraySize since
+    // buffers can be added prior to a BugCheck occurring.
+    //
+    EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
 } DMF_CONFIG_CrashDump;
 ````
 Member | Description
@@ -59,6 +68,8 @@ RingBufferMaximumSize | The maximum size the ring buffer allowed.
 EvtCrashDumpQuery | Function that allows the crash dump writer to query the driver to determine how much data is needed.
 EvtCrashDumpWrite | Function that the crash dump writer calls to allow this Module (and its Client) to write data to the crash dump file.
 DataSourceCount | The maximum number of Data Sources (ring buffers) the instance of this Module allows (for other drivers and User-mode applications).
+TriageDumpDataArraySize | Number of triage dump data entries to allocate. Allows marking data buffers for inclusion in kernel minidumps.
+EvtCrashDumpStoreTriageDumpData | Function that the crash dump writer calls to allow the Client to mark buffers for inclusion in kernel minidumps.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -135,6 +146,40 @@ BufferLength | The address to where the length of the buffer that will be writte
 ##### Remarks
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_CrashDump_StoreTriageDumpData
+````
+_IRQL_requires_same_
+VOID
+EVT_DMF_CrashDump_StoreTriageDumpData(_In_ DMFMODULE DmfModule,
+    _In_ ULONG BugCheckCode,
+    _In_ ULONG_PTR BugCheckParameter1,
+    _In_ ULONG_PTR BugCheckParameter2,
+    _In_ ULONG_PTR BugCheckParameter3,
+    _In_ ULONG_PTR BugCheckParameter4
+    );
+````
+
+Callback for marking memory regions which should be included in the kernel minidump. This is called during BugCheck
+at IRQL = HIGH_LEVEL so must be nonpaged and has restrictions on what it may do.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_CrashDump Module handle.
+BugCheckCode | Supplies the Bug Check code of the Bug Check in progress.
+BugCheckParameter1 | Supplies Parameter 1 code of the Bug Check in progress.
+BugCheckParameter2 | Supplies Parameter 2 code of the Bug Check in progress.
+BugCheckParameter3 | Supplies Parameter 3 code of the Bug Check in progress.
+BugCheckParameter4 | Supplies Parameter 4 code of the Bug Check in progress.
+
+##### Remarks
+The Bug Check code and parameters are provided so the callback may choose to only add data when certain Bug Checks occur.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
 
@@ -160,9 +205,40 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_AlertableSleep Module handle.
+DmfModule | An open DMF_CrashDump Module handle.
 Buffer | The given buffer to write to the ring buffer.
 BufferLength | The size of the given buffer.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_CrashDump_TriageDumpDataAdd
+````
+_IRQL_requires_same_
+NTSTATUS
+DMF_CrashDump_TriageDumpDataAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR* Data,
+    _In_ ULONG DataLength
+    );
+````
+
+Add a Client Driver buffer to the Triage Dump Buffer list. This does not copy
+the memory but adds the address of the buffer and length to the triage data array
+so it will be marked for inclusion in a kernel minidump.  This could be called at
+any IRQL, depending on if it was called during the BugCheck callback or earlier.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_CrashDump Module handle.
+Data | The data to mark for inclusion in triage dump.
+DataLength | The size of the data.
 
 ##### Remarks
 
