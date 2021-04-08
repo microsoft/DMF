@@ -47,14 +47,14 @@ typedef struct
   //
   ULONG DataSourceCount;
 
-    // Number of triage dump data entries to allocate. This must be
-    // set before using DMF_CrashDumpDataAdd.
-    ULONG TriageDumpDataArraySize;
-    // Callback for adding triage dump ranges during BugCheck processing.
-    // This is optional, even if passing a TriageDumpDataArraySize since
-    // buffers can be added prior to a BugCheck occurring.
-    //
-    EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
+  // Number of triage dump data entries to allocate. This must be
+  // set before using DMF_CrashDumpDataAdd.
+  ULONG TriageDumpDataArraySize;
+  // Callback for adding triage dump ranges during BugCheck processing.
+  // This is optional, even if passing a TriageDumpDataArraySize since
+  // buffers can be added prior to a BugCheck occurring.
+  //
+  EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
 } DMF_CONFIG_CrashDump;
 ````
 Member | Description
