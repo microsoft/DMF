@@ -20,6 +20,7 @@ that will be written to the Crash Dump file.
 typedef struct
 {
   // The identifier of this component. It will be in the Bug Check data.
+  // This is a required parameter.
   //
   UCHAR* ComponentName;
   // GUID for this driver's Ring Buffer data.

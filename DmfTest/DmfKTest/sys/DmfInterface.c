@@ -38,6 +38,10 @@ EVT_WDF_DRIVER_DEVICE_ADD DmfKTestDeviceAdd;
 EVT_WDF_OBJECT_CONTEXT_CLEANUP DmfKTestDriverContextCleanup;
 EVT_DMF_DEVICE_MODULES_ADD DmfKTestDeviceModulesAdd;
 
+UCHAR g_TestTriageData1[] = "Test driver global data";
+
+
+
 // BranchTrack name.
 //
 #define BRANCHTRACK_NAME               "DmfKTest"
@@ -73,6 +77,33 @@ DMF_DEFAULT_DEVICEADD_WITH_BRANCHTRACK_LOG(DmfKTestDeviceAdd,
                                            BRANCHTRACK_NAME,
                                            BRANCHTRACK_DEFAULT_MAXIMUM_BRANCHES)
 #pragma code_seg()
+
+//Nonpaged segment for Bug Check callback
+//
+_Function_class_(EVT_DMF_CrashDump_StoreTriageDumpData)
+_IRQL_requires_same_
+VOID
+DmfKTest_CrashDump_StoreTriageDumpData(_In_ DMFMODULE DmfModule,
+                                       _In_ ULONG BugCheckCode,
+                                       _In_ ULONG_PTR BugCheckParameter1,
+                                       _In_ ULONG_PTR BugCheckParameter2,
+                                       _In_ ULONG_PTR BugCheckParameter3,
+                                       _In_ ULONG_PTR BugCheckParameter4)
+{
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(BugCheckCode);
+    UNREFERENCED_PARAMETER(BugCheckParameter1);
+    UNREFERENCED_PARAMETER(BugCheckParameter2);
+    UNREFERENCED_PARAMETER(BugCheckParameter3);
+    UNREFERENCED_PARAMETER(BugCheckParameter4);
+
+    ntStatus = DMF_CrashDump_TriageDumpDataAdd(DmfModule,
+                                               g_TestTriageData1,
+                                               sizeof(g_TestTriageData1));
+
+    DmfAssert(NT_SUCCESS(ntStatus));
+}
 
 #pragma code_seg("PAGED")
 _Check_return_
@@ -164,14 +195,19 @@ Return Value:
 --*/
 {
     DMF_MODULE_ATTRIBUTES moduleAttributes;
+#if 0
     BOOLEAN isFunctionDriver;
     DMF_CONFIG_Tests_IoctlHandler moduleConfigTests_IoctlHandler;
+#endif
+    DMF_CONFIG_CrashDump moduleConfigCrashDump;
 
     UNREFERENCED_PARAMETER(Device);
 
     PAGED_CODE();
 
+#if 0
     isFunctionDriver = DriverModeGet(Device);
+#endif
 
     /////////////////////////////////////////////////////////////////////////////////
     // These tests can be in both bus and function drivers. To reduce CPU usage, they
@@ -179,6 +215,7 @@ Return Value:
     /////////////////////////////////////////////////////////////////////////////////
     //
 
+#if 0
     // Tests_BufferPool
     // ----------------
     //
@@ -327,6 +364,25 @@ Return Value:
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
     }
+#endif
+
+    // Test CrashDump functionality
+    //-----------------------------
+    //
+    DMF_CONFIG_CrashDump_AND_ATTRIBUTES_INIT(&moduleConfigCrashDump,
+                                             &moduleAttributes);
+
+    // Note: ComponentName MUST be set for triage dump data callback to succeed.
+    //
+    moduleConfigCrashDump.ComponentName = (UCHAR *)"DmfKTest";
+    moduleConfigCrashDump.TriageDumpDataArraySize = 10;
+    moduleConfigCrashDump.EvtCrashDumpStoreTriageDumpData = DmfKTest_CrashDump_StoreTriageDumpData;
+
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+
 }
 #pragma code_seg()
 

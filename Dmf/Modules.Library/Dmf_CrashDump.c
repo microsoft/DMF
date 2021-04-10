@@ -1896,7 +1896,7 @@ Return Value:
                                bufferSize,
                                &moduleContext->TriageDumpDataArrayMemory,
                                (VOID**)&moduleContext->TriageDumpDataArray);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -1910,25 +1910,24 @@ Return Value:
         goto Exit;
     }
 
-    if (moduleConfig->EvtCrashDumpStoreTriageDumpData != NULL)
+     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Registering Bug Check Triage Dump Data Callback");
+    // Set up the callback record. This is set up even if the Client did not provide its own callback
+    // since the array could be populated during runtime and must still be added in this callback.
+    //
+    if (! KeRegisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordTriageDumpData,
+                                          CrashDump_BugCheckTriageDumpDataCallback,
+                                          KbCallbackTriageDumpData,
+                                          moduleConfig->ComponentName))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Registering Bug Check Triage Dump Data Callback");
-        // Set up the callback record.
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeRegisterBugCheckReasonCallback TriageDumpData");
+        ntStatus = STATUS_INVALID_PARAMETER;
+        // It should not happen.
         //
-        if (! KeRegisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordTriageDumpData,
-                                               CrashDump_BugCheckTriageDumpDataCallback,
-                                               KbCallbackTriageDumpData,
-                                               moduleConfig->ComponentName))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeRegisterBugCheckReasonCallback TriageDumpData");
-            ntStatus = STATUS_INVALID_PARAMETER;
-            // It should not happen.
-            //
-            DmfAssert(FALSE);
-            goto Exit;
-        }
+        DmfAssert(FALSE);
+        goto Exit;
     }
-    else
+
+    if (moduleConfig->EvtCrashDumpStoreTriageDumpData == NULL)
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Triage Data Callback provided");
     }
@@ -1994,11 +1993,13 @@ Return Value:
         // Unregister the callback. This Bug Check Callback is unregistered while the triage data array
         // is still allocated
         //
-        if (!KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordTriageDumpData))
+
+        if (moduleContext->BugCheckCallbackRecordTriageDumpData.Reason != KbCallbackInvalid)
         {
-            // It can fail here if the call back could not be allocated due to resource allocation failure.
-            //
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback TriageData");
+            if (! KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordTriageDumpData))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback TriageData");
+            }
         }
 
         WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
@@ -3265,7 +3266,6 @@ Return Value:
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
 #if !defined(DMF_USER_MODE)
@@ -3290,12 +3290,13 @@ Return Value:
         goto Exit;
     }
 
-    // If the Client Driver does not request a Ring Buffer, nor an Additional Bug Check Callback and not User-mode 
-    // Ring Buffers, there is no reason to load this Module.
+    // If the Client Driver does not request a Ring Buffer, nor an Additional Bug Check Callback,
+    // nor Triage Dump Data,  and not User-mode Ring Buffers, there is no reason to load this Module.
     //
     if ((NULL == moduleConfig->EvtCrashDumpWrite) &&
         (0 == moduleConfig->DataSourceCount) &&
-        ((0 == moduleConfig->BufferCount) || (0 == moduleConfig->BufferSize)))
+        ((0 == moduleConfig->BufferCount) || (0 == moduleConfig->BufferSize)) &&
+        (0 == moduleConfig->TriageDumpDataArraySize))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
@@ -3420,6 +3421,17 @@ Return Value:
     //
     if (moduleConfig->TriageDumpDataArraySize > 0)
     {
+
+        // The OS will not add the triage dump data callback data to the dump 
+        // without a valid component name, so check it right here.
+        if (moduleConfig->ComponentName == NULL)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump Config Missing Component Name");
+            DmfAssert(moduleConfig->ComponentName != NULL);
+            ntStatus = STATUS_INVALID_PARAMETER;
+            goto Exit;
+        }
+
         ntStatus = CrashDump_TriageDataCreateInternal(DmfModule);
         if (!NT_SUCCESS(ntStatus))
         {
@@ -3469,8 +3481,8 @@ Return Value:
 
 Exit:
 
-    // In the failed case, even with partial allocations, the Close Function is called and
-    // all resource clean up happens there.
+    // BUGBUG - Allocations must be cleaned up if Open fails, as Close will not be called.
+    // TODO free all the buffers
     //
 
     return ntStatus;
@@ -3874,6 +3886,7 @@ Return Value:
         // dump callbacks called by the OS.
         //
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Only one instance of this Module can exist at time");
+        ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
 #endif // !defined(DMF_USER_MODE)

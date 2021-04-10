@@ -35,6 +35,13 @@ Environment:
 #include "Trace.h"
 #include "DmfInterface.tmh"
 
+UCHAR g_TestTriageData1[] = "SampleInterface1 driver triage data";
+UCHAR g_TestSecondaryData1[] = "SampleInterface1 secondary data";
+
+// {B5953C99-F12A-45A4-AC13-129A11B35BC0}
+DEFINE_GUID(Interface1_CrashDataGuid,
+            0xb5953c99, 0xf12a, 0x45a4, 0xac, 0x13, 0x12, 0x9a, 0x11, 0xb3, 0x5b, 0xc0);
+
 // Forward declarations.
 //
 DRIVER_INITIALIZE DriverEntry;
@@ -62,6 +69,88 @@ typedef struct
     DMFMODULE DmfModuleTransport;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DEVICE_CONTEXT, DeviceContextGet)
+
+//Nonpaged segments for Bug Check callbacks
+//
+
+// Callback function for client driver to inform OS how much space Client Driver needs 
+// to write its data.  This is called during BugCheck at IRQL = HIGH_LEVEL so must 
+// be nonpaged and has restrictions on what it may do.
+//
+_Function_class_(EVT_DMF_CrashDump_Query)
+_IRQL_requires_same_
+VOID
+Interface1_CrashDump_Query(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** OutputBuffer,
+    _Out_ ULONG* SizeNeededBytes)
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    DmfAssert(OutputBuffer != NULL);
+    DmfAssert(SizeNeededBytes != NULL);
+    
+    // Return the size of our sample global data
+    //
+    *SizeNeededBytes = sizeof(g_TestSecondaryData1);
+    *OutputBuffer = (VOID*)g_TestSecondaryData1;
+
+}
+
+// Callback function for client driver to write its own data after the system is crashed.
+// Note that this callback is only applicable to the RINGBUFFER_INDEX_SELF instance. Other instances
+// are used by User-mode and cannot use this callback. This is called during BugCheck 
+// at IRQL = HIGH_LEVEL so must be nonpaged and has restrictions on what it may do.
+//
+_Function_class_(EVT_DMF_CrashDump_Write)
+_IRQL_requires_same_
+VOID
+Interface1_CrashDump_Write(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** OutputBuffer,
+    _In_ ULONG* OutputBufferLength)
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    DmfAssert(OutputBuffer != NULL);
+    DmfAssert(OutputBufferLength != NULL);
+
+    // Return the size of our sample global data
+    //
+    *OutputBufferLength = sizeof(g_TestSecondaryData1);
+    *OutputBuffer = (VOID*)g_TestSecondaryData1;
+}
+// Callback for marking memory regions which should be included in the kernel minidump.
+// This is called during BugCheck at IRQL = HIGH_LEVEL so must be nonpaged and
+// has restrictions on what it may do.  The bugcheck code and parameters
+// are provided so the callback may choose to only add data when certain Bug Checks occur.
+//
+_Function_class_(EVT_DMF_CrashDump_StoreTriageDumpData)
+_IRQL_requires_same_
+VOID
+Interface1_CrashDump_StoreTriageDumpData(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG BugCheckCode,
+    _In_ ULONG_PTR BugCheckParameter1,
+    _In_ ULONG_PTR BugCheckParameter2,
+    _In_ ULONG_PTR BugCheckParameter3,
+    _In_ ULONG_PTR BugCheckParameter4)
+{
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(BugCheckCode);
+    UNREFERENCED_PARAMETER(BugCheckParameter1);
+    UNREFERENCED_PARAMETER(BugCheckParameter2);
+    UNREFERENCED_PARAMETER(BugCheckParameter3);
+    UNREFERENCED_PARAMETER(BugCheckParameter4);
+
+    // Add sample data via triage dump data callback so it is available
+    // as memory in the crash minidump.
+
+    ntStatus = DMF_CrashDump_TriageDumpDataAdd(DmfModule,
+                                               g_TestTriageData1,
+                                               sizeof(g_TestTriageData1));
+}
 
 #pragma code_seg("PAGED")
 DMF_DEFAULT_DRIVERCLEANUP(InterfaceClientServerEvtDriverContextCleanup)
@@ -262,6 +351,7 @@ Return Value:
     DMF_CONFIG_SampleInterfaceProtocol1 moduleConfigInterfaceProtocol1;
     DMF_CONFIG_SampleInterfaceTransport1 moduleConfigInterfaceTransport1;
     DMF_CONFIG_SampleInterfaceTransport2 moduleConfigInterfaceTransport2;
+    DMF_CONFIG_CrashDump moduleConfigCrashDump;
     DEVICE_CONTEXT* deviceContext;
     ULONG transportId;
 
@@ -323,6 +413,31 @@ Return Value:
     {
         ASSERT(0);
     }
+
+    // Set up CrashDump callbacks
+    //
+
+    DMF_CONFIG_CrashDump_AND_ATTRIBUTES_INIT(&moduleConfigCrashDump,
+                                             &moduleAttributes);
+
+    // Note: ComponentName MUST be set for triage dump data callback to succeed.
+    //
+    moduleConfigCrashDump.ComponentName = (UCHAR*)"DmfIFSamp1";
+    // Secondary dump data callbacks for Dmf Ring buffer.
+    //
+    moduleConfigCrashDump.AdditionalDataGuid = Interface1_CrashDataGuid;
+    moduleConfigCrashDump.EvtCrashDumpQuery = Interface1_CrashDump_Query;
+    moduleConfigCrashDump.EvtCrashDumpWrite = Interface1_CrashDump_Write;
+    // Triage Dump Data callback.
+    // Allow up to 10 data ranges (added via DMF_CrashDump_TriageDumpDataAdd())
+    //
+    moduleConfigCrashDump.TriageDumpDataArraySize = 10;
+    moduleConfigCrashDump.EvtCrashDumpStoreTriageDumpData = Interface1_CrashDump_StoreTriageDumpData;
+
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "<--%!FUNC!");
 }

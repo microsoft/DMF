@@ -635,11 +635,8 @@ Return Value:
         goto Exit;
     }
 
-    // Store data buffers in the producer consumer list.
-    //
     dataBufferSource = &(DmfContextLiveKernelDump->DataBufferSource);
 
-    
     // Enumerate the buffers and add them to the triage dump data list.
     // Do not acquire locks since this is during Bug Check and no threads can be concurrently running.
     //
@@ -1130,6 +1127,7 @@ Return Value:
     {
         DMF_CONFIG_CrashDump_AND_ATTRIBUTES_INIT(&moduleConfigCrashDump,
                                                  &moduleAttributes);
+        moduleConfigCrashDump.ComponentName = (UCHAR*)"DMF";
         moduleConfigCrashDump.TriageDumpDataArraySize = 1024;
         moduleConfigCrashDump.EvtCrashDumpStoreTriageDumpData = LiveDump_CrashDumpStoreTriageDumpDataCallback;
         DMF_DmfModuleAdd(DmfModuleInit,
