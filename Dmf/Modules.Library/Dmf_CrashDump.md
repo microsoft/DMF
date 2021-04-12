@@ -38,11 +38,11 @@ typedef struct
   //
   GUID AdditionalDataGuid;
   // Buffer Size for the RINGBUFFER_INDEX_SELF Ring Buffer. (This driver.)
-  // NOTE: Use the absolute minimum necessary. Compress data if necessary!.
+  // NOTE: Use the absolute minimum necessary. Compress data if necessary.
   //
   ULONG BufferSize;
   // Number of buffers for RINGBUFFER_INDEX_SELF Ring Buffer. (This driver.)
-  // NOTE: Use the absolute minimum necessary. Compress data if necessary!.
+  // NOTE: Use the absolute minimum necessary. Compress data if necessary.
   //
   ULONG BufferCount;
   // Maximum size of ring buffer to allow.
@@ -56,6 +56,7 @@ typedef struct
   //
   ULONG DataSourceCount;
 } CrashDump_SecondaryData;
+
 typedef struct
 {
   // The identifier of this component. It will be in the Bug Check data.
@@ -162,7 +163,8 @@ BufferLength | The address to where the length of the buffer that will be writte
 ````
 _IRQL_requires_same_
 VOID
-EVT_DMF_CrashDump_StoreTriageDumpData(_In_ DMFMODULE DmfModule,
+EVT_DMF_CrashDump_StoreTriageDumpData(
+    _In_ DMFMODULE DmfModule,
     _In_ ULONG BugCheckCode,
     _In_ ULONG_PTR BugCheckParameter1,
     _In_ ULONG_PTR BugCheckParameter2,

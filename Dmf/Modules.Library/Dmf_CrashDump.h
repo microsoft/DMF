@@ -146,15 +146,13 @@ DMF_CrashDump_DataSourceWriteSelf(
     _In_ ULONG BufferLength
     );
 
-// Method to mark a data buffer for inclusion in a kernel mini dump
-//
 _IRQL_requires_same_
 NTSTATUS
 DMF_CrashDump_TriageDumpDataAdd(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR* Data,
     _In_ ULONG DataLength
-);
+    );
 
 // eof: Dmf_CrashDump.h
 //

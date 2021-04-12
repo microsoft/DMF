@@ -425,7 +425,7 @@ LiveKernelDump_InsertDataBufferInCrashDump(
     _Inout_updates_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ VOID* CallbackContext
-)
+    )
 /*++
 
 Routine Description:
@@ -488,11 +488,9 @@ Return Value:
 
     telemetryDataSize += dataBuffer->Size;
 
-    //TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "numberOfDataBuffers=%d, telemetryDataSize so far=%d", numberOfDataBuffers, telemetryDataSize);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "numberOfDataBuffers=%d telemetryDataSize so far=%d", numberOfDataBuffers, telemetryDataSize);
 
 Exit:
-
-    //FuncExitVoid(DMF_TRACE);
 
     // Continue enumeration.
     //
@@ -1174,7 +1172,7 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONFIG_LiveKernelDump* moduleConfig;
-    
+
     PAGED_CODE();
 
     ntStatus = STATUS_SUCCESS;
@@ -1536,8 +1534,6 @@ Return Value:
     return moduleContext->DmfDataSize;
 }
 #pragma code_seg()
-
-
 
 // eof: Dmf_LiveKernelDump.c
 //
