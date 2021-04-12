@@ -19,10 +19,18 @@ that will be written to the Crash Dump file.
 ````
 typedef struct
 {
-  // The identifier of this component. It will be in the Bug Check data.
-  // This is a required parameter.
+  // Number of triage dump data entries to allocate. This must be
+  // set before using DMF_CrashDumpDataAdd.
+  ULONG TriageDumpDataArraySize;
+  // Callback for adding triage dump ranges during BugCheck processing.
+  // This is optional, even if passing a TriageDumpDataArraySize since
+  // buffers can be added prior to a BugCheck occurring.
   //
-  UCHAR* ComponentName;
+  EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
+} CrashDump_TriageDumpData;
+
+typedef struct
+{
   // GUID for this driver's Ring Buffer data.
   //
   GUID RingBufferDataGuid;
@@ -30,11 +38,11 @@ typedef struct
   //
   GUID AdditionalDataGuid;
   // Buffer Size for the RINGBUFFER_INDEX_SELF Ring Buffer. (This driver.)
-  // NOTE: Use the absolute minimum necessary. Compress data if necessary.
+  // NOTE: Use the absolute minimum necessary. Compress data if necessary!.
   //
   ULONG BufferSize;
   // Number of buffers for RINGBUFFER_INDEX_SELF Ring Buffer. (This driver.)
-  // NOTE: Use the absolute minimum necessary. Compress data if necessary.
+  // NOTE: Use the absolute minimum necessary. Compress data if necessary!.
   //
   ULONG BufferCount;
   // Maximum size of ring buffer to allow.
@@ -47,30 +55,33 @@ typedef struct
   // Number of Data Sources for other clients.
   //
   ULONG DataSourceCount;
-
-  // Number of triage dump data entries to allocate. This must be
-  // set before using DMF_CrashDumpDataAdd.
-  ULONG TriageDumpDataArraySize;
-  // Callback for adding triage dump ranges during BugCheck processing.
-  // This is optional, even if passing a TriageDumpDataArraySize since
-  // buffers can be added prior to a BugCheck occurring.
+} CrashDump_SecondaryData;
+typedef struct
+{
+  // The identifier of this component. It will be in the Bug Check data.
   //
-  EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
+  UCHAR* ComponentName;
+  // Secondary (Blob) data callback configuration.
+  //
+  CrashDump_SecondaryData SecondaryData;
+  // TriageDumpData callback configuration.
+  //
+  CrashDump_TriageDumpData TriageDumpData;
 } DMF_CONFIG_CrashDump;
 ````
 Member | Description
 ----|----
 ComponentName | A string that identifies the Client driver that is writing data to the crash dump file.
-RingBufferDataGuid | GUID for DMF_RingBuffer data that is written to the crash dump file.
-AdditionalDataGuid | GUID for the additional data that is written to the crash dump file.
-BufferSize | Size in bytes of each item in the ring buffer that is written to the crash dump file.
-BufferCount | Number of items in the ring buffer that is written to the crash dump file.
-RingBufferMaximumSize | The maximum size the ring buffer allowed.
-EvtCrashDumpQuery | Function that allows the crash dump writer to query the driver to determine how much data is needed.
-EvtCrashDumpWrite | Function that the crash dump writer calls to allow this Module (and its Client) to write data to the crash dump file.
-DataSourceCount | The maximum number of Data Sources (ring buffers) the instance of this Module allows (for other drivers and User-mode applications).
-TriageDumpDataArraySize | Number of triage dump data entries to allocate. Allows marking data buffers for inclusion in kernel minidumps.
-EvtCrashDumpStoreTriageDumpData | Function that the crash dump writer calls to allow the Client to mark buffers for inclusion in kernel minidumps.
+SecondaryData.RingBufferDataGuid | GUID for DMF_RingBuffer data that is written to the crash dump file.
+SecondaryData.AdditionalDataGuid | GUID for the additional data that is written to the crash dump file.
+SecondaryData.BufferSize | Size in bytes of each item in the ring buffer that is written to the crash dump file.
+SecondaryData.BufferCount | Number of items in the ring buffer that is written to the crash dump file.
+SecondaryData.RingBufferMaximumSize | The maximum size the ring buffer allowed.
+SecondaryData.EvtCrashDumpQuery | Function that allows the crash dump writer to query the driver to determine how much data is needed.
+SecondaryData.EvtCrashDumpWrite | Function that the crash dump writer calls to allow this Module (and its Client) to write data to the crash dump file.
+SecondaryData.DataSourceCount | The maximum number of Data Sources (ring buffers) the instance of this Module allows (for other drivers and User-mode applications).
+TriageDumpData.TriageDumpDataArraySize | Number of triage dump data entries to allocate. Allows marking data buffers for inclusion in kernel minidumps.
+TriageDumpData.EvtCrashDumpStoreTriageDumpData | Function that the crash dump writer calls to allow the Client to mark buffers for inclusion in kernel minidumps.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

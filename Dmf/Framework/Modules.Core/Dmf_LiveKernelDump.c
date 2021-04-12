@@ -1128,8 +1128,8 @@ Return Value:
         DMF_CONFIG_CrashDump_AND_ATTRIBUTES_INIT(&moduleConfigCrashDump,
                                                  &moduleAttributes);
         moduleConfigCrashDump.ComponentName = (UCHAR*)"DMF";
-        moduleConfigCrashDump.TriageDumpDataArraySize = 1024;
-        moduleConfigCrashDump.EvtCrashDumpStoreTriageDumpData = LiveDump_CrashDumpStoreTriageDumpDataCallback;
+        moduleConfigCrashDump.TriageDumpData.TriageDumpDataArraySize = 1024;
+        moduleConfigCrashDump.TriageDumpData.EvtCrashDumpStoreTriageDumpData = LiveDump_CrashDumpStoreTriageDumpDataCallback;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,

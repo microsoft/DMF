@@ -73,13 +73,20 @@ EVT_DMF_CrashDump_StoreTriageDumpData(_In_ DMFMODULE DmfModule,
                                       _In_ ULONG_PTR BugCheckParameter3,
                                       _In_ ULONG_PTR BugCheckParameter4);
 
-// Client uses this structure to configure the Module specific parameters.
-//
 typedef struct
 {
-    // The identifier of this component. It will be in the Bug Check data.
+    // Number of triage dump data entries to allocate. This must be
+    // set before using DMF_CrashDumpDataAdd.
+    ULONG TriageDumpDataArraySize;
+    // Callback for adding triage dump ranges during BugCheck processing.
+    // This is optional, even if passing a TriageDumpDataArraySize since
+    // buffers can be added prior to a BugCheck occurring.
     //
-    UCHAR* ComponentName;
+    EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
+} CrashDump_TriageDumpData;
+
+typedef struct
+{
     // GUID for this driver's Ring Buffer data.
     //
     GUID RingBufferDataGuid;
@@ -104,15 +111,21 @@ typedef struct
     // Number of Data Sources for other clients.
     //
     ULONG DataSourceCount;
+} CrashDump_SecondaryData;
 
-    // Number of triage dump data entries to allocate. This must be
-    // set before using DMF_CrashDumpDataAdd.
-    ULONG TriageDumpDataArraySize;
-    // Callback for adding triage dump ranges during BugCheck processing.
-    // This is optional, even if passing a TriageDumpDataArraySize since
-    // buffers can be added prior to a BugCheck occurring.
+// Client uses this structure to configure the Module specific parameters.
+//
+typedef struct
+{
+    // The identifier of this component. It will be in the Bug Check data.
     //
-    EVT_DMF_CrashDump_StoreTriageDumpData* EvtCrashDumpStoreTriageDumpData;
+    UCHAR* ComponentName;
+    // Secondary (Blob) data callback configuration.
+    //
+    CrashDump_SecondaryData SecondaryData;
+    // TriageDumpData callback configuration.
+    //
+    CrashDump_TriageDumpData TriageDumpData;
 } DMF_CONFIG_CrashDump;
 
 // This macro declares the following functions:
