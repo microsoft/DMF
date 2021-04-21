@@ -61,6 +61,9 @@ typedef struct
     // Guid used to locate the secondary data associated with the minidumps generated from this driver.
     //
     GUID GuidSecondaryData;
+    // When TRUE, the DMF Data tracked by LiveKernelDump module will be marked as Triage Dump Data
+    // which is included in Kernel Triage Dumps if a Bug Check occurs.
+    BOOLEAN IncludeDmfDataInBugCheckTriageDump;
 } DMF_CONFIG_LiveKernelDump;
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

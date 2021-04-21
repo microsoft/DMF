@@ -24,6 +24,16 @@ Environment:
 #include "DmfModules.Core.h"
 #include "DmfModules.Core.Trace.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif // defined(__cplusplus)
+
+#include "..\Modules.Library\Dmf_CrashDump.h"
+
+#if defined(__cplusplus)
+}
+#endif // defined(__cplusplus)
+
 #if defined(DMF_INCLUDE_TMH)
 #include "Dmf_LiveKernelDump.tmh"
 #endif
@@ -96,7 +106,15 @@ typedef struct _DMF_CONTEXT_LiveKernelDump
     // We hence store the buffers in the producer consumer list during enumeration and later copy them over to the LiveKernelDump.
     //
     DMFMODULE BufferQueue;
+    // CrashDump module, which is used if the configuration specifies the pointers in DataBufferSource
+    // should be marked as triage data if a Bug Check occurs
+    //
+    DMFMODULE CrashDumpModule;
 #endif // IS_WIN10_RS3_OR_LATER
+    // Keep track of number of buffers and total size of data added to the livedump.
+    //
+    ULONG NumberOfDataBuffers;
+    ULONG TelemetryDataSize;
 } DMF_CONTEXT_LiveKernelDump;
 
 // This macro declares the following function:
@@ -402,6 +420,85 @@ Exit:
 
 #endif  // IS_WIN10_RS3_OR_LATER
 
+#if IS_WIN10_19H1_OR_LATER
+
+_Function_class_(EVT_DMF_RingBuffer_Enumeration)
+BOOLEAN
+LiveKernelDump_InsertDataBufferInCrashDump(
+    _In_ DMFMODULE DmfModuleRingBuffer,
+    _Inout_updates_(BufferSize) UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_ VOID* CallbackContext
+    )
+/*++
+
+Routine Description:
+
+    This function inserts the data buffer entry into Bug Check Triage Dump Data
+    so it is available in kernel mini dumps.  Called during Bug Check.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+    Buffer - Address of the data buffer to invalidate.
+    BufferSize - Size of the data buffer.
+    CallbackContext - Context passed for the callback.
+
+Return Value:
+
+    TRUE so that all items in Ring Buffer are enumerated.
+
+--*/
+{
+    DATA_BUFFER* dataBuffer;
+    DMFMODULE dmfModuleLiveKernelDump;
+    DMF_CONTEXT_LiveKernelDump* dmfContextLiveKernelDump;
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(BufferSize);
+    UNREFERENCED_PARAMETER(CallbackContext);
+
+    DmfAssert(BufferSize == sizeof(DATA_BUFFER));
+
+    ntStatus = STATUS_SUCCESS;
+    dataBuffer = (DATA_BUFFER*)Buffer;
+
+    dmfModuleLiveKernelDump = DMF_ParentModuleGet(DmfModuleRingBuffer);
+    dmfContextLiveKernelDump = DMF_CONTEXT_GET(dmfModuleLiveKernelDump);
+
+    // Check if this Data Buffer is Valid.
+    // NOTE: Data Buffers can be added to the Ring Buffer by DMF Modules. The DMF Module should invalidate the data buffer
+    // in its cleanup routine before it gets destroyed. The below check is to ensure that only buffers that are Valid
+    // are marked for the Kernel Mini Dump
+    //
+    if (!dataBuffer->Valid)
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_CrashDump_TriageDumpDataAdd(dmfContextLiveKernelDump->CrashDumpModule,
+                                               (UCHAR*)dataBuffer->Address,
+                                               dataBuffer->Size);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    dmfContextLiveKernelDump->TelemetryDataSize += dataBuffer->Size;
+
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NumberOfDataBuffers=%d TelemetryDataSize so far=%d", 
+                dmfContextLiveKernelDump->NumberOfDataBuffers,
+                dmfContextLiveKernelDump->TelemetryDataSize);
+
+Exit:
+
+    // Continue enumeration.
+    //
+    return TRUE;
+}
+
+#endif  // IS_WIN10_19H1_OR_LATER
+
 #if IS_WIN10_RS3_OR_LATER
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -495,6 +592,105 @@ Exit:
 }
 #pragma code_seg()
 #endif  // IS_WIN10_RS3_OR_LATER
+
+#if IS_WIN10_19H1_OR_LATER
+_IRQL_requires_same_
+NTSTATUS
+LiveKernelDump_InsertDmfTriageDataToCrashDump(
+    _In_ DMFMODULE DmfModuleCrashDump
+    )
+/*++
+
+Routine Description:
+
+    Inserts DMF triage data to the Bug Check triage data.  This function is called during Bug Check
+    at HIGH_IRQL
+
+Arguments:
+
+    DmfModuleCrashDump - This Module's handle.
+    
+Return Value:
+
+    NTSTATUS
+
+--*/
+
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleLiveKernelDump;
+    DMF_CONTEXT_LiveKernelDump* dmfContextLiveKernelDump;
+    DATA_BUFFER_SOURCE* dataBufferSource;
+
+    ntStatus = STATUS_SUCCESS;
+    dmfModuleLiveKernelDump = DMF_ParentModuleGet(DmfModuleCrashDump);
+    dmfContextLiveKernelDump = DMF_CONTEXT_GET(dmfModuleLiveKernelDump);
+
+    if (dmfContextLiveKernelDump->CrashDumpModule == NULL)
+    {
+        DmfAssert(FALSE);
+        ntStatus = STATUS_NOINTERFACE;
+        goto Exit;
+    }
+
+    dataBufferSource = &(dmfContextLiveKernelDump->DataBufferSource);
+
+    // Enumerate the buffers and add them to the triage dump data list.
+    // Do not acquire locks since this is during Bug Check and no threads can be concurrently running.
+    //
+
+    DMF_RingBuffer_Enumerate(dataBufferSource->DmfModuleRingBuffer,
+                             FALSE,
+                             LiveKernelDump_InsertDataBufferInCrashDump,
+                             NULL);
+
+Exit:
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+_IRQL_requires_same_
+VOID
+LiveDump_CrashDumpStoreTriageDumpDataCallback(
+    _In_ DMFMODULE DmfModuleCrashDump,
+    _In_ ULONG BugCheckCode,
+    _In_ ULONG_PTR BugCheckParameter1,
+    _In_ ULONG_PTR BugCheckParameter2,
+    _In_ ULONG_PTR BugCheckParameter3,
+    _In_ ULONG_PTR BugCheckParameter4
+    )
+/*++
+
+Routine Description:
+
+    Callback which is invoked when a Bug Check occurs, if LiveKernelDump was configured
+    To save DMF Objects as Triage Dump Data. This callback is called at HIGH_LEVEL
+    so must be nonpagable, cannot acquire locks, and must avoid touching nonpaged memory.
+
+Arguments:
+
+    DmfModuleCrashDump - This Module's handle.
+    BugCheckCode - Supplies the Bug Check code of the Bug Check in progress.
+    BugCheckParameter1 - Supplies Parameter 1 code of the Bug Check in progress.
+    BugCheckParameter2 - Supplies Parameter 2 code of the Bug Check in progress.
+    BugCheckParameter3 - Supplies Parameter 3 code of the Bug Check in progress.
+    BugCheckParameter4 - Supplies Parameter 4 code of the Bug Check in progress.
+
+Return Value:
+
+    None
+--*/
+{
+    UNREFERENCED_PARAMETER(BugCheckCode);
+    UNREFERENCED_PARAMETER(BugCheckParameter1);
+    UNREFERENCED_PARAMETER(BugCheckParameter2);
+    UNREFERENCED_PARAMETER(BugCheckParameter3);
+    UNREFERENCED_PARAMETER(BugCheckParameter4);
+
+    LiveKernelDump_InsertDmfTriageDataToCrashDump(DmfModuleCrashDump);
+}
+#endif  // IS_WIN10_19H1_OR_LATER
 
 #if IS_WIN10_RS3_OR_LATER
 #pragma code_seg("PAGE")
@@ -920,6 +1116,26 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->BufferQueue);
+
+#if IS_WIN10_19H1_OR_LATER
+    // CrashDump
+    // ---------
+    //
+    if (moduleConfig->IncludeDmfDataInBugCheckTriageDump)
+    {
+        DMF_CONFIG_CrashDump moduleConfigCrashDump;
+        DMF_CONFIG_CrashDump_AND_ATTRIBUTES_INIT(&moduleConfigCrashDump,
+                                                 &moduleAttributes);
+        moduleConfigCrashDump.ComponentName = (UCHAR*)"DMF";
+        moduleConfigCrashDump.TriageDumpData.TriageDumpDataArraySize = 1024;
+        moduleConfigCrashDump.TriageDumpData.EvtCrashDumpStoreTriageDumpData = LiveDump_CrashDumpStoreTriageDumpDataCallback;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->CrashDumpModule);
+    }
+#endif
+
 #endif // IS_WIN10_RS3_OR_LATER
 
     FuncExitVoid(DMF_TRACE);
