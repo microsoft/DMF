@@ -4,8 +4,10 @@ This sample shows how to write a Non-PnP driver (Control driver) using DMF. Non-
 After loading the driver, the application communicates with the driver to perform actions in Kernel-mode. Afterward, the application
 unloads the driver. (This sample also contains such an application, although it is not explained in detail as the driver is.)
 
+This sample also shows how to use DMF_CrashDump. It shows how to write both to the Secondary dump as well as the Triage Dump.
+
 Non-PnP drivers usually expose a symbolic link and an IOCTL interface. Thus, this sample driver instantiates a Module that exposes
-a symbolic link and an IOCTL interface. The driver itself simply instantiates the Module. When the application communciates with the
+a symbolic link and an IOCTL interface. The driver itself simply instantiates the Module. When the application communicates with the
 driver, the requests are handled directly by the Module.
 
 *Note: DMF Modules are agnostic about type of the Client Driver that instantiates them. Therefore, the important part of this
