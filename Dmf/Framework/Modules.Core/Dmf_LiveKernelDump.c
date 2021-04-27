@@ -24,16 +24,6 @@ Environment:
 #include "DmfModules.Core.h"
 #include "DmfModules.Core.Trace.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif // defined(__cplusplus)
-
-#include "..\Modules.Library\Dmf_CrashDump.h"
-
-#if defined(__cplusplus)
-}
-#endif // defined(__cplusplus)
-
 #if defined(DMF_INCLUDE_TMH)
 #include "Dmf_LiveKernelDump.tmh"
 #endif

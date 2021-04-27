@@ -161,12 +161,6 @@
     <ClCompile Include="..\..\Framework\DmfDeviceInit.c" />
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.c" />
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_Bridge.c" />
-    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferPool.c" />
-    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_HashTable.c" />
-    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.c" />
-    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.c" />
-    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.c" />
-    <ClCompile Include="..\..\Framework\Modules.Core\Dmf_String.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\DmfIncludeInternal.h" />
@@ -181,26 +175,14 @@
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BranchTrack_Public.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\Dmf_Bridge.h" />
-    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferPool.h" />
-    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_HashTable.h" />
-    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.h" />
-    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.h" />
     <ClInclude Include="..\..\Framework\Modules.Core\DmfModules.Core.Trace.h" />
-    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.h" />
-    <ClInclude Include="..\..\Framework\Modules.Core\Dmf_String.h" />
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\Framework\Modules.Core\Dmf_BufferPool.md" />
-    <None Include="..\..\Framework\Modules.Core\Dmf_BufferQueue.md" />
-    <None Include="..\..\Framework\Modules.Core\Dmf_HashTable.md" />
-    <None Include="..\..\Framework\Modules.Core\Dmf_IoctlHandler.md" />
     <None Include="..\..\Framework\Modules.Core\Dmf_LiveKernelDump.md" />
-    <None Include="..\..\Framework\Modules.Core\Dmf_RingBuffer.md" />
-    <None Include="..\..\Framework\Modules.Core\Dmf_String.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

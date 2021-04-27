@@ -139,6 +139,24 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_AcpiPepDevice.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c">
+      <Filter>Modules\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c">
+      <Filter>Modules\Data Structures</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -294,6 +312,24 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_AcpiPepDevice.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h">
+      <Filter>Headers\Data Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_String.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h">
+      <Filter>Headers\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h">
+      <Filter>Headers\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h">
+      <Filter>Headers\Buffers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -355,6 +391,15 @@
     </Filter>
     <Filter Include="Modules\Hid">
       <UniqueIdentifier>{cffd5108-ea55-4f7d-a315-ad00da2f4d1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Data Structures">
+      <UniqueIdentifier>{5a81381b-1a2b-422a-bde0-1fcd4c87063e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Data Structures">
+      <UniqueIdentifier>{a52aeb52-8efb-466e-b2e2-2e4ec05de090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Data Structures">
+      <UniqueIdentifier>{7d0604c6-357e-405a-b3e9-b80f6bacb5fc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -444,6 +489,24 @@
     </Text>
     <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
       <Filter>Documentation\Modules\Hid</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_String.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_IoctlHandler.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_HashTable.md">
+      <Filter>Documentation\Modules\Data Structures</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_BufferPool.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_BufferQueue.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_RingBuffer.md">
+      <Filter>Documentation\Modules\Buffers</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
