@@ -22,8 +22,8 @@ Environment:
 // DMF and this Module's Library specific definitions.
 //
 #include "DmfModule.h"
-#include "DmfModules.Core.h"
-#include "DmfModules.Core.Trace.h"
+#include "DmfModules.Library.h"
+#include "DmfModules.Library.Trace.h"
 
 #if defined(DMF_INCLUDE_TMH)
 #include "Dmf_IoctlHandler.tmh"

@@ -45,6 +45,13 @@ extern "C"
 
 // All the Modules in this Library.
 //
+#include "Dmf_BufferPool.h"
+#include "Dmf_HashTable.h"
+#include "Dmf_RingBuffer.h"
+#include "Dmf_BufferQueue.h"
+#include "Dmf_IoctlHandler.h"
+#include "Dmf_String.h"
+#include "Dmf_CrashDump.h"
 #include "Dmf_PingPongBuffer.h"
 #include "Dmf_HidPortableDeviceButtons.h"
 #include "Dmf_CrashDump.h"

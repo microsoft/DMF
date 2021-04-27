@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfK", "Dmf\Solution\DmfK\DmfK.vcxproj", "{241252E8-4ADE-42E5-B34B-AEFD33B9698E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -46,21 +46,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		Dmf\Documentation\Driver Module Framework.md = Dmf\Documentation\Driver Module Framework.md
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfKTest", "DmfTest\DmfKTest\sys\DmfKTest.vcxproj", "{ADBA2F9D-D994-4691-838F-927D55DF7C74}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B} = {E4BB47E7-F800-46C7-9837-9C3E5D0F456B}
-		{241252E8-4ADE-42E5-B34B-AEFD33B9698E} = {241252E8-4ADE-42E5-B34B-AEFD33B9698E}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUModules.Library.Tests", "Dmf\Solution\DmfUModules.Library.Tests\DmfUModules.Library.Tests.vcxproj", "{2F16597F-C98B-45EB-9DCF-F69C6993301D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC} = {4BDF1B1D-B01B-484A-BCBE-2D0B366CBBFC}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DmfUTest", "DmfTest\DmfUTest\sys\DmfUTest.vcxproj", "{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FEBF910D-1CF9-4DDD-88AF-37642D6E2D1C} = {FEBF910D-1CF9-4DDD-88AF-37642D6E2D1C}
-		{2F16597F-C98B-45EB-9DCF-F69C6993301D} = {2F16597F-C98B-45EB-9DCF-F69C6993301D}
 	EndProjectSection
 EndProject
 Global
@@ -235,18 +223,6 @@ Global
 		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}.Release|x64.ActiveCfg = Release|x64
 		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}.Release|x64.Build.0 = Release|x64
 		{E4BB47E7-F800-46C7-9837-9C3E5D0F456B}.Release|x64.Deploy.0 = Release|x64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|ARM64.Build.0 = Debug|ARM64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|Win32.ActiveCfg = Debug|Win32
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|Win32.Build.0 = Debug|Win32
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|x64.ActiveCfg = Debug|x64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Debug|x64.Build.0 = Debug|x64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|ARM64.ActiveCfg = Release|ARM64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|ARM64.Build.0 = Release|ARM64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|Win32.ActiveCfg = Release|Win32
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|Win32.Build.0 = Release|Win32
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|x64.ActiveCfg = Release|x64
-		{ADBA2F9D-D994-4691-838F-927D55DF7C74}.Release|x64.Build.0 = Release|x64
 		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|ARM64.Build.0 = Debug|ARM64
 		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Debug|Win32.ActiveCfg = Debug|Win32
@@ -259,16 +235,6 @@ Global
 		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|Win32.Build.0 = Release|Win32
 		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|x64.ActiveCfg = Release|x64
 		{2F16597F-C98B-45EB-9DCF-F69C6993301D}.Release|x64.Build.0 = Release|x64
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|ARM64.ActiveCfg = Debug|Win32
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|Win32.Build.0 = Debug|Win32
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|x64.ActiveCfg = Debug|x64
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Debug|x64.Build.0 = Debug|x64
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|ARM64.ActiveCfg = Release|Win32
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|Win32.ActiveCfg = Release|Win32
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|Win32.Build.0 = Release|Win32
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|x64.ActiveCfg = Release|x64
-		{E98FB229-86D0-4EAF-8FC1-D20F63F5991C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

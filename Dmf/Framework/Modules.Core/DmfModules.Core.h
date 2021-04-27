@@ -36,19 +36,24 @@ extern "C"
 // (None at this time.)
 //
 
-// All the Modules in this Library.
+// These are Modules used by the Core itself. However, they reside with all other non-Feature
+// Modules in Modules.Library.
 //
-#include "Dmf_BufferPool.h"
-#include "Dmf_HashTable.h"
-#include "Dmf_RingBuffer.h"
+#include "..\Modules.Library\Dmf_BufferPool.h"
+#include "..\Modules.Library\Dmf_HashTable.h"
+#include "..\Modules.Library\Dmf_RingBuffer.h"
+#include "..\Modules.Library\Dmf_BufferQueue.h"
+#include "..\Modules.Library\Dmf_IoctlHandler.h"
+#include "..\Modules.Library\Dmf_String.h"
+#include "..\Modules.Library\Dmf_CrashDump.h"
+
+// Feature Modules.
+//
 #include "Dmf_BranchTrack.h"
 #include "Dmf_Bridge.h"
 #if defined(DMF_WDF_DRIVER)
 #include "Dmf_LiveKernelDump.h"
 #endif
-#include "Dmf_BufferQueue.h"
-#include "Dmf_IoctlHandler.h"
-#include "Dmf_String.h"
 
 #if defined(__cplusplus)
 }
