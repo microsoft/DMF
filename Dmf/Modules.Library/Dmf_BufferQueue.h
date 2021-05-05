@@ -20,16 +20,30 @@ Environment:
 
 #pragma once
 
+// Callback called by DMF_BufferQueue_Reuse so Client
+// can finalize buffers before being sent back to Producer.
+//
+typedef
+_Function_class_(EVT_DMF_BufferQueue_ReuseCleanup)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_BufferQueue_ReuseCleanup(_In_ DMFMODULE DmfModule,
+                                 _In_ VOID* ClientBuffer,
+                                 _In_ VOID* ClientBufferContext);
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
 {
     // BufferQueue has a source and sink list.
     // Source is configured by Client using these settings. 
+    // Sink is configured internally.
     //
     BufferPool_SourceSettings SourceSettings;
-    // Sink is configured internally. 
+    // Optional callback for Client to finalize buffer before reuse.
     //
+    EVT_DMF_BufferQueue_ReuseCleanup* EvtBufferQueueReuseCleanup;
 } DMF_CONFIG_BufferQueue;
 
 // This macro declares the following functions:

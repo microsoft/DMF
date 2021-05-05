@@ -31,6 +31,10 @@ typedef struct
   // Optional callback that does work after looping but before thread ends.
   //
   EVT_DMF_Thread_Function* EvtThreadedBufferQueuePost;
+  // Optional callback allows Client to deallocate / dereference any
+  // buffer-attached resources.
+  //
+  EVT_DMF_ThreadedBufferQueue_ReuseCleanup* EvtThreadedBufferQueueReuseCleanup;
 } DMF_CONFIG_ThreadedBufferQueue;
 ````
 Member | Description
@@ -39,6 +43,7 @@ BufferQueueConfig | Client sets up the configuration of the internal DMF_BufferQ
 EvtThreadedBufferQueuePre | This function performs work on behalf of the Client before this Module's main ThreadedBufferQueue function executes.
 EvtThreadedBufferQueueWork | This function performs work on behalf of the Client when this Module determines there is work to be done.
 EvtThreadedBufferQueuePost | This function performs work on behalf of the Client after this Module's main ThreadedBufferQueue function executes.
+EvtThreadedBufferQueueReuseCleanup | The Client may register this callback to do any cleanup needed before the buffer is being flushed / reused.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -102,6 +107,30 @@ ClientWorkBuffer | This buffer contains the work that needs to be done in this c
 ClientWorkBufferSize | The size of ClientWorkBuffer for validation purposes.
 ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
 NtStatus | The NTSTATUS value to return to the function that initially populated the work buffer.
+
+##### EVT_DMF_BufferQueue_ReuseCleanup
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_ThreadedBufferQueue_ReuseCleanup(_In_ DMFMODULE DmfModule,
+                                         _In_ VOID* ClientBuffer,
+                                         _In_ VOID* ClientBufferContext);
+````
+
+This callback is called when this Module is about to reuse a work buffer. Before the Module puts the work
+buffer back in its DMF_BufferQueue's Producer list for reuse, the Module presents it to the Client via this callback.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientWorkBuffer | This buffer contains the work that needs to be done in this callback. This buffer is owned by Client until this function returns.
+ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
+
+##### Remarks
+
+* Use callback to free or reference count decrement resources associated with buffers.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

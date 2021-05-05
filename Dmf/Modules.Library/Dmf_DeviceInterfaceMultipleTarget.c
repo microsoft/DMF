@@ -1574,20 +1574,25 @@ Return Value:
         // ContinuousRequestTarget
         // -----------------------
         //
+        DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
 
         // Store ContinuousRequestTarget callbacks from config into DeviceInterfaceMultipleTarget context for redirection.
         //
         moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
         moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
 
+        DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&moduleConfigContinuousRequestTarget,
+                                                               &moduleAttributes);
+        // Copy ContinuousRequestTarget Config from Client's Module Config.
+        //
+        RtlCopyMemory(&moduleConfigContinuousRequestTarget,
+                      &moduleConfig->ContinuousRequestTargetModuleConfig,
+                      sizeof(moduleConfig->ContinuousRequestTargetModuleConfig));
         // Replace ContinuousRequestTarget callbacks in config with DeviceInterfaceMultipleTarget callbacks.
         //
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = DeviceInterfaceMultipleTarget_Stream_BufferInput;
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceMultipleTarget_Stream_BufferOutput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferInput = DeviceInterfaceMultipleTarget_Stream_BufferInput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceMultipleTarget_Stream_BufferOutput;
 
-        DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
-        moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
         moduleAttributes.PassiveLevel = moduleContext->PassiveLevel;
         ntStatus = DMF_ContinuousRequestTarget_Create(device,
                                                       &moduleAttributes,

@@ -530,8 +530,8 @@ Return Value:
                                       &bufferContext);
         if (NT_SUCCESS(ntStatus))
         {
-            DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolProducer,
-                               buffer);
+            DMF_BufferQueue_Reuse(DmfModule,
+                                  buffer);
         }
     }
 
@@ -562,6 +562,7 @@ Return Value:
 
 --*/
 {
+    DMF_CONFIG_BufferQueue* moduleConfig;
     DMF_CONTEXT_BufferQueue* moduleContext;
 
     FuncEntry(DMF_TRACE);
@@ -569,7 +570,24 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  BufferQueue);
 
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // If Config EvtBufferQueueReuseCleanup callback present, call
+    // with buffer before handing back to Producer BufferPool.
+    //
+    if (moduleConfig->EvtBufferQueueReuseCleanup)
+    {
+        VOID* clientBufferContext = NULL;
+
+        DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolConsumer,
+                                  ClientBuffer,
+                                  &clientBufferContext);
+
+        (moduleConfig->EvtBufferQueueReuseCleanup)(DmfModule,
+                                                   ClientBuffer,
+                                                   clientBufferContext);
+    }
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolProducer,
                        ClientBuffer);

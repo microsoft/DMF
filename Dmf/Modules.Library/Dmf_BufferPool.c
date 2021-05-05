@@ -1570,10 +1570,6 @@ Return Value:
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 
-    // For consistency, the Module from which the pool was created must be passed in.
-    //
-    DmfAssert(bufferPoolEntry->CreatedByDmfModule == DmfModule);
-
     DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
 
     DmfAssert(ClientBufferContext != NULL);
