@@ -146,6 +146,37 @@ PreparsedHidData | Allows the Client to access the HID API to determine more HID
 HidCollectionInformation | Allows the Client to access the HID API to determine more HID specific information about the given WDFIOTARGET.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion
+````
+_Function_class_(EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientRequestContext,
+    _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesRead,
+    _In_ NTSTATUS CompletionStatus
+    );
+````
+
+Client Driver callback function to be called from GetFeature Asynchronous Completion routine.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_HidTarget Module handle.
+ClientRequestContext | Client's context which was set as a request context while calling DMF_HidTarget_FeatureGetAsynchronous.
+OutputBuffer | Output Buffer which has the feature get report response.
+OutputBufferBytesRead | Size of OutputBuffer
+CompletionStatus | Request completion status.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
 
@@ -244,6 +275,36 @@ Buffer | The Client buffer that will receive data associated with FeatureId.
 BufferSize | The size of Buffer in bytes.
 OffsetOfDataToCopy | The offset in Buffer where received data is written.
 NumberOfBytesToCopy | The number of bytes that should be received.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_HidTarget_FeatureGetAsynchronous
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureGetAsynchronous(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR ReportId,
+    _In_ EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion* EvtClientHidFeatureGetCompletionCallback,
+    _In_opt_ VOID* HidFeatureGetCompletionCallbackClientContext
+    );
+````
+
+Allows the Client to send a "Get Feature" command to the HID device connected the instance of this Module asynchronously.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | This Module's handle.
+ReportId | Feature report Id to call Get Feature on.
+EvtClientHidFeatureGetCompletionCallback | Callback to be called on completion routine.
+HidFeatureGetCompletionCallbackClientContext | Client context sent in callback.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

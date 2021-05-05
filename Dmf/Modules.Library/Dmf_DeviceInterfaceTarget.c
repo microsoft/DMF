@@ -2130,20 +2130,25 @@ Return Value:
         // ContinuousRequestTarget
         // -----------------------
         //
+        DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
 
         // Store ContinuousRequestTarget callbacks from config into DeviceInterfaceTarget context for redirection.
         //
         moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
         moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
 
+        DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&moduleConfigContinuousRequestTarget,
+                                                               &moduleAttributes);
+        // Copy ContinuousRequestTarget Config from Client's Module Config.
+        //
+        RtlCopyMemory(&moduleConfigContinuousRequestTarget,
+                      &moduleConfig->ContinuousRequestTargetModuleConfig,
+                      sizeof(moduleConfig->ContinuousRequestTargetModuleConfig));
         // Replace ContinuousRequestTarget callbacks in config with DeviceInterfaceTarget callbacks.
         //
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = DeviceInterfaceTarget_Stream_BufferInput;
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceTarget_Stream_BufferOutput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferInput = DeviceInterfaceTarget_Stream_BufferInput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceTarget_Stream_BufferOutput;
 
-        DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
-        moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
         moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,

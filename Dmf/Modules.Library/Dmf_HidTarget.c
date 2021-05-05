@@ -75,6 +75,9 @@ typedef struct _DMF_CONTEXT_HidTarget
     // sent using Dmf_HidTarget_InputReadEx().
     //
     DMFMODULE DmfModuleThreadedBufferQueueInputReport;
+    // BufferPool for saving context of Feature get Asynchronous.
+    //
+    DMFMODULE DmfModuleBufferPoolContextHidFeatureGetAsynchronous;
 } DMF_CONTEXT_HidTarget;
 
 // This macro declares the following function:
@@ -101,10 +104,30 @@ DMF_MODULE_DECLARE_CONFIG(HidTarget)
 #include <hidsdi.h>
 
 // Used to determine number of buffers pre-allocated for input report read requests sent using
-// Dmf_HidTarget_InputRead(). PendedInputReadRequestCount in the module config is not
+// Dmf_HidTarget_InputRead(). PendedInputReadRequestCount in the Module config is not
 // used because the client controls the number of requests to pend when using Dmf_HidTarget_InputRead().
 //
 #define DEFAULT_NUMBER_OF_PENDING_INPUT_READS 4
+
+#define DEFAULT_NUMBER_OF_PENDING_FEATURE_GET_READS 2
+
+// Used to save the context of the client which is calling DMF_HidTarget_FeatureGetAsynchronous()
+// method. In which the client's completion callback needs to be called once the Asynchronous
+// transaction is completed.
+//
+typedef struct _HidFeatureGetContext
+{
+    // CompletionCallback for invoking back the client
+    // once the asynchronous feature get request send is completed.
+    //
+    EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion* EvtClientHidFeatureGetCompletionCallback;
+    // Client context to be passed as an argument in completion callback.
+    //
+    VOID* HidFeatureGetCompletionCallbackClientContext;
+    // Memory to get Asynchronous response of feature report get.
+    //
+    WDFMEMORY FeatureReportMemory;
+} HidFeatureGetContext;
 
 // {55F3D844-8F9E-4EBD-AE33-EB778524CEEF}
 DEFINE_GUID(GUID_CUSTOM_DEVINTERFACE, 0x55f3d844, 0x8f9e, 0x4ebd, 0xae, 0x33, 0xeb, 0x77, 0x85, 0x24, 0xce, 0xef);
@@ -211,6 +234,79 @@ ExitNoRelease:
     FuncExit(DMF_TRACE, "ContinuousRequestTarget_BufferDisposition=%d", returnValue);
 
     return returnValue;
+}
+
+_Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+static
+VOID
+HidTarget_FeatureGetCompletionCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientRequestContext,
+    _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
+    _In_ size_t InputBufferBytesWritten,
+    _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesRead,
+    _In_ NTSTATUS CompletionStatus
+    )
+/*++
+
+Routine Description:
+
+    Callback function called when the Feature get report request sent using DMF_ContinuousRequestTarget_Send() completes.
+    This calls back the client completion callback with all same parameters.
+
+Arguments:
+
+    DmfModule - ContinuousRequestTarget Module handle.
+    ClientRequestContext - This Module's context which was set as request context during send.
+    InputBuffer - Input Buffer sent as part of the request.
+    InputBufferBytesWritten - Size of InputBuffer
+    OutputBuffer - Output Buffer sent as part of the request.
+    OutputBufferBytesRead - Size of OutputBuffer
+    CompletionStatus - Request completion status.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    DMF_CONTEXT_HidTarget* moduleContext;
+    DMFMODULE dmfModuleHidTarget;
+    HidFeatureGetContext* featureGetContext;
+
+    UNREFERENCED_PARAMETER(InputBuffer);
+    UNREFERENCED_PARAMETER(InputBufferBytesWritten);
+
+    FuncEntry(DMF_TRACE);
+
+    dmfModuleHidTarget = DMF_ParentModuleGet(DmfModule);
+
+    moduleContext = DMF_CONTEXT_GET(dmfModuleHidTarget);
+
+    featureGetContext = (HidFeatureGetContext*) ClientRequestContext;
+
+    DmfAssert(featureGetContext->EvtClientHidFeatureGetCompletionCallback != NULL);
+
+    featureGetContext->EvtClientHidFeatureGetCompletionCallback(dmfModuleHidTarget,
+                                                                featureGetContext->HidFeatureGetCompletionCallbackClientContext,
+                                                                OutputBuffer,
+                                                                OutputBufferBytesRead,
+                                                                CompletionStatus);
+
+    DmfAssert(featureGetContext->FeatureReportMemory != WDF_NO_HANDLE);
+
+    WdfObjectDelete(featureGetContext->FeatureReportMemory);
+    featureGetContext->FeatureReportMemory = WDF_NO_HANDLE;
+
+    DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous,
+                       featureGetContext);
+
+    DMF_ModuleDereference(dmfModuleHidTarget);
+
+    FuncExitVoid(DMF_TRACE);
 }
 
 _Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
@@ -2315,7 +2411,7 @@ HidTarget_NotificationRegisterForLocalUser(
 
 Routine Description:
 
-    This function opens the lower level stack as target, and then opens the module.
+    This function opens the lower level stack as target, and then opens the Module.
 
 Arguments:
 
@@ -2711,6 +2807,7 @@ Return Value:
     DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
     WDFDEVICE device;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
+    DMF_CONFIG_BufferPool moduleConfigBufferPool;
 
     PAGED_CODE();
 
@@ -2733,7 +2830,6 @@ Return Value:
         // They are not necessary if the HID descriptor has input report length greater than zero.
         //
 
-        DMF_CONFIG_BufferPool moduleConfigBufferPool;
         DMF_CONFIG_ThreadedBufferQueue moduleConfigThreadedBufferQueue;
 
         // Create Threaded Buffer Queue to handle processing of Input Report with client callback.
@@ -2780,15 +2876,37 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
+    }
 
-        // Start the thread for the Threaded Buffer Queue module.
-        //
-        ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
+    // Create Buffer Pool for context of Hid Feature get in Asynchronous operation.
+    // This will be used for storing context variables as client's completion callback and requested Client Context
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                              &moduleAttributes);
+    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = DEFAULT_NUMBER_OF_PENDING_FEATURE_GET_READS;
+    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(HidFeatureGetContext);
+    moduleConfigBufferPool.Mode.SourceSettings.BufferContextSize = 0;
+    moduleAttributes.ClientModuleInstanceName = "BufferPoolContextHidFeatureGetAsynchronous";
+    ntStatus = DMF_BufferPool_Create(device,
+                                     &moduleAttributes,
+                                     &objectAttributes,
+                                     &moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Start the thread for the Threaded Buffer Queue Module.
+    //
+    ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
     }
 
     // Create Continuous Request for streaming Input Reports of size retrieved from the HID capability.
@@ -2866,6 +2984,12 @@ Exit:
             WdfObjectDelete(moduleContext->DmfModuleBufferPoolInputReport);
             moduleContext->DmfModuleBufferPoolInputReport = NULL;
         }
+
+        if (moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous != NULL)
+        {
+            WdfObjectDelete(moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous);
+            moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous = NULL;
+        }
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -2910,7 +3034,7 @@ Return Value:
     //
     HidTarget_IoTargetDestroy(moduleContext);
 
-    // Stop the thread for the Threaded Buffer Queue module.
+    // Stop the thread for the Threaded Buffer Queue Module.
     //
     if (moduleContext->DmfModuleThreadedBufferQueueInputReport != NULL)
     {
@@ -2941,6 +3065,12 @@ Return Value:
         moduleContext->DmfModuleBufferPoolInputReport = NULL;
     }
 
+    if (moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous != NULL)
+    {
+        WdfObjectDelete(moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous);
+        moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous = NULL;
+    }
+
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
@@ -2961,7 +3091,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     ProtocolBindData
     TransportBindData
 
@@ -2992,7 +3122,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -3017,7 +3147,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -3042,7 +3172,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -3350,6 +3480,171 @@ Return Value:
                                                    OffsetOfDataToCopy,
                                                    NumberOfBytesToCopy,
                                                    0);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureGetAsynchronous(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR ReportId,
+    _In_ EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion* EvtClientHidFeatureGetCompletionCallback,
+    _In_opt_ VOID* HidFeatureGetCompletionCallbackClientContext
+    )
+/*++
+
+Routine Description:
+
+    Sends a Get Feature request to underlying HID device asynchronously.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ReportId - Feature report Id to call Get Feature on.
+    EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called on completion routine.
+    HidFeatureGetCompletionCallbackClientContext - Client context sent in callback.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+    UCHAR* featureGetPoolbuffer;
+    HidFeatureGetContext* featureGetContext;
+    WDFMEMORY featureReportMemory;
+    UCHAR* featureReportBuffer;
+    size_t featureBufferLength;
+    BOOLEAN moduleReferenced;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
+
+    featureGetPoolbuffer = NULL;
+    featureReportMemory = WDF_NO_HANDLE;
+    featureReportBuffer = NULL;
+    featureBufferLength = 0;
+    moduleReferenced = FALSE;
+    moduleContext = NULL;
+    featureGetContext = NULL;
+
+    if (EvtClientHidFeatureGetCompletionCallback == NULL)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Input client completion callback param: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "DMF_ModuleReference fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    moduleReferenced = TRUE;
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous,
+                                 (PVOID*)&featureGetPoolbuffer,
+                                 NULL);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "DMF_BufferPool_Get fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    RtlZeroMemory(featureGetPoolbuffer,
+                  sizeof(HidFeatureGetContext));
+
+    ntStatus = DMF_HidTarget_ReportCreate(DmfModule,
+                                          HidP_Feature,
+                                          ReportId,
+                                          &featureReportMemory);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "DMF_HidTarget_ReportCreate fails for Report 0x%x: ntStatus=%!STATUS!",
+                    ReportId,
+                    ntStatus);
+        goto Exit;
+    }
+
+    featureReportBuffer = (UCHAR*)WdfMemoryGetBuffer(featureReportMemory,
+                                                     &featureBufferLength);
+
+    featureGetContext = (HidFeatureGetContext*) featureGetPoolbuffer;
+    featureGetContext->EvtClientHidFeatureGetCompletionCallback = EvtClientHidFeatureGetCompletionCallback;
+    featureGetContext->HidFeatureGetCompletionCallbackClientContext = HidFeatureGetCompletionCallbackClientContext;
+    featureGetContext->FeatureReportMemory = featureReportMemory;
+
+    ntStatus = DMF_ContinuousRequestTarget_Send(moduleContext->DmfModuleContinuousRequestTarget,
+                                                NULL,
+                                                0,
+                                                featureReportBuffer,
+                                                featureBufferLength,
+                                                ContinuousRequestTarget_RequestType_Ioctl,
+                                                IOCTL_HID_GET_FEATURE,
+                                                0,
+                                                HidTarget_FeatureGetCompletionCallback,
+                                                featureGetContext);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "DMF_ContinuousRequestTarget_Send fails: ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+
+    featureReportMemory = WDF_NO_HANDLE;
+    featureGetPoolbuffer = NULL;
+
+    // Asynchronous transfer is performed in this method and to avoid Module close between transfer,
+    // NOT calling DMF_ModuleDereference on HidTarget Module in this method.
+    // Instead, after send completion in send completion callback the DMF_ModuleDereference is called.
+    //
+    moduleReferenced = FALSE;
+
+Exit:
+
+    if (featureReportMemory != WDF_NO_HANDLE)
+    {
+        WdfObjectDelete(featureReportMemory);
+        featureGetContext->FeatureReportMemory = WDF_NO_HANDLE;
+    }
+
+    if (featureGetPoolbuffer != NULL)
+    {
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous,
+                           featureGetPoolbuffer);
+    }
+
+    if (moduleReferenced)
+    {
+        DMF_ModuleDereference(DmfModule);
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -4149,7 +4444,7 @@ DMF_HidTarget_InputReadEx(
 Routine Description:
 
     Submits a number of input report read requests. The number is determined by PendedInputReadRequestCount
-    in the module config. The size of the request buffer matches with the input report size the hid expects.
+    in the Module config. The size of the request buffer matches with the input report size the hid expects.
     If this function is used, the read requests can be cancelled using Dmf_InputReadCancel.
 
 Arguments:

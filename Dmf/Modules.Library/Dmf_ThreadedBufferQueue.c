@@ -181,6 +181,65 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_DMF_BufferQueue_ReuseCleanup)
+VOID
+ThreadedBufferQueueReuseCleanupCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* WorkBuffer,
+    _In_ VOID* WorkBufferContext)
+/*++
+
+Routine Description:
+
+    Chaining callback from DMF_BufferQueue out to Client if populated, 
+    fixing up DMF module handle passed and "unwrapping" Client's buffer.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+    WorkBuffer - ThreadedBufferQueue work buffer
+    WorkBufferContext - ThreadedBufferQueue work buffer context
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONFIG_ThreadedBufferQueue* moduleConfig;
+    DMFMODULE dmfModuleThreadedBufferQueue;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    dmfModuleThreadedBufferQueue = DMF_ParentModuleGet(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModuleThreadedBufferQueue);
+
+    // If Config EvtBufferQueueReuseCleanup callback present, call
+    // with buffer before handing back to Producer BufferPool.
+    //
+    if (moduleConfig->EvtThreadedBufferQueueReuseCleanup)
+    {
+        VOID* clientBuffer = NULL;
+
+        // The Client just gets the Client's buffer, not the meta data used 
+        // by this Module.
+        //
+        clientBuffer = ThreadedBufferQueueBuffer_InternalToClient((ThreadedBufferQueue_WorkBufferInternal*)WorkBuffer);
+        
+        // Client buffer context (if any) is passed up from BufferQueue as
+        // WorkBufferContext, ThreadedBufferQueue just passes it through.
+        //
+        (moduleConfig->EvtThreadedBufferQueueReuseCleanup)(dmfModuleThreadedBufferQueue,
+                                                           clientBuffer,
+                                                           WorkBufferContext);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
 VOID
@@ -368,6 +427,7 @@ Return Value:
     moduleBufferQueueConfigList = moduleConfig->BufferQueueConfig;
     moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(ThreadedBufferQueue_WorkBufferInternal) +
                                                             moduleBufferQueueConfigList.SourceSettings.BufferSize;
+    moduleBufferQueueConfigList.EvtBufferQueueReuseCleanup = ThreadedBufferQueueReuseCleanupCallback;
     moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,

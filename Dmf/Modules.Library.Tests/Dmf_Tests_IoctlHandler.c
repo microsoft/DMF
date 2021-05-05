@@ -43,6 +43,7 @@ typedef struct
 typedef struct
 {
     DMFMODULE DmfModuleTestIoctlHandler;
+    LONG TimeToSleepMilliseconds;
 } REQUEST_CONTEXT, *PREQUEST_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE(REQUEST_CONTEXT);
@@ -96,11 +97,13 @@ Tests_IoctHandler_FindRequestWithMatchingData(
     WDFREQUEST tagRequest;
     WDFREQUEST outRequest;
     NTSTATUS ntStatus;
+    SleepContext* sleepContext;
 
     previousTagRequest = NULL;
     tagRequest = NULL;
     outRequest = NULL;
     ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+    sleepContext = (SleepContext*)CallbackCompareContext;
 
     DMF_ModuleLock(DmfModule);
 
@@ -138,8 +141,31 @@ Tests_IoctHandler_FindRequestWithMatchingData(
         // Determine if this is the request that is being searched for.
         //
         if (CallbackCompare(tagRequest,
-                            CallbackCompareContext))
+                            &(sleepContext->Request)))
         {
+            // Found a match.
+            //
+            // The timer expiration callback can be called for a request that has been cancelled.
+            // This means the same request object may be re-used. Check TimeToSleepMilliseconds to ensure request matches.
+            // 
+            REQUEST_CONTEXT* requestContext;
+            requestContext = (REQUEST_CONTEXT*)WdfObjectGetTypedContext(tagRequest,
+                                                                        REQUEST_CONTEXT);
+            if (requestContext->TimeToSleepMilliseconds != sleepContext->SleepRequest.TimeToSleepMilliseconds)
+            {
+                TraceEvents(TRACE_LEVEL_WARNING,
+                            DMF_TRACE,
+                            "Request has been reused: Request=0x%p TimeToSleepMilliseconds=%d ActualTimeToSleepMilliseconds=%d",
+                            sleepContext->Request,
+                            sleepContext->SleepRequest.TimeToSleepMilliseconds,
+                            requestContext->TimeToSleepMilliseconds);
+
+                // The request did not match our criteria. Get another request.
+                //
+                previousTagRequest = tagRequest;
+                continue;
+            }
+
             // Found a match. Get the request handle.
             // 
             ntStatus = WdfIoQueueRetrieveFoundRequest(Queue,
@@ -240,7 +266,7 @@ Test_IoctlHandler_BufferPool_TimerCallback(
     request = Tests_IoctHandler_FindRequestWithMatchingData(DmfModule,
                                                             moduleContext->CancelableQueue,
                                                             Test_IoctlHandler_RequestCompare,
-                                                            (VOID*)&sleepContext->Request);
+                                                            (VOID*)sleepContext);
     if (request == NULL)
     {
         // Request has been canceled or will be canceled soon.
@@ -390,7 +416,7 @@ Tests_IoctlHandler_CancelOnQueue(
     }
 
     WdfRequestComplete(Request,
-                        STATUS_CANCELLED);
+                       STATUS_CANCELLED);
     // Reference count increased when it was put in list with timer.
     //
     WdfObjectDereference(Request);
@@ -528,10 +554,13 @@ Return Value:
                 goto Exit;
             }
 
+            sleepRequestBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+
             // Save the Module in private context for cancel routine.
             // It is necessary so that it can be removed from lists.
             //
             requestContext->DmfModuleTestIoctlHandler = dmfModuleParent;
+            requestContext->TimeToSleepMilliseconds = sleepRequestBuffer->TimeToSleepMilliseconds;
 
             ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolFree,
                                           &clientBuffer,
@@ -541,7 +570,6 @@ Return Value:
             sleepContext = (SleepContext*)clientBuffer;
             sleepContext->Request = Request;
 
-            sleepRequestBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
             RtlCopyMemory(&sleepContext->SleepRequest,
                           sleepRequestBuffer,
                           sizeof(Tests_IoctlHandler_Sleep));
@@ -591,7 +619,7 @@ Return Value:
             sleepContext->Request = Request;
             sleepContext->SleepRequest.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0,
                                                                                                    5000);
-
+            requestContext->TimeToSleepMilliseconds = sleepContext->SleepRequest.TimeToSleepMilliseconds;
             ntStatus = Tests_IoctlHandler_Enqueue(dmfModuleParent,
                                                   Request,
                                                   clientBuffer,

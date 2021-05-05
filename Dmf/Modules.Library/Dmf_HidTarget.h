@@ -43,6 +43,19 @@ EVT_DMF_HidTarget_DeviceSelectionCallback(_In_ DMFMODULE DmfModule,
                                           _In_ PHIDP_PREPARSED_DATA PreparsedHidData,
                                           _In_ HID_COLLECTION_INFORMATION* HidCollectionInformation);
 
+// Client Driver callback function to be called from Asynchronous Send Completion routine.
+//
+typedef
+_Function_class_(EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion(_In_ DMFMODULE DmfModule,
+                                                       _In_ VOID* ClientRequestContext,
+                                                       _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
+                                                       _In_ size_t OutputBufferBytesRead,
+                                                       _In_ NTSTATUS CompletionStatus);
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -125,6 +138,16 @@ DMF_HidTarget_FeatureGet(
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_FeatureGetAsynchronous(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR ReportId,
+    _In_ EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* HidFeatureGetCompletionCallbackClientContext
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
