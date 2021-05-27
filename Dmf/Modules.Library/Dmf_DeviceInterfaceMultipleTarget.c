@@ -3024,8 +3024,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD_IS_CREATED(DmfModule,
-                                            DeviceInterfaceMultipleTarget);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceMultipleTarget);
 
     DmfAssert(Guid != NULL);
 
