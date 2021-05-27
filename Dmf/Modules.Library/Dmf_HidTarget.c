@@ -2876,6 +2876,15 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
+
+        // Start the thread for the Threaded Buffer Queue Module.
+        //
+        ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
 
     // Create Buffer Pool for context of Hid Feature get in Asynchronous operation.
@@ -2897,15 +2906,6 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferPool_Create fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Start the thread for the Threaded Buffer Queue Module.
-    //
-    ntStatus = DMF_ThreadedBufferQueue_Start(moduleContext->DmfModuleThreadedBufferQueueInputReport);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ThreadedBufferQueue_Start Start fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

@@ -82,7 +82,7 @@ DMF_MODULE_DECLARE_CONFIG(SerialTarget)
 _Function_class_(EVT_DMF_ContinuousRequestTarget_BufferInput)
 VOID
 SerialTarget_StreamAsynchronousBufferInput(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleContinuousRequestTarget,
     _Out_writes_(*InputBufferSize) VOID* InputBuffer,
     _Out_ size_t* InputBufferSize,
     _In_ VOID* ClientBuferContextInput
@@ -111,7 +111,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    dmfModule = DMF_ParentModuleGet(DmfModule);
+    dmfModule = DMF_ParentModuleGet(DmfModuleContinuousRequestTarget);
     DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
@@ -131,7 +131,7 @@ Return Value:
 _Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
 ContinuousRequestTarget_BufferDisposition
 SerialTarget_StreamAsynchronousBufferOutput(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleContinuousRequestTarget,
     _In_reads_(OutputBufferSize) VOID* OutputBuffer,
     _In_ size_t OutputBufferSize,
     _In_ VOID* ClientBufferContextOutput,
@@ -163,7 +163,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    dmfModule = DMF_ParentModuleGet(DmfModule);
+    dmfModule = DMF_ParentModuleGet(DmfModuleContinuousRequestTarget);
     DmfAssert(dmfModule != NULL);
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
@@ -206,7 +206,10 @@ SerialTarget_EvtIoTargetQueryRemove(
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     DmfAssert(moduleContext != NULL);
 
-    DMF_SerialTarget_StreamStop(*dmfModuleAddress);
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    {
+        DMF_SerialTarget_StreamStop(*dmfModuleAddress);
+    }
 
     WdfIoTargetCloseForQueryRemove(IoTarget);
 
@@ -259,11 +262,14 @@ Return Value:
         WdfObjectDelete(IoTarget);
         goto Exit;
     }
-
-    ntStatus = DMF_SerialTarget_StreamStart(*dmfModuleAddress);
-    if (! NT_SUCCESS(ntStatus))
+    
+    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+        ntStatus = DMF_SerialTarget_StreamStart(*dmfModuleAddress);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+        }
     }
 
 Exit:
