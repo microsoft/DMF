@@ -906,17 +906,6 @@ DMF_HandleValidate_ClosingOk(
               (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_ClosingOk(ModuleHandle))                                      \
 
-VOID
-DMF_HandleValidate_IsCreated(
-    _In_ DMFMODULE DmfModule
-    );
-
-#define DMFMODULE_VALIDATE_IN_METHOD_IS_CREATED(ModuleHandle, ModuleType)                       \
-                                                                                                \
-    (! WdfObjectIsCustomType(ModuleHandle, DMF_##ModuleType)) ?                                 \
-              (DmfAssert(FALSE)) :                                                              \
-              (DMF_HandleValidate_IsCreated(ModuleHandle))                                      \
-
 __forceinline
 DMFMODULE
 DMFMODULEVOID_TO_MODULE(
