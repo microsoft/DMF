@@ -12,26 +12,25 @@ Abstract:
 
 Environment:
 
-    Kernel mode
+    User mode
 
 --*/
 
 #pragma once
 
+//
 // Define the tracing flags.
 //
 // DmfUTest Tracing GUID - {EAF8F31E-30E1-499B-ABEB-8E6B051E1A75}
-// DMF Tracing GUID - {E028F9D9-8BD5-494F-B288-CF1C049F4BD1}
 //
 
-#define WPP_CONTROL_GUIDS                                                               \
-    WPP_DEFINE_CONTROL_GUID(                                                            \
-        DmfUTestDriverTraceGuid, (EAF8F31E,30E1,499B,ABEB,8E6B051E1A75),                \
-        WPP_DEFINE_BIT(DMF_TRACE)                                                       \
-        WPP_DEFINE_BIT(MYDRIVER_ALL_INFO)                                               \
-        WPP_DEFINE_BIT(TRACE_DEVICE)                                                    \
-        WPP_DEFINE_BIT(TRACE_CALLBACK)                                                  \
-        )                                                                               \
+#define WPP_CONTROL_GUIDS                                                                                                               \
+    WPP_DEFINE_CONTROL_GUID(                                                                                                            \
+        DmfUTestDriverTraceGuid, (EAF8F31E,30E1,499B,ABEB,8E6B051E1A75),                                                                \
+        WPP_DEFINE_BIT(DMF_TRACE)                                                                                                       \
+        WPP_DEFINE_BIT(MYDRIVER_ALL_INFO)                                                                                               \
+        WPP_DEFINE_BIT(TRACE_DRIVER)                                                                                                    \
+        )                                                                                                                               \
 
 //
 // This comment block is scanned by the trace preprocessor to define our

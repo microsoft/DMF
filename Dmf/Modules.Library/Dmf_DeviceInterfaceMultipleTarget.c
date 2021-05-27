@@ -3024,27 +3024,15 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 DeviceInterfaceMultipleTarget);
+    DMFMODULE_VALIDATE_IN_METHOD_IS_CREATED(DmfModule,
+                                            DeviceInterfaceMultipleTarget);
 
     DmfAssert(Guid != NULL);
-    RtlZeroMemory(Guid,
-                  sizeof(GUID));
 
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
-        goto Exit;
-    }
-
+    ntStatus = STATUS_SUCCESS;
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     *Guid = moduleConfig->DeviceInterfaceMultipleTargetGuid;
-
-    DMF_ModuleDereference(DmfModule);
-
-Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
