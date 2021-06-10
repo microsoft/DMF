@@ -500,9 +500,11 @@ Return Value:
         }
 
         networkRegistrationState = currentNetwork.NetworkRegistrationState();
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "current network registration state: %d", (int)networkRegistrationState);
 
         if ((networkRegistrationState == NetworkRegistrationState::Denied) ||
             (networkRegistrationState == NetworkRegistrationState::Deregistered) ||
+            (networkRegistrationState == NetworkRegistrationState::Searching) ||
             (networkRegistrationState == NetworkRegistrationState::None))
         {
             isConnected = FALSE;

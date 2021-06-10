@@ -39,13 +39,13 @@ extern "C"
 // These are Modules used by the Core itself. However, they reside with all other non-Feature
 // Modules in Modules.Library.
 //
-#include "..\Modules.Library\Dmf_BufferPool.h"
-#include "..\Modules.Library\Dmf_HashTable.h"
-#include "..\Modules.Library\Dmf_RingBuffer.h"
-#include "..\Modules.Library\Dmf_BufferQueue.h"
-#include "..\Modules.Library\Dmf_IoctlHandler.h"
-#include "..\Modules.Library\Dmf_String.h"
-#include "..\Modules.Library\Dmf_CrashDump.h"
+#include "..\..\Modules.Library\Dmf_BufferPool.h"
+#include "..\..\Modules.Library\Dmf_HashTable.h"
+#include "..\..\Modules.Library\Dmf_RingBuffer.h"
+#include "..\..\Modules.Library\Dmf_BufferQueue.h"
+#include "..\..\Modules.Library\Dmf_IoctlHandler.h"
+#include "..\..\Modules.Library\Dmf_String.h"
+#include "..\..\Modules.Library\Dmf_CrashDump.h"
 
 // Feature Modules.
 //

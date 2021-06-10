@@ -151,7 +151,15 @@ Environment:
     #include <lkmdtel.h>
 #endif // IS_WIN10_RS3_OR_LATER
 #include <intrin.h>
+
+// pepfx.h is not compatible with pep_x.h. Clients that use pep_x.h must:
+// 
+// #define DMF_DONT_INCLUDE_PEPFX
+// #include <DmfModules.Library.h>
+//
+#if !defined(DMF_DONT_INCLUDE_PEPFX)
 #include <pepfx.h>
+#endif
 
 // DMF Asserts definitions 
 //
