@@ -21,6 +21,13 @@ Environment:
 
 #if !defined(DMF_USER_MODE)
 
+// pepfx.h is not compatible with pep_x.h. Clients that use pep_x.h must:
+// 
+// #define DMF_DONT_INCLUDE_PEPFX
+// #include <DmfModules.Library.h>
+//
+#if !defined(DMF_DONT_INCLUDE_PEPFX)
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Definitions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +146,9 @@ DMF_AcpiPepDeviceFan_NotifyRequestSchedule(
     _In_ ULONG NotifyCode
     );
 
-#endif
+#endif // !defined(DMF_DONT_INCLUDE_PEPFX)
+
+#endif // defined(DMF_USER_MODE)
 
 // eof: Dmf_AcpiPepDeviceFan.h
 //
