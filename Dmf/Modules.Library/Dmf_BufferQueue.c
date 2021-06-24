@@ -366,7 +366,7 @@ DMF_BufferQueue_Enqueue(
 
 Routine Description:
 
-    Adds a Client Buffer to the consumer list.
+    Adds a Client Buffer to the end of the consumer list. This list is consumed in FIFO order.
 
 Arguments:
 
@@ -391,6 +391,45 @@ Return Value:
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolConsumer,
                        ClientBuffer);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the head of the consumer list. This list is consumed in LIFO order.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_BufferPool_PutAtHead(moduleContext->DmfModuleBufferPoolConsumer,
+                             ClientBuffer);
 
     FuncExitVoid(DMF_TRACE);
 }

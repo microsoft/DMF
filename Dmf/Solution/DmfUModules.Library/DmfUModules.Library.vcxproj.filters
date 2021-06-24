@@ -231,6 +231,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h">
       <Filter>Headers\Modules\Data Structures</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h">
+      <Filter>Headers\Modules\Sensors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -341,6 +344,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c">
       <Filter>Modules\Data Structures</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp">
+      <Filter>Modules\Sensors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
@@ -449,6 +455,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_HashTable.md">
       <Filter>Documentation\Modules\Data Structures</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md">
+      <Filter>Documentation\Modules\Sensors</Filter>
     </None>
   </ItemGroup>
 </Project>

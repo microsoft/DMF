@@ -490,11 +490,42 @@ None
 
 ##### DMF_BufferPool_Put
 
-Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the end).
+Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the end). This list is consumed in FIFO order.
 ```
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_BufferPool_Put(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+```
+
+##### Parameters
+Parameter | Description.
+----|----
+DmfModule | An open DMF_BufferPool Module handle.
+ClientBuffer | The given DMF_BufferPool buffer to add to the list.
+
+##### Returns
+
+None
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferPool because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* A sink-mode buffer pool instance may accept buffers from different instances of source-mode buffer pool, however a source-mode buffer buffer pool instance only accepts a buffer allocated by that specific instance. Violating this rule will result in unexpected errors. 
+* This Method cannot fail because the underlying data structure that stores the buffer is a LIST_ENTRY.
+* The Client loses the ownership of the buffer once the buffer has been put into the DMF_BufferPool. The Client must not try to access that buffer after calling the Put Method. Thereby a buffer may never be put to more than one DMF_BufferPool instance at a time. Doing so will cause corruption. This condition is checked in DEBUG mode.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_BufferPool_PutAtHead
+
+Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the start of the list). This list is consumed in LIFO order.
+```
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_PutAtHead(
   _In_ DMFMODULE DmfModule,
   _In_ VOID* ClientBuffer
   );

@@ -90,6 +90,13 @@ DMF_BufferQueue_Enqueue(
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
+DMF_BufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
 DMF_BufferQueue_Enumerate(
     _In_ DMFMODULE DmfModule,
     _In_ EVT_DMF_BufferPool_Enumeration EntryEnumerationCallback,

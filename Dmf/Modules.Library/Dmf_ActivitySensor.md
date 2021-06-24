@@ -1,4 +1,4 @@
-## DMF_HingeAngle
+## DMF_ActivitySensor
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -6,41 +6,55 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-This module allows the Client to monitoring Hinge Angle interface and get current device Hinge Angle state information.
+This Module allows the Client to monitor the Activity interface and get current device Activity state information.
+
+https://docs.microsoft.com/en-us/uwp/api/windows.devices.sensors.activitysensor?view=winrt-19041
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### DMF_CONFIG_HingeAngle
+##### DMF_CONFIG_ActivitySensor
 ````
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
 {
-    // Specific hinge angle device Id to open. This is optional.
+    // Specific Activity device Id to open. This is optional.
     //
     WCHAR* DeviceId;
-    // Report threshold in degrees.
+    // Callback to inform Parent Module that Activity has new changed reading.
     //
-    double ReportThresholdInDegrees;
-    // Callback to inform Parent Module that hinge angle has new changed reading.
-    //
-    EVT_DMF_HingeAngle_HingeAngleSensorReadingChangeCallback* EvtHingeAngleReadingChangeCallback;
-} DMF_CONFIG_HingeAngle;
+    EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback* EvtActivitySensorReadingChangeCallback;
+} DMF_CONFIG_ActivitySensor;
 ````
 Member | Description
 ----|----
-DeviceId | Specific Hinge Angle device Id to open. If client does not set device Id config, it opens default Hinge Angle sensor if exist.
-ReportThresholdInDegrees | Report threshold in degrees that client needs.
-EvtHingeAngleReadingChangeCallback | Allows the client to get new status of Hinge Angle state every time it changes.
+DeviceId | Specific Activity device Id to open. If Client does not set DeviceId, it opens default Activity sensor if it exists.
+EvtActivitySensorReadingChangeCallback | Allows the Client to get the status of Activity state when it changes.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
-* None
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### ACTIVITY_SENSOR_STATE
+
+````
+typedef enum class _ACTIVITY_READING
+{
+    Unknown = 0,
+    Idle = 1,
+    Stationary = 2,
+    Fidgeting = 3,
+    Walking = 4,
+    Running = 5,
+    InVehicle = 6,
+    Biking = 7
+} ActivitySensor_Reading;
+````
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,18 +62,18 @@ EvtHingeAngleReadingChangeCallback | Allows the client to get new status of Hing
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### HINGE_ANGLE_SENSOR_STATE
+##### ACTIVITY_SENSOR_STATE
 ````
-typedef struct _HINGE_ANGLE_SENSOR_STATE
+typedef struct _ACTIVITY_SENSOR_STATE
 {
     BOOLEAN IsSensorValid;
-    double AngleInDegrees;
-} HINGE_ANGLE_SENSOR_STATE;
+    ActivitySensor_Reading CurrentActivitySensor;
+} ACTIVITY_SENSOR_STATE;
 ````
 Member | Description
 ----|----
-IsSensorValid | Indicate whether Hinge Angle interface is valid or not.
-AngleInDegrees | Current Hinge Angle degrees.
+IsSensorValid | Indicates whether Activity interface is valid or not.
+CurrentActivitySensor | Current Activity status.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,19 +81,19 @@ AngleInDegrees | Current Hinge Angle degrees.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### EVT_DMF_HingeAngle_HingeAngleSensorReadingChangeCallback
+##### EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback
 ````
 typedef
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-EVT_DMF_HingeAngle_HingeAngleSensorReadingChangeCallback(
+EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback(
     _In_ DMFMODULE DmfModule,
-    _In_ HINGE_ANGLE_SENSOR_STATE* HingeAngleSensorState
+    _In_ ACTIVITY_SENSOR_STATE* ActivitySensorState
     );
 ````
 
-Client specific callback that allows the client to get new status of Hinge Angle every time it has state changes.
+Client specific callback that allows the Client to get status of Activity when it changes.
 
 ##### Returns
 
@@ -88,8 +102,8 @@ None
 ##### Parameters
 Member | Description
 ----|----
-DmfModule | An open DMF_HingeAngle Module handle.
-HingeAngleState | Structure of HingeAngle state.
+DmfModule | An open DMF_ActivitySensor Module handle.
+ActivitySensorState | Updated ActivitySensor state information.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -97,19 +111,19 @@ HingeAngleState | Structure of HingeAngle state.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### DMF_HingeAngle_CurrentStateGet
+##### DMF_ActivitySensor_CurrentStateGet
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
-DMF_HingeAngle_CurrentStateGet(
+DMF_ActivitySensor_CurrentStateGet(
     _In_ DMFMODULE DmfModule,
-    _Out_ HINGE_ANGLE_SENSOR_STATE* CurrentState
+    _Out_ ACTIVITY_SENSOR_STATE* CurrentState
     );
 ````
 
-Get the current Hinge Angle state from sensor.
+Get the current Activity state from sensor.
 
 ##### Returns
 
@@ -118,23 +132,23 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_HingeAngle Module handle.
-CurrentState | Current Hinge Angle state to get.
+DmfModule | An open DMF_ActivitySensor Module handle.
+CurrentState | Current Activity state.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### DMF_HingeAngle_Start
+##### DMF_ActivitySensor_Start
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
-DMF_HingeAngle_Start(
+DMF_ActivitySensor_Start(
     _In_ DMFMODULE DmfModule
     );
 ````
 
-Start the Hinge Angle monitor and events. Module start when open by default, client can also use this function to manually start.
+Allows Client to start monitoring ActivitySensor sensor.
 
 ##### Returns
 
@@ -143,21 +157,26 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_HingeAngle Module handle.
+DmfModule | An open DMF_ActivitySensor Module handle.
+
+##### Remarks
+
+* ActivitySensor sensor is started by default.
+* Only use this Method, if `DMF_ActivitySensor_Stop` is used.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### DMF_HingeAngle_Stop
+##### DMF_ActivitySensor_Stop
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_HingeAngle_Stop(
+DMF_ActivitySensor_Stop(
     _In_ DMFMODULE DmfModule
     )
 ````
 
-Stop the Hinge Angle monitor and events.
+Allows Client to stop monitoring ActivitySensor sensor.
 
 ##### Returns
 
@@ -166,13 +185,13 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_HingeAngle Module handle.
+DmfModule | An open DMF_ActivitySensor Module handle.
 
 ##### Remarks
 
-* HingeAngle sensor is stopped automatically when Module closes.
+* ActivitySensor sensor is stopped automatically when Module closes.
 * Client calls this Method to manually stop the sensor.
-* After calling this Method, Client may call `DMF_HingeAngle_Start`.
+* After calling this Method, Client may call `DMF_ActivitySensor_Start`.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
