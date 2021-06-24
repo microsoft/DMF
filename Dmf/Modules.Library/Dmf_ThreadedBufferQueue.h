@@ -104,9 +104,23 @@ DMF_ThreadedBufferQueue_Enqueue(
     _In_ VOID* ClientBuffer
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_ThreadedBufferQueue_EnqueueAndWait(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* ClientBuffer
     );

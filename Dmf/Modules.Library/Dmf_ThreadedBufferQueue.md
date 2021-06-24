@@ -176,7 +176,7 @@ DMF_ThreadedBufferQueue_Enqueue(
   );
 ````
 
-Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the end).
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the end). This list is consumed in FIFO order.
 
 ##### Returns
 
@@ -190,7 +190,36 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_ThreadedBufferQueue_EnqueueAtHead
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHead(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the head). This list is consumed in LIFO order.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -221,7 +250,38 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the head). Then, this
+function waits until the work enqueued by the call to this Method to finish execution. In this way, it is possible for the
+calling thread to receive an NTSTATUS indicating the success or failure of the deferred work.
+
+##### Returns
+
+NTSTATUS of the deferred work.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -310,7 +370,7 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 * Clients may use this Method if a buffer has been fetched but it is determined that it cannot be enqueued for some reason and must be returned to the free pool of buffers.
 
 -----------------------------------------------------------------------------------------------------------------------------------

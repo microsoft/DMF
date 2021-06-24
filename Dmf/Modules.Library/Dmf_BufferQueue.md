@@ -188,7 +188,36 @@ DMF_BufferQueue_Enqueue(
   );
 ````
 
-Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the end).
+Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the end). This list is consumed in FIFO order.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_BufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_BufferQueue_EnqueueAtHead
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_EnqueueAtHead(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the head). This list is consumed in LIFO order.
 
 ##### Returns
 

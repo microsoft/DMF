@@ -613,7 +613,8 @@ DMF_ThreadedBufferQueue_Enqueue(
 
 Routine Description:
 
-    Adds a Client Buffer to the list and sets the work ready event.
+    Adds a Client Buffer to the end of the list and sets the work ready event.
+    This list is consumed in FIFO order.
 
 Arguments:
 
@@ -650,6 +651,54 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the head of the list and sets the work ready event.
+    This list is consumed in LIFO order.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
+    ThreadedBufferQueue_WorkBufferInternal* workBuffer;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
+
+    workBuffer->Event = NULL;
+    workBuffer->NtStatus = NULL;
+
+    DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
+                                  workBuffer);
+
+    ThreadedBufferQueue_WorkReady(DmfModule);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -661,8 +710,8 @@ DMF_ThreadedBufferQueue_EnqueueAndWait(
 
 Routine Description:
 
-    Adds a Client Buffer to the list and sets the work ready event. Then,
-    waits for the work to be completed and returns the NTSTATUS of that 
+    Adds a Client Buffer to the end of the list and sets the work ready event.
+    Then, waits for the work to be completed and returns the NTSTATUS of that 
     deferred work.
 
 Arguments:
@@ -702,6 +751,77 @@ Return Value:
 
     DMF_BufferQueue_Enqueue(moduleContext->DmfModuleBufferQueue,
                             workBuffer);
+
+    ThreadedBufferQueue_WorkReady(DmfModule);
+
+    // Infinite wait for the work to execute.
+    //
+    DMF_Portable_EventWaitForSingleObject(&event,
+                                          NULL,
+                                          FALSE);
+
+    // NOTE: Needed to prevent leak in User-mode. NOP in Kernel-mode.
+    //
+    DMF_Portable_EventClose(&event);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the head of the list and sets the work ready event.
+    Then, waits for the work to be completed and returns the NTSTATUS of that 
+    deferred work.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
+    ThreadedBufferQueue_WorkBufferInternal* workBuffer;
+    NTSTATUS ntStatus;
+    DMF_PORTABLE_EVENT event;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_Portable_EventCreate(&event,
+                             NotificationEvent,
+                             FALSE);
+
+    workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
+
+    workBuffer->Event = &event;
+    workBuffer->NtStatus = &ntStatus;
+
+    DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
+                                  workBuffer);
 
     ThreadedBufferQueue_WorkReady(DmfModule);
 
