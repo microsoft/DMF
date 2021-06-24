@@ -456,5 +456,8 @@
     <None Include="..\..\Modules.Library\Dmf_HashTable.md">
       <Filter>Documentation\Modules\Data Structures</Filter>
     </None>
+    <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md">
+      <Filter>Documentation\Modules\Sensors</Filter>
+    </None>
   </ItemGroup>
 </Project>

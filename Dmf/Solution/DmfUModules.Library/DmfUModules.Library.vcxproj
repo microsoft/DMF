@@ -250,6 +250,7 @@
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferPool.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
