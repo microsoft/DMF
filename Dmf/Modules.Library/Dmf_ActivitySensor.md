@@ -189,7 +189,9 @@ DmfModule | An open DMF_ActivitySensor Module handle.
 
 ##### Remarks
 
-* ActivitySensor sensor is stopped by default.
+* ActivitySensor sensor is stopped automatically when Module closes.
+* Client calls this Method to manually stop the sensor.
+* After calling this Method, Client may call `DMF_ActivitySensor_Start`.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -201,8 +203,7 @@ DmfModule | An open DMF_ActivitySensor Module handle.
 
 #### Module Remarks
 
-* This Module uses C++/WinRT, so it needs RS5+ support.
-  Module specific code will not be compiled in RS4 and below.
+* This Module uses C++/WinRT, so it needs RS5+ support. Module specific code will not be compiled in RS4 and below.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
