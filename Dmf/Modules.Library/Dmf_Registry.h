@@ -264,6 +264,16 @@ DMF_Registry_HandleOpenByNameEx(
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
+DMF_Registry_HandleOpenParametersRegistryKey(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG DesiredAccess,
+    _In_ WDF_OBJECT_ATTRIBUTES* KeyAttributes,
+    _Out_ HANDLE* RegistryHandle
+    );
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
 DMF_Registry_PathAndValueDelete(
     _In_ DMFMODULE DmfModule,
     _In_opt_ PWCHAR RegistryPathName,

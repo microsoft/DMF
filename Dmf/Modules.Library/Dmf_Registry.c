@@ -3859,6 +3859,12 @@ Return Value:
 
     if (Name != NULL)
     {
+        // NOTE:
+        // Deprecated path for WCOS compliant drivers.
+        // This path will cause Verifier errors under recent versions of Windows.
+        // Use DMF_Registry_HandleOpenById() or DMF_Registry_HandleOpenParametersRegistryKey()
+        // instead.
+        //
         ntStatus = Registry_HandleOpenByNameEx(Name,
                                                AccessMask,
                                                Create,
@@ -3872,6 +3878,70 @@ Return Value:
                                                       PLUGPLAY_REGKEY_DEVICE,
                                                       AccessMask,
                                                       RegistryHandle);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenParametersRegistryKey(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG DesiredAccess,
+    _In_ WDF_OBJECT_ATTRIBUTES* KeyAttributes,
+    _Out_ HANDLE* RegistryHandle
+    )
+/*++
+
+Routine Description:
+
+    Open the driver's "Parameters" key. This is just a wrapper around the WDF API so that
+    it is not necessary to mix DMF and WDF calls.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DesiredAccess - Access mask to use to open the handle.
+    KeyAttributes - See MSDN documentation for WdfDriverOpenParametersRegistryKey().
+    RegistryHandle - Handle to open registry key or NULL in case of error.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+    WDFDRIVER driver;
+    WDFKEY registryHandle;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Registry);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+    driver = WdfDeviceGetDriver(device);
+
+    ntStatus = WdfDriverOpenParametersRegistryKey(driver,
+                                                  DesiredAccess,
+                                                  KeyAttributes,
+                                                  &registryHandle);
+    if (NT_SUCCESS(ntStatus))
+    {
+        *RegistryHandle = (HANDLE)registryHandle;
+    }
+    else
+    {
+        *RegistryHandle = NULL;
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);

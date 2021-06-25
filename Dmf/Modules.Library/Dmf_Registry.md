@@ -543,7 +543,6 @@ Name | The given registry path name.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-
 ##### DMF_Registry_HandleOpenByNameEx
 
 ````
@@ -579,6 +578,41 @@ RegistryHandle | The address of the handle that is returned to the Client.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_Registry_HandleOpenParametersRegistryKey
+
+````
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenParametersRegistryKey(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG DesiredAccess,
+    _In_ WDF_OBJECT_ATTRIBUTES* KeyAttributes,
+    _Out_ HANDLE* RegistryHandle
+    )
+
+````
+
+Open the driver's "Parameters" key. This is just a wrapper around the WDF API so that
+it is not necessary to mix DMF and WDF calls.
+
+##### Returns
+
+NTSTATUS. Fails if the handle cannot be opened as the Client specifies.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_Registry Module handle.
+DesiredAccess | The desired access mask. See MSDN.
+KeyAttributes | See MSDN documentation for WdfDriverOpenParametersRegistryKey().
+RegistryHandle | The address of the handle that is returned to the Client.
+
+##### Remarks
+
+* This Method is WCOS compliant.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueDelete
 
@@ -608,8 +642,9 @@ ValueName | The name of the given value.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueRead
 
@@ -648,6 +683,7 @@ BytesRead | The size in bytes of the data read is written to this address.
 ##### Remarks
 
 * This function is used by many functions that read specific types of values.
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -687,6 +723,8 @@ BytesRead | The number of bytes read is written to this address.
 
 ##### Remarks
 
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -722,8 +760,9 @@ BufferSize | The size in bytes of Buffer.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueReadDwordAndValidate
 
@@ -762,9 +801,9 @@ Maximum | The required maximum value of the data read.
 ##### Remarks
 
 * Generally speaking, the Client will set the value read to a default value if an error is returned.
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-
 
 ##### DMF_Registry_PathAndValueReadMultiString
 
@@ -801,8 +840,9 @@ BytesRead | The number of bytes read is written to this address.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueReadQword
 
@@ -836,8 +876,9 @@ BufferSize | The size in bytes of Buffer.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueReadQwordAndValidate
 
@@ -876,9 +917,9 @@ Maximum | The required maximum value of the data read.
 ##### Remarks
 
 * Generally speaking, the Client will set the value read to a default value if an error is returned.
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-
 
 ##### DMF_Registry_PathAndValueReadString
 
@@ -915,8 +956,9 @@ BytesRead | The number of bytes read is written to this address.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWrite
 
@@ -953,9 +995,9 @@ BufferSize | The size in bytes of Buffer.
 ##### Remarks
 
 * This function is used by many functions that read specific types of values.
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-
 
 ##### DMF_Registry_PathAndValueWriteBinary
 
@@ -989,8 +1031,9 @@ BufferSize | The size in bytes of Buffer.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWriteDword
 
@@ -1022,8 +1065,9 @@ ValueData | The data to write.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWriteMultiString
 
@@ -1057,8 +1101,9 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWriteQword
 
@@ -1090,8 +1135,9 @@ ValueData | The data to write.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWriteString
 
@@ -1125,6 +1171,8 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 ##### Remarks
 
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_RegistryPathDelete
@@ -1153,8 +1201,9 @@ ValueName | The name of the given value.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+* WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_ScheduledTaskCallbackContainer
 
@@ -1172,7 +1221,6 @@ DMF_Registry_ScheduledTaskCallbackContainer(
 This Method is used by DMF internally. Clients should not use this Method.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-
 
 ##### DMF_Registry_SubKeysFromHandleEnumerate
 
