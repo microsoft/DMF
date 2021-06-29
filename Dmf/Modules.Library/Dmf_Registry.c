@@ -3919,8 +3919,6 @@ Return Value:
     WDFDRIVER driver;
     WDFKEY registryHandle;
 
-    UNREFERENCED_PARAMETER(DmfModule);
-
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
