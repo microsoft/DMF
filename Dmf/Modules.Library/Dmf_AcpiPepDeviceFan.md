@@ -192,7 +192,7 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
-ProductInfo | product information
+DsmFanRange | Fan range information from hardware.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
