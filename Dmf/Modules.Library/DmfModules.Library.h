@@ -99,6 +99,7 @@ extern "C"
 #include "Dmf_UdeClient.h"
 #include "Dmf_AcpiPepDevice.h"
 #include "Dmf_AcpiPepDeviceFan.h"
+#include "Dmf_UefiOperation.h"
 
 #if defined(DMF_WDF_DRIVER)
 #include "Dmf_Wmi.h"

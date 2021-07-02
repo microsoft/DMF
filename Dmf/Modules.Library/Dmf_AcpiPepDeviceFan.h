@@ -54,6 +54,26 @@ typedef struct
 } AcpiPepDeviceFan_TRIP_POINT;
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+typedef struct
+{
+    union
+    {
+        struct
+        {
+            UINT8 Bank : 2;
+            UINT8 Revision : 2;
+            UINT8 Milestone : 4;
+            UINT8 ComponentId;
+            UINT16 ProductId;
+        };
+        UINT32 uint32;
+    };
+
+    UINT32 reserved;
+} PRODUCT_INFORMATION;
+#pragma pack(pop)
+
 // Fan calls into Client supplied function that fetches fan information from SAM.
 //
 typedef
@@ -76,6 +96,17 @@ NTSTATUS
 EVT_DMF_AcpiPepDeviceFan_FanTripPointsSet(_In_ DMFMODULE DmfModule,
                                           _In_ ULONG FanInstanceIndex,
                                           _In_ AcpiPepDeviceFan_TRIP_POINT TripPoint);
+
+
+// Fan calls into Client supplied function that supplies product info from SAM
+//
+typedef
+_Function_class_(EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet(_In_ DMFMODULE DmfModule,
+                                        _Out_ ULONG DsmFanRange[AcpiPepDeviceFan_NumberOfFanRanges]);
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -103,9 +134,13 @@ typedef struct
     //
     EVT_DMF_AcpiPepDeviceFan_FanSpeedGet* FanSpeedGet;
     // Callback invoked upon _DSM function call with
-    // function index SURFACE_FAN_DSM_TRIPPOINT_FUNCTION_INDEX.
+    // function index FAN_DSM_TRIPPOINT_FUNCTION_INDEX.
     //
     EVT_DMF_AcpiPepDeviceFan_FanTripPointsSet* FanTripPointsSet;
+    // Callback invoked upon _DSM function call with
+    // function index FAN_DSM_RANGE_FUNCTION_INDEX.
+    //
+    EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet* DsmFanRangeGet;
     // Client can specify Fan resolution to be returned as a result of _DSM call.
     // This allows the OS to know the resolution of the trip points it provides.
     //
@@ -114,9 +149,6 @@ typedef struct
     // This allows the OS to know all the DSMs supported by this fan.
     //
     UCHAR DsmFunctionSupportIndex;
-    // Client can specify Fan ranges to be returned as a result of _DSM call.
-    //
-    ULONG DsmFanRange[AcpiPepDeviceFan_NumberOfFanRanges];
     // AcpiPepDevice can register an arrival callback invoked in Module Open.
     //
     EVT_DMF_MODULE_OnDeviceNotificationPostOpen* ArrivalCallback;

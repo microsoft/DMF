@@ -157,6 +157,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\DMF_UefiOperation.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -329,6 +332,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h">
       <Filter>Headers\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\DMF_UefiOperation.h">
+      <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -559,6 +565,9 @@
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_AcpiPepDevice.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\DMF_UefiOperation.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
