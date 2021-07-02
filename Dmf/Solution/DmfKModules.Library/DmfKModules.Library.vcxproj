@@ -71,6 +71,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Thread.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_UdeClient.c" />
+    <ClCompile Include="..\..\Modules.Library\DMF_UefiOperation.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c" />
@@ -129,6 +130,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Thread.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequest.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_UdeClient.h" />
+    <ClInclude Include="..\..\Modules.Library\DMF_UefiOperation.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h" />
@@ -438,6 +440,7 @@
     <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_UdeClient.md" />
+    <None Include="..\..\Modules.Library\DMF_UefiOperation.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md" />

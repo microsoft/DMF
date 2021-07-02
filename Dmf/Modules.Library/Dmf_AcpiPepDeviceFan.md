@@ -46,18 +46,19 @@ typedef struct
     //
     EVT_DMF_AcpiPepDeviceFan_FanSpeedGet* FanSpeedGet;
     // Callback invoked upon _DSM function call with
-    // function index SURFACE_FAN_DSM_TRIPPOINT_FUNCTION_INDEX.
+    // function index FAN_DSM_TRIPPOINT_FUNCTION_INDEX.
     //
     EVT_DMF_AcpiPepDeviceFan_FanTripPointsSet* FanTripPointsSet;
+    // Callback invoked upon _DSM function call with
+    // function index FAN_DSM_RANGE_FUNCTION_INDEX.
+    //
+    EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet* DsmFanRangeGet;
     // Client can specify Fan resolution to be returned as a result of _DSM call.
     //
     ULONG DsmFanCapabilityResolution;
     // Client can specify Fan support index to be returned as a result of _DSM call.
     //
     UCHAR DsmFunctionSupportIndex;
-    // Client can specify Fan ranges to be returned as a result of _DSM call.
-    //
-    ULONG DsmFanRange[AcpiPepDeviceFan_NumberOfFanRanges];
 } DMF_CONFIG_AcpiPepDeviceFan;
 ````
 Member | Description
@@ -70,10 +71,10 @@ FanInstanceNameChar | Fan's name as Char string as specified in ACPI.
 FanInstanceRealName | Ulong containing Fan name as specified in ACPI.
 FanInstanceHardwareId | HWID of the fan corresponding to the one in ACPI.
 FanSpeedGet | Callback invoked upon _FST function call.
-FanTripPointsSet | Callback invoked upon _DSM function call with function index SURFACE_FAN_DSM_TRIPPOINT_FUNCTION_INDEX.
+FanTripPointsSet | Callback invoked upon _DSM function call with function index FAN_DSM_TRIPPOINT_FUNCTION_INDEX.
+DsmFanRangeGet | Callback invoked upon _DSM function call with function index FAN_DSM_RANGE_FUNCTION_INDEX.
 DsmFanCapabilityResolution | Client can specify Fan resolution to be returned as a result of _DSM call.
 DsmFunctionSupportIndex | Client can specify Fan support index to be returned as a result of _DSM call.
-DsmFanRange | Client can specify Fan ranges to be returned as a result of _DSM call.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -169,6 +170,29 @@ Parameter | Description
 DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
 FanInstanceIndex | Fan index as specified in Module config.
 TripPoint | Trip points specified for fan operation.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet
+````
+_Function_class_(EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet(_In_ DMFMODULE DmfModule,
+                                        _Out_ ULONG DsmFanRange[AcpiPepDeviceFan_NumberOfFanRanges]);
+````
+
+The OS sends in request for fan range, and this callback should return the appropriate fan range array containing fan annoyance levels
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
+DsmFanRange | Fan range information from hardware.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

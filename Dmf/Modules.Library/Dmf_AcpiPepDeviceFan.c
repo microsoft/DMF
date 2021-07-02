@@ -465,6 +465,17 @@ Return Value:
                 }
                 else if (functionIndex == FAN_DSM_RANGE_FUNCTION_INDEX)
                 {
+                    ULONG DsmFanRange[AcpiPepDeviceFan_NumberOfFanRanges];
+
+                    ntStatus = moduleConfig->DsmFanRangeGet(DmfModule,
+                                                            DsmFanRange);
+
+                    if (!NT_SUCCESS(ntStatus))
+                    {
+                        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DsmFanRangeGet fails with ntstatus=%d", ntStatus);
+                        goto Exit;
+                    }
+
                     // _FST response expects a package with three integers - revision, control and fan speed.
                     //
                     ecmBuffer->OutputArguments->Type = ACPI_METHOD_ARGUMENT_PACKAGE;
@@ -474,25 +485,25 @@ Return Value:
                     //
                     outputArgument = (PACPI_METHOD_ARGUMENT)ecmBuffer->OutputArguments->Data;
                     ACPI_METHOD_SET_ARGUMENT_INTEGER(outputArgument,
-                                                     moduleConfig->DsmFanRange[AcpiPepDeviceFan_FanRangeIndex0]);
+                                                     DsmFanRange[AcpiPepDeviceFan_FanRangeIndex0]);
 
                     // Package entry 1
                     //
                     outputArgument = ACPI_METHOD_NEXT_ARGUMENT(outputArgument);
                     ACPI_METHOD_SET_ARGUMENT_INTEGER(outputArgument,
-                                                     moduleConfig->DsmFanRange[AcpiPepDeviceFan_FanRangeIndex1]);
+                                                     DsmFanRange[AcpiPepDeviceFan_FanRangeIndex1]);
 
                     // Package entry 2
                     //
                     outputArgument = ACPI_METHOD_NEXT_ARGUMENT(outputArgument);
                     ACPI_METHOD_SET_ARGUMENT_INTEGER(outputArgument,
-                                                     moduleConfig->DsmFanRange[AcpiPepDeviceFan_FanRangeIndex2]);
+                                                     DsmFanRange[AcpiPepDeviceFan_FanRangeIndex2]);
 
                     // Package entry 3
                     //
                     outputArgument = ACPI_METHOD_NEXT_ARGUMENT(outputArgument);
                     ACPI_METHOD_SET_ARGUMENT_INTEGER(outputArgument,
-                                                     moduleConfig->DsmFanRange[AcpiPepDeviceFan_FanRangeIndex3]);
+                                                     DsmFanRange[AcpiPepDeviceFan_FanRangeIndex3]);
 
                     ecmBuffer->OutputArgumentCount = 1;
                     ecmBuffer->OutputArgumentSize = ACPI_METHOD_ARGUMENT_LENGTH_FROM_ARGUMENT(ecmBuffer->OutputArguments);

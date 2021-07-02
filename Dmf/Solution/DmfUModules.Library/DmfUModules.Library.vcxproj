@@ -206,6 +206,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_MobileBroadband.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_UefiOperation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp" />
@@ -245,6 +246,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_MobileBroadband.cpp" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
@@ -284,6 +286,7 @@
     <None Include="..\..\Modules.Library\Dmf_Thread.md" />
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />
+    <None Include="..\..\Modules.Library\Dmf_UefiOperation.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

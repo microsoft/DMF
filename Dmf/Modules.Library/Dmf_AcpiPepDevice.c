@@ -2363,7 +2363,7 @@ Return Value:
     //
     RtlCopyMemory(&moduleContext->PepDeviceMatchArray[0],
                   &PepRootMatch,
-                  sizeof(PEP_DEVICE_DEFINITION));
+                  sizeof(PEP_DEVICE_MATCH));
 
     TraceEvents(TRACE_LEVEL_VERBOSE,DMF_TRACE,"Printing PepDeviceMatchArray[0] ");
     TraceEvents(TRACE_LEVEL_VERBOSE,DMF_TRACE,"Type=%lx "

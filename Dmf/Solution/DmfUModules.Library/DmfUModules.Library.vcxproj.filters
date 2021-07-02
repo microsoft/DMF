@@ -234,6 +234,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h">
       <Filter>Headers\Modules\Sensors</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Surface\Dmf_UefiOperation.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -347,6 +350,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp">
       <Filter>Modules\Sensors</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Surface\Dmf_UefiOperation.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
@@ -458,6 +464,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md">
       <Filter>Documentation\Modules\Sensors</Filter>
+    </None>
+    <None Include="..\..\Modules.Surface\Dmf_UefiOperation.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>
