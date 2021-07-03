@@ -54,26 +54,6 @@ typedef struct
 } AcpiPepDeviceFan_TRIP_POINT;
 #pragma pack(pop)
 
-#pragma pack(push, 1)
-typedef struct
-{
-    union
-    {
-        struct
-        {
-            UINT8 Bank : 2;
-            UINT8 Revision : 2;
-            UINT8 Milestone : 4;
-            UINT8 ComponentId;
-            UINT16 ProductId;
-        };
-        UINT32 uint32;
-    };
-
-    UINT32 reserved;
-} PRODUCT_INFORMATION;
-#pragma pack(pop)
-
 // Fan calls into Client supplied function that fetches fan information from hardware.
 //
 typedef
