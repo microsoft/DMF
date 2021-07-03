@@ -4,7 +4,7 @@
 // built using DMF.
 //
 
-// DMF Release: v1.1.95
+// DMF Release: v1.1.96
 //
 
 // eof: DmfVersion.h
