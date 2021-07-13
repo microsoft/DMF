@@ -81,6 +81,38 @@ ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_BufferQueue_ContextGet
+
+```
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_ContextGet(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer,
+  _Out_ VOID** ClientBufferContext
+  );
+```
+
+Given a DMF_BufferQueue buffer, this Method returns its associated Client Buffer Context.
+
+##### Parameters
+Parameter | Description.
+----|----
+DmfModule | An open DMF_BufferQueue Module handle.
+Client Buffer | The given DMF_BufferQueue Client Buffer.
+ClientBufferContext | The given Client Buffer's associated Client Buffer Context.
+
+##### Returns
+
+None
+
+##### Remarks
+
+* The Client Buffer Context can be used, for example, to store insertion specific information that is needed when the buffer is removed.
+* The Client is expected to know the size and type of the buffer context because the Client  specified that information when creating the instance of DMF_BufferQueue Module.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_BufferQueue_Count
 
 ````

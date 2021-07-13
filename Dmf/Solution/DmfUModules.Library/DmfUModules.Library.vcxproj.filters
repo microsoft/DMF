@@ -234,8 +234,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h">
       <Filter>Headers\Modules\Sensors</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Surface\Dmf_UefiOperation.h">
-      <Filter>Headers\Modules\Driver Patterns</Filter>
+    <ClInclude Include="..\..\Modules.Library\Dmf_UefiOperation.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h">
+      <Filter>Headers\Modules\Data Structures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -350,8 +351,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp">
       <Filter>Modules\Sensors</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Surface\Dmf_UefiOperation.c">
-      <Filter>Modules\Driver Patterns</Filter>
+    <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c">
+      <Filter>Modules\Data Structures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -465,8 +467,9 @@
     <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md">
       <Filter>Documentation\Modules\Sensors</Filter>
     </None>
-    <None Include="..\..\Modules.Surface\Dmf_UefiOperation.md">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    <None Include="..\..\Modules.Library\Dmf_UefiOperation.md" />
+    <None Include="..\..\Modules.Library\Dmf_Stack.md">
+      <Filter>Documentation\Modules\Data Structures</Filter>
     </None>
   </ItemGroup>
 </Project>

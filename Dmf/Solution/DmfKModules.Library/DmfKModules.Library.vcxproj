@@ -32,6 +32,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DefaultTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c" />
@@ -87,6 +88,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DefaultTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h" />
@@ -439,6 +441,7 @@
     <None Include="..\..\Modules.Library\Dmf_AcpiPepDevice.md" />
     <None Include="..\..\Modules.Library\Dmf_Rundown.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_Stack.md" />
     <None Include="..\..\Modules.Library\Dmf_UdeClient.md" />
     <None Include="..\..\Modules.Library\DMF_UefiOperation.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md" />

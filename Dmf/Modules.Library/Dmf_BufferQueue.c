@@ -222,6 +222,47 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_ContextGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _Out_ VOID** ClientBufferContext
+    )
+/*++
+
+Routine Description:
+
+    Get the context associated with the given Client buffer.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The given Client buffer.
+    ClientBufferContext - Client context associated with the buffer.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolProducer,
+                              ClientBuffer,
+                              ClientBufferContext);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG
 DMF_BufferQueue_Count(
     _In_ DMFMODULE DmfModule
