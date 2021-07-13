@@ -298,6 +298,7 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_String.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h" />
   </ItemGroup>
@@ -316,6 +317,7 @@
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_String.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\TestsUtility.c" />
   </ItemGroup>

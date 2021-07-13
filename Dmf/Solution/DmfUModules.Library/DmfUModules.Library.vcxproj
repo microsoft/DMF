@@ -171,6 +171,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Public.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_AlertableSleep.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c" />
@@ -258,6 +260,7 @@
     <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
     <None Include="..\..\Modules.Library\Dmf_IoctlHandler.md" />
     <None Include="..\..\Modules.Library\Dmf_RingBuffer.md" />
+    <None Include="..\..\Modules.Library\Dmf_Stack.md" />
     <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_AlertableSleep.md" />
     <None Include="..\..\Modules.Library\Dmf_CmApi.md" />

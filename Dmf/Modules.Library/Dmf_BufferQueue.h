@@ -57,6 +57,14 @@ DECLARE_DMF_MODULE(BufferQueue)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_ContextGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _Out_ VOID** ClientBufferContext
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG
 DMF_BufferQueue_Count(
     _In_ DMFMODULE DmfModule
