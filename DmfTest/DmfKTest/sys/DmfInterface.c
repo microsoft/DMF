@@ -173,6 +173,8 @@ Return Value:
 
     isFunctionDriver = DriverModeGet(Device);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "isFunctionDriver=[%s]", isFunctionDriver ? "YES" : "NO");
+
     /////////////////////////////////////////////////////////////////////////////////
     // These tests can be in both bus and function drivers. To reduce CPU usage, they
     // can be placed in just the bus driver.

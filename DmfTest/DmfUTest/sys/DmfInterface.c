@@ -174,6 +174,12 @@ Return Value:
 
     isFunctionDriver = DriverModeGet(Device);
 
+    // NOTE: In UMDF driver, at least one trace statement must exist in the driver's
+    //       code otherwise a WPP crash will happen when trace statements are
+    //       executed in Modules.
+    //
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "isFunctionDriver=[%s]", isFunctionDriver ? "YES" : "NO");
+
     /////////////////////////////////////////////////////////////////////////////////
     // These tests can be in both bus and function drivers. To reduce CPU usage, they
     // can be placed in just the bus driver.

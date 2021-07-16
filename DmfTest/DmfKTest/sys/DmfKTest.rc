@@ -13,7 +13,7 @@
 #define VER_ORIGINALFILENAME_STR    VER_INTERNALNAME_STR
 
 #undef  VER_FILEDESCRIPTION_STR
-#define VER_FILEDESCRIPTION_STR "Surface DmfK Test Driver"
+#define VER_FILEDESCRIPTION_STR "DmfK Test Driver"
  
 #undef  VER_PRODUCTNAME_STR
 #define VER_PRODUCTNAME_STR    VER_FILEDESCRIPTION_STR
@@ -35,7 +35,7 @@
 #endif
 
 #undef  VER_PRODUCTNAME_STR
-#define VER_PRODUCTNAME_STR    "Surface"
+#define VER_PRODUCTNAME_STR    "DmfK Test Driver"
 
 #include "common.ver"
 
