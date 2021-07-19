@@ -9,11 +9,11 @@
 
 #define	VER_FILETYPE	            VFT_DRV
 #define	VER_FILESUBTYPE	            VFT2_DRV_SYSTEM
-#define VER_INTERNALNAME_STR        "DmfUTest.sys"
+#define VER_INTERNALNAME_STR        "DmfUTest.dll"
 #define VER_ORIGINALFILENAME_STR    VER_INTERNALNAME_STR
 
 #undef  VER_FILEDESCRIPTION_STR
-#define VER_FILEDESCRIPTION_STR "Surface DmfU Test Driver"
+#define VER_FILEDESCRIPTION_STR "DmfU Test Driver"
  
 #undef  VER_PRODUCTNAME_STR
 #define VER_PRODUCTNAME_STR    VER_FILEDESCRIPTION_STR
@@ -35,7 +35,7 @@
 #endif
 
 #undef  VER_PRODUCTNAME_STR
-#define VER_PRODUCTNAME_STR    "Surface"
+#define VER_PRODUCTNAME_STR    "DmfU Test Driver"
 
 #include "common.ver"
 
