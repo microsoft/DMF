@@ -357,6 +357,7 @@ Return:
     DMFMODULE dmfModule;
     DMF_CONTEXT_ScheduledTask* moduleContext;
     DMF_CONFIG_ScheduledTask* moduleConfig;
+    ScheduledTask_Result_Type workResult;
 
     PAGED_CODE();
 
@@ -385,10 +386,68 @@ Return:
         //       first call. (Essentially it is only used to determine if the call
         //       is On Demand or not.)
         //
-        moduleConfig->EvtScheduledTaskCallback(dmfModule,
-                                               moduleContext->OnDemandCallbackContext,
-                                               WdfPowerDeviceInvalid);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
+        workResult = moduleConfig->EvtScheduledTaskCallback(dmfModule,
+                                                            moduleContext->OnDemandCallbackContext,
+                                                            WdfPowerDeviceInvalid);
         pendingCalls = InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
+
+        switch (workResult)
+        {
+            case ScheduledTask_WorkResult_Success:
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_Success");
+                break;
+            }
+            case ScheduledTask_WorkResult_SuccessButTryAgain:
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_SuccessButTryAgain");
+                if (! moduleContext->DoNotStartDeferredOnDemand)
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START (SuccessButTryAgain)");
+                    moduleContext->TimerIsStarted = TRUE;
+                    WdfTimerStart(moduleContext->Timer,
+                                  WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnSuccess));
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Workitem RESTART");
+                }
+                break;
+            }
+            case ScheduledTask_WorkResult_Fail:
+            {
+                // Client's work failed.
+                //
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_Fail");
+                break;
+            }
+            case ScheduledTask_WorkResult_FailButTryAgain:
+            {
+                // Client's work fails: but Client wants to retry.
+                //
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_FailButTryAgain");
+                if (! moduleContext->DoNotStartDeferredOnDemand)
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START (FailButTryAgain)");
+                    moduleContext->TimerIsStarted = TRUE;
+                    WdfTimerStart(moduleContext->Timer,
+                                  WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnFail));
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Workitem RESTART");
+                }
+                break;
+            }
+            default:
+            {
+                DmfAssert(FALSE);
+                // For SAL.
+                //
+                break;
+            }
+        }
     } while (pendingCalls > 0);
 
     FuncExitVoid(DMF_TRACE);
@@ -790,7 +849,7 @@ Return Value:
                                            DMFMODULE);
 
     // Use WdfDevice instead of DmfModule as a parent, so that the work item is not disposed 
-    // prematurely when this module is deleted as a part of a Dynamic Module tree.
+    // prematurely when this Module is deleted as a part of a Dynamic Module tree.
     //
     objectAttributes.ParentObject = device;
 

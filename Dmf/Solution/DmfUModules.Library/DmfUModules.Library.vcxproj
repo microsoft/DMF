@@ -168,6 +168,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
@@ -257,6 +259,7 @@
     <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferPool.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferQueue.md" />
+    <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
     <None Include="..\..\Modules.Library\Dmf_IoctlHandler.md" />
     <None Include="..\..\Modules.Library\Dmf_RingBuffer.md" />

@@ -241,6 +241,26 @@ Return Value:
 
 Exit:
 
+    // Client callback should always ScheduledTask_WorkResult_Success.
+    // ScheduledTask_WorkResult_Fail is allowed for legacy reasons.
+    // NOTE: No other return value is allowed from Client callback.
+    // NOTE: This check is here to maintain compatibility with legacy code.
+    //
+    switch (scheduledTaskWorkResult)
+    {
+        case ScheduledTask_WorkResult_Success:
+        case ScheduledTask_WorkResult_Fail:
+        {
+            break;
+        }
+        default:
+        {
+            DmfAssert(FALSE);
+            scheduledTaskWorkResult = ScheduledTask_WorkResult_Success;
+            break;
+        }
+    }
+
     FuncExitVoid(DMF_TRACE);
 
     return scheduledTaskWorkResult;;

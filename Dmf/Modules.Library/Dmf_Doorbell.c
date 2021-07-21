@@ -10,13 +10,14 @@ Module Name:
 Abstract:
 
     Allows the Client to enqueue multiple requests to a callback such that
-    only a single workitem is equeued regardless of how many times the 
+    only a single workitem is enqueued regardless of how many times the 
     enqueue Method is called. If several enqueues occur prior to the
     corresponding callback being called, the callback is only called one time.
 
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
