@@ -9,7 +9,9 @@ Module Name:
 
 Abstract:
 
-    This Module allows clients to schedule tasks, and control when and how they are executed.
+    This Module allows Clients to schedule work that will completed a SINGLE time, either
+    for the duration of the Driver's runtime or persistent over reboots.
+    NOTE: A better name for this Module is "ScheduleTaskOnce".
 
 Environment:
 
@@ -72,6 +74,9 @@ typedef struct _DMF_CONTEXT_ScheduledTask
     //       is On Demand or not.)
     //
     VOID* OnDemandCallbackContext;
+    // Context used by Ex deferred method.
+    //
+    VOID* OnDemandCallbackContextEx;
     // Indicates the number of callers that are waiting for the 
     // timer. When this variable changes from 0 to 1, the On Demand
     // timer is started; otherwise, nothing happens since the timer
@@ -99,10 +104,70 @@ DMF_MODULE_DECLARE_CONFIG(ScheduledTask)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// The name of the default variable.
+//
+#define DEFAULT_NAME_DEVICE    L"TimesRun"
+
+VOID
+ScheduledTask_TimerRestart(
+    _In_ DMF_CONTEXT_ScheduledTask* ModuleContext,
+    _In_ DMF_CONFIG_ScheduledTask* ModuleConfig,
+    _In_ ScheduledTask_Result_Type WorkResult
+    )
+/*++
+
+Routine Description:
+
+    Common routine to restart the timer.
+
+Parameters:
+
+    ModuleContext - This Module's Context.
+    ModuleConfig - This Module's Config.
+    WorkResult - The Client's previous return from its callback.
+
+Return:
+
+    None
+
+--*/
+{
+    if (! ModuleContext->ModuleClosing)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer RESTART");
+
+        ModuleContext->TimerIsStarted = TRUE;
+
+        ULONG timerPeriodMs;
+
+        if (WorkResult == ScheduledTask_WorkResult_SuccessButTryAgain)
+        {
+            timerPeriodMs = ModuleConfig->TimerPeriodMsOnSuccess;
+        }
+        else if (WorkResult == ScheduledTask_WorkResult_FailButTryAgain)
+        {
+            timerPeriodMs = ModuleConfig->TimerPeriodMsOnFail;
+        }
+        else
+        {
+            DmfAssert(FALSE);
+            timerPeriodMs = 0;
+        }
+
+        WdfTimerStart(ModuleContext->Timer,
+                      WDF_REL_TIMEOUT_IN_MS(timerPeriodMs));
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer ABORT RESTART");
+    }
+}
+
 #pragma code_seg("PAGE")
 ScheduledTask_Result_Type
 ScheduledTask_ClientWorkDo(
     _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientContext,
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     )
 /*++
@@ -114,6 +179,7 @@ Routine Description:
 Parameters:
 
     DmfModule - This Module's handle.
+    ClientContext - Caller's context.
     PreviousState - Previous power state. Only valid when called from D0Entry.
 
 Return:
@@ -131,10 +197,11 @@ Return:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    DmfAssert(! moduleContext->TimerIsStarted);
+    // This function can be called with TimerStart == TRUE in case when Ex call
+    // happens after a previous call has started a timer.
+    //
 
     switch (moduleConfig->PersistenceType)
     {
@@ -149,7 +216,10 @@ Return:
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "timesRun=%u", timesRun);
             if (timesRun >= 1)
             {
-                moduleContext->WorkIsCompleted = TRUE;
+                // In this case the work has been done so don't do it again.
+                //
+                workResult = ScheduledTask_WorkResult_Success;
+                goto Exit;
             }
             break;
         }
@@ -174,40 +244,42 @@ Return:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
     workResult = moduleConfig->EvtScheduledTaskCallback(DmfModule,
-                                                        moduleConfig->CallbackContext,
+                                                        ClientContext,
                                                         PreviousState);
     switch (workResult)
     {
         case ScheduledTask_WorkResult_Success:
         {
+            // This is a Write-Only variable. Once set, it is never cleared.
+            // It means the Client's callback will never execute again.
+            //
+            moduleContext->WorkIsCompleted = TRUE;
+
             // Client's work succeeded. Need to remember not to do work again.
             //
             switch (moduleConfig->PersistenceType)
             {
-            case ScheduledTask_Persistence_PersistentAcrossReboots:
-            {
-                // Remember across reboots by writing to registry.
-                //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_PersistentAcrossReboots Set WorkIsCompleted");
-                DMF_ScheduledTask_TimesRunSet(DmfModule,
-                                              1);
-                moduleContext->WorkIsCompleted = TRUE;
-                break;
-            }
-            case ScheduledTask_Persistence_NotPersistentAcrossReboots:
-            {
-                // Remember for duration of driver load by writing to memory.
-                //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_NotPersistentAcrossReboots Set WorkIsCompleted");
-                DmfAssert(! moduleContext->WorkIsCompleted);
-                moduleContext->WorkIsCompleted = TRUE;
-                break;
-            }
-            default:
-            {
-                DmfAssert(FALSE);
-                break;
-            }
+                case ScheduledTask_Persistence_PersistentAcrossReboots:
+                {
+                    // Remember across reboots by writing to registry.
+                    //
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_PersistentAcrossReboots Set WorkIsCompleted");
+                    DMF_ScheduledTask_TimesRunSet(DmfModule,
+                                                  1);
+                    break;
+                }
+                case ScheduledTask_Persistence_NotPersistentAcrossReboots:
+                {
+                    // Remember for duration of driver load by writing to memory.
+                    //
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_Persistence_NotPersistentAcrossReboots Set WorkIsCompleted");
+                    break;
+                }
+                default:
+                {
+                    DmfAssert(FALSE);
+                    break;
+                }
             }
             break;
         }
@@ -217,22 +289,15 @@ Return:
             // It is basically a timer that allows us to switch easily from timer to Run Once.
             //
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_SuccessButTryAgain");
-            if (! moduleContext->ModuleClosing)
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer RESTART");
-                moduleContext->TimerIsStarted = TRUE;
-                WdfTimerStart(moduleContext->Timer,
-                              WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnSuccess));
-            }
-            else
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Timer RESTART");
-            }
+            ScheduledTask_TimerRestart(moduleContext,
+                                       moduleConfig,
+                                       workResult);
             break;
         }
         case ScheduledTask_WorkResult_Fail:
         {
-            // Client's work failed.
+            // Client's work failed or Client wants to retry on demand.
+            // Client will try again later.
             //
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_Fail");
             break;
@@ -243,21 +308,9 @@ Return:
             //
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_FailButTryAgain");
 
-            // In immediate mode, retry is not possible because the caller will unload the client because an error status is returned.
-            //
-            DmfAssert(moduleConfig->ExecutionMode != ScheduledTask_ExecutionMode_Immediate);
-
-            if (! moduleContext->ModuleClosing)
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer RESTART");
-                moduleContext->TimerIsStarted = TRUE;
-                WdfTimerStart(moduleContext->Timer,
-                              WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnFail));
-            }
-            else
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Timer RESTART");
-            }
+            ScheduledTask_TimerRestart(moduleContext,
+                                       moduleConfig,
+                                       workResult);
             break;
         }
         default:
@@ -326,6 +379,7 @@ Return:
     // cannot be used.
     //
     ScheduledTask_ClientWorkDo(dmfModule,
+                               moduleConfig->CallbackContext,
                                WdfPowerDeviceInvalid);
 
     FuncExitVoid(DMF_TRACE);
@@ -357,7 +411,6 @@ Return:
     DMFMODULE dmfModule;
     DMF_CONTEXT_ScheduledTask* moduleContext;
     DMF_CONFIG_ScheduledTask* moduleConfig;
-    ScheduledTask_Result_Type workResult;
 
     PAGED_CODE();
 
@@ -387,67 +440,29 @@ Return:
         //       is On Demand or not.)
         //
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
-        workResult = moduleConfig->EvtScheduledTaskCallback(dmfModule,
-                                                            moduleContext->OnDemandCallbackContext,
-                                                            WdfPowerDeviceInvalid);
+        if (moduleContext->OnDemandCallbackContext != NULL)
+        {
+            ScheduledTask_Result_Type workResult;
+
+            // Using both the legacy and non-legacy Methods is disallowed.
+            //
+            DmfAssert(moduleContext->OnDemandCallbackContextEx == NULL);
+            workResult = moduleConfig->EvtScheduledTaskCallback(dmfModule,
+                                                                moduleContext->OnDemandCallbackContext,
+                                                                WdfPowerDeviceInvalid);
+            // workResult is not honored due to bug in legacy implementation.
+            // In order to maintain compatibility with legacy Clients, this behavior is retained.
+            // Use Ex version of deferred call for correct behavior which honors the return value.
+            //
+        }
+        else if (moduleContext->OnDemandCallbackContextEx != NULL)
+        {
+            ScheduledTask_ClientWorkDo(dmfModule,
+                                       moduleContext->OnDemandCallbackContextEx,
+                                       WdfPowerDeviceInvalid);
+        }
         pendingCalls = InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
 
-        switch (workResult)
-        {
-            case ScheduledTask_WorkResult_Success:
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_Success");
-                break;
-            }
-            case ScheduledTask_WorkResult_SuccessButTryAgain:
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_SuccessButTryAgain");
-                if (! moduleContext->DoNotStartDeferredOnDemand)
-                {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START (SuccessButTryAgain)");
-                    moduleContext->TimerIsStarted = TRUE;
-                    WdfTimerStart(moduleContext->Timer,
-                                  WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnSuccess));
-                }
-                else
-                {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Workitem RESTART");
-                }
-                break;
-            }
-            case ScheduledTask_WorkResult_Fail:
-            {
-                // Client's work failed.
-                //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_Fail");
-                break;
-            }
-            case ScheduledTask_WorkResult_FailButTryAgain:
-            {
-                // Client's work fails: but Client wants to retry.
-                //
-                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ScheduledTask_WorkResult_FailButTryAgain");
-                if (! moduleContext->DoNotStartDeferredOnDemand)
-                {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Timer START (FailButTryAgain)");
-                    moduleContext->TimerIsStarted = TRUE;
-                    WdfTimerStart(moduleContext->Timer,
-                                  WDF_REL_TIMEOUT_IN_MS(moduleConfig->TimerPeriodMsOnFail));
-                }
-                else
-                {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Abort Workitem RESTART");
-                }
-                break;
-            }
-            default:
-            {
-                DmfAssert(FALSE);
-                // For SAL.
-                //
-                break;
-            }
-        }
     } while (pendingCalls > 0);
 
     FuncExitVoid(DMF_TRACE);
@@ -543,6 +558,7 @@ Return Value:
                     ScheduledTask_Result_Type workResult;
 
                     workResult = ScheduledTask_ClientWorkDo(DmfModule,
+                                                            moduleConfig->CallbackContext,
                                                             WdfPowerDeviceInvalid);
                     if ((workResult != ScheduledTask_WorkResult_Success) &&
                         (workResult != ScheduledTask_WorkResult_SuccessButTryAgain))
@@ -698,6 +714,7 @@ Return Value:
                     // Do the work now, in D0Entry.
                     //
                     workResult = ScheduledTask_ClientWorkDo(DmfModule,
+                                                            moduleConfig->CallbackContext,
                                                             PreviousState);
                     if ((workResult != ScheduledTask_WorkResult_Success) &&
                         (workResult != ScheduledTask_WorkResult_SuccessButTryAgain))
@@ -1045,11 +1062,6 @@ Return Value:
 // Module Methods
 //
 
-// The name of the default variable.
-// TODO: Later add ability for Client Driver to add custom variables.
-//
-#define DEFAULT_NAME_DEVICE    L"TimesRun"
-
 #pragma code_seg("PAGE")
 ScheduledTask_Result_Type
 DMF_ScheduledTask_ExecuteNow(
@@ -1119,6 +1131,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     DmfAssert(!moduleContext->ModuleClosing);
+    DmfAssert(moduleContext->OnDemandCallbackContextEx == NULL);
 
     // If the workitem has already been enqueued, just increment the number of times the
     // ScheduledTask routine must be called.
@@ -1136,6 +1149,74 @@ Return Value:
             //       is On Demand or not.)
             //
             moduleContext->OnDemandCallbackContext = CallbackContext;
+            moduleContext->OnDemandCallbackContextEx = NULL;
+            WdfWorkItemEnqueue(moduleContext->DeferredOnDemand);
+            ntStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            ntStatus = STATUS_UNSUCCESSFUL;
+            InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
+        }
+    }
+    else
+    {
+        // There is already a workitem enqueued. The routine will execute.
+        //
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    return ntStatus;
+}
+
+NTSTATUS
+DMF_ScheduledTask_ExecuteNowDeferredEx(
+    _In_ DMFMODULE DmfModule,
+    _In_opt_ VOID* CallbackContext
+    )
+/*++
+
+Routine Description:
+
+    Execute the associated ScheduledTask handler immediately (asynchronously).
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    CallbackContext - Context pass as ModuleContext to ScheduledTask handler.
+
+Return Value:
+
+    STATUS_SUCCESS - The deferred call was launched.
+    STATUS_UNSUCCESSFUL - The deferred call was not launched because Module is closing.
+
+++*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_ScheduledTask* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(!moduleContext->ModuleClosing);
+    DmfAssert(moduleContext->OnDemandCallbackContext == NULL);
+
+    // If the workitem has already been enqueued, just increment the number of times the
+    // ScheduledTask routine must be called.
+    //
+    if (1 == InterlockedIncrement(&moduleContext->NumberOfPendingCalls))
+    {
+        // Do not enqueue the workitem if Module has started shutting down.
+        //
+        if (! moduleContext->DoNotStartDeferredOnDemand)
+        {
+            // Enqueue the workitem for the first call.
+            // NOTE: This context is only really useful in the case where a single call is made.
+            //       If multiple calls are made, then the context passed will be for the
+            //       first call. (Essentially it is only used to determine if the call
+            //       is On Demand or not.)
+            //
+            moduleContext->OnDemandCallbackContextEx = CallbackContext;
+            moduleContext->OnDemandCallbackContext = NULL;
             WdfWorkItemEnqueue(moduleContext->DeferredOnDemand);
             ntStatus = STATUS_SUCCESS;
         }
@@ -1235,75 +1316,6 @@ Exit:
         WdfRegistryClose(wdfKey);
         wdfKey = NULL;
     }
-
-    return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-NTSTATUS
-DMF_ScheduledTask_TimesRunIncrement(
-    _In_ DMFMODULE DmfModule,
-    _Out_ ULONG* TimesRun
-    )
-/*++
-
-Routine Description:
-
-    Read the default variable into the caller's buffer, increment it and write
-    it back.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    TimesRun - Number of times this function has been called since driver install.
-
-Return Value:
-
-    None
-
-++*/
-{
-    NTSTATUS ntStatus;
-    ULONG incrementedValue;
-
-    PAGED_CODE();
-
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 ScheduledTask);
-
-    DMF_ModuleLock(DmfModule);
-
-    // Get the current setting for the caller.
-    //
-    ntStatus = DMF_ScheduledTask_TimesRunGet(DmfModule,
-                                             TimesRun);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        // Fall through. Assume this is the first time.
-        //
-        *TimesRun = 0;
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Unable to read ScheduledTask value. ntStatus=%!STATUS!", ntStatus);
-    }
-
-    // Increment.
-    //
-    incrementedValue = (*TimesRun) + 1;
-
-    // Write incremented value.
-    //
-    ntStatus = DMF_ScheduledTask_TimesRunSet(DmfModule,
-                                             incrementedValue);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to write ScheduledTask value. ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-Exit:
-
-    DMF_ModuleUnlock(DmfModule);
 
     return ntStatus;
 }

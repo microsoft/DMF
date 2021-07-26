@@ -135,16 +135,15 @@ DMF_ScheduledTask_ExecuteNowDeferred(
     _In_opt_ VOID* CallbackContext
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_ScheduledTask_TimesRunGet(
+DMF_ScheduledTask_ExecuteNowDeferredEx(
     _In_ DMFMODULE DmfModule,
-    _Out_ ULONG* TimesRun
+    _In_opt_ VOID* CallbackContext
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_ScheduledTask_TimesRunIncrement(
+DMF_ScheduledTask_TimesRunGet(
     _In_ DMFMODULE DmfModule,
     _Out_ ULONG* TimesRun
     );
