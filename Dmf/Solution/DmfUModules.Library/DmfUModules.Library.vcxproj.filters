@@ -234,9 +234,14 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h">
       <Filter>Headers\Modules\Sensors</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_UefiOperation.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h">
       <Filter>Headers\Modules\Data Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_UefiOperation.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h">
+      <Filter>Headers\Modules\Task Execution</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -351,9 +356,14 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp">
       <Filter>Modules\Sensors</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c">
       <Filter>Modules\Data Structures</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c">
+      <Filter>Modules\Task Execution</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -467,9 +477,11 @@
     <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md">
       <Filter>Documentation\Modules\Sensors</Filter>
     </None>
-    <None Include="..\..\Modules.Library\Dmf_UefiOperation.md" />
-    <None Include="..\..\Modules.Library\Dmf_Stack.md">
-      <Filter>Documentation\Modules\Data Structures</Filter>
+    <None Include="..\..\Modules.Library\Dmf_UefiOperation.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Doorbell.md">
+      <Filter>Documentation\Modules\Task Execution</Filter>
     </None>
   </ItemGroup>
 </Project>

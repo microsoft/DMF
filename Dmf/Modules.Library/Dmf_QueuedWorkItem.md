@@ -79,6 +79,7 @@ ClientBufferContext | Client specific context passed by Client when the deferred
 
 * ClientBuffer is accessible only while this callback executes.
 * Use `DMF_QueuedWorkItem_StatusSet()` to set the NTSTATUS for callers of `DMF_QueuedWorkItem_EnqueueAndWait()`.
+* Always return ScheduledTask_Result_Success from this callback. The return value is only present for legacy reasons.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

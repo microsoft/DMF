@@ -904,15 +904,26 @@ Return Value:
 
         // If the Client has registered for device interface state changes, call the notification callback.
         //
-        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
         {
+            DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
             moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
                                                                 DeviceInterfaceTarget_StateType_QueryRemove);
         }
+        else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+        {
+            // This version allows Client to veto the remove.
+            //
+            ntStatus = moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                                             DeviceInterfaceTarget_StateType_QueryRemove);
+        }
 
-        // Stop streaming and Close the Module.
-        //
-        DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        if (NT_SUCCESS(ntStatus))
+        {
+            // Stop streaming and Close the Module.
+            //
+            DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        }
 
         // After this, RemoveCancel or RemoveComplete will happen.
         //
@@ -1009,10 +1020,16 @@ Return Value:
 
     // If the client has registered for device interface state changes, call the notification callback.
     //
-    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
                                                             DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+    {
+        moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                              DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
     }
 
     // End of sequence. Allow another close to happen. Now NotificationUnregister or
@@ -1095,10 +1112,16 @@ Return Value:
     if ((moduleCloseReason == ModuleCloseReason_QueryRemove) ||
         (moduleCloseReason == ModuleCloseReason_RemoveComplete))
     {
-        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
         {
+            DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
             moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
                                                                 DeviceInterfaceTarget_StateType_QueryRemoveComplete);
+        }
+        else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+        {
+            moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                                  DeviceInterfaceTarget_StateType_QueryRemoveComplete);
         }
 
         if (moduleCloseReason == ModuleCloseReason_RemoveComplete)
@@ -1216,10 +1239,18 @@ Return Value:
         goto Exit;
     }
 
-    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
                                                             DeviceInterfaceTarget_StateType_Open);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+    {
+        // This version allows Client to veto the open.
+        //
+        ntStatus = moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
+                                                                         DeviceInterfaceTarget_StateType_Open);
     }
 
     // Handle is still created, it must not be set to NULL so devices can still send it requests.
@@ -2031,10 +2062,16 @@ Return Value:
             // Normal close that happens without QueryRemove.
             //
             WdfIoTargetClose(moduleContext->IoTarget);
-            if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+            if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
             {
+                DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
                 moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
                                                                     DeviceInterfaceTarget_StateType_Close);
+            }
+            else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+            {
+                moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
+                                                                      DeviceInterfaceTarget_StateType_Close);
             }
             WdfObjectDelete(moduleContext->IoTarget);
             // Delete stored symbolic link if set. (This will never be set in User-mode.)

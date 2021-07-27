@@ -34,6 +34,9 @@ typedef struct
   // Callback to specify WDFIOTARGET State.
   //
   EVT_DMF_DeviceInterfaceTarget_OnStateChange* EvtDeviceInterfaceTargetOnStateChange;
+  // This version allows Client to veto the remove.
+  //
+  EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx* EvtDeviceInterfaceTargetOnStateChangeEx;
   // Callback to notify Interface arrival.
   //
   EVT_DMF_DeviceInterfaceTarget_OnPnpNotification* EvtDeviceInterfaceTargetOnPnpNotification;
@@ -99,10 +102,40 @@ EVT_DMF_DeviceInterfaceTarget_OnStateChange(
 ````
 
 Callback to the Client that indicates the state of the target has changed.
+This version is included for legacy Clients. Use the Ex version instead.
 
 ##### Returns
 
 None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
+IoTargetState | The new state the WDFIOTARGET is transitioning to.
+
+##### Remarks
+* It is not possible to veto the remove using this callback. Use Ex version instead.
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceTarget_StateType IoTargetState
+    );
+````
+
+Callback to the Client that indicates the state of the target has changed.
+This version allows Client to veto the remove.
+
+##### Returns
+
+* In QueryRemove case, if NT_SUCCESS(of the return value) is TRUE then remove is allowed. Otherwise, remove is vetoed.
+* In Open case, if NT_SUCCESS(of the return value) is TRUE then open is allowed. Otherwise, open is vetoed.
+* In all other cases, return STATUS_SUCCESS.
 
 ##### Parameters
 Parameter | Description
