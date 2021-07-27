@@ -43,6 +43,17 @@ VOID
 EVT_DMF_DeviceInterfaceTarget_OnStateChange(_In_ DMFMODULE DmfModule,
                                             _In_ DeviceInterfaceTarget_StateType IoTargetState);
 
+// Client Driver callback to notify IoTarget State.
+// This version allows Client to veto the open and remove.
+//
+typedef
+_Function_class_(EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx(_In_ DMFMODULE DmfModule,
+                                              _In_ DeviceInterfaceTarget_StateType IoTargetState);
+
 // Client Driver callback to notify Interface arrival.
 //
 typedef
@@ -71,12 +82,17 @@ typedef struct
     //
     DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;
     // Callback to specify IoTarget State.
+    // Use Ex version instead. This version is included for legacy Clients only.
     //
     EVT_DMF_DeviceInterfaceTarget_OnStateChange* EvtDeviceInterfaceTargetOnStateChange;
+    // Callback to specify IoTarget State.
+    // This version allows Client to veto the open and remove.
+    //
+    EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx* EvtDeviceInterfaceTargetOnStateChangeEx;
     // Callback to notify Interface arrival.
     //
     EVT_DMF_DeviceInterfaceTarget_OnPnpNotification* EvtDeviceInterfaceTargetOnPnpNotification;
-    // To maintain compatability with existing drivers, this option tells the 
+    // To maintain compatibility with existing drivers, this option tells the 
     // Module to perform non-standard behavior: When target disables the device interface
     // close the associated open handle. (WDF does not do this by default.) New drivers 
     // should not use this option.

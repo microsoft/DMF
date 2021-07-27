@@ -64,6 +64,18 @@ EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChange(_In_ DMFMODULE DmfModule,
                                                     _In_ DeviceInterfaceMultipleTarget_Target Target,
                                                     _In_ DeviceInterfaceMultipleTarget_StateType IoTargetState);
 
+// Client Driver callback to notify IoTarget State.
+// This version allows Client to veto the open and remove.
+//
+typedef
+_Function_class_(EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChangeEx)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChangeEx(_In_ DMFMODULE DmfModule,
+                                                      _In_ DeviceInterfaceMultipleTarget_Target Target,
+                                                      _In_ DeviceInterfaceMultipleTarget_StateType IoTargetState);
+
 // Client Driver callback to notify Interface arrival.
 //
 typedef
@@ -95,8 +107,13 @@ typedef struct
     //
     DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;
     // Callback to specify IoTarget State.
+    // Use Ex version instead. This version is included for legacy Clients only.
     //
     EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChange* EvtDeviceInterfaceMultipleTargetOnStateChange;
+    // Callback to specify IoTarget State.
+    // This version allows Client to veto the open and remove.
+    //
+    EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChangeEx* EvtDeviceInterfaceMultipleTargetOnStateChangeEx;
     // Callback to notify Interface arrival.
     //
     EVT_DMF_DeviceInterfaceMultipleTarget_OnPnpNotification* EvtDeviceInterfaceMultipleTargetOnPnpNotification;

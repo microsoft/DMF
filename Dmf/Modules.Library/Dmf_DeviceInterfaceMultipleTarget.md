@@ -35,8 +35,13 @@ typedef struct
     //
     DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;
     // Callback to specify IoTarget State.
+    // Use Ex version instead. This version is included for legacy Clients only.
     //
     EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChange* EvtDeviceInterfaceMultipleTargetOnStateChange;
+    // Callback to specify IoTarget State.
+    // This version allows Client to veto the remove.
+    //
+    EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChangeEx* EvtDeviceInterfaceMultipleTargetOnStateChangeEx;
     // Callback to notify Interface arrival.
     //
     EVT_DMF_DeviceInterfaceMultipleTarget_OnPnpNotification* EvtDeviceInterfaceMultipleTargetOnPnpNotification;
@@ -114,10 +119,43 @@ EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChange(
 ````
 
 Callback to the Client that indicates the state of the target has changed.
+This version is included for legacy Clients. Use the Ex version instead.
 
 ##### Returns
 
 None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceMultipleTarget Module handle.
+Target | Target instance associated with the callback.
+IoTargetState | The new state the WDFIOTARGET is transitioning to.
+
+##### Remarks
+* It is not possible to veto the remove or open using this callback. Use Ex version instead.
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChangeEx
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_DeviceInterfaceMultipleTarget_OnStateChangeEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFIOTARGET Target,
+    _In_ DeviceInterfaceMultipleTarget_StateType IoTargetState
+    );
+````
+
+Callback to the Client that indicates the state of the target has changed.
+This version allows Client to veto the remove.
+This version allows Client to veto the open.
+
+##### Returns
+
+* In QueryRemove case, if NT_SUCCESS(of the return value) is TRUE then remove is allowed. Otherwise, remove is vetoed.
+* In Open case, if NT_SUCCESS(of the return value) is TRUE then open is allowed. Otherwise, open is vetoed.
+* In all other cases, return STATUS_SUCCESS.
 
 ##### Parameters
 Parameter | Description
