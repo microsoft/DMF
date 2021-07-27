@@ -333,7 +333,6 @@ TaskDescriptionArrayEx[] =
         ScheduledTask_Persistence_NotPersistentAcrossReboots,
         ScheduledTask_ExecuteWhen_Other,
         ScheduledTask_ExecutionMode_Immediate,
-        // HAMZA: +3 (sb 2)
         (2)
     },
     // 0x10
@@ -343,7 +342,6 @@ TaskDescriptionArrayEx[] =
         ScheduledTask_Persistence_NotPersistentAcrossReboots,
         ScheduledTask_ExecuteWhen_Other,
         ScheduledTask_ExecutionMode_Immediate,
-        // HAMZA: +2
         (2)
     },
     // 0x11
@@ -353,7 +351,6 @@ TaskDescriptionArrayEx[] =
         ScheduledTask_Persistence_NotPersistentAcrossReboots,
         ScheduledTask_ExecuteWhen_Other,
         ScheduledTask_ExecutionMode_Immediate,
-        // HAMZA: +3 (sb 2)
         (2)
     }
 };

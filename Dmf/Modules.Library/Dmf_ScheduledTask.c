@@ -457,9 +457,15 @@ Return:
         }
         else if (moduleContext->OnDemandCallbackContextEx != NULL)
         {
+            // This call honors the Client callback return value.
+            //
             ScheduledTask_ClientWorkDo(dmfModule,
                                        moduleContext->OnDemandCallbackContextEx,
                                        WdfPowerDeviceInvalid);
+        }
+        else
+        {
+            DmfAssert(FALSE);
         }
         pendingCalls = InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
 
@@ -1112,12 +1118,14 @@ DMF_ScheduledTask_ExecuteNowDeferred(
 
 Routine Description:
 
-    Execute the associated ScheduledTask handler immediately (asynchronously).
+    Executes the associated ScheduledTask callback in a deferred manner but does
+    NOT honor the callback's return value due to bug in original implementation.
+    This Method is included for legacy Clients only. Use the "Ex" version instead.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    CallbackContext - Context pass as ModuleContext to ScheduledTask handler.
+    CallbackContext - Context passed to ScheduledTask handler.
 
 Return Value:
 
@@ -1178,12 +1186,13 @@ DMF_ScheduledTask_ExecuteNowDeferredEx(
 
 Routine Description:
 
-    Execute the associated ScheduledTask handler immediately (asynchronously).
+    Executes the associated ScheduledTask callback in a deferred manner and honors
+    the callback's return value.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    CallbackContext - Context pass as ModuleContext to ScheduledTask handler.
+    CallbackContext - Context passed to ScheduledTask handler.
 
 Return Value:
 
