@@ -1115,7 +1115,7 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    // For SAL.
+    // Ensure returned handle is set only if this call is successful.
     //
     if (DmfModule != NULL)
     {
@@ -1453,16 +1453,6 @@ Exit:
             //
             dmfObject->DynamicModuleImmediate = TRUE;
 
-            // Since it is a Dynamic Module, Open or register for Notification as specified by the Module's
-            // Open Option.
-            //
-            ntStatus = DMF_Module_OpenOrRegisterNotificationOnCreate(dmfModule);
-            if (!NT_SUCCESS(ntStatus))
-            {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionPostCreate fails: ntStatus=%!STATUS!", ntStatus);
-                goto Exit;
-            }
-
             // Give Client the resultant Module Handle:
             // PostOpen callback may need to compare contents of the address of the Module it
             // passed with the Module handle passed in the callback. So, set this now before 
@@ -1472,6 +1462,22 @@ Exit:
             if (DmfModule != NULL)
             {
                 *DmfModule = dmfModule;
+            }
+
+            // Since it is a Dynamic Module, Open or register for Notification as specified by the Module's
+            // Open Option.
+            //
+            ntStatus = DMF_Module_OpenOrRegisterNotificationOnCreate(dmfModule);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionPostCreate fails: ntStatus=%!STATUS!", ntStatus);
+                if (DmfModule != NULL)
+                {
+                    // Ensure returned handle is set only if this call is successful.
+                    //
+                    *DmfModule = NULL;
+                }
+                goto Exit;
             }
         }
         else
