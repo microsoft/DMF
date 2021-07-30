@@ -672,8 +672,7 @@ Tests_ScheduledTask_RunManualTasksEx(
 
             // Schedule deferred execution (Ex version that is correct).
             //
-            ntStatus = DMF_ScheduledTask_ExecuteNowDeferredEx(moduleUnderTest,
-                                                              &moduleContext->TaskContextEx[taskDescriptionIndex]);
+            ntStatus = DMF_ScheduledTask_ExecuteNowDeferredEx(moduleUnderTest);
             DmfAssert(STATUS_SUCCESS == ntStatus);
         }
     }

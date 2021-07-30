@@ -1001,14 +1001,34 @@ Return Value:
             // A new buffer could not be created. Check if the default log is available and set the Module's recorder handle to it 
             // to not miss capturing logs from this Module.
             //
-            recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
+            if (WppRecorderIsDefaultLogAvailable())
+            {
+                recorder = WppRecorderLogGetDefault();
+                // Don't delete it.
+                //
+                DmfObject->UsingDefaultInFlightRecorder = TRUE;
+            }
+            else
+            {
+                recorder = NULL;
+            }
         }
     }
     else
     {
         // The Module's logs will be part of the default log if the Module chose to not have a separate custom buffer.
         //
-        recorder = WppRecorderIsDefaultLogAvailable() ? WppRecorderLogGetDefault() : NULL;
+        if (WppRecorderIsDefaultLogAvailable())
+        {
+            recorder = WppRecorderLogGetDefault();
+            // Don't delete it.
+            //
+            DmfObject->UsingDefaultInFlightRecorder = TRUE;
+        }
+        else
+        {
+            recorder = NULL;
+        }
     }
 
     DmfObject->InFlightRecorder = recorder;
@@ -1544,7 +1564,10 @@ Return Value:
 #if defined(DMF_KERNEL_MODE)
     if (dmfObject->InFlightRecorder != NULL)
     {
-        WppRecorderLogDelete(dmfObject->InFlightRecorder);
+        if (! dmfObject->UsingDefaultInFlightRecorder)
+        {
+            WppRecorderLogDelete(dmfObject->InFlightRecorder);
+        }
         dmfObject->InFlightRecorder = NULL;
     }
 #endif // defined(DMF_KERNEL_MODE)

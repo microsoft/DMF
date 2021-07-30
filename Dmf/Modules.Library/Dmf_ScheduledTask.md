@@ -23,7 +23,8 @@ typedef struct
   // The Client Driver function that will perform work one time in a work item.
   //
   EVT_DMF_ScheduledTask_Callback* EvtScheduledTaskCallback;
-  // Client context for above callback.
+  // Client context for above callback used by the timer and by
+  // DMF_ScheduledTask__ExecuteNowDeferredEx Method.
   //
   VOID* CallbackContext;
   // Indicates if the operation should be done every time driver loads or only a
@@ -245,13 +246,13 @@ CallbackContext | This is a Client specific context that is passed to the Client
 ````
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
-  _In_ DMFMODULE DmfModule,
-  _In_opt_ VOID* CallbackContext
+  _In_ DMFMODULE DmfModule
   );
 ````
 
 This Method causes the deferred code to execute one time (at a later time). The deferred code will execute shortly
-after this call completes. The callback's return value **is** honored using this Method.
+after this call completes. The callback's return value **is** honored using this Method. The callback is passed
+the context specified in Module config.
 
 ##### Returns
 
@@ -261,7 +262,6 @@ NTSTATUS. Fails if the Request cannot be added to the queue.
 Parameter | Description
 ----|----
 DmfModule | An open DMF_ScheduledTask Module handle.
-CallbackContext | This is a Client specific context that is passed to the Client's deferred execution callback.
 
 ##### Remarks
 
