@@ -74,9 +74,6 @@ typedef struct _DMF_CONTEXT_ScheduledTask
     //       is On Demand or not.)
     //
     VOID* OnDemandCallbackContext;
-    // Context used by Ex deferred method.
-    //
-    VOID* OnDemandCallbackContextEx;
     // Indicates the number of callers that are waiting for the 
     // timer. When this variable changes from 0 to 1, the On Demand
     // timer is started; otherwise, nothing happens since the timer
@@ -444,9 +441,6 @@ Return:
         {
             ScheduledTask_Result_Type workResult;
 
-            // Using both the legacy and non-legacy Methods is disallowed.
-            //
-            DmfAssert(moduleContext->OnDemandCallbackContextEx == NULL);
             workResult = moduleConfig->EvtScheduledTaskCallback(dmfModule,
                                                                 moduleContext->OnDemandCallbackContext,
                                                                 WdfPowerDeviceInvalid);
@@ -455,17 +449,13 @@ Return:
             // Use Ex version of deferred call for correct behavior which honors the return value.
             //
         }
-        else if (moduleContext->OnDemandCallbackContextEx != NULL)
+        else
         {
             // This call honors the Client callback return value.
             //
             ScheduledTask_ClientWorkDo(dmfModule,
-                                       moduleContext->OnDemandCallbackContextEx,
+                                       moduleConfig->CallbackContext,
                                        WdfPowerDeviceInvalid);
-        }
-        else
-        {
-            DmfAssert(FALSE);
         }
         pendingCalls = InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
 
@@ -1139,7 +1129,6 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     DmfAssert(!moduleContext->ModuleClosing);
-    DmfAssert(moduleContext->OnDemandCallbackContextEx == NULL);
 
     // If the workitem has already been enqueued, just increment the number of times the
     // ScheduledTask routine must be called.
@@ -1157,7 +1146,6 @@ Return Value:
             //       is On Demand or not.)
             //
             moduleContext->OnDemandCallbackContext = CallbackContext;
-            moduleContext->OnDemandCallbackContextEx = NULL;
             WdfWorkItemEnqueue(moduleContext->DeferredOnDemand);
             ntStatus = STATUS_SUCCESS;
         }
@@ -1179,20 +1167,18 @@ Return Value:
 
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
-    _In_ DMFMODULE DmfModule,
-    _In_opt_ VOID* CallbackContext
+    _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
     Executes the associated ScheduledTask callback in a deferred manner and honors
-    the callback's return value.
+    the callback's return value. The callback is passed the context specified in Module config.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    CallbackContext - Context passed to ScheduledTask handler.
 
 Return Value:
 
@@ -1218,13 +1204,6 @@ Return Value:
         //
         if (! moduleContext->DoNotStartDeferredOnDemand)
         {
-            // Enqueue the workitem for the first call.
-            // NOTE: This context is only really useful in the case where a single call is made.
-            //       If multiple calls are made, then the context passed will be for the
-            //       first call. (Essentially it is only used to determine if the call
-            //       is On Demand or not.)
-            //
-            moduleContext->OnDemandCallbackContextEx = CallbackContext;
             moduleContext->OnDemandCallbackContext = NULL;
             WdfWorkItemEnqueue(moduleContext->DeferredOnDemand);
             ntStatus = STATUS_SUCCESS;

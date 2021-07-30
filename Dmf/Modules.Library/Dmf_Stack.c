@@ -118,6 +118,7 @@ Return Value:
     moduleBufferQueueConfigList.SourceSettings.BufferSize = moduleConfig->StackElementSize;
     moduleBufferQueueConfigList.SourceSettings.EnableLookAside = TRUE;
     moduleBufferQueueConfigList.SourceSettings.BufferContextSize = 0;
+    moduleBufferQueueConfigList.SourceSettings.PoolType = NonPagedPoolNx;
     moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,

@@ -250,6 +250,9 @@ struct _DMF_OBJECT_
     // Stores the Module's In Flight Recorder handle.
     //
     RECORDER_LOG InFlightRecorder;
+    // Indicates that default in-flight recorder is used so it should not be deleted.
+    //
+    BOOLEAN UsingDefaultInFlightRecorder;
     // Client Cleanup Callback (chained).
     //
     PFN_WDF_OBJECT_CONTEXT_CLEANUP ClientEvtCleanupCallback;
