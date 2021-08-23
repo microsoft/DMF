@@ -500,7 +500,7 @@ Return Value:
 
         // Copy the data from Ping Buffer to Pong Buffer.
         //
-        RtlCopyMemory(inactivePacket,
+        RtlCopyMemory(inactivePacket,           // lgtm
                       source,
                       numberOfBytesToWrite);
     }
@@ -919,7 +919,7 @@ Return Value:
 
     // Copy the data from Ping Buffer to Pong Buffer.
     //
-    RtlCopyMemory(inactivePacket,
+    RtlCopyMemory(inactivePacket,               // lgtm
                   activePacket + StartOffset,
                   numberOfBytes);
 
@@ -1018,7 +1018,7 @@ Return Value:
     //
     DmfAssert(moduleContext->PingBufferIndex < NUMBER_OF_PING_PONG_BUFFERS);
     DmfAssert(((UCHAR*)activeBuffer) + NumberOfBytesToWrite <= (&moduleContext->Buffer[moduleContext->PingBufferIndex][moduleContext->BufferSize]));
-    RtlCopyMemory(activeBuffer,
+    RtlCopyMemory(activeBuffer,             // lgtm
                   SourceBuffer,
                   NumberOfBytesToWrite);
 

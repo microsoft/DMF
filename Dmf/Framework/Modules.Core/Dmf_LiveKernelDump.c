@@ -352,7 +352,7 @@ Return Value:
     dataBuffer = (DATA_BUFFER*)Buffer;
 
     liveKernelDumpModule = DMF_ParentModuleGet(DmfModule);
-    liveKernelDumpContext = DMF_CONTEXT_GET(liveKernelDumpModule);
+    liveKernelDumpContext = DMF_CONTEXT_GET(liveKernelDumpModule);  // lgtm
 
     // Check if this Data Buffer is Valid.
     // NOTE: Data Buffers can be added to the Ring Buffer by DMF Modules. The DMF Module should invalidate the data buffer
@@ -454,7 +454,7 @@ Return Value:
     dataBuffer = (DATA_BUFFER*)Buffer;
 
     dmfModuleLiveKernelDump = DMF_ParentModuleGet(DmfModuleRingBuffer);
-    dmfContextLiveKernelDump = DMF_CONTEXT_GET(dmfModuleLiveKernelDump);
+    dmfContextLiveKernelDump = DMF_CONTEXT_GET(dmfModuleLiveKernelDump);    // lgtm
 
     // Check if this Data Buffer is Valid.
     // NOTE: Data Buffers can be added to the Ring Buffer by DMF Modules. The DMF Module should invalidate the data buffer
@@ -614,7 +614,7 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
     dmfModuleLiveKernelDump = DMF_ParentModuleGet(DmfModuleCrashDump);
-    dmfContextLiveKernelDump = DMF_CONTEXT_GET(dmfModuleLiveKernelDump);
+    dmfContextLiveKernelDump = DMF_CONTEXT_GET(dmfModuleLiveKernelDump);    // lgtm
 
     if (dmfContextLiveKernelDump->CrashDumpModule == NULL)
     {
@@ -951,7 +951,7 @@ Return Value:
     //
     liveKernelDumpModule = DMF_ParentModuleGet(DmfModule);
 
-    moduleContext = DMF_CONTEXT_GET(liveKernelDumpModule);
+    moduleContext = DMF_CONTEXT_GET(liveKernelDumpModule);  // lgtm
 
     *BytesReturned = 0;
 

@@ -181,7 +181,7 @@ Return Value:
     liveKernelDumpHandle = DMF_ModuleCollectionFeatureHandleGet(ModuleCollectionHandle,
                                                                 DmfFeature_LiveKernelDump);
 
-    liveKernelDumpModule = DMF_ObjectToModule(liveKernelDumpHandle);
+    liveKernelDumpModule = DMF_ObjectToModule(liveKernelDumpHandle);    // lgtm
 
     DMF_MODULE_LIVEKERNELDUMP_POINTER_STORE(liveKernelDumpModule,
                                             ModuleCollectionHandle,

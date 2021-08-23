@@ -783,8 +783,9 @@ Return Value:
     //
     nameBuffer = deviceReferenceName.Buffer;
     USHORT writeIndex = 0;
-    USHORT readIndex = 0;
-    while (readIndex < ((sizeToAllocate / sizeof(WCHAR)) - 1))
+    LONG readIndex = 0;
+    LONG maximumIndex = ((sizeToAllocate / sizeof(WCHAR)) - 1);
+    while (readIndex < maximumIndex)
     {
         if ((nameBuffer[readIndex] != L'\\') &&
             (nameBuffer[readIndex] != L'/'))
@@ -797,7 +798,7 @@ Return Value:
 
     // Update the length of the target string after removing the characters.
     //
-    USHORT numberOfRemovedWchars = (readIndex - writeIndex);
+    LONG numberOfRemovedWchars = (readIndex - writeIndex);
     deviceReferenceName.Length -= (USHORT)(numberOfRemovedWchars * sizeof(WCHAR));
 
     // Use the reference string to differentiate device instances.
