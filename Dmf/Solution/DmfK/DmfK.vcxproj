@@ -171,11 +171,13 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;cfgmgr32.lib;wpprecorder.lib;</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
@@ -258,11 +260,13 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;cfgmgr32.lib;wpprecorder.lib;</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>

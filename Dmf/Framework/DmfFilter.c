@@ -256,6 +256,12 @@ Return Value:
         }
 
         dmfDeviceInit = DMF_DmfControlDeviceInitAllocate(deviceInit);
+        if (dmfDeviceInit == NULL)
+        {
+            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DmfControlDeviceInitAllocate fails: ntStatus=STATUS_INSUFFICIENT_RESOURCES");
+            goto Error;
+        }
 
         DMF_DmfControlDeviceInitSetClientDriverDevice(dmfDeviceInit,
                                                       Device);

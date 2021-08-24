@@ -119,7 +119,7 @@ Tests_PingPongBuffer_CheckIntegrity(
     // Make sure ping-pong buffer content matches the corresponding sample data fragment.
     //
     DmfAssert(bytesToCheck == RtlCompareMemory(moduleContext->SampleBuffer + moduleContext->SampleReadOffset,
-                                               buffer,
+                                               buffer,          // lgtm
                                                bytesToCheck));
 
     DMF_ModuleUnlock(DmfModule);
