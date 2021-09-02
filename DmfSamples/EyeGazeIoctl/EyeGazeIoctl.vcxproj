@@ -146,6 +146,9 @@
       </ExceptionHandling>
       <WppRecorderEnabled>true</WppRecorderEnabled>
     </ClCompile>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ResourceCompile Include="EyeGazeIoctl.rc" />

@@ -103,6 +103,9 @@
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);..\..\..\$(Configuration)\$(Platform)\lib\DmfU\DmfU.lib;..\..\..\$(Configuration)\$(Platform)\individual_libs\DmfUModules.Library.Tests\DmfUModules.Library.Tests.lib;advapi32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
