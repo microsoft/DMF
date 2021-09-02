@@ -69,9 +69,12 @@
       <SpecifyDriverVerDirectiveDate>false</SpecifyDriverVerDirectiveDate>
       <DateStamp />
     </Inf>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <FilesToPackage Include="$(OutDir)DmfKTest.pdb"/>  
+    <FilesToPackage Include="$(OutDir)DmfKTest.pdb" />
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>

@@ -221,6 +221,11 @@
       <WppRecorderEnabled>true</WppRecorderEnabled>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ResourceCompile Include="SwitchBar.rc" />
   </ItemGroup>
