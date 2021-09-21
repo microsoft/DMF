@@ -120,6 +120,8 @@ Environment:
 #include <windows.h>
 #include <stdio.h>
 #include <wdf.h>
+#define ENABLE_INTSAFE_SIGNED_FUNCTIONS
+#include <intsafe.h>
 #include <Objbase.h>
 // NOTE: This file includes poclass.h. Do not include that again
 //       otherwise, redefinition errors will occur.

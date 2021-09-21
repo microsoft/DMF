@@ -96,6 +96,10 @@ Environment:
 //
 #define IS_WIN10_19H1_OR_LATER (NTDDI_WIN10_19H1 && (NTDDI_VERSION >= NTDDI_WIN10_19H1))
 
+// Check that the Windows version is 21H1 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_21H1_OR_EARLIER (!(NTDDI_WIN10_MN && (NTDDI_VERSION > NTDDI_WIN10_MN)))
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // All include files needed by all Modules and the Framework.
@@ -121,6 +125,7 @@ Environment:
 #include <wdm.h>
 #include <ntddk.h>
 #include <ntstatus.h>
+#define ENABLE_INTSAFE_SIGNED_FUNCTIONS
 #include <ntintsafe.h>
 // TODO: Add this after Dmf_Registry supports this definition properly.
 // #define NTSTRSAFE_LIB
