@@ -6487,10 +6487,10 @@ None
 
 -   Proper use of this programming pattern makes it possible for a Client to call a Module's Methods without having to worry about the state of the Module's resources.
 
-### DMF_ModuleIsDynamic
+### DMF_IsModuleDynamic
 ```
-VOID
-DMF_ModuleIsDynamic(
+BOOLEAN
+DMF_IsModuleDynamic(
     _In_ DMFMODULE DmfModule
     )
 ```
@@ -6510,7 +6510,7 @@ FALSE indicates the given Module has not been instantiated as a Dynamic Module.
 
 #### Remarks
 
--  Dynamic Modules cannot use WDF callbacks. So, Modules that can be instantiated as Dynamic use this function to determine if WDF callbacks should be set.
+-  Dynamic Modules cannot use WDF Plug and Play callbacks. So, Modules that can be instantiated as Dynamic use this function to determine if WDF callbacks should be set.
 
 ### DMF_ModuleIsInFilterDriver
 ```
@@ -7352,6 +7352,53 @@ None.
 
 #### Remarks
 
+### DMF_Utility_TemperatureInDeciKelvin
+````
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin(
+    _In_ INT64 Celcius,
+    _Out_ UINT64* DeciKelvin
+    );
+````
+
+Converts Celsius temperature into deci-Kelvin.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ---------------------------------------------------------------
+  Celcius | Temperature in Celcius
+  DeciKelvin | Temperature in DeciKelvin
+
+#### Returns
+
+NTSTATUS
+
+#### Remarks
+
+### DMF_Utility_TemperatureInDeciKelvin32
+````
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin32(
+    _In_ INT32 Celcius,
+    _Out_ UINT32* DeciKelvin
+    );
+````
+
+Converts Celsius temperature into deci-Kelvin.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ---------------------------------------------------------------
+  Celcius | Temperature in Celcius
+  DeciKelvin | Temperature in DeciKelvin
+
+#### Returns
+
+NTSTATUS
+
+#### Remarks
 
 ### DMF_Utility_UserModeAccessCreate
 ```

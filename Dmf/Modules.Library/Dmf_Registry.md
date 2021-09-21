@@ -150,6 +150,10 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_Registry Module handle.
 
+##### Remarks
+
+* IMPORTANT: Do not call any deferred Methods from this callback as the caller destroys DmfModule upon return.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Registry_KeyEnumerationCallback
 ````

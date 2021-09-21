@@ -5030,6 +5030,9 @@ Return Value:
     for (ULONG callbackIndex = 0; callbackIndex < scheduledTaskCallbackContext->NumberOfCallbacks; callbackIndex++)
     {
         // Create and open a Registry Module, do the registry work, close and destroy the Registry Module.
+        // NOTE: This callback cannot call any deferred Methods because the Module is immediately destroyed
+        //       when the callback finishes. For example, do not call DMF_Registry_TreeWriteDeferred() from 
+        //       inside the callback.
         //
         ntStatus = DMF_Registry_CallbackWork(device,
                                              scheduledTaskCallbackContext->Callbacks[callbackIndex]);

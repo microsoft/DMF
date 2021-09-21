@@ -1519,6 +1519,18 @@ DMF_Utility_TransferList(
     _In_ LIST_ENTRY* SourceList
     );
 
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin(
+    _In_ INT64 Celcius,
+    _Out_ UINT64* DeciKelvin
+    );
+
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin32(
+    _In_ INT32 Celcius,
+    _Out_ UINT32* DeciKelvin
+    );
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // LIST_ENTRY functions for User-Mode. (These are copied as-is from Wdm.h.

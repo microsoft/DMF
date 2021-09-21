@@ -1804,7 +1804,7 @@ Return Value:
     BufferPool_EnumerationDispositionType enumerationDisposition;
     LIST_ENTRY* listEntry;
     BOOLEAN timerWasInQueue;
-    ULARGE_INTEGER currentSystemTime;
+    ULONGLONG currentInterruptTime;
     LONG64 differenceInTime100ns;
 
     FuncEntry(DMF_TRACE);
@@ -1861,19 +1861,17 @@ Return Value:
                 continue;
             }
 #if defined(DMF_USER_MODE)
-            FILETIME fileTime;
-            GetSystemTimeAsFileTime(&fileTime);
-            currentSystemTime.QuadPart = (((ULONGLONG)fileTime.dwHighDateTime) << 32) + fileTime.dwLowDateTime;
+            QueryInterruptTime(&currentInterruptTime);
 #else
-            KeQuerySystemTime((PLARGE_INTEGER)&currentSystemTime);
+            currentInterruptTime = KeQueryInterruptTime();
 #endif
-            if (currentSystemTime.QuadPart >= bufferPoolEntry->TimerExpirationAbsoluteTime100ns)
+            if (currentInterruptTime >= bufferPoolEntry->TimerExpirationAbsoluteTime100ns)
             {
                 differenceInTime100ns = 0;
             }
             else
             {
-                differenceInTime100ns = currentSystemTime.QuadPart - bufferPoolEntry->TimerExpirationAbsoluteTime100ns;
+                differenceInTime100ns = currentInterruptTime - bufferPoolEntry->TimerExpirationAbsoluteTime100ns;
             }
         }
 
@@ -2383,10 +2381,7 @@ Return Value:
     BOOLEAN timerWasInQueue;
     DMF_CONTEXT_BufferPool* moduleContext;
     BUFFERPOOL_ENTRY* bufferPoolEntry;
-#if defined(DMF_USER_MODE)
-    FILETIME fileTime;
-#endif
-    ULARGE_INTEGER currentSystemTime;
+    ULONGLONG currentInterruptTime;
 
     FuncEntry(DMF_TRACE);
 
@@ -2400,7 +2395,7 @@ Return Value:
     DmfAssert(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
 
 #if defined(DMF_USER_MODE)
-    // It is not possible to use this Method when buffers come from the "lookaside
+    // It is not possible to use this Method when buffers come from the "look-aside
     // list" in User-mode because the buffers are just allocated and deallocated
     // as needed. The problem is that in the timer callback the buffers are actually
     // deleted and a child of the buffer is the corresponding WDFTIMER which is also
@@ -2432,12 +2427,14 @@ Return Value:
     bufferPoolEntry->TimerExpirationCallback = TimerExpirationCallback;
     bufferPoolEntry->TimerExpirationMilliseconds = TimerExpirationMilliseconds;
 #if defined(DMF_USER_MODE)
-    GetSystemTimeAsFileTime(&fileTime);
-    currentSystemTime.QuadPart = (((ULONGLONG)fileTime.dwHighDateTime) << 32) + fileTime.dwLowDateTime;
+    QueryInterruptTime(&currentInterruptTime);
 #else
-    KeQuerySystemTime((PLARGE_INTEGER)&currentSystemTime);
+    currentInterruptTime = KeQueryInterruptTime();
 #endif
-    bufferPoolEntry->TimerExpirationAbsoluteTime100ns = currentSystemTime.QuadPart + WDF_ABS_TIMEOUT_IN_MS(TimerExpirationMilliseconds);
+    // Although use of WDF_ABSE_TIMEOUT_IN_MS works, it is not technically correct since the numbers are not 
+    // actually the same. Simply multiplying by the conversion from 100-ns to milliseconds is more accurate and clear.
+    //
+    bufferPoolEntry->TimerExpirationAbsoluteTime100ns = currentInterruptTime + (TimerExpirationMilliseconds * WDF_TIMEOUT_TO_MS);
     bufferPoolEntry->TimerExpirationCallbackContext = TimerExpirationCallbackContext;
 
     // Save the DmfModule in the Timer's context so that the timer handler knows

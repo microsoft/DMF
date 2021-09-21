@@ -727,5 +727,179 @@ Return Value:
     }
 }  
 
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin(
+    _In_ INT64 Celcius,
+    _Out_ UINT64* DeciKelvin
+    )
+/*++
+
+Routine Description:
+
+    Converts Celsius temperature into deci-Kelvin.
+
+Arguments:
+
+    Celcius - Temperature in Celcius
+    DeciKelvin - Temperature in DeciKelvin
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    LONGLONG productResult;
+    LONGLONG sumResult;
+
+    // This converts Celcius to DeciCelcius.
+    //
+    const LONGLONG multiplier = 10;
+    // This converts DeciCelcius to DeciKelvin
+    //
+    const LONGLONG addend = 2731;
+
+    // deciKelvin = (Celcius * 10) + 2731
+
+#if defined(DMF_USER_MODE)
+
+    HRESULT hResult;
+
+    hResult = Long64Mult(Celcius,
+                         multiplier,
+                         &productResult);
+    if (hResult != S_OK)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+
+    hResult = Long64Add(productResult,
+                        addend,
+                        &sumResult);
+    if (hResult != S_OK)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+
+    *DeciKelvin = (UINT64)sumResult;
+    ntStatus = STATUS_SUCCESS;
+
+#elif defined(DMF_KERNEL_MODE)
+
+    ntStatus = RtlLong64Mult(Celcius,
+                             multiplier,
+                             &productResult);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = RtlLong64Add(productResult,
+                            addend,
+                            &sumResult);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    *DeciKelvin = (UINT64)sumResult;
+
+#endif
+
+Exit:
+
+    return ntStatus;
+}
+
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin32(
+    _In_ INT32 Celcius,
+    _Out_ UINT32* DeciKelvin
+    )
+/*++
+
+Routine Description:
+
+    Converts Celsius temperature into deci-Kelvin.
+
+Arguments:
+
+    Celcius - Temperature in Celcius
+    DeciKelvin - Temperature in DeciKelvin
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    INT productResult;
+    INT sumResult;
+
+    // This converts Celcius to DeciCelcius.
+    //
+    const INT multiplier = 10;
+    // This converts DeciCelcius to DeciKelvin
+    //
+    const INT addend = 2731;
+
+    // deciKelvin = (Celcius * 10) + 2731
+
+#if defined(DMF_USER_MODE)
+
+    HRESULT hResult;
+
+    hResult = Int32Mult(Celcius,
+                        multiplier,
+                        &productResult);
+    if (hResult != S_OK)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+
+    hResult = Int32Add(productResult,
+                       addend,
+                       &sumResult);
+    if (hResult != S_OK)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+
+    *DeciKelvin = (UINT64)sumResult;
+    ntStatus = STATUS_SUCCESS;
+
+#elif defined(DMF_KERNEL_MODE)
+
+    ntStatus = RtlInt32Mult(Celcius,
+                            multiplier,
+                            &productResult);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = RtlInt32Add(productResult,
+                           addend,
+                           &sumResult);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    *DeciKelvin = (UINT32)sumResult;
+
+#endif
+
+Exit:
+
+    return ntStatus;
+}
+
 // eof: DmfUtility.c
 //
