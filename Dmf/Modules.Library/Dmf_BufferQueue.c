@@ -149,6 +149,47 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+DMF_BufferQueue_Close(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Uninitialize an instance of a DMF Module of type BufferQueue.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // This causes the Client's clean up callback to be called in case the Client
+    // referenced or allocated objects associated with the buffers.
+    //
+    DMF_BufferQueue_Flush(DmfModule);
+
+    FuncExitNoReturn(DMF_TRACE);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,6 +234,7 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_BufferQueue);
     dmfCallbacksDmf_BufferQueue.ChildModulesAdd = DMF_BufferQueue_ChildModulesAdd;
+    dmfCallbacksDmf_BufferQueue.DeviceClose = DMF_BufferQueue_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_BufferQueue,
                                             BufferQueue,
@@ -597,8 +639,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 BufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            BufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
