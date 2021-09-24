@@ -482,11 +482,16 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    // In case, Client has not explicitly stopped the thread, do that now.
-    //
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // In case, Client has not explicitly stopped the thread, do that now.
+    //
     DMF_Thread_Stop(moduleContext->DmfModuleThread);
+
+    // This causes the Client's clean up callback to be called in case the Client
+    // referenced or allocated objects associated with the buffers.
+    //
+    DMF_ThreadedBufferQueue_Flush(DmfModule);
 
     FuncExitNoReturn(DMF_TRACE);
 }
@@ -927,8 +932,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
