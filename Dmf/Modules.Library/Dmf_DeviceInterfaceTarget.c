@@ -265,7 +265,7 @@ Return Value:
     {
         // This path (duplicate QueryRemove) can happen when multiple
         // drivers are in the stack. this case causes any duplicate messages
-        // to be ignored. It is necessary to to do this to prevent Module's
+        // to be ignored. It is necessary to do this to prevent Module's
         // Close callback from being called twice.
         //
         moduleCloseReasonType = ModuleCloseReason_Duplicate;

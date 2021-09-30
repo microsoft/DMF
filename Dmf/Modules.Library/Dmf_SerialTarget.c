@@ -34,6 +34,14 @@ Environment:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+typedef enum
+{
+    StreamingState_Invalid,
+    StreamingState_Stopped,
+    StreamingState_Started,
+    StreamingState_StoppedDuringQueryRemove,
+} StreamingStateType;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +67,13 @@ typedef struct _DMF_CONTEXT_SerialTarget
     // Redirect Output buffer callback from ContinuousRequestTarget to this callback.
     //
     EVT_DMF_ContinuousRequestTarget_BufferOutput* EvtContinuousRequestTargetBufferOutput;
+    // Synchronizes QueryRemove/RemoveCancel/RemoveComplete with Start/Stop.
+    //
+    DMFMODULE DmfModuleRundown;
+    // Tracks the state of the stream so that it can be started if necessary during
+    // RemoveCancel.
+    //
+    StreamingStateType StreamingState;
 } DMF_CONTEXT_SerialTarget;
 
 // This macro declares the following function:
@@ -186,6 +201,89 @@ Return Value:
     return bufferDisposition;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+SerialTarget_StreamStart(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Starts streaming Asynchronous requests to the IoTarget. This function is meant to be called by the Method
+    with a reference acquired, or internally by the Module without acquiring a reference.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    STATUS_SUCCESS if the stream was successfully started.
+    Otherwise NTSTATUS if there is an error.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_SerialTarget* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->IoTarget != NULL);
+
+    ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        moduleContext->StreamingState = StreamingState_Started;
+    }
+    else
+    {
+        moduleContext->StreamingState = StreamingState_Stopped;
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+SerialTarget_StreamStop(
+    _In_ DMFMODULE DmfModule,
+    _In_ StreamingStateType TargetState
+    )
+/*++
+
+Routine Description:
+
+    Stops streaming Asynchronous requests to the IoTarget and Cancels all the existing requests.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_SerialTarget* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->IoTarget != NULL);
+
+    DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+    moduleContext->StreamingState = TargetState;
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 EVT_WDF_IO_TARGET_QUERY_REMOVE SerialTarget_EvtIoTargetQueryRemove;
 
 _Use_decl_annotations_
@@ -206,9 +304,18 @@ SerialTarget_EvtIoTargetQueryRemove(
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     DmfAssert(moduleContext != NULL);
 
-    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+    // Let any Start/Stop that has started executing finish.
+    //
+    DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
+
+    // After this point Start/Stop will fail with STATUS_INVALID_DEVICE_STATE if a thread
+    // calls those Methods while QueryRemove/QueryCancel/RemoveComplete path is executing
+    // so this state can be checked.
+    //
+    if (moduleContext->StreamingState == StreamingState_Started)
     {
-        DMF_SerialTarget_StreamStop(*dmfModuleAddress);
+        SerialTarget_StreamStop(*dmfModuleAddress,
+                                StreamingState_StoppedDuringQueryRemove);
     }
 
     WdfIoTargetCloseForQueryRemove(IoTarget);
@@ -255,24 +362,81 @@ Return Value:
 
     ntStatus = WdfIoTargetOpen(IoTarget,
                                &openParams);
-
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open serial target - %!STATUS!", ntStatus);
         WdfObjectDelete(IoTarget);
+        // Back to original state after Module Open.
+        //
+        moduleContext->StreamingState = StreamingState_Stopped;
         goto Exit;
     }
-    
-    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+
+    // Start/Stop will fail with STATUS_INVALID_DEVICE_STATE if a thread calls those Methods while
+    // QueryRemove/QueryCancel/RemoveComplete path is executing so this state can be checked.
+    //
+    if (moduleContext->StreamingState == StreamingState_StoppedDuringQueryRemove)
     {
-        ntStatus = DMF_SerialTarget_StreamStart(*dmfModuleAddress);
+        // Start the stream again. Reference is not acquired because Rundown_EndAndWait has executed.
+        //
+        ntStatus = SerialTarget_StreamStart(*dmfModuleAddress);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
         }
     }
 
 Exit:
+
+    // Allow Start/Stop to execute.
+    //
+    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+EVT_WDF_IO_TARGET_REMOVE_CANCELED SerialTarget_EvtIoTargetRemoveComplete;
+
+VOID
+SerialTarget_EvtIoTargetRemoveComplete(
+    _In_ WDFIOTARGET IoTarget
+    )
+/*++
+
+Routine Description:
+
+
+Arguments:
+
+    IoTarget - A handle to an I/O target object.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE* dmfModuleAddress;
+    DMF_CONTEXT_SerialTarget* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
+    moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
+    DmfAssert(moduleContext != NULL);
+
+    // Start/Stop will fail with STATUS_INVALID_DEVICE_STATE if a thread calls those Methods while
+    // QueryRemove/QueryCancel/RemoveComplete path is executing so this state can be checked.
+    //
+
+    // Reset state back to stopped to clear the state that it was stopped during QueryRemove.
+    //
+    moduleContext->StreamingState = StreamingState_Stopped;
+
+    // Allow Start/Stop to execute.
+    //
+    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
+
     FuncExitVoid(DMF_TRACE);
 }
 
@@ -367,6 +531,7 @@ Environment:
     targetOpenParams.FileAttributes = FILE_ATTRIBUTE_NORMAL;
     targetOpenParams.EvtIoTargetQueryRemove = SerialTarget_EvtIoTargetQueryRemove;
     targetOpenParams.EvtIoTargetRemoveCanceled = SerialTarget_EvtIoTargetRemoveCanceled;
+    targetOpenParams.EvtIoTargetRemoveComplete = SerialTarget_EvtIoTargetRemoveComplete;
 
     ntStatus = WdfIoTargetOpen(moduleContext->IoTarget,
                                &targetOpenParams);
@@ -745,6 +910,8 @@ DMF_SerialTarget_Open(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    moduleContext->StreamingState = StreamingState_Stopped;
+
     ntStatus = SerialTarget_InitializeSerialPort(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -752,15 +919,22 @@ DMF_SerialTarget_Open(
         goto Exit;
     }
 
+    // Allow Start/Stop to execute.
+    //
+    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
+
     if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
     {
-        // By calling this function here, callbacks at the Client will happen only after the Module is open.
+        // By calling this Method here, callbacks at the Client will happen only after the Module is open.
         //
         DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
-        ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+        ntStatus = DMF_SerialTarget_StreamStart(DmfModule);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ContinuousRequestTarget_Start fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+            // Close won't be called.
+            //
+            DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
         }
     }
 
@@ -793,10 +967,10 @@ DMF_SerialTarget_Close(
     {
         if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
         {
-            // By calling this function here, callbacks at the Client will happen only before the Module is closed.
+            // If QueryRemove path starts before this call, this call does nothing.
             //
             DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
-            DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+            DMF_SerialTarget_StreamStop(DmfModule);
         }
 
         // Close the associated target.
@@ -981,6 +1155,15 @@ Return Value:
     // Remember Client's choice so this Module can start/stop streaming appropriately.
     //
     moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode;
+
+    // Rundown
+    // -------
+    //
+    DMF_Rundown_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleRundown);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1314,8 +1497,8 @@ Arguments:
 
 Return Value:
 
-    STATUS_SUCCESS if a buffer is added to the list.
-    Other NTSTATUS if there is an error.
+    STATUS_SUCCESS if the stream was successfully started.
+    Otherwise NTSTATUS if there is an error.
 
 --*/
 {
@@ -1331,7 +1514,19 @@ Return Value:
 
     DmfAssert(moduleContext->IoTarget != NULL);
 
-    ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
+    ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // QueryRemove has started.
+        //
+        goto Exit;
+    }
+
+    ntStatus = SerialTarget_StreamStart(DmfModule);
+
+    DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1370,7 +1565,21 @@ Return Value:
 
     DmfAssert(moduleContext->IoTarget != NULL);
 
-    DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+    NTSTATUS ntStatus;
+    ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // QueryRemove has started.
+        //
+        goto Exit;
+    }
+
+    SerialTarget_StreamStop(DmfModule,
+                            StreamingState_Stopped);
+
+    DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
