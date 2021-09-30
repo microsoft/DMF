@@ -170,10 +170,11 @@ Environment:
 //
 #define DmfAssertMessage(Message, Expression) ASSERTMSG(Message, Expression)
 #define DmfVerifierAssert(Message, Expression)                          \
+    DmfAssertMessage(Message, Expression);                              \
     if ((WdfDriverGlobals->DriverFlags & WdfVerifyOn) && !(Expression)) \
     {                                                                   \
         RtlAssert( Message, __FILE__, __LINE__, NULL );                 \
-    }
+    }                                                                   \
 
 #define DmfAssert(Expression) DmfAssertMessage(#Expression, Expression)
 

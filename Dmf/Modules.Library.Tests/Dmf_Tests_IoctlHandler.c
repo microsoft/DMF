@@ -87,7 +87,7 @@ BOOLEAN
 
 WDFREQUEST
 Tests_IoctHandler_FindRequestWithMatchingData(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleIoctlHandler,
     _In_ WDFQUEUE Queue,
     _In_  Tests_IoctlHandler_RequestCompare CallbackCompare,
     _In_ VOID* CallbackCompareContext
@@ -98,14 +98,16 @@ Tests_IoctHandler_FindRequestWithMatchingData(
     WDFREQUEST outRequest;
     NTSTATUS ntStatus;
     SleepContext* sleepContext;
+    DMFMODULE dmfModule;
 
     previousTagRequest = NULL;
     tagRequest = NULL;
     outRequest = NULL;
     ntStatus = STATUS_INVALID_DEVICE_REQUEST;
     sleepContext = (SleepContext*)CallbackCompareContext;
+    dmfModule = DMF_ParentModuleGet(DmfModuleIoctlHandler);
 
-    DMF_ModuleLock(DmfModule);
+    DMF_ModuleLock(dmfModule);
 
     do 
     {
@@ -198,9 +200,9 @@ Tests_IoctHandler_FindRequestWithMatchingData(
             continue;
         }
     }
-    while(TRUE);
+    while (TRUE);
 
-    DMF_ModuleUnlock(DmfModule);
+    DMF_ModuleUnlock(dmfModule);
 
     return outRequest;
  }

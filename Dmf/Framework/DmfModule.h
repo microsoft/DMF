@@ -384,6 +384,39 @@ BOOLEAN
 DMF_ModuleFileClose(_In_ DMFMODULE DmfModule, 
                     _In_ WDFFILEOBJECT FileObject);
 
+// These are only used by Module internal macros. Clients should not call these
+// directly as they are not validated.
+//
+
+VOID
+DMF_ModuleLockPrivate(
+    _In_ DMFMODULE DmfModule
+    );
+
+VOID
+DMF_ModuleUnlockPrivate(
+    _In_ DMFMODULE DmfModule
+    );
+
+VOID
+DMF_ModuleAuxiliaryLockPrivate(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG AuxiliaryLockIndex
+    );
+
+VOID
+DMF_ModuleAuxiliaryUnlockPrivate(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG AuxiliaryLockIndex
+    );
+
+// Macros called by Modules.
+//
+// NOTE: Lock/Unlock inline functions return NULL to force the compiler to
+//       generate unique inline code. Static function cannot be used due 
+//       to compiler errors generated when Modules don't use locks.
+//
+
 #define DMF_MODULE_DECLARE_CONTEXT(ModuleName)                                                           \
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_CONTEXT_##ModuleName##,                                           \
                                    ##ModuleName##ContextGet);                                            \
@@ -405,6 +438,53 @@ DMF_CONTEXT_GET(                                                                
     return(##ModuleName##ContextGet(Handle));                                                            \
 }                                                                                                        \
                                                                                                          \
+__forceinline                                                                                            \
+DMF_CONTEXT_##ModuleName##*                                                                              \
+DMF_ModuleLock(DMFMODULE DmfModule)                                                                      \
+{                                                                                                        \
+    DmfVerifierAssert("Invalid Module Handle Passed (Lock)",                                             \
+                      WdfObjectIsCustomType(DmfModule, DMF_##ModuleName##));                             \
+    DMF_ModuleLockPrivate(DmfModule);                                                                    \
+    return NULL;                                                                                         \
+}                                                                                                        \
+                                                                                                         \
+__forceinline                                                                                            \
+DMF_CONTEXT_##ModuleName##*                                                                              \
+DMF_ModuleUnlock(DMFMODULE DmfModule)                                                                    \
+{                                                                                                        \
+    DmfVerifierAssert("Invalid Module Handle Passed (Unlock)",                                           \
+                      WdfObjectIsCustomType(DmfModule, DMF_##ModuleName##));                             \
+    DMF_ModuleUnlockPrivate(DmfModule);                                                                  \
+    return NULL;                                                                                         \
+}                                                                                                        \
+                                                                                                         \
+__forceinline                                                                                            \
+DMF_CONTEXT_##ModuleName##*                                                                              \
+DMF_ModuleAuxiliaryLock(                                                                                 \
+    _In_ DMFMODULE DmfModule,                                                                            \
+    _In_ ULONG AuxiliaryLockIndex                                                                        \
+    )                                                                                                    \
+{                                                                                                        \
+    DmfVerifierAssert("Invalid Module Handle Passed (Lock)",                                             \
+                      WdfObjectIsCustomType(DmfModule, DMF_##ModuleName##));                             \
+    DMF_ModuleAuxiliaryLockPrivate(DmfModule,                                                            \
+                                   AuxiliaryLockIndex);                                                  \
+    return NULL;                                                                                         \
+}                                                                                                        \
+                                                                                                         \
+__forceinline                                                                                            \
+DMF_CONTEXT_##ModuleName##*                                                                              \
+DMF_ModuleAuxiliaryUnlock(                                                                               \
+    _In_ DMFMODULE DmfModule,                                                                            \
+    _In_ ULONG AuxiliaryLockIndex                                                                        \
+    )                                                                                                    \
+{                                                                                                        \
+    DmfVerifierAssert("Invalid Module Handle Passed (Unlock)",                                           \
+                      WdfObjectIsCustomType(DmfModule, DMF_##ModuleName##));                             \
+    DMF_ModuleAuxiliaryUnlockPrivate(DmfModule,                                                          \
+                                     AuxiliaryLockIndex);                                                \
+    return NULL;                                                                                         \
+}                                                                                                        \
 
 #define DMF_MODULE_DECLARE_CONFIG(ModuleName)                                                   \
                                                                                                 \
@@ -749,16 +829,6 @@ DMF_ModuleIsInFilterDriver(
     _In_ DMFMODULE DmfModule
     );
 
-VOID
-DMF_ModuleLock(
-    _In_ DMFMODULE DmfModule
-    );
-
-VOID
-DMF_ModuleUnlock(
-    _In_ DMFMODULE DmfModule
-    );
-
 #if defined(DEBUG)
 BOOLEAN
 DMF_ModuleIsLocked(
@@ -774,18 +844,6 @@ DMF_ModuleLockIsPassive(
 BOOLEAN
 DMF_IsPoolTypePassiveLevel(
     _In_ POOL_TYPE PoolType
-    );
-
-VOID
-DMF_ModuleAuxiliaryLock(
-    _In_ DMFMODULE DmfModule,
-    _In_ ULONG AuxiliaryLockIndex
-    );
-
-VOID
-DMF_ModuleAuxiliaryUnlock(
-    _In_ DMFMODULE DmfModule,
-    _In_ ULONG AuxiliaryLockIndex
     );
 
 #if defined(DEBUG)
