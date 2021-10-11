@@ -1321,7 +1321,7 @@ Arguments:
 
 Return Value:
 
-    None
+    NTSTATUS
 
 --*/
 {
@@ -1332,6 +1332,12 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
@@ -1339,7 +1345,6 @@ Return Value:
     // it returns.
     //
     InterlockedIncrement(&moduleContext->PendingStreamingRequests);
-    DMF_ModuleReference(DmfModule);
 
 #if !defined(DMF_USER_MODE)
     // A new request will be sent down the stack. Increase Rundown ref until 
@@ -1449,6 +1454,10 @@ Return Value:
         InterlockedDecrement(&moduleContext->PendingStreamingRequests);
         DMF_ModuleDereference(DmfModule);
     }
+
+    // Jump to this label means no increment and no reference was acquired.
+    //
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1885,6 +1894,8 @@ Return Value:
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Start Rundown");
     DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
     DMF_Portable_Rundown_Completed(&moduleContext->StreamRequestsRundown);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Rundown completed. Reset Rundown");
+    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     // 2. Cancel any pending WDF requests.
@@ -1905,7 +1916,7 @@ Return Value:
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cancel Pending Requests: END");
 
 #if !defined(DMF_USER_MODE)
-    // 3. If streaming never started - we need to signal rundown completion event here, othewise it won't be signalled.
+    // 3. If streaming never started, signal rundown completion event here, otherwise it won't be signaled.
     //
     if (0 == moduleContext->StreamingRequestCount)
     {
@@ -2365,12 +2376,6 @@ Return Value:
                              NotificationEvent, 
                              FALSE);
     DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
-    // Per OSG, doing the wait immediately after initialize allows use of reinitialize later.
-    // In some cases, this may provide better performance so this is a better pattern.
-    // NOTE: This also corrects an assert that happens in CHK build of Windows when reinitialize
-    //       happens immediately after initialize.
-    //
-    DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
 #endif
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2445,6 +2450,9 @@ Return Value:
 #if !defined(DMF_USER_MODE)
     else
     {
+        // This is for the unlikely case the Client has set number of requests to send
+        // to zero. In this case, event is not set since no request return.
+        //
         DMF_Portable_EventSet(&moduleContext->StreamRequestsRundownCompletionEvent);
         ntStatus = STATUS_SUCCESS;
     }
@@ -3147,10 +3155,9 @@ Return Value:
     moduleContext->Stopping = FALSE;
 
 #if !defined(DMF_USER_MODE)
-    // In case it was previous stopped, re-initialize fields used for rundown.
+    // Reset event in case it has been already set.
     //
     DMF_Portable_EventReset(&moduleContext->StreamRequestsRundownCompletionEvent);
-    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     moduleContext->StreamingRequestCount = moduleConfig->ContinuousRequestCount;
