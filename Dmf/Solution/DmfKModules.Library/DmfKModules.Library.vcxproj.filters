@@ -163,6 +163,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c">
       <Filter>Modules\Data Structures</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.c">
+      <Filter>Interfaces</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -342,6 +345,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h">
       <Filter>Headers\Data Structures</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.h">
+      <Filter>Headers\Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -412,6 +418,15 @@
     </Filter>
     <Filter Include="Documentation\Modules\Data Structures">
       <UniqueIdentifier>{7d0604c6-357e-405a-b3e9-b80f6bacb5fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Interfaces">
+      <UniqueIdentifier>{74a5908c-3a4c-4604-88d9-ed427f5a13dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interfaces">
+      <UniqueIdentifier>{bfb92d56-e168-4251-90c8-2fc77e401ed5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Interfaces">
+      <UniqueIdentifier>{0c1d24ee-b374-4fd3-bf11-f1ece6338680}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -578,6 +593,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_Stack.md">
       <Filter>Documentation\Modules\Data Structures</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.md">
+      <Filter>Documentation\Interfaces</Filter>
     </None>
   </ItemGroup>
 </Project>

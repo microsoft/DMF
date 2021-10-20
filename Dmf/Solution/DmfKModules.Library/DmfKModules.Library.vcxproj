@@ -30,6 +30,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c" />
@@ -86,6 +87,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h" />
@@ -439,6 +441,7 @@
     <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md" />
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_File.md" />
+    <None Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md" />
     <None Include="..\..\Modules.Library\Dmf_AcpiPepDeviceFan.md" />
