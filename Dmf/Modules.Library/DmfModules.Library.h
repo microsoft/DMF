@@ -42,6 +42,7 @@ extern "C"
 //
 #include "Dmf_Interface_ComponentFirmwareUpdate.h"
 #include "Dmf_Interface_BusTarget.h"
+#include "Dmf_Interface_SystemManagementFramework.h"
 
 // All the Modules in this Library.
 //
