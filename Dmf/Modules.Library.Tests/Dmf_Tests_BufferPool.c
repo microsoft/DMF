@@ -78,6 +78,7 @@ typedef enum _GET_ACTION {
 
 typedef enum _PUT_ACTION {
     PUT_ACTION_PLAIN,
+    PUT_ACTION_FRONT,
     PUT_ACTION_WITH_TIMEOUT,
     PUT_ACTION_MIN      = PUT_ACTION_PLAIN,
     PUT_ACTION_MAX      = PUT_ACTION_WITH_TIMEOUT
@@ -398,6 +399,11 @@ Tests_BufferPool_ThreadAction_BufferAquire(
     case PUT_ACTION_PLAIN:
         DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolSink, 
                            clientBuffer);
+        break;
+
+    case PUT_ACTION_FRONT:
+        DMF_BufferPool_PutAtHead(moduleContext->DmfModuleBufferPoolSink,
+                                  clientBuffer);
         break;
 
     case PUT_ACTION_WITH_TIMEOUT:

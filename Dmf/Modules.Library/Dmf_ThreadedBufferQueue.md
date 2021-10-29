@@ -31,6 +31,10 @@ typedef struct
   // Optional callback that does work after looping but before thread ends.
   //
   EVT_DMF_Thread_Function* EvtThreadedBufferQueuePost;
+  // Optional callback allows Client to deallocate / dereference any
+  // buffer-attached resources.
+  //
+  EVT_DMF_ThreadedBufferQueue_ReuseCleanup* EvtThreadedBufferQueueReuseCleanup;
 } DMF_CONFIG_ThreadedBufferQueue;
 ````
 Member | Description
@@ -39,6 +43,7 @@ BufferQueueConfig | Client sets up the configuration of the internal DMF_BufferQ
 EvtThreadedBufferQueuePre | This function performs work on behalf of the Client before this Module's main ThreadedBufferQueue function executes.
 EvtThreadedBufferQueueWork | This function performs work on behalf of the Client when this Module determines there is work to be done.
 EvtThreadedBufferQueuePost | This function performs work on behalf of the Client after this Module's main ThreadedBufferQueue function executes.
+EvtThreadedBufferQueueReuseCleanup | The Client may register this callback to do any cleanup needed before the buffer is being flushed / reused.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,6 +108,30 @@ ClientWorkBufferSize | The size of ClientWorkBuffer for validation purposes.
 ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
 NtStatus | The NTSTATUS value to return to the function that initially populated the work buffer.
 
+##### EVT_DMF_BufferQueue_ReuseCleanup
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_ThreadedBufferQueue_ReuseCleanup(_In_ DMFMODULE DmfModule,
+                                         _In_ VOID* ClientBuffer,
+                                         _In_ VOID* ClientBufferContext);
+````
+
+This callback is called when this Module is about to reuse a work buffer. Before the Module puts the work
+buffer back in its DMF_BufferQueue's Producer list for reuse, the Module presents it to the Client via this callback.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientWorkBuffer | This buffer contains the work that needs to be done in this callback. This buffer is owned by Client until this function returns.
+ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
+
+##### Remarks
+
+* Use callback to free or reference count decrement resources associated with buffers.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
@@ -147,7 +176,7 @@ DMF_ThreadedBufferQueue_Enqueue(
   );
 ````
 
-Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the end).
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the end). This list is consumed in FIFO order.
 
 ##### Returns
 
@@ -161,7 +190,36 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_ThreadedBufferQueue_EnqueueAtHead
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHead(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the head). This list is consumed in LIFO order.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -192,7 +250,38 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the head). Then, this
+function waits until the work enqueued by the call to this Method to finish execution. In this way, it is possible for the
+calling thread to receive an NTSTATUS indicating the success or failure of the deferred work.
+
+##### Returns
+
+NTSTATUS of the deferred work.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ThreadedBufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -205,7 +294,7 @@ NTSTATUS
 DMF_ThreadedBufferQueue_Fetch(
   _In_ DMFMODULE DmfModule,
   _Out_ VOID** ClientBuffer,
-  _Out_ VOID** ClientBufferContext
+  _Outopt_ VOID** ClientBufferContext
   );
 ````
 
@@ -281,7 +370,7 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from an instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 * Clients may use this Method if a buffer has been fetched but it is determined that it cannot be enqueued for some reason and must be returned to the free pool of buffers.
 
 -----------------------------------------------------------------------------------------------------------------------------------

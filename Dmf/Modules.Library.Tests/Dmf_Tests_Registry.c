@@ -904,6 +904,10 @@ Tests_Registry_Handle_DeleteSubkeys(
                                                        subkeys[index],
                                                        FALSE);
         DmfAssert(NULL != subkeyHandle);
+        if (subkeyHandle == NULL)
+        {
+            goto Exit;
+        }
 
         ntStatus = DMF_Registry_HandleDelete(DmfModuleRegistry,
                                              subkeyHandle);
@@ -917,6 +921,8 @@ Tests_Registry_Handle_DeleteSubkeys(
                                  subkeyHandle);
 #endif
     }
+Exit:
+    ;
 }
 #pragma code_seg()
 
@@ -1061,8 +1067,11 @@ Tests_Registry_Handle_WriteSubkeys(
                                                        subkeys[index],
                                                        TRUE);
         DmfAssert(NULL != subkeyHandle);
-        DMF_Registry_HandleClose(DmfModuleRegistry,
-                                 subkeyHandle);
+        if (subkeyHandle != NULL)
+        {
+            DMF_Registry_HandleClose(DmfModuleRegistry,
+                                     subkeyHandle);
+        }
     }
 }
 #pragma code_seg()

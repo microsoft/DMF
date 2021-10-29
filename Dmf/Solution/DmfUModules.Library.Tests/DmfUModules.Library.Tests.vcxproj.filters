@@ -57,6 +57,9 @@
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_AlertableSleep.c">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h">
@@ -114,6 +117,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_AlertableSleep.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

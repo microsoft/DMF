@@ -102,12 +102,6 @@ Return Value:
     return random;
 }
 
-#if defined(DMF_USER_MODE)
-    // Same as DDK definition.
-    //
-    #define BYTE_MAX    (0xFF)
-#endif
-
 _IRQL_requires_same_
 VOID
 TestsUtility_FillWithSequentialData(

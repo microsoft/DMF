@@ -157,7 +157,7 @@ DMF_HingeAngle_Stop(
     )
 ````
 
-Stop the Hinge Angle monitor and events. Module stop when close by default, client can also use this function to manually stop.
+Stop the Hinge Angle monitor and events.
 
 ##### Returns
 
@@ -167,6 +167,12 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_HingeAngle Module handle.
+
+##### Remarks
+
+* HingeAngle sensor is stopped automatically when Module closes.
+* Client calls this Method to manually stop the sensor.
+* After calling this Method, Client may call `DMF_HingeAngle_Start`.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -178,8 +184,7 @@ DmfModule | An open DMF_HingeAngle Module handle.
 
 #### Module Remarks
 
-* This Module uses C++/WinRT, so it needs RS5+ support.
-  Module specific code will not be compiled in RS4 and below.
+* This Module uses C++/WinRT, so it needs RS5+ support. Module specific code will not be compiled in RS4 and below.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

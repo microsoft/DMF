@@ -960,8 +960,8 @@ DMF_ModuleInterfaceUnbind(
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#include "Dmf_BranchTrack.h"
-#include "Dmf_LiveKernelDump.h"
+#include "..\Framework\Modules.Core\Dmf_BranchTrack.h"
+#include "..\Framework\Modules.Core\Dmf_LiveKernelDump.h"
 
 // Feature Modules are treated like any other Module. However, they are always initialized and stored
 // in the order specified below so that the rest of the driver always knows where to find them.
@@ -1517,6 +1517,18 @@ VOID
 DMF_Utility_TransferList(
     _Out_ LIST_ENTRY* DestinationList, 
     _In_ LIST_ENTRY* SourceList
+    );
+
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin(
+    _In_ INT64 Celcius,
+    _Out_ UINT64* DeciKelvin
+    );
+
+NTSTATUS
+DMF_Utility_TemperatureInDeciKelvin32(
+    _In_ INT32 Celcius,
+    _Out_ UINT32* DeciKelvin
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -15,6 +15,7 @@ Environment:
     Kernel mode
 
 --*/
+
 #pragma once
 
 //

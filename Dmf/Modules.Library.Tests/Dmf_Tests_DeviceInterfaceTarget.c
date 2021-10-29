@@ -180,10 +180,13 @@ Tests_DeviceInterfaceTarget_BufferOutput(
     )
 {
     GUID guid;
+    ContinuousRequestTarget_BufferDisposition bufferDisposition;
 
     UNREFERENCED_PARAMETER(ClientBufferContextOutput);
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(CompletionStatus);
+
+    bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
 
     DMF_DeviceInterfaceTarget_GuidGet(DmfModule,
                                       &guid);
@@ -191,8 +194,11 @@ Tests_DeviceInterfaceTarget_BufferOutput(
     DmfAssert(NT_SUCCESS(CompletionStatus) ||
               (CompletionStatus == STATUS_CANCELLED) ||
               (CompletionStatus == STATUS_INVALID_DEVICE_STATE));
-    if (OutputBufferSize != sizeof(DWORD))
+    if (OutputBufferSize != sizeof(DWORD) &&
+        CompletionStatus != STATUS_INVALID_DEVICE_STATE)
     {
+        // Request can be completed with InformationSize of 0 by framework.
+        //
         DmfAssert(FALSE);
     }
     if (NT_SUCCESS(CompletionStatus))
@@ -202,7 +208,17 @@ Tests_DeviceInterfaceTarget_BufferOutput(
             DmfAssert(FALSE);
         }
     }
-    return ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+
+    // If IoTarget is closing but streaming has not been stopped, ContinuousRequestTarget will continue to send the request
+    // back to the closing IoTarget if we don't stop streaming here.
+    //
+    if (! NT_SUCCESS(CompletionStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Completed Request CompletionStatus=%!STATUS!", CompletionStatus);
+        bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+    }
+
+    return bufferDisposition;
 }
 
 #pragma code_seg("PAGE")
@@ -308,9 +324,10 @@ Tests_DeviceInterfaceTarget_SendCompletion(
     moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext;
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p CompletionStatus=%!STATUS!", 
                 sleepIoctlBuffer->TimeToSleepMilliseconds,
-                InputBuffer);
+                InputBuffer,
+                CompletionStatus);
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
@@ -1890,14 +1907,14 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
 #endif
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchInput;
-    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchInput;
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchInput;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchInput;
     DMF_DmfModuleAdd(DmfModuleInit,
-                        &moduleAttributes,
-                        WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
 
     // DeviceInterfaceTarget (PASSIVE_LEVEL)
     // Processes Input Buffers.
@@ -1916,6 +1933,8 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
 #endif
+    DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
+                                               &moduleEventCallbacks);
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_PassiveInput;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_PassiveInput;
     moduleAttributes.PassiveLevel = TRUE;
@@ -1943,6 +1962,8 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
 
+    DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
+                                               &moduleEventCallbacks);
     moduleAttributes.PassiveLevel = TRUE;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_PassiveOutput;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_PassiveOutput;

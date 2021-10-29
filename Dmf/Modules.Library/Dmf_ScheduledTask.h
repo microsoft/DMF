@@ -89,7 +89,8 @@ typedef struct
     // The Client Driver function that will perform work one time in a work item.
     //
     EVT_DMF_ScheduledTask_Callback* EvtScheduledTaskCallback;
-    // Client context for above callback.
+    // Client context for above callback used by the timer and by
+    // DMF_ScheduledTask__ExecuteNowDeferredEx Method.
     //
     VOID* CallbackContext;
     // Indicates if the operation should be done every time driver loads or only a
@@ -135,16 +136,14 @@ DMF_ScheduledTask_ExecuteNowDeferred(
     _In_opt_ VOID* CallbackContext
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_ScheduledTask_TimesRunGet(
-    _In_ DMFMODULE DmfModule,
-    _Out_ ULONG* TimesRun
+DMF_ScheduledTask_ExecuteNowDeferredEx(
+    _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_ScheduledTask_TimesRunIncrement(
+DMF_ScheduledTask_TimesRunGet(
     _In_ DMFMODULE DmfModule,
     _Out_ ULONG* TimesRun
     );

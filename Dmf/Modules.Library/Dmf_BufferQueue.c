@@ -22,8 +22,8 @@ Environment:
 // DMF and this Module's Library specific definitions.
 //
 #include "DmfModule.h"
-#include "DmfModules.Core.h"
-#include "DmfModules.Core.Trace.h"
+#include "DmfModules.Library.h"
+#include "DmfModules.Library.Trace.h"
 
 #if defined(DMF_INCLUDE_TMH)
 #include "Dmf_BufferQueue.tmh"
@@ -149,6 +149,47 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_Function_class_(DMF_Close)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+DMF_BufferQueue_Close(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Uninitialize an instance of a DMF Module of type BufferQueue.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // This causes the Client's clean up callback to be called in case the Client
+    // referenced or allocated objects associated with the buffers.
+    //
+    DMF_BufferQueue_Flush(DmfModule);
+
+    FuncExitNoReturn(DMF_TRACE);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,6 +234,7 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_BufferQueue);
     dmfCallbacksDmf_BufferQueue.ChildModulesAdd = DMF_BufferQueue_ChildModulesAdd;
+    dmfCallbacksDmf_BufferQueue.DeviceClose = DMF_BufferQueue_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_BufferQueue,
                                             BufferQueue,
@@ -220,6 +262,47 @@ Return Value:
 
 // Module Methods
 //
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_ContextGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _Out_ VOID** ClientBufferContext
+    )
+/*++
+
+Routine Description:
+
+    Get the context associated with the given Client buffer.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The given Client buffer.
+    ClientBufferContext - Client context associated with the buffer.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolProducer,
+                              ClientBuffer,
+                              ClientBufferContext);
+
+    FuncExitVoid(DMF_TRACE);
+}
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG
@@ -366,7 +449,7 @@ DMF_BufferQueue_Enqueue(
 
 Routine Description:
 
-    Adds a Client Buffer to the consumer list.
+    Adds a Client Buffer to the end of the consumer list. This list is consumed in FIFO order.
 
 Arguments:
 
@@ -391,6 +474,45 @@ Return Value:
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolConsumer,
                        ClientBuffer);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the head of the consumer list. This list is consumed in LIFO order.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_BufferPool_PutAtHead(moduleContext->DmfModuleBufferPoolConsumer,
+                             ClientBuffer);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -517,8 +639,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 BufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            BufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -530,8 +652,8 @@ Return Value:
                                       &bufferContext);
         if (NT_SUCCESS(ntStatus))
         {
-            DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolProducer,
-                               buffer);
+            DMF_BufferQueue_Reuse(DmfModule,
+                                  buffer);
         }
     }
 
@@ -562,14 +684,32 @@ Return Value:
 
 --*/
 {
+    DMF_CONFIG_BufferQueue* moduleConfig;
     DMF_CONTEXT_BufferQueue* moduleContext;
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 BufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            BufferQueue);
 
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // If Config EvtBufferQueueReuseCleanup callback present, call
+    // with buffer before handing back to Producer BufferPool.
+    //
+    if (moduleConfig->EvtBufferQueueReuseCleanup)
+    {
+        VOID* clientBufferContext = NULL;
+
+        DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolConsumer,
+                                  ClientBuffer,
+                                  &clientBufferContext);
+
+        (moduleConfig->EvtBufferQueueReuseCleanup)(DmfModule,
+                                                   ClientBuffer,
+                                                   clientBufferContext);
+    }
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolProducer,
                        ClientBuffer);

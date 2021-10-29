@@ -96,6 +96,10 @@ Environment:
 //
 #define IS_WIN10_19H1_OR_LATER (NTDDI_WIN10_19H1 && (NTDDI_VERSION >= NTDDI_WIN10_19H1))
 
+// Check that the Windows version is 21H1 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_21H1_OR_EARLIER (!(NTDDI_WIN10_MN && (NTDDI_VERSION > NTDDI_WIN10_MN)))
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // All include files needed by all Modules and the Framework.
@@ -121,6 +125,7 @@ Environment:
 #include <wdm.h>
 #include <ntddk.h>
 #include <ntstatus.h>
+#define ENABLE_INTSAFE_SIGNED_FUNCTIONS
 #include <ntintsafe.h>
 // TODO: Add this after Dmf_Registry supports this definition properly.
 // #define NTSTRSAFE_LIB
@@ -152,14 +157,24 @@ Environment:
 #endif // IS_WIN10_RS3_OR_LATER
 #include <intrin.h>
 
+// pepfx.h is not compatible with pep_x.h. Clients that use pep_x.h must:
+// 
+// #define DMF_DONT_INCLUDE_PEPFX
+// #include <DmfModules.Library.h>
+//
+#if !defined(DMF_DONT_INCLUDE_PEPFX)
+#include <pepfx.h>
+#endif
+
 // DMF Asserts definitions 
 //
 #define DmfAssertMessage(Message, Expression) ASSERTMSG(Message, Expression)
 #define DmfVerifierAssert(Message, Expression)                          \
+    DmfAssertMessage(Message, Expression);                              \
     if ((WdfDriverGlobals->DriverFlags & WdfVerifyOn) && !(Expression)) \
     {                                                                   \
         RtlAssert( Message, __FILE__, __LINE__, NULL );                 \
-    }
+    }                                                                   \
 
 #define DmfAssert(Expression) DmfAssertMessage(#Expression, Expression)
 

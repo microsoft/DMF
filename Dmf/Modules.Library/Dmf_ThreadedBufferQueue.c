@@ -181,6 +181,65 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Function_class_(EVT_DMF_BufferQueue_ReuseCleanup)
+VOID
+ThreadedBufferQueueReuseCleanupCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* WorkBuffer,
+    _In_ VOID* WorkBufferContext)
+/*++
+
+Routine Description:
+
+    Chaining callback from DMF_BufferQueue out to Client if populated, 
+    fixing up DMF module handle passed and "unwrapping" Client's buffer.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+    WorkBuffer - ThreadedBufferQueue work buffer
+    WorkBufferContext - ThreadedBufferQueue work buffer context
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONFIG_ThreadedBufferQueue* moduleConfig;
+    DMFMODULE dmfModuleThreadedBufferQueue;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    dmfModuleThreadedBufferQueue = DMF_ParentModuleGet(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModuleThreadedBufferQueue);
+
+    // If Config EvtBufferQueueReuseCleanup callback present, call
+    // with buffer before handing back to Producer BufferPool.
+    //
+    if (moduleConfig->EvtThreadedBufferQueueReuseCleanup)
+    {
+        VOID* clientBuffer = NULL;
+
+        // The Client just gets the Client's buffer, not the meta data used 
+        // by this Module.
+        //
+        clientBuffer = ThreadedBufferQueueBuffer_InternalToClient((ThreadedBufferQueue_WorkBufferInternal*)WorkBuffer);
+        
+        // Client buffer context (if any) is passed up from BufferQueue as
+        // WorkBufferContext, ThreadedBufferQueue just passes it through.
+        //
+        (moduleConfig->EvtThreadedBufferQueueReuseCleanup)(dmfModuleThreadedBufferQueue,
+                                                           clientBuffer,
+                                                           WorkBufferContext);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
 VOID
@@ -368,6 +427,7 @@ Return Value:
     moduleBufferQueueConfigList = moduleConfig->BufferQueueConfig;
     moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(ThreadedBufferQueue_WorkBufferInternal) +
                                                             moduleBufferQueueConfigList.SourceSettings.BufferSize;
+    moduleBufferQueueConfigList.EvtBufferQueueReuseCleanup = ThreadedBufferQueueReuseCleanupCallback;
     moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -422,11 +482,16 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    // In case, Client has not explicitly stopped the thread, do that now.
-    //
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    // In case, Client has not explicitly stopped the thread, do that now.
+    //
     DMF_Thread_Stop(moduleContext->DmfModuleThread);
+
+    // This causes the Client's clean up callback to be called in case the Client
+    // referenced or allocated objects associated with the buffers.
+    //
+    DMF_ThreadedBufferQueue_Flush(DmfModule);
 
     FuncExitNoReturn(DMF_TRACE);
 }
@@ -553,7 +618,8 @@ DMF_ThreadedBufferQueue_Enqueue(
 
 Routine Description:
 
-    Adds a Client Buffer to the list and sets the work ready event.
+    Adds a Client Buffer to the end of the list and sets the work ready event.
+    This list is consumed in FIFO order.
 
 Arguments:
 
@@ -590,6 +656,54 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the head of the list and sets the work ready event.
+    This list is consumed in LIFO order.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
+    ThreadedBufferQueue_WorkBufferInternal* workBuffer;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
+
+    workBuffer->Event = NULL;
+    workBuffer->NtStatus = NULL;
+
+    DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
+                                  workBuffer);
+
+    ThreadedBufferQueue_WorkReady(DmfModule);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -601,8 +715,8 @@ DMF_ThreadedBufferQueue_EnqueueAndWait(
 
 Routine Description:
 
-    Adds a Client Buffer to the list and sets the work ready event. Then,
-    waits for the work to be completed and returns the NTSTATUS of that 
+    Adds a Client Buffer to the end of the list and sets the work ready event.
+    Then, waits for the work to be completed and returns the NTSTATUS of that 
     deferred work.
 
 Arguments:
@@ -661,13 +775,84 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the head of the list and sets the work ready event.
+    Then, waits for the work to be completed and returns the NTSTATUS of that 
+    deferred work.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_ThreadedBufferQueue* moduleContext;
+    ThreadedBufferQueue_WorkBufferInternal* workBuffer;
+    NTSTATUS ntStatus;
+    DMF_PORTABLE_EVENT event;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 ThreadedBufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_Portable_EventCreate(&event,
+                             NotificationEvent,
+                             FALSE);
+
+    workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
+
+    workBuffer->Event = &event;
+    workBuffer->NtStatus = &ntStatus;
+
+    DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
+                                  workBuffer);
+
+    ThreadedBufferQueue_WorkReady(DmfModule);
+
+    // Infinite wait for the work to execute.
+    //
+    DMF_Portable_EventWaitForSingleObject(&event,
+                                          NULL,
+                                          FALSE);
+
+    // NOTE: Needed to prevent leak in User-mode. NOP in Kernel-mode.
+    //
+    DMF_Portable_EventClose(&event);
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_ThreadedBufferQueue_Fetch(
     _In_ DMFMODULE DmfModule,
     _Out_ VOID** ClientBuffer,
-    _Out_ VOID** ClientBufferContext
+    _Out_opt_ VOID** ClientBufferContext
     )
 /*++
 
@@ -747,8 +932,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 ThreadedBufferQueue);
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            ThreadedBufferQueue);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 

@@ -217,6 +217,13 @@ DMF_BufferPool_Put(
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
+DMF_BufferPool_PutAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
 DMF_BufferPool_PutInSinkWithTimer(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* ClientBuffer,

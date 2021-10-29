@@ -29,6 +29,7 @@ Environment:
 // The DMF Library and the DMF Library Modules this driver uses.
 // In this sample, the driver uses the template library.
 //
+#include <initguid.h>
 #include "DmfModules.Template.h"
 
 #include "Trace.h"
@@ -321,6 +322,96 @@ Exit:
     return ntStatus;
 }
 
+// NOTE: Use non-paged segments for bug check callbacks.
+//
+
+// {B5953C99-F12A-45A4-AC13-129A11B35BC0}
+DEFINE_GUID(NonPnp_CrashDataGuid,
+            0xb5953c99, 0xf12a, 0x45a4, 0xac, 0x13, 0x12, 0x9a, 0x11, 0xb3, 0x5b, 0xc0);
+
+UCHAR g_TestTriageData1[] = "SampleNonPnp driver triage data";
+UCHAR g_TestSecondaryData1[] = "SampleNonPnp secondary data";
+
+// Callback for client driver to inform OS how much space Client Driver needs 
+// to write its data.  This is called during BugCheck at IRQL = HIGH_LEVEL so it must 
+// be non-paged and has restrictions on what it may do.
+//
+_Function_class_(EVT_DMF_CrashDump_Query)
+_IRQL_requires_same_
+VOID
+NonPnp_CrashDump_Query(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** OutputBuffer,
+    _Out_ ULONG* SizeNeededBytes
+    )
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    DmfAssert(OutputBuffer != NULL);
+    DmfAssert(SizeNeededBytes != NULL);
+    
+    // Return the size of the sample global data.
+    //
+    *SizeNeededBytes = sizeof(g_TestSecondaryData1);
+    *OutputBuffer = (VOID*)g_TestSecondaryData1;
+}
+
+// Callback for client driver to write its own data after the system is crashed.
+// This is called during BugCheck at IRQL = HIGH_LEVEL so must be non-paged and
+// has restrictions on what it may do.
+//
+_Function_class_(EVT_DMF_CrashDump_Write)
+_IRQL_requires_same_
+VOID
+NonPnp_CrashDump_Write(
+    _In_ DMFMODULE DmfModule,
+    _Out_ VOID** OutputBuffer,
+    _In_ ULONG* OutputBufferLength
+    )
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    DmfAssert(OutputBuffer != NULL);
+    DmfAssert(OutputBufferLength != NULL);
+
+    // Return the size of our sample global data
+    //
+    *OutputBufferLength = sizeof(g_TestSecondaryData1);
+    *OutputBuffer = (VOID*)g_TestSecondaryData1;
+}
+// Callback for marking memory regions which should be included in the kernel minidump.
+// This is called during BugCheck at IRQL = HIGH_LEVEL so must be non-paged and
+// has restrictions on what it may do.  The bug check code and parameters
+// are provided so the callback may choose to only add data when certain bug checks occur.
+//
+_Function_class_(EVT_DMF_CrashDump_StoreTriageDumpData)
+_IRQL_requires_same_
+VOID
+Interface1_CrashDump_StoreTriageDumpData(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG BugCheckCode,
+    _In_ ULONG_PTR BugCheckParameter1,
+    _In_ ULONG_PTR BugCheckParameter2,
+    _In_ ULONG_PTR BugCheckParameter3,
+    _In_ ULONG_PTR BugCheckParameter4
+    )
+{
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(BugCheckCode);
+    UNREFERENCED_PARAMETER(BugCheckParameter1);
+    UNREFERENCED_PARAMETER(BugCheckParameter2);
+    UNREFERENCED_PARAMETER(BugCheckParameter3);
+    UNREFERENCED_PARAMETER(BugCheckParameter4);
+
+    // Add sample data via triage dump data callback so it is available
+    // as memory in the crash minidump.
+    //
+    ntStatus = DMF_CrashDump_TriageDumpDataAdd(DmfModule,
+                                               g_TestTriageData1,
+                                               sizeof(g_TestTriageData1));
+}
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 #pragma code_seg("PAGED")
 VOID
@@ -356,11 +447,37 @@ Return Value:
     
     deviceContext = DeviceContextGet(Device);
 
+    // Instantiate NonPnp Module.
+    //
     DMF_NonPnp_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &deviceContext->DmfModuleNonPnp);
+
+    // Set up CrashDump callbacks
+    //
+    DMF_CONFIG_CrashDump moduleConfigCrashDump;
+    DMF_CONFIG_CrashDump_AND_ATTRIBUTES_INIT(&moduleConfigCrashDump,
+                                             &moduleAttributes);
+
+    // Note: ComponentName MUST be set for triage dump data callback to succeed.
+    //
+    moduleConfigCrashDump.ComponentName = (UCHAR*)"DmfNonPnpSample1";
+    // Secondary dump data callbacks that write ring buffer.
+    //
+    moduleConfigCrashDump.SecondaryData.AdditionalDataGuid = NonPnp_CrashDataGuid;
+    moduleConfigCrashDump.SecondaryData.EvtCrashDumpQuery = NonPnp_CrashDump_Query;
+    moduleConfigCrashDump.SecondaryData.EvtCrashDumpWrite = NonPnp_CrashDump_Write;
+    // Triage Dump Data callback.
+    // Allow up to 10 data ranges (added via DMF_CrashDump_TriageDumpDataAdd())
+    //
+    moduleConfigCrashDump.TriageDumpData.TriageDumpDataArraySize = 10;
+    moduleConfigCrashDump.TriageDumpData.EvtCrashDumpStoreTriageDumpData = Interface1_CrashDump_StoreTriageDumpData;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
 }
 #pragma code_seg()
 

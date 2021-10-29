@@ -75,6 +75,12 @@ DmfModule | An open DMF_QueuedWorkItem handle.
 ClientBuffer | Contains the parameters for this call.
 ClientBufferContext | Client specific context passed by Client when the deferred call was enqueued.
 
+##### Remarks
+
+* ClientBuffer is accessible only while this callback executes.
+* Use `DMF_QueuedWorkItem_StatusSet()` to set the NTSTATUS for callers of `DMF_QueuedWorkItem_EnqueueAndWait()`.
+* Always return ScheduledTask_Result_Success from this callback. The return value is only present for legacy reasons.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
@@ -127,23 +133,61 @@ DMF_QueuedWorkItem_EnqueueAndWait(
   );
 ````
 
-This Method causes the DMF_QueuedWorkItem instance's callback to be called one time and it waits for that call to complete.
+This Method causes the DMF_QueuedWorkItem instance's callback to be called one time and it waits for that call to complete. The caller
+can also access the NTSTATUS set by the callback.
 
 ##### Returns
 
-NTSTATUS. Fails if the value cannot be read from the registry.
+NTSTATUS. (This status is set by the Module instance callback.)
 
 ##### Parameters
 Parameter | Description
 ----|----
 DmfModule | An open DMF_QueuedWorkItem Module handle.
-ContextBuffer | A Client specific buffer that contains parameter that are used during the callback's execution.
+ContextBuffer | A Client specific buffer that contains the deferred work to be done.
 ContextBufferSize | The size in bytes of ContextBuffer.
 
 ##### Remarks
 
 * Regardless of whether or not the callback is already running, calling this method causes the callback to be called exactly one more time.
 * This Method waits for the callback to finish execution.
+* The callback must use `DMF_QueuedWorkItem_StatusSet()` to set the NTSTATUS returned by this Method.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_QueuedWorkItem_StatusSet
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_QueuedWorkItem_StatusSet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ NTSTATUS NtStatus
+    );
+````
+Allows the callback to set the NTSTATUS of the operation submitted to it via the
+given Client Buffer.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_QueuedWorkItem Module handle.
+ClientBuffer | Buffer that contains the work that was pended.
+NtStatus | Status indicating result of work done by the callback.
+
+##### Remarks
+
+* This Method to populate the NTSTATUS that is returned by `DMF_QueuedWorkItem_EnqueueAndWait()`.
+* If the Client does not use `DMF_QueuedWorkItem_EnqueueAndWait()` then it is not necessary to call this Method, but it is
+still fine to do so.
+* The default NTSTATUS returned by the Module is STATUS_SUCCESS. It is only necessary to call this Method if a different STATUS should 
+be returned to the caller of `DMF_QueuedWorkItem_EnqueueAndWait()`.
+* *This Method must only be called from the callback while ClientBuffer is owned by the callback.*
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

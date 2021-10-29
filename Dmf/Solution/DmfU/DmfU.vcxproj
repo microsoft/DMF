@@ -133,6 +133,9 @@
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</WppRecorderEnabled>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WppRecorderEnabled>
     </ClCompile>
+    <ClCompile Condition="'$(Platform)'=='ARM64'">
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);DmfUFramework.lib;DmfUModules.Library.lib;</AdditionalDependencies>
     </Link>
@@ -219,6 +222,11 @@
     <Lib />
     <Lib />
     <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
+    <Link>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />

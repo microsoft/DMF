@@ -171,7 +171,9 @@ DmfModule | An open DMF_SimpleOrientation Module handle.
 
 ##### Remarks
 
-* SimpleOrientation sensor is stopped by default.
+* SimpleOrientation sensor is stopped automatically when Module closes.
+* Client calls this Method to manually stop the sensor.
+* After calling this Method, Client may call `DMF_SimpleOrientation_Start`.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -183,8 +185,7 @@ DmfModule | An open DMF_SimpleOrientation Module handle.
 
 #### Module Remarks
 
-* This Module uses C++/WinRT, so it needs RS5+ support.
-  Module specific code will not be compiled in RS4 and below.
+* This Module uses C++/WinRT, so it needs RS5+ support. Module specific code will not be compiled in RS4 and below.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

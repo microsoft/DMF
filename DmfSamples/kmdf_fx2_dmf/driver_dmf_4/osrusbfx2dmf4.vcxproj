@@ -247,6 +247,11 @@
       <WppEnabled>true</WppEnabled>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ResourceCompile Include="osrusbfx2.rc" />
   </ItemGroup>

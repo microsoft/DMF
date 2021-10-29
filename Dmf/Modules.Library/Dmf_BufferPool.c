@@ -25,8 +25,8 @@ Environment:
 // DMF and this Module's Library specific definitions.
 //
 #include "DmfModule.h"
-#include "DmfModules.Core.h"
-#include "DmfModules.Core.Trace.h"
+#include "DmfModules.Library.h"
+#include "DmfModules.Library.Trace.h"
 
 #if defined(DMF_INCLUDE_TMH)
 #include "Dmf_BufferPool.tmh"
@@ -152,6 +152,14 @@ typedef struct
     BufferPool_SentinelType* SentinelContext;
     ULONG Signature;
 } BUFFERPOOL_ENTRY;
+
+// Function that inserts a buffer in the BufferList.
+//
+typedef
+_Function_class_(EVT_DMF_BufferPool_InsertionCallback)
+VOID
+EVT_DMF_BufferPool_InsertionCallback(_In_ DMF_CONTEXT_BufferPool* ModuleContext,
+                                     _Inout_ BUFFERPOOL_ENTRY* BufferPoolEntry);
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -378,7 +386,6 @@ Exit:
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 BufferPool_InsertTailList(
-    _In_ DMFMODULE DmfModule,
     _In_ DMF_CONTEXT_BufferPool* ModuleContext,
     _Inout_ BUFFERPOOL_ENTRY* BufferPoolEntry
     )
@@ -390,9 +397,70 @@ Routine Description:
 
 Arguments:
 
+    ModuleContext - This Module's context.
+    BufferPoolEntry - The given buffer.
+
+Return Value:
+
+    None
+
+--*/
+{
+    // Add to end of list.
+    //
+    InsertTailList(&ModuleContext->BufferList,
+                   &BufferPoolEntry->ListEntry);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+BufferPool_InsertHeadList(
+    _In_ DMF_CONTEXT_BufferPool* ModuleContext,
+    _Inout_ BUFFERPOOL_ENTRY* BufferPoolEntry
+    )
+/*++
+
+Routine Description:
+
+    Adds a given buffer to the head of the list.
+
+Arguments:
+
+    ModuleContext - This Module's context.
+    BufferPoolEntry - The given buffer.
+
+Return Value:
+
+    None
+
+--*/
+{
+    // Add to head of list.
+    //
+    InsertHeadList(&ModuleContext->BufferList,
+                   &BufferPoolEntry->ListEntry);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+BufferPool_InsertList(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_CONTEXT_BufferPool* ModuleContext,
+    _Inout_ BUFFERPOOL_ENTRY* BufferPoolEntry,
+    _In_ EVT_DMF_BufferPool_InsertionCallback* BufferPool_InsertionCallback
+    )
+/*++
+
+Routine Description:
+
+    Adds a given buffer to the list.
+
+Arguments:
+
     DmfModule - This Module's handle (for validation purposes).
     ModuleContext - This Module's context.
     BufferPoolEntry - The given buffer.
+    BufferPool_InsertionCallback - Function pointer that inserts the buffer in the BufferList.
 
 Return Value:
 
@@ -410,13 +478,13 @@ Return Value:
     DmfAssert(BufferPoolEntry->CurrentlyInsertedList == NULL);
     DmfAssert(BufferPoolEntry->CurrentlyInsertedDmfModule == NULL);
 
-    // Add to end of list and increment the number of buffers in the list.
+    // Add to list and increment the number of buffers in the list.
     //
-    InsertTailList(&ModuleContext->BufferList,
-                   &BufferPoolEntry->ListEntry);
+    BufferPool_InsertionCallback(ModuleContext,
+                                 BufferPoolEntry);
     ModuleContext->NumberOfBuffersInList++;
 
-    DmfAssert(((ModuleContext->NumberOfBuffersSpecifiedByClient > 0) && 
+    DmfAssert(((ModuleContext->NumberOfBuffersSpecifiedByClient > 0) &&
               (ModuleContext->NumberOfBuffersInList <= ModuleContext->NumberOfBuffersSpecifiedByClient)) ||
               (0 == ModuleContext->NumberOfBuffersSpecifiedByClient));
 
@@ -472,7 +540,8 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 BufferPool_BufferPoolEntryPut(
     _In_ DMFMODULE DmfModule,
-    _In_ BUFFERPOOL_ENTRY* BufferPoolEntry
+    _In_ BUFFERPOOL_ENTRY* BufferPoolEntry,
+    _In_ EVT_DMF_BufferPool_InsertionCallback* BufferPool_InsertionCallback
     )
 /*++
 
@@ -488,6 +557,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     BufferPoolEntry - The given BufferPool entry corresponding to Client buffer.
+    BufferPool_InsertionCallback - Function pointer that inserts the buffer in the BufferList.
 
 Return Value:
 
@@ -501,6 +571,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DmfAssert(DMF_ModuleIsLocked(DmfModule));
+    DmfAssert(BufferPool_InsertionCallback != NULL);
 
     bufferPoolEntryMemory = BufferPoolEntry->BufferPoolEntryMemory;
 
@@ -530,9 +601,10 @@ Return Value:
     // Add the buffer to the list. (This function validates that the buffer has
     // not already been added to another list in DEBUG mode.)
     //
-    BufferPool_InsertTailList(DmfModule,
-                              moduleContext,
-                              BufferPoolEntry);
+    BufferPool_InsertList(DmfModule,
+                          moduleContext,
+                          BufferPoolEntry,
+                          BufferPool_InsertionCallback);
 
 Exit:
 
@@ -879,9 +951,10 @@ Return Value:
     // NOTE: This entry goes directly into the list. Do not call BufferPool_BufferPoolEntryPut because
     //       that function will filter buffers put into the list and delete the entries when EnableLookAside is TRUE.
     //
-    BufferPool_InsertTailList(DmfModule,
-                              moduleContext,
-                              bufferPoolEntry);
+    BufferPool_InsertList(DmfModule,
+                          moduleContext,
+                          bufferPoolEntry,
+                          BufferPool_InsertTailList);
 
 Exit:
 
@@ -1357,6 +1430,82 @@ Return Value:
 }
 #pragma code_seg()
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+BufferPool_Put(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ EVT_DMF_BufferPool_InsertionCallback* BufferPool_InsertionCallback
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the list.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+    BufferPool_InsertionCallback - Function pointer that inserts the buffer in the BufferList.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_BufferPool* moduleContext;
+    BUFFERPOOL_ENTRY* bufferPoolEntry;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Given the Client Buffer, get the associated meta data.
+    //
+    bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
+
+    DmfAssert(((moduleContext->BufferPoolMode == BufferPool_Mode_Source) && 
+              (bufferPoolEntry->CreatedByDmfModule == DmfModule)) ||
+              (moduleContext->BufferPoolMode == BufferPool_Mode_Sink));
+
+    // In Source mode, clear out the buffer before inserting into buffer list.
+    // This ensures stale data is removed from the buffer and does not appear when the buffer is re-used.
+    //
+    if (moduleContext->BufferPoolMode == BufferPool_Mode_Source)
+    {
+        // Clear the Client Buffer.
+        //
+        RtlZeroMemory(ClientBuffer,
+                      bufferPoolEntry->SizeOfClientBuffer);
+
+        // Clear the Client Buffer Context.
+        //
+        if (bufferPoolEntry->BufferContextSize > 0)
+        {
+            DmfAssert(bufferPoolEntry->ClientBufferContext != NULL);
+            RtlZeroMemory(bufferPoolEntry->ClientBufferContext,
+                          bufferPoolEntry->BufferContextSize);
+        }
+        DmfAssert(NULL == bufferPoolEntry->TimerExpirationCallback);
+        DmfAssert(0 == bufferPoolEntry->TimerExpirationAbsoluteTime100ns);
+        DmfAssert(0 == bufferPoolEntry->TimerExpirationMilliseconds);
+        DmfAssert(NULL == bufferPoolEntry->TimerExpirationCallbackContext);
+    }
+
+    DMF_ModuleLock(DmfModule);
+
+    BufferPool_BufferPoolEntryPut(DmfModule,
+                                  bufferPoolEntry,
+                                  BufferPool_InsertionCallback);
+
+    DMF_ModuleUnlock(DmfModule);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1570,10 +1719,6 @@ Return Value:
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 
-    // For consistency, the Module from which the pool was created must be passed in.
-    //
-    DmfAssert(bufferPoolEntry->CreatedByDmfModule == DmfModule);
-
     DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
 
     DmfAssert(ClientBufferContext != NULL);
@@ -1659,7 +1804,7 @@ Return Value:
     BufferPool_EnumerationDispositionType enumerationDisposition;
     LIST_ENTRY* listEntry;
     BOOLEAN timerWasInQueue;
-    ULARGE_INTEGER currentSystemTime;
+    ULONGLONG currentInterruptTime;
     LONG64 differenceInTime100ns;
 
     FuncEntry(DMF_TRACE);
@@ -1716,19 +1861,17 @@ Return Value:
                 continue;
             }
 #if defined(DMF_USER_MODE)
-            FILETIME fileTime;
-            GetSystemTimeAsFileTime(&fileTime);
-            currentSystemTime.QuadPart = (((ULONGLONG)fileTime.dwHighDateTime) << 32) + fileTime.dwLowDateTime;
+            QueryInterruptTime(&currentInterruptTime);
 #else
-            KeQuerySystemTime((PLARGE_INTEGER)&currentSystemTime);
+            currentInterruptTime = KeQueryInterruptTime();
 #endif
-            if (currentSystemTime.QuadPart >= bufferPoolEntry->TimerExpirationAbsoluteTime100ns)
+            if (currentInterruptTime >= bufferPoolEntry->TimerExpirationAbsoluteTime100ns)
             {
                 differenceInTime100ns = 0;
             }
             else
             {
-                differenceInTime100ns = currentSystemTime.QuadPart - bufferPoolEntry->TimerExpirationAbsoluteTime100ns;
+                differenceInTime100ns = currentInterruptTime - bufferPoolEntry->TimerExpirationAbsoluteTime100ns;
             }
         }
 
@@ -2140,7 +2283,7 @@ DMF_BufferPool_Put(
 
 Routine Description:
 
-    Adds a Client Buffer to the list.
+    Adds a Client Buffer to the end of the list. This list is consumed in FIFO order.
 
 Arguments:
 
@@ -2154,54 +2297,50 @@ Return Value:
 
 --*/
 {
-    DMF_CONTEXT_BufferPool* moduleContext;
-    BUFFERPOOL_ENTRY* bufferPoolEntry;
-
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
                                             BufferPool);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    BufferPool_Put(DmfModule,
+                   ClientBuffer,
+                   BufferPool_InsertTailList);
 
-    // Given the Client Buffer, get the associated meta data.
-    //
-    bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
+    FuncExitVoid(DMF_TRACE);
+}
 
-    DmfAssert(((moduleContext->BufferPoolMode == BufferPool_Mode_Source) && 
-              (bufferPoolEntry->CreatedByDmfModule == DmfModule)) ||
-              (moduleContext->BufferPoolMode == BufferPool_Mode_Sink));
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferPool_PutAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    )
+/*++
 
-    // In Source mode, clear out the buffer before inserting into buffer list.
-    // This ensures stale data is removed from the buffer and does not appear when the buffer is re-used.
-    //
-    if (moduleContext->BufferPoolMode == BufferPool_Mode_Source)
-    {
-        // Clear the Client Buffer.
-        //
-        RtlZeroMemory(ClientBuffer,
-                      bufferPoolEntry->SizeOfClientBuffer);
+Routine Description:
 
-        // Clear the Client Buffer Context.
-        //
-        if (bufferPoolEntry->BufferContextSize > 0)
-        {
-            DmfAssert(bufferPoolEntry->ClientBufferContext != NULL);
-            RtlZeroMemory(bufferPoolEntry->ClientBufferContext,
-                          bufferPoolEntry->BufferContextSize);
-        }
-        DmfAssert(NULL == bufferPoolEntry->TimerExpirationCallback);
-        DmfAssert(0 == bufferPoolEntry->TimerExpirationAbsoluteTime100ns);
-        DmfAssert(0 == bufferPoolEntry->TimerExpirationMilliseconds);
-        DmfAssert(NULL == bufferPoolEntry->TimerExpirationCallbackContext);
-    }
+    Adds a Client Buffer to the start of the list. This list is consumed in LIFO order.
 
-    DMF_ModuleLock(DmfModule);
+Arguments:
 
-    BufferPool_BufferPoolEntryPut(DmfModule,
-                                  bufferPoolEntry);
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
 
-    DMF_ModuleUnlock(DmfModule);
+Return Value:
+
+    None
+
+--*/
+{
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
+                                            BufferPool);
+
+    BufferPool_Put(DmfModule,
+                   ClientBuffer,
+                   BufferPool_InsertHeadList);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -2242,10 +2381,7 @@ Return Value:
     BOOLEAN timerWasInQueue;
     DMF_CONTEXT_BufferPool* moduleContext;
     BUFFERPOOL_ENTRY* bufferPoolEntry;
-#if defined(DMF_USER_MODE)
-    FILETIME fileTime;
-#endif
-    ULARGE_INTEGER currentSystemTime;
+    ULONGLONG currentInterruptTime;
 
     FuncEntry(DMF_TRACE);
 
@@ -2259,7 +2395,7 @@ Return Value:
     DmfAssert(moduleContext->BufferPoolMode == BufferPool_Mode_Sink);
 
 #if defined(DMF_USER_MODE)
-    // It is not possible to use this Method when buffers come from the "lookaside
+    // It is not possible to use this Method when buffers come from the "look-aside
     // list" in User-mode because the buffers are just allocated and deallocated
     // as needed. The problem is that in the timer callback the buffers are actually
     // deleted and a child of the buffer is the corresponding WDFTIMER which is also
@@ -2291,12 +2427,14 @@ Return Value:
     bufferPoolEntry->TimerExpirationCallback = TimerExpirationCallback;
     bufferPoolEntry->TimerExpirationMilliseconds = TimerExpirationMilliseconds;
 #if defined(DMF_USER_MODE)
-    GetSystemTimeAsFileTime(&fileTime);
-    currentSystemTime.QuadPart = (((ULONGLONG)fileTime.dwHighDateTime) << 32) + fileTime.dwLowDateTime;
+    QueryInterruptTime(&currentInterruptTime);
 #else
-    KeQuerySystemTime((PLARGE_INTEGER)&currentSystemTime);
+    currentInterruptTime = KeQueryInterruptTime();
 #endif
-    bufferPoolEntry->TimerExpirationAbsoluteTime100ns = currentSystemTime.QuadPart + WDF_ABS_TIMEOUT_IN_MS(TimerExpirationMilliseconds);
+    // Although use of WDF_ABSE_TIMEOUT_IN_MS works, it is not technically correct since the numbers are not 
+    // actually the same. Simply multiplying by the conversion from 100-ns to milliseconds is more accurate and clear.
+    //
+    bufferPoolEntry->TimerExpirationAbsoluteTime100ns = currentInterruptTime + (TimerExpirationMilliseconds * WDF_TIMEOUT_TO_MS);
     bufferPoolEntry->TimerExpirationCallbackContext = TimerExpirationCallbackContext;
 
     // Save the DmfModule in the Timer's context so that the timer handler knows
@@ -2306,7 +2444,8 @@ Return Value:
                                          DmfModule);
 
     BufferPool_BufferPoolEntryPut(DmfModule,
-                                  bufferPoolEntry);
+                                  bufferPoolEntry,
+                                  BufferPool_InsertTailList);
 
     // Start the timer. Timer is guaranteed to not have been in the timer queue nor running its callback function.
     // This is because Client has no direct access to the timer. The timer was stopped when the buffer was 

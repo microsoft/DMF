@@ -219,6 +219,867 @@ Registry_CustomActionHandler_Read(
     return returnValue;
 }
 
+#if defined(DMF_KERNEL_MODE)
+
+NTSTATUS
+Registry_DeviceInterfaceKeyOpen(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFSTRING DeviceLink,
+    _In_ ULONG Access,
+    _Out_ HANDLE* RegistryHandle
+    )
+{
+    NTSTATUS ntStatus;
+    UNICODE_STRING temporaryDeviceLink;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    WdfStringGetUnicodeString(DeviceLink,
+                              &temporaryDeviceLink);
+    ntStatus = IoOpenDeviceInterfaceRegistryKey(&temporaryDeviceLink,
+                                                Access,
+                                                RegistryHandle);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoOpenDeviceInterfaceRegistryKey fails: ntStatus=%!STATUS!", ntStatus);
+    }
+
+    return ntStatus;
+}
+
+#elif defined(DMF_USER_MODE)
+
+NTSTATUS
+Registry_DeviceInterfaceKeyOpen(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFSTRING DeviceLink,
+    _In_ ULONG Access,
+    _Out_ HANDLE* RegistryHandle
+    )
+{
+    NTSTATUS ntStatus;
+    CONFIGRET configRet;
+    PWSTR deviceInterface;
+    WDFMEMORY deviceInterfaceListObject;
+    size_t stringSize;
+    UNICODE_STRING temporaryDeviceLink;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    deviceInterfaceListObject = NULL;
+
+    WdfStringGetUnicodeString(DeviceLink,
+                              &temporaryDeviceLink);
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               temporaryDeviceLink.Length + sizeof(WCHAR),
+                               &deviceInterfaceListObject,
+                               (VOID**)&deviceInterface);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Copy string with a length = stringSize-1 to buffer with length = stringSize
+    //
+    stringSize = (temporaryDeviceLink.Length / sizeof(WCHAR)) + 1;
+    wcsncpy_s(deviceInterface,
+              stringSize,
+              temporaryDeviceLink.Buffer,
+              stringSize - 1);
+
+
+    // Open registry key for device interface instance in UMDF here.
+    // RegistryHandle will be closed on exit
+    //
+    configRet = CM_Open_Device_Interface_KeyW(deviceInterface,
+                                              Access,
+                                              RegDisposition_OpenExisting,
+                                              (HKEY*)RegistryHandle,
+                                              0);
+    if (CR_SUCCESS != configRet)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Open_Device_Interface_KeyW fails");
+    }
+
+Exit:
+
+    if (deviceInterfaceListObject)
+    {
+        WdfObjectDelete(deviceInterfaceListObject);
+    }
+
+    return ntStatus;
+}
+#endif
+
+#if defined(DMF_KERNEL_MODE)
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+PWSTR
+Registry_DeviceLinkGet(
+    _In_ PWSTR DeviceInterfaces,
+    _In_ int DeviceLinkIndex
+    )
+/*++
+
+Routine Description:
+
+    Find Device Interface symbolic link in the list for the given index (KMDF).
+
+Arguments:
+
+    DeviceInterfaces - Device interface link's list.
+    DeviceLinkIndex - Instance index for Device Interface symbolic link's list.
+
+Return Value:
+
+    Address of found symbolic link or NULL if not found.
+    The found address is pointing to substring inside DeviceInterfaces buffer.
+
+--*/
+{
+    PWSTR devicePath;
+    LONG index;
+    size_t devicePathLength;
+
+    NTSTATUS ntStatus;
+
+    for (devicePath = DeviceInterfaces, index = 0; *devicePath; )
+    {
+        if (DeviceLinkIndex == index)
+        {
+            return devicePath;
+        }
+
+        ntStatus = RtlStringCchLengthW(devicePath,
+                                       NTSTRSAFE_MAX_CCH,
+                                       &devicePathLength);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlStringCchLengthW fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        devicePath += devicePathLength + 1;
+        ++index;
+    }
+
+Exit:
+
+    return NULL;
+}
+
+#elif defined(DMF_USER_MODE)
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+PWSTR
+Registry_DeviceLinkGet(
+    _In_ PWSTR DeviceInterfaces,
+    _In_ int DeviceLinkIndex
+    )
+/*++
+
+Routine Description:
+
+    Find Device Interface symbolic link in the list for the given index (UMDF).
+
+Arguments:
+
+    DeviceInterfaces - Device interface link's list.
+    DeviceLinkIndex - Instance index for Device Interface symbolic link's list.
+
+Return Value:
+
+    Address of found symbolic link or NULL if not found.
+    The found address is pointing to substring inside DeviceInterfaces buffer.
+
+--*/
+{
+    PWSTR devicePath;
+    LONG index;
+    size_t devicePathLength;
+
+    for (devicePath = DeviceInterfaces, index = 0; *devicePath; )
+    {
+        if (DeviceLinkIndex == index)
+        {
+            return devicePath;
+        }
+
+        devicePathLength = wcslen(devicePath);
+        devicePath += devicePathLength + 1;
+        ++index;
+    }
+
+    return NULL;
+}
+
+#endif
+
+#if defined(DMF_USER_MODE)
+
+// Maximum number of iterations for Device Interface List allocation.
+// Putting a hard limit to the number of times loop can execute to avoid any possible infinite loop.
+//
+#define MAXIMUM_LOOP_RETRIES 5
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Registry_DeviceInterfaceStringGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ CONST GUID* InterfaceGuid,
+    _In_ int DeviceLinkIndex,
+    _Out_ WDFSTRING* DeviceInterface
+    )
+/*++
+
+Routine Description:
+
+    Retrieve Device Interface symbolic link for UMDF.
+    Allocates WDFSTRING object for the result. Must be deleted by caller.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    InterfaceGuid - Device interface GUID.
+    DeviceLinkIndex - Instance index for Device Interface symbolic link's list.
+    DeviceInterface - Device interface symbolic link.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    CONFIGRET configRet;
+    ULONG deviceInterfaceListLength;
+    WDFMEMORY deviceInterfaceListObject;
+    PWSTR deviceInterfaceList;
+    PWSTR deviceLink;
+    ULONG retries;
+    size_t listSize;
+    UNICODE_STRING temporaryDeviceLink;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    ntStatus = STATUS_UNSUCCESSFUL;
+    deviceInterfaceListObject = NULL;
+    deviceInterfaceListLength = 0;
+    deviceInterfaceList = NULL;
+    deviceLink = NULL;
+    retries = 0;
+
+    do
+    {
+        // Get the size of the list of installed devices.
+        //
+        configRet = CM_Get_Device_Interface_List_SizeW(&deviceInterfaceListLength,
+                                                       (LPGUID)InterfaceGuid,
+                                                       nullptr,
+                                                       CM_GET_DEVICE_INTERFACE_LIST_ALL_DEVICES);
+        if (configRet == CR_SUCCESS)
+        {
+            if (deviceInterfaceListObject)
+            {
+                WdfObjectDelete(deviceInterfaceListObject);
+                deviceInterfaceList = NULL;
+            }
+
+            // Allocate buffer for the list
+            //
+            listSize = sizeof(WCHAR) * (deviceInterfaceListLength);
+            WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+            objectAttributes.ParentObject = DmfModule;
+            ntStatus = WdfMemoryCreate(&objectAttributes,
+                                       PagedPool,
+                                       MemoryTag,
+                                       listSize,
+                                       &deviceInterfaceListObject,
+                                       (VOID**)&deviceInterfaceList);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
+            else
+            {
+                // Get the the list of devices installed for Device interface GUID.
+                // Used CM_GET_DEVICE_INTERFACE_LIST_ALL_DEVICES to retrieve disabled devices as well.
+                //
+                configRet = CM_Get_Device_Interface_ListW((LPGUID) InterfaceGuid,
+                                                          nullptr,
+                                                          deviceInterfaceList,
+                                                          deviceInterfaceListLength,
+                                                          CM_GET_DEVICE_INTERFACE_LIST_ALL_DEVICES);
+            }
+        }
+    }
+    // it's possible for the interface list size to change between querying the size and getting the result.
+    // So it's recommended to have this code in a while loop with a few iterations
+    //
+    while ((configRet == CR_BUFFER_SMALL) && (++retries <= MAXIMUM_LOOP_RETRIES));
+
+    // CM_Get_Device_Interface_List failed.
+    //
+    if (configRet != CR_SUCCESS)
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_Interface_ListW() fails: configRet=0x%x", configRet);
+        goto Exit;
+    }
+    // List is empty.
+    //
+    if (deviceInterfaceList[0] == L'\0')
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO Device link FOUND");
+        goto Exit;
+    }
+
+    deviceLink = Registry_DeviceLinkGet(deviceInterfaceList,
+                                        DeviceLinkIndex);
+    if (deviceLink == NULL)
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO Device link FOUND");
+        goto Exit;
+    }
+    if (deviceLink[0] == L'\0')
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO Device link FOUND");
+        goto Exit;
+    }
+
+    // Assign temporary UNICODE_STRING to initialize WDFSTRING.
+    //
+    RtlInitUnicodeString(&temporaryDeviceLink,
+                         deviceLink);
+
+    // Allocate WDFSTRING and init it with device link.
+    // WDFSTRING must be freed by the caller.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfStringCreate(&temporaryDeviceLink,
+                               &objectAttributes,
+                               DeviceInterface);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails ntStatus=%!STATUS!", ntStatus);
+    }
+
+Exit:
+
+    if (deviceInterfaceListObject)
+    {
+        WdfObjectDelete(deviceInterfaceListObject);
+    }
+
+    return ntStatus;
+}
+
+#elif defined(DMF_KERNEL_MODE)
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Registry_DeviceInterfaceStringGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ CONST GUID* InterfaceGuid,
+    _In_ int DeviceLinkIndex,
+    _Out_ WDFSTRING* DeviceInterface
+    )
+/*++
+
+Routine Description:
+
+    Retrieve Device Interface symbolic link for KMDF.
+    Allocates WDFSTRING object for the result. Must be deleted by caller.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    InterfaceGuid - Device interface GUID.
+    DeviceLinkIndex - Instance index for Device Interface symbolic link's list.
+    DeviceInterface - Device interface symbolic link.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    PWSTR deviceInterfaces;
+    PWSTR deviceLink;
+    UNICODE_STRING temporaryDeviceLink;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    ntStatus = STATUS_UNSUCCESSFUL;
+    deviceInterfaces = NULL;
+    deviceLink = NULL;
+
+    // Get the the list of device interface instances.
+    //
+    ntStatus = IoGetDeviceInterfaces(InterfaceGuid,
+                                     NULL,
+                                     DEVICE_INTERFACE_INCLUDE_NONACTIVE,
+                                     &deviceInterfaces);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoGetDeviceInterfaces fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+    if (deviceInterfaces == NULL)
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO INTERFACE FOUND");
+        goto Exit;
+    }
+    if (deviceInterfaces[0] == L'\0')
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO INTERFACE FOUND");
+        goto Exit;
+    }
+
+    deviceLink = Registry_DeviceLinkGet(deviceInterfaces,
+                                        DeviceLinkIndex);
+    if (deviceLink == NULL)
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO Device link FOUND for index = %-d", DeviceLinkIndex);
+        goto Exit;
+    }
+    if (deviceLink[0] == L'\0')
+    {
+        ntStatus = STATUS_RANGE_NOT_FOUND;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NO Device link FOUND for index = %-d", DeviceLinkIndex);
+        goto Exit;
+    }
+
+    // Assign UNICODE_STRING to initialize WDFSTRING.
+    //
+    RtlInitUnicodeString(&temporaryDeviceLink,
+                         deviceLink);
+
+    // Allocate WDFSTRING and init it with device link.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfStringCreate(&temporaryDeviceLink,
+                               &objectAttributes,
+                               DeviceInterface);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
+    // Free buffer allocated by IoGetDeviceInterfaces.
+    // WDFSTRING must be deleted by the caller.
+    //
+    if (deviceInterfaces)
+    {
+        ExFreePool(deviceInterfaces);
+    }
+
+    return ntStatus;
+}
+
+#endif
+
+#if defined(DMF_USER_MODE)
+
+// From the notes for ZwQueryKey function (wdm.h):
+// If the call to this function occurs in user mode, you should use the name "NtQueryKey" instead of "ZwQueryKey".
+// Nt functions could be used in UMDF instead of corresponding Nt kernel functions.
+// Using Nt and Zw Versions of the Native System Services Routines.
+// https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/using-nt-and-zw-versions-of-the-native-system-services-routines
+//
+
+typedef DWORD(__stdcall* NtQueryKeyType)(HANDLE  KeyHandle,
+                                         int KeyInformationClass,
+                                         VOID*  KeyInformation,
+                                         ULONG  Length,
+                                         ULONG*  ResultLength);
+typedef DWORD(__stdcall* NtCloseType)(HANDLE  KeyHandle);
+
+#define KEY_INFORMATION_CLASS_KeyNameInformation 3
+#define REGISTRY_MACHINE_TEXT L"\\Registry\\Machine\\"
+
+// KEY_NAME_INFORMATION declaration copied from ntddk.h.
+//
+
+typedef struct _KEY_NAME_INFORMATION
+{
+    ULONG   NameLength;
+    WCHAR   Name[1];            // Variable length string
+} KEY_NAME_INFORMATION, * PKEY_NAME_INFORMATION;
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+Registry_HKEYClose(
+    _In_ HANDLE Key
+    )
+/*++
+
+Routine Description:
+
+    Wraper for NtClose function from ntdll.dll for UMDF.
+
+Arguments:
+
+    Key - Opened handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    HMODULE dll;
+    NtCloseType function;
+    NTSTATUS ntStatus;
+
+    DmfAssert(Key != NULL);
+
+    dll = LoadLibrary(L"ntdll.dll");
+    if (dll != NULL)
+    {
+        function = reinterpret_cast<NtCloseType>(::GetProcAddress(dll,
+                                                                  "NtClose"));
+        if (function != NULL)
+        {
+            ntStatus = function(Key);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "NtClose fails: ntStatus=%!STATUS!", ntStatus);
+            }
+        }
+        FreeLibrary(dll);
+    }
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Registry_RegistryPathFromHandle(
+    _In_ DMFMODULE DmfModule,
+    _In_ HANDLE Key,
+    _Out_ WDFMEMORY* RegistryPathObject
+    )
+/*++
+
+Routine Description:
+
+    Retrieve absolute registry path from registry HEY handle for UMDF.
+    Used NtQueryKey function from ntdll.dll.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Key - Opened registry handle.
+    RegistryPathObject - Pointer to WDF Memory object to return registry path. Must be freed by caller.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WCHAR* registryPath;
+    ULONG size;
+    size_t bufferSize;
+    size_t nameLength;
+    size_t textLength;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDFMEMORY nameInformationObject;
+    KEY_NAME_INFORMATION* nameInformation;
+    WCHAR* actualRegistryPath;
+    HMODULE dll;
+    NtQueryKeyType function;
+
+    nameInformationObject = NULL;
+    nameInformation = NULL;
+    ntStatus = STATUS_UNSUCCESSFUL;
+    registryPath = NULL;
+    actualRegistryPath = NULL;
+    size = 0;
+
+    DmfAssert(Key != NULL);
+
+    // Load ntdll.dll.
+    //
+    dll = LoadLibrary(L"ntdll.dll");
+    if (dll != NULL)
+    {
+        // Retrive NtQueryKey function address.
+        //
+        function = reinterpret_cast<NtQueryKeyType>(::GetProcAddress(dll,
+                                                                     "NtQueryKey"));
+        if (function != NULL)
+        {
+            // Query buffer size required for registry path.
+            //
+            ntStatus = function(Key,
+                                KEY_INFORMATION_CLASS_KeyNameInformation,
+                                0,
+                                0,
+                                &size);
+            if (ntStatus == STATUS_BUFFER_TOO_SMALL)
+            {
+                size = size + sizeof(WCHAR);
+
+                // Allocate memory buffer for registry path.
+                // The memory will be freed by caller.
+                //
+                WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+                objectAttributes.ParentObject = DmfModule;
+                ntStatus = WdfMemoryCreate(&objectAttributes,
+                                           PagedPool,
+                                           MemoryTag,
+                                           size,
+                                           &nameInformationObject,
+                                           (VOID**)&nameInformation);
+                if (NT_SUCCESS(ntStatus))
+                {
+                    // Query registry path.
+                    //
+                    ntStatus = function(Key,
+                                        KEY_INFORMATION_CLASS_KeyNameInformation,
+                                        (VOID*)nameInformation,
+                                        size,
+                                        &size);
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+                }
+            }
+        }
+
+        // Unload ntdll.dll
+        //
+        FreeLibrary(dll);
+
+        if (NT_SUCCESS(ntStatus))
+        {
+            // Remove "\\Registry\\Machine\\" leading text from the registry path for UMDF
+            // From https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfregistry/nf-wdfregistry-wdfregistryopenkey
+            // The string format specified in the KeyName parameter depends on whether the caller is a KMDF driver or a UMDF driver
+            // For Kernel use path
+            // L"\\Registry\\Machine\\System\\CurrentControlSet\\Control "
+            // For User mode use path:
+            // L"System\\CurrentControlSet\\Control\\"
+            //
+            textLength = wcslen(REGISTRY_MACHINE_TEXT);
+            nameLength = nameInformation->NameLength/sizeof(WCHAR);
+            actualRegistryPath = nameInformation->Name;
+
+            // Check is found registry path is longer then expected "System\\CurrentControlSet\\Control\\" prefix
+            //
+            if (textLength < nameLength)
+            {
+                if (0 == _wcsnicmp(REGISTRY_MACHINE_TEXT,
+                                   nameInformation->Name,
+                                   textLength))
+                {
+                    nameLength -= textLength;
+                    actualRegistryPath += textLength;
+                }
+            }
+
+            bufferSize = (nameLength + 1) * sizeof(WCHAR);
+
+            // Allocate memory buffer for registry path.
+            //
+            WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+            objectAttributes.ParentObject = DmfModule;
+            ntStatus = WdfMemoryCreate(&objectAttributes,
+                                       PagedPool,
+                                       MemoryTag,
+                                       bufferSize,
+                                       RegistryPathObject,
+                                       (VOID**)&registryPath);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
+            else
+            {
+                // Copy registry path buffer to string.
+                //
+                wcsncpy_s(registryPath,
+                          nameLength + 1,
+                          actualRegistryPath,
+                          nameLength);
+            }
+        }
+    }
+
+Exit:
+
+    return ntStatus;
+}
+
+#elif defined(DMF_KERNEL_MODE)
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+Registry_HKEYClose(
+    _In_ HANDLE Key
+    )
+/*++
+
+Routine Description:
+
+    Wraper for ZwClose function for KMDF.
+
+Arguments:
+
+    Key - Opened handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    ZwClose(Key);
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Registry_RegistryPathFromHandle(
+    _In_ DMFMODULE DmfModule,
+    _In_ HANDLE Key,
+    _Out_ WDFMEMORY* RegistryPathObject
+    )
+/*++
+
+Routine Description:
+
+    Retrieve absolute registry path from registry HEY handle for KMDF.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Key - Opened registry handle.
+    RegistryPathObject - Pointer to WDF Memory object to return registry path. Must be freed by caller.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    ULONG size;
+    size_t bufferSize;
+    WCHAR* registryPath;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDFMEMORY nameInformationObject;
+    KEY_NAME_INFORMATION* nameInformation;
+
+    ntStatus = STATUS_UNSUCCESSFUL;
+    size = 0;
+    nameInformationObject = NULL;
+    nameInformation = NULL;
+
+    // Query buffer size required for registry path.
+    //
+    ntStatus = ZwQueryKey(Key,
+                          KeyNameInformation,
+                          NULL,
+                          0,
+                          &size);
+    if (STATUS_BUFFER_TOO_SMALL != ntStatus)
+    {
+        goto Exit;
+    }
+
+    // Allocate KEY_NAME_INFORMATION structure with required size buffer for registry path.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               size,
+                               &nameInformationObject,
+                               (VOID**)&nameInformation);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = ZwQueryKey(Key,
+                          KeyNameInformation,
+                          nameInformation,
+                          size,
+                          &size);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Allocate memory buffer for registry path.
+    //
+    bufferSize = nameInformation->NameLength + sizeof(WCHAR);
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               bufferSize,
+                               RegistryPathObject,
+                               (VOID**)&registryPath);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Set trailing zero for registry path string.
+    //
+    registryPath[nameInformation->NameLength / sizeof(WCHAR)] = L'\0';
+
+    // Copy registry path buffer to string.
+    //
+    RtlCopyMemory(registryPath,
+                  nameInformation->Name,
+                  nameInformation->NameLength);
+
+Exit:
+    // Free WDFMEMORY object created for KEY_NAME_INFORMATION structure.
+    //
+    if (nameInformationObject)
+    {
+        WdfObjectDelete(nameInformationObject);
+    }
+
+    return ntStatus;
+}
+#endif
+
 //-----------------------------------------------------------------------------------------------------
 // Registry Write
 //-----------------------------------------------------------------------------------------------------
@@ -2690,6 +3551,126 @@ Return Value:
 
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenByDeviceInterface(
+    _In_ DMFMODULE DmfModule,
+    _In_ CONST GUID* InterfaceGuid,
+    _In_ int DeviceLinkIndex,
+    _Out_ HANDLE* RegistryHandle
+    )
+/*++
+
+Routine Description:
+
+    Open a registry key that is specific to a device interface.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    InterfaceGuid - Device interface GUID.
+    DeviceLinkIndex - Instance index for Device Interface symbolic link's list.
+    RegistryHandle - Opened registry key or NULL in case of error.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WCHAR* registryPath;
+    WDFMEMORY registryPathObject;
+    HANDLE key;
+    size_t size;
+    WDFSTRING deviceInterface;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    *RegistryHandle = NULL;
+    deviceInterface = NULL;
+
+    registryPath = NULL;
+    registryPathObject = NULL;
+    key = NULL;
+
+    // Step 1 - Open device interface registry key as HKEY.
+    //
+
+    // Retrieve device interface symbolic link.
+    // deviceInterface is allocated in Registry_DeviceInterfaceStringGet. Will be freed on exit.
+    //
+    ntStatus = Registry_DeviceInterfaceStringGet(DmfModule,
+                                                 InterfaceGuid,
+                                                 DeviceLinkIndex,
+                                                 &deviceInterface);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Registry_DeviceInterfaceStringGet fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Open registry in KMDF here.
+    // key will be closed on exit.
+    //
+    ntStatus = Registry_DeviceInterfaceKeyOpen(DmfModule,
+                                               deviceInterface,
+                                               GENERIC_READ,
+                                               &key);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Registry_DeviceInterfaceKeyOpen fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Step 2 - Retrieve registry path related to device interface.
+    //
+
+    // registryPathObject is allocated in Registry_RegistryPathFromHandle and will be deleted on exit.
+    //
+    ntStatus = Registry_RegistryPathFromHandle(DmfModule,
+                                               key,
+                                               &registryPathObject);
+    if (NULL == registryPathObject || !NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Registry_RegistryPathFromHandle fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Step 3 - Open device interface registry key as WDFKEY.
+    //
+    registryPath = (WCHAR*) WdfMemoryGetBuffer(registryPathObject,
+                                               &size);
+
+    *RegistryHandle = DMF_Registry_HandleOpenByName(DmfModule,
+                                                    registryPath);
+    if (!*RegistryHandle)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+    }
+
+Exit:
+
+    if (registryPathObject)
+    {
+        WdfObjectDelete(registryPathObject);
+    }
+    if (deviceInterface)
+    {
+        WdfObjectDelete(deviceInterface);
+    }
+
+    if (NULL != key)
+    {
+        Registry_HKEYClose(key);
+    }
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 HANDLE
 DMF_Registry_HandleOpenByHandle(
     _In_ DMFMODULE DmfModule,
@@ -2878,6 +3859,12 @@ Return Value:
 
     if (Name != NULL)
     {
+        // NOTE:
+        // Deprecated path for WCOS compliant drivers.
+        // This path will cause Verifier errors under recent versions of Windows.
+        // Use DMF_Registry_HandleOpenById() or DMF_Registry_HandleOpenParametersRegistryKey()
+        // instead.
+        //
         ntStatus = Registry_HandleOpenByNameEx(Name,
                                                AccessMask,
                                                Create,
@@ -2891,6 +3878,68 @@ Return Value:
                                                       PLUGPLAY_REGKEY_DEVICE,
                                                       AccessMask,
                                                       RegistryHandle);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_Registry_HandleOpenParametersRegistryKey(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG DesiredAccess,
+    _In_ WDF_OBJECT_ATTRIBUTES* KeyAttributes,
+    _Out_ HANDLE* RegistryHandle
+    )
+/*++
+
+Routine Description:
+
+    Open the driver's "Parameters" key. This is just a wrapper around the WDF API so that
+    it is not necessary to mix DMF and WDF calls.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DesiredAccess - Access mask to use to open the handle.
+    KeyAttributes - See MSDN documentation for WdfDriverOpenParametersRegistryKey().
+    RegistryHandle - Handle to open registry key or NULL in case of error.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    WDFDEVICE device;
+    WDFDRIVER driver;
+    WDFKEY registryHandle;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Registry);
+
+    device = DMF_ParentDeviceGet(DmfModule);
+    driver = WdfDeviceGetDriver(device);
+
+    ntStatus = WdfDriverOpenParametersRegistryKey(driver,
+                                                  DesiredAccess,
+                                                  KeyAttributes,
+                                                  &registryHandle);
+    if (NT_SUCCESS(ntStatus))
+    {
+        *RegistryHandle = (HANDLE)registryHandle;
+    }
+    else
+    {
+        *RegistryHandle = NULL;
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -3981,6 +5030,9 @@ Return Value:
     for (ULONG callbackIndex = 0; callbackIndex < scheduledTaskCallbackContext->NumberOfCallbacks; callbackIndex++)
     {
         // Create and open a Registry Module, do the registry work, close and destroy the Registry Module.
+        // NOTE: This callback cannot call any deferred Methods because the Module is immediately destroyed
+        //       when the callback finishes. For example, do not call DMF_Registry_TreeWriteDeferred() from 
+        //       inside the callback.
         //
         ntStatus = DMF_Registry_CallbackWork(device,
                                              scheduledTaskCallbackContext->Callbacks[callbackIndex]);

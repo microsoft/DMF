@@ -120,12 +120,12 @@
       <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppFileExtensions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.c.C.cpp.CPP.h.H</WppFileExtensions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories);..\..\Modules;..\..\Framework;..\..\Framework\Modules.Library</AdditionalIncludeDirectories>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</WppRecorderEnabled>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WppRecorderEnabled>
       <WppRecorderEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</WppRecorderEnabled>
@@ -145,6 +145,9 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
+    <ClCompile Condition="'$(Platform)'=='ARM64'">
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
     </Link>
@@ -160,11 +163,25 @@
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
+    <Link>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.Public.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_AlertableSleep.h" />
@@ -199,8 +216,18 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_MobileBroadband.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_UefiOperation.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_AlertableSleep.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.c" />
@@ -231,11 +258,21 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_MobileBroadband.cpp" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md" />
+    <None Include="..\..\Modules.Library\Dmf_BufferPool.md" />
+    <None Include="..\..\Modules.Library\Dmf_BufferQueue.md" />
+    <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
+    <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
+    <None Include="..\..\Modules.Library\Dmf_IoctlHandler.md" />
+    <None Include="..\..\Modules.Library\Dmf_RingBuffer.md" />
+    <None Include="..\..\Modules.Library\Dmf_Stack.md" />
+    <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_AlertableSleep.md" />
     <None Include="..\..\Modules.Library\Dmf_CmApi.md" />
     <None Include="..\..\Modules.Library\Dmf_ComponentFirmwareUpdate.md" />
@@ -263,6 +300,7 @@
     <None Include="..\..\Modules.Library\Dmf_Thread.md" />
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />
+    <None Include="..\..\Modules.Library\Dmf_UefiOperation.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

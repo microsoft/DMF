@@ -265,7 +265,7 @@ Return Value:
     {
         // This path (duplicate QueryRemove) can happen when multiple
         // drivers are in the stack. this case causes any duplicate messages
-        // to be ignored. It is necessary to to do this to prevent Module's
+        // to be ignored. It is necessary to do this to prevent Module's
         // Close callback from being called twice.
         //
         moduleCloseReasonType = ModuleCloseReason_Duplicate;
@@ -904,15 +904,26 @@ Return Value:
 
         // If the Client has registered for device interface state changes, call the notification callback.
         //
-        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
         {
+            DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
             moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
                                                                 DeviceInterfaceTarget_StateType_QueryRemove);
         }
+        else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+        {
+            // This version allows Client to veto the remove.
+            //
+            ntStatus = moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                                             DeviceInterfaceTarget_StateType_QueryRemove);
+        }
 
-        // Stop streaming and Close the Module.
-        //
-        DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        if (NT_SUCCESS(ntStatus))
+        {
+            // Stop streaming and Close the Module.
+            //
+            DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        }
 
         // After this, RemoveCancel or RemoveComplete will happen.
         //
@@ -1009,10 +1020,16 @@ Return Value:
 
     // If the client has registered for device interface state changes, call the notification callback.
     //
-    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
                                                             DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+    {
+        moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                              DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
     }
 
     // End of sequence. Allow another close to happen. Now NotificationUnregister or
@@ -1095,10 +1112,16 @@ Return Value:
     if ((moduleCloseReason == ModuleCloseReason_QueryRemove) ||
         (moduleCloseReason == ModuleCloseReason_RemoveComplete))
     {
-        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
         {
+            DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
             moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
                                                                 DeviceInterfaceTarget_StateType_QueryRemoveComplete);
+        }
+        else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+        {
+            moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                                  DeviceInterfaceTarget_StateType_QueryRemoveComplete);
         }
 
         if (moduleCloseReason == ModuleCloseReason_RemoveComplete)
@@ -1216,10 +1239,18 @@ Return Value:
         goto Exit;
     }
 
-    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
                                                             DeviceInterfaceTarget_StateType_Open);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+    {
+        // This version allows Client to veto the open.
+        //
+        ntStatus = moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
+                                                                         DeviceInterfaceTarget_StateType_Open);
     }
 
     // Handle is still created, it must not be set to NULL so devices can still send it requests.
@@ -2031,10 +2062,16 @@ Return Value:
             // Normal close that happens without QueryRemove.
             //
             WdfIoTargetClose(moduleContext->IoTarget);
-            if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange)
+            if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
             {
+                DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
                 moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
                                                                     DeviceInterfaceTarget_StateType_Close);
+            }
+            else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+            {
+                moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
+                                                                      DeviceInterfaceTarget_StateType_Close);
             }
             WdfObjectDelete(moduleContext->IoTarget);
             // Delete stored symbolic link if set. (This will never be set in User-mode.)
@@ -2130,20 +2167,25 @@ Return Value:
         // ContinuousRequestTarget
         // -----------------------
         //
+        DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
 
         // Store ContinuousRequestTarget callbacks from config into DeviceInterfaceTarget context for redirection.
         //
         moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
         moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
 
+        DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&moduleConfigContinuousRequestTarget,
+                                                               &moduleAttributes);
+        // Copy ContinuousRequestTarget Config from Client's Module Config.
+        //
+        RtlCopyMemory(&moduleConfigContinuousRequestTarget,
+                      &moduleConfig->ContinuousRequestTargetModuleConfig,
+                      sizeof(moduleConfig->ContinuousRequestTargetModuleConfig));
         // Replace ContinuousRequestTarget callbacks in config with DeviceInterfaceTarget callbacks.
         //
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = DeviceInterfaceTarget_Stream_BufferInput;
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceTarget_Stream_BufferOutput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferInput = DeviceInterfaceTarget_Stream_BufferInput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceTarget_Stream_BufferOutput;
 
-        DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
-        moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
         moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
@@ -2483,23 +2525,11 @@ Return Value:
                                  DeviceInterfaceTarget);
 
     DmfAssert(Guid != NULL);
-    RtlZeroMemory(Guid,
-                  sizeof(GUID));
 
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
-        goto Exit;
-    }
-
+    ntStatus = STATUS_SUCCESS;
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     *Guid = moduleConfig->DeviceInterfaceTargetGuid;
-
-    DMF_ModuleDereference(DmfModule);
-
-Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -2620,7 +2650,8 @@ Arguments:
     RequestIoctl - The given IOCTL.
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
     EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
-    SingleAsynchronousRequestClientContext - Client context sent in callback
+    SingleAsynchronousRequestClientContext - Client context sent in callback.
+    DmfRequestId - Unique id associated with the underlying WDFREQUEST.
 
 Return Value:
 

@@ -14,7 +14,6 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
-    User-mode Driver Framework
 
 --*/
 
@@ -45,6 +44,10 @@ typedef struct
     // Client's PASSIVE_LEVEL callback when Acpi Notification happens.
     //
     EVT_DMF_AcpiNotification_Passive* PassiveCallback;
+    // Allows Client to start/stop notifications on demand.
+    // Otherwise, notifications start/stop during PrepareHardare/ReleaseHardware.
+    //
+    BOOLEAN ManualMode;
 } DMF_CONFIG_AcpiNotification;
 
 // This macro declares the following functions:
@@ -56,6 +59,14 @@ DECLARE_DMF_MODULE(AcpiNotification)
 
 // Module Methods
 //
+
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_AcpiNotification_EnableDisable(
+    _In_ DMFMODULE DmfModule,
+    _In_ ULONG EnableNotifications
+    );
 
 // eof: Dmf_AcpiNotification.h
 //

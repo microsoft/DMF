@@ -914,6 +914,10 @@ Return Value:
     }
 
     moduleContext->simpleOrientationDevice->thisModuleHandle = DmfModule;
+    if (moduleConfig->DeviceId == NULL)
+    {
+        moduleConfig->DeviceId = L"";
+    }
     moduleContext->simpleOrientationDevice->DeviceIdToFind = to_hstring(moduleConfig->DeviceId);
     moduleContext->simpleOrientationDevice->EvtSimpleOrientationReadingChangeCallback = moduleConfig->EvtSimpleOrientationReadingChangeCallback;
     ntStatus = moduleContext->simpleOrientationDevice->Initialize();

@@ -47,6 +47,18 @@ EVT_DMF_ThreadedBufferQueue_Callback(_In_ DMFMODULE DmfModule,
                                      _In_ VOID* ClientWorkBufferContext,
                                      _Out_ NTSTATUS* NtStatus);
 
+// Callback called by DMF_ThreadedBufferQueue_Reuse so Client
+// can finalize buffers before being sent back to Producer.
+//
+typedef
+_Function_class_(EVT_DMF_ThreadedBufferQueue_ReuseCleanup)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_ThreadedBufferQueue_ReuseCleanup(_In_ DMFMODULE DmfModule,
+                                         _In_ VOID* ClientBuffer,
+                                         _In_ VOID* ClientBufferContext);
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -63,6 +75,10 @@ typedef struct
     // Optional callback that does work after looping but before thread ends.
     //
     EVT_DMF_Thread_Function* EvtThreadedBufferQueuePost;
+    // Optional callback allows Client to deallocate / dereference any
+    // buffer-attached resources.
+    //
+    EVT_DMF_ThreadedBufferQueue_ReuseCleanup* EvtThreadedBufferQueueReuseCleanup;
 } DMF_CONFIG_ThreadedBufferQueue;
 
 // This macro declares the following functions:
@@ -88,9 +104,23 @@ DMF_ThreadedBufferQueue_Enqueue(
     _In_ VOID* ClientBuffer
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ThreadedBufferQueue_EnqueueAtHead(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_ThreadedBufferQueue_EnqueueAndWait(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* ClientBuffer
     );
@@ -101,7 +131,7 @@ NTSTATUS
 DMF_ThreadedBufferQueue_Fetch(
     _In_ DMFMODULE DmfModule,
     _Out_ VOID** ClientBuffer,
-    _Out_ VOID** ClientBufferContext
+    _Out_opt_ VOID** ClientBufferContext
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

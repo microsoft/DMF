@@ -6,8 +6,10 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-Implements a driver pattern that executes deferred code. This Module has support for ensuring that if multiple calls are made to
-execute deferred code, the deferred code executes exactly the number of times the calls were made.
+This Module allows Clients to scheduled work that will completed a SINGLE time, either
+for the duration of the Driver's runtime or persistent over reboots.
+
+NOTE: A better name for this Module is "ScheduleTaskOnce".
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -21,7 +23,8 @@ typedef struct
   // The Client Driver function that will perform work one time in a work item.
   //
   EVT_DMF_ScheduledTask_Callback* EvtScheduledTaskCallback;
-  // Client context for above callback.
+  // Client context for above callback used by the timer and by
+  // DMF_ScheduledTask__ExecuteNowDeferredEx Method.
   //
   VOID* CallbackContext;
   // Indicates if the operation should be done every time driver loads or only a
@@ -76,10 +79,11 @@ typedef enum
 ````
 Member | Description
 ----|----
-ScheduledTask_WorkResult_Success | Indicates that the Client callback succeeded.
+ScheduledTask_WorkResult_Success | Indicates that the Client callback succeeded. **IMPORTANT:** The callback will never be called again based on the
+the persistence type setting.
 ScheduledTask_WorkResult_Fail | Indicates that the Client callback failed.
-ScheduledTask_WorkResult_FailButTryAgain | Indicates that the Client callback fails but that another attempt should be made.
-ScheduledTask_WorkResult_SuccessButTryAgain | Indicates that the Client callback succeeded, but that another attempt should be made.
+ScheduledTask_WorkResult_FailButTryAgain | Indicates that the Client callback fails but that another attempt should be made automatically based on fail timer interval.
+ScheduledTask_WorkResult_SuccessButTryAgain | Indicates that the Client callback succeeded, but that another attempt should be made based on success timer interval.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### ScheduledTask_Persistence_Type
@@ -214,8 +218,10 @@ DMF_ScheduledTask_ExecuteNowDeferred(
   );
 ````
 
+**IMPORTANT:** Use `DMF_ScheduledTask_ExecuteNowDeferredEx` instead of this Method.
+
 This Method causes the deferred code to execute one time (at a later time). The deferred code will execute shortly
-after this call completes.
+after this call completes. The callback's return value is **not** honored using this Method (due to a an error in the logic).
 
 ##### Returns
 
@@ -231,7 +237,38 @@ CallbackContext | This is a Client specific context that is passed to the Client
 
 * Is possible to use this Method from a Module's Close callback.
 * It is possible to use this Method to execute code in a different thread. Sometimes, due to locking issues, this capability is needed.
+* It is best to use the Ex version of this Method as it works intuitively.
+* This Method is present to maintain compatibility with legacy Clients.
 
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_ScheduledTask_ExecuteNowDeferredEx
+````
+NTSTATUS
+DMF_ScheduledTask_ExecuteNowDeferredEx(
+  _In_ DMFMODULE DmfModule
+  );
+````
+
+This Method causes the deferred code to execute one time (at a later time). The deferred code will execute shortly
+after this call completes. The callback's return value **is** honored using this Method. The callback is passed
+the context specified in Module config.
+
+##### Returns
+
+NTSTATUS. Fails if the Request cannot be added to the queue.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ScheduledTask Module handle.
+
+##### Remarks
+
+* Is possible to use this Method from a Module's Close callback.
+* It is possible to use this Method to execute code in a different thread. Sometimes, due to locking issues, this capability is needed.
+* **IMPORTANT:** When the callback returns `ScheduledTask_WorkResult_Success` it means that the callback will never execute again.
+* 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ScheduledTask_TimesRunGet
@@ -256,34 +293,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_ScheduledTask Module handle.
 TimesRun | Returns the number of times the DMF_ScheduledTask routine has executed (the value read from the registry).
-
-##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-##### DMF_ScheduledTask_TimesRunIncrement
-
-````
-_IRQL_requires_max_(PASSIVE_LEVEL)
-NTSTATUS
-DMF_ScheduledTask_TimesRunIncrement(
-  _In_ DMFMODULE DmfModule,
-  _Out_ ULONG* TimesRun
-  );
-````
-
-This Method reads the default registry setting that keeps track of the number of times the DMF_ScheduledTask routine has executed.
-It then, increments that value and writes it back.
-
-##### Returns
-
-NTSTATUS. Fails if the value cannot be read from the registry.
-
-##### Parameters
-Parameter | Description
-----|----
-DmfModule | An open DMF_ScheduledTask Module handle.
-TimesRun | Returns the value of the counter prior to the increment. (It is the number of times the ScheduledTask routine has executed until this call.)
 
 ##### Remarks
 

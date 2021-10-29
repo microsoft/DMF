@@ -440,11 +440,18 @@ Return Value:
                 DMF_Rundown_EndAndWait(Target->DmfModuleRundown);
             }
 
-            if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+            if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
             {
+                DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
                 moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
                                                                             Target->DmfIoTarget,
                                                                             DeviceInterfaceMultipleTarget_StateType_Close);
+            }
+            else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
+            {
+                moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(DmfModule,
+                                                                              Target->DmfIoTarget,
+                                                                              DeviceInterfaceMultipleTarget_StateType_Close);
             }
             // The target is about to go away...Wait for all pending Methods using the target
             // to finish executing and don't let new Methods start.
@@ -1318,18 +1325,30 @@ Return Value:
 
     // If the Client has registered for device interface state changes, call the notification callback.
     //
-    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
                                                                     target->DmfIoTarget,
                                                                     DeviceInterfaceMultipleTarget_StateType_QueryRemove);
     }
+    else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
+    {
+        // This version allows Client to veto the remove.
+        //
+        ntStatus = moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(dmfModule,
+                                                                                 target->DmfIoTarget,
+                                                                                 DeviceInterfaceMultipleTarget_StateType_QueryRemove);
+    }
 
-    // Stop the target and Close the Module.
-    //
-    DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(IoTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        // Stop the target and Close the Module.
+        //
+        DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(IoTarget);
 
-    WdfIoTargetCloseForQueryRemove(IoTarget);
+        WdfIoTargetCloseForQueryRemove(IoTarget);
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1410,11 +1429,18 @@ Return Value:
 
     // If the client has registered for device interface state changes, call the notification callback.
     //
-    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
                                                                     target->DmfIoTarget,
                                                                     DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
+    {
+        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(dmfModule,
+                                                                      target->DmfIoTarget,
+                                                                      DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled);
     }
 
     // Transparently restart the stream in automatic mode.
@@ -1504,11 +1530,18 @@ Return Value:
         target->QueryRemoveHappened = FALSE;
     }
 
-    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
                                                                     target->DmfIoTarget,
                                                                     DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
+    {
+        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(dmfModule,
+                                                                      target->DmfIoTarget,
+                                                                      DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete);
     }
 
     // The underlying target has been removed and is no longer accessible.
@@ -1574,20 +1607,25 @@ Return Value:
         // ContinuousRequestTarget
         // -----------------------
         //
+        DMF_CONFIG_ContinuousRequestTarget moduleConfigContinuousRequestTarget;
 
         // Store ContinuousRequestTarget callbacks from config into DeviceInterfaceMultipleTarget context for redirection.
         //
         moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
         moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
 
+        DMF_CONFIG_ContinuousRequestTarget_AND_ATTRIBUTES_INIT(&moduleConfigContinuousRequestTarget,
+                                                               &moduleAttributes);
+        // Copy ContinuousRequestTarget Config from Client's Module Config.
+        //
+        RtlCopyMemory(&moduleConfigContinuousRequestTarget,
+                      &moduleConfig->ContinuousRequestTargetModuleConfig,
+                      sizeof(moduleConfig->ContinuousRequestTargetModuleConfig));
         // Replace ContinuousRequestTarget callbacks in config with DeviceInterfaceMultipleTarget callbacks.
         //
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = DeviceInterfaceMultipleTarget_Stream_BufferInput;
-        moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceMultipleTarget_Stream_BufferOutput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferInput = DeviceInterfaceMultipleTarget_Stream_BufferInput;
+        moduleConfigContinuousRequestTarget.EvtContinuousRequestTargetBufferOutput = DeviceInterfaceMultipleTarget_Stream_BufferOutput;
 
-        DMF_ContinuousRequestTarget_ATTRIBUTES_INIT(&moduleAttributes);
-        moduleAttributes.ModuleConfigPointer = &moduleConfig->ContinuousRequestTargetModuleConfig;
-        moduleAttributes.SizeOfModuleSpecificConfig = sizeof(moduleConfig->ContinuousRequestTargetModuleConfig);
         moduleAttributes.PassiveLevel = moduleContext->PassiveLevel;
         ntStatus = DMF_ContinuousRequestTarget_Create(device,
                                                       &moduleAttributes,
@@ -1763,11 +1801,20 @@ Return Value:
     //
     DMF_Rundown_Start(Target->DmfModuleRundown);
 
-    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange)
+    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
     {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(DmfModule,
                                                                     Target->DmfIoTarget,
                                                                     DeviceInterfaceMultipleTarget_StateType_Open);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
+    {
+        // This version allows Client to veto the open.
+        //
+        ntStatus = moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(DmfModule,
+                                                                                 Target->DmfIoTarget,
+                                                                                 DeviceInterfaceMultipleTarget_StateType_Open);
     }
 
     // Handle is still created, it must not be set to NULL so devices can still send it requests.
@@ -3023,23 +3070,11 @@ Return Value:
                                  DeviceInterfaceMultipleTarget);
 
     DmfAssert(Guid != NULL);
-    RtlZeroMemory(Guid,
-                  sizeof(GUID));
 
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
-        goto Exit;
-    }
-
+    ntStatus = STATUS_SUCCESS;
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     *Guid = moduleConfig->DeviceInterfaceMultipleTargetGuid;
-
-    DMF_ModuleDereference(DmfModule);
-
-Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

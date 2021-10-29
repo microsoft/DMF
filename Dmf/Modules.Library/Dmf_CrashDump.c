@@ -121,7 +121,7 @@ typedef struct _DMF_CONTEXT_CrashDump
 
     // Crash Dump Context for Additional data from this driver.
     //
-    KBUGCHECK_REASON_CALLBACK_RECORD BugCheckCallbacRecordAdditional;
+    KBUGCHECK_REASON_CALLBACK_RECORD BugCheckCallbackRecordAdditional;
 
     // Management information for all the Crash Dump Data Sources.
     //
@@ -132,6 +132,15 @@ typedef struct _DMF_CONTEXT_CrashDump
     //       but element is used in the callback.
     //
     KBUGCHECK_REASON_CALLBACK_RECORD* BugCheckCallbackRecordRingBuffer;
+
+    // The Triage Dump Data Array.
+    //
+    WDFMEMORY TriageDumpDataArrayMemory;
+    KTRIAGE_DUMP_DATA_ARRAY* TriageDumpDataArray;
+
+    // Crash Dump Context for Triage Dump Data Array callback.
+    //
+    KBUGCHECK_REASON_CALLBACK_RECORD BugCheckCallbackRecordTriageDumpData;
 
     // Keep track of whether or not the Client has been surprise removed for clean up of
     // data transferred via files.
@@ -295,7 +304,7 @@ Routine Description:
 
 Arguments:
 
-    See MSDN: BugCheckSecondaryDumpDataCallback()
+    See MSDN: KbCallbackSecondaryDumpData Callback Routine
 
 Return Value:
 
@@ -412,7 +421,7 @@ Routine Description:
 
 Arguments:
 
-    See MSDN: BugCheckSecondaryDumpDataCallback()
+    See MSDN: KbCallbackSecondaryDumpData Callback Routine
 
 Return Value:
 
@@ -439,10 +448,10 @@ Return Value:
     {
         // Tell caller how much additional data will be copied.
         //
-        DmfAssert(moduleConfig->EvtCrashDumpQuery != NULL);
-        moduleConfig->EvtCrashDumpQuery(g_DmfModuleCrashDump,
-                                        &secondaryDumpData->OutBuffer,
-                                        &secondaryDumpData->OutBufferLength);
+        DmfAssert(moduleConfig->SecondaryData.EvtCrashDumpQuery != NULL);
+        moduleConfig->SecondaryData.EvtCrashDumpQuery(g_DmfModuleCrashDump,
+                                                      &secondaryDumpData->OutBuffer,
+                                                      &secondaryDumpData->OutBufferLength);
     }
     else if (secondaryDumpData->OutBuffer == secondaryDumpData->InBuffer)
     {
@@ -454,22 +463,89 @@ Return Value:
         // First the GUID.
         //
         memcpy(&secondaryDumpData->Guid,
-               &moduleConfig->AdditionalDataGuid,
+               &moduleConfig->SecondaryData.AdditionalDataGuid,
                sizeof(GUID));
 
         // Tell the client driver to copy over its data.
         //
         totalLength = secondaryDumpData->MaximumAllowed;
-        DmfAssert(moduleConfig->EvtCrashDumpWrite != NULL);
-        moduleConfig->EvtCrashDumpWrite(g_DmfModuleCrashDump,
-                                        &secondaryDumpData->OutBuffer,
-                                        &totalLength);
+        DmfAssert(moduleConfig->SecondaryData.EvtCrashDumpWrite != NULL);
+        moduleConfig->SecondaryData.EvtCrashDumpWrite(g_DmfModuleCrashDump,
+                                                      &secondaryDumpData->OutBuffer,
+                                                      &totalLength);
         if (totalLength > secondaryDumpData->MaximumAllowed)
         {
             totalLength = secondaryDumpData->MaximumAllowed;
         }
         secondaryDumpData->OutBufferLength = totalLength;
     }
+}
+
+KBUGCHECK_REASON_CALLBACK_ROUTINE CrashDump_BugCheckTriageDumpDataCallback;
+
+VOID
+CrashDump_BugCheckTriageDumpDataCallback(
+    _In_ KBUGCHECK_CALLBACK_REASON Reason,
+    _In_ struct _KBUGCHECK_REASON_CALLBACK_RECORD* Record,
+    _Inout_ VOID* ReasonSpecificData,
+    _In_ ULONG ReasonSpecificDataLength
+    )
+/*++
+
+Routine Description:
+
+    The Bug Check Callback for Triage Dump Data.  This will call the registered
+    Client Driver callback, if present, for an additional opportunity to
+    store blocks in the array.
+
+Arguments:
+
+    See MSDN: KbCallbackAddTriageDumpData callback routine
+
+Return Value:
+
+    None
+
+--*/
+{
+    KBUGCHECK_TRIAGE_DUMP_DATA* triageDumpData;
+    DMF_CONTEXT_CrashDump* moduleContext;
+    DMF_CONFIG_CrashDump* moduleConfig;
+
+    UNREFERENCED_PARAMETER(Reason);
+    UNREFERENCED_PARAMETER(Record);
+    UNREFERENCED_PARAMETER(ReasonSpecificDataLength);
+
+    triageDumpData = (KBUGCHECK_TRIAGE_DUMP_DATA*)ReasonSpecificData;
+
+    moduleContext = DMF_CONTEXT_GET(g_DmfModuleCrashDump);
+    moduleConfig = DMF_CONFIG_GET(g_DmfModuleCrashDump);
+
+    // This callback is supported only for crash dump.
+    //
+    if ((triageDumpData->Flags & KB_TRIAGE_DUMP_DATA_FLAG_BUGCHECK_ACTIVE) == 0)
+    {
+        goto Exit;
+    }
+
+    DmfAssert(moduleContext->TriageDumpDataArray != NULL);
+
+    if (moduleConfig->TriageDumpData.EvtCrashDumpStoreTriageDumpData != NULL)
+    {
+        moduleConfig->TriageDumpData.EvtCrashDumpStoreTriageDumpData(g_DmfModuleCrashDump,
+                                                                     triageDumpData->BugCheckCode,
+                                                                     triageDumpData->BugCheckParameter1,
+                                                                     triageDumpData->BugCheckParameter2,
+                                                                     triageDumpData->BugCheckParameter3,
+                                                                     triageDumpData->BugCheckParameter4);
+    }
+
+    // Pass the final array for processing by BugCheck.
+    //
+    triageDumpData->DataArray = moduleContext->TriageDumpDataArray;
+
+Exit:
+    ;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1193,10 +1269,10 @@ Return Value:
         ULONG ringBufferSize;
 
         ringBufferSize = ItemCount * ItemSize;
-        DmfAssert(moduleConfig->RingBufferMaximumSize > 0);
-        if (ringBufferSize > moduleConfig->RingBufferMaximumSize)
+        DmfAssert(moduleConfig->SecondaryData.RingBufferMaximumSize > 0);
+        if (ringBufferSize > moduleConfig->SecondaryData.RingBufferMaximumSize)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ringBufferSize=%d RingBufferMaximumSize=%d", ringBufferSize, moduleConfig->RingBufferMaximumSize);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ringBufferSize=%d RingBufferMaximumSize=%d", ringBufferSize, moduleConfig->SecondaryData.RingBufferMaximumSize);
             goto Exit;
         }
     }
@@ -1758,6 +1834,176 @@ Return Value:
     DMF_ModuleUnlock(DmfModule);
 
     return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+CrashDump_TriageDataCreateInternal(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Allocate a triage dump data array, and register a Triage Dump Data Kernel Bug Check callback.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_CrashDump* moduleContext;
+    DMF_CONFIG_CrashDump* moduleConfig;
+    ULONG bufferSize;
+    ULONG arraySize;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    arraySize = moduleConfig->TriageDumpData.TriageDumpDataArraySize;
+    if (arraySize == 0)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        DmfAssert(FALSE);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Array size");
+        goto Exit;
+    }
+
+    // Allocate and initialize the triage dump data array
+    //
+    bufferSize = ((FIELD_OFFSET(KTRIAGE_DUMP_DATA_ARRAY, Blocks)) + (sizeof(KADDRESS_RANGE) * arraySize));
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = g_DmfModuleCrashDump;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               NonPagedPoolNx,
+                               MemoryTag,
+                               bufferSize,
+                               &moduleContext->TriageDumpDataArrayMemory,
+                               (VOID**)&moduleContext->TriageDumpDataArray);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = KeInitializeTriageDumpDataArray(moduleContext->TriageDumpDataArray,
+                                               bufferSize);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeInitializeTriageDumpDataArray fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Registering Bug Check Triage Dump Data Callback");
+    // Set up the callback record. This is set up even if the Client did not provide its own callback
+    // since the array could be populated during runtime and must still be added in this callback.
+    //
+    if (! KeRegisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordTriageDumpData,
+                                          CrashDump_BugCheckTriageDumpDataCallback,
+                                          KbCallbackTriageDumpData,
+                                          moduleConfig->ComponentName))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeRegisterBugCheckReasonCallback TriageDumpData");
+        ntStatus = STATUS_INVALID_PARAMETER;
+        // It should not happen.
+        //
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
+    if (moduleConfig->TriageDumpData.EvtCrashDumpStoreTriageDumpData == NULL)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No Triage Data Callback provided");
+    }
+
+Exit:
+
+    if (! NT_SUCCESS(ntStatus))
+    {
+        if (moduleContext->TriageDumpDataArrayMemory != NULL)
+        {
+            WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
+            moduleContext->TriageDumpDataArrayMemory = NULL;
+        }
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+CrashDump_TriageDataDestroyInternal(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+     Unregisters the corresponding Bug Check Triage Dump Data Callback and frees all resources.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None.
+
+--*/
+{
+    DMF_CONFIG_CrashDump* moduleConfig;
+    DMF_CONTEXT_CrashDump* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
+
+    // A callback could not be registered without an array, so check for the
+    // existence of an array first.
+    //
+    if (moduleContext->TriageDumpDataArray != NULL)
+    {
+        // Unregister the callback. This Bug Check Callback is unregistered while the triage data array
+        // is still allocated
+        //
+
+        if (moduleContext->BugCheckCallbackRecordTriageDumpData.Reason != KbCallbackInvalid)
+        {
+            if (! KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordTriageDumpData))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback TriageData");
+            }
+        }
+
+        WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
+        moduleContext->TriageDumpDataArrayMemory = NULL;
+    }
+
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -2917,7 +3163,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - The given DMF Module.
+    DmfModule - This Module's handle.
 
 Return Value:
 
@@ -2960,7 +3206,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - The given DMF Module.
+    DmfModule - This Module's handle.
 
 Return Value:
 
@@ -3017,15 +3263,14 @@ Return Value:
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
 #if !defined(DMF_USER_MODE)
     // Runtime check in case the value ever comes from the registry.
     //
-    if (moduleConfig->DataSourceCount > CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES)
+    if (moduleConfig->SecondaryData.DataSourceCount > CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "moduleConfig->DataSourceCount=%d > %d", moduleConfig->DataSourceCount, CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "moduleConfig->SecondaryData.DataSourceCount=%d > %d", moduleConfig->SecondaryData.DataSourceCount, CrashDump_MAXIMUM_NUMBER_OF_DATA_SOURCES);
         DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
@@ -3033,8 +3278,8 @@ Return Value:
 
     // The Client Driver must request both crash dump callbacks, or no crash dump callback.
     //
-    if ((moduleConfig->EvtCrashDumpWrite != NULL) &&
-        (NULL == moduleConfig->EvtCrashDumpQuery))
+    if ((moduleConfig->SecondaryData.EvtCrashDumpWrite != NULL) &&
+        (NULL == moduleConfig->SecondaryData.EvtCrashDumpQuery))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
@@ -3042,12 +3287,13 @@ Return Value:
         goto Exit;
     }
 
-    // If the Client Driver does not request a Ring Buffer, nor an Additional Bug Check Callback and not User-mode 
-    // Ring Buffers, there is no reason to load this Module.
+    // If the Client Driver does not request a Ring Buffer, nor an Additional Bug Check Callback,
+    // nor Triage Dump Data,  and not User-mode Ring Buffers, there is no reason to load this Module.
     //
-    if ((NULL == moduleConfig->EvtCrashDumpWrite) &&
-        (0 == moduleConfig->DataSourceCount) &&
-        ((0 == moduleConfig->BufferCount) || (0 == moduleConfig->BufferSize)))
+    if ((NULL == moduleConfig->SecondaryData.EvtCrashDumpWrite) &&
+        (0 == moduleConfig->SecondaryData.DataSourceCount) &&
+        ((0 == moduleConfig->SecondaryData.BufferCount) || (0 == moduleConfig->SecondaryData.BufferSize)) &&
+        (0 == moduleConfig->TriageDumpData.TriageDumpDataArraySize))
     {
         ntStatus = STATUS_INVALID_PARAMETER;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid Callback ntStatus=%!STATUS!", ntStatus);
@@ -3058,10 +3304,10 @@ Return Value:
     // The Client Driver must request both crash dump callbacks, or no crash dump callback.
     // In most cases, one Data Source is specified.
     //
-    if (moduleConfig->EvtCrashDumpQuery != moduleConfig->EvtCrashDumpWrite)
+    if (moduleConfig->SecondaryData.EvtCrashDumpQuery != moduleConfig->SecondaryData.EvtCrashDumpWrite)
     {
-        if ((NULL == moduleConfig->EvtCrashDumpQuery) ||
-            (NULL == moduleConfig->EvtCrashDumpWrite))
+        if ((NULL == moduleConfig->SecondaryData.EvtCrashDumpQuery) ||
+            (NULL == moduleConfig->SecondaryData.EvtCrashDumpWrite))
         {
             ntStatus = STATUS_INVALID_PARAMETER;
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Either both or no Callbacks must be specified ntStatus=%!STATUS!", ntStatus);
@@ -3071,7 +3317,7 @@ Return Value:
     }
     else
     {
-        if (NULL != moduleConfig->EvtCrashDumpQuery)
+        if (NULL != moduleConfig->SecondaryData.EvtCrashDumpQuery)
         {
             // NOTE: Be careful. If there are two separate functions, but both functions happen to
             //       execute the same code, the optimizer will combine them into the same function
@@ -3084,7 +3330,7 @@ Return Value:
     // Store the number of allocated Data Sources. Add one to make space for the Client Driver's Ring Buffer. This
     // is the most commonly used Ring Buffer.
     //
-    moduleContext->DataSourceCount = moduleConfig->DataSourceCount + 1;
+    moduleContext->DataSourceCount = moduleConfig->SecondaryData.DataSourceCount + 1;
 
     // Allocate space for the Data Sources.
     //
@@ -3116,16 +3362,16 @@ Return Value:
     RtlZeroMemory(moduleContext->BugCheckCallbackRecordRingBuffer,
                   sizeof(KBUGCHECK_REASON_CALLBACK_RECORD) * moduleContext->DataSourceCount);
 
-    if (moduleConfig->BufferCount > 0)
+    if (moduleConfig->SecondaryData.BufferCount > 0)
     {
-        DmfAssert(moduleConfig->BufferSize > 0);
+        DmfAssert(moduleConfig->SecondaryData.BufferSize > 0);
 
         // Ring Buffer Index 0 is reserved for this driver. Allocate it now.
         //
         ntStatus = CrashDump_DataSourceCreateSelf(DmfModule,
-                                                  moduleConfig->BufferCount,
-                                                  moduleConfig->BufferSize,
-                                                  &moduleConfig->RingBufferDataGuid);
+                                                  moduleConfig->SecondaryData.BufferCount,
+                                                  moduleConfig->SecondaryData.BufferSize,
+                                                  &moduleConfig->SecondaryData.RingBufferDataGuid);
         if (! NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_DataSourceCreateSelf ntStatus=%!STATUS!", ntStatus);
@@ -3136,20 +3382,20 @@ Return Value:
     {
         // The client has specified that a Ring Buffer callback is not needed.
         //
-        DmfAssert(0 == moduleConfig->BufferSize);
+        DmfAssert(0 == moduleConfig->SecondaryData.BufferSize);
     }
 
     // If the Client Driver has specified an Additional Bug Check Callback in addition to or instead of the Ring Buffer
     // create that callback.
     //
-    if (moduleConfig->EvtCrashDumpWrite != NULL)
+    if (moduleConfig->SecondaryData.EvtCrashDumpWrite != NULL)
     {
-        DmfAssert(moduleConfig->EvtCrashDumpQuery != NULL);
+        DmfAssert(moduleConfig->SecondaryData.EvtCrashDumpQuery != NULL);
 
         // Register the callback function that is called for the driver that instantiates this object.
         //
-        KeInitializeCallbackRecord(&moduleContext->BugCheckCallbacRecordAdditional);
-        if (! KeRegisterBugCheckReasonCallback(&moduleContext->BugCheckCallbacRecordAdditional,
+        KeInitializeCallbackRecord(&moduleContext->BugCheckCallbackRecordAdditional);
+        if (! KeRegisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordAdditional,
                                                CrashDump_BugCheckSecondaryDumpDataCallbackAdditional,
                                                KbCallbackSecondaryDumpData,
                                                moduleConfig->ComponentName))
@@ -3165,6 +3411,38 @@ Return Value:
     {
         // Client Driver has specified it does not need a an Additional Bug Check Callback.
         //
+    }
+
+    // If the Client Driver has specified a triage dump data array and optional
+    // Bug Check callback, allocate the array and register the callback.
+    //
+    if (moduleConfig->TriageDumpData.TriageDumpDataArraySize > 0)
+    {
+        // The OS will not add the triage dump data callback data to the dump 
+        // without a valid component name, so check it right here.
+        if (moduleConfig->ComponentName == NULL)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump Config Missing Component Name");
+            DmfAssert(moduleConfig->ComponentName != NULL);
+            ntStatus = STATUS_INVALID_PARAMETER;
+            goto Exit;
+        }
+
+        // NOTE: No lock is needed as Open is called by DMF synchronously.
+        //
+        ntStatus = CrashDump_TriageDataCreateInternal(DmfModule);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CrashDump_TriageDataCreateInternal ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+    else
+    {
+        // Client Driver has specified it does not need a triage dump data array. There should not
+        // be a callback registered in this case.
+        //
+        DmfAssert(moduleConfig->TriageDumpData.EvtCrashDumpStoreTriageDumpData == NULL);
     }
 
     ntStatus = STATUS_SUCCESS;
@@ -3184,9 +3462,9 @@ Return Value:
     // Now, just initialize the data source for write using the parameters from Module Config.
     //
     bool returnValue;
-    returnValue = moduleContext->m_SystemTelemetryDevice->InitializeForWrite(moduleConfig->BufferCount,
-                                                                             moduleConfig->BufferSize,
-                                                                             moduleConfig->RingBufferDataGuid,
+    returnValue = moduleContext->m_SystemTelemetryDevice->InitializeForWrite(moduleConfig->SecondaryData.BufferCount,
+                                                                             moduleConfig->SecondaryData.BufferSize,
+                                                                             moduleConfig->SecondaryData.RingBufferDataGuid,
                                                                              RetentionPolicyDoNotRetain);
     if (! returnValue)
     {
@@ -3201,8 +3479,8 @@ Return Value:
 
 Exit:
 
-    // In the failed case, even with partial allocations, the Close Function is called and
-    // all resource clean up happens there.
+    // BUGBUG - Allocations must be cleaned up if Open fails, as Close will not be called.
+    // TODO free all the buffers
     //
 
     return ntStatus;
@@ -3270,7 +3548,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - The given DMF Module.
+    DmfModule - This Module's handle.
 
 Return Value:
 
@@ -3289,12 +3567,12 @@ Return Value:
 
     // Unregister the Additional Bug Check Callback, if the Client Driver registered one.
     //
-    if (moduleConfig->EvtCrashDumpWrite != NULL)
+    if (moduleConfig->SecondaryData.EvtCrashDumpWrite != NULL)
     {
         // The Client Driver registered an Additional Bug Check Callback.
         //
-        DmfAssert(moduleConfig->EvtCrashDumpQuery != NULL);
-        if (! KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbacRecordAdditional))
+        DmfAssert(moduleConfig->SecondaryData.EvtCrashDumpQuery != NULL);
+        if (! KeDeregisterBugCheckReasonCallback(&moduleContext->BugCheckCallbackRecordAdditional))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeDeregisterBugCheckReasonCallback");
             // This can happen with resource failure injection, so do not assert.
@@ -3314,8 +3592,8 @@ Return Value:
         DmfAssert(RINGBUFFER_INDEX_SELF < moduleContext->DataSourceCount);
         if (moduleContext->DataSource[RINGBUFFER_INDEX_SELF].DmfModuleDataSourceRingBuffer != NULL)
         {
-            DmfAssert(moduleConfig->BufferCount > 0);
-            DmfAssert(moduleConfig->BufferSize > 0);
+            DmfAssert(moduleConfig->SecondaryData.BufferCount > 0);
+            DmfAssert(moduleConfig->SecondaryData.BufferSize > 0);
 
             // Close the SELF Ring Buffer.
             //
@@ -3384,6 +3662,10 @@ Return Value:
         //
     }
 
+    // Deregister the Triage Dump Data Callback and free its resources.
+    //
+    CrashDump_TriageDataDestroyInternal(DmfModule);
+
     DMF_ModuleUnlock(DmfModule);
 
     // All Data Sources are shut down. Free associated data now.
@@ -3436,7 +3718,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - The given DMF Module.
+    DmfModule - This Module's handle.
 
 Return Value:
 
@@ -3518,7 +3800,7 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    if (moduleConfig->DataSourceCount > 0)
+    if (moduleConfig->SecondaryData.DataSourceCount > 0)
     {
         // IoctlHandler
         // ------------
@@ -3590,6 +3872,8 @@ Return Value:
 
     PAGED_CODE();
 
+    FuncEntry(DMF_TRACE);
+
     ntStatus = STATUS_SUCCESS;
     dmfModule = NULL;
 
@@ -3600,6 +3884,7 @@ Return Value:
         // dump callbacks called by the OS.
         //
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Only one instance of this Module can exist at time");
+        ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
 #endif // !defined(DMF_USER_MODE)
@@ -3713,6 +3998,70 @@ Return Value:
 
     return ntStatus;
 }
+
+#if !defined(DMF_USER_MODE)
+
+#if IS_WIN10_19H1_OR_LATER
+
+_IRQL_requires_same_
+NTSTATUS
+DMF_CrashDump_TriageDumpDataAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR* Data,
+    _In_ ULONG DataLength
+    )
+/*++
+
+Routine Description:
+
+    Add a Client Driver buffer to the Triage Dump Buffer list. This does not copy
+    the memory but adds the address of the buffer and length to the triage data array
+    so it will be marked for inclusion in a kernel minidump.  This could be called at
+    any IRQL, depending on if it was called during the BugCheck callback or earlier.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Data - The data to mark for inclusion in triage dump.
+    DataLength - The size of the data.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_CrashDump* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    DmfAssert(moduleContext != NULL);
+
+    if (moduleContext->TriageDumpDataArray == NULL)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+    }
+    else
+    {
+        // Add the block to the list. The validity of the buffer does not need to be
+        // checked at this time, it will not cause a fault later if it is invalid.
+        //
+        ntStatus = KeAddTriageDumpDataBlock(moduleContext->TriageDumpDataArray,
+                                            Data,
+                                            DataLength);
+    }
+
+    FuncExit(DMF_TRACE, "Buffer = 0x%p, Length = %d, ntStatus=%!STATUS!", Data, DataLength, ntStatus);
+
+    return ntStatus;
+}
+
+#endif // IS_WIN10_19H1_OR_LATER
+
+#endif // !defined(DMF_USER_MODE)
 
 // eof: Dmf_CrashDump.c
 //

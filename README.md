@@ -30,7 +30,7 @@ Please send email to: dmf-feedback@microsoft.com
 
 To build DMF and the sample drivers, follow the steps [here](https://docs.microsoft.com/en-us/windows-hardware/drivers/develop/building-a-driver).
 
-# Contributing
+# Contributing:
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us

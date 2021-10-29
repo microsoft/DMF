@@ -1215,8 +1215,9 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
+    inputBuffer = NULL;
+    outputBuffer = NULL;
 
     // Create the input buffer for the request if the Client needs one.
     //
@@ -1279,6 +1280,23 @@ Return Value:
 
 Exit:
 
+    // Return buffer to pool if failure occurs
+    //
+    if (! NT_SUCCESS(ntStatus))
+    {
+        if (inputBuffer != NULL)
+        {
+            DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolInput,
+                               inputBuffer);
+        }
+
+        if (outputBuffer != NULL)
+        {
+            DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolOutput,
+                               outputBuffer);
+        }
+    }
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
@@ -1303,23 +1321,30 @@ Arguments:
 
 Return Value:
 
-    None
+    NTSTATUS
 
 --*/
 {
     NTSTATUS ntStatus;
     BOOLEAN requestSendResult;
     DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
+    DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
 
     FuncEntry(DMF_TRACE);
 
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     // A new request will be sent down the stack. Count it so we can verify when
     // it returns.
     //
     InterlockedIncrement(&moduleContext->PendingStreamingRequests);
-    DMF_ModuleReference(DmfModule);
 
 #if !defined(DMF_USER_MODE)
     // A new request will be sent down the stack. Increase Rundown ref until 
@@ -1363,6 +1388,46 @@ Return Value:
                 ntStatus = WdfRequestGetStatus(Request);
                 DmfAssert(!NT_SUCCESS(ntStatus));
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestSend fails: ntStatus=%!STATUS!", ntStatus);
+
+                // If request failed to send, return input and output buffers to buffer pool.
+                //
+                WDF_REQUEST_COMPLETION_PARAMS completionParameters;
+                VOID* inputBuffer;
+                size_t inputBufferSize;
+                VOID* outputBuffer;
+                size_t outputBufferSize;
+
+                inputBuffer = NULL;
+                outputBuffer = NULL;
+
+                // Get information about the request completion.
+                //
+                WDF_REQUEST_COMPLETION_PARAMS_INIT(&completionParameters);
+                WdfRequestGetCompletionParams(Request,
+                                              &completionParameters);
+
+                // Get the input and output buffers.
+                // Input buffer will be NULL for request type read and write.
+                //
+                ContinuousRequestTarget_CompletionParamsInputBufferAndOutputBufferGet(DmfModule,
+                                                                                      &completionParameters,
+                                                                                      moduleConfig->RequestType,
+                                                                                      &inputBuffer,
+                                                                                      &inputBufferSize,
+                                                                                      &outputBuffer,
+                                                                                      &outputBufferSize);
+
+                if (inputBuffer != NULL)
+                {
+                    DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolInput,
+                                       inputBuffer);
+                }
+
+                if (outputBuffer != NULL)
+                {
+                    DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolOutput,
+                                       outputBuffer);
+                }
             }
         }
         else
@@ -1389,6 +1454,10 @@ Return Value:
         InterlockedDecrement(&moduleContext->PendingStreamingRequests);
         DMF_ModuleDereference(DmfModule);
     }
+
+    // Jump to this label means no increment and no reference was acquired.
+    //
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1698,7 +1767,7 @@ Exit:
 _Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 ScheduledTask_Result_Type 
 ContinuousRequestTarget_QueuedWorkitemCallbackSingle(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleQueuedWorkItem,
     _In_ VOID* ClientBuffer,
     _In_ VOID* ClientBufferContext
     )
@@ -1720,16 +1789,16 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModuleParent;
+    DMFMODULE dmfModule;
     ContinuousRequestTarget_QueuedWorkitemContext* workitemContext;
 
     UNREFERENCED_PARAMETER(ClientBufferContext);
 
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    dmfModule = DMF_ParentModuleGet(DmfModuleQueuedWorkItem);
 
     workitemContext = (ContinuousRequestTarget_QueuedWorkitemContext*)ClientBuffer;
 
-    ContinuousRequestTarget_ProcessAsynchronousRequestSingle(dmfModuleParent,
+    ContinuousRequestTarget_ProcessAsynchronousRequestSingle(dmfModule,
                                                              workitemContext->Request,
                                                              &workitemContext->RequestCompletionParams,
                                                              workitemContext->SingleAsynchronousRequestContext);
@@ -1740,7 +1809,7 @@ Return Value:
 _Function_class_(EVT_DMF_QueuedWorkItem_Callback)
 ScheduledTask_Result_Type
 ContinuousRequestTarget_QueuedWorkitemCallbackStream(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleQueuedWorkItem,
     _In_ VOID* ClientBuffer,
     _In_ VOID* ClientBufferContext
     )
@@ -1762,18 +1831,18 @@ Return Value:
 
 --*/
 {
-    DMFMODULE dmfModuleParent;
+    DMFMODULE dmfModule;
     ContinuousRequestTarget_QueuedWorkitemContext* workitemContext;
 
     UNREFERENCED_PARAMETER(ClientBufferContext);
 
-    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    dmfModule = DMF_ParentModuleGet(DmfModuleQueuedWorkItem);
 
     workitemContext = (ContinuousRequestTarget_QueuedWorkitemContext*)ClientBuffer;
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Queued Callback]", workitemContext->Request);
 
-    ContinuousRequestTarget_ProcessAsynchronousRequestStream(dmfModuleParent,
+    ContinuousRequestTarget_ProcessAsynchronousRequestStream(dmfModule,
                                                              workitemContext->Request,
                                                              &workitemContext->RequestCompletionParams);
 
@@ -1825,6 +1894,8 @@ Return Value:
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Start Rundown");
     DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
     DMF_Portable_Rundown_Completed(&moduleContext->StreamRequestsRundown);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Rundown completed. Reset Rundown");
+    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     // 2. Cancel any pending WDF requests.
@@ -1845,7 +1916,7 @@ Return Value:
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cancel Pending Requests: END");
 
 #if !defined(DMF_USER_MODE)
-    // 3. If streaming never started - we need to signal rundown completion event here, othewise it won't be signalled.
+    // 3. If streaming never started, signal rundown completion event here, otherwise it won't be signaled.
     //
     if (0 == moduleContext->StreamingRequestCount)
     {
@@ -2305,12 +2376,6 @@ Return Value:
                              NotificationEvent, 
                              FALSE);
     DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
-    // Per OSG, doing the wait immediately after initialize allows use of reinitialize later.
-    // In some cases, this may provide better performance so this is a better pattern.
-    // NOTE: This also corrects an assert that happens in CHK build of Windows when reinitialize
-    //       happens immediately after initialize.
-    //
-    DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
 #endif
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2385,6 +2450,9 @@ Return Value:
 #if !defined(DMF_USER_MODE)
     else
     {
+        // This is for the unlikely case the Client has set number of requests to send
+        // to zero. In this case, event is not set since no request return.
+        //
         DMF_Portable_EventSet(&moduleContext->StreamRequestsRundownCompletionEvent);
         ntStatus = STATUS_SUCCESS;
     }
@@ -3087,10 +3155,9 @@ Return Value:
     moduleContext->Stopping = FALSE;
 
 #if !defined(DMF_USER_MODE)
-    // In case it was previous stopped, re-initialize fields used for rundown.
+    // Reset event in case it has been already set.
     //
     DMF_Portable_EventReset(&moduleContext->StreamRequestsRundownCompletionEvent);
-    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     moduleContext->StreamingRequestCount = moduleConfig->ContinuousRequestCount;
@@ -3098,7 +3165,6 @@ Return Value:
     for (UINT requestIndex = 0; requestIndex < moduleConfig->ContinuousRequestCount; requestIndex++)
     {
         WDFREQUEST request;
-        
         request = (WDFREQUEST)WdfCollectionGetItem(moduleContext->CreatedStreamRequestsCollection,
                                                    requestIndex);
         DmfAssert(request != NULL);
@@ -3117,6 +3183,10 @@ Return Value:
 
         if (! NT_SUCCESS(ntStatus))
         {
+            // Remove failed request from transient requests list.
+            //
+            WdfCollectionRemoveItem(moduleContext->TransientStreamRequestsCollection,
+                                    requestIndex);
 #if !defined(DMF_USER_MODE)
             // Subtract the rest of stream requests yet to start.
             //
@@ -3125,6 +3195,10 @@ Return Value:
                 ContinuousRequestTarget_DecreaseStreamRequestCount(moduleContext);
             }
 #endif
+            // Stop streaming to cancel requests that have already been sent.
+            //
+            DMF_ContinuousRequestTarget_Stop(DmfModule);
+
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_StreamRequestSend fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
@@ -3178,12 +3252,6 @@ Return Value:
         DmfAssert(FALSE);
         goto Exit;
     }
-
-    // Tell the rest of the Module that Client has stopped streaming.
-    // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
-    // automatically.
-    //
-    moduleContext->Stopping = TRUE;
 
     // Cancel all requests from target. Do not wait until all pending requests have returned.
     //

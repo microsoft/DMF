@@ -25,12 +25,15 @@ typedef struct
   BufferPool_SourceSettings SourceSettings;
   // Sink is configured internally.
   //
+  // Optional callback for client to finalize buffer before reuse
+  //
+  EVT_DMF_BufferQueue_ReuseCleanup* EvtBufferQueueReuseCleanup;
 } DMF_CONFIG_BufferQueue;
 ````
 Member | Description.
 ----|----
 SourceSettings | Indicates the settings for a producer list. Since the producer list is internally implemented as a DMF_BufferPool source-mode list, kindly refer to the [DMF_BufferPool](Dmf_BufferPool.md) for details of this structure.
-
+EvtBufferQueueReuseCleanup |  The Client may register this callback to do any cleanup needed before the buffer is being flushed / reused.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
@@ -41,7 +44,30 @@ SourceSettings | Indicates the settings for a producer list. Since the producer 
 
 #### Module Callbacks
 
-* None
+##### EVT_DMF_BufferQueue_ReuseCleanup
+````
+_Function_class_(EVT_DMF_BufferQueue_ReuseCleanup)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_BufferQueue_ReuseCleanup(_In_ DMFMODULE DmfModule,
+                                 _In_ VOID* ClientBuffer,
+                                 _In_ VOID* ClientBufferContext);
+````
+
+This callback is called when this Module is about to reuse a work buffer. Before the Module puts the work
+buffer back in its DMF_BufferQueue Producer list for reuse, the module presents it to the Client via this callback.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_BufferQueue Module handle.
+ClientWorkBuffer | This buffer contains the work that needs to be done in this callback. This buffer is owned by Client until this function returns.
+ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
+
+##### Remarks
+
+* Use callback to free or reference count decrement resources associated with buffers.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -52,6 +78,38 @@ SourceSettings | Indicates the settings for a producer list. Since the producer 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_BufferQueue_ContextGet
+
+```
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_ContextGet(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer,
+  _Out_ VOID** ClientBufferContext
+  );
+```
+
+Given a DMF_BufferQueue buffer, this Method returns its associated Client Buffer Context.
+
+##### Parameters
+Parameter | Description.
+----|----
+DmfModule | An open DMF_BufferQueue Module handle.
+Client Buffer | The given DMF_BufferQueue Client Buffer.
+ClientBufferContext | The given Client Buffer's associated Client Buffer Context.
+
+##### Returns
+
+None
+
+##### Remarks
+
+* The Client Buffer Context can be used, for example, to store insertion specific information that is needed when the buffer is removed.
+* The Client is expected to know the size and type of the buffer context because the Client  specified that information when creating the instance of DMF_BufferQueue Module.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -162,7 +220,36 @@ DMF_BufferQueue_Enqueue(
   );
 ````
 
-Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the end).
+Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the end). This list is consumed in FIFO order.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_BufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_BufferQueue_EnqueueAtHead
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_BufferQueue_EnqueueAtHead(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer
+  );
+````
+
+Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the head). This list is consumed in LIFO order.
 
 ##### Returns
 

@@ -245,8 +245,8 @@ Return Value:
     WDFMEMORY outputMemory;
     size_t inputBufferLength;
     size_t outputBufferLength;
-    PVOID inputBuffer;
-    PVOID outputBuffer;
+    VOID* inputBuffer;
+    VOID* outputBuffer;
 
     // Get report Id from input buffer.
     //
@@ -335,21 +335,37 @@ Return Value:
     WDFMEMORY outputMemory;
     size_t inputBufferLength;
     size_t outputBufferLength;
-    PVOID inputBuffer;
+    VOID* inputBuffer;
 
     // Get report Id from output buffer length.
     //
     ntStatus = WdfRequestRetrieveOutputMemory(Request,
                                               &outputMemory);
-    if ( !NT_SUCCESS(ntStatus) )
+    // NOTE: Exception for STATUS_BUFFER_TOO_SMALL is for legacy devices
+    //       under UMDF.
+    //
+    if (! NT_SUCCESS(ntStatus) &&
+        (ntStatus != STATUS_BUFFER_TOO_SMALL))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRequestRetrieveOutputMemory fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
-    WdfMemoryGetBuffer(outputMemory,
-                       &outputBufferLength);
-    Packet->reportId = (UCHAR) outputBufferLength;
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfMemoryGetBuffer(outputMemory,
+                           &outputBufferLength);
+        // NOTE: See comment above in to explain this.
+        //
+        Packet->reportId = (UCHAR) outputBufferLength;
+    }
+    else
+    {
+        // NOTE: Exception for STATUS_BUFFER_TOO_SMALL is for legacy devices
+        //       under UMDF.
+        //
+        Packet->reportId = 0;
+    }
 
     // Get report buffer from input buffer.
     //

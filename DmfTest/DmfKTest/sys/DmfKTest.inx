@@ -13,8 +13,8 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=Sample
-ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
+Class=DmfSample
+ClassGuid={FA82D5B2-4681-437B-81DA-06FB7C8E5C39}
 Provider=%ProviderString%
 DriverVer= ; Set in target output .inf
 CatalogFile=DmfKTest.cat
@@ -23,9 +23,9 @@ PnpLockdown=1
 ; ================= Class section =====================
 
 [ClassInstall32]
-Addreg=SampleClassReg
+Addreg=DmfSampleClassReg
 
-[SampleClassReg]
+[DmfSampleClassReg]
 HKR,,,0,%ClassName%
 HKR,,Icon,,-5
 
@@ -113,7 +113,7 @@ DefaultDestDir = 12
 [Strings] 
 ProviderString     ="Driver Module Framework (DMF)"
 ManufacturerString ="Microsoft"
-ClassName          ="Sample Device"
+ClassName          ="Dmf Sample Device"
 DmfKTest           ="Surface DmfK Test Driver"
 DmfKTestBus        ="Surface DmfK Test Driver (Bus)"
 DmfKTestFunction   ="Surface DmfK Test Driver (Function)"

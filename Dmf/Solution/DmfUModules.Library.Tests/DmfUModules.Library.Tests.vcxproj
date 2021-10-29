@@ -149,6 +149,9 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
+    <ClCompile Condition="'$(Platform)'=='ARM64'">
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
     </Link>
@@ -162,6 +165,11 @@
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
+    <Link>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -182,6 +190,7 @@
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_String.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\TestsUtility.c" />
   </ItemGroup>
@@ -203,6 +212,7 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_RingBuffer.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_ScheduledTask.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_SelfTarget.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_String.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\TestsUtility.h" />
   </ItemGroup>

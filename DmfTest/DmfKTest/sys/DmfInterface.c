@@ -173,6 +173,8 @@ Return Value:
 
     isFunctionDriver = DriverModeGet(Device);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "isFunctionDriver=[%s]", isFunctionDriver ? "YES" : "NO");
+
     /////////////////////////////////////////////////////////////////////////////////
     // These tests can be in both bus and function drivers. To reduce CPU usage, they
     // can be placed in just the bus driver.
@@ -237,6 +239,15 @@ Return Value:
     // --------------------
     //
     DMF_Tests_AlertableSleep_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     NULL);
+
+    // Tests_Stack
+    // -----------
+    //
+    DMF_Tests_Stack_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
