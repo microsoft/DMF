@@ -41,6 +41,12 @@ typedef struct _UdeClient_CONFIG_Endpoint
     // Endpoint Purge callbacks. This is Optional.
     //
     EVT_DMF_UdeClient_Endpoint_Purge* EvtEndpointPurge;
+    // Endpoint data available callback (used with manual queues).
+    //
+    EVT_DMF_UdeClient_Endpoint_Ready* EvtEndpointReady;
+    // Context passed to EvtEndpointReady.
+    //
+    WDFCONTEXT EndPointReadyContext;
 } UdeClient_CONFIG_Endpoint;
 
 typedef struct _UdeClient_CONFIG_UsbDevice
@@ -321,6 +327,7 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_Purge
 ````
@@ -342,6 +349,30 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_UdeClient_Endpoint_Ready
+````
+typedef
+_Function_class_(EVT_DMF_UdeClient_Endpoint_Ready)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_UdeClient_Endpoint_Ready(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _In_ WDFCONTEXT Context
+    );
+````
+Callback which indicates that a request is present on the WDFQUEUE associated with the given endpoint.
+NOTE: This callback is required for endpoints with a manual dispatch type.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+Endpoint | The given endpoint.
+Context | Context set in by the Client in the Endpoint Config.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Methods
@@ -413,6 +444,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_UdeClient_DeviceEndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
     _Out_ UDECXUSBENDPOINT* Endpoint
@@ -429,6 +461,7 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
+UdecxUsbDevice | The device on which the endpoint is located.
 EndpointInit | An opaque structure that represent an initialization configuration for Endpoint.
 EndpointConfig | Endpoint configuration.
 Endpoint | A handle to a framework device object that represents the newly created Endpoint.

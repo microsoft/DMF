@@ -138,6 +138,19 @@ EVT_DMF_UdeClient_Endpoint_Purge(
     _In_ UDECXUSBENDPOINT Endpoint
     );
 
+// Queue Ready callback (required for manual dispatch endpoints).
+//
+typedef
+_Function_class_(EVT_DMF_UdeClient_Endpoint_Ready)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_UdeClient_Endpoint_Ready(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _In_ WDFCONTEXT Context
+    );
+
 typedef struct _UdeClient_CONFIG_Endpoint
 {
     // Endpoint Address to used.
@@ -158,6 +171,12 @@ typedef struct _UdeClient_CONFIG_Endpoint
     // Endpoint Purge callbacks. This is Optional.
     //
     EVT_DMF_UdeClient_Endpoint_Purge* EvtEndpointPurge;
+    // Endpoint data available callback (used with manual queues).
+    //
+    EVT_DMF_UdeClient_Endpoint_Ready* EvtEndpointReady;
+    // Context passed to EvtEndpointReady.
+    //
+    WDFCONTEXT EndPointReadyContext;
 } UdeClient_CONFIG_Endpoint;
 
 typedef struct _UdeClient_CONFIG_UsbDevice
@@ -261,10 +280,11 @@ DMF_UdeClient_DeviceCreateAndPlugIn(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-DMF_UdeClient_DeviceEndpointAddressGet(
+DMF_UdeClient_DeviceEndpointInformationGet(
     _In_ DMFMODULE DmfModule,
     _In_ UDECXUSBENDPOINT Endpoint,
-    _Out_ UCHAR* Address
+    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
+    _Out_opt_ UCHAR* Address
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -272,6 +292,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_UdeClient_DeviceEndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* ConfigEndpoint,
     _Out_ UDECXUSBENDPOINT* Endpoint

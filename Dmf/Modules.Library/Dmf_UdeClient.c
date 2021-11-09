@@ -72,7 +72,7 @@ typedef struct _CONTEXT_UdeClient_UsbController
 } CONTEXT_UdeClient_UsbController;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeClient_UsbController, UdeClientControllerContextGet)
 
-// This context associated for UdeCxUsbDevice.
+// This context associated for UdecxUsbDevice.
 //
 typedef struct _CONTEXT_UdeClient_UsbDevice
 {
@@ -95,6 +95,9 @@ typedef struct _CONTEXT_UdeClient_Endpoint
     // Configuration for this endpoint.
     //
     UdeClient_CONFIG_Endpoint EndpointConfig;
+    // Device endpoint is attached to.
+    //
+    UDECXUSBDEVICE UdecxUsbDevice;
 } CONTEXT_UdeClient_Endpoint;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeClient_Endpoint, UdeClientEndpointContextGet)
 
@@ -494,6 +497,54 @@ Return Value:
 }
 #pragma code_seg()
 
+EVT_WDF_IO_QUEUE_STATE Udeclient_EvtWdfIoQueueState;
+
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+Udeclient_EvtWdfIoQueueState(
+    _In_ WDFQUEUE Queue,
+    _In_ WDFCONTEXT Context
+    )
+/*++
+
+Routine Description:
+
+    Callback so Client can know when data is available in a given
+    manual (dispatch type) endpoint queue.
+
+Arguments:
+
+    Queue - The given endpoint queue.
+    Client - Context passed to Client.
+
+Return Value:
+
+    None.
+
+--*/
+{
+    DMFMODULE dmfModule;
+    UdeClient_CONFIG_Endpoint* endpointConfig;
+    CONTEXT_UdeClient_EndpointQueue* queueContext;
+    CONTEXT_UdeClient_Endpoint* endpointContext;
+    UDECXUSBENDPOINT endpoint;
+
+    queueContext = UdeClientEndpointQueueContextGet(Queue);
+    dmfModule = queueContext->DmfModule;
+    endpoint = queueContext->Endpoint;
+    endpointContext = UdeClientEndpointContextGet(endpoint);
+    endpointConfig = &endpointContext->EndpointConfig;
+
+    DmfAssert(endpointConfig->EndPointReadyContext == Context);
+    endpointConfig->EvtEndpointReady(dmfModule,
+                                     endpoint,
+                                     Context);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Udeclient_EvtWdfIoQueueState Queue 0x%p Endpoint 0x%p", Queue, endpoint);
+
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -501,6 +552,7 @@ static
 NTSTATUS
 UdeClient_EndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT* EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
     _Out_ UDECXUSBENDPOINT* Endpoint
@@ -561,6 +613,16 @@ Return Value:
     UdecxUsbEndpointInitSetEndpointAddress(*EndpointInit,
                                            EndpointConfig->EndpointAddress);
 
+    if (queueConfig.DispatchType == WdfIoQueueDispatchManual)
+    {
+        // Manual queue requires this notification so that Client can extract requests.
+        //
+        DmfAssert(EndpointConfig->EvtEndpointReady != NULL);
+        WdfIoQueueReadyNotify(endpointQueue,
+                              Udeclient_EvtWdfIoQueueState,
+                              EndpointConfig->EndPointReadyContext);
+    }
+
     // EvtEndpointReset is Mandatory.
     //
     DmfAssert(EndpointConfig->EvtEndpointReset != NULL);
@@ -599,6 +661,9 @@ Return Value:
     endpointContext = UdeClientEndpointContextGet(endpoint);
     endpointContext->EndpointConfig = *EndpointConfig;
     endpointContext->DmfModule = DmfModule;
+    // Save for retrieval by Method.
+    //
+    endpointContext->UdecxUsbDevice = UdecxUsbDevice;
 
     queueContext = UdeClientEndpointQueueContextGet(endpointQueue);
     queueContext->DmfModule = DmfModule;
@@ -668,6 +733,7 @@ Return Value:
     }
 
     ntStatus = UdeClient_EndpointCreate(DmfModule,
+                                        UsbDevice,
                                         &endpointInit,
                                         EndpointConfig,
                                         Endpoint);
@@ -1675,10 +1741,11 @@ Exit:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-DMF_UdeClient_DeviceEndpointAddressGet(
+DMF_UdeClient_DeviceEndpointInformationGet(
     _In_ DMFMODULE DmfModule,
     _In_ UDECXUSBENDPOINT Endpoint,
-    _Out_ UCHAR* Address
+    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
+    _Out_opt_ UCHAR* Address
     )
 /*++
 
@@ -1711,15 +1778,24 @@ Return Value:
     endpointContext = UdeClientEndpointContextGet(Endpoint);
     endpointConfig = &endpointContext->EndpointConfig;
 
-    *Address = endpointConfig->EndpointAddress;
+    if (Address != NULL)
+    {
+        *Address = endpointConfig->EndpointAddress;
+    }
+    if (UdecxUsbDevice != NULL)
+    {
+        *UdecxUsbDevice = endpointContext->UdecxUsbDevice;
+    }
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UdeClient_DeviceEndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
     _Out_ UDECXUSBENDPOINT* Endpoint
@@ -1733,9 +1809,10 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    EndpointInit - Endpoint Init associated with the Usb device
-    EndpointConfig - Endpoint Configuration
-    Endpoint - The newly created Endpoint
+    UdecxUsbDevice - The device on which the endpoint is located.
+    EndpointInit - Endpoint Init associated with the Usb device.
+    EndpointConfig - Endpoint Configuration.
+    Endpoint - The newly created Endpoint.
 
 Return Value:
 
@@ -1753,6 +1830,7 @@ Return Value:
                                  UdeClient);
 
     ntStatus = UdeClient_EndpointCreate(DmfModule,
+                                        UdecxUsbDevice,
                                         &EndpointInit,
                                         EndpointConfig,
                                         Endpoint);
