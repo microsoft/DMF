@@ -260,6 +260,14 @@ DMF_UdeClient_DeviceCreateAndPlugIn(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointAddressGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_ UCHAR* Address
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UdeClient_DeviceEndpointCreate(
@@ -267,6 +275,15 @@ DMF_UdeClient_DeviceEndpointCreate(
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* ConfigEndpoint,
     _Out_ UDECXUSBENDPOINT* Endpoint
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
+    _Out_ UDE_CLIENT_PLUGIN_PORT_TYPE* PortType,
+    _Out_ ULONG* PortNumber
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

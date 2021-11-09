@@ -379,6 +379,32 @@ PortNumber | Port Number to be used while PlugIn this Usb Device.
 UdecxUsbDevice | A handle to a framework device object that represents the newly created Virtual USB Device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_UdeClient_DeviceEndpointAddressGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointAddressGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_ UCHAR* Address
+    );
+````
+
+Get the address from a given endpoint.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+Endpoint | The given endpoint.
+Address | Address of the given endpoint.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceEndpointCreate
 
 ````
@@ -406,6 +432,34 @@ DmfModule | An open DMF_UdeClient Module handle.
 EndpointInit | An opaque structure that represent an initialization configuration for Endpoint.
 EndpointConfig | Endpoint configuration.
 Endpoint | A handle to a framework device object that represents the newly created Endpoint.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_UdeClient_DeviceInformationGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
+    _Out_ UDE_CLIENT_PLUGIN_PORT_TYPE* PortType,
+    _Out_ ULONG* PortNumber
+    );
+````
+
+Gets port and port type information from a give UdecxUsbDevice.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+UdecxUsbDevice | A handle to a framework device object that represents the Virtual USB Device.
+PortType | Type of port given UdecxDevice is plugged into.
+PortNumber | Port number the given UdecxDevice is plugged into or zero if not plugged in.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DevicePlugOutAndDelete

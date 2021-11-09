@@ -4914,7 +4914,7 @@ Return Value:
     configComponentFirmwareUpdateTransport->TransportWaitTimeout = transportBindData.TransportWaitTimeout;
     configComponentFirmwareUpdateTransport->TransportPayloadFillAlignment = transportBindData.TransportPayloadFillAlignment;
 
-    // Allocate a Context to keep items for transaction response response specific processing.
+    // Allocate a Context to keep items for transaction response specific processing.
     //
     CONTEXT_ComponentFirmwareUpdateTransaction* componentFirmwareUpdateTransactionContext;
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes,

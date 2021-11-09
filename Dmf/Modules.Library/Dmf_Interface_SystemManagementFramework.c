@@ -465,6 +465,7 @@ VOID
 EVT_SystemManagementFramework_ProtocolNotify(
     _In_ DMFINTERFACE DmfInterface,
     _In_ SMFSOC_PROTOCOL_NOTIFY_OPERATION Operation,
+    _In_ USHORT Channel,
     _In_ VOID* Data,
     _In_ size_t DataSize
     )
@@ -478,6 +479,7 @@ Arguments:
 
     DmfInterface - Interface handle.
     Operation - Provides information on the type of data is sent from transport.
+    Channel - Channel this operation is targeting.
     Data - Data to be reported.
     DataSize - Size of Data.
 
@@ -495,6 +497,7 @@ Return Value:
 
     protocolData->EVT_SystemManagementFramework_ProtocolNotify(DmfInterface,
                                                                Operation,
+                                                               Channel,
                                                                Data,
                                                                DataSize);
 

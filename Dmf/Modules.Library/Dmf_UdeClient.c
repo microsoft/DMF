@@ -111,6 +111,19 @@ typedef struct _CONTEXT_UdeClient_EndpointQyeue
 } CONTEXT_UdeClient_EndpointQueue;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeClient_EndpointQueue, UdeClientEndpointQueueContextGet)
 
+// This context contains device specific information for optional retrieval.
+//
+typedef struct _CONTEXT_UdeDeviceInformation
+{
+    // Port type device is plugged into if PlugInPortNumber is not zero.
+    //
+    UDE_CLIENT_PLUGIN_PORT_TYPE PlugInPortType;
+    // Port device is plugged into. Zero if not plugged in.
+    //
+    ULONG PlugInPortNumber;
+} CONTEXT_UdeDeviceInformation;
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeDeviceInformation, UdeClient_UdeDeviceInformation)
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -309,7 +322,7 @@ Routine Description:
 
 Arguments:
 
-    Endpoint - Endpoint to be resetted.
+    Endpoint - Endpoint to be reset.
 
     Request - Request that represent the request to reset the endpoint.
 
@@ -1426,9 +1439,34 @@ Return Value:
             goto Exit;
         }
 
+        CONTEXT_UdeDeviceInformation* udeDeviceInformation;
+
+        // Create context to store device specific Config information for optional later retrieval.
+        //
+        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes,
+                                                CONTEXT_UdeDeviceInformation);
+        ntStatus = WdfObjectAllocateContext(udecxUsbDevice,
+                                            &attributes,
+                                            (VOID**) &udeDeviceInformation);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, 
+                        DMF_TRACE, 
+                        "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
+                        ntStatus);
+            UdecxUsbDevicePlugOutAndDelete(udecxUsbDevice);
+            goto Exit;
+        }
+
         // Save this in the controller Context.
         //
         controllerContext->UdecxUsbDevice = udecxUsbDevice;
+
+        // Save for access via Method.
+        //
+        udeDeviceInformation->PlugInPortType = moduleConfig->PlugInPortType;
+        udeDeviceInformation->PlugInPortNumber = moduleConfig->PlugInPortNumber;
+
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "On Open Usb Device 0x%p Plugged In", udecxUsbDevice);
     }
 
@@ -1636,8 +1674,51 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointAddressGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_ UCHAR* Address
+    )
+/*++
+
+Routine Description:
+
+    Get the address from a given endpoint.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Endpoint - The given endpoint.
+    Address - The given endpoint's assigned address.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UdeClient_CONFIG_Endpoint* endpointConfig;
+    CONTEXT_UdeClient_Endpoint* endpointContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 UdeClient);
+
+    endpointContext = UdeClientEndpointContextGet(Endpoint);
+    endpointConfig = &endpointContext->EndpointConfig;
+
+    *Address = endpointConfig->EndpointAddress;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
-DMF_UdeClient_EndpointCreate(
+DMF_UdeClient_DeviceEndpointCreate(
     _In_ DMFMODULE DmfModule,
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
@@ -1691,6 +1772,49 @@ Exit:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
+    _Out_ UDE_CLIENT_PLUGIN_PORT_TYPE* PortType,
+    _Out_ ULONG* PortNumber
+    )
+/*++
+
+Routine Description:
+
+    Get port and port type information from a give UdecxUsbDevice.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    UdecxUsbDevice - The given UdedxUsbDevice.
+    PortType - Type of port given UdecxDevice is plugged into.
+    PortNumber - Port number the given UdecxDevice is plugged into or zero if not plugged in.
+
+Return Value:
+
+    None
+
+--*/
+{
+    CONTEXT_UdeDeviceInformation* udeDeviceInformation;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 UdeClient);
+
+    udeDeviceInformation = UdeClient_UdeDeviceInformation(UdecxUsbDevice);
+    *PortType = udeDeviceInformation->PlugInPortType;
+    *PortNumber = udeDeviceInformation->PlugInPortNumber;
+}
+#pragma code_seg()
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1740,7 +1864,6 @@ Exit:
     return ntStatus;
 }
 #pragma code_seg()
-
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID

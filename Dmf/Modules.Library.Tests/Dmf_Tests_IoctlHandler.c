@@ -64,6 +64,15 @@ typedef struct _DMF_CONTEXT_Tests_IoctlHandler
     // Holds pending requests.
     //
     WDFQUEUE CancelableQueue;
+    // To enable/disable interface.
+    //
+    DMFMODULE DmfModuleIoctlHandler;
+    // To enable/disable interface.
+    //
+    DMFMODULE DmfModuleThread;
+    // Helper for thread work.
+    //
+    DMFMODULE DmfModuleAlertableSleep;
 } DMF_CONTEXT_Tests_IoctlHandler;
 
 // This macro declares the following function:
@@ -635,6 +644,76 @@ Exit:
     return ntStatus;
 }
 
+#pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_IoctlHandler_WorkThread(
+    _In_ DMFMODULE DmfModuleThread
+    )
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
+    ULONG timeToWaitMilliseconds;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleThread);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    // Pick a random time that interface will be disabled.
+    //
+    timeToWaitMilliseconds = TestsUtility_GenerateRandomNumber(1000,
+                                                               5000);
+
+    // Disable interface.
+    //
+    DMF_IoctlHandler_IoctlStateSet(moduleContext->DmfModuleIoctlHandler,
+                                   FALSE);
+
+    // Wait for a while.
+    //
+    ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
+                                        0,
+                                        timeToWaitMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Enable again.
+    //
+    DMF_IoctlHandler_IoctlStateSet(moduleContext->DmfModuleIoctlHandler,
+                                   TRUE);
+
+    // Wait for a while.
+    //
+    timeToWaitMilliseconds = TestsUtility_GenerateRandomNumber(5000,
+                                                               30000);
+    ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep,
+                                        0,
+                                        timeToWaitMilliseconds);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Repeat the test, until stop is signaled.
+    //
+    if (!DMF_Thread_IsStopPending(DmfModuleThread))
+    {
+        DMF_Thread_WorkReady(DmfModuleThread);
+    }
+
+    TestsUtility_YieldExecution();
+
+Exit:
+    ;
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -742,10 +821,35 @@ Return Value:
     DMF_DmfModuleAdd(DmfModuleInit, 
                      &moduleAttributes, 
                      WDF_NO_OBJECT_ATTRIBUTES, 
-                     NULL);
+                     &moduleContext->DmfModuleIoctlHandler);
 
     // TODO: Add second instance for Internal IOCTL.
     //
+
+    // Thread
+    // ------
+    //
+    DMF_CONFIG_Thread moduleConfigThread;
+    DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                          &moduleAttributes);
+    moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+    moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_IoctlHandler_WorkThread;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleThread);
+                      
+    // AlertableSleep Manual (Output)
+    // ---------------------
+    //
+    DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
+    DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                  &moduleAttributes);
+    moduleConfigAlertableSleep.EventCount = 1;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleAlertableSleep);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -811,6 +915,16 @@ Return Value:
     WdfIoQueueStart(queue);
     WdfIoQueueStart(moduleContext->CancelableQueue);
 
+    // Start the thread that disables/enables device interface.
+    //
+    ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Thread_Start fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+    DMF_Thread_WorkReady(moduleContext->DmfModuleThread);
+
 Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -852,7 +966,11 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    
+
+    DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleep,
+                             0);
+    DMF_Thread_Stop(moduleContext->DmfModuleThread);
+
     device = DMF_ParentDeviceGet(DmfModule);
     queue = WdfDeviceGetDefaultQueue(device);
 
