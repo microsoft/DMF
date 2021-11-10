@@ -600,7 +600,12 @@ Return Value:
                              EndpointConfig->QueueDispatchType);
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&queueAttributes,
                                             CONTEXT_UdeClient_EndpointQueue);
-    queueConfig.EvtIoInternalDeviceControl = UdeClient_EvtEndpointDeviceIoControl;
+
+    if (queueConfig.DispatchType < WdfIoQueueDispatchManual)
+    {
+        queueConfig.EvtIoInternalDeviceControl = UdeClient_EvtEndpointDeviceIoControl;
+    }
+    
     ntStatus = WdfIoQueueCreate(device,
                                 &queueConfig,
                                 &queueAttributes,
@@ -804,11 +809,11 @@ Return Value:
     }
     else if (UsbDeviceConfig->UsbDeviceEndpointType == UdecxEndpointTypeSimple)
     {
-        // Atleast 1 endpoint configuration is needed for Simple EndpointType.
+        // At least 1 endpoint configuration is needed for Simple EndpointType.
         //
         if (UsbDeviceConfig->SimpleEndpointCount == 0)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Simple Endpoint Type Required atleast 1 endpoint");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Simple Endpoint Type Required at least 1 endpoint");
 
              ntStatus = STATUS_INVALID_PARAMETER;
              goto Exit;
@@ -839,11 +844,21 @@ Return Value:
                     goto Exit;
                 }
 
-                // DeviceIoControl Callback is mandatory.
+                // DeviceIoControl Callback is mandatory for dispatch types WdfIoQueueDispatchSequential and WdfIoQueueDispatchParallel.
                 //
-                if (endpointConfig->EvtEndpointDeviceIoControl == NULL)
+                if (endpointConfig->QueueDispatchType < WdfIoQueueDispatchManual && endpointConfig->EvtEndpointDeviceIoControl == NULL)
                 {
                     TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Endpoint DeviceIoControl Callback configured on Endpoint Configuration[%d]", endpointIndex);
+
+                    ntStatus = STATUS_INVALID_PARAMETER;
+                    goto Exit; 
+                }
+
+                // EvtEndpointReady Callback is mandatory for dispatch type WdfIoQueueDispatchManual.
+                //
+                if (endpointConfig->QueueDispatchType == WdfIoQueueDispatchManual && endpointConfig->EvtEndpointReady == NULL)
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Endpoint EvtEndpointReady Callback configured on Endpoint Configuration[%d]", endpointIndex);
 
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit; 
