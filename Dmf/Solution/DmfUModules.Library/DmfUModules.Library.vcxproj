@@ -146,7 +146,7 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
     <ClCompile Condition="'$(Platform)'=='ARM64'">
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
@@ -165,7 +165,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
     <Link>
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -177,9 +177,11 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_GpioTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_SpiTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Stack.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_String.h" />
     <ClInclude Include="..\..\Modules.Library\DmfModules.Library.h" />
@@ -223,9 +225,11 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_GpioTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_SpiTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Stack.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_String.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_AlertableSleep.c" />
@@ -268,9 +272,11 @@
     <None Include="..\..\Modules.Library\Dmf_BufferPool.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
+    <None Include="..\..\Modules.Library\Dmf_GpioTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
     <None Include="..\..\Modules.Library\Dmf_IoctlHandler.md" />
     <None Include="..\..\Modules.Library\Dmf_RingBuffer.md" />
+    <None Include="..\..\Modules.Library\Dmf_SpiTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_Stack.md" />
     <None Include="..\..\Modules.Library\Dmf_String.md" />
     <None Include="..\..\Modules.Library\Dmf_AlertableSleep.md" />

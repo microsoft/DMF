@@ -810,7 +810,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Gpio Connection not assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
