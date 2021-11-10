@@ -600,12 +600,13 @@ Return Value:
                              EndpointConfig->QueueDispatchType);
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&queueAttributes,
                                             CONTEXT_UdeClient_EndpointQueue);
-
     if (queueConfig.DispatchType < WdfIoQueueDispatchManual)
     {
+        // This callback is only relevant for non-Manual queues otherwise WdfIoQueueCreate
+        // fails.
+        //
         queueConfig.EvtIoInternalDeviceControl = UdeClient_EvtEndpointDeviceIoControl;
     }
-    
     ntStatus = WdfIoQueueCreate(device,
                                 &queueConfig,
                                 &queueAttributes,
@@ -844,9 +845,11 @@ Return Value:
                     goto Exit;
                 }
 
-                // DeviceIoControl Callback is mandatory for dispatch types WdfIoQueueDispatchSequential and WdfIoQueueDispatchParallel.
+                // DeviceIoControl Callback is mandatory for dispatch types
+                // WdfIoQueueDispatchSequential and WdfIoQueueDispatchParallel.
                 //
-                if (endpointConfig->QueueDispatchType < WdfIoQueueDispatchManual && endpointConfig->EvtEndpointDeviceIoControl == NULL)
+                if ((endpointConfig->QueueDispatchType < WdfIoQueueDispatchManual) &&
+                    (endpointConfig->EvtEndpointDeviceIoControl == NULL))
                 {
                     TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Endpoint DeviceIoControl Callback configured on Endpoint Configuration[%d]", endpointIndex);
 
@@ -856,7 +859,8 @@ Return Value:
 
                 // EvtEndpointReady Callback is mandatory for dispatch type WdfIoQueueDispatchManual.
                 //
-                if (endpointConfig->QueueDispatchType == WdfIoQueueDispatchManual && endpointConfig->EvtEndpointReady == NULL)
+                if ((endpointConfig->QueueDispatchType == WdfIoQueueDispatchManual) &&
+                    (endpointConfig->EvtEndpointReady == NULL))
                 {
                     TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Endpoint EvtEndpointReady Callback configured on Endpoint Configuration[%d]", endpointIndex);
 

@@ -160,7 +160,7 @@ typedef struct _UdeClient_CONFIG_Endpoint
     // Endpoint Queue Dispatch Type.
     //
     WDF_IO_QUEUE_DISPATCH_TYPE QueueDispatchType;
-    // DeviceIOControl callback.
+    // DeviceIOControl callback. (mandatory with QueueDispatchType < WdfIoQueueDispatchManual endpoints.)
     //
     EVT_DMF_UdeClient_Endpoint_DeviceIoControl* EvtEndpointDeviceIoControl;
     // Endpoint Reset callbacks. This is Mandatory.
@@ -172,7 +172,7 @@ typedef struct _UdeClient_CONFIG_Endpoint
     // Endpoint Purge callbacks. This is Optional.
     //
     EVT_DMF_UdeClient_Endpoint_Purge* EvtEndpointPurge;
-    // Endpoint data available callback (used with manual queues).
+    // Endpoint data available callback (mandatory with WdfIoQueueDispatchManual endpoints).
     //
     EVT_DMF_UdeClient_Endpoint_Ready* EvtEndpointReady;
     // Context passed to EvtEndpointReady.
