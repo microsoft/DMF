@@ -147,6 +147,7 @@ _IRQL_requires_same_
 VOID
 EVT_DMF_UdeClient_Endpoint_Ready(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ UDECXUSBENDPOINT Endpoint,
     _In_ WDFCONTEXT Context
     );

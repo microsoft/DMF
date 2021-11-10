@@ -360,6 +360,7 @@ _IRQL_requires_same_
 VOID
 EVT_DMF_UdeClient_Endpoint_Ready(
     _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
     _In_ UDECXUSBENDPOINT Endpoint,
     _In_ WDFCONTEXT Context
     );
@@ -371,6 +372,7 @@ NOTE: This callback is required for endpoints with a manual dispatch type.
 Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
+Queue | The queue associated with the given endpoint.
 Endpoint | The given endpoint.
 Context | Context set in by the Client in the Endpoint Config.
 

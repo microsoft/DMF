@@ -538,6 +538,7 @@ Return Value:
 
     DmfAssert(endpointConfig->EndPointReadyContext == Context);
     endpointConfig->EvtEndpointReady(dmfModule,
+                                     Queue,
                                      endpoint,
                                      Context);
 
@@ -1178,6 +1179,30 @@ Return Value:
         pluginOptions.Usb30PortNumber = PlugInPortNumber;
     }
 
+    CONTEXT_UdeDeviceInformation* udeDeviceInformation;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    // Create context to store device specific Config information for optional later retrieval.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
+                                            CONTEXT_UdeDeviceInformation);
+    ntStatus = WdfObjectAllocateContext(usbDevice,
+                                        &objectAttributes,
+                                        (VOID**) &udeDeviceInformation);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
+                    ntStatus);
+        goto Exit;
+    }
+
+    // Save for access via Method.
+    //
+    udeDeviceInformation->PlugInPortType = moduleConfig->PlugInPortType;
+    udeDeviceInformation->PlugInPortNumber = moduleConfig->PlugInPortNumber;
+
     ntStatus = UdecxUsbDevicePlugIn(usbDevice,
                                     &pluginOptions);
     if (! NT_SUCCESS(ntStatus))
@@ -1505,33 +1530,9 @@ Return Value:
             goto Exit;
         }
 
-        CONTEXT_UdeDeviceInformation* udeDeviceInformation;
-
-        // Create context to store device specific Config information for optional later retrieval.
-        //
-        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes,
-                                                CONTEXT_UdeDeviceInformation);
-        ntStatus = WdfObjectAllocateContext(udecxUsbDevice,
-                                            &attributes,
-                                            (VOID**) &udeDeviceInformation);
-        if (!NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, 
-                        DMF_TRACE, 
-                        "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
-                        ntStatus);
-            UdecxUsbDevicePlugOutAndDelete(udecxUsbDevice);
-            goto Exit;
-        }
-
         // Save this in the controller Context.
         //
         controllerContext->UdecxUsbDevice = udecxUsbDevice;
-
-        // Save for access via Method.
-        //
-        udeDeviceInformation->PlugInPortType = moduleConfig->PlugInPortType;
-        udeDeviceInformation->PlugInPortNumber = moduleConfig->PlugInPortNumber;
 
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "On Open Usb Device 0x%p Plugged In", udecxUsbDevice);
     }
