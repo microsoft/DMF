@@ -1219,8 +1219,8 @@ Return Value:
 
     // Save for access via Method.
     //
-    udeDeviceInformation->PlugInPortType = moduleConfig->PlugInPortType;
-    udeDeviceInformation->PlugInPortNumber = moduleConfig->PlugInPortNumber;
+    udeDeviceInformation->PlugInPortType = PortType;
+    udeDeviceInformation->PlugInPortNumber = PlugInPortNumber;
 
     ntStatus = UdecxUsbDevicePlugIn(usbDevice,
                                     &pluginOptions);
