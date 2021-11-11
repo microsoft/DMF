@@ -135,7 +135,7 @@ PlugInPortType | Port Type (USB 2.0 or USB 3.0) to be used while PlugIn this Usb
 PlugInPortNumber | Port Number to be used while PlugIn this Usb Device. Set this if the UsbCreateAndPlugOnOpen is set as TRUE. 
 UsbDeviceConfig | Configuration Details for the Usb Device to be created and plugged in. Set this if the UsbCreateAndPlugOnOpen is set as TRUE. 
 EvtUsbDevicePreCreate | Optional callback that allows clients perform pre create operation like setting up state change operation callbacks on the Usb Device being created. This callback is called just before the Usb Device is created. Refer UDECX_USB_DEVICE_STATE_CHANGE_CALLBACKS.
-EvtUsbDevicePreCreate | Optional callback that allows clients perform post processing tasks. This callback is called just after the Usb Device is successfully created.
+EvtUsbDevicePostCreate | Optional callback that allows clients perform post processing tasks. This callback is called just after the Usb Device is successfully created.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
