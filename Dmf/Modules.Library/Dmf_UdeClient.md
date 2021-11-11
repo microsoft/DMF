@@ -469,6 +469,34 @@ EndpointConfig | Endpoint configuration.
 Endpoint | A handle to a framework device object that represents the newly created Endpoint.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_UdeClient_DeviceEndpointInformationGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
+    _Out_opt_ UCHAR* Address
+    )
+````
+
+Gets information about a given endpoint.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+Endpoint | The given endpoint.
+UdecxUsbDevice | The device to which the endpoint is attached.
+Address | The address of the endpoint.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceInformationGet
 
 ````

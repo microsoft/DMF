@@ -567,6 +567,8 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
+    UdecxUsbDevice - Device to which endpoints are attached so it can be
+                     retrieve using a Method given the endpoint.
     EndpointInit - Endpoint Init associated with the Usb device.
     EndpointConfig - Endpoint Configuration.
     Endpoint - The newly created Endpoint.
@@ -1760,57 +1762,6 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_UdeClient_DeviceEndpointInformationGet(
-    _In_ DMFMODULE DmfModule,
-    _In_ UDECXUSBENDPOINT Endpoint,
-    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
-    _Out_opt_ UCHAR* Address
-    )
-/*++
-
-Routine Description:
-
-    Get the address from a given endpoint.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    Endpoint - The given endpoint.
-    Address - The given endpoint's assigned address.
-
-Return Value:
-
-    None
-
---*/
-{
-    UdeClient_CONFIG_Endpoint* endpointConfig;
-    CONTEXT_UdeClient_Endpoint* endpointContext;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 UdeClient);
-
-    endpointContext = UdeClientEndpointContextGet(Endpoint);
-    endpointConfig = &endpointContext->EndpointConfig;
-
-    if (Address != NULL)
-    {
-        *Address = endpointConfig->EndpointAddress;
-    }
-    if (UdecxUsbDevice != NULL)
-    {
-        *UdecxUsbDevice = endpointContext->UdecxUsbDevice;
-    }
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UdeClient_DeviceEndpointCreate(
@@ -1873,6 +1824,59 @@ Exit:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
+DMF_UdeClient_DeviceEndpointInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
+    _Out_opt_ UCHAR* Address
+    )
+/*++
+
+Routine Description:
+
+    Get the address from a given endpoint.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Endpoint - The given endpoint.
+    Address - The given endpoint's assigned address.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UdeClient_CONFIG_Endpoint* endpointConfig;
+    CONTEXT_UdeClient_Endpoint* endpointContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 UdeClient);
+
+    endpointContext = UdeClientEndpointContextGet(Endpoint);
+    endpointConfig = &endpointContext->EndpointConfig;
+
+    if (Address != NULL)
+    {
+        *Address = endpointConfig->EndpointAddress;
+    }
+    if (UdecxUsbDevice != NULL)
+    {
+        *UdecxUsbDevice = endpointContext->UdecxUsbDevice;
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
 DMF_UdeClient_DeviceInformationGet(
     _In_ DMFMODULE DmfModule,
     _In_ UDECXUSBDEVICE UdecxUsbDevice,
@@ -1910,9 +1914,12 @@ Return Value:
     udeDeviceInformation = UdeClient_UdeDeviceInformation(UdecxUsbDevice);
     *PortType = udeDeviceInformation->PlugInPortType;
     *PortNumber = udeDeviceInformation->PlugInPortNumber;
+
+    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1963,6 +1970,7 @@ Exit:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_UdeClient_DeviceSignalFunctionWake(
@@ -2009,7 +2017,6 @@ Return Value:
     }
 
     FuncExitVoid(DMF_TRACE);
-
 }
 #pragma code_seg()
 
