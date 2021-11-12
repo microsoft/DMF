@@ -1840,6 +1840,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     Endpoint - The given endpoint.
+    UdecxUsbDevice - The device to which the endpoint is attached.
     Address - The given endpoint's assigned address.
 
 Return Value:
