@@ -95,7 +95,7 @@ typedef struct _CONTEXT_UdeClient_Endpoint
     // Configuration for this endpoint.
     //
     UdeClient_CONFIG_Endpoint EndpointConfig;
-    // Device endpoint is attached to.
+    // Device the endpoint is located on.
     //
     UDECXUSBDEVICE UdecxUsbDevice;
 } CONTEXT_UdeClient_Endpoint;
@@ -567,7 +567,7 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    UdecxUsbDevice - Device to which endpoints are attached so it can be
+    UdecxUsbDevice - Device on which endpoints are located so it can be
                      retrieve using a Method given the endpoint.
     EndpointInit - Endpoint Init associated with the Usb device.
     EndpointConfig - Endpoint Configuration.
@@ -1840,7 +1840,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     Endpoint - The given endpoint.
-    UdecxUsbDevice - The device to which the endpoint is attached.
+    UdecxUsbDevice - The device on which the endpoint is located.
     Address - The given endpoint's assigned address.
 
 Return Value:

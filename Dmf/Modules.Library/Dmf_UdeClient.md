@@ -493,7 +493,7 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | The given endpoint.
-UdecxUsbDevice | The device to which the endpoint is attached.
+UdecxUsbDevice | The device on which the endpoint is located.
 Address | The address of the endpoint.
 
 -----------------------------------------------------------------------------------------------------------------------------------
