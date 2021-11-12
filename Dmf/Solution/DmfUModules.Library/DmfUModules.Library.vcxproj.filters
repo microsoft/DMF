@@ -243,6 +243,12 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h">
       <Filter>Headers\Modules\Task Execution</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_SpiTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_GpioTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -365,6 +371,12 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c">
       <Filter>Modules\Task Execution</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_GpioTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_SpiTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
@@ -482,6 +494,13 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Stack.md" />
+    <None Include="..\..\Modules.Library\Dmf_GpioTarget.md">
+      <Filter>Headers\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_SpiTarget.md">
+      <Filter>Headers\Modules\Targets</Filter>
     </None>
   </ItemGroup>
 </Project>

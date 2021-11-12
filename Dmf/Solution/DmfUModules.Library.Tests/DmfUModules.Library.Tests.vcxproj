@@ -95,8 +95,8 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)'  == ''">..\..\Framework\DmfTrace.h</WppScanConfigurationData>
-      <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">USE_ASSERT_BREAK;_UNICODE;UNICODE;DEBUG;DBG;%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">NO_USE_ASSERT_BREAK;_UNICODE;UNICODE;%(PreprocessorDefinitions);DMF_USER_MODE</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">USE_ASSERT_BREAK;_UNICODE;UNICODE;DEBUG;DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">NO_USE_ASSERT_BREAK;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>
       <ShowIncludes>false</ShowIncludes>
