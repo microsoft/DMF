@@ -72,7 +72,7 @@ typedef struct _CONTEXT_UdeClient_UsbController
 } CONTEXT_UdeClient_UsbController;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeClient_UsbController, UdeClientControllerContextGet)
 
-// This context associated for UdeCxUsbDevice.
+// This context associated for UdecxUsbDevice.
 //
 typedef struct _CONTEXT_UdeClient_UsbDevice
 {
@@ -95,6 +95,9 @@ typedef struct _CONTEXT_UdeClient_Endpoint
     // Configuration for this endpoint.
     //
     UdeClient_CONFIG_Endpoint EndpointConfig;
+    // Device the endpoint is located on.
+    //
+    UDECXUSBDEVICE UdecxUsbDevice;
 } CONTEXT_UdeClient_Endpoint;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeClient_Endpoint, UdeClientEndpointContextGet)
 
@@ -110,6 +113,19 @@ typedef struct _CONTEXT_UdeClient_EndpointQyeue
     UDECXUSBENDPOINT Endpoint;
 } CONTEXT_UdeClient_EndpointQueue;
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeClient_EndpointQueue, UdeClientEndpointQueueContextGet)
+
+// This context contains device specific information for optional retrieval.
+//
+typedef struct _CONTEXT_UdeDeviceInformation
+{
+    // Port type device is plugged into if PlugInPortNumber is not zero.
+    //
+    UDE_CLIENT_PLUGIN_PORT_TYPE PlugInPortType;
+    // Port device is plugged into. Zero if not plugged in.
+    //
+    ULONG PlugInPortNumber;
+} CONTEXT_UdeDeviceInformation;
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTEXT_UdeDeviceInformation, UdeClient_UdeDeviceInformation)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -309,7 +325,7 @@ Routine Description:
 
 Arguments:
 
-    Endpoint - Endpoint to be resetted.
+    Endpoint - Endpoint to be reset.
 
     Request - Request that represent the request to reset the endpoint.
 
@@ -481,6 +497,55 @@ Return Value:
 }
 #pragma code_seg()
 
+EVT_WDF_IO_QUEUE_STATE Udeclient_EvtWdfIoQueueState;
+
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+Udeclient_EvtWdfIoQueueState(
+    _In_ WDFQUEUE Queue,
+    _In_ WDFCONTEXT Context
+    )
+/*++
+
+Routine Description:
+
+    Callback so Client can know when data is available in a given
+    manual (dispatch type) endpoint queue.
+
+Arguments:
+
+    Queue - The given endpoint queue.
+    Client - Context passed to Client.
+
+Return Value:
+
+    None.
+
+--*/
+{
+    DMFMODULE dmfModule;
+    UdeClient_CONFIG_Endpoint* endpointConfig;
+    CONTEXT_UdeClient_EndpointQueue* queueContext;
+    CONTEXT_UdeClient_Endpoint* endpointContext;
+    UDECXUSBENDPOINT endpoint;
+
+    queueContext = UdeClientEndpointQueueContextGet(Queue);
+    dmfModule = queueContext->DmfModule;
+    endpoint = queueContext->Endpoint;
+    endpointContext = UdeClientEndpointContextGet(endpoint);
+    endpointConfig = &endpointContext->EndpointConfig;
+
+    DmfAssert(endpointConfig->EndPointReadyContext == Context);
+    endpointConfig->EvtEndpointReady(dmfModule,
+                                     Queue,
+                                     endpoint,
+                                     Context);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Udeclient_EvtWdfIoQueueState Queue 0x%p Endpoint 0x%p", Queue, endpoint);
+
+}
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -488,6 +553,7 @@ static
 NTSTATUS
 UdeClient_EndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT* EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
     _Out_ UDECXUSBENDPOINT* Endpoint
@@ -501,6 +567,8 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
+    UdecxUsbDevice - Device on which endpoints are located so it can be
+                     retrieve using a Method given the endpoint.
     EndpointInit - Endpoint Init associated with the Usb device.
     EndpointConfig - Endpoint Configuration.
     Endpoint - The newly created Endpoint.
@@ -534,7 +602,13 @@ Return Value:
                              EndpointConfig->QueueDispatchType);
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&queueAttributes,
                                             CONTEXT_UdeClient_EndpointQueue);
-    queueConfig.EvtIoInternalDeviceControl = UdeClient_EvtEndpointDeviceIoControl;
+    if (queueConfig.DispatchType < WdfIoQueueDispatchManual)
+    {
+        // This callback is only relevant for non-Manual queues otherwise WdfIoQueueCreate
+        // fails.
+        //
+        queueConfig.EvtIoInternalDeviceControl = UdeClient_EvtEndpointDeviceIoControl;
+    }
     ntStatus = WdfIoQueueCreate(device,
                                 &queueConfig,
                                 &queueAttributes,
@@ -547,6 +621,16 @@ Return Value:
 
     UdecxUsbEndpointInitSetEndpointAddress(*EndpointInit,
                                            EndpointConfig->EndpointAddress);
+
+    if (queueConfig.DispatchType == WdfIoQueueDispatchManual)
+    {
+        // Manual queue requires this notification so that Client can extract requests.
+        //
+        DmfAssert(EndpointConfig->EvtEndpointReady != NULL);
+        WdfIoQueueReadyNotify(endpointQueue,
+                              Udeclient_EvtWdfIoQueueState,
+                              EndpointConfig->EndPointReadyContext);
+    }
 
     // EvtEndpointReset is Mandatory.
     //
@@ -586,6 +670,9 @@ Return Value:
     endpointContext = UdeClientEndpointContextGet(endpoint);
     endpointContext->EndpointConfig = *EndpointConfig;
     endpointContext->DmfModule = DmfModule;
+    // Save for retrieval by Method.
+    //
+    endpointContext->UdecxUsbDevice = UdecxUsbDevice;
 
     queueContext = UdeClientEndpointQueueContextGet(endpointQueue);
     queueContext->DmfModule = DmfModule;
@@ -655,6 +742,7 @@ Return Value:
     }
 
     ntStatus = UdeClient_EndpointCreate(DmfModule,
+                                        UsbDevice,
                                         &endpointInit,
                                         EndpointConfig,
                                         Endpoint);
@@ -724,11 +812,11 @@ Return Value:
     }
     else if (UsbDeviceConfig->UsbDeviceEndpointType == UdecxEndpointTypeSimple)
     {
-        // Atleast 1 endpoint configuration is needed for Simple EndpointType.
+        // At least 1 endpoint configuration is needed for Simple EndpointType.
         //
         if (UsbDeviceConfig->SimpleEndpointCount == 0)
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Simple Endpoint Type Required atleast 1 endpoint");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Simple Endpoint Type Required at least 1 endpoint");
 
              ntStatus = STATUS_INVALID_PARAMETER;
              goto Exit;
@@ -759,11 +847,24 @@ Return Value:
                     goto Exit;
                 }
 
-                // DeviceIoControl Callback is mandatory.
+                // DeviceIoControl Callback is mandatory for dispatch types
+                // WdfIoQueueDispatchSequential and WdfIoQueueDispatchParallel.
                 //
-                if (endpointConfig->EvtEndpointDeviceIoControl == NULL)
+                if ((endpointConfig->QueueDispatchType < WdfIoQueueDispatchManual) &&
+                    (endpointConfig->EvtEndpointDeviceIoControl == NULL))
                 {
                     TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Endpoint DeviceIoControl Callback configured on Endpoint Configuration[%d]", endpointIndex);
+
+                    ntStatus = STATUS_INVALID_PARAMETER;
+                    goto Exit; 
+                }
+
+                // EvtEndpointReady Callback is mandatory for dispatch type WdfIoQueueDispatchManual.
+                //
+                if ((endpointConfig->QueueDispatchType == WdfIoQueueDispatchManual) &&
+                    (endpointConfig->EvtEndpointReady == NULL))
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No Endpoint EvtEndpointReady Callback configured on Endpoint Configuration[%d]", endpointIndex);
 
                     ntStatus = STATUS_INVALID_PARAMETER;
                     goto Exit; 
@@ -1099,6 +1200,30 @@ Return Value:
         pluginOptions.Usb30PortNumber = PlugInPortNumber;
     }
 
+    CONTEXT_UdeDeviceInformation* udeDeviceInformation;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+    // Create context to store device specific Config information for optional later retrieval.
+    //
+    WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
+                                            CONTEXT_UdeDeviceInformation);
+    ntStatus = WdfObjectAllocateContext(usbDevice,
+                                        &objectAttributes,
+                                        (VOID**) &udeDeviceInformation);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, 
+                    DMF_TRACE, 
+                    "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", 
+                    ntStatus);
+        goto Exit;
+    }
+
+    // Save for access via Method.
+    //
+    udeDeviceInformation->PlugInPortType = PortType;
+    udeDeviceInformation->PlugInPortNumber = PlugInPortNumber;
+
     ntStatus = UdecxUsbDevicePlugIn(usbDevice,
                                     &pluginOptions);
     if (! NT_SUCCESS(ntStatus))
@@ -1429,6 +1554,7 @@ Return Value:
         // Save this in the controller Context.
         //
         controllerContext->UdecxUsbDevice = udecxUsbDevice;
+
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "On Open Usb Device 0x%p Plugged In", udecxUsbDevice);
     }
 
@@ -1636,9 +1762,11 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
-DMF_UdeClient_EndpointCreate(
+DMF_UdeClient_DeviceEndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
     _Out_ UDECXUSBENDPOINT* Endpoint
@@ -1652,9 +1780,10 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    EndpointInit - Endpoint Init associated with the Usb device
-    EndpointConfig - Endpoint Configuration
-    Endpoint - The newly created Endpoint
+    UdecxUsbDevice - The device on which the endpoint is located.
+    EndpointInit - Endpoint Init associated with the Usb device.
+    EndpointConfig - Endpoint Configuration.
+    Endpoint - The newly created Endpoint.
 
 Return Value:
 
@@ -1672,6 +1801,7 @@ Return Value:
                                  UdeClient);
 
     ntStatus = UdeClient_EndpointCreate(DmfModule,
+                                        UdecxUsbDevice,
                                         &EndpointInit,
                                         EndpointConfig,
                                         Endpoint);
@@ -1691,6 +1821,106 @@ Exit:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
+    _Out_opt_ UCHAR* Address
+    )
+/*++
+
+Routine Description:
+
+    Get the address from a given endpoint.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Endpoint - The given endpoint.
+    UdecxUsbDevice - The device on which the endpoint is located.
+    Address - The given endpoint's assigned address.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UdeClient_CONFIG_Endpoint* endpointConfig;
+    CONTEXT_UdeClient_Endpoint* endpointContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 UdeClient);
+
+    endpointContext = UdeClientEndpointContextGet(Endpoint);
+    endpointConfig = &endpointContext->EndpointConfig;
+
+    if (Address != NULL)
+    {
+        *Address = endpointConfig->EndpointAddress;
+    }
+    if (UdecxUsbDevice != NULL)
+    {
+        *UdecxUsbDevice = endpointContext->UdecxUsbDevice;
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
+    _Out_ UDE_CLIENT_PLUGIN_PORT_TYPE* PortType,
+    _Out_ ULONG* PortNumber
+    )
+/*++
+
+Routine Description:
+
+    Get port and port type information from a give UdecxUsbDevice.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    UdecxUsbDevice - The given UdedxUsbDevice.
+    PortType - Type of port given UdecxDevice is plugged into.
+    PortNumber - Port number the given UdecxDevice is plugged into or zero if not plugged in.
+
+Return Value:
+
+    None
+
+--*/
+{
+    CONTEXT_UdeDeviceInformation* udeDeviceInformation;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 UdeClient);
+
+    udeDeviceInformation = UdeClient_UdeDeviceInformation(UdecxUsbDevice);
+    *PortType = udeDeviceInformation->PlugInPortType;
+    *PortNumber = udeDeviceInformation->PlugInPortNumber;
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -1741,7 +1971,7 @@ Exit:
 }
 #pragma code_seg()
 
-
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_UdeClient_DeviceSignalFunctionWake(
@@ -1788,7 +2018,6 @@ Return Value:
     }
 
     FuncExitVoid(DMF_TRACE);
-
 }
 #pragma code_seg()
 

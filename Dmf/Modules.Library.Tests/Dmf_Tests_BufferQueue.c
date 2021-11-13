@@ -183,7 +183,11 @@ Tests_BufferQueue_ThreadAction_Enqueue(
     ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueue,
                                      (PVOID*)&clientBuffer,
                                      (PVOID*)&clientBufferContext);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
     DmfAssert(clientBuffer != NULL);
     DmfAssert(clientBufferContext != NULL);
 

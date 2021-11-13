@@ -704,7 +704,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No resources found");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 
@@ -751,7 +751,7 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No SPI Resources assigned");
         ntStatus = STATUS_DEVICE_CONFIGURATION_ERROR;
-        NT_ASSERT(FALSE);
+        DmfAssert(FALSE);
         goto Exit;
     }
 

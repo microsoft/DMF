@@ -29,7 +29,7 @@ typedef struct _UdeClient_CONFIG_Endpoint
     // Endpoint Queue Dispatch Type.
     //
     WDF_IO_QUEUE_DISPATCH_TYPE QueueDispatchType;
-    // DeviceIOControl callback.
+    // DeviceIOControl callback. (mandatory with QueueDispatchType < WdfIoQueueDispatchManual endpoints.)
     //
     EVT_DMF_UdeClient_Endpoint_DeviceIoControl* EvtEndpointDeviceIoControl;
     // Endpoint Reset callbacks. This is Mandatory.
@@ -41,6 +41,12 @@ typedef struct _UdeClient_CONFIG_Endpoint
     // Endpoint Purge callbacks. This is Optional.
     //
     EVT_DMF_UdeClient_Endpoint_Purge* EvtEndpointPurge;
+    // Endpoint data available callback (mandatory with WdfIoQueueDispatchManual endpoints).
+    //
+    EVT_DMF_UdeClient_Endpoint_Ready* EvtEndpointReady;
+    // Context passed to EvtEndpointReady.
+    //
+    WDFCONTEXT EndPointReadyContext;
 } UdeClient_CONFIG_Endpoint;
 
 typedef struct _UdeClient_CONFIG_UsbDevice
@@ -129,7 +135,7 @@ PlugInPortType | Port Type (USB 2.0 or USB 3.0) to be used while PlugIn this Usb
 PlugInPortNumber | Port Number to be used while PlugIn this Usb Device. Set this if the UsbCreateAndPlugOnOpen is set as TRUE. 
 UsbDeviceConfig | Configuration Details for the Usb Device to be created and plugged in. Set this if the UsbCreateAndPlugOnOpen is set as TRUE. 
 EvtUsbDevicePreCreate | Optional callback that allows clients perform pre create operation like setting up state change operation callbacks on the Usb Device being created. This callback is called just before the Usb Device is created. Refer UDECX_USB_DEVICE_STATE_CHANGE_CALLBACKS.
-EvtUsbDevicePreCreate | Optional callback that allows clients perform post processing tasks. This callback is called just after the Usb Device is successfully created.
+EvtUsbDevicePostCreate | Optional callback that allows clients perform post processing tasks. This callback is called just after the Usb Device is successfully created.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -321,6 +327,7 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_Purge
 ````
@@ -342,6 +349,32 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### EVT_DMF_UdeClient_Endpoint_Ready
+````
+typedef
+_Function_class_(EVT_DMF_UdeClient_Endpoint_Ready)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_UdeClient_Endpoint_Ready(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _In_ WDFCONTEXT Context
+    );
+````
+Callback which indicates that a request is present on the WDFQUEUE associated with the given endpoint.
+NOTE: This callback is required for endpoints with a manual dispatch type.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+Queue | The queue associated with the given endpoint.
+Endpoint | The given endpoint.
+Context | Context set in by the Client in the Endpoint Config.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Methods
@@ -379,6 +412,32 @@ PortNumber | Port Number to be used while PlugIn this Usb Device.
 UdecxUsbDevice | A handle to a framework device object that represents the newly created Virtual USB Device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_UdeClient_DeviceEndpointAddressGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointAddressGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_ UCHAR* Address
+    );
+````
+
+Get the address from a given endpoint.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+Endpoint | The given endpoint.
+Address | Address of the given endpoint.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceEndpointCreate
 
 ````
@@ -387,6 +446,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_UdeClient_DeviceEndpointCreate(
     _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
     _In_ PUDECXUSBENDPOINT_INIT EndpointInit,
     _In_ UdeClient_CONFIG_Endpoint* EndpointConfig,
     _Out_ UDECXUSBENDPOINT* Endpoint
@@ -403,9 +463,66 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_UdeClient Module handle.
+UdecxUsbDevice | The device on which the endpoint is located.
 EndpointInit | An opaque structure that represent an initialization configuration for Endpoint.
 EndpointConfig | Endpoint configuration.
 Endpoint | A handle to a framework device object that represents the newly created Endpoint.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_UdeClient_DeviceEndpointInformationGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceEndpointInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBENDPOINT Endpoint,
+    _Out_opt_ UDECXUSBDEVICE* UdecxUsbDevice,
+    _Out_opt_ UCHAR* Address
+    )
+````
+
+Gets information about a given endpoint.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+Endpoint | The given endpoint.
+UdecxUsbDevice | The device on which the endpoint is located.
+Address | The address of the endpoint.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_UdeClient_DeviceInformationGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_UdeClient_DeviceInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UDECXUSBDEVICE UdecxUsbDevice,
+    _Out_ UDE_CLIENT_PLUGIN_PORT_TYPE* PortType,
+    _Out_ ULONG* PortNumber
+    );
+````
+
+Gets port and port type information from a give UdecxUsbDevice.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_UdeClient Module handle.
+UdecxUsbDevice | A handle to a framework device object that represents the Virtual USB Device.
+PortType | Type of port given UdecxDevice is plugged into.
+PortNumber | Port number the given UdecxDevice is plugged into or zero if not plugged in.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DevicePlugOutAndDelete

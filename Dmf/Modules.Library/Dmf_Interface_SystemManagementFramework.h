@@ -64,6 +64,16 @@ typedef struct
 //
 typedef enum
 {
+    SmfSoCSensorChannelInvalidInstanceId = 0,
+    // These sensors will be used to query CPU and System energy counter.
+    // Channel type is SMF_SOC_ENERGY_INPUT_TYPE.
+    //
+    SmfSoCSensorChannelSocEnergyInputCpuPowerId = 1,
+    SmfSoCSensorChannelSocEnergyInputSystemPowerId = 2,
+    // This sensor will be used to query Prochot status.
+    // Channel type is SMF_SOC_POWER_INPUT_TYPE.
+    //
+    SmfSoCSensorChannelSocPowerInputProcHotStatusId = 4,
     // These type contains the version number of the module.
     // Channel type is SMF_GENERIC_TYPE.
     //
@@ -73,9 +83,10 @@ typedef enum
     // Channel type is SMF_GENERIC_TYPE.
     //
     SmfSoCSensorChannelCpuTemperatureAverageId = 112,
-    // These sensor are reported as is to the framework.
+    // These sensors are reported as is to the framework.
     // Channel type is SMF_TEMPERATURE_SENSOR_TYPE.
     //
+    SmfSoCSensorChannelCpuTemperatureId =  102,
     SmfSoCSensorChannelCpuTemperature0Id = 180,
     SmfSoCSensorChannelCpuTemperature1Id = 181,
     SmfSoCSensorChannelCpuTemperature2Id = 182,
@@ -85,7 +96,12 @@ typedef enum
     SmfSoCSensorChannelCpuTemperature6Id = 186,
     SmfSoCSensorChannelCpuTemperature7Id = 187,
     SmfSoCSensorChannelCpuTemperature8Id = 188,
-    SmfSoCSensorChannelCpuTemperature9Id = 189
+    SmfSoCSensorChannelCpuTemperature9Id = 189,
+    // These sensors are reported as is to the framework.
+    // Channel type is SMF_SILICON_TELEMETRY_INPUT_TYPE.
+    //
+    SmfSoCSensorChanneCpuTelemetryBitsId = 199,
+    SmfSoCSensorChanneGpuTelemetryBitsId = 299
 } SMFSOC_SENSORCHANNEL;
 
 // Enumeration used to expose Control Channels to SMF.
@@ -216,6 +232,7 @@ VOID
 EVT_DMF_INTERFACE_SystemManagementFramework_ProtocolNotify(
     _In_ DMFINTERFACE DmfInterface,
     _In_ SMFSOC_PROTOCOL_NOTIFY_OPERATION Operation,
+    _In_ USHORT Channel,
     _In_ VOID* Data,
     _In_ size_t DataSize
     );

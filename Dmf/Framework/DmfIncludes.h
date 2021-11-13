@@ -20,6 +20,17 @@ Environment:
 
 --*/
 
+// Automatically define DMF_USER_MODE if in the UMDF environment.
+// (Previously, UMDF drivers had to explicitly set this setting.)
+//
+#if defined(UMDF_VERSION_MAJOR)
+    // Maintain backward compatibility for drivers that already define DMF_USER_MODE.
+    //
+    #if !defined(DMF_USER_MODE)
+        #define DMF_USER_MODE
+    #endif
+#endif
+
 // NOTE: All non-native WDF platforms require DmfPlatform.h.
 //
 #if defined(DMF_WIN32_MODE) 
