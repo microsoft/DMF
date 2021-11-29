@@ -19,9 +19,18 @@ Environment:
 
 #pragma once
 
+#define DMF_USE_DBGPRINT
+
+#if defined(DMF_USE_DBGPRINT)
+#define WPP_BIT_0x00000001  1
+#if defined(DMF_INCLUDE_TMH)
+#undef DMF_INCLUDE_TMH
+#endif
+#endif
+
 // TODO: DMF Client Driver Writer:
 //
-// Copy lines 35 through 83 into your Trace.h file.
+// Copy lines 37 through 85 into your Trace.h file.
 //
 
 // From DmfTrace.h.
@@ -71,13 +80,6 @@ Environment:
 // USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
 // end_wpp
 
-#if !defined(DMF_WDF_DRIVER)
-
-#if defined(__cplusplus)
-extern "C"
-{
-#endif // defined(__cplusplus)
-
 // Levels.
 //
 #define TRACE_LEVEL_NONE        0
@@ -96,39 +98,46 @@ extern "C"
 //
 #define DMF_TRACE               0x00000001
 
+#if !defined(DMF_WDF_DRIVER) || defined(DMF_USE_DBGPRINT)
+
+#if defined(__cplusplus)
+extern "C"
+{
+#endif // defined(__cplusplus)
+
 VOID
 TraceEvents(
     _In_ ULONG DebugPrintLevel,
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     );
 
 VOID
 TraceInformation(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     );
 
 VOID
 TraceVerbose(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     );
 
 VOID
 TraceError(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     );
 
 VOID
 FuncEntryArguments(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     );
 

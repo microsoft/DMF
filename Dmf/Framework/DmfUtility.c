@@ -901,5 +901,330 @@ Exit:
     return ntStatus;
 }
 
+#if defined(DMF_USE_DBGPRINT)
+
+ULONG g_DMF_DebugLevel = TRACE_LEVEL_INFORMATION;
+ULONG g_DMF_DebugFlag = 0xff;
+
+#if defined(DBG)
+
+BOOLEAN
+DmfPlatform_FormatStringTranslate(
+    _In_ PCSTR DebugMessage,
+    _Out_writes_(OutStringSize) CHAR* OutString,
+    _In_ size_t OutStringSize
+    )
+/*++
+
+Routine Description:
+
+    Replace special WPP tracing format specifiers with 0x%X so that printf
+    can output the values.
+
+Arguments:
+
+    DebugMessage - Original format message to filter.
+    OutString - Translated format message.
+    OutStringSize - Size in bytes of OutString buffer.
+
+Return Value:
+
+    TRUE if the OutString buffer is large enough.
+
+--*/
+{
+    BOOLEAN returnValue;
+    CHAR* currentCharacterIn;
+    CHAR* currentCharacterOut;
+    size_t remainingBytes;
+    CHAR replacementFormat[] = "0x%X";
+    CHAR replacementFormatLlx[] = "%llx";
+    size_t replacementFormatSize;
+    size_t replacementFormatSizeLlx;
+
+    if (strlen(DebugMessage) + sizeof(CHAR) > OutStringSize)
+    {
+        strcpy_s(OutString,
+                 OutStringSize,
+                 "Format string is too long.");
+        returnValue = FALSE;
+        goto Exit;
+    }
+
+    replacementFormatSize = strlen(replacementFormat);
+    replacementFormatSizeLlx = strlen(replacementFormatLlx);
+    currentCharacterIn = (CHAR*)DebugMessage;
+    currentCharacterOut = OutString;
+    remainingBytes = OutStringSize;
+    while (*currentCharacterIn)
+    {
+        if (*currentCharacterIn == '%')
+        {
+            if (*(currentCharacterIn + 1) == '!')
+            {
+                // Special string.
+                //
+
+                // Skip '%'
+                //
+                currentCharacterIn++;
+                // Skip '!'
+                //
+                currentCharacterIn++;
+                // Skip characters inside '!' and '!'.
+                //
+                while ((*currentCharacterIn) &&
+                        (*currentCharacterIn != '!'))
+                {
+                    currentCharacterIn++;
+                }
+                if (*currentCharacterIn == '!')
+                {
+                    // Skip trailing !''.
+                    //
+                    currentCharacterIn++;
+                }
+                else
+                {
+                    // It is a malformed string that starts with %! but
+                    // has no trailing !. Just overwrite target buffer 
+                    // with error message and get out.
+                    //
+                    strcpy_s(OutString,
+                             OutStringSize,
+                             "Error in format string: expected trailing '!'");
+                    returnValue = FALSE;
+                    goto Exit;
+                }
+                // Replace with default format string.
+                //
+                *currentCharacterOut = '\0';
+                strcat_s(currentCharacterOut,
+                         remainingBytes,
+                         replacementFormat);
+                if (remainingBytes >= replacementFormatSize)
+                {
+                    remainingBytes -= replacementFormatSize;
+                }
+                else
+                {
+                    // It is a malformed string where there is not enough
+                    // space in the target buffer for the rest of the
+                    // translated string.
+                    //
+                    strcpy_s(OutString,
+                             OutStringSize,
+                             "Error in format string: not enough space");
+                    returnValue = FALSE;
+                    goto Exit;
+                }
+                currentCharacterOut += replacementFormatSize;
+                continue;
+            }
+            else if (*(currentCharacterIn + 1) == 'p')
+            {
+                // Special string.
+                //
+
+                // Skip '%'
+                //
+                currentCharacterIn++;
+                // Skip 'p'
+                //
+                currentCharacterIn++;
+                // Replace with default format string.
+                //
+                *currentCharacterOut = '\0';
+                strcat_s(currentCharacterOut,
+                         remainingBytes,
+                         replacementFormatLlx);
+                if (remainingBytes >= replacementFormatSizeLlx)
+                {
+                    remainingBytes -= replacementFormatSizeLlx;
+                }
+                else
+                {
+                    // It is a malformed string where there is not enough
+                    // space in the target buffer for the rest of the
+                    // translated string.
+                    //
+                    strcpy_s(OutString,
+                             OutStringSize,
+                             "Error in format string: not enough space");
+                    returnValue = FALSE;
+                    goto Exit;
+                }
+                currentCharacterOut += replacementFormatSizeLlx;
+                continue;
+            }
+            else
+            {
+                // Not a special string...fall through and keep copying.
+                //
+            }
+        }
+        // Copy the current compatible character.
+        //
+        *currentCharacterOut = *currentCharacterIn;
+        currentCharacterOut++;
+        remainingBytes--;
+        currentCharacterIn++;
+    }
+    // Zero terminate the string.
+    //
+    *currentCharacterOut = '\0';
+    // Indicate the original string was translated.
+    //
+    returnValue = TRUE;
+
+Exit:
+
+    return returnValue;
+}
+
+#endif // defined(DBG)
+
+VOID
+TraceEvents(
+    _In_ ULONG DebugPrintLevel,
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    )
+{
+#if defined(DBG)
+    #define MESSAGE_BUFFER_SIZE 1024
+    va_list list;
+    CHAR debugMessageBuffer[MESSAGE_BUFFER_SIZE];
+    NTSTATUS ntStatus;
+
+    va_start(list,
+             DebugMessage);
+
+    if (DebugMessage)
+    {
+        CHAR translatedDebugMessage[MESSAGE_BUFFER_SIZE];
+
+        DmfPlatform_FormatStringTranslate(DebugMessage,
+                                          translatedDebugMessage,
+                                          ARRAYSIZE(translatedDebugMessage));
+
+        // Use new safe string functions instead of _vsnprintf.
+        // This function takes care of NULL terminating if the message
+        // is longer than the buffer.
+        //
+        ntStatus = RtlStringCbVPrintfA(translatedDebugMessage,
+                                       sizeof(translatedDebugMessage),
+                                       DebugMessage,
+                                       list);
+        if(!NT_SUCCESS(ntStatus))
+        {
+            DbgPrint("DMF: RtlStringCbVPrintfA fails: ntStatus=0x%x\n", ntStatus);
+            goto Exit;
+        }
+        if (DebugPrintLevel <= TRACE_LEVEL_ERROR ||
+            (DebugPrintLevel <= g_DMF_DebugLevel &&
+             ((DebugPrintFlag & g_DMF_DebugFlag) == DebugPrintFlag)))
+        {
+            DbgPrint("DMF:%s",
+                     debugMessageBuffer);
+        }
+    }
+
+    va_end(list);
+
+Exit:
+
+    return;
+#else
+    UNREFERENCED_PARAMETER(DebugPrintLevel);
+    UNREFERENCED_PARAMETER(DebugPrintFlag);
+    UNREFERENCED_PARAMETER(DebugMessage);
+#endif
+}
+
+VOID
+TraceInformation(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    )
+{
+    va_list argumentList;
+
+    va_start(argumentList,
+             DebugMessage);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DebugPrintFlag,
+                DebugMessage,
+                argumentList);
+
+    va_end(argumentList);
+}
+
+VOID
+TraceVerbose(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    )
+{
+    va_list argumentList;
+
+    va_start(argumentList,
+             DebugMessage);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE,
+                DebugPrintFlag,
+                DebugMessage,
+                argumentList);
+
+    va_end(argumentList);
+}
+
+VOID
+TraceError(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    )
+{
+    va_list argumentList;
+
+    va_start(argumentList,
+             DebugMessage);
+
+    TraceEvents(TRACE_LEVEL_ERROR,
+                DebugPrintFlag,
+                DebugMessage,
+                argumentList);
+
+    va_end(argumentList);
+}
+
+VOID
+FuncEntryArguments(
+    _In_ ULONG DebugPrintFlag,
+    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    ...
+    )
+{
+    va_list argumentList;
+
+    va_start(argumentList,
+             DebugMessage);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE,
+                DebugPrintFlag,
+                DebugMessage,
+                argumentList);
+
+    va_end(argumentList);
+}
+
+    
+#endif
+
 // eof: DmfUtility.c
 //

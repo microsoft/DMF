@@ -974,7 +974,7 @@ Return Value:
 {
     PAGED_CODE();
 
-#if defined(DMF_KERNEL_MODE)
+#if defined(DMF_KERNEL_MODE) && !defined(DMF_USE_DBGPRINT)
 
     RECORDER_LOG recorder;
 
@@ -1561,7 +1561,7 @@ Return Value:
     WdfObjectDelete(dmfObject->ClientModuleInstanceNameMemory);
     dmfObject->ClientModuleInstanceNameMemory = NULL;
 
-#if defined(DMF_KERNEL_MODE)
+#if defined(DMF_KERNEL_MODE) && !defined(DMF_USE_DBGPRINT)
     if (dmfObject->InFlightRecorder != NULL)
     {
         if (! dmfObject->UsingDefaultInFlightRecorder)
