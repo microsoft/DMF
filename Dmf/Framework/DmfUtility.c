@@ -910,7 +910,7 @@ ULONG g_DMF_DebugFlag = 0xff;
 
 BOOLEAN
 DmfPlatform_FormatStringTranslate(
-    _In_ PCSTR DebugMessage,
+    _In_ CHAR* DebugMessage,
     _Out_writes_(OutStringSize) CHAR* OutString,
     _In_ size_t OutStringSize
     )
@@ -1021,6 +1021,18 @@ Return Value:
                 currentCharacterOut += replacementFormatSize;
                 continue;
             }
+            else if (*(currentCharacterIn + 1) == 's')
+            {
+                // Due to how _vsnprintf_s works, the CHAR* arguments don't work
+                // with 's'. They need 'S' due to default mode where 's' expects
+                // WCHAR*
+                //
+                *currentCharacterOut = 'S';
+                currentCharacterOut++;
+                remainingBytes--;
+                currentCharacterIn++;
+                continue;
+            }
             else if (*(currentCharacterIn + 1) == 'p')
             {
                 // Special string.
@@ -1088,7 +1100,7 @@ VOID
 TraceEvents(
     _In_ ULONG DebugPrintLevel,
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     )
 {
@@ -1113,10 +1125,18 @@ TraceEvents(
         // This function takes care of NULL terminating if the message
         // is longer than the buffer.
         //
-        ntStatus = RtlStringCbVPrintfA(translatedDebugMessage,
-                                       sizeof(translatedDebugMessage),
-                                       DebugMessage,
+#if !defined(DMF_USER_MODE)
+        ntStatus = RtlStringCbVPrintfA(debugMessageBuffer,
+                                       sizeof(debugMessageBuffer),
+                                       translatedDebugMessage,
                                        list);
+#else
+        _vsnprintf_s(debugMessageBuffer,
+                     sizeof(debugMessageBuffer),
+                     translatedDebugMessage,
+                     list);
+        ntStatus = STATUS_SUCCESS;
+#endif
         if(!NT_SUCCESS(ntStatus))
         {
             DbgPrint("DMF: RtlStringCbVPrintfA fails: ntStatus=0x%x\n", ntStatus);
@@ -1126,7 +1146,7 @@ TraceEvents(
             (DebugPrintLevel <= g_DMF_DebugLevel &&
              ((DebugPrintFlag & g_DMF_DebugFlag) == DebugPrintFlag)))
         {
-            DbgPrint("DMF:%s",
+            DbgPrint("DMF:%s\n",
                      debugMessageBuffer);
         }
     }
@@ -1146,7 +1166,7 @@ Exit:
 VOID
 TraceInformation(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     )
 {
@@ -1166,7 +1186,7 @@ TraceInformation(
 VOID
 TraceVerbose(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     )
 {
@@ -1186,7 +1206,7 @@ TraceVerbose(
 VOID
 TraceError(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     )
 {
@@ -1206,7 +1226,7 @@ TraceError(
 VOID
 FuncEntryArguments(
     _In_ ULONG DebugPrintFlag,
-    _Printf_format_string_ _In_ PCSTR DebugMessage,
+    _Printf_format_string_ _In_ CHAR* DebugMessage,
     ...
     )
 {
@@ -1223,7 +1243,6 @@ FuncEntryArguments(
     va_end(argumentList);
 }
 
-    
 #endif
 
 // eof: DmfUtility.c

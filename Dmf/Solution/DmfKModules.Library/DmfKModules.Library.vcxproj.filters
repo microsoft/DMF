@@ -73,9 +73,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_AcpiNotification.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c">
-      <Filter>Modules\Driver Patterns</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>

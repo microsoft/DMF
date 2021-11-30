@@ -1474,7 +1474,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE, ntStatus="%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus = %!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1551,7 +1551,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE, ntStatus="%!STATUS!", ntStatus);
+    FuncExit(DMF_TRACE, "ntStatus = %!STATUS!", ntStatus);
 
     return ntStatus;
 }

@@ -19,8 +19,7 @@ Environment:
 
 #pragma once
 
-#define DMF_USE_DBGPRINT
-
+#define NO_DMF_USE_DBGPRINT
 #if defined(DMF_USE_DBGPRINT)
 #define WPP_BIT_0x00000001  1
 #if defined(DMF_INCLUDE_TMH)
@@ -30,7 +29,7 @@ Environment:
 
 // TODO: DMF Client Driver Writer:
 //
-// Copy lines 37 through 85 into your Trace.h file.
+// Copy lines 52 through 80 into your Trace.h file.
 //
 
 // From DmfTrace.h.
@@ -154,7 +153,7 @@ FuncEntryArguments(
 }
 #endif // defined(__cplusplus)
 
-#endif
+#endif // !defined(DMF_WDF_DRIVER) || defined(DMF_USE_DBGPRINT)
 
 // eof: DmfTrace.h
 //
