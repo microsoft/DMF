@@ -66,6 +66,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ScheduledTask.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SelfTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SerialTarget.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_SmbiosWmi.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpbTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpiTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.c" />

@@ -39,12 +39,7 @@
     <ClCompile Include="..\..\Framework\DmfModuleCollection.c" />
     <ClCompile Include="..\..\Framework\DmfPortable.c" />
     <ClCompile Include="..\..\Framework\DmfUtility.c">
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</WppEnabled>
-      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WppEnabled>
+      <WppEnabled>false</WppEnabled>
     </ClCompile>
     <ClCompile Include="..\..\Framework\DmfValidate.c" />
     <ClCompile Include="..\..\Framework\DmfDeviceInit.c" />

@@ -19,7 +19,7 @@ Environment:
 
 #pragma once
 
-#define NO_DMF_USE_DBGPRINT
+#define DMF_USE_DBGPRINT
 #if defined(DMF_USE_DBGPRINT)
 #define WPP_BIT_0x00000001  1
 #if defined(DMF_INCLUDE_TMH)

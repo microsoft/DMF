@@ -88,6 +88,8 @@ DMF_MODULE_DECLARE_NO_CONFIG(SmbiosWmi)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#include <wmistr.h>
+
 // Structures' information is available here:
 // http://www.dmtf.org/standards/smbios
 //
