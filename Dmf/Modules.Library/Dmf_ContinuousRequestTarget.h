@@ -277,12 +277,6 @@ DMF_ContinuousRequestTarget_Start(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
-DMF_ContinuousRequestTarget_Stop(
-    _In_ DMFMODULE DmfModule
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
 DMF_ContinuousRequestTarget_StopAndWait(
     _In_ DMFMODULE DmfModule
     );

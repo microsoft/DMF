@@ -352,7 +352,7 @@ Return Value:
 
     // This is needed for cases where Module Opens, Close and Opens again.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     UNREFERENCED_PARAMETER(ResourcesRaw);
     UNREFERENCED_PARAMETER(ResourcesTranslated);
@@ -476,7 +476,7 @@ Return Value:
 
     // NOTE: Client Drivers have the option of closing modules at any time.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // NOTE: This code is not totally symmetrical with DMF_Generic_ModulePrepareHardware because there is
     //       no corresponding DMF_Module_ResourcesAssign on the way down.
@@ -566,7 +566,7 @@ Return Value:
 
     // NOTE: Modules can be closed in D0Exit.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -697,7 +697,7 @@ Return Value:
 
     // NOTE: Modules can be closed in D0Exit.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -739,7 +739,7 @@ Return Value:
 
     // NOTE: Client Drivers have the option of closing modules at any time.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -789,7 +789,7 @@ Return Value:
 
     // NOTE: Client Drivers have the option of closing modules at any time.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -879,7 +879,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // Tell Client Driver this dispatch is still unhandled.
     //
@@ -932,7 +932,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // Tell Client Driver this dispatch is still unhandled.
     //
@@ -1001,7 +1001,7 @@ Return Value:
     //
     if (dmfDeviceContext->IsFilterDevice == FALSE)
     {
-        DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+        DMF_HandleValidate_IsAvailable(dmfObject);
     }
 
     // Tell Client Driver this dispatch is still unhandled.
@@ -1106,7 +1106,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1146,7 +1146,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1190,7 +1190,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1233,7 +1233,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1275,7 +1275,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1313,7 +1313,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1356,7 +1356,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1449,7 +1449,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1961,7 +1961,7 @@ Return Value:
 
     // This is needed for cases where Module Opens, Close and Opens again.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // This is called during PrepareHardware when the flag is used.
     //
@@ -2010,7 +2010,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName, STATUS_SUCCESS);
 
@@ -2051,7 +2051,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
 }

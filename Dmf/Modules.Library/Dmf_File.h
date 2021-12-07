@@ -57,5 +57,13 @@ DMF_File_ReadEx(
     _Out_opt_ size_t* BufferLength
     );
 
+_Must_inspect_result_
+NTSTATUS
+DMF_File_Write(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFSTRING FileName,
+    _In_ WDFMEMORY FileContentMemory
+    );
+
 // eof: Dmf_File.h
 //

@@ -264,26 +264,6 @@ g_HidPortableDeviceButtons_HidReportDescriptor[] =
     0xC0                             // END_COLLECTION
 };
 
-// HID Device Descriptor with just one report representing the Portable Device Buttons.
-//
-static
-const
-HID_DESCRIPTOR
-g_HidPortableDeviceButtons_HidDescriptor =
-{
-    0x09,     // Length of HID descriptor
-    0x21,     // Descriptor type == HID  0x21
-    0x0100,   // HID spec release
-    0x00,     // Country code == English
-    0x01,     // Number of HID class descriptors
-    {
-        0x22,   // Descriptor type
-        // Total length of report descriptor.
-        //
-        (USHORT) sizeof(g_HidPortableDeviceButtons_HidReportDescriptor)
-    }
-};
-
 _Function_class_(EVT_VHF_ASYNC_OPERATION)
 VOID
 HidPortableDeviceButtons_GetFeature(
@@ -742,8 +722,6 @@ Return Value:
     virtualHidDeviceMsModuleConfig.ProductId = moduleConfig->ProductId;
     virtualHidDeviceMsModuleConfig.VersionNumber = 0x0001;
 
-    virtualHidDeviceMsModuleConfig.HidDescriptor = &g_HidPortableDeviceButtons_HidDescriptor;
-    virtualHidDeviceMsModuleConfig.HidDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidDescriptor);
     virtualHidDeviceMsModuleConfig.HidReportDescriptor = g_HidPortableDeviceButtons_HidReportDescriptor;
     virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptor);
 

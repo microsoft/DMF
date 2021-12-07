@@ -303,26 +303,6 @@ g_VirtualHidAmbientColorSensor_HidReportDescriptor[] =
     HID_END_COLLECTION,
 };
 
-// HID Device Descriptor with just one report representing the keyboard.
-//
-static
-const
-HID_DESCRIPTOR
-g_VirtualHidAmbientColorSensor_HidDescriptor =
-{
-    0x09,     // Length of HID descriptor
-    0x21,     // Descriptor type == HID  0x21
-    0x0100,   // HID spec release
-    0x33,     // Country code == English
-    0x01,     // Number of HID class descriptors
-    {
-      0x22,   // Descriptor type
-      // Total length of report descriptor.
-      //
-      (USHORT) sizeof(g_VirtualHidAmbientColorSensor_HidReportDescriptor)
-    }
-};
-
 #include <pshpack1.h>
 typedef struct _VirtualHidAmbientColorSensor_INPUT_REPORT
 {
@@ -667,8 +647,6 @@ Return Value:
     virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
     virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
 
-    virtualHidDeviceVhfModuleConfig.HidDescriptor = &g_VirtualHidAmbientColorSensor_HidDescriptor;
-    virtualHidDeviceVhfModuleConfig.HidDescriptorLength = sizeof(g_VirtualHidAmbientColorSensor_HidDescriptor);
     virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualHidAmbientColorSensor_HidReportDescriptor;
     virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualHidAmbientColorSensor_HidReportDescriptor);
 

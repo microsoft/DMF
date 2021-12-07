@@ -27,8 +27,6 @@ typedef struct
   USHORT VendorId;
   USHORT ProductId;
   USHORT VersionNumber;
-  const HID_DESCRIPTOR* HidDescriptor;
-  ULONG HidDescriptorLength;
   const UCHAR* HidReportDescriptor;
   ULONG HidReportDescriptorLength;
   HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
@@ -50,8 +48,6 @@ Member | Description
 VendorId | The vendor id of the virtual HID device.
 ProductId | The product id of the virtual HID device.
 VersionNumber | The version number of the virtual HID device.
-HidDescriptor | The HID device descriptor of the Virtual Hid device.
-HidDescriptorLength | The size in bytes of HidDescriptor.
 HidReportDescriptor | The HID report descriptor of the Virtual Hid device.
 HidDeviceAttributes | The HID device attributes of the Virtual Hid device.
 IoctlCallback_IOCTL_HID_SET_FEATURE | VHF callback for IOCTL_HID_SET_FEATURE.

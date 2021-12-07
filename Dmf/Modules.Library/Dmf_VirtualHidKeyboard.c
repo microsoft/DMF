@@ -119,26 +119,6 @@ g_VirtualHidKeyboard_HidReportDescriptor[] =
     0xc0,                /* END_COLLECTION */
 };
 
-// HID Device Descriptor with just one report representing the keyboard.
-//
-static
-const
-HID_DESCRIPTOR
-g_VirtualHidKeyboard_HidDescriptor =
-{
-    0x09,     // Length of HID descriptor
-    0x21,     // Descriptor type == HID  0x21
-    0x0100,   // HID spec release
-    0x33,     // Country code == English
-    0x01,     // Number of HID class descriptors
-    {
-      0x22,   // Descriptor type
-      // Total length of report descriptor.
-      //
-      (USHORT) sizeof(g_VirtualHidKeyboard_HidReportDescriptor)
-    }
-};
-
 /*
     Keyboard Report Format:
     ._______________________________________________________________________________________________________________________
@@ -688,8 +668,6 @@ Return Value:
         virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
         virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
 
-        virtualHidDeviceVhfModuleConfig.HidDescriptor = &g_VirtualHidKeyboard_HidDescriptor;
-        virtualHidDeviceVhfModuleConfig.HidDescriptorLength = sizeof(g_VirtualHidKeyboard_HidDescriptor);
         virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualHidKeyboard_HidReportDescriptor;
         virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualHidKeyboard_HidReportDescriptor);
 

@@ -242,23 +242,25 @@ Tests_BufferQueue_ThreadAction_EnqueueAtHead(
     ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueue,
                                      (PVOID*)&clientBuffer,
                                      (PVOID*)&clientBufferContext);
-    DmfAssert(NT_SUCCESS(ntStatus));
-    DmfAssert(clientBuffer != NULL);
-    DmfAssert(clientBufferContext != NULL);
+    if (NT_SUCCESS(ntStatus))
+    {
+        DmfAssert(clientBuffer != NULL);
+        DmfAssert(clientBufferContext != NULL);
 
-    // Populate the buffer with test data.
-    //
-    TestsUtility_FillWithSequentialData(clientBuffer,
-                                        BUFFER_SIZE);
+        // Populate the buffer with test data.
+        //
+        TestsUtility_FillWithSequentialData(clientBuffer,
+                                            BUFFER_SIZE);
 
-    clientBufferContext->Signature = CLIENT_CONTEXT_SIGNATURE;
-    clientBufferContext->CheckSum = TestsUtility_CrcCompute(clientBuffer,
-                                                            BUFFER_SIZE);
+        clientBufferContext->Signature = CLIENT_CONTEXT_SIGNATURE;
+        clientBufferContext->CheckSum = TestsUtility_CrcCompute(clientBuffer,
+                                                                BUFFER_SIZE);
 
-    // Add this buffer to the queue.
-    //
-    DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
-                                  clientBuffer);
+        // Add this buffer to the queue.
+        //
+        DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
+                                      clientBuffer);
+    }
 
 Exit:
 

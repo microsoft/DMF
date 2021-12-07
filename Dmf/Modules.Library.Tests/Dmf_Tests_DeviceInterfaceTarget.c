@@ -198,8 +198,8 @@ Tests_DeviceInterfaceTarget_BufferOutput(
         CompletionStatus != STATUS_INVALID_DEVICE_STATE)
     {
         // Request can be completed with InformationSize of 0 by framework.
+        // This can happen during suspend/resume of machine.
         //
-        DmfAssert(FALSE);
     }
     if (NT_SUCCESS(CompletionStatus))
     {
@@ -1509,16 +1509,30 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+    NTSTATUS ntStatus;
+    WDFIOTARGET ioTarget;
 
     PAGED_CODE();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    WDFIOTARGET ioTarget;
-    DMF_DeviceInterfaceTarget_Get(DmfModule,
-                                  &ioTarget);
-    WdfIoTargetPurge(ioTarget,
-                     WdfIoTargetPurgeIoAndWait);
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     // Stop the threads. Streaming is automatically stopped.
     //
@@ -1685,6 +1699,7 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
@@ -1692,10 +1707,25 @@ Return Value:
 
 #if !defined(TEST_SIMPLE)
     WDFIOTARGET ioTarget;
-    DMF_DeviceInterfaceTarget_Get(DmfModule,
-                                  &ioTarget);
-    WdfIoTargetPurge(ioTarget,
-                     WdfIoTargetPurgeIoAndWait);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
@@ -1732,16 +1762,30 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+    NTSTATUS ntStatus;
+    WDFIOTARGET ioTarget;
 
     PAGED_CODE();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    WDFIOTARGET ioTarget;
-    DMF_DeviceInterfaceTarget_Get(DmfModule,
-                                  &ioTarget);
-    WdfIoTargetPurge(ioTarget,
-                     WdfIoTargetPurgeIoAndWait);
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     // Stop streaming.
     //

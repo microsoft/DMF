@@ -628,11 +628,6 @@ DMF_HandleValidate_IsCreatedOrClosed(
     );
 
 VOID
-DMF_HandleValidate_IsCreatedOrOpenedOrClosed(
-    _In_ DMF_OBJECT* DmfObject
-    );
-
-VOID
 DMF_HandleValidate_IsAvailable(
     _In_ DMF_OBJECT* DmfObject
     );

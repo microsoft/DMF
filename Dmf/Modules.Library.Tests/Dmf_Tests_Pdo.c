@@ -43,7 +43,10 @@ Environment:
 #define PDO_ENABLE_KERNELMODE
 #define PDO_ENABLE_USERMODE
 
-// Remove PDOs slowly or fast only.
+#define NO_FAST_REMOVE
+#if defined(FAST_REMOVE)
+
+// Remove PDOs slowly.
 //
 #define PDO_SLOW_TIMEOUT_ONLY
 #define NO_PDO_FAST_TIMEOUT_ONLY
@@ -51,6 +54,19 @@ Environment:
 #define MINIMUM_PDO_TIMEOUT_SECONDS     (5)
 #define FAST_PDO_TIMEOUT_SECONDS        (60)
 #define SLOW_PDO_TIMEOUT_SECONDS        (3600)  // 60 minutes for PnPDTest
+
+#else
+
+// Remove PDOs fast.
+//
+#define NO_PDO_SLOW_TIMEOUT_ONLY
+#define PDO_FAST_TIMEOUT_ONLY
+
+#define MINIMUM_PDO_TIMEOUT_SECONDS     (5)
+#define FAST_PDO_TIMEOUT_SECONDS        (30)
+#define SLOW_PDO_TIMEOUT_SECONDS        (3600)
+
+#endif
 
 typedef enum _TEST_ACTION
 {

@@ -154,7 +154,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleReleaseHardware)(DmfModule,
@@ -286,7 +286,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0ExitPreInterruptsDisabled)(DmfModule,
@@ -329,7 +329,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksWdf->ModuleD0Exit)(DmfModule,
@@ -1385,7 +1385,7 @@ Return Value:
     // NOTE: In the case where there is no handler, allow "Opened".
     // NOTE: In the cases where Modules are Opened, Closed and Opened again, allow "Closed" state.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceResourcesAssign)(DmfModule,
@@ -1432,7 +1432,7 @@ Return Value:
 
     // NOTE: In the cases where Modules are Opened, Closed and Opened again, allow "Closed" state.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister != NULL);
     ntStatus = (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationRegister)(DmfModule);
@@ -1479,7 +1479,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister != NULL);
     (dmfObject->ModuleDescriptor.CallbacksDmf->DeviceNotificationUnregister)(DmfModule);

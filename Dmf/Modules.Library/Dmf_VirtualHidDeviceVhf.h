@@ -1170,8 +1170,6 @@ typedef struct
     USHORT VendorId;
     USHORT ProductId;
     USHORT VersionNumber;
-    const HID_DESCRIPTOR* HidDescriptor;
-    ULONG HidDescriptorLength;
     const UCHAR* HidReportDescriptor;
     ULONG HidReportDescriptorLength;
     HID_DEVICE_ATTRIBUTES HidDeviceAttributes;

@@ -590,24 +590,29 @@ Tests_BufferPool_WorkThread(
     {
     case TEST_ACTION_AQUIRE:
         ntStatus = Tests_BufferPool_ThreadAction_BufferAquire(dmfModule);
+        // It can fail if device will be removed.
+        //
         break;
     case TEST_ACTION_RETURN:
         ntStatus = Tests_BufferPool_ThreadAction_BufferReturn(dmfModule);
+        DmfAssert(NT_SUCCESS(ntStatus) ||
+                  DMF_Thread_IsStopPending(DmfModuleThread));
         break;
     case TEST_ACTION_ENUMERATE:
         ntStatus = Tests_BufferPool_ThreadAction_BufferEnumerate(dmfModule);
+        DmfAssert(NT_SUCCESS(ntStatus) ||
+                  DMF_Thread_IsStopPending(DmfModuleThread));
         break;
     case TEST_ACTION_COUNT:
         ntStatus = Tests_BufferPool_ThreadAction_BufferCount(dmfModule);
+        DmfAssert(NT_SUCCESS(ntStatus) ||
+                  DMF_Thread_IsStopPending(DmfModuleThread));
         break;
     default:
         ntStatus = STATUS_UNSUCCESSFUL;
         DmfAssert(FALSE);
         break;
     }
-
-    DmfAssert(NT_SUCCESS(ntStatus) ||
-              DMF_Thread_IsStopPending(DmfModuleThread));
 
     // Repeat the test, until stop is signaled.
     //
