@@ -44,7 +44,7 @@ Environment:
 #define PDO_ENABLE_USERMODE
 
 #define NO_FAST_REMOVE
-#if defined(FAST_REMOVE)
+#if !defined(FAST_REMOVE)
 
 // Remove PDOs slowly.
 //
