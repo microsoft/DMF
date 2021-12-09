@@ -190,7 +190,7 @@ typedef struct _DMF_CONTEXT_DeviceInterfaceMultipleTarget
     DMFMODULE DmfModuleBufferQueue;
     // Ensures that Module Open/Close are called a single time.
     //
-    LONG NumberOfTargetsCreated;
+    LONG NumberOfTargetsOpened;
 
     // Redirect Input buffer callback from ContinuousRequestTarget to this callback.
     //
@@ -521,7 +521,7 @@ Return Value:
 
     // No lock is used here, since the PnP callback is synchronous.
     //
-    if (InterlockedIncrement(&moduleContext->NumberOfTargetsCreated) == 1)
+    if (InterlockedIncrement(&moduleContext->NumberOfTargetsOpened) == 1)
     {
         // Open the Module.
         //
@@ -563,7 +563,7 @@ Return Value:
 
     // No lock is used here, since the PnP callback is synchronous.
     //
-    if (InterlockedDecrement(&moduleContext->NumberOfTargetsCreated) == 0)
+    if (InterlockedDecrement(&moduleContext->NumberOfTargetsOpened) == 0)
     {
         // Close the Module.
         //
@@ -1038,7 +1038,9 @@ Return Value:
     target = (DeviceInterfaceMultipleTarget_IoTarget *)ClientBuffer;
     DmfAssert(target->SymbolicLinkName.Length != 0);
     DmfAssert(target->SymbolicLinkName.Buffer != NULL);
-    DmfAssert(target->IoTarget != NULL);
+    // NOTE: target->IoTarget = NULL if IoTarget could not be opened again
+    //       during "RemoveCancel" path.
+    //
 
     callbackContext = (DeviceInterfaceMultipleTarget_EnumerationContext*)ClientDriverCallbackContext;
     // 'Dereferencing NULL pointer. 'callbackContext'
@@ -1396,6 +1398,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
+    DmfAssert(target->IoTarget == IoTarget);
     target->IoTarget = IoTarget;
 
     // Clear this flag in case it was set during QueryRemove.
@@ -1408,8 +1411,12 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open serial target - %!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         WdfObjectDelete(IoTarget);
+        // Clear target so that Close/Delete paths do not happen as they have
+        // already happened.
+        //
+        target->IoTarget = NULL;
         goto Exit;
     }
 
@@ -2107,15 +2114,21 @@ Return Value:
     //
     while ((targetCount = DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue)) != 0)
     {
-        DmfAssert(targetCount == moduleContext->NumberOfTargetsCreated);
+        // NOTE: targetCount may not equal moduleContext->NumberOfTargetsOpened if WDFIOTARGET
+        //       failed to reopen during RemoveCancel. Thus, the number of contexts may not 
+        //       equal the number of targets opened.
+        //
         DMF_BufferQueue_Dequeue(moduleContext->DmfModuleBufferQueue,
                                 (VOID**)&target,
                                 NULL);
         DeviceInterfaceMultipleTarget_TargetDestroyAndCloseModule(DmfModule,
                                                                   target);
-        DmfAssert((LONG)DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) == moduleContext->NumberOfTargetsCreated);
     }
-    DmfAssert(moduleContext->NumberOfTargetsCreated == 0);
+    // NOTE: This number can be less than zero if target failed to reopen during RemoveCancel.
+    //       Reset to zero for case where PrepareHardware happens after ReleaseHardware.
+    //
+    DmfAssert(moduleContext->NumberOfTargetsOpened <= 0);
+    moduleContext->NumberOfTargetsOpened = 0;
 
     FuncExitVoid(DMF_TRACE);
 }
