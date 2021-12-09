@@ -2112,7 +2112,6 @@ Return Value:
     CONTEXT_ComponentFirmwareUpdateTransport* componentFirmwareUpdateTransportContext;
 
     const UINT numberOfUlongsInOffer = 4;
-    const ULONG offerSize = sizeof(ULONG) * numberOfUlongsInOffer;
     const BYTE outputToken = FWUPDATE_DRIVER_TOKEN;
 
     WDF_OBJECT_ATTRIBUTES objectAttributes;
