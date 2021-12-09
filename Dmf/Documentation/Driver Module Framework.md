@@ -217,9 +217,9 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR 111](#dmf_module_descriptor)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ENTRYPOINTS_DMF 113](#dmf_entrypoints_dmf)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF 113](#dmf_entrypoints_dmf)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ENTRYPOINTS_WDF 114](#dmf_entrypoints_wdf)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_WDF 114](#dmf_entrypoints_wdf)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module WDF Callbacks 116](#module-wdf-callbacks)
 
@@ -305,9 +305,9 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE_NO_CONFIG](#declare_dmf_module_no_config)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ENTRYPOINTS_DMF_INIT 164](#dmf_entrypoints_dmf_init)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF_INIT 164](#dmf_entrypoints_dmf_init)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ENTRYPOINTS_WDF_INIT 165](#dmf_entrypoints_wdf_init)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_WDF_INIT 165](#dmf_entrypoints_wdf_init)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR_INIT 166](#dmf_module_descriptor_init)
 
@@ -4163,17 +4163,17 @@ specifically for the Module: DMF_MODULE_DESCRIPTOR_INIT()
   **TransportMethod**         | Indicates the Module's Transport Method. When this member is set, the Module may be instantiated by a Client as a Transport Module.
   **InFlightRecorderSize**    | Indicates the size of the Module's custom IFR buffer if set to a non-zero value. By default, IFR traces will go to a common buffer for all Modules if this value is zero.
 
-### DMF_ENTRYPOINTS_DMF
+### DMF_CALLBACKS_DMF
 
 This structure contains all the DMF specific callbacks the Module
 supports.
 
 Always use this function to initialize the structure before updating it
-specifically for the Module: DMF_ENTRYPOINTS_DMF_INIT()
+specifically for the Module: DMF_CALLBACKS_DMF_INIT()
 
   **Member**                        | **Description**
   ----------------------------------| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **Size**                          | Indicates the size of this structure. It is initialized by **DMF_ENTRYPOINTS_DMF_INIT()**.
+  **Size**                          | Indicates the size of this structure. It is initialized by **DMF_CALLBACKS_DMF_INIT()**.
   **ModuleInstanceDestroy**         | The callback function that is called when the Module is destroyed. Generally, it is not necessary for a Module to support this callback. In some rare cases, if an allocation or some resource is acquired in the Module's Create function, then this callback can be used to release that allocation or resource.
   **DeviceResourcesAssign**         | DMF calls this callback to allow the Module to retrieve the Client's Driver's resources.
   **DeviceNotificationRegister**    | DMF calls this callback to allow the Module to register for notification of an event that will tell the Module its required dependencies are available or not available.
@@ -4182,17 +4182,17 @@ specifically for the Module: DMF_ENTRYPOINTS_DMF_INIT()
   **DeviceClose**                   | DMF calls this callback to close the Module. Generally speaking, the Module uses this callback to do the inverse of what it did in the **DeviceOpen** callback.
   **ChildModulesAdd**               | DMF calls this callback so that the Module can tell DMF about the Child Module(s) it needs to create.
 
-### DMF_ENTRYPOINTS_WDF
+### DMF_CALLBACKS_WDF
 
 This structure contains all the WDF specific callbacks the Module
 supports.
 
 Always use this function to initialize the structure before updating it
-specifically for the Module: DMF_ENTRYPOINTS_WDF_INIT()
+specifically for the Module: DMF_CALLBACKS_WDF_INIT()
 
   **Member**                              | **Description**
   ----------------------------------------| -----------------------------------------------------------------------------------------------
-  **Size**                                | Indicates the size of this structure. It is initialized by **DMF_ENTRYPOINTS_WDF_INIT()**.
+  **Size**                                | Indicates the size of this structure. It is initialized by **DMF_CALLBACKS_WDF_INIT()**.
   **ModulePrepareHardware**               | Routes **EvtDevicePrepareHardware** to the Module. (WDFDEVICE)
   **ModuleReleaseHardware**               | Routes **EvtDeviceReleaseHardware** to the Module. (WDFDEVICE)
   **ModuleD0Entry**                       | Routes **EvtDeviceD0Entry** to the Module. (WDFDEVICE)
@@ -6052,14 +6052,14 @@ None
 
 -   If a Module has a Config, use **DECLARE_DMF_MODULE()** instead.
 
-### DMF_ENTRYPOINTS_DMF_INIT
+### DMF_CALLBACKS_DMF_INIT
 ```
 VOID
-DMF_ENTRYPOINTS_DMF_INIT(
+DMF_CALLBACKS_DMF_INIT(
     _Out_ PDMF_ENTRYPOINTS_DMF EntryPointsDmf
     )
 ```
-This function initializes a **DMF_ENTRYPOINTS_DMF** structure.
+This function initializes a **DMF_CALLBACKS_DMF** structure.
 
 #### Parameters
   Parameter | Description
@@ -6078,14 +6078,14 @@ None
 -   After initializing this structure, set the DMF callbacks the Module
     supports.
 
-### DMF_ENTRYPOINTS_WDF_INIT
+### DMF_CALLBACKS_WDF_INIT
 ```
 VOID
-DMF_ENTRYPOINTS_WDF_INIT(
+DMF_CALLBACKS_WDF_INIT(
     _Out_ PDMF_ENTRYPOINTS_WDF EntryPointsWdf
     )
 ```
-This function initializes a **DMF_ENTRYPOINTS_WDF** structure.
+This function initializes a **DMF_CALLBACKS_WDF** structure.
 
 #### Parameters
   Parameter | Description
@@ -7846,8 +7846,8 @@ Modules.
   ----------------------------------------      |  -----------------------------------------------------------------------------------------------------------------------------
   **[DECLARE_DMF_MODULE]**                      |  Modules use this macro in the Module's .h file to define the name of the Module as well as functions associated with the Module. Use this macro only if the Module **has** a Module Config structure that Clients use to configure the Module.
   **[DECLARE_DMF_MODULE_NO_CONFIG]**            |  Modules use this macro in the Module's .h file to define the name of the Module as well as functions associated with the Module. Use this macro only if the Module **does not have** a Module Config structure that Clients use to configure the Module
-  **DMF_ENTRYPOINTS_DMF_INIT**                  |  Modules use this macro to declare what DMF callbacks the Module supports, if any. If the Module does not support DMF callbacks this call is not necessary.
-  **DMF_ENTRYPOINTS_WDF_INIT**                  |  Modules use this macro to declare what WDF callbacks the Module supports, if any. If the Module does not support WDF callbacks this call is not necessary.
+  **DMF_CALLBACKS_DMF_INIT**                  |  Modules use this macro to declare what DMF callbacks the Module supports, if any. If the Module does not support DMF callbacks this call is not necessary.
+  **DMF_CALLBACKS_WDF_INIT**                  |  Modules use this macro to declare what WDF callbacks the Module supports, if any. If the Module does not support WDF callbacks this call is not necessary.
   **[DMF_MODULE_DESCRIPTOR_INIT]**              |  Modules use this macro to initialize the Module's descriptor, **DMF_MODULE_DESCRIPTOR**. Only Modules that **have no contex**t use this call.
   **[DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE]** |  Modules use this macro to initialize the Module's descriptor, **DMF_MODULE_DESCRIPTOR**. Only Modules that **have a context** use this call.
   **DMF_CONFIG_GET**                            |  Modules use this function to retrieve the Module's Config information set by the Client.

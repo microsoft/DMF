@@ -127,6 +127,7 @@ Return Value:
         parametersBufferSize += (FunctionCustomArgumentsBufferSize - sizeof(ULONG));
     }
 
+    #pragma warning( suppress : 4996 )
     parametersBuffer = (ACPI_EVAL_INPUT_BUFFER_COMPLEX*)ExAllocatePoolWithTag(PagedPool,
                                                                               parametersBufferSize,
                                                                               MemoryTag);
@@ -340,6 +341,7 @@ Return Value:
 
     do
     {
+        #pragma warning( suppress : 4996 )
         outputBuffer = (PACPI_EVAL_OUTPUT_BUFFER)ExAllocatePoolWithTag(PagedPool,
                                                                        outputBufferLength,
                                                                        Tag);

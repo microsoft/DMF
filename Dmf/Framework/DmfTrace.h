@@ -69,6 +69,10 @@ Environment:
 // USEPREFIX(TraceInformation, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(TraceVerbose, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
+// CUSTOM_TYPE(SMFX_MACHINE_EXCEPTION, ItemEnum(StateMachine_MachineException));
+// CUSTOM_TYPE(SMFX_TRANSITION_TYPE, ItemEnum(StateMachine_TransitionType));
+// CUSTOM_TYPE(COMPONENT_FIRMWARE_UPDATE_V2_EVENT, ItemEnum(ComponentFirmwareUpdateV2EventId));
+// CUSTOM_TYPE(COMPONENT_FIRMWARE_UPDATE_V2_STATE, ItemEnum(ComponentFirmwareUpdateV2StateId));
 // end_wpp
 
 #if !defined(DMF_WDF_DRIVER)

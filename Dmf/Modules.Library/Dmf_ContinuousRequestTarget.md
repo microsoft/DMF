@@ -555,31 +555,6 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-##### DMF_ContinuousRequestTarget_Stop
-
-````
-_IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
-DMF_ContinuousRequestTarget_Stop(
-  _In_ DMFMODULE DmfModule
-  );
-````
-
-Stops streaming. The pending requests are canceled and no new Requests will be sent to the underlying WDFIOTARGET.
-
-##### Returns
-
-None
-
-##### Parameters
-Parameter | Description
-----|----
-DmfModule | An open DMF_ContinuousRequestTarget Module handle.
-
-##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ContinuousRequestTarget_StopAndWait
 
 ````

@@ -143,6 +143,38 @@ BufferLength | Optional pointer to the length of the read data.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_DMF_File_Write
+
+````
+_Must_inspect_result_
+NTSTATUS
+DMF_File_Write(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFSTRING FileName,
+    _In_ WDFMEMORY FileContentMemory
+    );
+````
+
+    Writes the contents of a wdf memory to a file.
+    This function will try to create the file if it doesn't exists and overwrite current file.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_File Module handle.
+FileName  | Name of the file.
+FileContentMemory | Buffer handle of buffer holding data to write.
+
+##### Remarks
+
+*
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Children
 
 * None

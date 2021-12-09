@@ -3334,6 +3334,7 @@ Return Value:
 
     // Allocate space for the Data Sources.
     //
+    #pragma warning( suppress : 4996 )
     moduleContext->DataSource = (DATA_SOURCE *)ExAllocatePoolWithTag(NonPagedPoolNx,
                                                                      sizeof(DATA_SOURCE) * moduleContext->DataSourceCount,
                                                                      MemoryTag);
@@ -3349,6 +3350,7 @@ Return Value:
 
     // Allocate space for the Bug Check Callback Records.
     //
+    #pragma warning( suppress : 4996 )
     moduleContext->BugCheckCallbackRecordRingBuffer = (KBUGCHECK_REASON_CALLBACK_RECORD *)ExAllocatePoolWithTag(NonPagedPoolNx,
                                                                                                           sizeof(KBUGCHECK_REASON_CALLBACK_RECORD) * moduleContext->DataSourceCount,
                                                                                                           MemoryTag);

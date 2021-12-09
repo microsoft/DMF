@@ -645,5 +645,203 @@ Exit:
     return ntStatus;
 }
 
+
+_Must_inspect_result_
+NTSTATUS
+DMF_File_Write(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFSTRING FileName,
+    _In_ WDFMEMORY FileContentMemory
+    )
+/*++
+
+Routine Description:
+
+    Writes the contents of a wdf memory to a file.
+    This function will try to create the file if it doesn't exists and overwrite current file.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FileName - Name of the file.
+    FileContentMemory - Buffer handle of buffer holding data to write.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    BYTE* writeBuffer;
+    size_t bytesRemaining;
+    DWORD sizeOfOneWrite;
+    DWORD numberOfBytesWritten = 0;
+    LARGE_INTEGER byteOffset;
+    UNICODE_STRING fileNameString;
+    HANDLE fileHandle;
+    NTSTATUS ntStatus;
+    IO_STATUS_BLOCK ioStatus = { 0 };
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 File);
+#if defined(DMF_USER_MODE)
+    fileHandle = INVALID_HANDLE_VALUE;
+#elif defined(DMF_KERNEL_MODE)
+    fileHandle = NULL;
+#endif
+
+    byteOffset.QuadPart = 0;
+    ntStatus = STATUS_SUCCESS;
+    
+    WdfStringGetUnicodeString(FileName,
+                              &fileNameString);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE, 
+                DMF_TRACE, 
+                "Writing to file %S ",
+                fileNameString.Buffer);
+
+    writeBuffer = (BYTE*) WdfMemoryGetBuffer(FileContentMemory,
+                                             &bytesRemaining);
+
+#if !defined(MAXDWORD)
+#define MAXDWORD 0xFFFFFFFF
+#endif
+#if defined(DMF_USER_MODE)
+    BOOL returnValue = FALSE;
+    fileHandle = CreateFile(fileNameString.Buffer,
+                            GENERIC_ALL,
+                            0,
+                            NULL,
+                            CREATE_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                            NULL);
+    if (fileHandle == INVALID_HANDLE_VALUE)
+    {
+        ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+        TraceError(DMF_TRACE,
+                   "CreateFile fails: to Open %S! ntStatus=%!STATUS!",
+                   fileNameString.Buffer,
+                   ntStatus);
+        goto Exit;
+    }
+
+#elif defined(DMF_KERNEL_MODE)
+    OBJECT_ATTRIBUTES fileAttributes;
+
+    InitializeObjectAttributes(&fileAttributes,
+                               &fileNameString, 
+                               OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
+                               NULL,
+                               NULL);
+
+    ntStatus = ZwCreateFile(&fileHandle, 
+                            GENERIC_ALL | SYNCHRONIZE, 
+                            &fileAttributes,
+                            &ioStatus,
+                            0, 
+                            FILE_ATTRIBUTE_NORMAL, 
+                            0, 
+                            FILE_OVERWRITE_IF, 
+                            0, 
+                            NULL,
+                            FILE_SYNCHRONOUS_IO_NONALERT);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "ZwCreateFile fails ntStatus=%!STATUS!",
+                    ntStatus);
+        goto Exit;
+    }
+#endif
+
+    while (bytesRemaining > 0)
+    {
+        numberOfBytesWritten = 0;
+        sizeOfOneWrite = MAXDWORD;
+        if (bytesRemaining < sizeOfOneWrite)
+        {
+            sizeOfOneWrite = (DWORD)bytesRemaining;
+        }
+
+#if defined(DMF_USER_MODE)
+        returnValue = WriteFile(fileHandle,
+                                writeBuffer,
+                                sizeOfOneWrite,
+                                &numberOfBytesWritten,
+                                NULL);
+        if (!returnValue)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            TraceError(DMF_TRACE,
+                       "WriteFile fails: to Write %S !ntStatus=%!STATUS!", 
+                       fileNameString.Buffer,
+                       ntStatus);
+            break;
+        }
+
+#elif defined(DMF_KERNEL_MODE)
+        
+        // Write to destination.
+        //
+        ntStatus = ZwWriteFile(fileHandle,
+                               NULL,
+                               NULL,
+                               NULL,
+                               &ioStatus,
+                               writeBuffer,
+                               sizeOfOneWrite,
+                               &byteOffset,
+                               NULL);
+
+        if (!NT_SUCCESS(ntStatus) ||
+            ioStatus.Information == 0)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "ZwWriteFile failed ntStatus=%!STATUS!",
+                        ntStatus);
+
+            goto Exit;
+        }
+
+        numberOfBytesWritten = (ULONG)ioStatus.Information;
+#endif
+
+        writeBuffer += numberOfBytesWritten;
+        bytesRemaining -= numberOfBytesWritten;
+
+        if (numberOfBytesWritten == 0)
+        {
+            DmfAssert(bytesRemaining == 0);
+        }
+    }
+
+Exit:
+#if defined(DMF_USER_MODE)
+    if (fileHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(fileHandle);
+        fileHandle = INVALID_HANDLE_VALUE;
+    }
+#elif defined(DMF_KERNEL_MODE)
+    if (fileHandle != NULL)
+    {
+        ZwClose(fileHandle);
+        fileHandle = NULL;
+    }
+#endif
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
 // eof: Dmf_File.c
 //

@@ -90,9 +90,11 @@ typedef struct _DMF_CONTEXT_ContinuousRequestTarget
     // Rundown for sending stream requests.
     //
     DMF_PORTABLE_RUNDOWN_REF StreamRequestsRundown;
+#if !defined(DMF_USER_MODE)
     // Rundown for in-flight stream requests.
     //
     DMF_PORTABLE_EVENT StreamRequestsRundownCompletionEvent;
+#endif
 } DMF_CONTEXT_ContinuousRequestTarget;
 
 // This macro declares the following function:
@@ -1894,8 +1896,6 @@ Return Value:
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Start Rundown");
     DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
     DMF_Portable_Rundown_Completed(&moduleContext->StreamRequestsRundown);
-    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Rundown completed. Reset Rundown");
-    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     // 2. Cancel any pending WDF requests.
@@ -1959,12 +1959,6 @@ Return Value:
 
     DmfAssert(moduleContext->IoTarget != NULL);
 
-    // Tell the rest of the Module that Client has stopped streaming.
-    // (It is possible this is called twice if removal of WDFIOTARGET occurs on stream that starts/stops
-    // automatically.
-    //
-    moduleContext->Stopping = TRUE;
-
     // Cancel all the outstanding requests.
     //
     ContinuousRequestTarget_RequestsCancel(DmfModule);
@@ -1977,6 +1971,10 @@ Return Value:
     DMF_Portable_EventWaitForSingleObject(&moduleContext->StreamRequestsRundownCompletionEvent,
                                           NULL,
                                           FALSE);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Rundown completed. Reset Rundown");
+    // Reinitialize is called in Start().
+    //
 #else
     // Once Rundown API is supported in User-mode, this code can be deleted.
     //
@@ -2372,10 +2370,17 @@ Return Value:
     moduleContext->Stopping = TRUE;
 
 #if !defined(DMF_USER_MODE)
+    // Set as initialized in case Client never calls Start() because Close() waits for
+    // this event to be set.
+    //
     DMF_Portable_EventCreate(&moduleContext->StreamRequestsRundownCompletionEvent, 
                              NotificationEvent, 
-                             FALSE);
+                             TRUE);
     DMF_Portable_Rundown_Initialize(&moduleContext->StreamRequestsRundown);
+    // Wait and complete so that Start() can always call Reinitialize.
+    //
+    DMF_Portable_Rundown_WaitForRundownProtectionRelease(&moduleContext->StreamRequestsRundown);
+    DMF_Portable_Rundown_Completed(&moduleContext->StreamRequestsRundown);
 #endif
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2447,16 +2452,6 @@ Return Value:
             }
         }
     }
-#if !defined(DMF_USER_MODE)
-    else
-    {
-        // This is for the unlikely case the Client has set number of requests to send
-        // to zero. In this case, event is not set since no request return.
-        //
-        DMF_Portable_EventSet(&moduleContext->StreamRequestsRundownCompletionEvent);
-        ntStatus = STATUS_SUCCESS;
-    }
-#endif
 
 Exit:
 
@@ -2517,6 +2512,15 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+#if !defined(DMF_USER_MODE)
+    // In case there are any outstanding requests in case where Start() failed, 
+    // wait for them to complete.
+    //
+    DMF_Portable_EventWaitForSingleObject(&moduleContext->StreamRequestsRundownCompletionEvent,
+                                          NULL,
+                                          FALSE);
+#endif
 
     // NOTE: Do not stop streaming here because this can happen after Release Hardware!.
     //       In that case, cancellation of requests works in an undefined manner.
@@ -3158,6 +3162,9 @@ Return Value:
     // Reset event in case it has been already set.
     //
     DMF_Portable_EventReset(&moduleContext->StreamRequestsRundownCompletionEvent);
+    // It is possible to call Reinitialize always since Open() called Complete.
+    //
+    DMF_Portable_Rundown_Reinitialize(&moduleContext->StreamRequestsRundown);
 #endif
 
     moduleContext->StreamingRequestCount = moduleConfig->ContinuousRequestCount;
@@ -3179,14 +3186,19 @@ Return Value:
             //
             ntStatus = ContinuousRequestTarget_StreamRequestSend(DmfModule,
                                                                  request);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                // Remove failed request from transient requests list.
+                // NOTE: Do not remove by index because previously successfully added
+                //       requests may have been completed.
+                //
+                WdfCollectionRemove(moduleContext->TransientStreamRequestsCollection,
+                                    request);
+            }
         }
 
         if (! NT_SUCCESS(ntStatus))
         {
-            // Remove failed request from transient requests list.
-            //
-            WdfCollectionRemoveItem(moduleContext->TransientStreamRequestsCollection,
-                                    requestIndex);
 #if !defined(DMF_USER_MODE)
             // Subtract the rest of stream requests yet to start.
             //
@@ -3197,7 +3209,7 @@ Return Value:
 #endif
             // Stop streaming to cancel requests that have already been sent.
             //
-            DMF_ContinuousRequestTarget_Stop(DmfModule);
+            ContinuousRequestTarget_RequestsCancel(DmfModule);
 
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ContinuousRequestTarget_StreamRequestSend fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
@@ -3211,58 +3223,6 @@ Exit:
 ExitNoDereference:
 
     return ntStatus;
-}
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_ContinuousRequestTarget_Stop(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Stops streaming Asynchronous requests to the IoTarget and Cancels all the existing requests.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMF_CONTEXT_ContinuousRequestTarget* moduleContext;
-    DMF_CONFIG_ContinuousRequestTarget* moduleConfig;
-    NTSTATUS ntStatus;
-
-    FuncEntry(DMF_TRACE);
-
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 ContinuousRequestTarget);
-
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        DmfAssert(FALSE);
-        goto Exit;
-    }
-
-    // Cancel all requests from target. Do not wait until all pending requests have returned.
-    //
-    ContinuousRequestTarget_RequestsCancel(DmfModule);
-
-    DMF_ModuleDereference(DmfModule);
-
-    DmfAssert(moduleContext->IoTarget != NULL);
-
-Exit:
-    ;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

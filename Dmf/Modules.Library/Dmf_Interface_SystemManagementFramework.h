@@ -59,6 +59,19 @@ typedef struct
     USHORT ChannelInstance;
 } SMFSOCPLUGIN_CAPABILITIES;
 
+// Redefined here temporarily.
+//
+typedef struct
+{
+    // This flag identifies if the data in the structure is valid. This is needed as all physical channels of
+    // a single interface driver share same IRPs.
+    //
+    BOOLEAN IsValid;
+    // Data value.
+    //
+    INT32 DataValue;
+} SMFSOCPLUGIN_DATA;
+
 // Enumeration used to expose Sensor Channels to SMF.
 // Only one channel - SmfSoCSensorChannelCpuTemperatureAverageId -  is used for control, the others are optional and only for reporting.
 //

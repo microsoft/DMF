@@ -1497,6 +1497,7 @@ Return Value:
 
         // Allocate a buffer for the full path name.
         //
+        #pragma warning( suppress : 4996 )
         fullPathName = (PWCHAR)ExAllocatePoolWithTag(PagedPool,
                                                      fullPathNameSize,
                                                      MemoryTag);
@@ -2063,6 +2064,7 @@ Return Value:
 
                 // Allocate a buffer for the path name.
                 //
+                #pragma warning( suppress : 4996 )
                 keyInformationBuffer = (PKEY_BASIC_INFORMATION)ExAllocatePoolWithTag(PagedPool,
                                                                                      resultLength,
                                                                                      MemoryTag);
@@ -2816,6 +2818,7 @@ Return:
     // Allocate space for the deferred operation. If it cannot be allocated an error code
     // is returned and the operation is not deferred.
     //
+    #pragma warning( suppress : 4996 )
     deferredContext = (REGISTRY_DEFERRED_CONTEXT*)ExAllocatePoolWithTag(PagedPool,
                                                                         sizeof(REGISTRY_DEFERRED_CONTEXT),
                                                                         MemoryTag);
