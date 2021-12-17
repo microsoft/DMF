@@ -1296,7 +1296,7 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
     DWORD cmListSize;
     WCHAR *bufferPointer;
-    UNICODE_STRING unitargetName;
+    UNICODE_STRING targetName;
     NTSTATUS ntStatus;
     CONFIGRET configRet;
 
@@ -1307,12 +1307,14 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    // TODO: Check this.
+    // Check for possible duplicate arrival message.
     //
     if (moduleContext->IoTarget != NULL)
     {
-        // Already have the IoTarget. Nothing to do
+        // Already have the IoTarget. Nothing to do. Don't overwrite the target.
+        // This can happen during stress on clean up.
         //
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Duplicate Arrival Interface Notification. Do Nothing");
         goto Exit;
     }
 
@@ -1345,13 +1347,34 @@ Return Value:
             goto Exit;
         }
 
-        RtlInitUnicodeString(&unitargetName,
+        RtlInitUnicodeString(&targetName,
                              bufferPointer);
-        ntStatus = DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(dmfModule,
-                                                                       &unitargetName);
-        if (NT_SUCCESS(ntStatus))
+
+        // Ask Client if this IoTarget needs to be opened if the Client 
+        // requested notification.
+        //
+        BOOLEAN ioTargetOpen = TRUE;
+        if (moduleConfig->EvtDeviceInterfaceTargetOnPnpNotification != NULL)
         {
-            ntStatus = DMF_ModuleOpen(dmfModule);
+            moduleConfig->EvtDeviceInterfaceTargetOnPnpNotification(dmfModule,
+                                                                    &targetName,
+                                                                    &ioTargetOpen);
+        }
+        if (ioTargetOpen)
+        {
+            ntStatus = DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(dmfModule,
+                                                                           &targetName);
+            if (NT_SUCCESS(ntStatus))
+            {
+                // New open will happen. Reset this flag in case Module was previously closed.
+                // Don't set it in Open() because it needs to be not cleared until Cancel logic 
+                // has finished executing. Also, note that this is the INITIAL open as opposed to
+                // a re-open.
+                //
+                moduleContext->ModuleCloseReason = ModuleCloseReason_NotSet;
+
+                ntStatus = DMF_ModuleOpen(dmfModule);
+            }
         }
 
         free(bufferPointer);
@@ -1419,23 +1442,19 @@ Return Value:
     UNREFERENCED_PARAMETER(EventDataSize);
 
     ntStatus = STATUS_SUCCESS;
-
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
-
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
     if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL)
     {
-        // New open will happen. Reset this flag in case Module was previously closed.
-        // Don't set it in Open() because it needs to be not cleared until Cancel logic 
-        // has finished executing.
-        //
-        moduleContext->ModuleCloseReason = ModuleCloseReason_NotSet;
-
-        ntStatus = DeviceInterfaceTarget_TargetGet(Context);
-
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: ARRIVAL");
+
+        // NOTE: This function does everything that Kernel-mode arrival does. The organization of
+        //       the code is different because in User-mode the arrival callback is not called
+        //       if the interface already exists.
+        //
+        ntStatus = DeviceInterfaceTarget_TargetGet(Context);
     }
     else if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
     {
@@ -1460,7 +1479,7 @@ Return Value:
         }
     }
 
-    return (DWORD)ntStatus;
+    return STATUS_SUCCESS;
 }
 #pragma code_seg()
 
@@ -1714,6 +1733,10 @@ Return Value:
     // 
     if (configRet == CR_SUCCESS)
     {
+        // User-mode version must call this function for interfaces that already exist when the callback 
+        // above is registered (unlike Kernel-mode).
+        // NOTE: Ignore return value as it this path always returns STATUS_SUCCESS.
+        //
         DeviceInterfaceTarget_TargetGet(DmfModule);
 
         // Should always return success here since notification might be called back later.

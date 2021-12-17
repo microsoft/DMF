@@ -46,12 +46,40 @@ typedef struct
     EVT_DMF_BufferQueue_ReuseCleanup* EvtBufferQueueReuseCleanup;
 } DMF_CONFIG_BufferQueue;
 
+// Callback to set default (non-zero) values in DMF_CONFIG_BufferQueue
+// referenced by DECLARE_DMF_MODULE_EX().
+// NOTE: This callback is called by DMF not by Clients directly.
+//
+__forceinline
+VOID
+DMF_CONFIG_BufferQueue_DEFAULT(
+    _Inout_ DMF_CONFIG_BufferQueue* ModuleConfig
+    )
+{
+    DMF_CONFIG_BufferPool moduleConfigBufferPool;
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+
+    // This Module's Config reuses (contains) BufferPool's Config. Thus
+    // it is necessary to make sure it is properly initialized using its
+    // necessary default values.
+    //
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                              &moduleAttributes);
+
+    // After initializing BufferPool's Config copy Settings from that 
+    // Config to this Module's Config.
+    //
+    ModuleConfig->SourceSettings = moduleConfigBufferPool.Mode.SourceSettings;
+}
+
 // This macro declares the following functions:
 // DMF_BufferQueue_ATTRIBUTES_INIT()
 // DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT()
 // DMF_BufferQueue_Create()
 //
-DECLARE_DMF_MODULE(BufferQueue)
+// DMF_CONFIG_BufferQueue_DEFAULT() must be declared above.
+//
+DECLARE_DMF_MODULE_EX(BufferQueue)
 
 // Module Methods
 //

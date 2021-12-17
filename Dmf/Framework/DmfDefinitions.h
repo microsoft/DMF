@@ -87,7 +87,10 @@ typedef struct
     EVT_DMF_MODULE_OnDeviceNotificationPreClose* EvtModuleOnDeviceNotificationPreClose;
 } DMF_MODULE_EVENT_CALLBACKS;
 
-#define DECLARE_DMF_MODULE(ModuleName)                                                          \
+// DECLARE_DMF_MODULE_EX() allows the Module author to set default values for the Module
+// Config. DECLARE_DMF_MODULE() initializes the Module Config with RtlZeroMemory().
+//
+#define DECLARE_DMF_MODULE_EX(ModuleName)                                                       \
                                                                                                 \
 WDF_DECLARE_CUSTOM_TYPE(DMF_##ModuleName);                                                      \
                                                                                                 \
@@ -121,9 +124,23 @@ DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT(                                  
 {                                                                                               \
     RtlZeroMemory(ModuleConfig,                                                                 \
                   sizeof(DMF_CONFIG_##ModuleName##));                                           \
+    DMF_CONFIG_##ModuleName##_DEFAULT(ModuleConfig);                                            \
     DMF_##ModuleName##_ATTRIBUTES_INIT(ModuleAttributes);                                       \
     ModuleAttributes->ModuleConfigPointer = ModuleConfig;                                       \
 }                                                                                               \
+
+// DECLARE_DMF_MODULE() in terms of DECLARE_DMF_MODULE_EX() with empty initializer.
+//
+#define DECLARE_DMF_MODULE(ModuleName)                                                          \
+__forceinline                                                                                   \
+VOID                                                                                            \
+DMF_CONFIG_##ModuleName##_DEFAULT(                                                              \
+    _Inout_ DMF_CONFIG_##ModuleName##* ModuleConfig                                             \
+    )                                                                                           \
+{                                                                                               \
+    UNREFERENCED_PARAMETER(ModuleConfig);                                                       \
+}                                                                                               \
+DECLARE_DMF_MODULE_EX(ModuleName)
 
 #define DECLARE_DMF_MODULE_NO_CONFIG(ModuleName)                                                \
                                                                                                 \

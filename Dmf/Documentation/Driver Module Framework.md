@@ -303,6 +303,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE 162](#declare_dmf_module)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE_EX](#declare_dmf_module_ex)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE_NO_CONFIG](#declare_dmf_module_no_config)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF_INIT 164](#dmf_entrypoints_dmf_init)
@@ -334,6 +336,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleRequestCompleteOrForward](#dmf_modulerequestcompleteorforward)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_TransportMethod](#dmf_modulename_transportmethod)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CONFIG_[ModuleName]_DEFAULT](#dmf_config_modulename_default)
 
 [Feature Module Access API 181](#feature-module-access-api)
 
@@ -6030,6 +6034,55 @@ None
 //
 DECLARE_DMF_MODULE(OsrFx2)
 ```
+### DECLARE_DMF_MODULE_EX
+```
+DECLARE_DMF_MODULE_EX(ModuleName)
+```
+This macro declares the Module's publicly available functions and
+macros. [Always use this macro in the Module's .h file].
+This macro is used for Module that [have] a Config.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **ModuleName**  | The name of the Module.
+  
+#### Returns
+
+None
+
+#### Remarks
+
+-   When a Module needs to provide non-zero initialization for its Config structure,
+it should declare itself with **DECLARE_DMF_MODULE_EX()** rather than **DECLARE_DMF_MODULE()**.
+It must have also defined **DMF_CONFIG_[ModuleName]_DEFAULT()** to perform the initialization.
+
+#### Example
+```
+// Set default values in DMF_CONFIG_BufferPool.
+// This is called by DECLARE_DMF_MODULE_EX().
+//
+__forceinline
+VOID
+DMF_CONFIG_BufferPool_DEFAULT(
+    _Inout_ DMF_CONFIG_BufferPool* ModuleConfig
+    )
+{
+    // NonPagedPool has a non-zero value on ARM (and other) platforms.
+    //
+    ModuleConfig->Mode.SourceSettings.PoolType = NonPagedPool;
+}
+
+// This macro declares the following functions:
+// DMF_BufferPool_ATTRIBUTES_INIT()
+// DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT()
+// DMF_BufferPool_Create()
+//
+// DMF_CONFIG_BufferPool_DEFAULT() must be declared above.
+//
+DECLARE_DMF_MODULE_EX(BufferPool)
+```
 ### DECLARE_DMF_MODULE_NO_CONFIG
 ```
 DECLARE_DMF_MODULE_NO_CONFIG(ModuleName)
@@ -6654,6 +6707,41 @@ is returned.
 
 -   This Method is similar to a Device IO Control handler in that the
     caller and callee must use a predefined interface.
+
+### DMF_CONFIG_[ModuleName]_DEFAULT
+```
+__forceinline
+VOID
+DMF_CONFIG_[ModuleName]_DEFAULT(
+    _Inout_ DMF_CONFIG_[ModuleName]* ModuleConfig
+    )
+```
+This callback is implemented by Modules that need to initialize their Config structures
+with non-zero values. Equivalently, this callback is implemented by Modules declared with
+**DECLARE_DMF_MODULE_EX()** rather than **DECLARE_DMF_MODULE()**.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **DMF_CONFIG_[ModuleName]\* ModuleConfig**  | A pointer to the Module's Config structure.
+
+#### Returns
+
+None
+
+#### Remarks
+
+-   DMF zeroes the Config structure before calling this Method.
+
+-   This callback may initialize the Config structure with any appropriate default values it needs.
+    The Client will then have the opportunity to override the
+    Module's defaults before the Module Create function is called.
+
+-   This callback is called as part of Module creation and - like **DMF_[ModuleName]_Create()** -
+    should not allocate resources of any type.
+
+-   See **DECLARE_DMF_MODULE_EX()** for example usage.
 
 Feature Module Access API
 =========================
