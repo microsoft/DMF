@@ -133,12 +133,29 @@ typedef struct
     } Mode;
 } DMF_CONFIG_BufferPool;
 
+// Callback to set default (non-zero) values in DMF_CONFIG_BufferPool
+// referenced by DECLARE_DMF_MODULE_EX().
+// NOTE: This callback is called by DMF not by Clients directly.
+//
+__forceinline
+VOID
+DMF_CONFIG_BufferPool_DEFAULT(
+    _Inout_ DMF_CONFIG_BufferPool* ModuleConfig
+    )
+{
+    // NonPagedPoolNx is non-zero on all platforms.
+    //
+    ModuleConfig->Mode.SourceSettings.PoolType = NonPagedPoolNx;
+}
+
 // This macro declares the following functions:
 // DMF_BufferPool_ATTRIBUTES_INIT()
 // DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT()
 // DMF_BufferPool_Create()
 //
-DECLARE_DMF_MODULE(BufferPool)
+// DMF_CONFIG_BufferPool_DEFAULT() must be declared above.
+//
+DECLARE_DMF_MODULE_EX(BufferPool)
 
 // Module Methods
 //

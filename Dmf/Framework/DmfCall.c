@@ -3134,37 +3134,13 @@ Return Value:
 {
     BOOLEAN returnValue;
 
-    switch (PoolType)
+    if ((PoolType & PagedPool) != 0)
     {
-        case NonPagedPool:
-        case NonPagedPoolMustSucceed:
-        case NonPagedPoolCacheAligned:
-        case NonPagedPoolCacheAlignedMustS:
-        case NonPagedPoolSession:
-        case NonPagedPoolMustSucceedSession:
-        case NonPagedPoolCacheAlignedSession:
-        case NonPagedPoolCacheAlignedMustSSession:
-#if (!defined(_ARM_) && !defined(_ARM64_)) || (!defined(POOL_NX_OPTIN_AUTO))
-        // If POOL_NX_OPTION_AUTO is defined, it means that NonPagedPoolNx = NonPagedPool.
-        // So, don't include this case as it is a duplicate. This is the case for ARM and ARM64.
-        //
-        // NOTE: The condition has the OR so that the check is compatible with EWDK that does
-        //       not support POOL_NX_OPTIN_AUTO.
-        //
-        case NonPagedPoolNx:
-        case NonPagedPoolNxCacheAligned:
-#endif
-        case NonPagedPoolSessionNx:
-        {
-            returnValue = FALSE;
-            break;
-        }
-
-        default:
-        {
-            returnValue = TRUE;
-            break;
-        }
+        returnValue = TRUE;
+    }
+    else
+    {
+        returnValue = FALSE;
     }
 
     return returnValue;
