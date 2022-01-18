@@ -121,7 +121,7 @@ DMF_SerialTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+NTSTATUS
 DMF_SerialTarget_IoTargetGet(
     _In_ DMFMODULE DmfModule,
     _Out_ WDFIOTARGET* IoTarget
