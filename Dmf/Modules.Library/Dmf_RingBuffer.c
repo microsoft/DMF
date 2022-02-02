@@ -564,7 +564,7 @@ Return Value:
     //
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
-    size_t sizeToAllocate = ((ItemCount + 1) * ItemSize);
+    size_t sizeToAllocate = (((size_t)ItemCount + 1) * (size_t)ItemSize);
     ntStatus = WdfMemoryCreate(&objectAttributes,
                                NonPagedPoolNx,
                                MemoryTag,
@@ -589,7 +589,7 @@ Return Value:
     RingBuffer->ReadPointer = RingBuffer->Items;
     RingBuffer->WritePointer = RingBuffer->Items;
     RingBuffer->ItemSize = ItemSize;
-    RingBuffer->BufferEnd = RingBuffer->Items + (RingBuffer->ItemSize * ItemCount);
+    RingBuffer->BufferEnd = RingBuffer->Items + ((size_t)RingBuffer->ItemSize * (size_t)ItemCount);
     RingBuffer->TotalSize = RingBuffer->ItemSize * ItemCount;
     RingBuffer->Mode = Mode;
     RingBuffer->ItemsCount = ItemCount;
@@ -1225,7 +1225,7 @@ Return Value:
     //
     ringBuffer->ReadPointer = ringBuffer->Items;
     ringBuffer->WritePointer = ringBuffer->Items + 
-                               (ringBuffer->ItemsPresentCount * ringBuffer->ItemSize);
+                               ((size_t)ringBuffer->ItemsPresentCount * (size_t)ringBuffer->ItemSize);
     if (ringBuffer->WritePointer == endOfRingBuffer)
     {
         // This case occurs when the Ring Buffer is full.
@@ -1238,9 +1238,9 @@ Exit:
     // Erase all items that are not present. (Erase stale data.)
     //
     ULONG numberOfItemsToClear =  ringBuffer->ItemsCount - ringBuffer->ItemsPresentCount;
-    UCHAR* eraseStartAddress = endOfRingBuffer - (numberOfItemsToClear * ringBuffer->ItemSize);
+    UCHAR* eraseStartAddress = endOfRingBuffer - ((size_t)numberOfItemsToClear * (size_t)ringBuffer->ItemSize);
     RtlZeroMemory(eraseStartAddress,
-                  (numberOfItemsToClear * ringBuffer->ItemSize));
+                  ((size_t)numberOfItemsToClear * (size_t)ringBuffer->ItemSize));
 
     if (Lock)
     {

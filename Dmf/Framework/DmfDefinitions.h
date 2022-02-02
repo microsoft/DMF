@@ -1335,7 +1335,7 @@ DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
     _In_ DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
-    _In_ ULONG* TimeoutMs,
+    _In_opt_ ULONG* TimeoutMs,
     _In_ BOOLEAN Alertable
     );
 
@@ -1546,6 +1546,20 @@ NTSTATUS
 DMF_Utility_TemperatureInDeciKelvin32(
     _In_ INT32 Celcius,
     _Out_ UINT32* DeciKelvin
+    );
+
+VOID
+DMF_Utility_LogBuffer(
+    _In_reads_(BufferSize) VOID* Buffer,
+    _In_ size_t BufferSize
+    );
+
+_Must_inspect_result_
+_IRQL_requires_same_
+UINT16
+DMF_Utility_CrcCompute(
+    _In_reads_bytes_(NumberOfBytes) UINT8* Message,
+    _In_ UINT32 NumberOfBytes
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

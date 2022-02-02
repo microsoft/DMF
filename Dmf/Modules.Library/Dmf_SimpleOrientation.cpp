@@ -150,16 +150,16 @@ public:
     EVT_DMF_SimpleOrientation_SimpleOrientationSensorReadingChangeCallback* EvtSimpleOrientationReadingChangeCallback;
     // Initialize route.
     //
-    NTSTATUS Initialize();
+    _IRQL_requires_max_(PASSIVE_LEVEL) NTSTATUS Initialize();
     // DeInitialize function.
     //
-    VOID Deinitialize();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID Deinitialize();
     // Start function, start simple orientation sensor monitoring and events.
     //
-    VOID Start();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID Start();
     // Stop function, stop simple orientation sensor monitoring and events.
     //
-    VOID Stop();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID Stop();
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

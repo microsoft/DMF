@@ -29,13 +29,12 @@ DECLARE_DMF_MODULE_NO_CONFIG(UefiOperation)
 
 #if defined(DMF_USER_MODE)
 
-_Success_(return)
 _IRQL_requires_max_(PASSIVE_LEVEL)
-NTSTATUS
+NTSTATUS 
 DMF_UefiOperation_FirmwareEnvironmentVariableGet(
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
-    _Out_writes_(*VariableBufferSize) VOID* VariableBuffer,
+    _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,
     _Inout_ DWORD* VariableBufferSize
     );
 

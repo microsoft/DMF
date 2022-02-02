@@ -21,14 +21,14 @@ Environment:
 #pragma once
 
 typedef
-_Function_class_(EVT_DMF_NotifyUserWithRequeset_Complete)
+_Function_class_(EVT_DMF_NotifyUserWithRequest_Complete)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
-EVT_DMF_NotifyUserWithRequeset_Complete(_In_ DMFMODULE DmfModule,
-                                        _In_ WDFREQUEST Request,
-                                        _In_opt_ ULONG_PTR Context,
-                                        _In_ NTSTATUS NtStatus);
+EVT_DMF_NotifyUserWithRequest_Complete(_In_ DMFMODULE DmfModule,
+                                       _In_ WDFREQUEST Request,
+                                       _In_opt_ ULONG_PTR Context,
+                                       _In_ NTSTATUS NtStatus);
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -46,7 +46,7 @@ typedef struct
     LONG SizeOfDataBuffer;
     // This Handler is optionally called when a Request is canceled.
     //
-    EVT_DMF_NotifyUserWithRequeset_Complete* EvtPendingRequestsCancel;
+    EVT_DMF_NotifyUserWithRequest_Complete* EvtPendingRequestsCancel;
     // Client Driver's Event Log Provider name to enable
     // event logging from the Dmf_NotifyUserWithRequest Module.
     //
@@ -67,7 +67,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_DataProcess(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ VOID* EventCallbackContext,
     _In_ NTSTATUS NtStatus
     );
@@ -92,7 +92,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturn(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     );
@@ -101,7 +101,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturnAll(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     );
@@ -110,7 +110,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 DMF_NotifyUserWithRequest_RequestReturnEx(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     );

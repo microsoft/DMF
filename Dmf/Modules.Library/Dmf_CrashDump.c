@@ -3068,6 +3068,9 @@ Return Value:
 
             // Intentionally crash the driver.
             //
+
+            // 'Consider using another function instead.'
+            //
             #pragma warning(suppress: 28159)
             KeBugCheckEx(BUG_CHECK_PRIVATE,
                          (ULONG_PTR)dmfModule,

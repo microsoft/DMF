@@ -1341,15 +1341,12 @@ DMF_Generic_Unlock_Passive(
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-#pragma warning(suppress: 28167)
-#pragma warning(suppress: 28158)
 DMF_Generic_Lock_Dispatch(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-#pragma warning(suppress: 28167)
 DMF_Generic_Unlock_Dispatch(
     _In_ DMFMODULE DmfModule
     );
@@ -1628,6 +1625,7 @@ DMF_DmfDeviceInitClientImplementsDeviceAdd(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 WDF_IO_QUEUE_CONFIG*
 DMF_DmfDeviceInitDefaultQueueConfigGet(
     _In_ PDMFDEVICE_INIT DmfDeviceInit

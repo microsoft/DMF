@@ -255,8 +255,11 @@ RegistryValueComparisonFunction_IfEqualToContext(
     callbackContext = (CompareCallbackContext*)ClientContext;
     DmfAssert(NULL != callbackContext);
 
+    // 'Dereferencing NULL pointer. 'dataSource' contains the same NULL value as 'CallbackContext' did.'
+    //
     #pragma warning(suppress:28182)
-    sizeToCompare = min(ValueDataInRegistrySize, callbackContext->ClientDataSize);
+    sizeToCompare = min(ValueDataInRegistrySize,
+                        callbackContext->ClientDataSize);
 
     DmfAssert(ValueDataInRegistrySize == callbackContext->ClientDataSize);
 

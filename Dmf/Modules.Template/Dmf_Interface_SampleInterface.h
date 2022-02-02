@@ -94,7 +94,7 @@ NTSTATUS
 DMF_INTERFACE_SampleInterface_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_SampleInterface_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_SampleInterface_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_SampleInterface_BIND_DATA* TransportBindData
     );
 
 // Unbind

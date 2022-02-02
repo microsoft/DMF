@@ -232,6 +232,8 @@ Registry_DeviceInterfaceKeyOpen(
     NTSTATUS ntStatus;
     UNICODE_STRING temporaryDeviceLink;
 
+    PAGED_CODE();
+
     UNREFERENCED_PARAMETER(DmfModule);
 
     WdfStringGetUnicodeString(DeviceLink,
@@ -350,6 +352,8 @@ Return Value:
     PWSTR devicePath;
     LONG index;
     size_t devicePathLength;
+
+    PAGED_CODE();
 
     NTSTATUS ntStatus;
 
@@ -627,11 +631,13 @@ Return Value:
     UNICODE_STRING temporaryDeviceLink;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
 
+    PAGED_CODE();
+
     ntStatus = STATUS_UNSUCCESSFUL;
     deviceInterfaces = NULL;
     deviceLink = NULL;
 
-    // Get the the list of device interface instances.
+    // Get the list of device interface instances.
     //
     ntStatus = IoGetDeviceInterfaces(InterfaceGuid,
                                      NULL,
@@ -949,7 +955,7 @@ Registry_HKEYClose(
 
 Routine Description:
 
-    Wraper for ZwClose function for KMDF.
+    Wrapper for ZwClose function for KMDF.
 
 Arguments:
 
@@ -961,9 +967,12 @@ Return Value:
 
 --*/
 {
+    PAGED_CODE();
+
     ZwClose(Key);
 }
 
+_Success_(NT_SUCCESS(ntStatus))
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -998,10 +1007,13 @@ Return Value:
     WDFMEMORY nameInformationObject;
     KEY_NAME_INFORMATION* nameInformation;
 
+    PAGED_CODE();
+
     ntStatus = STATUS_UNSUCCESSFUL;
     size = 0;
     nameInformationObject = NULL;
     nameInformation = NULL;
+    *RegistryPathObject = NULL;
 
     // Query buffer size required for registry path.
     //
@@ -2059,6 +2071,9 @@ Return Value:
                 // This driver needs to zero terminate the name that is returned. So, add 1 to the length
                 // to the size needed to allocate.
                 //
+
+                // 'Using <variable> from failed function call'
+                //
                 #pragma warning(suppress: 6102)
                 resultLength += sizeof(WCHAR);
 
@@ -2460,11 +2475,17 @@ Return Value:
         // We have size in bytes of the value.
         // Suppress (valueLengthQueried may not be initialized.)
         //
+
+        // 'Using valueLengthQueried from failed function call'
+        //
         #pragma warning(suppress: 6102)
         DmfAssert(valueLengthQueried > 0);
-        #pragma warning(suppress: 6102)
 
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        // 'Using valueLengthQueried from failed function call'
+        //
+        #pragma warning(suppress: 6102)
+
         valueLength = valueLengthQueried;
         valueMemory = WDF_NO_HANDLE;
         ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -5766,7 +5787,7 @@ Return Value:
                                       (UCHAR*)Buffer,
                                       sizeof(ULONGLONG),
                                       &bytesRead);
-    // "Using 'bytesRead' from failed function call.
+    // 'Using 'bytesRead' from failed function call.'
     //
     #pragma warning(suppress: 6102)
     DmfAssert((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 

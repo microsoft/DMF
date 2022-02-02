@@ -343,13 +343,14 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(protocolModule);
     moduleConfig = DMF_CONFIG_GET(protocolModule);
 
-
     // Populate the Protocol Bind Data structure that the Protocol wants to share with the Transport.
     //
     protocolBindData.ProtocolId = moduleConfig->ModuleId;
 
     // Call the Interface's Bind function.
     //
+    RtlZeroMemory(&transportBindData,
+                  sizeof(DMF_INTERFACE_TRANSPORT_SampleInterfaceLower_BIND_DATA));
     ntStatus = DMF_SampleInterfaceLower_TransportBind(DmfInterface,
                                                       &protocolBindData,
                                                       &transportBindData);

@@ -1485,7 +1485,7 @@ ContinuousRequestTarget_RequestCreateAndSend(
     _Out_opt_ size_t* BytesWritten,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 /*++
 
@@ -1588,6 +1588,9 @@ Return Value:
     if (ResponseLength > 0)
     {
         DmfAssert(ResponseBuffer != NULL);
+        // 'using uninitialized memory'
+        //
+        #pragma warning(suppress:6001)
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                ResponseBuffer,
                                                ResponseLength,

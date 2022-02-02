@@ -454,6 +454,8 @@ Return Value:
 
 Exit:
 
+    *NtStatus = ntStatus;
+
     FuncExitVoid(DMF_TRACE);
 
     return ThreadedBufferQueue_BufferDisposition_WorkComplete;
@@ -790,6 +792,9 @@ Return Value:
         if ((nameBuffer[readIndex] != L'\\') &&
             (nameBuffer[readIndex] != L'/'))
         {
+            // 'buffer overrun: accessing nameBuffer'
+            //
+            #pragma warning(suppress:6386)
             nameBuffer[writeIndex] = nameBuffer[readIndex];
             writeIndex++;
         }
@@ -3082,7 +3087,7 @@ NTSTATUS
 DMF_HidTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
     )
 /*++
 
@@ -3633,7 +3638,6 @@ Exit:
     if (featureReportMemory != WDF_NO_HANDLE)
     {
         WdfObjectDelete(featureReportMemory);
-        featureGetContext->FeatureReportMemory = WDF_NO_HANDLE;
     }
 
     if (featureGetPoolbuffer != NULL)

@@ -142,7 +142,7 @@ EVT_DMF_UdeClient_Endpoint_Purge(
 //
 typedef
 _Function_class_(EVT_DMF_UdeClient_Endpoint_Ready)
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_DMF_UdeClient_Endpoint_Ready(

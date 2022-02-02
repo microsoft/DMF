@@ -181,6 +181,8 @@ Returns:
     BOOLEAN handled;
     WDFDEVICE device;
 
+    PAGED_CODE();
+
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(InputBufferSize);
     UNREFERENCED_PARAMETER(OutputBufferSize);
@@ -499,6 +501,7 @@ Return Value:
 
 EVT_WDF_IO_QUEUE_STATE Udeclient_EvtWdfIoQueueState;
 
+_Function_class_(EVT_WDF_IO_QUEUE_STATE)
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -1700,6 +1703,7 @@ Return Value:
 // Module Methods
 //
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS

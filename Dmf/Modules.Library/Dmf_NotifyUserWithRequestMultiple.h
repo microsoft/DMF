@@ -72,7 +72,7 @@ typedef struct
     // Client callback function invoked by passing a request and data buffer.
     // All NotifyUserWithRequest child Modules will share this callback.
     //
-    EVT_DMF_NotifyUserWithRequeset_Complete* CompletionCallback;
+    EVT_DMF_NotifyUserWithRequest_Complete* CompletionCallback;
     // Callback registered by Client for Data/Request processing
     // upon new Client arrival. If Client returns a non-success status,
     // the User will not receive the notifications from this module.

@@ -228,7 +228,7 @@ NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA* TransportBindData
     );
 
 // Unbind

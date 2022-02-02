@@ -708,10 +708,9 @@ Exit:
     return ntStatus;
 }
 
-#pragma warning(suppress:6101)
-// Prevent SAL "returning uninitialized memory" error.
-// Buffer is associated with request object.
+// 'Returning uninitialized memory'
 //
+#pragma warning(suppress:6101)
 static
 NTSTATUS
 RequestTarget_RequestCreateAndSend(
@@ -828,6 +827,9 @@ Return Value:
     if (ResponseLength > 0)
     {
         DmfAssert(ResponseBuffer != NULL);
+        // 'using uninitialized memory'
+        //
+        #pragma warning(suppress:6001)
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                ResponseBuffer,
                                                ResponseLength,

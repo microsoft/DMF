@@ -287,7 +287,7 @@ NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_SystemManagementFramework_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA* TransportBindData
     );
 
 // Unbind
@@ -498,12 +498,12 @@ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT(
     _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind,
     _In_ DMF_INTERFACE_SystemManagementFramework_TransportBind* SystemManagementFrameworkTransportBind,
     _In_ DMF_INTERFACE_SystemManagementFramework_TransportUnbind* SystemManagementFrameworkTransportUnbind,
-    _In_ DMF_INTERFACE_SystemManagementFramework_ChannelsGet* SystemManagementFrameworkChannelsGet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportInitialize* SystemManagementFrameworkTransportInitialize,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_ChannelsGet* SystemManagementFrameworkChannelsGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportInitialize* SystemManagementFrameworkTransportInitialize,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
     );
 
 // Methods exposed to Protocol.

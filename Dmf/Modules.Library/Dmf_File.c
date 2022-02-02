@@ -137,6 +137,8 @@ Exit:
 
 #include <wdfdriver.h>
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_DriverFileRead(
@@ -314,7 +316,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Read(
@@ -550,7 +555,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_ReadEx(
@@ -644,8 +652,10 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
-
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Write(
@@ -842,6 +852,7 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 // eof: Dmf_File.c
 //
