@@ -2301,6 +2301,8 @@ Return Value:
 }
 #pragma code_seg()
 
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
+//
 #pragma warning(suppress: 28167)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -2348,6 +2350,8 @@ Return Value:
     }
 }
 
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
+//
 #pragma warning(suppress: 28167)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -2469,7 +2473,7 @@ Return Value:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-// TODO: I am unable to make this warning to away legitimately.
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
 //
 #pragma warning(suppress: 28167)
 #pragma warning(suppress: 28158)
@@ -2504,7 +2508,7 @@ Return Value:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-// TODO: I am unable to make this warning to away legitimately.
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
 //
 #pragma warning(suppress: 28167)
 DMF_Generic_Unlock_Dispatch(

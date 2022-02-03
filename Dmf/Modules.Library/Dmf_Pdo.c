@@ -514,6 +514,9 @@ Return Value:
     //
     if (moduleConfig->EvtPdoPostCreate != NULL)
     {
+        // ''dmfDeviceInit' could be '0''
+        //
+        #pragma warning(suppress:6387)
         ntStatus = moduleConfig->EvtPdoPostCreate(DmfModule,
                                                   childDevice,
                                                   dmfDeviceInit,

@@ -159,14 +159,14 @@ DMF_String_MultiSzFindLast(
 NTSTATUS
 DMF_String_RtlAnsiStringToUnicodeString(
     _In_ DMFMODULE DmfModule,
-    _Out_ PUNICODE_STRING DestinationString,
+    _Inout_ UNICODE_STRING* DestinationString,
     _In_ PCANSI_STRING SourceString
     );
 
 NTSTATUS
 DMF_String_RtlUnicodeStringToAnsiString(
     _In_ DMFMODULE DmfModule,
-    _Out_ PANSI_STRING DestinationString,
+    _Inout_ PANSI_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString
     );
 

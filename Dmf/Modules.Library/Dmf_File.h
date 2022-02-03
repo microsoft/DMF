@@ -29,6 +29,7 @@ DECLARE_DMF_MODULE_NO_CONFIG(File)
 // Module Methods
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_DriverFileRead(
@@ -39,6 +40,7 @@ DMF_File_DriverFileRead(
     _Out_opt_ size_t* BufferLength
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Read(
@@ -47,6 +49,7 @@ DMF_File_Read(
     _Out_ WDFMEMORY* FileContentMemory
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_ReadEx(
@@ -57,6 +60,7 @@ DMF_File_ReadEx(
     _Out_opt_ size_t* BufferLength
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Write(

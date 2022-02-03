@@ -552,7 +552,7 @@ Return Value:
 #pragma code_seg()
 
 _Function_class_(DMF_ModuleSelfManagedIoSuspend)
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_Tests_Pdo_SelfManagedIoSuspend(
     _In_ DMFMODULE DmfModule

@@ -222,6 +222,7 @@ Tests_DeviceInterfaceTarget_BufferOutput(
 }
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
@@ -380,6 +381,7 @@ Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
 }
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
@@ -458,6 +460,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
@@ -757,16 +760,19 @@ Exit:
 
 // Forward declarations for Dynamic Module Test.
 //
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchInput(
     _In_ DMFMODULE DmfModule
     );
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchInput(
     _In_ DMFMODULE DmfModule
     );
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
 Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(

@@ -114,7 +114,7 @@ NTSTATUS
 DMF_INTERFACE_BusTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
     );
 
 typedef
@@ -214,12 +214,12 @@ DMF_INTERFACE_TRANSPORT_BusTarget_DESCRIPTOR_INIT(
     _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind,
     _In_ DMF_INTERFACE_BusTarget_TransportBind* BusTargetTransportBind,
     _In_ DMF_INTERFACE_BusTarget_TransportUnbind* BusTargetTransportUnbind,
-    _In_ DMF_INTERFACE_BusTarget_AddressWrite* BusTarget_AddressWrite,
-    _In_ DMF_INTERFACE_BusTarget_AddressRead* BusTarget_AddressRead,
-    _In_ DMF_INTERFACE_BusTarget_BufferWrite* BusTarget_BufferWrite,
-    _In_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead,
-    _In_ DMF_INTERFACE_BusTarget_AddressReadEx* BusTarget_AddressReadEx,
-    _In_ DMF_INTERFACE_BusTarget_BufferWriteEx* BusTarget_BufferWriteEx
+    _In_opt_ DMF_INTERFACE_BusTarget_AddressWrite* BusTarget_AddressWrite,
+    _In_opt_ DMF_INTERFACE_BusTarget_AddressRead* BusTarget_AddressRead,
+    _In_opt_ DMF_INTERFACE_BusTarget_BufferWrite* BusTarget_BufferWrite,
+    _In_opt_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead,
+    _In_opt_ DMF_INTERFACE_BusTarget_AddressReadEx* BusTarget_AddressReadEx,
+    _In_opt_ DMF_INTERFACE_BusTarget_BufferWriteEx* BusTarget_BufferWriteEx
     );
 
 // Methods exposed to Protocol.

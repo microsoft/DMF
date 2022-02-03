@@ -286,7 +286,7 @@ DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
     _In_ DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
-    _In_ ULONG* TimeoutMs,
+    _In_opt_ ULONG* TimeoutMs,
     _In_ BOOLEAN Alertable
     )
 /*++
@@ -551,7 +551,7 @@ Return Value:
     LookasidePointer->PoolTag = PoolTag;
 #else
     DmfAssert(BufferSize != 0);
-    // Error annotation: __formal(1,BufferSize) cannot be zero.
+    // 'Error annotation: __formal(1,BufferSize) cannot be zero.'
     //
     #pragma warning(suppress:28160)
     ntStatus= WdfLookasideListCreate(LookasideAttributes,

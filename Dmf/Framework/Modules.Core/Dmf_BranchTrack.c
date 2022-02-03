@@ -425,10 +425,10 @@ Return Value:
     // Three strings plus three terminators.
     //
     currentEntrySize = FIELD_OFFSET(BRANCHTRACK_REQUEST_OUTPUT_DATA_DETAILS,
-                                    StringBuffer[tableKey->FileNameLength +
-                                    tableKey->BranchNameLength +
-                                    tableKey->HintNameLength +
-                                    (sizeof(CHAR) * BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA)]);
+                                    StringBuffer[(size_t)tableKey->FileNameLength +
+                                                 (size_t)tableKey->BranchNameLength +
+                                                 (size_t)tableKey->HintNameLength +
+                                                 (sizeof(CHAR) * BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA)]);
     detailsSizeContext->SizeToAllocate += currentEntrySize;
 
     return TRUE;
@@ -496,9 +496,9 @@ Return Value:
     DmfAssert(NULL != detailsDataContext->OutputData);
 
     currentEntrySize = FIELD_OFFSET(BRANCHTRACK_REQUEST_OUTPUT_DATA_DETAILS, 
-                                    StringBuffer[tableKey->FileNameLength + 
-                                                 tableKey->BranchNameLength + 
-                                                 tableKey->HintNameLength + 
+                                    StringBuffer[(size_t)tableKey->FileNameLength + 
+                                                 (size_t)tableKey->BranchNameLength + 
+                                                 (size_t)tableKey->HintNameLength + 
                                                  (sizeof(CHAR) * BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA)]);
 
     if (detailsDataContext->OutputData->ResponseLength + currentEntrySize > detailsDataContext->ResponseLengthAllocated)
@@ -657,7 +657,7 @@ Return Value:
 
 static
 _Check_return_
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 BranchTrack_QueryInformation_Status(
     _In_ DMFMODULE DmfModule,
@@ -751,7 +751,7 @@ Exit:
 
 static
 _Check_return_
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 BranchTrack_QueryInformation_Details(
     _In_ DMFMODULE DmfModule,
@@ -812,7 +812,7 @@ Return Value:
                             &detailsSizeContext);
 
     bufferLengthRequired = FIELD_OFFSET(BRANCHTRACK_REQUEST_OUTPUT_DATA,
-                                        Response.Details[0]) + detailsSizeContext.SizeToAllocate;
+                                        Response.Details[0]) + (size_t)detailsSizeContext.SizeToAllocate;
 
     // Get a pointer to the output buffer. Make sure it is big enough.
     //
@@ -853,10 +853,9 @@ Exit:
     return ntStatus;
 }
 
-#pragma code_seg("PAGE")
 static
 _Check_return_
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS
 BranchTrack_QueryInformation(
     _In_ DMFMODULE DmfModule,
@@ -883,8 +882,6 @@ Return Value:
 --*/
     NTSTATUS ntStatus;
     BRANCHTRACK_REQUEST_INPUT_DATA* inputData;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -949,7 +946,6 @@ Exit:
 
     return ntStatus;
 }
-#pragma code_seg()
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -1035,9 +1031,9 @@ Return Value:
     }
 
     tableKeyLength = FIELD_OFFSET(HASH_TABLE_KEY, 
-                                  RawData[fileNameLength + 
-                                          branchNameLength + 
-                                          hintNameLength + 
+                                  RawData[(size_t)fileNameLength + 
+                                          (size_t)branchNameLength + 
+                                          (size_t)hintNameLength + 
                                           (BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA * sizeof(CHAR))]);
     tableKeyLength = (tableKeyLength + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);
     DmfAssert(tableKeyLength <= moduleContext->TableKeyBufferLength);
@@ -1159,8 +1155,8 @@ Return Value:
     // Increase every string parameter length by one, to allocate space for zero-endings.
     //
     moduleConfigHashTable.MaximumKeyLength = FIELD_OFFSET(HASH_TABLE_KEY,
-                                                          RawData[moduleConfig->MaximumFileNameLength +
-                                                                  moduleConfig->MaximumBranchNameLength +
+                                                          RawData[(size_t)moduleConfig->MaximumFileNameLength +
+                                                                  (size_t)moduleConfig->MaximumBranchNameLength +
                                                                   BRANCHTRACK_MAXIMUM_HINT_NAME_LENGTH +
                                                                   (BRANCHTRACK_NUMBER_OF_STRINGS_IN_RAWDATA * sizeof(CHAR))]);
     moduleConfigHashTable.MaximumKeyLength = (moduleConfigHashTable.MaximumKeyLength + MAX_NATURAL_ALIGNMENT - 1) & ~(MAX_NATURAL_ALIGNMENT - 1);

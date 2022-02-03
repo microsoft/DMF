@@ -84,6 +84,7 @@ EVT_WDF_WORKITEM Doorbell_WorkItemHandler;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_WORKITEM)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -151,6 +152,7 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -339,6 +341,7 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_Doorbell_Flush(
@@ -374,6 +377,7 @@ Return Value:
 
     FuncExitVoid(DMF_TRACE);
 }
+#pragma code_seg()
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID

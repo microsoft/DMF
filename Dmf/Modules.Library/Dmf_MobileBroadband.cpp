@@ -87,22 +87,22 @@ public:
     event_token tokenTransmissionStateChanged;
     // Initialize route.
     //
-    NTSTATUS Initialize(DMFMODULE DmfModule);
+    _IRQL_requires_max_(PASSIVE_LEVEL) NTSTATUS Initialize(_In_ DMFMODULE DmfModule);
     // DeInitialize route.
     //
-    VOID DeInitialize();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID DeInitialize();
     // Check if MobileBroadband network is connected.
     //
-    BOOLEAN MobileBroadband_IsNetworkConnected();
+    _IRQL_requires_max_(PASSIVE_LEVEL) BOOLEAN MobileBroadband_IsNetworkConnected();
     // Check if MobileBroadband network is transmitting.
     //
-    BOOLEAN MobileBroadband_IsTransmitting();
+    _IRQL_requires_max_(PASSIVE_LEVEL) BOOLEAN MobileBroadband_IsTransmitting();
     // Function for start monitoring MobileBroadband network transmission state.
     //
-    VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStart(DMFMODULE DmfModule);
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStart(_In_ DMFMODULE DmfModule);
     // Function for stop monitoring MobileBroadband network transmission state.
     //
-    VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStop();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStop();
 };
 
 typedef struct _DMF_CONTEXT_MobileBroadband
@@ -787,7 +787,6 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 DMF_MobileBroadband_NotificationUnregister(
@@ -852,7 +851,7 @@ DMF_MobileBroadband_Create(
     _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
     _In_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes,
     _Out_ DMFMODULE* DmfModule
-)
+    )
 /*++
 
 Routine Description:
@@ -906,7 +905,6 @@ Return Value:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
-
 }
 #pragma code_seg()
 
@@ -943,6 +941,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // For SAL.
+    //
+    *AntennaBackOffTableIndex = 0;
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -989,7 +991,6 @@ ExitNoRelease:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
-
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

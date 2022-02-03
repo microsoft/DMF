@@ -121,6 +121,7 @@ PEP_OBJECT_INFORMATION
 RootNativeMethods[1] =
 {};
 
+_Success_(completeStatus == PEP_NOTIFICATION_HANDLER_COMPLETE)
 PEP_NOTIFICATION_HANDLER_RESULT
 AcpiPepDevice_RootSyncEvaluateControlMethod(
     _In_ DMFMODULE DmfModule,
@@ -274,6 +275,7 @@ typedef struct _PEP_WORK_CONTEXT
     WDFMEMORY WorkRequestMemory;
 } PEP_WORK_CONTEXT;
 
+_Success_(completeStatus == PEP_NOTIFICATION_HANDLER_COMPLETE)
 PEP_NOTIFICATION_HANDLER_RESULT
 AcpiPepDevice_RootSyncEvaluateControlMethod(
     _In_ DMFMODULE DmfModule,
@@ -291,7 +293,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     Data - Supplies a pointer to parameters buffer for this notification.
-    PoFxWorkInformation - Unused.
+    PoFxWorkInformation - Unused (but cleared for SAL).
 
 Return Value:
 
@@ -302,10 +304,16 @@ Return Value:
     PEP_NOTIFICATION_HANDLER_RESULT completeStatus;
     PPEP_ACPI_EVALUATE_CONTROL_METHOD ecmBuffer;
 
-    UNREFERENCED_PARAMETER(PoFxWorkInformation);
-
     ecmBuffer = (PPEP_ACPI_EVALUATE_CONTROL_METHOD)Data;
     completeStatus = PEP_NOTIFICATION_HANDLER_COMPLETE;
+
+    // For SAL.
+    //
+    if (PoFxWorkInformation != NULL)
+    {
+        RtlZeroMemory(PoFxWorkInformation,
+                      sizeof(PEP_WORK_INFORMATION));
+    }
 
     DMF_AcpiPepDevice_ReportNotSupported(DmfModule,
                                          &ecmBuffer->MethodStatus,
@@ -405,12 +413,13 @@ Exit:
     return found;
 }
 
+_Success_(return)
 BOOLEAN
 AcpiPepDevice_IsDeviceAccepted(
     _In_ DMFMODULE DmfModule,
     _In_ PEP_NOTIFICATION_CLASS OwnedType,
     _In_ PCUNICODE_STRING DeviceId,
-    _Out_ PEP_DEVICE_DEFINITION* *DeviceDefinition,
+    _Out_ PEP_DEVICE_DEFINITION** DeviceDefinition,
     _Out_ DMFMODULE* DmfModulePepClient
     )
 /*++
@@ -506,7 +515,7 @@ Exit:
 VOID
 AcpiPepDevice_DevicePrepare(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_PREPARE_DEVICE)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -551,7 +560,7 @@ Return Value:
 VOID
 AcpiPepDevice_DeviceAbandon(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_ABANDON_DEVICE)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -710,7 +719,7 @@ AcpiPepDevice_NotificationHandlerInvoke(
     _In_opt_ PEP_WORK_CONTEXT* WorkRequest,
     _In_ PEP_HANDLER_TYPE HandlerType,
     _In_ ULONG NotificationId,
-    _In_opt_ PEP_INTERNAL_DEVICE_HEADER* PepInternalDevice,
+    _In_ PEP_INTERNAL_DEVICE_HEADER* PepInternalDevice,
     _In_ VOID* Data,
     _In_ SIZE_T DataSize,
     _In_opt_ NTSTATUS* WorkRequestStatus
@@ -1137,7 +1146,7 @@ AcpiPepDevice_NotificationHandlerInvoke(
     _In_opt_ PEP_WORK_CONTEXT* WorkRequest,
     _In_ PEP_HANDLER_TYPE HandlerType,
     _In_ ULONG NotificationId,
-    _In_opt_ PEP_INTERNAL_DEVICE_HEADER* PepInternalDevice,
+    _In_ PEP_INTERNAL_DEVICE_HEADER* PepInternalDevice,
     _In_ VOID* Data,
     _In_ SIZE_T DataSize,
     _In_opt_ NTSTATUS* WorkRequestStatus
@@ -1253,8 +1262,12 @@ Return Value:
             {
                 case PEP_NOTIFY_ACPI_EVALUATE_CONTROL_METHOD:
                     ecmBuffer = (PEP_ACPI_EVALUATE_CONTROL_METHOD*)Data;
-                    poFxWorkInformation->ControlMethodComplete.OutputArguments = ecmBuffer->OutputArguments;
-                    poFxWorkInformation->ControlMethodComplete.OutputArgumentSize = ecmBuffer->OutputArgumentSize;
+                    DmfAssert(poFxWorkInformation != NULL);
+                    if (poFxWorkInformation != NULL)
+                    {
+                        poFxWorkInformation->ControlMethodComplete.OutputArguments = ecmBuffer->OutputArguments;
+                        poFxWorkInformation->ControlMethodComplete.OutputArgumentSize = ecmBuffer->OutputArgumentSize;
+                    }
                     break;
 
                 default:
@@ -1265,7 +1278,9 @@ Return Value:
         handlerResult = PEP_NOTIFICATION_HANDLER_MAX;
         if (handler != NULL)
         {
-            if (noSyncHandler == FALSE)
+            DmfAssert(poFxWorkInformation != NULL);
+            if ((noSyncHandler == FALSE) &&
+                (poFxWorkInformation != NULL))
             {
                 handlerResult = handler(PepInternalDevice->DmfModule,
                                         Data,
@@ -1286,7 +1301,6 @@ Return Value:
                 {
                     AcpiPepDevice_WorkRequestComplete(WorkRequest);
                 }
-
             }
             else
             {
@@ -1298,7 +1312,7 @@ Return Value:
                 DmfAssert((noSyncHandler != FALSE) ||
                           (handlerResult == PEP_NOTIFICATION_HANDLER_MORE_WORK));
 
-                // If the handler needs to do async work, schedule a worker.
+                // If the handler needs to do asynchronous work, schedule a worker.
                 //
                 AcpiPepDevice_NotificationHandlerSchedule(PepInternalDevice->DmfModule,
                                                           WorkType,
@@ -1320,7 +1334,7 @@ Exit:
 VOID
 AcpiPepDevice_DeviceRegister(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_REGISTER_DEVICE)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -1526,7 +1540,7 @@ Return Value:
 VOID
 AcpiPepDevice_DeviceUnregister(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_UNREGISTER_DEVICE)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -1576,7 +1590,7 @@ Return Value:
 VOID
 AcpiPepDevice_DeviceNamespaceEnumerate(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_ENUMERATE_DEVICE_NAMESPACE)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -1674,7 +1688,7 @@ Exit:
 VOID
 AcpiPepDevice_ObjectInformationQuery(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_QUERY_OBJECT_INFORMATION)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -1734,7 +1748,7 @@ Return Value:
 VOID
 AcpiPepDevice_ControlMethodEvaluate(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_EVALUATE_CONTROL_METHOD)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -1783,7 +1797,7 @@ Return Value:
 VOID
 AcpiPepDevice_DeviceControlResourcesQuery (
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_QUERY_DEVICE_CONTROL_RESOURCES)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -1852,7 +1866,7 @@ Return Value:
 VOID
 AcpiPepDevice_TranslatedDeviceControlResources (
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_ACPI_TRANSLATED_DEVICE_CONTROL_RESOURCES)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -2041,7 +2055,7 @@ Return Value:
 VOID
 AcpiPepDevice_WorkNotification(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_bytes_(sizeof(PEP_WORK)) VOID* Data
+    _In_ VOID* Data
     )
 /*++
 
@@ -2216,6 +2230,7 @@ Return Value:
     DMF_CONTEXT_AcpiPepDevice* moduleContext;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
     NTSTATUS ntStatus;
+    PEP_DEVICE_DEFINITION* pepDeviceDefinition;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2224,9 +2239,13 @@ Return Value:
 
     // Device definition array has all elements of collection and root.
     //
-    sizeToAllocate = sizeof(PEP_DEVICE_DEFINITION) * (numberOfEntries + 1);
+    sizeToAllocate = sizeof(PEP_DEVICE_DEFINITION) * ((size_t)numberOfEntries + 1);
 
-    TraceEvents(TRACE_LEVEL_VERBOSE,DMF_TRACE,"SizeToAllocate=%llu NumEntries=%llu",sizeToAllocate,numberOfEntries + 1);
+    // 'Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).'
+    // NOTE: Fails on Win32 SAL only. Not sure why. Nothing I do fixes it.
+    //
+    #pragma warning(suppress:26451)
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SizeToAllocate=%llu NumEntries=%llu", sizeToAllocate, (size_t)numberOfEntries + 1);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
@@ -2244,7 +2263,12 @@ Return Value:
 
     // Index 0 belongs to the ACPI root.
     //
-    RtlCopyMemory(&moduleContext->PepDeviceDefinitionArray[0],
+    pepDeviceDefinition = &moduleContext->PepDeviceDefinitionArray[0];
+
+    // 'buffer overrun: accessing pepDeviceDefinition'
+    //
+    #pragma warning(suppress:6386)
+    RtlCopyMemory(pepDeviceDefinition,
                   &moduleContext->PepRootDefinition,
                   sizeof(PEP_DEVICE_DEFINITION));
 
@@ -2297,7 +2321,9 @@ Return Value:
                                                                               NULL);
         ULONG targetIndex = collectionIndex + 1;
 
-        RtlCopyMemory(&moduleContext->PepDeviceDefinitionArray[targetIndex],
+        pepDeviceDefinition = &moduleContext->PepDeviceDefinitionArray[targetIndex];
+
+        RtlCopyMemory(pepDeviceDefinition,
                       pepDeviceDefinitionEntry,
                       sizeof(PEP_DEVICE_DEFINITION));
 
@@ -2311,17 +2337,17 @@ Return Value:
                                                   "AcpiNotificationHandlers=%p "
                                                   "DpmNotificationHandlerCount=%lx "
                                                   "DpmNotificationHandlers=%p ",
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].Type,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].ContextSize,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].Initialize,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].ObjectCount,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].Objects,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].AcpiNotificationHandlerCount,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].AcpiNotificationHandlers,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].DpmNotificationHandlerCount,
-                                                  moduleContext->PepDeviceDefinitionArray[targetIndex].DpmNotificationHandlers);
+                                                  pepDeviceDefinition->Type,
+                                                  pepDeviceDefinition->ContextSize,
+                                                  pepDeviceDefinition->Initialize,
+                                                  pepDeviceDefinition->ObjectCount,
+                                                  pepDeviceDefinition->Objects,
+                                                  pepDeviceDefinition->AcpiNotificationHandlerCount,
+                                                  pepDeviceDefinition->AcpiNotificationHandlers,
+                                                  pepDeviceDefinition->DpmNotificationHandlerCount,
+                                                  pepDeviceDefinition->DpmNotificationHandlers);
 
-        for (ULONG objectIndex = 0; objectIndex < moduleContext->PepDeviceDefinitionArray[targetIndex].ObjectCount; objectIndex++)
+        for (ULONG objectIndex = 0; objectIndex < pepDeviceDefinition->ObjectCount; objectIndex++)
         {
             TraceEvents(TRACE_LEVEL_VERBOSE,DMF_TRACE,"Object %d "
                                                       "ObjectName=%lx "
@@ -2329,10 +2355,10 @@ Return Value:
                                                       "OutputArgumentCount=%lx "
                                                       "ObjectType=%d ",
                                                       objectIndex,
-                                                      moduleContext->PepDeviceDefinitionArray[targetIndex].Objects[objectIndex].ObjectName,
-                                                      moduleContext->PepDeviceDefinitionArray[targetIndex].Objects[objectIndex].InputArgumentCount,
-                                                      moduleContext->PepDeviceDefinitionArray[targetIndex].Objects[objectIndex].OutputArgumentCount,
-                                                      moduleContext->PepDeviceDefinitionArray[targetIndex].Objects[objectIndex].ObjectType);
+                                                      pepDeviceDefinition->Objects[objectIndex].ObjectName,
+                                                      pepDeviceDefinition->Objects[objectIndex].InputArgumentCount,
+                                                      pepDeviceDefinition->Objects[objectIndex].OutputArgumentCount,
+                                                      pepDeviceDefinition->Objects[objectIndex].ObjectType);
 
         }
     }
@@ -2341,9 +2367,9 @@ Return Value:
 
     // Device Match array has all elements of collection and root.
     //
-    sizeToAllocate = sizeof(PEP_DEVICE_MATCH) * (numberOfEntries + 1);
+    sizeToAllocate = sizeof(PEP_DEVICE_MATCH) * ((size_t)numberOfEntries + 1);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION,DMF_TRACE,"SizeToAllocate=%llu NumEntries=%llu",sizeToAllocate,numberOfEntries);
+    TraceEvents(TRACE_LEVEL_INFORMATION,DMF_TRACE,"SizeToAllocate=%llu NumEntries=%llu", sizeToAllocate, numberOfEntries);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
@@ -2389,7 +2415,9 @@ Return Value:
 
         ULONG targetIndex = collectionIndex + 1;
 
-        RtlCopyMemory(&moduleContext->PepDeviceMatchArray[targetIndex],
+        PEP_DEVICE_MATCH* pepDeviceMatch = &moduleContext->PepDeviceMatchArray[targetIndex];
+
+        RtlCopyMemory(pepDeviceMatch,
                       pepDeviceMatchEntry,
                       sizeof(PEP_DEVICE_MATCH));
 
@@ -2398,10 +2426,10 @@ Return Value:
                                                   "OwnedType=%d "
                                                   "DeviceId= %S "
                                                   "CompareMethod=%d ",
-                                                  moduleContext->PepDeviceMatchArray[targetIndex].Type,
-                                                  moduleContext->PepDeviceMatchArray[targetIndex].OwnedType,
-                                                  moduleContext->PepDeviceMatchArray[targetIndex].DeviceId,
-                                                  moduleContext->PepDeviceMatchArray[targetIndex].CompareMethod);
+                                                  pepDeviceMatch->Type,
+                                                  pepDeviceMatch->OwnedType,
+                                                  pepDeviceMatch->DeviceId,
+                                                  pepDeviceMatch->CompareMethod);
     }
 
     moduleContext->PepDeviceMatchArraySize = numberOfEntries + 1;
@@ -2935,14 +2963,14 @@ PEP_NOTIFICATION_HANDLER_RESULT
 DMF_AcpiPepDevice_AsyncNotifyEvent(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
     )
 /*++
 
 Routine Description:
 
     This Method serves AcpiPepDevices as a generic callback for Acpi Notification requests.
-    It is scheduled to run asychronously.
+    It is scheduled to run asynchronously.
 
 Arguments:
 
@@ -3018,6 +3046,10 @@ Return Value:
     }
 }
 
+// 'Returning uninitialized memory'
+//
+#pragma warning(suppress:6101)
+_Success_(NT_SUCCESS(ntStatus))
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_AcpiPepDevice_PepAcpiDataReturn(
@@ -3025,10 +3057,10 @@ DMF_AcpiPepDevice_PepAcpiDataReturn(
     _In_ USHORT ValueType,
     _In_ ULONG ValueLength,
     _In_ BOOLEAN ReturnAsPackage,
-    _Out_ PACPI_METHOD_ARGUMENT Arguments,
+    _Inout_ PACPI_METHOD_ARGUMENT Arguments,
     _Inout_ SIZE_T* OutputArgumentSize,
     _Out_opt_ ULONG* OutputArgumentCount,
-    _Out_ NTSTATUS* ntStatus,
+    _Out_ NTSTATUS* NtStatus,
     _In_opt_ CHAR* MethodName,
     _In_opt_ CHAR* DebugInfo,
     _Out_ PEP_NOTIFICATION_HANDLER_RESULT* CompleteResult
@@ -3069,6 +3101,7 @@ Return Value:
     ULONG requiredSize;
     ULONG* valueAsInteger;
     UCHAR* valueAsString;
+    NTSTATUS ntStatus;
 
     TraceEvents(TRACE_LEVEL_VERBOSE,
                 DMF_TRACE,
@@ -3076,6 +3109,9 @@ Return Value:
                 __FUNCTION__,
                 NAME_DEBUG_INFO(DebugInfo),
                 NAME_NATIVE_METHOD(MethodName));
+
+    *NtStatus = STATUS_UNSUCCESSFUL;
+    *CompleteResult = PEP_NOTIFICATION_HANDLER_COMPLETE;
 
     requiredSize = ACPI_METHOD_ARGUMENT_LENGTH(ValueLength);
     if (ReturnAsPackage != FALSE)
@@ -3092,7 +3128,8 @@ Return Value:
     switch (ValueType)
     {
         case ACPI_METHOD_ARGUMENT_INTEGER:
-            valueAsInteger = (PULONG)Value;
+        {
+            valueAsInteger = (ULONG*)Value;
             ACPI_METHOD_SET_ARGUMENT_INTEGER(argumentLocal, (*valueAsInteger));
             TraceEvents(TRACE_LEVEL_VERBOSE,
                         DMF_TRACE,
@@ -3101,11 +3138,11 @@ Return Value:
                         NAME_DEBUG_INFO(DebugInfo),
                         NAME_NATIVE_METHOD(MethodName),
                         (ULONG)argumentLocal->Argument);
-
             break;
-
+        }
         case ACPI_METHOD_ARGUMENT_STRING:
-            valueAsString = (PUCHAR)Value;
+        {
+            valueAsString = (UCHAR*)Value;
 
             // N.B. ACPI_METHOD_SET_ARGUMENT_STRING will copy the string as
             //      well.
@@ -3115,12 +3152,14 @@ Return Value:
             //
             //      error C4057: char * is different from PUCHAR.
             //
-            { argumentLocal->Type = ACPI_METHOD_ARGUMENT_STRING;
+            {
+                argumentLocal->Type = ACPI_METHOD_ARGUMENT_STRING;
                 argumentLocal->DataLength = (USHORT)(strlen((const char*)valueAsString)) + (USHORT)sizeof(UCHAR);
                 memcpy_s(&argumentLocal->Data[0],
                         argumentLocal->DataLength,
                         (PUCHAR)valueAsString,
-                        argumentLocal->DataLength); }
+                        argumentLocal->DataLength);
+            }
             TraceEvents(TRACE_LEVEL_VERBOSE,
                         DMF_TRACE,
                         "%s <%s> [%s]: ReturnType = String, Result = %s.",
@@ -3128,11 +3167,11 @@ Return Value:
                         NAME_DEBUG_INFO(DebugInfo),
                         NAME_NATIVE_METHOD(MethodName),
                         (PSTR)&argumentLocal->Data[0]);
-
             break;
-
+        }
         case ACPI_METHOD_ARGUMENT_BUFFER:
-            valueAsString = (PUCHAR)Value;
+        {
+            valueAsString = (UCHAR*)Value;
             ACPI_METHOD_SET_ARGUMENT_BUFFER(argumentLocal,
                                             valueAsString,
                                             (USHORT)ValueLength);
@@ -3143,12 +3182,13 @@ Return Value:
                         __FUNCTION__,
                         NAME_DEBUG_INFO(DebugInfo),
                         NAME_NATIVE_METHOD(MethodName));
-
             break;
-
+        }
         default:
-            NT_ASSERT(FALSE);
-            return;
+        {
+            DmfAssert(FALSE);
+            goto Exit;
+        }
     }
 
     if (ReturnAsPackage != FALSE)
@@ -3166,9 +3206,11 @@ Return Value:
 
     *OutputArgumentSize = ACPI_METHOD_ARGUMENT_LENGTH_FROM_ARGUMENT(Arguments);
 
-    *ntStatus = STATUS_SUCCESS;
+    *NtStatus = STATUS_SUCCESS;
 
-    *CompleteResult = PEP_NOTIFICATION_HANDLER_COMPLETE;
+Exit:
+
+    ntStatus = *NtStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

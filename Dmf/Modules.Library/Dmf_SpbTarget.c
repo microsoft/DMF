@@ -732,7 +732,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write and read
 
 Return Value:
@@ -780,7 +780,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write and read
     RequestTimeoutMilliseconds - Timeout in milliseconds.
 
@@ -830,7 +830,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write.
     RequestTimeoutMilliseconds - Timeout in milliseconds.
 
@@ -877,7 +877,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write.
 
 Return Value:
@@ -913,7 +913,7 @@ NTSTATUS
 DMF_SpbBusTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
     )
 /*++
 
@@ -923,7 +923,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     ProtocolBindData
     TransportBindData
 
@@ -954,7 +954,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -979,7 +979,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -1004,7 +1004,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 

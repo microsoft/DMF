@@ -742,7 +742,7 @@ Return Value:
         // Note: we can only check if the required length is satisfied, we have no way to know if the data 
         // is correct or not.
         //
-        if (PayloadBufferBinRecordStartIndex + BinRecordHeaderLength + currentBinRecord->Length > PayloadBufferSize)
+        if ((size_t)PayloadBufferBinRecordStartIndex + (size_t)BinRecordHeaderLength + (size_t)currentBinRecord->Length > PayloadBufferSize)
         {
             TraceEvents(TRACE_LEVEL_ERROR,
                         DMF_TRACE,
@@ -1698,7 +1698,8 @@ Return Value:
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
     DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
-    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
+    size_t allocatedSize = (size_t)componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + 
+                           (size_t)componentFirmwareUpdateTransportContext->TransportHeaderSize;
     offerCommandMemory = WDF_NO_HANDLE;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
@@ -1929,7 +1930,8 @@ Return Value:
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
     DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
-    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
+    size_t allocatedSize = (size_t)componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize +
+                           (size_t)componentFirmwareUpdateTransportContext->TransportHeaderSize;
     offerInformationMemory = WDF_NO_HANDLE;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
@@ -2138,7 +2140,8 @@ Return Value:
     componentFirmwareUpdateTransportContext = ComponentFirmwareUpdateTransportContextGet(moduleContext->DmfInterfaceComponentFirmwareUpdate);
     DmfAssert(componentFirmwareUpdateTransportContext != NULL);
 
-    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
+    size_t allocatedSize = (size_t)componentFirmwareUpdateTransportContext->TransportOfferBufferRequiredSize +
+                           (size_t)componentFirmwareUpdateTransportContext->TransportHeaderSize;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -2361,7 +2364,8 @@ Return Value:
 
     // Allocate memory for payload chunk, and reuse it for the sending the whole payload.
     //
-    size_t allocatedSize = componentFirmwareUpdateTransportContext->TransportFirmwarePayloadBufferRequiredSize + componentFirmwareUpdateTransportContext->TransportHeaderSize;
+    size_t allocatedSize = (size_t)componentFirmwareUpdateTransportContext->TransportFirmwarePayloadBufferRequiredSize +
+                           (size_t)componentFirmwareUpdateTransportContext->TransportHeaderSize;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -4801,6 +4805,8 @@ Return Value:
 
     RtlZeroMemory(&protocolBindData,
                   sizeof(protocolBindData));
+    RtlZeroMemory(&transportBindData,
+                  sizeof(transportBindData));
 
     // Call the Interface's Bind function.
     //

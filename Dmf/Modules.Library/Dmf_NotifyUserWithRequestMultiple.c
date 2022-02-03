@@ -265,8 +265,6 @@ Return Value:
     WDFDEVICE device;
     WDF_OBJECT_ATTRIBUTES attributes;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -372,8 +370,6 @@ Return Value:
     ENUMERATION_CONTEXT callbackContext;
     FILE_OBJECT_CONTEXT* fileObjectContext;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -435,8 +431,6 @@ Return Value:
     DMF_CONTEXT_NotifyUserWithRequestMultiple* moduleContext;
     ENUMERATION_CONTEXT callbackContext;
 
-    PAGED_CODE();
-
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -462,7 +456,6 @@ Return Value:
 }
 
 _Function_class_(EVT_DMF_Doorbell_ClientCallback)
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 NotifyUserWithRequestMultiple_DoorbellCallback(

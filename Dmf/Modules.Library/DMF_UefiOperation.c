@@ -139,7 +139,9 @@ Exit:
     {
         CloseHandle(token);
     }
+
     FuncExit(DMF_TRACE, "result=%!HRESULT!", result);
+
     return result;
 }
 
@@ -149,8 +151,6 @@ Exit:
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#if defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -203,7 +203,6 @@ Return Value:
                                 ObjectAttributes,
                                 &dmfModuleDescriptor_UefiOperation,
                                 DmfModule);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCreate fails: ntStatus=%!STATUS!", ntStatus);
@@ -211,22 +210,21 @@ Return Value:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
-    return(ntStatus);
-
+    return ntStatus;
 }
 #pragma code_seg()
 
-#endif //defined(DMF_USER_MODE)
+// Module Methods
+//
 
 #if defined(DMF_USER_MODE)
 
-_Success_(return)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS 
 DMF_UefiOperation_FirmwareEnvironmentVariableGet(
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
-    _Out_writes_(*VariableBufferSize) VOID* VariableBuffer,
+    _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,
     _Inout_ DWORD* VariableBufferSize
     )
 /*++
@@ -251,11 +249,9 @@ Return Value:
 
 --*/
 {
-
     HRESULT result;
     NTSTATUS ntStatus;
     DWORD size;
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -292,6 +288,7 @@ Exit:
 
 #endif //defined(DMF_USER_MODE)
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
@@ -336,7 +333,6 @@ Return Value:
                                                 VariableBuffer,
                                                 VariableBufferSize,
                                                 Attributes);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExGetFirmwareEnvironmentVariable fails to read %S %!STATUS!",
@@ -346,16 +342,20 @@ Return Value:
     }
 
 #else // !defined(DMF_USER_MODE).
-    UNREFERENCED_PARAMETER(Attributes);
-
     UINT returnValue;
     WCHAR guidString[GUID_STRING_SIZE];
     WCHAR variableName[MAX_VARIABLE_NAME_LENGTH];
 
+    if (Attributes != NULL)
+    {
+        // For SAL.
+        //
+        *Attributes = 0;
+    }
+
     returnValue = StringFromGUID2(*Guid,
                                   guidString,
                                   ARRAYSIZE(guidString));
-
     if (!returnValue)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
@@ -390,6 +390,7 @@ Exit:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
     return ntStatus;
 }
+#pragma code_seg()
 
 #if defined(DMF_USER_MODE)
 
@@ -422,12 +423,9 @@ Return Value:
 
 --*/
 {
-
     HRESULT hresult;
     NTSTATUS ntStatus;
     BOOL result;
-
-    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
@@ -463,6 +461,7 @@ Exit:
 
 #endif //defined(DMF_USER_MODE)
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSetEx(
@@ -506,7 +505,6 @@ Return Value:
                                                 VariableBuffer,
                                                 VariableBufferSize,
                                                 Attributes);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExSetFirmwareEnvironmentVariable fails to write %S %!STATUS!",
@@ -525,7 +523,6 @@ Return Value:
     returnValue = StringFromGUID2(*Guid,
                                   guidString,
                                   ARRAYSIZE(guidString));
-
     if (!returnValue)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
@@ -560,6 +557,7 @@ Exit:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
     return ntStatus;
 }
+#pragma code_seg()
 
 // eof: Dmf_UefiOperation.c
 //

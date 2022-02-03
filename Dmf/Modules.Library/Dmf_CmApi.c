@@ -804,6 +804,12 @@ Return Value:
     deviceInterfaceListLength = 0;
     device = DMF_ParentDeviceGet(DmfModule);
 
+    // For SAL.
+    //
+    *ParentDevNode = NULL;
+    RtlZeroMemory(ParentDeviceInstanceId,
+                  ParentDeviceInstanceIdBufferSize);
+
     WDF_DEVICE_PROPERTY_DATA_INIT(&property, 
                                   &DEVPKEY_Device_InstanceId);
     propertyType = DEVPROP_TYPE_STRING;

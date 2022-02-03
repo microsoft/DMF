@@ -1103,14 +1103,12 @@ Return Value:
 
     // TODO: Add support for Language Id.
     //
-    UNREFERENCED_PARAMETER(languageId);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ntStatus = VirtualHidMini_StringIdGet(Request,
                                           &stringId,
                                           &languageId);
-
     if (!NT_SUCCESS(ntStatus)) 
     {
         goto Exit;
