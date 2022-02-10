@@ -219,6 +219,7 @@ Return Value:
     DmfTransportDescriptor->GenericInterfaceDescriptor.DmfInterfacePreUnbind = EvtPreUnbind;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleInterfaceCreate(
     _Out_ DMF_INTERFACE_OBJECT** DmfInterfaceObject
@@ -329,6 +330,7 @@ Return Value:
     WdfObjectDelete(DmfInterfaceObject->DmfInterface);
 }
 
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleInterfaceFind(
     _In_ DMFMODULE ModuleToFind,
@@ -501,6 +503,7 @@ Return Value:
     return interfaceFound;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_InterfaceReference(
     _Inout_ DMFINTERFACE DmfInterface
@@ -651,6 +654,7 @@ Return Value:
 
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleInterfaceDescriptorAdd(
     _Inout_ DMFMODULE DmfModule,
@@ -713,6 +717,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleInterfaceBind(
     _In_ DMFMODULE ProtocolModule,

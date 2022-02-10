@@ -207,6 +207,7 @@ Return Value:
     }
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 RequestTarget_PendingCollectionListAdd(
@@ -588,6 +589,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 RequestTarget_FormatRequestForRequestType(
@@ -711,6 +713,7 @@ Exit:
 // 'Returning uninitialized memory'
 //
 #pragma warning(suppress:6101)
+_Must_inspect_result_
 static
 NTSTATUS
 RequestTarget_RequestCreateAndSend(
@@ -1303,6 +1306,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_RequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -1433,6 +1437,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -1517,6 +1522,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -1602,6 +1608,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,

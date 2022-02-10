@@ -140,6 +140,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 BOOLEAN
 DMF_Utility_IsEqualGUID(
     _In_ GUID* Guid1,
@@ -250,9 +251,9 @@ Return Value:
 #if defined(DMF_KERNEL_MODE)
 
 #pragma code_seg("PAGE")
-_Must_inspect_result_
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Utility_AclPropagateInDeviceStack(
     _In_ WDFDEVICE Device
@@ -730,6 +731,7 @@ Return Value:
     }
 }  
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Utility_TemperatureInDeciKelvin(
     _In_ INT64 Celcius,
@@ -817,6 +819,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Utility_TemperatureInDeciKelvin32(
     _In_ INT32 Celcius,

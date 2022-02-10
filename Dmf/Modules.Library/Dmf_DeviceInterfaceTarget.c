@@ -48,6 +48,7 @@ RequestSink_Cancel_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
@@ -62,6 +63,7 @@ RequestSink_SendSynchronously_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_Send_Type(
     _In_ DMFMODULE DmfModule,
@@ -77,6 +79,7 @@ RequestSink_Send_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendEx_Type(
     _In_ DMFMODULE DmfModule,
@@ -321,6 +324,7 @@ Return Value:
 
 #if ! defined(DMF_USER_MODE)
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_SymbolicLinkNameStore(
     _In_ DMFMODULE DmfModule,
@@ -464,6 +468,7 @@ DeviceInterfaceTarget_Stream_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Stream_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -493,6 +498,7 @@ DeviceInterfaceTarget_Stream_SendSynchronously(
                                                          BytesWritten);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
@@ -525,6 +531,7 @@ DeviceInterfaceTarget_Stream_Send(
                                               NULL);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Stream_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -610,6 +617,7 @@ DeviceInterfaceTarget_Target_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Target_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -642,6 +650,7 @@ DeviceInterfaceTarget_Target_SendSynchronously(
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
@@ -675,6 +684,7 @@ DeviceInterfaceTarget_Target_Send(
                                     NULL);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Target_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -858,6 +868,9 @@ Return Value:
 
 EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceTarget_EvtIoTargetQueryRemove;
 
+_Function_class_(EVT_WDF_IO_TARGET_QUERY_REMOVE)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DeviceInterfaceTarget_EvtIoTargetQueryRemove(
     _In_ WDFIOTARGET IoTarget
@@ -874,7 +887,7 @@ Arguments:
 
 Return Value:
 
-    NT_SUCCESS.
+    NTSTATUS
 
 --*/
 {
@@ -1154,6 +1167,7 @@ Return Value:
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(
     _In_ DMFMODULE DmfModule,
@@ -1490,6 +1504,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DRIVER_NOTIFICATION_CALLBACK_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DeviceInterfaceTarget_InterfaceArrivalRemovalCallback(
@@ -2343,6 +2358,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_BufferPut(
     _In_ DMFMODULE DmfModule,
@@ -2398,6 +2414,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DeviceInterfaceTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -2450,6 +2467,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -2505,6 +2523,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_GuidGet(
     _In_ DMFMODULE DmfModule,
@@ -2548,6 +2567,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -2629,6 +2649,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -2714,6 +2735,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -2793,6 +2815,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_StreamStart(
     _In_ DMFMODULE DmfModule

@@ -339,6 +339,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_AcpiNotification_ModuleReleaseHardware(
@@ -584,8 +585,8 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiNotification_EnableDisable(
     _In_ DMFMODULE DmfModule,

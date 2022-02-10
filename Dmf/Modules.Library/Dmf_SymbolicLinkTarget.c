@@ -228,6 +228,7 @@ Exit:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SymbolicLinkTarget_DeviceIoControl(
     _In_ DMFMODULE DmfModule,

@@ -231,6 +231,7 @@ Return Value:
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 NotifyUserWithRequestMultiple_AllocateDynamicFileObjectContext(
     _In_ DMFMODULE DmfModule,
@@ -1084,6 +1085,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequestMultiple_DataBroadcast(
     _In_ DMFMODULE DmfModule,

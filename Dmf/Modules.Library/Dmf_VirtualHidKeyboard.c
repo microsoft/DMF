@@ -192,6 +192,7 @@ typedef struct _VirtualHidKeyboard_INPUT_REPORT
 } VirtualHidKeyboard_INPUT_REPORT;
 #include <poppack.h>
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidKeyboard_Toggle(
     _In_ DMFMODULE DmfModule,
@@ -272,6 +273,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidKeyboard_Type(
     _In_ DMFMODULE DmfModule,
@@ -766,6 +768,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Toggle(
     _In_ DMFMODULE DmfModule,
@@ -823,6 +826,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Type(
     _In_ DMFMODULE DmfModule,

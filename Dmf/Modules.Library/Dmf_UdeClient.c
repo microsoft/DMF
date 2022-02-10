@@ -216,6 +216,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 UdeClient_EvtDeviceQueryUsbCapability(
     _In_ WDFDEVICE UdecxWdfDevice,
@@ -1312,6 +1313,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_UdeClient_ModuleD0Exit(

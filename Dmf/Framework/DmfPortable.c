@@ -33,6 +33,7 @@ Environment:
 #define MINOR_VERSION_WINDOWS_10  0
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventCreate(
     _Out_ DMF_PORTABLE_EVENT* EventPointer,
@@ -177,6 +178,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
@@ -281,6 +283,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
@@ -494,6 +497,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_LookasideListCreate(
     _In_ PWDF_OBJECT_ATTRIBUTES LookasideAttributes,
@@ -572,6 +576,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 #else
 _IRQL_requires_max_(DISPATCH_LEVEL)
 #endif // defined(DMF_USER_MODE)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_LookasideListCreateMemory(
     _In_ DMF_PORTABLE_LOOKASIDELIST* LookasidePointer,
@@ -681,6 +686,7 @@ Return Value:
 #endif // defined(DMF_KERNEL_MODE)
 }
 
+_Must_inspect_result_
 BOOLEAN
 DMF_Portable_Rundown_Acquire(
     _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
@@ -817,6 +823,7 @@ Return Value:
 #endif // defined(DMF_KERNEL_MODE)
 }
 
+_Must_inspect_result_
 BOOLEAN
 DMF_Portable_VersionCheck(
     _In_ ULONG MinimumOsVersion,

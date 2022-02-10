@@ -40,6 +40,7 @@ DECLARE_DMF_MODULE(DefaultTarget)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_BufferPut(
     _In_ DMFMODULE DmfModule,
@@ -47,6 +48,7 @@ DMF_DefaultTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DefaultTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -61,6 +63,7 @@ DMF_DefaultTarget_Get(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -76,6 +79,7 @@ DMF_DefaultTarget_Send(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -92,6 +96,7 @@ DMF_DefaultTarget_SendEx(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -106,6 +111,7 @@ DMF_DefaultTarget_SendSynchronously(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_StreamStart(
     _In_ DMFMODULE DmfModule

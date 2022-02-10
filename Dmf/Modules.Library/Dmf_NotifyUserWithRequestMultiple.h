@@ -98,6 +98,7 @@ DECLARE_DMF_MODULE(NotifyUserWithRequestMultiple)
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequestMultiple_DataBroadcast(
     _In_ DMFMODULE DmfModule,

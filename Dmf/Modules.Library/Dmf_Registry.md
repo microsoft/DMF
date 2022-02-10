@@ -133,6 +133,7 @@ typedef struct
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 EVT_DMF_Registry_CallbackWork(
     _In_ DMFMODULE DmfModule
@@ -159,11 +160,12 @@ DmfModule | An open DMF_Registry Module handle.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 BOOLEAN
 EVT_DMF_Registry_KeyEnumerationCallback(
     _In_ VOID* ClientContext,
     _In_ HANDLE RootHandle,
-    _In_ PWCHAR KeyName
+    _In_ CONST WCHAR* KeyName
     );
 ````
 
@@ -185,6 +187,7 @@ KeyName | The name of a key under RootHandle.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 BOOLEAN
 EVT_DMF_Registry_ValueComparisonCallback(
     _In_ DMFMODULE DmfModule,
@@ -221,8 +224,8 @@ ClientDataInRegistrySize | The size in bytes of CilentDataInRegistry.
 ##### DMF_Registry_AllSubKeysFromHandleEnumerate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Registry_AllSubKeysFromHandleEnumerate(
   _In_ DMFMODULE DmfModule,
@@ -257,8 +260,8 @@ ClientCallbackContext | A Client specific context passed to ClientCallback.
 ##### DMF_Registry_CallbackWork
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_CallbackWork(
   _In_ WDFDEVICE WdfDevice,
@@ -289,13 +292,13 @@ CallbackWork | The Client callback that is passed the a DMF_Registry Module hand
 ##### DMF_Registry_CustomAction
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_CustomAction(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG ValueType,
   _In_opt_ VOID* ValueDataToCompare,
   _In_ ULONG ValueDataToCompareSize,
@@ -334,12 +337,12 @@ ComparisonCallback | The given Client callback to execute for each enumerated su
 ##### DMF_Registry_EnumerateKeysFromName
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Registry_EnumerateKeysFromName(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RootKeyName,
+  _In_ CONST WCHAR* RootKeyName,
   _In_ EVT_DMF_Registry_KeyEnumerationCallback* ClientCallback,
   _In_ VOID* ClientCallbackContext
   );
@@ -370,7 +373,7 @@ ClientCallbackContext | Client specific context to pass to ClientCallback.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
-void
+VOID
 DMF_Registry_HandleClose(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle
@@ -398,6 +401,7 @@ Handle | The given registry handle.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleDelete(
   _In_ DMFMODULE DmfModule,
@@ -424,8 +428,8 @@ Handle | The given registry handle.
 ##### DMF_Registry_HandleOpenByDeviceInterface
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 HANDLE
 DMF_Registry_HandleOpenByDeviceInterface(
     _In_ DMFMODULE DmfModule,
@@ -457,13 +461,13 @@ Use this Method to avoid hardcoded registry paths which prevent device drivers f
 ##### DMF_Registry_HandleOpenByHandle
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 HANDLE
 DMF_Registry_HandleOpenByHandle(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR Name,
+  _In_ CONST WCHAR* Name,
   _In_ BOOLEAN TryToCreate
   );
 ````
@@ -489,8 +493,8 @@ TryToCreate | Creates the path specified by Name if the path does not exist.
 ##### DMF_Registry_HandleOpenById
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenById(
     _In_ DMFMODULE DmfModule,
@@ -522,12 +526,12 @@ RegistryHandle | The address of the handle that is returned to the Client.
 ##### DMF_Registry_HandleOpenByName
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 HANDLE
 DMF_Registry_HandleOpenByName(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR Name
+  _In_ CONST WCHAR* Name
   );
 ````
 
@@ -550,12 +554,12 @@ Name | The given registry path name.
 ##### DMF_Registry_HandleOpenByNameEx
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenByNameEx(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR Name,
+  _In_ CONST WCHAR* Name,
   _In_ ULONG AccessMask,
   _In_ BOOLEAN Create,
   _Out_ HANDLE* RegistryHandle
@@ -585,8 +589,8 @@ RegistryHandle | The address of the handle that is returned to the Client.
 ##### DMF_Registry_HandleOpenParametersRegistryKey
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenParametersRegistryKey(
     _In_ DMFMODULE DmfModule,
@@ -621,13 +625,13 @@ RegistryHandle | The address of the handle that is returned to the Client.
 ##### DMF_Registry_PathAndValueDelete
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueDelete(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName
   );
 ````
 
@@ -653,13 +657,13 @@ ValueName | The name of the given value.
 ##### DMF_Registry_PathAndValueRead
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueRead(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG RegistryType,
   _Out_writes_opt_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
@@ -695,13 +699,13 @@ BytesRead | The size in bytes of the data read is written to this address.
 ##### DMF_Registry_PathAndValueReadBinary
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadBinary(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_writes_opt_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _Out_opt_ ULONG* BytesRead
@@ -735,13 +739,13 @@ BytesRead | The number of bytes read is written to this address.
 ##### DMF_Registry_PathAndValueReadDword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadDword(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONG* Buffer
   );
 ````
@@ -771,13 +775,13 @@ BufferSize | The size in bytes of Buffer.
 ##### DMF_Registry_PathAndValueReadDwordAndValidate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadDwordAndValidate(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONG* Buffer,
   _In_ ULONG Minimum,
   _In_ ULONG Maximum
@@ -812,13 +816,13 @@ Maximum | The required maximum value of the data read.
 ##### DMF_Registry_PathAndValueReadMultiString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadMultiString(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters,
   _Out_opt_ ULONG* BytesRead
@@ -851,13 +855,13 @@ BytesRead | The number of bytes read is written to this address.
 ##### DMF_Registry_PathAndValueReadQword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadQword(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONGLONG* Buffer
   );
 ````
@@ -887,13 +891,13 @@ BufferSize | The size in bytes of Buffer.
 ##### DMF_Registry_PathAndValueReadQwordAndValidate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadQwordAndValidate(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONGLONG* Buffer,
   _In_ ULONGLONG Minimum,
   _In_ ULONGLONG Maximum
@@ -928,13 +932,13 @@ Maximum | The required maximum value of the data read.
 ##### DMF_Registry_PathAndValueReadString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadString(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters,
   _Out_opt_ ULONG* BytesRead
@@ -967,13 +971,13 @@ BytesRead | The number of bytes read is written to this address.
 ##### DMF_Registry_PathAndValueWrite
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWrite(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG RegistryType,
   _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize
@@ -1006,13 +1010,13 @@ BufferSize | The size in bytes of Buffer.
 ##### DMF_Registry_PathAndValueWriteBinary
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteBinary(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize
   );
@@ -1042,13 +1046,13 @@ BufferSize | The size in bytes of Buffer.
 ##### DMF_Registry_PathAndValueWriteDword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteDword(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG ValueData
   );
 ````
@@ -1076,13 +1080,13 @@ ValueData | The data to write.
 ##### DMF_Registry_PathAndValueWriteMultiString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteMultiString(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_reads_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters
   );
@@ -1112,13 +1116,13 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 ##### DMF_Registry_PathAndValueWriteQword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteQword(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONGLONG ValueData
   );
 ````
@@ -1146,13 +1150,13 @@ ValueData | The data to write.
 ##### DMF_Registry_PathAndValueWriteString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteString(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR RegistryPathName,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* RegistryPathName,
+  _In_ CONST WCHAR* ValueName,
   _In_reads_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters
   );
@@ -1183,10 +1187,11 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_RegistryPathDelete(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR Name
+  _In_ CONST WCHAR* Name
   );
 ````
 
@@ -1212,8 +1217,8 @@ ValueName | The name of the given value.
 ##### DMF_Registry_ScheduledTaskCallbackContainer
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 ScheduledTask_Result_Type
 DMF_Registry_ScheduledTaskCallbackContainer(
   _In_ DMFMODULE DmfScheduledTask,
@@ -1229,8 +1234,8 @@ This Method is used by DMF internally. Clients should not use this Method.
 ##### DMF_Registry_SubKeysFromHandleEnumerate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Registry_SubKeysFromHandleEnumerate(
   _In_ DMFMODULE DmfModule,
@@ -1265,13 +1270,13 @@ ClientCallbackContext | A Client specific context passed to ClientCallback.
 ##### DMF_Registry_SubKeysFromPathNameContainingStringEnumerate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Registry_SubKeysFromPathNameContainingStringEnumerate(
   _In_ DMFMODULE DmfModule,
-  _In_ PWCHAR PathName,
-  _In_ PWCHAR LookFor,
+  _In_ CONST WCHAR* PathName,
+  _In_ CONST WCHAR* LookFor,
   _In_ EVT_DMF_Registry_KeyEnumerationCallback* ClientCallback,
   _In_ VOID* ClientCallbackContext
   );
@@ -1302,6 +1307,7 @@ ClientCallbackContext | Client specific context to pass to ClientCallback.
 ##### DMF_Registry_TreeWriteDeferred
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_TreeWriteDeferred(
   _In_ DMFMODULE DmfModule,
@@ -1333,6 +1339,7 @@ ItemCount | The number of items in RegistryTree.
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_Registry_TreeWriteEx
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_TreeWriteEx(
   _In_ DMFMODULE DmfModule,
@@ -1365,13 +1372,13 @@ ItemCount | The number of items in RegistryTree.
 ##### DMF_Registry_ValueDelete
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueDelete(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName
+  _In_ CONST WCHAR* ValueName
   );
 ````
 
@@ -1396,11 +1403,12 @@ ValueName | The name of the given value.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueDeleteIfNeeded(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_opt_ VOID* ValueDataToCompare,
   _In_ ULONG ValueDataToCompareSize,
   _In_ EVT_DMF_Registry_ValueComparisonCallback* ComparisonCallback,
@@ -1436,13 +1444,13 @@ ComparisonCallbackContext | A Client specific context passed to ClientCallback.
 ##### DMF_Registry_ValueRead
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueRead(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG ValueType,
   _Out_writes_opt_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
@@ -1477,13 +1485,13 @@ BytesRead | The size in bytes of the data read is written to this address.
 ##### DMF_Registry_ValueReadBinary
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadBinary(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_writes_opt_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _Out_opt_ ULONG* BytesRead
@@ -1514,13 +1522,13 @@ BytesRead | The size in bytes of the data read is written to this address.
 ##### DMF_Registry_ValueReadDword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadDword(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONG* Buffer
   );
 ````
@@ -1549,13 +1557,13 @@ Buffer | The data read is written to this buffer.
 ##### DMF_Registry_ValueReadDwordAndValidate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadDwordAndValidate(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONG* Buffer,
   _In_ ULONG Minimum,
   _In_ ULONG Maximum
@@ -1590,13 +1598,13 @@ Maximum | The required maximum value of the data read.
 ##### DMF_Registry_ValueReadMultiString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadMultiString(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters,
   _Out_opt_ ULONG* BytesRead
@@ -1629,13 +1637,13 @@ BytesRead | The size in bytes of the data read is written to this address.
 ##### DMF_Registry_ValueReadQword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadQword(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ ULONGLONG* Buffer
   );
 ````
@@ -1664,13 +1672,13 @@ Buffer | The data read is written to this buffer.
 ##### DMF_Registry_ValueReadQwordAndValidate
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadQwordAndValidate(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_ PULONGLONG Buffer,
   _In_ ULONGLONG Minimum,
   _In_ ULONGLONG Maximum
@@ -1705,13 +1713,13 @@ Maximum | The required maximum value of the data read.
 ##### DMF_Registry_ValueReadString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadString(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters,
   _Out_opt_ ULONG* BytesRead
@@ -1744,13 +1752,13 @@ BytesRead | The size in bytes of the data read is written to this address.
 ##### DMF_Registry_ValueWrite
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWrite(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG ValueType,
   _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize
@@ -1783,13 +1791,13 @@ BytesRead | The size in bytes of the data written is written to this address.
 ##### DMF_Registry_ValueWriteBinary
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteBinary(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize
   );
@@ -1820,13 +1828,13 @@ BufferSize | The size in bytes of Buffer.
 ##### DMF_Registry_ValueWriteDword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteDword(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG ValueData
   );
 ````
@@ -1855,11 +1863,12 @@ Buffer | The data written is read from this buffer.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteIfNeeded(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONG ValueType,
   _In_ VOID* ValueDataToWrite,
   _In_ ULONG ValueDataToWriteSize,
@@ -1900,13 +1909,13 @@ WriteIfNotFound | If the given value is not found, this flag indicates that the 
 ##### DMF_Registry_ValueWriteMultiString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteMultiString(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_reads_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters
   );
@@ -1937,13 +1946,13 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 ##### DMF_Registry_ValueWriteQword
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteQword(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_ ULONGLONG ValueData
   );
 ````
@@ -1972,13 +1981,13 @@ Buffer | The data written is read from this buffer.
 ##### DMF_Registry_ValueWriteString
 
 ````
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteString(
   _In_ DMFMODULE DmfModule,
   _In_ HANDLE Handle,
-  _In_ PWCHAR ValueName,
+  _In_ CONST WCHAR* ValueName,
   _In_reads_(NumberOfCharacters) PWCHAR Buffer,
   _In_ ULONG NumberOfCharacters
   );

@@ -126,6 +126,9 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_BusTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
@@ -211,6 +214,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_BusTarget_AddressWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -257,6 +261,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_AddressReadEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -306,6 +311,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_AddressRead(
     _In_ DMFINTERFACE DmfInterface,
@@ -352,6 +358,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_BufferWriteEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -401,6 +408,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_BufferWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -447,6 +455,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_BufferRead(
     _In_ DMFINTERFACE DmfInterface,

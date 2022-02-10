@@ -40,6 +40,7 @@ This Module allows a Client access to the SMBIOS table that resides on the Host.
 ##### DMF_SmbiosWmi_Table01Get
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_SmbiosWmi_Table01Get(
     _In_ DMFMODULE DmfModule,

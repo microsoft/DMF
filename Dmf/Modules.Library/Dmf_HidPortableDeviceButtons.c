@@ -887,6 +887,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_HidPortableDeviceButtons_ButtonIsEnabled(
     _In_ DMFMODULE DmfModule,
@@ -984,6 +985,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_HidPortableDeviceButtons_ButtonStateChange(
     _In_ DMFMODULE DmfModule,
@@ -1123,6 +1125,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_HidPortableDeviceButtons_HotkeyStateChange(
     _In_ DMFMODULE DmfModule,

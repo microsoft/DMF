@@ -74,6 +74,7 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(PDO_DEVICE_DATA, PdoGetData)
 #pragma code_seg("PAGE")
 _Check_return_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Pdo_DevicePropertyTableWrite(
     _In_ DMFMODULE DmfModule,
@@ -164,6 +165,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Check_return_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Pdo_PdoEx(
     _In_ DMFMODULE DmfModule,

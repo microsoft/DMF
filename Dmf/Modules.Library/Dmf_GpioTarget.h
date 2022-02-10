@@ -70,8 +70,8 @@ DMF_GpioTarget_InterruptReleaseLock(
     _In_ DMFMODULE DmfModule
     );
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_GpioTarget_InterruptTryToAcquireLock(
     _In_ DMFMODULE DmfModule
@@ -86,6 +86,7 @@ DMF_GpioTarget_IsResourceAssigned(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_GpioTarget_Read(
     _In_ DMFMODULE DmfModule,
@@ -93,6 +94,7 @@ DMF_GpioTarget_Read(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_GpioTarget_Write(
     _In_ DMFMODULE DmfModule,

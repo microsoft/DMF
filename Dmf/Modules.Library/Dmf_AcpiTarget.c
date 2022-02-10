@@ -70,7 +70,8 @@ DMF_MODULE_DECLARE_CONFIG(AcpiTarget)
 
 #pragma code_seg("PAGE")
 
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 AcpiTarget_PrepareInputParametersForDsmMethod(
     _In_ GUID* Guid,
@@ -208,8 +209,8 @@ Exit:
     return ntStatus;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 AcpiTarget_EvaluateAcpiMethod(
     _In_ WDFDEVICE Device,
@@ -437,8 +438,8 @@ Exit:
     return ntStatus;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 AcpiTarget_EvaluateMethodReturningUlong(
     _In_ DMFMODULE DmfModule,
@@ -526,7 +527,8 @@ Return Value:
     return ntStatus;
 }
 
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 AcpiTarget_IsDsmFunctionSupported(
     _In_ GUID* Guid,
@@ -679,7 +681,8 @@ Exit:
     return ntStatus;
 }
 
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 AcpiTarget_InvokeDsm(
     _In_ DMFMODULE DmfModule,
@@ -906,11 +909,11 @@ Return Value:
 // Module Methods
 //
 
-_Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 // 'ReturnBuffer' could be '0':  this does not adhere to the specification for the function 'AcpiTarget_EvaluateAcpiMethod'.
 //
 #pragma warning(disable:6387)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethod(
     _In_ DMFMODULE DmfModule,
@@ -963,8 +966,8 @@ Return Value:
     return ntStatus;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethodReturningUlong(
     _In_ DMFMODULE DmfModule,
@@ -1018,8 +1021,8 @@ Return Value:
     return ntStatus;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethodWithUlongReturningUlong(
     _In_ DMFMODULE DmfModule,
@@ -1077,6 +1080,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_InvokeDsm(
     _In_ DMFMODULE DmfModule,
@@ -1213,6 +1217,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_InvokeDsmRaw(
     _In_ DMFMODULE DmfModule,
@@ -1278,6 +1283,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_InvokeDsmWithCustomBuffer(
     _In_ DMFMODULE DmfModule,

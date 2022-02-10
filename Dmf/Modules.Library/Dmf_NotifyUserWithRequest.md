@@ -260,6 +260,7 @@ NtStatus | The NTSTATUS value to set in the Request that is to be returned.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 VOID
 DMF_NotifyUserWithRequest_RequestReturnEx(
   _In_ DMFMODULE DmfModule,

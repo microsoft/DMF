@@ -246,6 +246,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 DmfModuleInstanceNameInitialize(
@@ -274,7 +275,7 @@ Return Value:
     NTSTATUS ntStatus;
     WDF_OBJECT_ATTRIBUTES attributes;
     size_t clientModuleInstanceNameSizeBytes;
-    CHAR* clientModuleInstanceName;
+    CONST CHAR* clientModuleInstanceName;
 
     PAGED_CODE();
 
@@ -337,6 +338,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 DmfModuleChildObjectsInitialize(
@@ -461,6 +463,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 DmfModuleCallbacksInitialize(
@@ -833,6 +836,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 static
+_Must_inspect_result_
 NTSTATUS
 DmfModuleParentUpdate(
     _In_ WDFDEVICE Device,
@@ -1661,6 +1665,7 @@ Return Value:
     return transportModule;
 }
 
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleRequestCompleteOrForward(
     _In_ DMFMODULE DmfModule,

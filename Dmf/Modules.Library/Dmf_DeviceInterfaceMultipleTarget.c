@@ -110,6 +110,7 @@ RequestSink_Cancel_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
@@ -125,6 +126,7 @@ RequestSink_SendSynchronously_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_Send_Type(
     _In_ DMFMODULE DmfModule,
@@ -141,6 +143,7 @@ RequestSink_Send_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendEx_Type(
     _In_ DMFMODULE DmfModule,
@@ -278,6 +281,7 @@ Return Value:
     }
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_SymbolicLinkNameStore(
     _In_ DMFMODULE DmfModule,
@@ -489,6 +493,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(
@@ -635,6 +640,7 @@ DeviceInterfaceMultipleTarget_Stream_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_Stream_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -665,6 +671,7 @@ DeviceInterfaceMultipleTarget_Stream_SendSynchronously(
                                                          BytesWritten);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
@@ -697,6 +704,7 @@ DeviceInterfaceMultipleTarget_Stream_Send(
                                             SingleAsynchronousRequestClientContext);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_Stream_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -785,6 +793,7 @@ DeviceInterfaceMultipleTarget_Target_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_Target_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -818,6 +827,7 @@ DeviceInterfaceMultipleTarget_Target_SendSynchronously(
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
@@ -853,6 +863,7 @@ DeviceInterfaceMultipleTarget_Target_Send(
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_Target_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -1280,6 +1291,9 @@ Return Value:
 
 EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove;
 
+_Function_class_(EVT_WDF_IO_TARGET_QUERY_REMOVE)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DeviceInterfaceMultipleTarget_EvtIoTargetQueryRemove(
     _In_ WDFIOTARGET IoTarget
@@ -1296,7 +1310,7 @@ Arguments:
 
 Return Value:
 
-    NT_SUCCESS.
+    NTSTATUS
 
 --*/
 {
@@ -1564,6 +1578,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceMultipleTarget_ContinuousRequestTargetCreate(
     _In_ DMFMODULE DmfModule,
@@ -1712,6 +1727,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DeviceInterfaceMultipleTarget_DeviceCreateNewIoTargetByName(
@@ -1848,6 +1864,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DeviceInterfaceMultipleTarget_InitializeIoTargetIfNeeded(
@@ -2310,6 +2327,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DRIVER_NOTIFICATION_CALLBACK_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DeviceInterfaceMultipleTarget_InterfaceArrivalCallback(
@@ -2837,6 +2855,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_BufferPut(
     _In_ DMFMODULE DmfModule,
@@ -2906,6 +2925,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DeviceInterfaceMultipleTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -2979,6 +2999,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -3052,6 +3073,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_GuidGet(
     _In_ DMFMODULE DmfModule,
@@ -3095,6 +3117,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -3193,6 +3216,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -3293,6 +3317,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -3385,6 +3410,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_StreamStart(
     _In_ DMFMODULE DmfModule,

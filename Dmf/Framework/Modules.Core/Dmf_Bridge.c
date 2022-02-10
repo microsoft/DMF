@@ -120,6 +120,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_PREPARE_HARDWARE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDevicePrepareHardware(
     _In_ WDFDEVICE Device,
@@ -163,6 +164,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_RELEASE_HARDWARE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceReleaseHardware(
     _In_ WDFDEVICE Device,
@@ -200,6 +202,7 @@ Return Value:
 #pragma code_seg()
 
 _Function_class_(EVT_WDF_DEVICE_D0_ENTRY)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceD0Entry(
     _In_ WDFDEVICE Device,
@@ -233,6 +236,7 @@ Return Value:
 }
 
 _Function_class_(EVT_WDF_DEVICE_D0_ENTRY_POST_INTERRUPTS_ENABLED)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceD0EntryPostInterruptsEnabled(
     _In_ WDFDEVICE Device,
@@ -266,6 +270,7 @@ Return Value:
 }
 
 _Function_class_(EVT_WDF_DEVICE_D0_EXIT_PRE_INTERRUPTS_DISABLED)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceD0ExitPreInterruptsDisabled(
     _In_ WDFDEVICE Device,
@@ -299,6 +304,7 @@ Return Value:
 }
 
 _Function_class_(EVT_WDF_DEVICE_D0_EXIT)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceD0Exit(
     _In_ WDFDEVICE Device,
@@ -400,6 +406,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_INIT)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceSelfManagedIoInit(
     _In_ WDFDEVICE Device
@@ -434,6 +441,7 @@ Return Value:
 
 _Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_SUSPEND)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceSelfManagedIoSuspend(
     _In_ WDFDEVICE Device
@@ -465,6 +473,7 @@ Return Value:
 
 _Function_class_(EVT_WDF_DEVICE_SELF_MANAGED_IO_RESTART)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceSelfManagedIoRestart(
     _In_ WDFDEVICE Device
@@ -526,6 +535,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_QUERY_REMOVE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceQueryRemove(
     _In_ WDFDEVICE Device
@@ -561,6 +571,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_QUERY_STOP)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceQueryStop(
     _In_ WDFDEVICE Device
@@ -632,6 +643,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_USAGE_NOTIFICATION_EX)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceUsageNotificationEx(
     _In_ WDFDEVICE Device,
@@ -671,6 +683,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_ARM_WAKE_FROM_S0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceArmWakeFromS0(
     _In_ WDFDEVICE Device
@@ -772,6 +785,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_DEVICE_ARM_WAKE_FROM_SX_WITH_REASON)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Bridge_DefaultEvtDeviceArmWakeFromSxWithReason(
     _In_ WDFDEVICE Device,
@@ -947,6 +961,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleReleaseHardware(
@@ -1114,6 +1129,7 @@ Exit:
 
 _Function_class_(DMF_ModuleD0ExitPreInterruptsDisabled)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleD0ExitPreInterruptsDisabled(
@@ -1168,6 +1184,7 @@ Exit:
 
 _Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleD0Exit(
@@ -1564,6 +1581,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSelfManagedIoInit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleSelfManagedIoInit(
@@ -1616,6 +1634,7 @@ Exit:
 
 _Function_class_(DMF_ModuleSelfManagedIoSuspend)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleSelfManagedIoSuspend(
@@ -1665,6 +1684,7 @@ Exit:
 
 _Function_class_(DMF_ModuleSelfManagedIoRestart)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleSelfManagedIoRestart(
@@ -1753,6 +1773,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleQueryRemove)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleQueryRemove(
@@ -1806,6 +1827,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleQueryStop)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleQueryStop(
@@ -1905,6 +1927,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleUsageNotificationEx)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleUsageNotificationEx(
@@ -1965,6 +1988,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleArmWakeFromS0)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleArmWakeFromS0(
@@ -2102,6 +2126,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleArmWakeFromSxWithReason)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Bridge_ModuleArmWakeFromSxWithReason(

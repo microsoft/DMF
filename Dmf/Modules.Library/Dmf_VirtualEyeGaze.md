@@ -65,6 +65,7 @@ DMFMODULE of the Parent Module. Then the Parent Module can access its own Module
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_ConfigurationDataSet(
     _In_ DMFMODULE DmfModule,
@@ -95,6 +96,7 @@ ConfigurationData | The Configuation Data to set.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_CapabilitiesDataSet(
     _In_ DMFMODULE DmfModule,
@@ -124,6 +126,7 @@ CapabilitiesData | The Capabilities Data to set.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_GazeReportSend(
     _In_ DMFMODULE DmfModule,
@@ -153,6 +156,7 @@ GazeData | Eye gaze coordinate information to send.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_TrackerControlModeGet(
     _In_ DMFMODULE DmfModule,
@@ -182,6 +186,7 @@ Mode | The current control mode of the eye gaze device.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_TrackerStatusReportSend(
     _In_ DMFMODULE DmfModule,

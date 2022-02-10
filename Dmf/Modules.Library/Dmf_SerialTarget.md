@@ -159,6 +159,7 @@ ClientBuffer | The given DMF_BufferPool buffer.
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 VOID
 DMF_SerialTarget_IoTargetGet(
   _In_ DMFMODULE DmfModule,
@@ -186,6 +187,7 @@ IoTarget | The address where the underlying WDFIOTARGET returned to the Client.
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_Send(
   _In_ DMFMODULE DmfModule,
@@ -229,6 +231,7 @@ SingleAsynchronousRequestClientContext | The Client specific context that is sen
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_SendSynchronously(
   _In_ DMFMODULE DmfModule,
@@ -270,6 +273,7 @@ BytesWritten | The number of bytes transferred to/from the underlying WDFIOTARGE
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_Start(
   _In_ DMFMODULE DmfModule

@@ -283,6 +283,7 @@ DMF_INTERFACE_PROTOCOL_SystemManagementFramework_DESCRIPTOR_INIT(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
@@ -322,13 +323,14 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_ChannelsGet(
     _In_ DMFINTERFACE DmfInterface,
     _Out_ USHORT* NumberOfSensorChannels,
     _Out_ USHORT* NumberOfControlChannels,
     _Out_ SHORT* VersionChannelIndex
-);
+    );
 
 /*++
 
@@ -351,6 +353,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportInitialize(
     _In_ DMFINTERFACE DmfInterface,
@@ -377,6 +380,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportUninitialize(
     _In_ DMFINTERFACE DmfInterface
@@ -404,6 +408,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportControlSet(
     _In_ DMFINTERFACE DmfInterface,
@@ -433,6 +438,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportDataGet(
     _In_ DMFINTERFACE DmfInterface,
@@ -461,6 +467,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet(
     _In_ DMFINTERFACE DmfInterface,

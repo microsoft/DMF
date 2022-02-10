@@ -3576,6 +3576,8 @@ None
 
 -   Instead of using this function after creating a default queue, the Client driver can just use `DMF_DmfDeviceInitOverrideDefaultQueueConfig()` instead.
 
+-   IMPORTANT: When DMF_IoctlHandler is used the Client Driver must not set `QueueConfig` to NULL if the Client calls `DMF_DmfDeviceInitHookQueueConfig()` (to customize the default queue) because the default queue will not be created. In this case, DMF_IoctlHandler will not see any IOCTL that is sent to it.
+
 ### DMF_DmfDeviceInitOverrideDefaultQueueConfig
 ```
 VOID

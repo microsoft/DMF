@@ -139,6 +139,7 @@ DECLARE_DMF_MODULE(CrashDump)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_DataSourceWriteSelf(
     _In_ DMFMODULE DmfModule,
@@ -151,6 +152,7 @@ DMF_CrashDump_DataSourceWriteSelf(
 #if IS_WIN10_19H1_OR_LATER
 
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_TriageDumpDataAdd(
     _In_ DMFMODULE DmfModule,

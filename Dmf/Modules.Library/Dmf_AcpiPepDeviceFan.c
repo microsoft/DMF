@@ -91,6 +91,7 @@ DMF_MODULE_DECLARE_CONFIG(AcpiPepDeviceFan)
                          PepAcpiMinorTypeDevice, \
                          0x1)
 
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDeviceFan_InitializeCallback(
     _In_ DMFMODULE DmfModule,
@@ -728,6 +729,7 @@ Exit:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(
     _In_ DMFMODULE DmfModule,

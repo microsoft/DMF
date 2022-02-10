@@ -137,10 +137,10 @@ Return Value:
     WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig, WdfIoQueueDispatchManual);
 
     //
-    // This queue is used for requests that dont directly access the device. The
+    // This queue is used for requests that don't directly access the device. The
     // requests in this queue are serviced only when the device is in a fully
     // powered state and sends an interrupt. So we can use a non-power managed
-    // queue to park the requests since we dont care whether the device is idle
+    // queue to park the requests since we don't care whether the device is idle
     // or fully powered up.
     //
     ioQueueConfig.PowerManaged = WdfFalse;

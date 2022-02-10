@@ -71,6 +71,7 @@ DECLARE_DMF_MODULE(VirtualHidKeyboard)
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Type(
     _In_ DMFMODULE DmfModule,
@@ -80,6 +81,7 @@ DMF_VirtualHidKeyboard_Type(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Toggle(
     _In_ DMFMODULE DmfModule,

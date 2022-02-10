@@ -170,6 +170,7 @@ DmfModule | An open DMF_ActivitySensor Module handle.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ActivitySensor_Stop(
     _In_ DMFMODULE DmfModule

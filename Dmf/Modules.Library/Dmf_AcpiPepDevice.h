@@ -392,6 +392,7 @@ DMF_AcpiPepDevice_AsyncNotifyEvent(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 DMFMODULE*
 DMF_AcpiPepDevice_ChildHandlesReturn(
     _In_ DMFMODULE DmfModule
@@ -424,6 +425,7 @@ DMF_AcpiPepDevice_ReportNotSupported(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDevice_ScheduleNotifyRequest(
     _In_ DMFMODULE DmfModule,

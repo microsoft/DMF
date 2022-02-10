@@ -124,24 +124,28 @@ DECLARE_DMF_MODULE(ScheduledTask)
 // Module Methods
 //
 
+_Must_inspect_result_
 ScheduledTask_Result_Type
 DMF_ScheduledTask_ExecuteNow(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* CallbackContext
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferred(
     _In_ DMFMODULE DmfModule,
     _In_opt_ VOID* CallbackContext
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunGet(
     _In_ DMFMODULE DmfModule,
@@ -149,6 +153,7 @@ DMF_ScheduledTask_TimesRunGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunSet(
     _In_ DMFMODULE DmfModule,

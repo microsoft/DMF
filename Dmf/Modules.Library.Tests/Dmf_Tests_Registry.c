@@ -181,7 +181,7 @@ BOOLEAN
 RegistryKeyEnumerationFunction(
     _In_ VOID* ClientContext,
     _In_ HANDLE RootHandle,
-    _In_ PWCHAR KeyName
+    _In_ CONST WCHAR* KeyName
     )
 {
     EnumCallbackContext* callbackContext;
