@@ -576,6 +576,7 @@ Exit:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
+_Must_inspect_result_
 NTSTATUS
 BranchTrack_ConfigInitialize(
     _In_ DMFMODULE DmfModule,
@@ -656,8 +657,9 @@ Return Value:
 #pragma code_seg()
 
 static
-_Check_return_
+_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 BranchTrack_QueryInformation_Status(
     _In_ DMFMODULE DmfModule,
@@ -750,8 +752,9 @@ Exit:
 }
 
 static
-_Check_return_
+_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 BranchTrack_QueryInformation_Details(
     _In_ DMFMODULE DmfModule,
@@ -854,8 +857,9 @@ Exit:
 }
 
 static
-_Check_return_
+_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 BranchTrack_QueryInformation(
     _In_ DMFMODULE DmfModule,
@@ -1189,7 +1193,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleDeviceIoControl)
 static
-_Check_return_
+_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_ModuleDeviceIoControl(

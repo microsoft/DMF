@@ -67,7 +67,8 @@ DMF_MODULE_DECLARE_CONFIG(NotifyUserWithEvent)
 //
 
 #pragma code_seg("PAGE")
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 NotifyUserWithEvent_EventCreate(
     _In_ DMFMODULE DmfModule,
@@ -130,7 +131,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 NotifyUserWithEvent_EventsDestroy(
     _In_ DMFMODULE DmfModule
@@ -177,7 +178,8 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-__drv_requiresIRQL(PASSIVE_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 NotifyUserWithEvent_EventSet(
     _In_ DMFMODULE DmfModule,
@@ -443,6 +445,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Dmf_NotifyUserWithEvent_Notify(
     _In_ DMFMODULE DmfModule
@@ -485,6 +488,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Dmf_NotifyUserWithEvent_NotifyByIndex(
     _In_ DMFMODULE DmfModule,

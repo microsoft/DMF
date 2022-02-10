@@ -178,6 +178,7 @@ IoTarget | The given WDFIOTARGET. It must already be created and opened.
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_Send(
   _In_ DMFMODULE DmfModule,
@@ -221,6 +222,7 @@ SingleAsynchronousRequestClientContext | A Client specific context that is sent 
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendEx(
   _In_ DMFMODULE DmfModule,
@@ -273,6 +275,7 @@ the Module may asynchronously process, complete and delete the underlying WDFREQ
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendSynchronously(
   _In_ DMFMODULE DmfModule,

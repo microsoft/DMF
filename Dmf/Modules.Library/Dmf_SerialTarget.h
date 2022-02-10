@@ -121,6 +121,7 @@ DMF_SerialTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_IoTargetGet(
     _In_ DMFMODULE DmfModule,
@@ -128,6 +129,7 @@ DMF_SerialTarget_IoTargetGet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -143,6 +145,7 @@ DMF_SerialTarget_Send(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -157,6 +160,7 @@ DMF_SerialTarget_SendSynchronously(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_StreamStart(
     _In_ DMFMODULE DmfModule

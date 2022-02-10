@@ -265,6 +265,7 @@ PoFxWorkInformation | Supplies a pointer to the PEP_WORK structure used to repor
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_AcpiPepDevice_ChildHandlesReturn
 ````
+_Must_inspect_result_
 DMFMODULE*
 DMF_AcpiPepDevice_ChildHandlesReturn(
     _In_ DMFMODULE DmfModule
@@ -348,6 +349,7 @@ CompleteResult | Supplies a pointer to receive the complete result.
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_AcpiPepDevice_ScheduleNotifyRequest
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDevice_ScheduleNotifyRequest(
     _In_ DMFMODULE DmfModule,

@@ -224,6 +224,7 @@ DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DESCRIPTOR_INIT(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
@@ -246,6 +247,7 @@ DMF_INTERFACE_ComponentFirmwareUpdate_TransportUnbind(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportFirmwareVersionGet(
     _In_ DMFINTERFACE DmfInterface
@@ -256,6 +258,7 @@ DMF_INTERFACE_ComponentFirmwareUpdate_TransportFirmwareVersionGet(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportOfferInformationSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -269,6 +272,7 @@ DMF_INTERFACE_ComponentFirmwareUpdate_TransportOfferInformationSend(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportOfferCommandSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -282,6 +286,7 @@ DMF_INTERFACE_ComponentFirmwareUpdate_TransportOfferCommandSend(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportOfferSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -295,6 +300,7 @@ DMF_INTERFACE_ComponentFirmwareUpdate_TransportOfferSend(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportPayloadSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -309,22 +315,23 @@ DMF_INTERFACE_ComponentFirmwareUpdate_TransportPayloadSend(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportProtocolStart(
     _In_ DMFINTERFACE DmfInterface
     );
 
 // Interface to Stop Transport. 
-// Transport can use this to do any clearn up as the protocol sequence is being stopped.
+// Transport can use this to do any clean up as the protocol sequence is being stopped.
 //
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportProtocolStop(
     _In_ DMFINTERFACE DmfInterface
     );
-
 
 // Data that fully describes this Transport.
 //

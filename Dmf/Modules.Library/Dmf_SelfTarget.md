@@ -42,6 +42,7 @@ Provides support so a Client can send a Request to its own stack.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SelfTarget_Get(
   _In_ DMFMODULE DmfModule,
@@ -71,6 +72,7 @@ IoTarget | The WDFIOTARGET that accepts Requests that will then be forwarded to 
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SelfTarget_Send(
   _In_ DMFMODULE DmfModule,
@@ -116,6 +118,7 @@ SingleAsynchronousRequestClientContext | The Client specific context passed to E
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SelfTarget_SendSynchronously(
   _In_ DMFMODULE DmfModule,

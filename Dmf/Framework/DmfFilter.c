@@ -48,6 +48,7 @@ typedef struct
 //
 DMF_FILTER_CONTROL_GLOBALS g_DMF_FilterControlGlobals;
 
+_Must_inspect_result_
 NTSTATUS
 DMF_FilterControl_GlobalCreate(
     _In_ WDFDEVICE Device
@@ -159,6 +160,7 @@ Return Value:
 }
 
 _IRQL_always_function_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_FilterControl_DeviceCreate(
     _In_ WDFDEVICE Device,

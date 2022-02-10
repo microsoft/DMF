@@ -112,9 +112,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c">
-      <Filter>Modules\Targets</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c">
       <Filter>Modules\Task Execution</Filter>
     </ClCompile>
@@ -164,6 +161,9 @@
       <Filter>Modules\Data Structures</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.c">
+      <Filter>Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c">
       <Filter>Interfaces</Filter>
     </ClCompile>
   </ItemGroup>
@@ -291,9 +291,6 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h">
       <Filter>Headers\Targets</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h">
-      <Filter>Headers\Targets</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h">
       <Filter>Headers\Task Execution</Filter>
     </ClInclude>
@@ -346,6 +343,9 @@
       <Filter>Headers\Data Structures</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.h">
+      <Filter>Headers\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h">
       <Filter>Headers\Interfaces</Filter>
     </ClInclude>
   </ItemGroup>
@@ -469,9 +469,6 @@
     <Text Include="..\..\Modules.Library\Dmf_ThermalCoolingInterface.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
-      <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </Text>
     <Text Include="..\..\Modules.Library\Dmf_AcpiTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
     </Text>
@@ -534,6 +531,9 @@
     </Text>
     <Text Include="..\..\Modules.Library\Dmf_RingBuffer.md">
       <Filter>Documentation\Modules\Buffers</Filter>
+    </Text>
+    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
+      <Filter>Documentation\Modules\Hid</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

@@ -100,6 +100,7 @@ MobileBroadbandState | Structure of MobileBroadband state.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexGet(
     _In_ DMFMODULE DmfModule,
@@ -158,6 +159,7 @@ AbsoluteAntennaIndexMode | Indicates whether the input antenna index is an absol
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_MccMncGet(
     _In_ DMFMODULE DmfModule,
@@ -185,6 +187,7 @@ MobileNetworkCode | The three digit code corresponding to the network where the 
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_SarBackOffDisable(
     _In_ DMFMODULE DmfModule
@@ -232,6 +235,7 @@ DmfModule | An open DMF_MobileBroadband Module handle.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_WirelessStateGet(
     _In_ DMFMODULE DmfModule,

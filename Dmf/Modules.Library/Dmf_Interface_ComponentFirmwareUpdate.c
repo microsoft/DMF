@@ -145,6 +145,9 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
@@ -225,6 +228,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportFirmwareVersionGet(
     _In_ DMFINTERFACE DmfInterface
@@ -259,6 +263,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportOfferInformationSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -302,6 +307,7 @@ Return:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportOfferCommandSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -345,6 +351,7 @@ Return:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportOfferSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -388,6 +395,7 @@ Return:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportPayloadSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -431,6 +439,7 @@ Return:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportProtocolStart(
     _In_ DMFINTERFACE DmfInterface
@@ -465,6 +474,7 @@ Return:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportProtocolStop(
     _In_ DMFINTERFACE DmfInterface

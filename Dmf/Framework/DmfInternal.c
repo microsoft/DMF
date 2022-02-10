@@ -70,6 +70,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModulePrepareHardware(
     _In_ DMFMODULE DmfModule,
@@ -122,6 +123,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleReleaseHardware(
     _In_ DMFMODULE DmfModule,
@@ -255,6 +257,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleD0ExitPreInterruptsDisabled(
     _In_ DMFMODULE DmfModule,
@@ -298,6 +301,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleD0Exit(
     _In_ DMFMODULE DmfModule,
@@ -341,6 +345,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleQueueIoRead(
     _In_ DMFMODULE DmfModule,
@@ -390,6 +395,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleQueueIoWrite(
     _In_ DMFMODULE DmfModule,
@@ -439,6 +445,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -495,6 +502,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleInternalDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -630,6 +638,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleSelfManagedIoInit(
     _In_ DMFMODULE DmfModule
@@ -671,6 +680,7 @@ Return Value:
 #pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleSelfManagedIoSuspend(
     _In_ DMFMODULE DmfModule
@@ -709,6 +719,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleSelfManagedIoRestart(
     _In_ DMFMODULE DmfModule
@@ -783,6 +794,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleQueryRemove(
     _In_ DMFMODULE DmfModule
@@ -825,6 +837,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleQueryStop(
     _In_ DMFMODULE DmfModule
@@ -910,6 +923,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleUsageNotificationEx(
     _In_ DMFMODULE DmfModule,
@@ -956,6 +970,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleArmWakeFromS0(
     _In_ DMFMODULE DmfModule
@@ -1076,6 +1091,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ModuleArmWakeFromSxWithReason(
     _In_ DMFMODULE DmfModule,
@@ -1203,6 +1219,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleFileCreate(
     _In_ DMFMODULE DmfModule,
@@ -1255,6 +1272,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleFileCleanup(
     _In_ DMFMODULE DmfModule,
@@ -1301,6 +1319,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Internal_ModuleFileClose(
     _In_ DMFMODULE DmfModule,
@@ -1347,6 +1366,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Internal_ResourcesAssign(
     _In_ DMFMODULE DmfModule,

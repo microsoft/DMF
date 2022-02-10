@@ -59,6 +59,7 @@ DECLARE_DMF_MODULE(SpbTarget)
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferFullDuplex(
     _In_ DMFMODULE DmfModule,
@@ -69,6 +70,7 @@ DMF_SpbTarget_BufferFullDuplex(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWrite(
     _In_ DMFMODULE DmfModule,
@@ -77,15 +79,17 @@ DMF_SpbTarget_BufferWrite(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWriteEx(
     _In_ DMFMODULE DmfModule,
     _In_reads_(NumberOfBytesToWrite) UCHAR* BufferToWrite,
     _In_ ULONG NumberOfBytesToWrite,
     _In_ ULONG RequestTimeoutMilliseconds
-);
+    );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWriteRead(
     _In_ DMFMODULE DmfModule,
@@ -96,6 +100,7 @@ DMF_SpbTarget_BufferWriteRead(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWriteReadEx(
     _In_ DMFMODULE DmfModule,
@@ -104,27 +109,31 @@ DMF_SpbTarget_BufferWriteReadEx(
     _Out_writes_(OutputBufferLength) UCHAR* OutputBuffer,
     _In_ ULONG OutputBufferLength,
     _In_ ULONG RequestTimeoutMilliseconds
-);
+    );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ConnectionLock(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ConnectionUnlock(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ControllerLock(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ControllerUnlock(
     _In_ DMFMODULE DmfModule
@@ -142,8 +151,8 @@ DMF_SpbTarget_InterruptReleaseLock(
     _In_ DMFMODULE DmfModule
     );
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_SpbTarget_InterruptTryToAcquireLock(
     _In_ DMFMODULE DmfModule

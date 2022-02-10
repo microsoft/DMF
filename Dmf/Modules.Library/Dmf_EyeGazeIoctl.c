@@ -65,6 +65,7 @@ DMF_MODULE_DECLARE_CONFIG(EyeGazeIoctl)
 //
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 EyeGazeIoctl_IoctlHandler_GazeReport(
     _In_ DMFMODULE DmfModule,
@@ -143,6 +144,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 EyeGazeIoctl_IoctlHandler_ConfigurationData(
     _In_ DMFMODULE DmfModule,
@@ -298,6 +300,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 EyeGazeIoctl_IoctlHandler_ControlMode(
     _In_ DMFMODULE DmfModule,

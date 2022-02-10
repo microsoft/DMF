@@ -145,6 +145,7 @@ DECLARE_DMF_MODULE(AcpiPepDeviceFan)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(
     _In_ DMFMODULE DmfModule,

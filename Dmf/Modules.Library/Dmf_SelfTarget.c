@@ -322,6 +322,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SelfTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -346,6 +347,7 @@ DMF_SelfTarget_Get(
 #pragma code_seg()
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SelfTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -414,6 +416,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SelfTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,

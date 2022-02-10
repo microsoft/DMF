@@ -48,6 +48,7 @@ RequestSink_Cancel_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
@@ -62,6 +63,7 @@ RequestSink_SendSynchronously_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_Send_Type(
     _In_ DMFMODULE DmfModule,
@@ -77,6 +79,7 @@ RequestSink_Send_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendEx_Type(
     _In_ DMFMODULE DmfModule,
@@ -188,6 +191,7 @@ DefaultTarget_Stream_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DefaultTarget_Stream_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -217,6 +221,7 @@ DefaultTarget_Stream_SendSynchronously(
                                                          BytesWritten);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DefaultTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
@@ -248,6 +253,7 @@ DefaultTarget_Stream_Send(
                                             SingleAsynchronousRequestClientContext);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DefaultTarget_Stream_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -333,6 +339,7 @@ DefaultTarget_Target_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DefaultTarget_Target_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -365,6 +372,7 @@ DefaultTarget_Target_SendSynchronously(
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DefaultTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
@@ -399,6 +407,7 @@ DefaultTarget_Target_Send(
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DefaultTarget_Target_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -999,6 +1008,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_BufferPut(
     _In_ DMFMODULE DmfModule,
@@ -1054,6 +1064,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DefaultTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -1159,6 +1170,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -1240,6 +1252,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -1323,6 +1336,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -1402,6 +1416,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DefaultTarget_StreamStart(
     _In_ DMFMODULE DmfModule

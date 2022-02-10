@@ -328,6 +328,7 @@ ComponentFirmwareUpdateOfferResponseRejectString(
 //--------START----------
 //
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 ComponentFirmwareUpdate_WaitForResponse(
     _In_ DMFMODULE DmfModule,
@@ -3211,6 +3212,7 @@ Exit:
 }
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 ComponentFirmwareUpdate_OfferVersionsEnumerationFunctionType(
     _In_ VOID* ClientContext,
@@ -4763,6 +4765,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_Bind(
     _In_ DMFINTERFACE DmfInterface

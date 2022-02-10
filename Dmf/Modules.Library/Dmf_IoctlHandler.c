@@ -76,6 +76,7 @@ DMF_MODULE_DECLARE_CONFIG(IoctlHandler)
 
 #include <devpkey.h>
 
+_Must_inspect_result_
 NTSTATUS
 IoctlHandler_RequestForward(
     _In_ DMFMODULE DmfModule,
@@ -135,8 +136,8 @@ Return Value:
 
 #pragma code_seg("PAGE")
 static
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 IoctlHandler_PostDeviceInterfaceCreate(
     _In_ DMFMODULE DmfModule
@@ -964,6 +965,22 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     device = DMF_ParentDeviceGet(DmfModule);
+
+    // Check if no default queue exists. Otherwise programmer will not know why
+    // IOCTLs are not visible.
+    //
+    if (WdfDeviceGetDefaultQueue(device) == NULL)
+    {
+        // This means the Client driver has called 
+        // "DMF_DmfDeviceInitHookQueueConfig(dmfDeviceInit, NULL);"
+        // This means that no default queue is created which means this
+        // Module cannot run. Failing now tells programmer immediately 
+        // about this issue.
+        //
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceGetDefaultQueue fails: ntStatus=%!STATUS!", ntStatus);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
 
     RtlZeroMemory(&nullGuid,
                   sizeof(GUID));

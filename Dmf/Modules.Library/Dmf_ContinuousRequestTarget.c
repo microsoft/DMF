@@ -183,6 +183,7 @@ Return Value:
 #endif // defined(DEBUG)
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 ContinuousRequestTarget_PendingCollectionListAdd(
@@ -767,6 +768,7 @@ Return Value:
 
 // The completion routine calls this function so it needs to be declared here.
 //
+_Must_inspect_result_
 static
 NTSTATUS
 ContinuousRequestTarget_StreamRequestSend(
@@ -1059,6 +1061,7 @@ Return Value:
                                sizeof(ContinuousRequestTarget_QueuedWorkitemContext));
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 ContinuousRequestTarget_FormatRequestForRequestType(
@@ -1179,6 +1182,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 ContinuousRequestTarget_CreateBuffersAndFormatRequestForRequestType(
@@ -1304,6 +1308,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 ContinuousRequestTarget_StreamRequestSend(
@@ -1469,6 +1474,7 @@ Exit:
 // 'Returning uninitialized memory'
 //
 #pragma warning(suppress:6101)
+_Must_inspect_result_
 static
 NTSTATUS
 ContinuousRequestTarget_RequestCreateAndSend(
@@ -2693,6 +2699,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ContinuousRequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -2803,6 +2810,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_IoTargetSet(
     _In_ DMFMODULE DmfModule,
@@ -2855,6 +2863,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -2946,6 +2955,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -3038,6 +3048,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -3115,6 +3126,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_Start(
     _In_ DMFMODULE DmfModule

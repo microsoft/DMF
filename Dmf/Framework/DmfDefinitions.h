@@ -68,10 +68,22 @@ struct _DMF_MODULE_ATTRIBUTES;
 // These are callbacks in the case of Asynchronous Device Open/Close operations.
 // These tell the Client that the Module is opened/closed.
 //
-typedef NTSTATUS EVT_DMF_MODULE_OnDeviceNotificationOpen(_In_ DMFMODULE DmfModule);
-typedef VOID EVT_DMF_MODULE_OnDeviceNotificationPostOpen(_In_ DMFMODULE DmfModule);
-typedef VOID EVT_DMF_MODULE_OnDeviceNotificationPreClose(_In_ DMFMODULE DmfModule);
-typedef VOID EVT_DMF_MODULE_OnDeviceNotificationClose(_In_ DMFMODULE DmfModule);
+typedef
+_Must_inspect_result_
+NTSTATUS
+EVT_DMF_MODULE_OnDeviceNotificationOpen(_In_ DMFMODULE DmfModule);
+
+typedef
+VOID
+EVT_DMF_MODULE_OnDeviceNotificationPostOpen(_In_ DMFMODULE DmfModule);
+
+typedef
+VOID
+EVT_DMF_MODULE_OnDeviceNotificationPreClose(_In_ DMFMODULE DmfModule);
+
+typedef
+VOID
+EVT_DMF_MODULE_OnDeviceNotificationClose(_In_ DMFMODULE DmfModule);
 
 // It means the Generic function is not overridden.
 //
@@ -167,22 +179,30 @@ DMF_##ModuleName##_ATTRIBUTES_INIT(                                             
     Attributes->InstanceCreator = DMF_##ModuleName##_Create;                                    \
 }                                                                                               \
 
-typedef NTSTATUS DMF_ModuleInstanceCreate(_In_ WDFDEVICE Device,
-                                          _In_ struct _DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
-                                          _In_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes, 
-                                          _Out_ DMFMODULE* DmfModule);
+typedef
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleInstanceCreate(_In_ WDFDEVICE Device,
+                         _In_ struct _DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
+                         _In_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes, 
+                         _Out_ DMFMODULE* DmfModule);
 
-typedef VOID DMF_TransportModuleAdd(_In_ DMFMODULE DmfModule,
-                                    _In_ struct _DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
-                                    _In_ PVOID DmfModuleInit);
+typedef
+VOID
+DMF_TransportModuleAdd(_In_ DMFMODULE DmfModule,
+                       _In_ struct _DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+                       _In_ PVOID DmfModuleInit);
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-typedef NTSTATUS DMF_ModuleTransportMethod(_In_ DMFMODULE DmfModule,
-                                           _In_ ULONG Message,
-                                           _In_reads_(InputBufferSize) VOID* InputBuffer,
-                                           _In_ size_t InputBufferSize,
-                                           _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
-                                           _In_ size_t OutputBufferSize);
+typedef
+_Must_inspect_result_
+NTSTATUS
+DMF_ModuleTransportMethod(_In_ DMFMODULE DmfModule,
+                          _In_ ULONG Message,
+                          _In_reads_(InputBufferSize) VOID* InputBuffer,
+                          _In_ size_t InputBufferSize,
+                          _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+                          _In_ size_t OutputBufferSize);
 
 typedef struct _DMF_MODULE_ATTRIBUTES
 {
@@ -207,7 +227,7 @@ typedef struct _DMF_MODULE_ATTRIBUTES
     DMFMODULE* ResultantDmfModule;
     // NULL Terminated Client Driver Module Instance Name.
     //
-    PSTR ClientModuleInstanceName;
+    CONST CHAR* ClientModuleInstanceName;
     // Dynamic Module indicator.
     // Modules that are part of a Module Collection are considered to be 
     // Static Modules since they are created/destroyed by DMF and always 
@@ -730,6 +750,7 @@ typedef enum
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 EVT_DMF_INTERFACE_ProtocolBind(
     _In_ DMFINTERFACE DmfInterface
@@ -876,6 +897,7 @@ typedef struct _DMF_INTERFACE_PROTOCOL_DESCRIPTOR
 
 // Method to add an Interface.
 //
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleInterfaceDescriptorAdd(
     _Inout_ DMFMODULE DmfModule,
@@ -916,6 +938,7 @@ DMF_InterfaceProtocolDeclarationDataGet(
     _In_ DMFINTERFACE DmfInterface
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_InterfaceReference(
     _Inout_ DMFINTERFACE DmfInterface
@@ -934,6 +957,7 @@ DMF_InterfaceDereference(
 
 // Method to bind Protocol and Transport.
 //
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleInterfaceBind(
     _In_ DMFMODULE ProtocolModule,
@@ -1233,6 +1257,7 @@ DMF_ModuleDereference(
 #if !defined(DMF_USER_MODE)
 
 _IRQL_always_function_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_FilterControl_DeviceCreate(
     _In_ WDFDEVICE Device,
@@ -1302,6 +1327,7 @@ typedef struct _DMF_PORTABLE_RUNDOWN
 #define DMF_VERSIONCHECK_BUILD_NUMBER_21H1  20251
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventCreate(
     _Out_ DMF_PORTABLE_EVENT* EventPointer,
@@ -1322,6 +1348,7 @@ DMF_Portable_EventReset(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventWaitForSingleObject(
     _In_ DMF_PORTABLE_EVENT* EventPointer,
@@ -1330,6 +1357,7 @@ DMF_Portable_EventWaitForSingleObject(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
@@ -1346,6 +1374,7 @@ DMF_Portable_EventClose(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS 
 DMF_Portable_LookasideListCreate(
     _In_ PWDF_OBJECT_ATTRIBUTES LookasideAttributes,
@@ -1361,6 +1390,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 #else
 _IRQL_requires_max_(DISPATCH_LEVEL)
 #endif // defined(DMF_USER_MODE)
+_Must_inspect_result_
 NTSTATUS 
 DMF_Portable_LookasideListCreateMemory(
     _In_ DMF_PORTABLE_LOOKASIDELIST* LookasidePointer,
@@ -1377,6 +1407,7 @@ DMF_Portable_Rundown_Reinitialize(
     _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
     );
 
+_Must_inspect_result_
 BOOLEAN
 DMF_Portable_Rundown_Acquire(
     _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
@@ -1397,6 +1428,7 @@ DMF_Portable_Rundown_Completed(
     _Inout_ DMF_PORTABLE_RUNDOWN_REF* RundownRef
     );
 
+_Must_inspect_result_
 BOOLEAN
 DMF_Portable_VersionCheck(
     _In_ ULONG MinimumOsVersion,
@@ -1408,6 +1440,7 @@ DMF_Portable_VersionCheck(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Invoke_DeviceCallbacksCreate(
     _In_ WDFDEVICE Device,
@@ -1416,6 +1449,7 @@ DMF_Invoke_DeviceCallbacksCreate(
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Invoke_DeviceCallbacksDestroy(
     _In_ WDFDEVICE Device,
@@ -1467,9 +1501,9 @@ DMF_Utility_DelayMilliseconds(
     _In_ ULONG Milliseconds
     );
 
-_Must_inspect_result_
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Utility_AclPropagateInDeviceStack(
     _In_ WDFDEVICE Device
@@ -1492,6 +1526,7 @@ DMF_Utility_ActivityIdFromDevice(
     _In_ WDFDEVICE Device
     );
 
+_Must_inspect_result_
 BOOLEAN
 DMF_Utility_IsEqualGUID(
     _In_ GUID* Guid1,
@@ -1536,12 +1571,14 @@ DMF_Utility_TransferList(
     _In_ LIST_ENTRY* SourceList
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Utility_TemperatureInDeciKelvin(
     _In_ INT64 Celcius,
     _Out_ UINT64* DeciKelvin
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Utility_TemperatureInDeciKelvin32(
     _In_ INT32 Celcius,
@@ -1586,7 +1623,7 @@ InitializeListHead(
 
 _Must_inspect_result_
 BOOLEAN
-CFORCEINLINE
+FORCEINLINE
 IsListEmpty(
     _In_ const LIST_ENTRY * ListHead
     )

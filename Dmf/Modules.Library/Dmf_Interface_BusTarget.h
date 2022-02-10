@@ -10,7 +10,7 @@ Module Name:
 Abstract:
 
     Implements an Interface Contract between a PowerMeterDevice (Protocol) and BusTargets
-    (Transport). The protocol layer shouldnt not know the below transport layer that it is
+    (Transport). The protocol layer should not know the below transport layer that it is
     attached to. All it has to do is call the interface functions which routes the calls to the
     right Transport based on INIT.
 
@@ -90,7 +90,6 @@ typedef struct _DMF_INTERFACE_PROTOCOL_BusTarget_DECLARATION_DATA
     // Every Interface must have this as the first member of its Protocol Declaration Data.
     //
     DMF_INTERFACE_PROTOCOL_DESCRIPTOR DmfProtocolDescriptor;
-
 } DMF_INTERFACE_PROTOCOL_BusTarget_DECLARATION_DATA;
 
 // Methods used to initialize Protocol's Declaration Data.
@@ -110,6 +109,7 @@ DMF_INTERFACE_PROTOCOL_BusTarget_DESCRIPTOR_INIT(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
@@ -130,6 +130,7 @@ DMF_INTERFACE_BusTarget_TransportUnbind(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_AddressWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -139,6 +140,7 @@ DMF_INTERFACE_BusTarget_AddressWrite(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_AddressRead(
     _In_ DMFINTERFACE DmfInterface,
@@ -148,6 +150,7 @@ DMF_INTERFACE_BusTarget_AddressRead(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_AddressReadEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -158,6 +161,7 @@ DMF_INTERFACE_BusTarget_AddressReadEx(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_BufferWriteEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -168,6 +172,7 @@ DMF_INTERFACE_BusTarget_BufferWriteEx(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_BufferWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -177,6 +182,7 @@ DMF_INTERFACE_BusTarget_BufferWrite(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_BusTarget_BufferRead(
     _In_ DMFINTERFACE DmfInterface,

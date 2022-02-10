@@ -44,6 +44,7 @@ DECLARE_DMF_MODULE(VirtualEyeGaze)
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_ConfigurationDataSet(
     _In_ DMFMODULE DmfModule,
@@ -51,6 +52,7 @@ DMF_VirtualEyeGaze_ConfigurationDataSet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_CapabilitiesDataSet(
     _In_ DMFMODULE DmfModule,
@@ -58,6 +60,7 @@ DMF_VirtualEyeGaze_CapabilitiesDataSet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_GazeReportSend(
     _In_ DMFMODULE DmfModule,
@@ -65,6 +68,7 @@ DMF_VirtualEyeGaze_GazeReportSend(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_TrackerControlModeGet(
     _In_ DMFMODULE DmfModule,
@@ -72,6 +76,7 @@ DMF_VirtualEyeGaze_TrackerControlModeGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_TrackerStatusReportSend(
     _In_ DMFMODULE DmfModule,

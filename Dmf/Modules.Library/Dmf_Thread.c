@@ -551,6 +551,7 @@ Return Value:
 _Function_class_(DMF_Open)
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_Thread_Open(

@@ -73,6 +73,7 @@ DMF_CmApi_DevNodeStatusAndProblemCodeGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
     _In_ DMFMODULE DmfModule,
@@ -84,6 +85,7 @@ DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_ParentDevNodeGet(
     _In_ DMFMODULE DmfModule,
@@ -100,6 +102,7 @@ DMF_CmApi_ParentTargetCloseAndDestroy(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_ParentTargetCreateAndOpen(
     _In_ DMFMODULE DmfModule,
@@ -108,6 +111,7 @@ DMF_CmApi_ParentTargetCreateAndOpen(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_ParentTargetInterfacesEnumerate(
     _In_ DMFMODULE DmfModule,
@@ -117,6 +121,7 @@ DMF_CmApi_ParentTargetInterfacesEnumerate(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_PropertyUint32Get(
     _In_ DMFMODULE DmfModule,
@@ -124,7 +129,6 @@ DMF_CmApi_PropertyUint32Get(
     _In_ PDEVPROPKEY PropertyKey,
     _Out_ UINT32* Value
     );
-
 
 #endif // defined(DMF_USER_MODE)
 

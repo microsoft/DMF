@@ -114,6 +114,7 @@ struct DMFDEVICE_INIT g_DmfDefaultDeviceInit = { 0 };
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DmfDeviceInitIsBridgeEnabled(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
@@ -174,6 +175,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DmfDeviceInitClientImplementsDeviceAdd(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
@@ -204,6 +206,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DmfDeviceInitIsControlDevice(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
@@ -234,6 +237,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DmfDeviceInitIsFilterDriver(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
@@ -264,6 +268,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 WDFDEVICE
 DMF_DmfControlDeviceInitClientDriverDeviceGet(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
@@ -294,6 +299,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DmfDeviceInitIsDefaultQueueCreated(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
@@ -751,6 +757,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DmfDeviceInitValidate(
     _In_ PDMFDEVICE_INIT DmfDeviceInit

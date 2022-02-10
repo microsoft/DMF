@@ -46,6 +46,7 @@ DECLARE_DMF_MODULE_NO_CONFIG(RequestTarget)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_RequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -66,6 +67,7 @@ DMF_RequestTarget_IoTargetSet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -81,6 +83,7 @@ DMF_RequestTarget_Send(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -97,6 +100,7 @@ DMF_RequestTarget_SendEx(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,

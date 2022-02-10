@@ -130,6 +130,7 @@ DECLARE_DMF_MODULE(DeviceInterfaceMultipleTarget)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_BufferPut(
     _In_ DMFMODULE DmfModule,
@@ -138,6 +139,7 @@ DMF_DeviceInterfaceMultipleTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DeviceInterfaceMultipleTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -146,6 +148,7 @@ DMF_DeviceInterfaceMultipleTarget_Cancel(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -154,6 +157,7 @@ DMF_DeviceInterfaceMultipleTarget_Get(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_GuidGet(
     _In_ DMFMODULE DmfModule,
@@ -161,6 +165,7 @@ DMF_DeviceInterfaceMultipleTarget_GuidGet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -177,6 +182,7 @@ DMF_DeviceInterfaceMultipleTarget_Send(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -194,6 +200,7 @@ DMF_DeviceInterfaceMultipleTarget_SendEx(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -209,6 +216,7 @@ DMF_DeviceInterfaceMultipleTarget_SendSynchronously(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_StreamStart(
     _In_ DMFMODULE DmfModule,

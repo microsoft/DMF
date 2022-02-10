@@ -601,6 +601,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDevice_WorkRequestCreate(
     _In_ DMFMODULE DmfModule,
@@ -835,6 +836,7 @@ Return Value:
     WdfObjectDelete(WorkItem);
 }
 
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDevice_ScheduleWorker(
     _In_ PEP_WORK_CONTEXT* WorkContext
@@ -2137,6 +2139,7 @@ Exit:
     return recognized;
 }
 
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDevice_PepRegisterWithPoFx()
 /*++
@@ -2205,6 +2208,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDevice_PepRegister(
     _In_ DMFMODULE DmfModule
@@ -2451,6 +2455,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDevice_AcpiDeviceAdd(
     _In_ DMFMODULE DmfModule,
@@ -3008,6 +3013,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 DMFMODULE*
 DMF_AcpiPepDevice_ChildHandlesReturn(
     _In_ DMFMODULE DmfModule
@@ -3256,6 +3262,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDevice_ScheduleNotifyRequest(
     _In_ DMFMODULE DmfModule,

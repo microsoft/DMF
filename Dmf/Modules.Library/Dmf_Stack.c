@@ -202,6 +202,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 ULONG
 DMF_Stack_Depth(
     _In_ DMFMODULE DmfModule
@@ -351,6 +352,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Stack_Push(
     _In_ DMFMODULE DmfModule,

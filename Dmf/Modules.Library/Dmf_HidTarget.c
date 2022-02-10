@@ -1435,6 +1435,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_MatchedTargetGet(
@@ -1632,6 +1633,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_MatchedTargetDestroy(
@@ -1750,6 +1752,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DRIVER_NOTIFICATION_CALLBACK_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_InterfaceArrivalCallbackForLocalOrRemoteKernel(
@@ -1823,6 +1826,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 HidTarget_NotificationRegisterForLocalOrRemoteKernel(
     _In_ DMFMODULE DmfModule,
@@ -2147,6 +2151,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_MatchedTargetForExistingInterfacesGet(
@@ -2318,6 +2323,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_NotificationRegisterForRemoteUser(
@@ -2408,6 +2414,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_NotificationRegisterForLocalUser(
@@ -2785,6 +2792,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_HidTarget_Open(
@@ -3083,6 +3091,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,

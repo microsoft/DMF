@@ -202,6 +202,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 SerialTarget_StreamStart(
     _In_ DMFMODULE DmfModule
@@ -441,9 +442,9 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
-_Must_inspect_result_
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 SerialTarget_InitializeSerialPort(
     _In_ DMFMODULE DmfModule
@@ -879,6 +880,7 @@ SerialTarget_IoTargetDestroy(
 }
 #pragma code_seg()
 
+_Must_inspect_result_
 NTSTATUS
 SerialTarget_Reference(
     _In_ DMFMODULE DmfModule
@@ -1072,6 +1074,7 @@ DMF_SerialTarget_Close(
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_SerialTarget_ResourcesAssign(
@@ -1395,6 +1398,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_IoTargetGet(
     _In_ DMFMODULE DmfModule,
@@ -1454,6 +1458,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -1538,6 +1543,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -1619,6 +1625,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_StreamStart(
     _In_ DMFMODULE DmfModule

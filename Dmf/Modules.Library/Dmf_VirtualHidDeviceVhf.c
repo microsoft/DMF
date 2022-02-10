@@ -69,6 +69,7 @@ DMF_MODULE_DECLARE_CONFIG(VirtualHidDeviceVhf)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 VirtualHidDeviceVhf_Start(
     _In_ DMFMODULE DmfModule
@@ -394,6 +395,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidDeviceVhf_ReadReportSend(
     _In_ DMFMODULE DmfModule,

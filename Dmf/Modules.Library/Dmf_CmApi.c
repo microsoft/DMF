@@ -637,6 +637,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
     _In_ DMFMODULE DmfModule,
@@ -754,6 +755,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_ParentDevNodeGet(
     _In_ DMFMODULE DmfModule,
@@ -927,6 +929,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_ParentTargetCreateAndOpen(
     _In_ DMFMODULE DmfModule,
@@ -992,6 +995,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_ParentTargetInterfacesEnumerate(
     _In_ DMFMODULE DmfModule,
@@ -1259,6 +1263,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CmApi_PropertyUint32Get(
     _In_  DMFMODULE DmfModule,
