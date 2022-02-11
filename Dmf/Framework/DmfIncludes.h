@@ -20,6 +20,10 @@ Environment:
 
 --*/
 
+// Allow Clients to know see current DMF version at compile time.
+//
+#include "..\DmfVersion.h"
+
 // Automatically define DMF_USER_MODE if in the UMDF environment.
 // (Previously, UMDF drivers had to explicitly set this setting.)
 //
