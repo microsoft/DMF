@@ -1508,6 +1508,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceDestroyInternal(
@@ -1567,6 +1568,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 CrashDump_DataSourceDestroyAuxiliaryInternal(
     _In_ DMFMODULE DmfModule,
@@ -2009,6 +2011,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 CrashDump_DataSourceDestroyAuxiliary(
     _In_ DMFMODULE DmfModule,
@@ -2394,6 +2397,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceCreateFromRequest(
@@ -2485,6 +2489,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceOpenFromRequest(
@@ -2621,6 +2626,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceDestroyFromRequest(
@@ -2675,6 +2681,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceWriteFromRequest(
@@ -2757,6 +2764,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceReadFromRequest(
@@ -2839,6 +2847,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 CrashDump_DataSourceCaptureFromRequest(
@@ -2932,6 +2941,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 CrashDump_IoctlHandler(
     _In_ DMFMODULE DmfModule,
@@ -3067,6 +3077,9 @@ Return Value:
             ntStatus = STATUS_SUCCESS;
 
             // Intentionally crash the driver.
+            //
+
+            // 'Consider using another function instead.'
             //
             #pragma warning(suppress: 28159)
             KeBugCheckEx(BUG_CHECK_PRIVATE,
@@ -3334,6 +3347,7 @@ Return Value:
 
     // Allocate space for the Data Sources.
     //
+    #pragma warning( suppress : 4996 )
     moduleContext->DataSource = (DATA_SOURCE *)ExAllocatePoolWithTag(NonPagedPoolNx,
                                                                      sizeof(DATA_SOURCE) * moduleContext->DataSourceCount,
                                                                      MemoryTag);
@@ -3349,6 +3363,7 @@ Return Value:
 
     // Allocate space for the Bug Check Callback Records.
     //
+    #pragma warning( suppress : 4996 )
     moduleContext->BugCheckCallbackRecordRingBuffer = (KBUGCHECK_REASON_CALLBACK_RECORD *)ExAllocatePoolWithTag(NonPagedPoolNx,
                                                                                                           sizeof(KBUGCHECK_REASON_CALLBACK_RECORD) * moduleContext->DataSourceCount,
                                                                                                           MemoryTag);
@@ -3491,6 +3506,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 CrashDump_DataSourceDestroySelf(
     _In_ DMFMODULE DmfModule
@@ -3941,6 +3957,7 @@ Exit:
 #pragma code_seg()
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_DataSourceWriteSelf(
     _In_ DMFMODULE DmfModule,
@@ -4004,6 +4021,7 @@ Return Value:
 #if IS_WIN10_19H1_OR_LATER
 
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_TriageDumpDataAdd(
     _In_ DMFMODULE DmfModule,

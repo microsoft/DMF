@@ -202,6 +202,7 @@ The Bug Check code and parameters are provided so the callback may choose to onl
 ##### CrashDump_DataSourceWriteSelf
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 CrashDump_DataSourceWriteSelf(
   _Inout_ DMFMODULE DmfModule,
@@ -231,6 +232,7 @@ BufferLength | The size of the given buffer.
 ##### DMF_CrashDump_TriageDumpDataAdd
 ````
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_TriageDumpDataAdd(
     _In_ DMFMODULE DmfModule,

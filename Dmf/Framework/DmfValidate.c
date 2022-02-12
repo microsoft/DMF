@@ -469,37 +469,6 @@ Return Value:
 }
 
 VOID
-DMF_HandleValidate_IsCreatedOrOpenedOrClosed(
-    _In_ DMF_OBJECT* DmfObject
-    )
-/*++
-
-Routine Description:
-
-    Verifies that a DMF_OBJECT Module State is Created, Opened or Closed.
-
-    NOTE: This call is only meant for debug purposes.
-
-Arguments:
-
-    DmfObject - The DMF Object to validate.
-
-Return Value:
-
-    None. Failure causes an assert to trigger.
-
---*/
-{
-    UNREFERENCED_PARAMETER(DmfObject);
-
-    DmfAssert(DmfObject != NULL);
-    DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
-    DmfAssert((ModuleState_Created == DmfObject->ModuleState) ||
-              (ModuleState_Opened == DmfObject->ModuleState) ||
-              (ModuleState_Closed == DmfObject->ModuleState));
-}
-
-VOID
 DMF_HandleValidate_IsAvailable(
     _In_ DMF_OBJECT* DmfObject
     )

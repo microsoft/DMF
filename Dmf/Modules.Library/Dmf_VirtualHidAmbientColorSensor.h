@@ -74,7 +74,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientColorSensor_InputReportDataGet(_In_ DMFMODULE DmfModule,
-    _Out_ VirtualHidAmbientColorSensor_ACS_INPUT_REPORT_DATA* InputReportData);
+                                                    _Out_ VirtualHidAmbientColorSensor_ACS_INPUT_REPORT_DATA* InputReportData);
 
 typedef
 _Function_class_(EVT_VirtualHidAmbientColorSensor_FeatureReportDataGet)
@@ -82,7 +82,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientColorSensor_FeatureReportDataGet(_In_ DMFMODULE DmfModule,
-    _Out_ VirtualHidAmbientColorSensor_ACS_FEATURE_REPORT_DATA* FeatureReportData);
+                                                      _Out_ VirtualHidAmbientColorSensor_ACS_FEATURE_REPORT_DATA* FeatureReportData);
 
 typedef
 _Function_class_(EVT_VirtualHidAmbientColorSensor_FeatureReportDataSet)
@@ -90,7 +90,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_VirtualHidAmbientColorSensor_FeatureReportDataSet(_In_ DMFMODULE DmfModule,
-    _In_ VirtualHidAmbientColorSensor_ACS_FEATURE_REPORT_DATA* FeatureReportData);
+                                                      _In_ VirtualHidAmbientColorSensor_ACS_FEATURE_REPORT_DATA* FeatureReportData);
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -124,6 +124,7 @@ DECLARE_DMF_MODULE(VirtualHidAmbientColorSensor)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidAmbientColorSensor_AllValuesSend(
     _In_ DMFMODULE DmfModule,

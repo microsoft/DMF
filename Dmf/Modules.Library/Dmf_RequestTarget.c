@@ -207,6 +207,7 @@ Return Value:
     }
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 RequestTarget_PendingCollectionListAdd(
@@ -588,6 +589,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 RequestTarget_FormatRequestForRequestType(
@@ -708,10 +710,10 @@ Exit:
     return ntStatus;
 }
 
-#pragma warning(suppress:6101)
-// Prevent SAL "returning uninitialized memory" error.
-// Buffer is associated with request object.
+// 'Returning uninitialized memory'
 //
+#pragma warning(suppress:6101)
+_Must_inspect_result_
 static
 NTSTATUS
 RequestTarget_RequestCreateAndSend(
@@ -828,6 +830,9 @@ Return Value:
     if (ResponseLength > 0)
     {
         DmfAssert(ResponseBuffer != NULL);
+        // 'using uninitialized memory'
+        //
+        #pragma warning(suppress:6001)
         ntStatus = WdfMemoryCreatePreallocated(&memoryAttributes,
                                                ResponseBuffer,
                                                ResponseLength,
@@ -1301,6 +1306,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_RequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -1431,6 +1437,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -1515,6 +1522,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -1600,6 +1608,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_RequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,

@@ -60,6 +60,7 @@ DECLARE_DMF_MODULE(MobileBroadband)
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexGet(
     _In_ DMFMODULE DmfModule,
@@ -68,6 +69,7 @@ DMF_MobileBroadband_AntennaBackOffTableIndexGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     _In_ DMFMODULE DmfModule,
@@ -78,6 +80,7 @@ DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_MccMncGet(
     _In_ DMFMODULE DmfModule,
@@ -86,18 +89,21 @@ DMF_MobileBroadband_MccMncGet(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_SarBackOffDisable(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_SarBackOffEnable(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_WirelessStateGet(
     _In_ DMFMODULE DmfModule,

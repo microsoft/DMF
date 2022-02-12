@@ -113,10 +113,10 @@ DMF_MODULE_DECLARE_CONFIG(ComponentFirmwareUpdateHidTransport)
 //-- Helper functions ---
 //--------START----------
 //
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_ 
-_IRQL_requires_same_
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_ 
 NTSTATUS
 ComponentFirmwareUpdateHidTransport_ReportWrite(
     _In_ DMFMODULE DmfModule,
@@ -553,10 +553,10 @@ Return Value:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-_IRQL_requires_same_
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_OfferInformationSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -623,10 +623,10 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-_IRQL_requires_same_
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_OfferCommandSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -693,10 +693,10 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-_IRQL_requires_same_
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_OfferSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -764,10 +764,10 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-_IRQL_requires_same_
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_FirmwareVersionGet(
     _In_ DMFINTERFACE DmfInterface
@@ -878,10 +878,10 @@ Exit:
 }
 #pragma code_seg()
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-_IRQL_requires_same_
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_PayloadSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -950,8 +950,8 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_ProtocolStop(
     _In_ DMFINTERFACE DmfInterface
@@ -984,8 +984,8 @@ Return:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_ProtocolStart(
     _In_ DMFINTERFACE DmfInterface
@@ -1018,8 +1018,8 @@ Return:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdateHidTransport_Bind(
     _In_ DMFINTERFACE DmfInterface,

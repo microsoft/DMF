@@ -202,6 +202,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 SerialTarget_StreamStart(
     _In_ DMFMODULE DmfModule
@@ -441,9 +442,9 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
-_Must_inspect_result_
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 SerialTarget_InitializeSerialPort(
     _In_ DMFMODULE DmfModule
@@ -879,6 +880,94 @@ SerialTarget_IoTargetDestroy(
 }
 #pragma code_seg()
 
+_Must_inspect_result_
+NTSTATUS
+SerialTarget_Reference(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Reference both the Module and the underlying WDFIOTAGET.
+    It is necessary to reference both because either or both can happen:
+    1. D0Exit happens while Client thread is calling Methods.
+    2. Underlying WDFIOTARGET can be removed while Client thread is calling Methods.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    STATUS_SUCCESS - Both references acquired.
+    Other - One of the references could not be acquired.
+
+--*/
+{
+    DMF_CONTEXT_SerialTarget* moduleContext;
+    NTSTATUS ntStatus;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Module is closing or closed.
+        //
+        goto Exit;
+    }
+
+    ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // QueryRemove has started.
+        //
+        DMF_ModuleDereference(DmfModule);
+    }
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+
+VOID
+SerialTarget_Dereference(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Dereference both the Module and the underlying WDFIOTAGET.
+    Must be called after successful call to SerialTarget_Reference().
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_SerialTarget* moduleContext;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+    DMF_ModuleDereference(DmfModule);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -985,6 +1074,7 @@ DMF_SerialTarget_Close(
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_SerialTarget_ResourcesAssign(
@@ -1133,12 +1223,12 @@ Return Value:
     // -----------------------
     //
 
-    // Store ContinuousRequestTarget callbacks from config into SerialTarget context for redirection.
+    // Store ContinuousRequestTarget callbacks from Config into SerialTarget context for redirection.
     //
     moduleContext->EvtContinuousRequestTargetBufferInput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput;
     moduleContext->EvtContinuousRequestTargetBufferOutput = moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput;
 
-    // Replace ContinuousRequestTarget callbacks in config with SerialTarget callbacks.
+    // Replace ContinuousRequestTarget callbacks in Config with SerialTarget callbacks.
     //
     moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = SerialTarget_StreamAsynchronousBufferInput;
     moduleConfig->ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = SerialTarget_StreamAsynchronousBufferOutput;
@@ -1222,7 +1312,7 @@ Return Value:
     dmfCallbacksDmf_SerialTarget.ChildModulesAdd = DMF_SerialTarget_ChildModulesAdd;
 
     // SerialTarget support multiple open option configurations. 
-    // Choose the open option based on Module config. 
+    // Choose the open option based on Module Config. 
     //
     switch (moduleConfig->ModuleOpenOption)
     {
@@ -1308,7 +1398,8 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+_Must_inspect_result_
+NTSTATUS
 DMF_SerialTarget_IoTargetGet(
     _In_ DMFMODULE DmfModule,
     _Out_ WDFIOTARGET* IoTarget
@@ -1331,11 +1422,24 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_SerialTarget* moduleContext;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  SerialTarget);
+
+    // 1. Prevent callers from calling Methods when the Module is Closed.
+    // 2. Prevent external callers from accessing WDFIOTARGET while it might have been
+    //    removed or be in process of being removed.
+    //
+    ntStatus = SerialTarget_Reference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Module is closing, closed or QueryRemove has started.
+        //
+        goto Exit;
+    }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -1344,10 +1448,17 @@ Return Value:
 
     *IoTarget = moduleContext->IoTarget;
 
-    FuncExitVoid(DMF_TRACE);
+    SerialTarget_Dereference(DmfModule);
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -1395,6 +1506,18 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  SerialTarget);
 
+    // 1. Prevent callers from calling Methods when the Module is Closed.
+    // 2. Prevent external callers from accessing WDFIOTARGET while it might have been
+    //    removed or be in process of being removed.
+    //
+    ntStatus = SerialTarget_Reference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Module is closing, closed or QueryRemove has started.
+        //
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DmfAssert(moduleContext->IoTarget != NULL);
@@ -1410,12 +1533,17 @@ Return Value:
                                                 EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                 SingleAsynchronousRequestClientContext);
 
+    SerialTarget_Dereference(DmfModule);
+
+Exit:
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -1461,6 +1589,18 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  SerialTarget);
 
+    // 1. Prevent callers from calling Methods when the Module is Closed.
+    // 2. Prevent external callers from accessing WDFIOTARGET while it might have been
+    //    removed or be in process of being removed.
+    //
+    ntStatus = SerialTarget_Reference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Module is closing, closed or QueryRemove has started.
+        //
+        goto Exit;
+    }
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DmfAssert(moduleContext->IoTarget != NULL);
@@ -1475,12 +1615,17 @@ Return Value:
                                                              RequestTimeoutMilliseconds,
                                                              BytesWritten);
 
+    SerialTarget_Dereference(DmfModule);
+
+Exit:
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SerialTarget_StreamStart(
     _In_ DMFMODULE DmfModule
@@ -1510,21 +1655,25 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  SerialTarget);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    DmfAssert(moduleContext->IoTarget != NULL);
-
-    ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+    // 1. Prevent callers from calling Methods when the Module is Closed.
+    // 2. Prevent external callers from accessing WDFIOTARGET while it might have been
+    //    removed or be in process of being removed.
+    //
+    ntStatus = SerialTarget_Reference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        // QueryRemove has started.
+        // Module is closing, closed or QueryRemove has started.
         //
         goto Exit;
     }
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->IoTarget != NULL);
+
     ntStatus = SerialTarget_StreamStart(DmfModule);
 
-    DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+    SerialTarget_Dereference(DmfModule);
 
 Exit:
 
@@ -1555,29 +1704,33 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_SerialTarget* moduleContext;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  SerialTarget);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    DmfAssert(moduleContext->IoTarget != NULL);
-
-    NTSTATUS ntStatus;
-    ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+    // 1. Prevent callers from calling Methods when the Module is Closed.
+    // 2. Prevent external callers from accessing WDFIOTARGET while it might have been
+    //    removed or be in process of being removed.
+    //
+    ntStatus = SerialTarget_Reference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
-        // QueryRemove has started.
+        // Module is closing, closed or QueryRemove has started.
         //
         goto Exit;
     }
 
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->IoTarget != NULL);
+
     SerialTarget_StreamStop(DmfModule,
                             StreamingState_Stopped);
 
-    DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+    SerialTarget_Dereference(DmfModule);
 
 Exit:
 

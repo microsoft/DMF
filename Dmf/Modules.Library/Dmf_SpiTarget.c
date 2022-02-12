@@ -83,6 +83,7 @@ DMF_MODULE_DECLARE_CONFIG(SpiTarget)
 #define NUMBER_OF_TRANSFERS_IN_A_WRITE_READ                         2
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 SpiTarget_SpbWrite(
     _In_ DMFMODULE DmfModule,
@@ -268,6 +269,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 SpiTarget_SpbWriteRead(
     _In_ DMFMODULE DmfModule,

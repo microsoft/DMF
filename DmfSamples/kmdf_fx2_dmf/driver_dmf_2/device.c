@@ -265,10 +265,10 @@ Return Value:
     WDF_IO_QUEUE_CONFIG_INIT(&ioQueueConfig, WdfIoQueueDispatchManual);
 
     //
-    // This queue is used for requests that dont directly access the device. The
+    // This queue is used for requests that don't directly access the device. The
     // requests in this queue are serviced only when the device is in a fully
     // powered state and sends an interrupt. So we can use a non-power managed
-    // queue to park the requests since we dont care whether the device is idle
+    // queue to park the requests since we don't care whether the device is idle
     // or fully powered up.
     //
     ioQueueConfig.PowerManaged = WdfFalse;
@@ -286,7 +286,7 @@ Return Value:
     }
 
     //
-    // DMF: In this sammple, the Device Interace is created by the Dmf_IoctlHandler 
+    // DMF: In this sample, the Device Interface is created by the Dmf_IoctlHandler 
     //      Module so it should not be created here..
     //
 
@@ -499,8 +499,8 @@ Return Value:
     }
 
     //
-    // Retrieve USBD version information, port driver capabilites and device
-    // capabilites such as speed, power, etc.
+    // Retrieve USBD version information, port driver capabilities and device
+    // capabilities such as speed, power, etc.
     //
     WDF_USB_DEVICE_INFORMATION_INIT(&deviceInfo);
 
@@ -741,8 +741,8 @@ Parameters:
 
     BufferLength: Known size of buffer pointed to by ConfigDesc (Not wTotalLength)
 
-    Offset: if the USBD_STATUS returned is not USBD_STATUS_SUCCESS, offet will
-        be set to the address within the ConfigDesc buffer where the failure occured.
+    Offset: if the USBD_STATUS returned is not USBD_STATUS_SUCCESS, offset will
+        be set to the address within the ConfigDesc buffer where the failure occurred.
 
 Return Value:
 
@@ -762,7 +762,7 @@ Return Value:
     // Call USBD_ValidateConfigurationDescriptor to validate the descriptors which are present in this supplied configuration descriptor.
     // USBD_ValidateConfigurationDescriptor validates that all descriptors are completely contained within the configuration descriptor buffer.
     // It also checks for interface numbers, number of endpoints in an interface etc.
-    // Please refer to msdn documentation for this function for more information.
+    // Please refer to MSDN documentation for this function for more information.
     //
 
     status = USBD_ValidateConfigurationDescriptor( ConfigDesc, BufferLength , ValidationLevel , Offset , POOL_TAG );
@@ -993,7 +993,7 @@ Return Value:
 
     //
     // First get the length of the string. If the FriendlyName
-    // is not there then get the lenght of device description.
+    // is not there then get the length of device description.
     //
 
     status = WdfDeviceAllocAndQueryProperty(Device,

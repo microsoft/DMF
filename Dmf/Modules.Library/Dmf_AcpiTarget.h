@@ -42,8 +42,8 @@ DECLARE_DMF_MODULE(AcpiTarget)
 // Module Methods
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethod(
     _In_ DMFMODULE DmfModule,
@@ -54,8 +54,8 @@ DMF_AcpiTarget_EvaluateMethod(
     _In_ ULONG Tag
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethodReturningUlong(
     _In_ DMFMODULE DmfModule,
@@ -63,8 +63,8 @@ DMF_AcpiTarget_EvaluateMethodReturningUlong(
     _Out_ ULONG* ReturnValue
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-__drv_requiresIRQL(PASSIVE_LEVEL)
 NTSTATUS
 DMF_AcpiTarget_EvaluateMethodWithUlongReturningUlong(
     _In_ DMFMODULE DmfModule,
@@ -74,6 +74,7 @@ DMF_AcpiTarget_EvaluateMethodWithUlongReturningUlong(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_InvokeDsm(
     _In_ DMFMODULE DmfModule,
@@ -84,6 +85,7 @@ DMF_AcpiTarget_InvokeDsm(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_InvokeDsmRaw(
     _In_ DMFMODULE DmfModule,
@@ -95,6 +97,7 @@ DMF_AcpiTarget_InvokeDsmRaw(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiTarget_InvokeDsmWithCustomBuffer(
     _In_ DMFMODULE DmfModule,

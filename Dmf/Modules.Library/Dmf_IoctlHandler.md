@@ -289,6 +289,7 @@ Enable | If true, enable the device interface. Otherwise, disable the device int
 * This Module removes the need for the programmer to validate the input and output buffers for all IOCTLs since the Module does this work.
 * In case, validation by the Module is not desired, simply pass zero as the minimum size for the input and output buffers. Then, the IOCTL callback can perform its own Client specific validation.
 * This Module optionally allows Clients to forward the unhandled requests down. For forwarding all requests, simply add this Module with empty IoctlRecords and ForwardUnhandledRequests set to TRUE.
+* IMPORTANT: When this Module is used the Client Driver must not set `QueueConfig` to NULL if the Client calls `DMF_DmfDeviceInitHookQueueConfig()` (to customize the default queue) because the default queue will not be created. In this case, DMF_IoctlHandler will not see any IOCTL that is sent to it.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

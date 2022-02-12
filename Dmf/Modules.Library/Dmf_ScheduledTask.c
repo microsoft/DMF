@@ -472,8 +472,8 @@ Return:
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModulePrepareHardware)
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_ScheduledTask_ModulePrepareHardware(
@@ -584,6 +584,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_ScheduledTask_ModuleReleaseHardware(
@@ -738,6 +739,7 @@ Exit:
 
 _Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_ScheduledTask_ModuleD0Exit(
@@ -1059,6 +1061,7 @@ Return Value:
 //
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 ScheduledTask_Result_Type
 DMF_ScheduledTask_ExecuteNow(
     _In_ DMFMODULE DmfModule,
@@ -1099,6 +1102,7 @@ Return Value:
 }
 #pragma code_seg()
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferred(
     _In_ DMFMODULE DmfModule,
@@ -1165,6 +1169,7 @@ Return Value:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
     _In_ DMFMODULE DmfModule
@@ -1226,6 +1231,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunGet(
     _In_ DMFMODULE DmfModule,
@@ -1311,6 +1317,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunSet(
     _In_ DMFMODULE DmfModule,

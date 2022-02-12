@@ -293,10 +293,11 @@ Exit:
 }
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 String_NarrowStringCopyAsUnicode(
-    _Out_ UNICODE_STRING* UnicodeString,
+    _Inout_ UNICODE_STRING* UnicodeString,
     _In_z_ CHAR* NarrowString
     )
 /*++
@@ -344,7 +345,8 @@ Return Value:
     // Check to make sure that destinations ANSI string's buffer is big enough for 
     // the string and zero terminator.
     //
-    if (stringLength + sizeof(WCHAR) > UnicodeString->MaximumLength)
+    size_t requiredStringBufferSize = (stringLength * sizeof(WCHAR)) + sizeof(WCHAR);
+    if ( requiredStringBufferSize > (size_t)(UnicodeString->MaximumLength))
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         goto Exit;
@@ -383,10 +385,11 @@ Exit:
 }
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 static
 NTSTATUS
 String_WideStringCopyAsAnsi(
-    _Out_ ANSI_STRING* AnsiString,
+    _Inout_ ANSI_STRING* AnsiString,
     _In_z_ WCHAR* WideString
     )
 /*++
@@ -434,7 +437,8 @@ Return Value:
     // Check to make sure that destinations ANSI string's buffer is big enough for 
     // the string and zero terminator.
     //
-    if (stringLength + sizeof(CHAR) > AnsiString->MaximumLength)
+    size_t requiredStringBufferSize = (stringLength * sizeof(CHAR)) + sizeof(CHAR);
+    if ( requiredStringBufferSize > (size_t)(AnsiString->MaximumLength))
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
         goto Exit;
@@ -595,6 +599,7 @@ Return Value:
 // Module Methods
 //
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListChar(
     _In_ DMFMODULE DmfModule,
@@ -659,6 +664,7 @@ Return Value:
     return returnValue;
 }
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListExactChar(
     _In_ DMFMODULE DmfModule,
@@ -696,6 +702,7 @@ Return Value:
                                      String_FindInListExactCharCallback);
 }
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListExactGuid(
     _In_ DMFMODULE DmfModule,
@@ -745,6 +752,7 @@ Return Value:
     return returnValue;
 }
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
@@ -785,6 +793,7 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 DMF_String_MultiSzEnumerate(
     _In_ DMFMODULE DmfModule,
@@ -873,6 +882,7 @@ Return Value:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 WCHAR*
 DMF_String_MultiSzFindLast(
     _In_ DMFMODULE DmfModule,
@@ -931,10 +941,11 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 DMF_String_RtlAnsiStringToUnicodeString(
     _In_ DMFMODULE DmfModule,
-    _Out_ PUNICODE_STRING DestinationString,
+    _Inout_ UNICODE_STRING* DestinationString,
     _In_ PCANSI_STRING SourceString
     )
 /*++
@@ -1032,10 +1043,11 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 DMF_String_RtlUnicodeStringToAnsiString(
     _In_ DMFMODULE DmfModule,
-    _Out_ PANSI_STRING DestinationString,
+    _Inout_ PANSI_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString
     )
 /*++
@@ -1133,6 +1145,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 DMF_String_WideStringCopyAsNarrow(
     _In_ DMFMODULE DmfModule,

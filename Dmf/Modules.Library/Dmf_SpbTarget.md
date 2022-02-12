@@ -65,6 +65,8 @@ InteruptResource | Allows Client to specify an interrupt resource associated wit
 ##### DMF_SpbTarget_BufferFullDuplex
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferFullDuplex(
     _In_ DMFMODULE DmfModule,
@@ -97,6 +99,8 @@ OutputBufferLength | Size in bytes of OutputBuffer.
 ##### DMF_SpbTarget_BufferWrite
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWrite(
     _In_ DMFMODULE DmfModule,
@@ -125,6 +129,8 @@ NumberOfBytesToWrite | Size in bytes of BytesToWrite.
 ##### DMF_SpbTarget_BufferWriteRead
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferFullDuplex(
     _In_ DMFMODULE DmfModule,
@@ -157,6 +163,8 @@ OutputBufferLength | Size in bytes of OutputBuffer.
 ##### DMF_SpbTarget_ConnectionLock
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ConnectionLock(
     _In_ DMFMODULE DmfModule
@@ -181,6 +189,8 @@ DmfModule | An open DMF_SpbTarget Module handle.
 ##### DMF_SpbTarget_ConnectionUnlock
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ConnectionUnlock(
     _In_ DMFMODULE DmfModule
@@ -205,6 +215,8 @@ DmfModule | An open DMF_SpbTarget Module handle.
 ##### DMF_SpbTarget_ControllerLock
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ControllerLock(
     _In_ DMFMODULE DmfModule
@@ -229,6 +241,8 @@ DmfModule | An open DMF_SpbTarget Module handle.
 ##### DMF_SpbTarget_ControllerUnlock
 
 ````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_ControllerUnlock(
     _In_ DMFMODULE DmfModule
@@ -256,8 +270,8 @@ DmfModule | An open DMF_SpbTarget Module handle.
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_SpbTarget_InterruptAcquireLock(
-  _In_ DMFMODULE DmfModule
-  );
+    _In_ DMFMODULE DmfModule
+    );
 ````
 
 Acquires the interrupt spin-lock associated with the SPB resource configured by the Client.
@@ -282,8 +296,8 @@ DmfModule | An open DMF_SpbTarget Module handle.
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_SpbTarget_InterruptReleaseLock(
-  _In_ DMFMODULE DmfModule
-  );
+    _In_ DMFMODULE DmfModule
+    );
 ````
 
 Releases the interrupt spin-lock associated with the SPB resource configured by the Client.
@@ -308,10 +322,11 @@ _Must_inspect_result_
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_SpbTarget_InterruptTryToAcquireLock(
-  _In_ DMFMODULE DmfModule
-  );
+    _In_ DMFMODULE DmfModule
+    );
 ````
 
 Acquires the interrupt spin-lock associated with the SPB resource configured by the Client.
@@ -336,10 +351,10 @@ DmfModule | An open DMF_SpbTarget Module handle.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_SpbTarget_IsResourceAssigned(
-  _In_ DMFMODULE DmfModule,
-  _Out_opt_ BOOLEAN* SpbConnectionAssigned,
-  _Out_opt_ BOOLEAN* InterruptAssigned
-  );
+    _In_ DMFMODULE DmfModule,
+    _Out_opt_ BOOLEAN* SpbConnectionAssigned,
+    _Out_opt_ BOOLEAN* InterruptAssigned
+    );
 ````
 
 Indicates if the SPB resources set by the Client have been found.
@@ -375,7 +390,7 @@ NumberOfSpbInterruptsAssigned | The number of SPB interrupts this Module's insta
 
 #### Module Children
 
-* Dmf_RequestStream
+* Dmf_RequestTarget
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

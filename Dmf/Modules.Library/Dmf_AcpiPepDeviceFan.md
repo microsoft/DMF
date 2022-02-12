@@ -203,6 +203,7 @@ DsmFanRange | Fan range information from hardware.
 ##### DMF_AcpiPepDeviceFan_AcpiDeviceTableGet
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(
     _In_ DMFMODULE DmfModule,

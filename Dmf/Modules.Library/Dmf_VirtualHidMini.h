@@ -112,6 +112,7 @@ typedef struct _HID_DEVICE_ATTRIBUTES {
 typedef UCHAR VirtualHidMini_HID_REPORT_DESCRIPTOR;
 
 typedef 
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_GetFeature(_In_ DMFMODULE DmfModule,
                               _In_ WDFREQUEST Request,
@@ -119,6 +120,7 @@ EVT_VirtualHidMini_GetFeature(_In_ DMFMODULE DmfModule,
                               _Out_ ULONG* ReportSize);
 
 typedef 
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_GetInputReport(_In_ DMFMODULE DmfModule,
                                   _In_ WDFREQUEST Request,
@@ -126,6 +128,7 @@ EVT_VirtualHidMini_GetInputReport(_In_ DMFMODULE DmfModule,
                                   _Out_ ULONG* ReportSize);
 
 typedef 
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_InputReportProcess(_In_ DMFMODULE DmfModule,
                                       _In_ WDFREQUEST Request,
@@ -133,6 +136,7 @@ EVT_VirtualHidMini_InputReportProcess(_In_ DMFMODULE DmfModule,
                                       _Out_ ULONG* BufferSize);
 
 typedef 
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_SetFeature(_In_ DMFMODULE DmfModule,
                               _In_ WDFREQUEST Request,
@@ -140,6 +144,7 @@ EVT_VirtualHidMini_SetFeature(_In_ DMFMODULE DmfModule,
                               _Out_ ULONG* ReportSize);
 
 typedef 
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_SetOutputReport(_In_ DMFMODULE DmfModule,
                                    _In_ WDFREQUEST Request,
@@ -147,6 +152,7 @@ EVT_VirtualHidMini_SetOutputReport(_In_ DMFMODULE DmfModule,
                                    _Out_ ULONG* ReportSize);
 
 typedef 
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_WriteReport(_In_ DMFMODULE DmfModule,
                                _In_ WDFREQUEST Request,
@@ -211,6 +217,7 @@ DMF_VirtualHidMini_InputReportComplete(
     _In_ NTSTATUS NtStatus
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidMini_InputReportGenerate(
     _In_ DMFMODULE DmfModule,

@@ -49,6 +49,7 @@ DMF_String_RtlInitUnicodeString(
 #if defined(DMF_USER_MODE)
 
 __forceinline
+_Must_inspect_result_
 NTSTATUS
 DMF_String_AnsiStringInitialize(
     _In_ ANSI_STRING* AnsiString,
@@ -82,9 +83,9 @@ DMF_String_AnsiStringInitialize(
 
 typedef
 _Function_class_(EVT_DMF_String_CompareCharCallback)
-_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 LONG
 (EVT_DMF_String_CompareCharCallback)(_In_ DMFMODULE DmfModule,
                                      _In_ CHAR* StringInList, 
@@ -92,9 +93,9 @@ LONG
 
 typedef
 _Function_class_(EVT_DMF_String_MutilSzCallback)
-_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 BOOLEAN
 (EVT_DMF_String_MultiSzCallback)(_In_ DMFMODULE DmfModule,
                                  _In_ WCHAR* String,
@@ -109,6 +110,7 @@ DECLARE_DMF_MODULE_NO_CONFIG(String)
 // Module Methods
 //
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListChar(
     _In_ DMFMODULE DmfModule,
@@ -118,6 +120,7 @@ DMF_String_FindInListChar(
     _In_ EVT_DMF_String_CompareCharCallback ComparisonCallback
     );
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListExactChar(
     _In_ DMFMODULE DmfModule,
@@ -126,6 +129,7 @@ DMF_String_FindInListExactChar(
     _In_ CHAR* LookFor
     );
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListExactGuid(
     _In_ DMFMODULE DmfModule,
@@ -134,6 +138,7 @@ DMF_String_FindInListExactGuid(
     _In_ GUID* LookFor
     );
 
+_Must_inspect_result_
 LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
@@ -142,6 +147,7 @@ DMF_String_FindInListLookForLeftMatchChar(
     _In_ CHAR* LookFor
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_String_MultiSzEnumerate(
     _In_ DMFMODULE DmfModule,
@@ -150,26 +156,30 @@ DMF_String_MultiSzEnumerate(
     _In_ VOID* CallbackContext
     );
 
+_Must_inspect_result_
 WCHAR*
 DMF_String_MultiSzFindLast(
     _In_ DMFMODULE DmfModule,
     _In_z_ WCHAR* MultiSzWideString
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_String_RtlAnsiStringToUnicodeString(
     _In_ DMFMODULE DmfModule,
-    _Out_ PUNICODE_STRING DestinationString,
+    _Inout_ UNICODE_STRING* DestinationString,
     _In_ PCANSI_STRING SourceString
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_String_RtlUnicodeStringToAnsiString(
     _In_ DMFMODULE DmfModule,
-    _Out_ PANSI_STRING DestinationString,
+    _Inout_ PANSI_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_String_WideStringCopyAsNarrow(
     _In_ DMFMODULE DmfModule,

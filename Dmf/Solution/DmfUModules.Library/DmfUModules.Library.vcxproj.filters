@@ -495,12 +495,14 @@
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
     </None>
-    <None Include="..\..\Modules.Library\Dmf_Stack.md" />
+    <None Include="..\..\Modules.Library\Dmf_Stack.md">
+      <Filter>Documentation\Modules\Data Structures</Filter>
+    </None>
     <None Include="..\..\Modules.Library\Dmf_GpioTarget.md">
-      <Filter>Headers\Modules\Targets</Filter>
+      <Filter>Documentation\Modules\Targets</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_SpiTarget.md">
-      <Filter>Headers\Modules\Targets</Filter>
+      <Filter>Documentation\Modules\Targets</Filter>
     </None>
   </ItemGroup>
 </Project>

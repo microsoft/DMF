@@ -94,6 +94,7 @@ DMFMODULE of the Parent Module. Then the Parent Module can access its own Module
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Type(
     _In_ DMFMODULE DmfModule,
@@ -127,6 +128,7 @@ UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID rep
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Toggle(
     _In_ DMFMODULE DmfModule,

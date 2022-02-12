@@ -59,6 +59,19 @@ typedef struct
     USHORT ChannelInstance;
 } SMFSOCPLUGIN_CAPABILITIES;
 
+// Redefined here temporarily.
+//
+typedef struct
+{
+    // This flag identifies if the data in the structure is valid. This is needed as all physical channels of
+    // a single interface driver share same IRPs.
+    //
+    BOOLEAN IsValid;
+    // Data value.
+    //
+    INT32 DataValue;
+} SMFSOCPLUGIN_DATA;
+
 // Enumeration used to expose Sensor Channels to SMF.
 // Only one channel - SmfSoCSensorChannelCpuTemperatureAverageId -  is used for control, the others are optional and only for reporting.
 //
@@ -270,11 +283,12 @@ DMF_INTERFACE_PROTOCOL_SystemManagementFramework_DESCRIPTOR_INIT(
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_SystemManagementFramework_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA* TransportBindData
     );
 
 // Unbind
@@ -309,13 +323,14 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_ChannelsGet(
     _In_ DMFINTERFACE DmfInterface,
     _Out_ USHORT* NumberOfSensorChannels,
     _Out_ USHORT* NumberOfControlChannels,
     _Out_ SHORT* VersionChannelIndex
-);
+    );
 
 /*++
 
@@ -338,6 +353,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportInitialize(
     _In_ DMFINTERFACE DmfInterface,
@@ -364,6 +380,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportUninitialize(
     _In_ DMFINTERFACE DmfInterface
@@ -391,6 +408,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportControlSet(
     _In_ DMFINTERFACE DmfInterface,
@@ -420,6 +438,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportDataGet(
     _In_ DMFINTERFACE DmfInterface,
@@ -448,6 +467,7 @@ Return Value:
 typedef
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet(
     _In_ DMFINTERFACE DmfInterface,
@@ -485,12 +505,12 @@ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT(
     _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind,
     _In_ DMF_INTERFACE_SystemManagementFramework_TransportBind* SystemManagementFrameworkTransportBind,
     _In_ DMF_INTERFACE_SystemManagementFramework_TransportUnbind* SystemManagementFrameworkTransportUnbind,
-    _In_ DMF_INTERFACE_SystemManagementFramework_ChannelsGet* SystemManagementFrameworkChannelsGet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportInitialize* SystemManagementFrameworkTransportInitialize,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_ChannelsGet* SystemManagementFrameworkChannelsGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportInitialize* SystemManagementFrameworkTransportInitialize,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
     );
 
 // Methods exposed to Protocol.

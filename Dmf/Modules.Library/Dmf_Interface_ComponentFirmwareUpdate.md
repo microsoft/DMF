@@ -191,7 +191,6 @@ DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DESCRIPTOR_INIT(
     _In_ EVT_DMF_INTERFACE_ComponentFirmwareUpdate_OfferResponse* EvtComponentFirmwareUpdate_OfferResponse,
     _In_ EVT_DMF_INTERFACE_ComponentFirmwareUpdate_PayloadResponse* EvtComponentFirmwareUpdate_PayloadResponse
     )
-
 ````
 
 ##### Remarks
@@ -208,6 +207,7 @@ The DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DESCRIPTOR_INIT is used by th
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_INTERFACE_ComponentFirmwareUpdate_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
@@ -264,6 +264,7 @@ DmfInterface | The Dmf_Interface_ComponentFirmwareUpdate Interface handle.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportFirmwareVersionGet(
     _In_ DMFINTERFACE DmfInterface
@@ -289,6 +290,7 @@ DmfInterface | The Interface handle.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportOfferInformationSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -320,6 +322,7 @@ HeaderSize | Size of the header. Header is at the begining of 'Buffer'.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportOfferCommandSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -351,6 +354,7 @@ HeaderSize | Size of the header. Header is at the begining of 'Buffer'.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportOfferSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -382,6 +386,7 @@ HeaderSize | Size of the header. Header is at the begining of 'Buffer'.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportPayloadSend(
     _In_ DMFINTERFACE DmfInterface,
@@ -413,6 +418,7 @@ HeaderSize | Size of the header. Header is at the begining of 'Buffer'.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportProtocolStart(
     _In_ DMFINTERFACE DmfInterface,
@@ -441,6 +447,7 @@ DmfInterface | The Interface handle.
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_ComponentFirmwareUpdate_TransportProtocolStop(
     _In_ DMFINTERFACE DmfInterface,

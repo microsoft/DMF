@@ -742,6 +742,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_I2cTarget_ResourcesAssign(

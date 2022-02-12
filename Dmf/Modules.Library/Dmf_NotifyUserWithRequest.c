@@ -76,7 +76,7 @@ typedef struct
     // Client callback function invoked by passing a request and usermode event data which is
     // used to complete the request.
     // 
-    EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction;
+    EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction;
     // Event Callback context.
     //
     VOID* EventCallbackContext;
@@ -158,7 +158,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG
 NotifyUserWithRequest_EventRequestReturn(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     )
@@ -241,7 +241,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 NotifyUserWithRequest_EventRequestReturnAll(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     )
@@ -304,6 +304,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 NotifyUserWithRequest_CompleteRequestWithEventData(
     _In_ DMFMODULE DmfModule
@@ -702,7 +703,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_DataProcess(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ VOID* EventCallbackContext,
     _In_ NTSTATUS NtStatus
     )
@@ -987,7 +988,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturn(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     )
@@ -1052,7 +1053,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_NotifyUserWithRequest_RequestReturnAll(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     )
@@ -1103,10 +1104,11 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequest_RequestReturnEx(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ EVT_DMF_NotifyUserWithRequeset_Complete* EventCallbackFunction,
+    _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
     )

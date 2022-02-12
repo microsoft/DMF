@@ -30,9 +30,9 @@
 
 ````
 _Function_class_(EVT_DMF_String_CompareCharCallback)
-_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 LONG
 (EVT_DMF_String_CompareCharCallback)(_In_ DMFMODULE DmfModule,
                                      _In_ CHAR* StringInList, 
@@ -59,9 +59,9 @@ LookFor | The string that the Client searches for.
 
 ````
 _Function_class_(EVT_DMF_String_MutilSzCallback)
-_Must_inspect_result_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 BOOLEAN
 (EVT_DMF_String_MultiSzCallback)(_In_ DMFMODULE DmfModule,
                                  _In_ WCHAR* String,
@@ -90,6 +90,7 @@ CallbackContext | The call specific context passed by the caller.
 
 ##### DMF_String_FindInListChar
 ````
+_Must_inspect_result_
 LONG
 DMF_String_FindInListChar(
     _In_ DMFMODULE DmfModule,
@@ -124,6 +125,7 @@ ComparisonCallback | The Client callback function which performs the comparison 
 
 ##### DMF_String_FindInListExactChar
 ````
+_Must_inspect_result_
 LONG
 DMF_String_FindInListExactChar(
     _In_ DMFMODULE DmfModule,
@@ -158,6 +160,7 @@ LookFor | The given string to search for in the list.
 ##### DMF_String_FindInListExactGuid
 
 ````
+_Must_inspect_result_
 LONG
 DMF_String_FindInListExactGuid(
     _In_ DMFMODULE DmfModule,
@@ -189,6 +192,7 @@ LookFor | The given GUID to search for in the list.
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_String_FindInListLookForLeftMatchChar
 ````
+_Must_inspect_result_
 LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
@@ -222,6 +226,7 @@ LookFor | The given string to search for in the list.
 ##### DMF_String_MultiSzEnumerate
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_String_MultiSzEnumerate(
     _In_ DMFMODULE DmfModule,
@@ -253,6 +258,7 @@ CallbackContext | The context passed to the enumeration callback.
 ##### DMF_String_MultiSzFindLast
 
 ````
+_Must_inspect_result_
 WCHAR*
 DMF_String_MultiSzFindLast(
     _In_ DMFMODULE DmfModule,
@@ -280,6 +286,7 @@ MultiSzWideString | The given multi sz string.
 ##### DMF_String_RtlAnsiStringToUnicodeString
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_String_RtlAnsiStringToUnicodeString(
     _In_ DMFMODULE DmfModule,
@@ -310,6 +317,7 @@ SourceString | Source ANSI String.
 ##### DMF_String_RtlAnsiStringToUnicodeString
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_String_RtlUnicodeStringToAnsiString(
     _In_ DMFMODULE DmfModule,
@@ -339,6 +347,7 @@ SourceString | Source UNICODE String.
 ##### DMF_String_WideStringCopyAsNarrow
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_String_WideStringCopyAsNarrow(
     _In_ DMFMODULE DmfModule,

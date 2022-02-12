@@ -105,6 +105,7 @@ DMF_MODULE_DECLARE_CONFIG(SpbTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_Must_inspect_result_
 NTSTATUS
 SpbTarget_Open(
     _In_ DMFMODULE DmfModule
@@ -170,6 +171,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 SpbTarget_Close(
     _In_  DMF_CONTEXT_SpbTarget* ModuleContext
@@ -201,6 +203,7 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+_Must_inspect_result_
 NTSTATUS
 SpbTarget_SendRequestLocal(
     _In_ DMFMODULE DmfModule,
@@ -466,6 +469,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_SpbTarget_ResourcesAssign(
@@ -719,6 +723,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_TransportAddressRead(
     _In_ DMFINTERFACE DmfInterface,
@@ -732,7 +737,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write and read
 
 Return Value:
@@ -766,6 +771,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_TransportAddressReadEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -780,7 +786,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write and read
     RequestTimeoutMilliseconds - Timeout in milliseconds.
 
@@ -816,6 +822,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_TransportBufferWriteEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -830,7 +837,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write.
     RequestTimeoutMilliseconds - Timeout in milliseconds.
 
@@ -864,6 +871,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_TransportBufferWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -877,7 +885,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     Payload - Data to write.
 
 Return Value:
@@ -909,11 +917,12 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbBusTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
     )
 /*++
 
@@ -923,7 +932,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
     ProtocolBindData
     TransportBindData
 
@@ -954,7 +963,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -979,7 +988,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -1004,7 +1013,7 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - Interface module handle.
+    DmfInterface - Interface Module handle.
 
 Return Value:
 
@@ -1114,6 +1123,7 @@ Exit:
 
 #define SPBTARGET_SIMPLE_METHOD_TEMPLATE(MethodName, Ioctl)                                                         \
 _IRQL_requires_max_(PASSIVE_LEVEL)                                                                                  \
+_Must_inspect_result_                                                                                               \
 NTSTATUS                                                                                                            \
 MethodName(                                                                                                         \
     _In_ DMFMODULE DmfModule                                                                                        \
@@ -1142,6 +1152,7 @@ MethodName(                                                                     
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferFullDuplex(
     _In_ DMFMODULE DmfModule,
@@ -1226,6 +1237,7 @@ DMF_SpbTarget_BufferFullDuplex(
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWrite(
     _In_ DMFMODULE DmfModule,
@@ -1278,6 +1290,7 @@ DMF_SpbTarget_BufferWrite(
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWriteEx(
     _In_ DMFMODULE DmfModule,
@@ -1332,6 +1345,7 @@ DMF_SpbTarget_BufferWriteEx(
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWriteReadEx(
     _In_ DMFMODULE DmfModule,
@@ -1418,6 +1432,7 @@ DMF_SpbTarget_BufferWriteReadEx(
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_SpbTarget_BufferWriteRead(
     _In_ DMFMODULE DmfModule,

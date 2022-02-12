@@ -221,6 +221,7 @@ Registry_CustomActionHandler_Read(
 
 #if defined(DMF_KERNEL_MODE)
 
+_Must_inspect_result_
 NTSTATUS
 Registry_DeviceInterfaceKeyOpen(
     _In_ DMFMODULE DmfModule,
@@ -231,6 +232,8 @@ Registry_DeviceInterfaceKeyOpen(
 {
     NTSTATUS ntStatus;
     UNICODE_STRING temporaryDeviceLink;
+
+    PAGED_CODE();
 
     UNREFERENCED_PARAMETER(DmfModule);
 
@@ -249,6 +252,7 @@ Registry_DeviceInterfaceKeyOpen(
 
 #elif defined(DMF_USER_MODE)
 
+_Must_inspect_result_
 NTSTATUS
 Registry_DeviceInterfaceKeyOpen(
     _In_ DMFMODULE DmfModule,
@@ -351,6 +355,8 @@ Return Value:
     LONG index;
     size_t devicePathLength;
 
+    PAGED_CODE();
+
     NTSTATUS ntStatus;
 
     for (devicePath = DeviceInterfaces, index = 0; *devicePath; )
@@ -433,8 +439,8 @@ Return Value:
 //
 #define MAXIMUM_LOOP_RETRIES 5
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Registry_DeviceInterfaceStringGet(
     _In_ DMFMODULE DmfModule,
@@ -592,8 +598,8 @@ Exit:
 
 #elif defined(DMF_KERNEL_MODE)
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Registry_DeviceInterfaceStringGet(
     _In_ DMFMODULE DmfModule,
@@ -627,11 +633,13 @@ Return Value:
     UNICODE_STRING temporaryDeviceLink;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
 
+    PAGED_CODE();
+
     ntStatus = STATUS_UNSUCCESSFUL;
     deviceInterfaces = NULL;
     deviceLink = NULL;
 
-    // Get the the list of device interface instances.
+    // Get the list of device interface instances.
     //
     ntStatus = IoGetDeviceInterfaces(InterfaceGuid,
                                      NULL,
@@ -774,8 +782,8 @@ Return Value:
     }
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Registry_RegistryPathFromHandle(
     _In_ DMFMODULE DmfModule,
@@ -949,7 +957,7 @@ Registry_HKEYClose(
 
 Routine Description:
 
-    Wraper for ZwClose function for KMDF.
+    Wrapper for ZwClose function for KMDF.
 
 Arguments:
 
@@ -961,11 +969,14 @@ Return Value:
 
 --*/
 {
+    PAGED_CODE();
+
     ZwClose(Key);
 }
 
-_Must_inspect_result_
+_Success_(NT_SUCCESS(ntStatus))
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Registry_RegistryPathFromHandle(
     _In_ DMFMODULE DmfModule,
@@ -998,10 +1009,13 @@ Return Value:
     WDFMEMORY nameInformationObject;
     KEY_NAME_INFORMATION* nameInformation;
 
+    PAGED_CODE();
+
     ntStatus = STATUS_UNSUCCESSFUL;
     size = 0;
     nameInformationObject = NULL;
     nameInformation = NULL;
+    *RegistryPathObject = NULL;
 
     // Query buffer size required for registry path.
     //
@@ -1086,6 +1100,7 @@ Exit:
 //
 
 #if !defined(DMF_USER_MODE)
+_Must_inspect_result_
 static
 NTSTATUS
 Registry_ValueSizeGet(
@@ -1218,10 +1233,11 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 Registry_EntryWrite(
-    _In_ PWCHAR FullPathName,
+    _In_ CONST WCHAR* FullPathName,
     _In_ Registry_Entry* Entry
     )
 /*++
@@ -1322,6 +1338,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 Registry_RecursivePathCreate(
@@ -1413,10 +1430,11 @@ Return Value:
     return ntStatus;
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 Registry_BranchWrite(
-    _In_ PWCHAR RegistryPath,
+    _In_ CONST WCHAR* RegistryPath,
     _In_ Registry_Branch* Branches,
     _In_ ULONG NumberOfBranches
     )
@@ -1497,6 +1515,7 @@ Return Value:
 
         // Allocate a buffer for the full path name.
         //
+        #pragma warning( suppress : 4996 )
         fullPathName = (PWCHAR)ExAllocatePoolWithTag(PagedPool,
                                                      fullPathNameSize,
                                                      MemoryTag);
@@ -1580,6 +1599,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 static
 NTSTATUS
 Registry_TreeWrite(
@@ -1647,7 +1667,7 @@ Exit:
 
 HANDLE
 Registry_HandleOpenByName(
-    _In_ PWCHAR Name
+    _In_ CONST WCHAR* Name
     )
 /*++
 
@@ -1707,6 +1727,7 @@ Exit:
     return handle;
 }
 
+_Must_inspect_result_
 NTSTATUS
 Registry_HandleOpenByPredefinedKey(
     _In_ WDFDEVICE Device,
@@ -1762,9 +1783,10 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 Registry_HandleOpenByNameEx(
-    _In_ PWCHAR Name,
+    _In_ CONST WCHAR* Name,
     _In_ ULONG AccessMask,
     _In_ BOOLEAN Create,
     _Out_ HANDLE* RegistryHandle
@@ -1860,7 +1882,7 @@ Exit:
 HANDLE
 Registry_HandleOpenByHandle(
     _In_ HANDLE Handle,
-    _In_ PWCHAR Name,
+    _In_ CONST WCHAR* Name,
     _In_ BOOLEAN TryToCreate
     )
 /*++
@@ -2058,11 +2080,15 @@ Return Value:
                 // This driver needs to zero terminate the name that is returned. So, add 1 to the length
                 // to the size needed to allocate.
                 //
+
+                // 'Using <variable> from failed function call'
+                //
                 #pragma warning(suppress: 6102)
                 resultLength += sizeof(WCHAR);
 
                 // Allocate a buffer for the path name.
                 //
+                #pragma warning( suppress : 4996 )
                 keyInformationBuffer = (PKEY_BASIC_INFORMATION)ExAllocatePoolWithTag(PagedPool,
                                                                                      resultLength,
                                                                                      MemoryTag);
@@ -2283,7 +2309,7 @@ BOOLEAN
 Registry_KeyEnumerationFilterAllSubkeys(
     _In_ VOID* ClientContext,
     _In_ HANDLE Handle,
-    _In_ PWCHAR KeyName
+    _In_ CONST WCHAR* KeyName
     )
 {
     RegistryKeyEnumerationContextType* context;
@@ -2327,7 +2353,7 @@ BOOLEAN
 Registry_KeyEnumerationFilterStrstr(
     _In_ VOID* ClientContext,
     _In_ HANDLE Handle,
-    _In_ PWCHAR KeyName
+    _In_ CONST WCHAR* KeyName
     )
 {
     RegistryKeyEnumerationContextType* context;
@@ -2374,12 +2400,13 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Registry_ValueActionIfNeeded(
     _In_ Registry_ActionType ActionType,
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueType,
     _In_opt_ VOID* ValueDataToWrite,
     _In_ ULONG ValueDataToWriteSize,
@@ -2458,11 +2485,17 @@ Return Value:
         // We have size in bytes of the value.
         // Suppress (valueLengthQueried may not be initialized.)
         //
+
+        // 'Using valueLengthQueried from failed function call'
+        //
         #pragma warning(suppress: 6102)
         DmfAssert(valueLengthQueried > 0);
-        #pragma warning(suppress: 6102)
 
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        // 'Using valueLengthQueried from failed function call'
+        //
+        #pragma warning(suppress: 6102)
+
         valueLength = valueLengthQueried;
         valueMemory = WDF_NO_HANDLE;
         ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -2593,12 +2626,13 @@ Exit:
 //
 #pragma warning(suppress:6101)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 Registry_ValueActionAlways(
     _In_ Registry_ActionType ActionType,
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueType,
     _Inout_opt_ VOID* ValueDataBuffer,
     _In_ ULONG ValueDataBufferSize,
@@ -2816,6 +2850,7 @@ Return:
     // Allocate space for the deferred operation. If it cannot be allocated an error code
     // is returned and the operation is not deferred.
     //
+    #pragma warning( suppress : 4996 )
     deferredContext = (REGISTRY_DEFERRED_CONTEXT*)ExAllocatePoolWithTag(PagedPool,
                                                                         sizeof(REGISTRY_DEFERRED_CONTEXT),
                                                                         MemoryTag);
@@ -3277,8 +3312,8 @@ Return Value:
     return returnValue;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_CallbackWork(
     _In_ WDFDEVICE WdfDevice,
@@ -3347,13 +3382,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_CustomAction(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueType,
     _In_opt_ VOID* ValueDataToCompare,
     _In_ ULONG ValueDataToCompareSize,
@@ -3413,7 +3448,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 DMF_Registry_EnumerateKeysFromName(
     _In_ DMFMODULE DmfModule,
-    _In_ PWCHAR RootKeyName,
+    _In_ CONST WCHAR* RootKeyName,
     _In_ EVT_DMF_Registry_KeyEnumerationCallback* ClientCallback,
     _In_ VOID* ClientCallbackContext
     )
@@ -3471,7 +3506,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-void
+VOID
 DMF_Registry_HandleClose(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle
@@ -3507,6 +3542,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleDelete(
     _In_ DMFMODULE DmfModule,
@@ -3549,8 +3585,8 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenByDeviceInterface(
     _In_ DMFMODULE DmfModule,
@@ -3675,7 +3711,7 @@ HANDLE
 DMF_Registry_HandleOpenByHandle(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR Name,
+    _In_ CONST WCHAR* Name,
     _In_ BOOLEAN TryToCreate
     )
 /*++
@@ -3717,8 +3753,8 @@ Return Value:
     return handle;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenById(
     _In_ DMFMODULE DmfModule,
@@ -3775,7 +3811,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 HANDLE
 DMF_Registry_HandleOpenByName(
     _In_ DMFMODULE DmfModule,
-    _In_ PWCHAR Name
+    _In_ CONST WCHAR* Name
     )
 /*++
 
@@ -3812,12 +3848,12 @@ Return Value:
     return handle;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenByNameEx(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR Name,
+    _In_opt_ CONST WCHAR* Name,
     _In_ ULONG AccessMask,
     _In_ BOOLEAN Create,
     _Out_ HANDLE* RegistryHandle
@@ -3885,8 +3921,8 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_HandleOpenParametersRegistryKey(
     _In_ DMFMODULE DmfModule,
@@ -3956,13 +3992,13 @@ Return Value:
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueDelete(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName
     )
 /*++
 
@@ -4025,13 +4061,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueRead(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG RegistryType,
     _Out_writes_opt_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
@@ -4117,13 +4153,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadBinary(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_writes_opt_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _Out_opt_ ULONG* BytesRead
@@ -4178,13 +4214,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadDword(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONG* Buffer
     )
 /*++
@@ -4234,13 +4270,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadDwordAndValidate(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONG* Buffer,
     _In_ ULONG Minimum,
     _In_ ULONG Maximum
@@ -4308,13 +4344,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadMultiString(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
@@ -4371,13 +4407,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadQword(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONGLONG* Buffer
     )
 /*++
@@ -4427,13 +4463,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadQwordAndValidate(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONGLONG* Buffer,
     _In_ ULONGLONG Minimum,
     _In_ ULONGLONG Maximum
@@ -4501,13 +4537,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueReadString(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
@@ -4564,13 +4600,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWrite(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG RegistryType,
     _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize
@@ -4644,13 +4680,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteBinary(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize
     )
@@ -4701,13 +4737,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteDword(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueData
     )
 /*++
@@ -4750,13 +4786,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteMultiString(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_reads_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters
     )
@@ -4809,13 +4845,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteQword(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONGLONG ValueData
     )
 /*++
@@ -4858,13 +4894,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_PathAndValueWriteString(
     _In_ DMFMODULE DmfModule,
-    _In_opt_ PWCHAR RegistryPathName,
-    _In_ PWCHAR ValueName,
+    _In_opt_ CONST WCHAR* RegistryPathName,
+    _In_ CONST WCHAR* ValueName,
     _In_reads_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters
     )
@@ -4918,10 +4954,11 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_RegistryPathDelete(
     _In_ DMFMODULE DmfModule,
-    _In_ PWCHAR Name
+    _In_ CONST WCHAR* Name
     )
 /*++
 
@@ -5110,8 +5147,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 DMF_Registry_SubKeysFromPathNameContainingStringEnumerate(
     _In_ DMFMODULE DmfModule,
-    _In_ PWCHAR PathName,
-    _In_ PWCHAR LookFor,
+    _In_ CONST WCHAR* PathName,
+    _In_ CONST WCHAR* LookFor,
     _In_ EVT_DMF_Registry_KeyEnumerationCallback* ClientCallback,
     _In_ VOID* ClientCallbackContext
     )
@@ -5149,7 +5186,7 @@ Return Value:
 
    // It is the substring that is searched for inside the enumerated sub keys.
    //
-    context.FilterEnumeratorContext = LookFor;
+    context.FilterEnumeratorContext = (VOID*)LookFor;
 
     // It is the function that the client wants called for all the sub keys that contain
     // the substring to look for.
@@ -5171,6 +5208,7 @@ Return Value:
 }
 
 #if !defined(DMF_USER_MODE)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_TreeWriteDeferred(
     _In_ DMFMODULE DmfModule,
@@ -5217,6 +5255,7 @@ Return Value:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_TreeWriteEx(
     _In_ DMFMODULE DmfModule,
@@ -5262,13 +5301,13 @@ Return Value:
 }
 #endif
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueDelete(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName
+    _In_ CONST WCHAR* ValueName
     )
 /*++
 
@@ -5316,11 +5355,12 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueDeleteIfNeeded(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_opt_ VOID* ValueDataToCompare,
     _In_ ULONG ValueDataToCompareSize,
     _In_ EVT_DMF_Registry_ValueComparisonCallback* ComparisonCallback,
@@ -5375,13 +5415,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueRead(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueType,
     _Out_writes_opt_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
@@ -5449,13 +5489,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadBinary(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_writes_opt_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _Out_opt_ ULONG* BytesRead
@@ -5509,13 +5549,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadDword(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONG* Buffer
     )
 /*++
@@ -5571,13 +5611,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadDwordAndValidate(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONG* Buffer,
     _In_ ULONG Minimum,
     _In_ ULONG Maximum
@@ -5650,13 +5690,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadMultiString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
@@ -5712,13 +5752,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadQword(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ ULONGLONG* Buffer
     )
 /*++
@@ -5763,7 +5803,7 @@ Return Value:
                                       (UCHAR*)Buffer,
                                       sizeof(ULONGLONG),
                                       &bytesRead);
-    // "Using 'bytesRead' from failed function call.
+    // 'Using 'bytesRead' from failed function call.'
     //
     #pragma warning(suppress: 6102)
     DmfAssert((NT_SUCCESS(ntStatus) && (sizeof(ULONGLONG) == bytesRead)) || 
@@ -5774,13 +5814,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadQwordAndValidate(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_ PULONGLONG Buffer,
     _In_ ULONGLONG Minimum,
     _In_ ULONGLONG Maximum
@@ -5853,13 +5893,13 @@ Exit:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueReadString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
@@ -5916,13 +5956,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWrite(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueType,
     _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize
@@ -5977,13 +6017,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteBinary(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize
     )
@@ -6034,13 +6074,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteDword(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueData
     )
 /*++
@@ -6088,11 +6128,12 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteIfNeeded(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONG ValueType,
     _In_ VOID* ValueDataToWrite,
     _In_ ULONG ValueDataToWriteSize,
@@ -6150,13 +6191,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteMultiString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_reads_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters
     )
@@ -6208,13 +6249,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteQword(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_ ULONGLONG ValueData
     )
 /*++
@@ -6261,13 +6302,13 @@ Return Value:
     return ntStatus;
 }
 
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Registry_ValueWriteString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
-    _In_ PWCHAR ValueName,
+    _In_ CONST WCHAR* ValueName,
     _In_reads_(NumberOfCharacters) PWCHAR Buffer,
     _In_ ULONG NumberOfCharacters
     )

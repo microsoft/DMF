@@ -78,12 +78,12 @@ DMF_INTERFACE_TRANSPORT_BusTarget_DESCRIPTOR_INIT(
     _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind,
     _In_ DMF_INTERFACE_BusTarget_TransportBind* BusTargetTransportBind,
     _In_ DMF_INTERFACE_BusTarget_TransportUnbind* BusTargetTransportUnbind,
-    _In_ DMF_INTERFACE_BusTarget_AddressWrite* BusTarget_AddressWrite,
-    _In_ DMF_INTERFACE_BusTarget_AddressRead* BusTarget_AddressRead,
-    _In_ DMF_INTERFACE_BusTarget_BufferWrite* BusTarget_BufferWrite,
-    _In_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead,
-    _In_ DMF_INTERFACE_BusTarget_AddressReadEx* BusTarget_AddressReadEx,
-    _In_ DMF_INTERFACE_BusTarget_BufferWriteEx* BusTarget_BufferWriteEx
+    _In_opt_ DMF_INTERFACE_BusTarget_AddressWrite* BusTarget_AddressWrite,
+    _In_opt_ DMF_INTERFACE_BusTarget_AddressRead* BusTarget_AddressRead,
+    _In_opt_ DMF_INTERFACE_BusTarget_BufferWrite* BusTarget_BufferWrite,
+    _In_opt_ DMF_INTERFACE_BusTarget_BufferRead* BusTarget_BufferRead,
+    _In_opt_ DMF_INTERFACE_BusTarget_AddressReadEx* BusTarget_AddressReadEx,
+    _In_opt_ DMF_INTERFACE_BusTarget_BufferWriteEx* BusTarget_BufferWriteEx
     )
 /*++
 
@@ -94,7 +94,7 @@ Routine Description:
 Arguments:
 
     TransportDeclarationData - The Transport's declaration data.
-    EvtPostBind - Optional Post bind callback.
+    EvtPostBind - Optional Post Bind callback.
     EvtPreUnbind - Optional Pre Unbind callback.
     BusTargetTransportBind - Transport's Bind method.
     BusTargetTransportUnbind - Transport's Unbind method.
@@ -126,11 +126,14 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_BusTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
     )
 /*++
 
@@ -211,6 +214,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_BusTarget_AddressWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -257,6 +261,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_AddressReadEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -306,6 +311,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_AddressRead(
     _In_ DMFINTERFACE DmfInterface,
@@ -352,6 +358,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_BufferWriteEx(
     _In_ DMFINTERFACE DmfInterface,
@@ -401,6 +408,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_BufferWrite(
     _In_ DMFINTERFACE DmfInterface,
@@ -447,6 +455,7 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 Dmf_BusTarget_BufferRead(
     _In_ DMFINTERFACE DmfInterface,

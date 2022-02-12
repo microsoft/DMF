@@ -198,8 +198,8 @@ Tests_DeviceInterfaceTarget_BufferOutput(
         CompletionStatus != STATUS_INVALID_DEVICE_STATE)
     {
         // Request can be completed with InformationSize of 0 by framework.
+        // This can happen during suspend/resume of machine.
         //
-        DmfAssert(FALSE);
     }
     if (NT_SUCCESS(CompletionStatus))
     {
@@ -222,6 +222,7 @@ Tests_DeviceInterfaceTarget_BufferOutput(
 }
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
@@ -264,7 +265,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                                                            IOCTL_Tests_IoctlHandler_SLEEP,
                                                            timeoutMs,
                                                            &bytesWritten);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     // TODO: Get time and compare with send time.
     //
 
@@ -289,7 +293,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
                                                            IOCTL_Tests_IoctlHandler_SLEEP,
                                                            timeoutMs,
                                                            &bytesWritten);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     // TODO: Get time and compare with send time.
     //
 }
@@ -374,6 +381,7 @@ Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
 }
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
@@ -395,7 +403,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -428,12 +439,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(
                                               timeoutMs,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               moduleContext);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
-
-    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
-                                  (VOID**)&sleepIoctlBuffer,
-                                  NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
 
     // Reduce traffic to reduce CPU usage and make debugging easier.
     //
@@ -451,6 +460,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 void
 Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
@@ -478,7 +488,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -500,7 +513,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 moduleContext,
                                                 &DmfRequestId);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -536,7 +552,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -555,7 +574,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 moduleContext,
                                                 &DmfRequestId);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -578,14 +600,6 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
         //
         goto Exit;
     }
-
-    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                MAXIMUM_SLEEP_TIME_MS);
-
-    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
-                                  (VOID**)&sleepIoctlBuffer,
-                                  NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request after waiting the same time sent in timeout. 
@@ -595,7 +609,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -614,7 +631,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 moduleContext,
                                                 &DmfRequestId);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -636,25 +656,20 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
         goto Exit;
     }
 
-    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                MAXIMUM_SLEEP_TIME_MS);
-
-    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
-                                  (VOID**)&sleepIoctlBuffer,
-                                  NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
-
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request immediately after sending it. It may or may not be canceled.
     //
 
-    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                MAXIMUM_SLEEP_TIME_MS);
-
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -670,7 +685,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 moduleContext,
                                                 &DmfRequestId);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -681,25 +699,20 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
     requestCanceled = DMF_DeviceInterfaceTarget_Cancel(DmfModuleDeviceInterfaceTarget,
                                                        DmfRequestId);
 
-    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
-                                                                MAXIMUM_SLEEP_TIME_MS);
-
-    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
-                                  (VOID**)&sleepIoctlBuffer,
-                                  NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
-
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request before it is normally completed. It should always cancel.
     //
 
-    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
-                                                                MAXIMUM_SLEEP_TIME_MS);
-
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
 
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
@@ -715,7 +728,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(
                                                 moduleContext,
                                                 &DmfRequestId);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -744,16 +760,19 @@ Exit:
 
 // Forward declarations for Dynamic Module Test.
 //
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchInput(
     _In_ DMFMODULE DmfModule
     );
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchInput(
     _In_ DMFMODULE DmfModule
     );
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
 Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
@@ -773,6 +792,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
     // Create a parent object for the Module Under Test.
     // Size does not matter because it is just used for parent object.
     //
+    memory = NULL;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -789,7 +809,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&sleepIoctlBuffer,
                                   NULL);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
@@ -839,8 +862,6 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
                                                 &moduleAttributes,
                                                 &objectAttributes,
                                                 &dynamicDeviceInterfaceTarget);
-
-    DmfAssert(NT_SUCCESS(ntStatus));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -869,7 +890,10 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
                                               timeoutMs,
                                               Tests_DeviceInterfaceTarget_SendCompletion,
                                               moduleContext);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
 
     timeToWaitMs = TestsUtility_GenerateRandomNumber(0, 
                                                      MAXIMUM_SLEEP_TIME_MS);
@@ -880,12 +904,14 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
                                         0,
                                         timeToWaitMs);
 
-    // Delete the Dynamic Module by deleting its parent to execute the hardest path.
-    //
-    WdfObjectDelete(memory);
-
 Exit:
-    ;
+
+    if (memory != NULL)
+    {
+        // Delete the Dynamic Module by deleting its parent to execute the hardest path.
+        //
+        WdfObjectDelete(memory);
+    }
 }
 #pragma code_seg()
 
@@ -1509,16 +1535,30 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+    NTSTATUS ntStatus;
+    WDFIOTARGET ioTarget;
 
     PAGED_CODE();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    WDFIOTARGET ioTarget;
-    DMF_DeviceInterfaceTarget_Get(DmfModule,
-                                  &ioTarget);
-    WdfIoTargetPurge(ioTarget,
-                     WdfIoTargetPurgeIoAndWait);
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     // Stop the threads. Streaming is automatically stopped.
     //
@@ -1685,6 +1725,7 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
@@ -1692,10 +1733,25 @@ Return Value:
 
 #if !defined(TEST_SIMPLE)
     WDFIOTARGET ioTarget;
-    DMF_DeviceInterfaceTarget_Get(DmfModule,
-                                  &ioTarget);
-    WdfIoTargetPurge(ioTarget,
-                     WdfIoTargetPurgeIoAndWait);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
@@ -1732,16 +1788,30 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+    NTSTATUS ntStatus;
+    WDFIOTARGET ioTarget;
 
     PAGED_CODE();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    WDFIOTARGET ioTarget;
-    DMF_DeviceInterfaceTarget_Get(DmfModule,
-                                  &ioTarget);
-    WdfIoTargetPurge(ioTarget,
-                     WdfIoTargetPurgeIoAndWait);
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
 
     // Stop streaming.
     //

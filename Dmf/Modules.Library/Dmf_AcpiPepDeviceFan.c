@@ -91,6 +91,7 @@ DMF_MODULE_DECLARE_CONFIG(AcpiPepDeviceFan)
                          PepAcpiMinorTypeDevice, \
                          0x1)
 
+_Must_inspect_result_
 NTSTATUS
 AcpiPepDeviceFan_InitializeCallback(
     _In_ DMFMODULE DmfModule,
@@ -131,11 +132,12 @@ Return Value:
     return ntStatus;
 }
 
+_Success_(completeStatus == PEP_NOTIFICATION_HANDLER_COMPLETE)
 PEP_NOTIFICATION_HANDLER_RESULT
 AcpiPepDeviceFan_SyncEvaluateControlMethod(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
     )
 /*++
 
@@ -150,7 +152,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     Data - Supplies a pointer to parameters buffer for this notification.
-    PoFxWorkInformation - Unused.
+    PoFxWorkInformation - Unused (but cleared for SAL).
 
 Return Value:
 
@@ -171,14 +173,20 @@ Return Value:
     NTSTATUS ntStatus;
     UINT16 fanSpeed;
 
-    UNREFERENCED_PARAMETER(PoFxWorkInformation);
-
     TraceEvents(TRACE_LEVEL_VERBOSE,
                 DMF_TRACE,
                 "Evaluating Fan Methods.");
 
     ecmBuffer = (PPEP_ACPI_EVALUATE_CONTROL_METHOD)Data;
     completeStatus = PEP_NOTIFICATION_HANDLER_COMPLETE;
+
+    // For SAL.
+    //
+    if (PoFxWorkInformation != NULL)
+    {
+        RtlZeroMemory(PoFxWorkInformation,
+                      sizeof(PEP_WORK_INFORMATION));
+    }
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -721,6 +729,7 @@ Exit:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(
     _In_ DMFMODULE DmfModule,

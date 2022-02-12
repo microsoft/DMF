@@ -966,8 +966,8 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
-_Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_GpioTarget_InterruptTryToAcquireLock(
     _In_ DMFMODULE DmfModule
@@ -1064,6 +1064,7 @@ Return Value:
 #pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_GpioTarget_Read(
     _In_ DMFMODULE DmfModule,
@@ -1117,6 +1118,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_GpioTarget_Write(
     _In_ DMFMODULE DmfModule,

@@ -43,6 +43,7 @@ This Module provides UEFI basic operations. It allows clients to do data reading
 ````
 _Success_(return)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGet(
     _In_ LPCTSTR Name,
@@ -73,6 +74,7 @@ VariableBufferSize | As input, it pass the desired size that needs to be read (s
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
     _In_ UNICODE_STRING* Name,
@@ -104,6 +106,7 @@ Attributes | Location to which the routine writes the attributes of the specifie
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSet(
     _In_ LPCTSTR Name,
@@ -134,6 +137,7 @@ VariableBufferSize | Size of VariableBuffer in bytes.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSetEx(
     _In_ UNICODE_STRING* Name,

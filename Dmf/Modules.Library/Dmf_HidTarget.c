@@ -454,6 +454,8 @@ Return Value:
 
 Exit:
 
+    *NtStatus = ntStatus;
+
     FuncExitVoid(DMF_TRACE);
 
     return ThreadedBufferQueue_BufferDisposition_WorkComplete;
@@ -790,6 +792,9 @@ Return Value:
         if ((nameBuffer[readIndex] != L'\\') &&
             (nameBuffer[readIndex] != L'/'))
         {
+            // 'buffer overrun: accessing nameBuffer'
+            //
+            #pragma warning(suppress:6386)
             nameBuffer[writeIndex] = nameBuffer[readIndex];
             writeIndex++;
         }
@@ -1430,6 +1435,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_MatchedTargetGet(
@@ -1627,6 +1633,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_MatchedTargetDestroy(
@@ -1745,6 +1752,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DRIVER_NOTIFICATION_CALLBACK_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_InterfaceArrivalCallbackForLocalOrRemoteKernel(
@@ -1818,6 +1826,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 HidTarget_NotificationRegisterForLocalOrRemoteKernel(
     _In_ DMFMODULE DmfModule,
@@ -2142,6 +2151,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_MatchedTargetForExistingInterfacesGet(
@@ -2313,6 +2323,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_NotificationRegisterForRemoteUser(
@@ -2403,6 +2414,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HidTarget_NotificationRegisterForLocalUser(
@@ -2780,6 +2792,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_HidTarget_Open(
@@ -3078,11 +3091,12 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_BusTarget_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_BusTarget_BIND_DATA* TransportBindData
     )
 /*++
 
@@ -3633,7 +3647,6 @@ Exit:
     if (featureReportMemory != WDF_NO_HANDLE)
     {
         WdfObjectDelete(featureReportMemory);
-        featureGetContext->FeatureReportMemory = WDF_NO_HANDLE;
     }
 
     if (featureGetPoolbuffer != NULL)

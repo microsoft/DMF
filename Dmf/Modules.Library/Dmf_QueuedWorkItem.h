@@ -44,12 +44,36 @@ typedef struct
     DMF_CONFIG_BufferQueue BufferQueueConfig;
 } DMF_CONFIG_QueuedWorkItem;
 
+// Callback to set default (non-zero) values in DMF_CONFIG_QueuedWorkItem
+// referenced by DECLARE_DMF_MODULE_EX().
+// NOTE: This callback is called by DMF not by Clients directly.
+//
+__forceinline
+VOID
+DMF_CONFIG_QueuedWorkItem_DEFAULT(
+    _Inout_ DMF_CONFIG_QueuedWorkItem* ModuleConfig
+    )
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+
+    // This Module's Config reuses (contains) BufferQueue's Config. Thus
+    // it is necessary to make sure it is properly initialized using its
+    // necessary default values.
+    //
+    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&ModuleConfig->BufferQueueConfig,
+                                               &moduleAttributes);
+    // This Module's Config has no specific default non-zero values.
+    //
+}
+
 // This macro declares the following functions:
 // DMF_QueuedWorkItem_ATTRIBUTES_INIT()
 // DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT()
 // DMF_QueuedWorkItem_Create()
 //
-DECLARE_DMF_MODULE(QueuedWorkItem)
+// DMF_CONFIG_QueuedWorkItem_DEFAULT() must be declared above.
+//
+DECLARE_DMF_MODULE_EX(QueuedWorkItem)
 
 // Module Methods
 //

@@ -49,7 +49,7 @@ Arguments:
     ProtocolDeclarationData - The Protocol's declaration data.
     EvtProtocolBind - The Bind callback. Must be provided by all Protocol Modules.
     EvtProtocolUnBind - The Unbind callback. Must be provided by all Protocol Modules.
-    EvtPostBind - Optional Post bind callback.
+    EvtPostBind - Optional Post Bind callback.
     EvtPreUnbind - Optional Pre Unbind callback.
     EvtSystemManagementFramework_ProtocolNotify - Callback for sending information to protocol Module.
 
@@ -77,12 +77,12 @@ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT(
     _In_opt_ EVT_DMF_INTERFACE_PreUnbind* EvtPreUnbind,
     _In_ DMF_INTERFACE_SystemManagementFramework_TransportBind* SystemManagementFrameworkTransportBind,
     _In_ DMF_INTERFACE_SystemManagementFramework_TransportUnbind* SystemManagementFrameworkTransportUnbind,
-    _In_ DMF_INTERFACE_SystemManagementFramework_ChannelsGet* SystemManagementFrameworkChannelsGet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportInitialize* SystemManagementFrameworkTransportInitialize,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
-    _In_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_ChannelsGet* SystemManagementFrameworkChannelsGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportInitialize* SystemManagementFrameworkTransportInitialize,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
     )
 /*++
 
@@ -97,7 +97,7 @@ Arguments:
     EvtPreUnbind - Optional Pre Unbind callback.
     SystemManagementFrameworkTransportBind - Transport's Bind method.
     SystemManagementFrameworkTransportUnbind - Transport's Unbind method.
-    SystemManagementFrameworkChannelsGet - Transport's method for retreiving channels.
+    SystemManagementFrameworkChannelsGet - Transport's method for retrieving channels.
     SystemManagementFrameworkTransportInitialize - Transport's Initialize method.
     SystemManagementFrameworkTransportUninitialize - Transport's Uninitialize method.
     SystemManagementFrameworkTransportControlSet - Transport's method for setting control.
@@ -130,11 +130,14 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_SystemManagementFramework_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA* TransportBindData
     )
 /*++
 
@@ -210,6 +213,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_ChannelsGet(
     _In_ DMFINTERFACE DmfInterface,
@@ -254,6 +258,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_TransportInitialize(
     _In_ DMFINTERFACE DmfInterface,
@@ -295,6 +300,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_TransportUninitialize(
     _In_ DMFINTERFACE DmfInterface
@@ -330,6 +336,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_TransportControlSet(
     _In_ DMFINTERFACE DmfInterface,
@@ -374,6 +381,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_TransportDataGet(
     _In_ DMFINTERFACE DmfInterface,
@@ -415,6 +423,7 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 DMF_SystemManagementFramework_TransportResetCauseGet(
     _In_ DMFINTERFACE DmfInterface,

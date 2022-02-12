@@ -409,24 +409,6 @@ g_VirtualEyeGaze_HidReportDescriptor[] =
     HID_END_COLLECTION_EX()
 };
 
-// This is the default HID descriptor returned by the mini driver
-// in response to IOCTL_HID_GET_DEVICE_DESCRIPTOR. The size
-// of report descriptor is currently the size of g_DefaultReportDescriptor.
-//
-HID_DESCRIPTOR
-g_VirtualEyeGaze_HidDescriptor = 
-{
-    0x09,   // length of HID descriptor
-    0x21,   // descriptor type == HID  0x21
-    0x0100, // hid spec release
-    0x00,   // country code == Not Specified
-    0x01,   // number of HID class descriptors
-    {                                       //DescriptorList[0]
-        0x22,                               //report descriptor type 0x22
-        sizeof(g_VirtualEyeGaze_HidReportDescriptor)   //total length of report descriptor
-    }
-};
-
 _Function_class_(EVT_VHF_ASYNC_OPERATION)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
@@ -687,8 +669,6 @@ Return Value:
     virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
     virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
 
-    virtualHidDeviceVhfModuleConfig.HidDescriptor = &g_VirtualEyeGaze_HidDescriptor;
-    virtualHidDeviceVhfModuleConfig.HidDescriptorLength = sizeof(g_VirtualEyeGaze_HidDescriptor);
     virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualEyeGaze_HidReportDescriptor;
     virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualEyeGaze_HidReportDescriptor);
 
@@ -788,6 +768,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_ConfigurationDataSet(
     _In_ DMFMODULE DmfModule,
@@ -834,6 +815,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_CapabilitiesDataSet(
     _In_ DMFMODULE DmfModule,
@@ -875,6 +857,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_GazeReportSend(
     _In_ DMFMODULE DmfModule,
@@ -928,6 +911,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_TrackerControlModeGet(
     _In_ DMFMODULE DmfModule,
@@ -966,6 +950,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualEyeGaze_TrackerStatusReportSend(
     _In_ DMFMODULE DmfModule,

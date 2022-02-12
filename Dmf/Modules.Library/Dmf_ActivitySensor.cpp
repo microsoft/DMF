@@ -150,16 +150,18 @@ public:
     EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback* EvtActivitySensorReadingChangeCallback;
     // Initialize route.
     //
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    _Must_inspect_result_
     NTSTATUS Initialize();
     // DeInitialize function.
     //
-    VOID Deinitialize();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID Deinitialize();
     // Start function, start motion activity sensor monitoring and events.
     //
-    VOID Start();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID Start();
     // Stop function, stop motion activity sensor monitoring and events.
     //
-    VOID Stop();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID Stop();
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,6 +202,7 @@ DMF_MODULE_DECLARE_CONFIG(ActivitySensor)
 _Function_class_(EVT_DMF_ThreadedBufferQueue_Callback)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 ThreadedBufferQueue_BufferDisposition
 ActivitySensor_ThreadedBufferQueueDeviceWatcherWork(
     _In_ DMFMODULE DmfModule,
@@ -442,6 +445,7 @@ Exit:
 _Function_class_(EVT_DMF_ThreadedBufferQueue_Callback)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 ThreadedBufferQueue_BufferDisposition
 ActivitySensor_ThreadedBufferQueueActivitySensorWork(
     _In_ DMFMODULE DmfModule,
@@ -510,6 +514,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 ActivitySensorDevice::Initialize()
 /*++

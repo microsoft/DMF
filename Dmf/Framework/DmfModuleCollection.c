@@ -48,6 +48,7 @@ Environment:
 #endif
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_PrepareHardware(
     _In_ DMFMODULE DmfModule,
@@ -56,6 +57,7 @@ DMF_Module_PrepareHardware(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ReleaseHardware(
     _In_ DMFMODULE DmfModule,
@@ -79,6 +81,7 @@ DMF_Module_D0EntryPostInterruptsEnabled(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_D0ExitPreInterruptsDisabled(
     _In_ DMFMODULE DmfModule,
@@ -86,6 +89,7 @@ DMF_Module_D0ExitPreInterruptsDisabled(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_D0Exit(
     _In_ DMFMODULE DmfModule,
@@ -93,6 +97,7 @@ DMF_Module_D0Exit(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_QueueIoRead(
     _In_ DMFMODULE DmfModule,
@@ -102,6 +107,7 @@ DMF_Module_QueueIoRead(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_QueueIoWrite(
     _In_ DMFMODULE DmfModule,
@@ -111,6 +117,7 @@ DMF_Module_QueueIoWrite(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_DeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -122,6 +129,7 @@ DMF_Module_DeviceIoControl(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_InternalDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -145,18 +153,21 @@ DMF_Module_SelfManagedIoFlush(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_SelfManagedIoInit(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_SelfManagedIoSuspend(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_SelfManagedIoRestart(
     _In_ DMFMODULE DmfModule
@@ -169,12 +180,14 @@ DMF_Module_SurpriseRemoval(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_QueryRemove(
     _In_ DMFMODULE DmfModule
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_QueryStop(
     _In_ DMFMODULE DmfModule
@@ -197,6 +210,7 @@ DMF_Module_UsageNotificationEx(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ArmWakeFromS0(
     _In_ DMFMODULE DmfModule
@@ -215,6 +229,7 @@ DMF_Module_WakeFromS0Triggered(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ArmWakeFromSxWithReason(
     _In_ DMFMODULE DmfModule,
@@ -235,6 +250,7 @@ DMF_Module_DisarmWakeFromSx(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_FileCreate(
     _In_ DMFMODULE DmfModule,
@@ -244,6 +260,7 @@ DMF_Module_FileCreate(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_FileCleanup(
     _In_ DMFMODULE DmfModule,
@@ -251,12 +268,14 @@ DMF_Module_FileCleanup(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_FileClose(
     _In_ DMFMODULE DmfModule,
     _In_ WDFFILEOBJECT FileObject
     );
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_NotificationRegister(
     _In_ DMFMODULE DmfModule
@@ -606,6 +625,7 @@ typedef NTSTATUS (*ModuleCollectionHandleDispatchFunctionNtStatusType)(_In_ DMFM
 typedef VOID (*ModuleCollectionHandleDispatchFunctionVoidType)(_In_ DMFMODULE DmfModule);
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionDispatchNtStatus(
     _In_ DMF_MODULE_COLLECTION* ModuleCollectionHandle,
@@ -799,6 +819,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionReleaseHardware(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1079,6 +1100,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionD0ExitPreInterruptsDisabled(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1153,6 +1175,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionD0Exit(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1227,6 +1250,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionQueueIoRead(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1307,6 +1331,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionQueueIoWrite(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1387,6 +1412,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionDeviceIoControl(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1473,6 +1499,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionInternalDeviceIoControl(
     _In_ DMFCOLLECTION DmfCollection,
@@ -1662,6 +1689,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionSelfManagedIoInit(
     _In_ DMFCOLLECTION DmfCollection
@@ -1718,6 +1746,7 @@ Exit:
 #pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionSelfManagedIoSuspend(
     _In_ DMFCOLLECTION DmfCollection
@@ -1771,6 +1800,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionSelfManagedIoRestart(
     _In_ DMFCOLLECTION DmfCollection
@@ -1872,6 +1902,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionQueryRemove(
     _In_ DMFCOLLECTION DmfCollection
@@ -1929,6 +1960,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionQueryStop(
     _In_ DMFCOLLECTION DmfCollection
@@ -2049,6 +2081,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionUsageNotificationEx(
     _In_ DMFCOLLECTION DmfCollection,
@@ -2126,6 +2159,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionArmWakeFromS0(
     _In_ DMFCOLLECTION DmfCollection
@@ -2285,6 +2319,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionArmWakeFromSxWithReason(
     _In_ DMFCOLLECTION DmfCollection,
@@ -2464,6 +2499,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionFileCreate(
     _In_ DMFCOLLECTION DmfCollection,
@@ -2543,6 +2579,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionFileCleanup(
     _In_ DMFCOLLECTION DmfCollection,
@@ -2621,6 +2658,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollectionFileClose(
     _In_ DMFCOLLECTION DmfCollection,
@@ -2705,6 +2743,7 @@ Exit:
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionConfigListInitialize(
     _Inout_ DMF_MODULE_COLLECTION_CONFIG* ModuleCollectionConfig
@@ -2910,6 +2949,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleCollectionConfigListInitialize(
     _Inout_ DMF_MODULE_COLLECTION_CONFIG* ModuleCollectionConfig
@@ -3005,6 +3045,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleCollection_ModuleValidate(
     _In_ DMF_OBJECT* ModuleHandle
@@ -3905,8 +3946,6 @@ Return Value:
                                           &dmfCollection);
     if (! NT_SUCCESS(ntStatus))
     {
-        // TODO: Do we need to call DMF_DmfDeviceInitFree()?
-        //
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }

@@ -48,12 +48,13 @@ RequestSink_Cancel_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendSynchronously_Type(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -62,12 +63,13 @@ RequestSink_SendSynchronously_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_Send_Type(
     _In_ DMFMODULE DmfModule,
-    _In_reads_bytes_(RequestLength) VOID* RequestBuffer,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
     _In_ size_t RequestLength,
-    _Out_writes_bytes_(ResponseLength) VOID* ResponseBuffer,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
     _In_ size_t ResponseLength,
     _In_ ContinuousRequestTarget_RequestType RequestType,
     _In_ ULONG RequestIoctl,
@@ -77,6 +79,7 @@ RequestSink_Send_Type(
     );
 
 typedef
+_Must_inspect_result_
 NTSTATUS
 RequestSink_SendEx_Type(
     _In_ DMFMODULE DmfModule,
@@ -321,6 +324,7 @@ Return Value:
 
 #if ! defined(DMF_USER_MODE)
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_SymbolicLinkNameStore(
     _In_ DMFMODULE DmfModule,
@@ -464,6 +468,7 @@ DeviceInterfaceTarget_Stream_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Stream_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -493,6 +498,7 @@ DeviceInterfaceTarget_Stream_SendSynchronously(
                                                          BytesWritten);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
@@ -525,6 +531,7 @@ DeviceInterfaceTarget_Stream_Send(
                                               NULL);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Stream_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -610,6 +617,7 @@ DeviceInterfaceTarget_Target_Cancel(
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Target_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -642,6 +650,7 @@ DeviceInterfaceTarget_Target_SendSynchronously(
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
@@ -675,6 +684,7 @@ DeviceInterfaceTarget_Target_Send(
                                     NULL);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_Target_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -858,6 +868,9 @@ Return Value:
 
 EVT_WDF_IO_TARGET_QUERY_REMOVE DeviceInterfaceTarget_EvtIoTargetQueryRemove;
 
+_Function_class_(EVT_WDF_IO_TARGET_QUERY_REMOVE)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DeviceInterfaceTarget_EvtIoTargetQueryRemove(
     _In_ WDFIOTARGET IoTarget
@@ -874,7 +887,7 @@ Arguments:
 
 Return Value:
 
-    NT_SUCCESS.
+    NTSTATUS
 
 --*/
 {
@@ -1154,6 +1167,7 @@ Return Value:
 _Must_inspect_result_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
+_Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(
     _In_ DMFMODULE DmfModule,
@@ -1296,7 +1310,7 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
     DWORD cmListSize;
     WCHAR *bufferPointer;
-    UNICODE_STRING unitargetName;
+    UNICODE_STRING targetName;
     NTSTATUS ntStatus;
     CONFIGRET configRet;
 
@@ -1307,12 +1321,14 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    // TODO: Check this.
+    // Check for possible duplicate arrival message.
     //
     if (moduleContext->IoTarget != NULL)
     {
-        // Already have the IoTarget. Nothing to do
+        // Already have the IoTarget. Nothing to do. Don't overwrite the target.
+        // This can happen during stress on clean up.
         //
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Duplicate Arrival Interface Notification. Do Nothing");
         goto Exit;
     }
 
@@ -1345,13 +1361,34 @@ Return Value:
             goto Exit;
         }
 
-        RtlInitUnicodeString(&unitargetName,
+        RtlInitUnicodeString(&targetName,
                              bufferPointer);
-        ntStatus = DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(dmfModule,
-                                                                       &unitargetName);
-        if (NT_SUCCESS(ntStatus))
+
+        // Ask Client if this IoTarget needs to be opened if the Client 
+        // requested notification.
+        //
+        BOOLEAN ioTargetOpen = TRUE;
+        if (moduleConfig->EvtDeviceInterfaceTargetOnPnpNotification != NULL)
         {
-            ntStatus = DMF_ModuleOpen(dmfModule);
+            moduleConfig->EvtDeviceInterfaceTargetOnPnpNotification(dmfModule,
+                                                                    &targetName,
+                                                                    &ioTargetOpen);
+        }
+        if (ioTargetOpen)
+        {
+            ntStatus = DeviceInterfaceTarget_DeviceCreateNewIoTargetByName(dmfModule,
+                                                                           &targetName);
+            if (NT_SUCCESS(ntStatus))
+            {
+                // New open will happen. Reset this flag in case Module was previously closed.
+                // Don't set it in Open() because it needs to be not cleared until Cancel logic 
+                // has finished executing. Also, note that this is the INITIAL open as opposed to
+                // a re-open.
+                //
+                moduleContext->ModuleCloseReason = ModuleCloseReason_NotSet;
+
+                ntStatus = DMF_ModuleOpen(dmfModule);
+            }
         }
 
         free(bufferPointer);
@@ -1419,23 +1456,19 @@ Return Value:
     UNREFERENCED_PARAMETER(EventDataSize);
 
     ntStatus = STATUS_SUCCESS;
-
     dmfModule = DMFMODULEVOID_TO_MODULE(Context);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
-
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
     if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL)
     {
-        // New open will happen. Reset this flag in case Module was previously closed.
-        // Don't set it in Open() because it needs to be not cleared until Cancel logic 
-        // has finished executing.
-        //
-        moduleContext->ModuleCloseReason = ModuleCloseReason_NotSet;
-
-        ntStatus = DeviceInterfaceTarget_TargetGet(Context);
-
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: ARRIVAL");
+
+        // NOTE: This function does everything that Kernel-mode arrival does. The organization of
+        //       the code is different because in User-mode the arrival callback is not called
+        //       if the interface already exists.
+        //
+        ntStatus = DeviceInterfaceTarget_TargetGet(Context);
     }
     else if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
     {
@@ -1460,7 +1493,7 @@ Return Value:
         }
     }
 
-    return (DWORD)ntStatus;
+    return STATUS_SUCCESS;
 }
 #pragma code_seg()
 
@@ -1471,6 +1504,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DRIVER_NOTIFICATION_CALLBACK_ROUTINE)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DeviceInterfaceTarget_InterfaceArrivalRemovalCallback(
@@ -1714,6 +1748,10 @@ Return Value:
     // 
     if (configRet == CR_SUCCESS)
     {
+        // User-mode version must call this function for interfaces that already exist when the callback 
+        // above is registered (unlike Kernel-mode).
+        // NOTE: Ignore return value as it this path always returns STATUS_SUCCESS.
+        //
         DeviceInterfaceTarget_TargetGet(DmfModule);
 
         // Should always return success here since notification might be called back later.
@@ -2320,6 +2358,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_BufferPut(
     _In_ DMFMODULE DmfModule,
@@ -2375,6 +2414,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_DeviceInterfaceTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -2427,6 +2467,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_Get(
     _In_ DMFMODULE DmfModule,
@@ -2482,6 +2523,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_GuidGet(
     _In_ DMFMODULE DmfModule,
@@ -2525,6 +2567,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -2606,6 +2649,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -2691,6 +2735,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -2770,6 +2815,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_DeviceInterfaceTarget_StreamStart(
     _In_ DMFMODULE DmfModule

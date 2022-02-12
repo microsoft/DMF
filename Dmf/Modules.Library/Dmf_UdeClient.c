@@ -181,6 +181,8 @@ Returns:
     BOOLEAN handled;
     WDFDEVICE device;
 
+    PAGED_CODE();
+
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(InputBufferSize);
     UNREFERENCED_PARAMETER(OutputBufferSize);
@@ -214,6 +216,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 UdeClient_EvtDeviceQueryUsbCapability(
     _In_ WDFDEVICE UdecxWdfDevice,
@@ -499,6 +502,7 @@ Return Value:
 
 EVT_WDF_IO_QUEUE_STATE Udeclient_EvtWdfIoQueueState;
 
+_Function_class_(EVT_WDF_IO_QUEUE_STATE)
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -1309,6 +1313,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 DMF_UdeClient_ModuleD0Exit(
@@ -1700,6 +1705,7 @@ Return Value:
 // Module Methods
 //
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS

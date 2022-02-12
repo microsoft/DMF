@@ -95,6 +95,7 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(MANUAL_QUEUE_CONTEXT, ManualQueueContextGet);
 // IRP using WdfRequestXxx functions. Instead, we have to escape to WDM.
 //
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_RequestGetHidXferPacket_ToReadFromDevice(
     _In_ WDFREQUEST Request,
@@ -143,6 +144,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_RequestGetHidXferPacket_ToWriteToDevice(
     _In_ WDFREQUEST Request,
@@ -210,6 +212,7 @@ Exit:
 // The new IRP is then passed to UMDF host and driver for further processing.
 //
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_RequestGetHidXferPacket_ToReadFromDevice(
     _In_  WDFREQUEST Request,
@@ -293,6 +296,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_RequestGetHidXferPacket_ToWriteToDevice(
     _In_  WDFREQUEST Request,
@@ -390,6 +394,7 @@ Exit:
 
 #endif
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_RequestCopyFromBuffer(
     _In_  WDFREQUEST Request,
@@ -458,6 +463,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_ManualQueueCreate(
     _In_ DMFMODULE DmfModule,
@@ -540,6 +546,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_ReadReport(
     _In_ DMFMODULE DmfModule,
@@ -592,6 +599,7 @@ Return Value:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_WriteReport(
     _In_ DMFMODULE DmfModule,
@@ -714,6 +722,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_SetFeature(
     _In_ DMFMODULE DmfModule,
@@ -776,6 +785,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_GetInputReport(
     _In_ DMFMODULE DmfModule,
@@ -838,6 +848,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_SetOutputReport(
     _In_ DMFMODULE DmfModule,
@@ -900,6 +911,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_StringIdGet(
     _In_ WDFREQUEST Request,
@@ -1011,6 +1023,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_IndexedStringGet(
     _In_ DMFMODULE DmfModule,
@@ -1072,6 +1085,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 VirtualHidMini_StringGet(
     _In_ DMFMODULE DmfModule,
@@ -1103,14 +1117,12 @@ Return Value:
 
     // TODO: Add support for Language Id.
     //
-    UNREFERENCED_PARAMETER(languageId);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     ntStatus = VirtualHidMini_StringIdGet(Request,
                                           &stringId,
                                           &languageId);
-
     if (!NT_SUCCESS(ntStatus)) 
     {
         goto Exit;
@@ -1527,6 +1539,7 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidMini_InputReportGenerate(
     _In_ DMFMODULE DmfModule,

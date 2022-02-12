@@ -147,6 +147,7 @@ FileObject | WDF file object that describes a file that is being opened for the 
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequestMultiple_DataBroadcast(
     _In_ DMFMODULE DmfModule,

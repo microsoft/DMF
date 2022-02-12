@@ -87,22 +87,31 @@ public:
     event_token tokenTransmissionStateChanged;
     // Initialize route.
     //
-    NTSTATUS Initialize(DMFMODULE DmfModule);
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    _Must_inspect_result_
+    NTSTATUS
+    Initialize(_In_ DMFMODULE DmfModule);
     // DeInitialize route.
     //
-    VOID DeInitialize();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID DeInitialize();
     // Check if MobileBroadband network is connected.
     //
-    BOOLEAN MobileBroadband_IsNetworkConnected();
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    _Must_inspect_result_
+    BOOLEAN
+    MobileBroadband_IsNetworkConnected();
     // Check if MobileBroadband network is transmitting.
     //
-    BOOLEAN MobileBroadband_IsTransmitting();
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    _Must_inspect_result_
+    BOOLEAN
+    MobileBroadband_IsTransmitting();
     // Function for start monitoring MobileBroadband network transmission state.
     //
-    VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStart(DMFMODULE DmfModule);
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStart(_In_ DMFMODULE DmfModule);
     // Function for stop monitoring MobileBroadband network transmission state.
     //
-    VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStop();
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStop();
 };
 
 typedef struct _DMF_CONTEXT_MobileBroadband
@@ -142,8 +151,10 @@ DMF_MODULE_DECLARE_CONFIG(MobileBroadband)
 #define MobileBroadband_AuxiliaryLockCount              1
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 inline
-NTSTATUS MobileCodeCalulate(
+NTSTATUS
+MobileCodeCalulate(
     _In_ const wchar_t* ProviderId,
     _In_ int StartPosition, 
     _In_ int CodeLength,
@@ -226,6 +237,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 MobileBroadbandModemDevice::Initialize(
     _In_ DMFMODULE DmfModule
@@ -463,6 +475,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 MobileBroadbandModemDevice::MobileBroadband_IsNetworkConnected()
 /*++
@@ -537,6 +550,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 MobileBroadbandModemDevice::MobileBroadband_IsTransmitting()
 /*++
@@ -787,7 +801,6 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_NotificationUnregister)
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
 static
 VOID
 DMF_MobileBroadband_NotificationUnregister(
@@ -852,7 +865,7 @@ DMF_MobileBroadband_Create(
     _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
     _In_ WDF_OBJECT_ATTRIBUTES* ObjectAttributes,
     _Out_ DMFMODULE* DmfModule
-)
+    )
 /*++
 
 Routine Description:
@@ -906,11 +919,11 @@ Return Value:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return(ntStatus);
-
 }
 #pragma code_seg()
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexGet(
     _In_ DMFMODULE DmfModule,
@@ -943,6 +956,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // For SAL.
+    //
+    *AntennaBackOffTableIndex = 0;
 
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -989,10 +1006,10 @@ ExitNoRelease:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
-
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     _In_ DMFMODULE DmfModule,
@@ -1139,6 +1156,7 @@ ExitNoRelease:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_MccMncGet(
     _In_ DMFMODULE DmfModule,
@@ -1266,6 +1284,7 @@ ExitNoRelease:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_SarBackOffDisable(
     _In_ DMFMODULE DmfModule
@@ -1365,6 +1384,7 @@ ExitNoRelease:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_SarBackOffEnable(
     _In_ DMFMODULE DmfModule
@@ -1431,6 +1451,7 @@ ExitNoRelease:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_WirelessStateGet(
     _In_ DMFMODULE DmfModule,

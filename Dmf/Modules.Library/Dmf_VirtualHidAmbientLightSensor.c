@@ -281,26 +281,6 @@ g_VirtualHidAmbientLightSensor_HidReportDescriptor[] =
     HID_END_COLLECTION,
 };
 
-// HID Device Descriptor with just one report representing the keyboard.
-//
-static
-const
-HID_DESCRIPTOR
-g_VirtualHidAmbientLightSensor_HidDescriptor =
-{
-    0x09,     // Length of HID descriptor
-    0x21,     // Descriptor type == HID  0x21
-    0x0100,   // HID spec release
-    0x33,     // Country code == English
-    0x01,     // Number of HID class descriptors
-    {
-      0x22,   // Descriptor type
-      // Total length of report descriptor.
-      //
-      (USHORT) sizeof(g_VirtualHidAmbientLightSensor_HidReportDescriptor)
-    }
-};
-
 #include <pshpack1.h>
 typedef struct _VirtualHidAmbientLightSensor_INPUT_REPORT
 {
@@ -643,8 +623,6 @@ Return Value:
     virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
     virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
 
-    virtualHidDeviceVhfModuleConfig.HidDescriptor = &g_VirtualHidAmbientLightSensor_HidDescriptor;
-    virtualHidDeviceVhfModuleConfig.HidDescriptorLength = sizeof(g_VirtualHidAmbientLightSensor_HidDescriptor);
     virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualHidAmbientLightSensor_HidReportDescriptor;
     virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualHidAmbientLightSensor_HidReportDescriptor);
 
@@ -745,6 +723,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidAmbientLightSensor_LuxValueSend(
     _In_ DMFMODULE DmfModule,

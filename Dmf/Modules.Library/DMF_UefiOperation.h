@@ -29,19 +29,20 @@ DECLARE_DMF_MODULE_NO_CONFIG(UefiOperation)
 
 #if defined(DMF_USER_MODE)
 
-_Success_(return)
 _IRQL_requires_max_(PASSIVE_LEVEL)
-NTSTATUS
+_Must_inspect_result_
+NTSTATUS 
 DMF_UefiOperation_FirmwareEnvironmentVariableGet(
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
-    _Out_writes_(*VariableBufferSize) VOID* VariableBuffer,
+    _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,
     _Inout_ DWORD* VariableBufferSize
     );
 
 #endif // defined(DMF_USER_MODE)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
     _In_ UNICODE_STRING* Name,
@@ -54,6 +55,7 @@ DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
 #if defined(DMF_USER_MODE)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSet(
     _In_ LPCTSTR Name,
@@ -65,6 +67,7 @@ DMF_UefiOperation_FirmwareEnvironmentVariableSet(
 #endif // defined(DMF_USER_MODE)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSetEx(
     _In_ UNICODE_STRING* Name,

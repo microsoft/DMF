@@ -286,6 +286,7 @@ typedef struct _DMF_ChildObjectGet
 DMF_ChildObjectGet DmfChildObjectIterateForward = { DmfChildObjectFirstGet, DmfChildObjectNextGet };
 DMF_ChildObjectGet DmfChildObjectIterateBackward = { DmfChildObjectLastGet, DmfChildObjectPreviousGet };
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ChildDispatchSingleParameterNtStatus(
     _In_ DMFMODULE DmfModule,
@@ -419,6 +420,7 @@ Return Value:
     *dmfModuleAddress = DmfModule;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleTransportCall(
     _In_ DMFMODULE DmfModule,
@@ -608,6 +610,7 @@ Return Value:
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_PrepareHardware(
     _In_ DMFMODULE DmfModule,
@@ -686,6 +689,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ReleaseHardware(
     _In_ DMFMODULE DmfModule,
@@ -892,6 +896,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_D0ExitPreInterruptsDisabled(
     _In_ DMFMODULE DmfModule,
@@ -960,6 +965,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_D0Exit(
     _In_ DMFMODULE DmfModule,
@@ -1028,6 +1034,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_QueueIoRead(
     _In_ DMFMODULE DmfModule,
@@ -1110,6 +1117,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_QueueIoWrite(
     _In_ DMFMODULE DmfModule,
@@ -1192,6 +1200,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_DeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -1282,6 +1291,7 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_InternalDeviceIoControl(
     _In_ DMFMODULE DmfModule,
@@ -1454,6 +1464,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_SelfManagedIoInit(
     _In_ DMFMODULE DmfModule
@@ -1508,6 +1519,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_SelfManagedIoSuspend(
     _In_ DMFMODULE DmfModule
@@ -1562,6 +1574,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_SelfManagedIoRestart(
     _In_ DMFMODULE DmfModule
@@ -1656,6 +1669,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_QueryRemove(
     _In_ DMFMODULE DmfModule
@@ -1710,6 +1724,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_QueryStop(
     _In_ DMFMODULE DmfModule
@@ -1886,6 +1901,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ArmWakeFromS0(
     _In_ DMFMODULE DmfModule
@@ -2022,6 +2038,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ArmWakeFromSxWithReason(
     _In_ DMFMODULE DmfModule,
@@ -2175,6 +2192,7 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_FileCreate(
     _In_ DMFMODULE DmfModule,
@@ -2255,6 +2273,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_FileCleanup(
     _In_ DMFMODULE DmfModule,
@@ -2327,6 +2346,7 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Module_FileClose(
     _In_ DMFMODULE DmfModule,
@@ -2398,6 +2418,7 @@ Exit:
     return returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_NotificationRegister(
     _In_ DMFMODULE DmfModule
@@ -2513,6 +2534,7 @@ Return Value:
                                          &DmfChildObjectIterateBackward);
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_ModuleOpen(
     _In_ DMFMODULE DmfModule
@@ -2566,6 +2588,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_OpenOrRegisterNotificationOnCreate(
     _In_ DMFMODULE DmfModule
@@ -3032,6 +3055,7 @@ Return Value:
 }
 
 #if defined(DEBUG)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleIsLocked(
     _In_ DMFMODULE DmfModule
@@ -3073,6 +3097,7 @@ Return Value:
 }
 #endif // defined(DEBUG)
 
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleLockIsPassive(
     _In_ DMFMODULE DmfModule
@@ -3112,6 +3137,7 @@ Return Value:
     return returnValue;
 }
 
+_Must_inspect_result_
 BOOLEAN
 DMF_IsPoolTypePassiveLevel(
     _In_ POOL_TYPE PoolType
@@ -3134,43 +3160,20 @@ Return Value:
 {
     BOOLEAN returnValue;
 
-    switch (PoolType)
+    if ((PoolType & PagedPool) != 0)
     {
-        case NonPagedPool:
-        case NonPagedPoolMustSucceed:
-        case NonPagedPoolCacheAligned:
-        case NonPagedPoolCacheAlignedMustS:
-        case NonPagedPoolSession:
-        case NonPagedPoolMustSucceedSession:
-        case NonPagedPoolCacheAlignedSession:
-        case NonPagedPoolCacheAlignedMustSSession:
-#if (!defined(_ARM_) && !defined(_ARM64_)) || (!defined(POOL_NX_OPTIN_AUTO))
-        // If POOL_NX_OPTION_AUTO is defined, it means that NonPagedPoolNx = NonPagedPool.
-        // So, don't include this case as it is a duplicate. This is the case for ARM and ARM64.
-        //
-        // NOTE: The condition has the OR so that the check is compatible with EWDK that does
-        //       not support POOL_NX_OPTIN_AUTO.
-        //
-        case NonPagedPoolNx:
-        case NonPagedPoolNxCacheAligned:
-#endif
-        case NonPagedPoolSessionNx:
-        {
-            returnValue = FALSE;
-            break;
-        }
-
-        default:
-        {
-            returnValue = TRUE;
-            break;
-        }
+        returnValue = TRUE;
+    }
+    else
+    {
+        returnValue = FALSE;
     }
 
     return returnValue;
 }
 
 #if defined(DEBUG)
+_Must_inspect_result_
 BOOLEAN
 DMF_ModuleAuxiliarySynchnonizationIsLocked(
     _In_ DMFMODULE DmfModule,
@@ -3228,6 +3231,7 @@ Return Value:
 }
 #endif // defined(DEBUG)
 
+_Must_inspect_result_
 NTSTATUS
 DMF_Module_ResourcesAssign(
     _In_ DMFMODULE DmfModule,

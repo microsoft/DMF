@@ -205,6 +205,7 @@ DMF_ContinuousRequestTarget_BufferPut(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_ContinuousRequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
@@ -218,6 +219,7 @@ DMF_ContinuousRequestTarget_IoTargetClear(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_IoTargetSet(
     _In_ DMFMODULE DmfModule,
@@ -225,6 +227,7 @@ DMF_ContinuousRequestTarget_IoTargetSet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_Send(
     _In_ DMFMODULE DmfModule,
@@ -240,6 +243,7 @@ DMF_ContinuousRequestTarget_Send(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_SendEx(
     _In_ DMFMODULE DmfModule,
@@ -256,6 +260,7 @@ DMF_ContinuousRequestTarget_SendEx(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_SendSynchronously(
     _In_ DMFMODULE DmfModule,
@@ -270,14 +275,9 @@ DMF_ContinuousRequestTarget_SendSynchronously(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ContinuousRequestTarget_Start(
-    _In_ DMFMODULE DmfModule
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_ContinuousRequestTarget_Stop(
     _In_ DMFMODULE DmfModule
     );
 

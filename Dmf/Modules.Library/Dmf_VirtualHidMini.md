@@ -96,6 +96,7 @@ SetOutputReport | IOCTL_HID_SET_OUTPUT_REPORT callback.
 
 ##### EVT_DMF_EVT_VirtualHidMini_GetFeature
 ````
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_GetFeature(_In_ DMFMODULE DmfModule,
                               _In_ WDFREQUEST Request,
@@ -117,6 +118,7 @@ ReportSize | Size of the returned to the Client.
 
 ##### EVT_DMF_EVT_VirtualHidMini_GetInputReport
 ````
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_GetInputReport(_In_ DMFMODULE DmfModule,
                                   _In_ WDFREQUEST Request,
@@ -138,6 +140,7 @@ ReportSize | Size of the returned to the Client.
 
 ##### EVT_DMF_EVT_VirtualHidMini_InputReportProcess
 ````
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_InputReportProcess(_In_ DMFMODULE DmfModule,
                                       _In_ WDFREQUEST Request,
@@ -163,6 +166,7 @@ BufferSize | Size of the data in Buffer in bytes.
 
 ##### EVT_DMF_EVT_VirtualHidMini_SetFeature
 ````
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_SetFeature(_In_ DMFMODULE DmfModule,
                               _In_ WDFREQUEST Request,
@@ -184,6 +188,7 @@ ReportSize | Size of the returned to the Client.
 
 ##### EVT_DMF_EVT_VirtualHidMini_SetOutputReport
 ````
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_SetOutputReport(_In_ DMFMODULE DmfModule,
                                    _In_ WDFREQUEST Request,
@@ -205,6 +210,7 @@ ReportSize | Size of the returned to the Client.
 
 ##### EVT_DMF_EVT_VirtualHidMini_WriteReport
 ````
+_Must_inspect_result_
 NTSTATUS
 EVT_VirtualHidMini_WriteReport(_In_ DMFMODULE DmfModule,
                                _In_ WDFREQUEST Request,
@@ -262,6 +268,7 @@ NtStatus | The NTSTATUS to return in the Request.
 ##### DMF_VirtualHidMini_InputReportGenerate
 
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidMini_InputReportGenerate(
     _In_ DMFMODULE DmfModule,

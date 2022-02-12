@@ -1170,8 +1170,6 @@ typedef struct
     USHORT VendorId;
     USHORT ProductId;
     USHORT VersionNumber;
-    const HID_DESCRIPTOR* HidDescriptor;
-    ULONG HidDescriptorLength;
     const UCHAR* HidReportDescriptor;
     ULONG HidReportDescriptorLength;
     HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
@@ -1207,6 +1205,7 @@ DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidDeviceVhf_ReadReportSend(
     _In_ DMFMODULE DmfModule,

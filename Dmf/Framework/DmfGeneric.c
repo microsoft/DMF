@@ -352,7 +352,7 @@ Return Value:
 
     // This is needed for cases where Module Opens, Close and Opens again.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     UNREFERENCED_PARAMETER(ResourcesRaw);
     UNREFERENCED_PARAMETER(ResourcesTranslated);
@@ -433,6 +433,7 @@ Exit:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleReleaseHardware)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Generic_ModuleReleaseHardware(
     _In_ DMFMODULE DmfModule,
@@ -476,7 +477,7 @@ Return Value:
 
     // NOTE: Client Drivers have the option of closing modules at any time.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // NOTE: This code is not totally symmetrical with DMF_Generic_ModulePrepareHardware because there is
     //       no corresponding DMF_Module_ResourcesAssign on the way down.
@@ -566,7 +567,7 @@ Return Value:
 
     // NOTE: Modules can be closed in D0Exit.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -697,7 +698,7 @@ Return Value:
 
     // NOTE: Modules can be closed in D0Exit.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -708,6 +709,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleD0ExitPreInterruptsDisabled)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Generic_ModuleD0ExitPreInterruptsDisabled(
     _In_ DMFMODULE DmfModule,
@@ -739,7 +741,7 @@ Return Value:
 
     // NOTE: Client Drivers have the option of closing modules at any time.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -750,6 +752,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleD0Exit)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Generic_ModuleD0Exit(
     _In_ DMFMODULE DmfModule,
@@ -789,7 +792,7 @@ Return Value:
 
     // NOTE: Client Drivers have the option of closing modules at any time.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     device = DMF_ParentDeviceGet(DmfModule);
 
@@ -838,6 +841,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleQueueIoRead)
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Generic_ModuleQueueIoRead(
     _In_ DMFMODULE DmfModule,
@@ -879,7 +883,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // Tell Client Driver this dispatch is still unhandled.
     //
@@ -891,6 +895,7 @@ Return Value:
 
 _Function_class_(DMF_ModuleQueueIoWrite)
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 BOOLEAN
 DMF_Generic_ModuleQueueIoWrite(
     _In_ DMFMODULE DmfModule,
@@ -932,7 +937,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // Tell Client Driver this dispatch is still unhandled.
     //
@@ -1001,7 +1006,7 @@ Return Value:
     //
     if (dmfDeviceContext->IsFilterDevice == FALSE)
     {
-        DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+        DMF_HandleValidate_IsAvailable(dmfObject);
     }
 
     // Tell Client Driver this dispatch is still unhandled.
@@ -1106,7 +1111,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1146,7 +1151,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1190,7 +1195,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1233,7 +1238,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1275,7 +1280,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1313,7 +1318,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1356,7 +1361,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -1449,7 +1454,7 @@ Return Value:
     // It is possible for a Module to be created but not open if the Module uses a
     // notification to open but the notification has not happened yet.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -1922,6 +1927,7 @@ Return Value:
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ResourcesAssign)
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_Generic_ResourcesAssign(
     _In_ DMFMODULE DmfModule,
@@ -1961,7 +1967,7 @@ Return Value:
 
     // This is needed for cases where Module Opens, Close and Opens again.
     //
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     // This is called during PrepareHardware when the flag is used.
     //
@@ -2010,7 +2016,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName, STATUS_SUCCESS);
 
@@ -2051,7 +2057,7 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
-    DMF_HandleValidate_IsCreatedOrOpenedOrClosed(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
 }
@@ -2301,6 +2307,8 @@ Return Value:
 }
 #pragma code_seg()
 
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
+//
 #pragma warning(suppress: 28167)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -2348,6 +2356,8 @@ Return Value:
     }
 }
 
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
+//
 #pragma warning(suppress: 28167)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -2469,7 +2479,7 @@ Return Value:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-// TODO: I am unable to make this warning to away legitimately.
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
 //
 #pragma warning(suppress: 28167)
 #pragma warning(suppress: 28158)
@@ -2504,7 +2514,7 @@ Return Value:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
-// TODO: I am unable to make this warning to away legitimately.
+// 'The function changes the IRQL and does not restore the IRQL before it exits.'
 //
 #pragma warning(suppress: 28167)
 DMF_Generic_Unlock_Dispatch(

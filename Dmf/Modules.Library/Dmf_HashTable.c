@@ -154,7 +154,7 @@ Return Value:
 
 --*/
 {
-    return (DATA_ENTRY*)((UCHAR*)ModuleContext->DataTable + ModuleContext->DataEntrySize * EntryIndex);
+    return (DATA_ENTRY*)((UCHAR*)ModuleContext->DataTable + (size_t)ModuleContext->DataEntrySize * (size_t)EntryIndex);
 }
 
 static
@@ -304,6 +304,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 static
 NTSTATUS
 HashTable_ContextInitialize(
@@ -400,7 +401,7 @@ Return Value:
                   sizeToAllocate,
                   INVALID_INDEX);
 
-    sizeToAllocate = moduleContext->DataTableSize * moduleContext->DataEntrySize;
+    sizeToAllocate = (size_t)moduleContext->DataTableSize * (size_t)moduleContext->DataEntrySize;
     DmfAssert(sizeToAllocate != 0);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);

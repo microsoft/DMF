@@ -226,7 +226,7 @@ PEP_NOTIFICATION_HANDLER_RESULT
 PEP_NOTIFICATION_HANDLER_ROUTINE (
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
     );
 
 // This handler is used during the device initialization.
@@ -388,15 +388,17 @@ PEP_NOTIFICATION_HANDLER_RESULT
 DMF_AcpiPepDevice_AsyncNotifyEvent(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 DMFMODULE*
 DMF_AcpiPepDevice_ChildHandlesReturn(
     _In_ DMFMODULE DmfModule
     );
 
+_Success_(NT_SUCCESS(ntStatus))
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_AcpiPepDevice_PepAcpiDataReturn(
@@ -404,10 +406,10 @@ DMF_AcpiPepDevice_PepAcpiDataReturn(
     _In_ USHORT ValueType,
     _In_ ULONG ValueLength,
     _In_ BOOLEAN ReturnAsPackage,
-    _Out_ PACPI_METHOD_ARGUMENT Arguments,
+    _Inout_ PACPI_METHOD_ARGUMENT Arguments,
     _Inout_ SIZE_T* OutputArgumentSize,
     _Out_opt_ ULONG* OutputArgumentCount,
-    _Out_ NTSTATUS* ntStatus,
+    _Out_ NTSTATUS* NtStatus,
     _In_opt_ CHAR* MethodName,
     _In_opt_ CHAR* DebugInfo,
     _Out_ PEP_NOTIFICATION_HANDLER_RESULT* CompleteResult
@@ -423,6 +425,7 @@ DMF_AcpiPepDevice_ReportNotSupported(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_AcpiPepDevice_ScheduleNotifyRequest(
     _In_ DMFMODULE DmfModule,

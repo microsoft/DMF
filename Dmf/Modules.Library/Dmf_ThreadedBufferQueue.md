@@ -86,6 +86,7 @@ ThreadedBufferQueue_BufferDisposition_WorkPending | Client retains ownership of 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
+_Must_inspect_result_
 ThreadedBufferQueue_BufferDisposition
 EVT_DMF_ThreadedBufferQueue_Callback(
     _In_ DMFMODULE DmfModule,
@@ -142,6 +143,7 @@ ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
 
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 ULONG
 DMF_ThreadedBufferQueue_Count(
   _In_ DMFMODULE DmfModule
@@ -226,12 +228,13 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 ##### DMF_ThreadedBufferQueue_EnqueueAndWait
 
 ````
-_IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_ThreadedBufferQueue_EnqueueAndWait(
-  _In_ DMFMODULE DmfModule,
-  _In_ VOID* ClientBuffer
-  );
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
 ````
 
 Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the end). Then, this
@@ -257,12 +260,13 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 ##### DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait
 
 ````
-_IRQL_requires_max_(DISPATCH_LEVEL)
-VOID
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait(
-  _In_ DMFMODULE DmfModule,
-  _In_ VOID* ClientBuffer
-  );
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer
+    );
 ````
 
 Adds a given DMF_BufferQueue buffer to an instance of ThreadedBufferQueue's DMF_BufferQueue's Consumer list (at the head). Then, this
@@ -379,6 +383,7 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ThreadedBufferQueue_Start(
   _In_ DMFMODULE DmfModule

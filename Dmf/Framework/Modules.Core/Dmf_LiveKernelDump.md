@@ -314,7 +314,7 @@ BufferLength | Length of the buffer being removed.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
-NTSTATUS
+_Must_inspect_result_
 DMF_LiveKernelDump_LiveKernelMemoryDumpCreate(
   _In_ DMFMODULE DmfModule,
   _In_ ULONG BugCheckCode,

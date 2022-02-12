@@ -21,7 +21,7 @@ Environment:
 
 // TODO: DMF Client Driver Writer:
 //
-// Copy lines 35 through 83 into your Trace.h file.
+// Copy lines 27 through 79 into your Trace.h file.
 //
 
 // From DmfTrace.h.
@@ -56,6 +56,7 @@ Environment:
 // FUNC FuncExit{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
 // FUNC FuncExitVoid{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
 // FUNC TraceError{LEVEL=TRACE_LEVEL_ERROR}(FLAGS, MSG, ...);
+// FUNC TraceWarning{LEVEL=TRACE_LEVEL_WARNING}(FLAGS, MSG, ...);
 // FUNC TraceInformation{LEVEL=TRACE_LEVEL_INFORMATION}(FLAGS, MSG, ...);
 // FUNC TraceVerbose{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS, MSG, ...);
 // FUNC FuncExitNoReturn{LEVEL=TRACE_LEVEL_VERBOSE}(FLAGS);
@@ -65,10 +66,15 @@ Environment:
 // USESUFFIX(FuncExit, ">");
 // USEPREFIX(FuncExitVoid, "%!STDPREFIX! [%!FUNC!] <-- Exit");
 // USEPREFIX(TraceError, "%!STDPREFIX! [%!FUNC!] ERROR:");
+// USEPREFIX(TraceWarning, "%!STDPREFIX! [%!FUNC!] WARNING:");
 // USEPREFIX(TraceEvents, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(TraceInformation, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(TraceVerbose, "%!STDPREFIX! [%!FUNC!] ");
 // USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
+// CUSTOM_TYPE(SMFX_MACHINE_EXCEPTION, ItemEnum(StateMachine_MachineException));
+// CUSTOM_TYPE(SMFX_TRANSITION_TYPE, ItemEnum(StateMachine_TransitionType));
+// CUSTOM_TYPE(COMPONENT_FIRMWARE_UPDATE_V2_EVENT, ItemEnum(ComponentFirmwareUpdateV2EventId));
+// CUSTOM_TYPE(COMPONENT_FIRMWARE_UPDATE_V2_STATE, ItemEnum(ComponentFirmwareUpdateV2StateId));
 // end_wpp
 
 #if !defined(DMF_WDF_DRIVER)
@@ -134,9 +140,6 @@ FuncEntryArguments(
 
 #define Trace TraceEvents
 #define FuncExit FuncEntryArguments
-
-// TODO:
-//
 #define FuncEntry(X) TraceVerbose(X, "->")
 #define FuncExitNoReturn(X) TraceVerbose(X, "<-")
 #define FuncExitVoid FuncExitNoReturn

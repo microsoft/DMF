@@ -89,6 +89,7 @@ typedef struct _DIRECTFW_I2C_CONNECTION_DESCRIPTOR_SUBTYPE
 #include "poppack.h"
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_ConnectResourceHubIoTarget(
     _Inout_ DMFMODULE DmfModule,
@@ -190,6 +191,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_RegisterForAcpiNotifications(
     _In_ DMFMODULE DmfModule
@@ -240,6 +242,7 @@ Exit:
 }
 #pragma code_seg()
 
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_ParseGenericSerialBusDescriptor(
     _In_  DMFMODULE DmfModule,
@@ -364,6 +367,7 @@ Exit:
     return ntStatus;
 }
 
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_ParseI2CSerialBusDescriptorSubtype(
     _In_  DMFMODULE DmfModule,
@@ -425,6 +429,7 @@ Exit:
 }
 
 #pragma code_seg("PAGE")
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_QueryConnectionProperties(
     _In_  DMFMODULE DmfModule,
@@ -638,6 +643,7 @@ Exit:
 }
 #pragma code_seg()
 
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_ValidateTransferList(
     _In_  DMFMODULE DmfModule,
@@ -803,6 +809,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 ResourceHub_IoctlClientCallback_SpbExecuteSequence(
     _In_ DMFMODULE DmfModule,

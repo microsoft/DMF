@@ -83,6 +83,7 @@ DECLARE_DMF_MODULE(LiveKernelDump)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_LiveKernelDump_DataBufferSourceAdd(
     _In_ DMFMODULE DmfModule,
@@ -106,6 +107,7 @@ DMF_LiveKernelDump_StoreDmfCollectionAsBugcheckParameter(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_LiveKernelDump_LiveKernelMemoryDumpCreate(
     _In_ DMFMODULE DmfModule,
@@ -119,6 +121,7 @@ DMF_LiveKernelDump_LiveKernelMemoryDumpCreate(
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 ULONG
 DMF_LiveKernelDump_DmfDataSizeGet(
     _In_ DMFMODULE DmfModule

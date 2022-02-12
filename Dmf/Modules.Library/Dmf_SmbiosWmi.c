@@ -188,6 +188,7 @@ Exit:
     return (CHAR*)returnValue;
 }
 
+_Must_inspect_result_
 NTSTATUS
 SmbioWmi_TablesSet(
     _In_ DMFMODULE DmfModule
@@ -748,6 +749,7 @@ Return Value:
 // Module Methods
 //
 
+_Must_inspect_result_
 NTSTATUS
 DMF_SmbiosWmi_TableType01Get(
     _In_ DMFMODULE DmfModule,

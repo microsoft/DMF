@@ -58,6 +58,7 @@ EventNames | The name of each exposed event.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithEvent_Notify(
   _In_ DMFMODULE DmfModule
@@ -85,6 +86,7 @@ DmfModule | An open DMF_NotifyUserWithEvent Module handle.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithEvent_NotifyByIndex(
   _In_ DMFMODULE DmfModule,

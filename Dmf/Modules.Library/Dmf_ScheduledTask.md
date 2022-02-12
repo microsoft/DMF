@@ -184,6 +184,7 @@ PreviousState | Used when the callback is executed in D0Entry to tell the Client
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_ExecuteNow
 ````
+_Must_inspect_result_
 ScheduledTask_Result_Type
 DMF_ScheduledTask_ExecuteNow(
   _In_ DMFMODULE DmfModule,
@@ -211,6 +212,7 @@ CallbackContext | This is a Client specific context that is passed to the Client
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_ExecuteNowDeferred
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferred(
   _In_ DMFMODULE DmfModule,
@@ -244,6 +246,7 @@ CallbackContext | This is a Client specific context that is passed to the Client
 
 ##### DMF_ScheduledTask_ExecuteNowDeferredEx
 ````
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
   _In_ DMFMODULE DmfModule
@@ -275,6 +278,7 @@ DmfModule | An open DMF_ScheduledTask Module handle.
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunGet(
   _In_ DMFMODULE DmfModule,
@@ -302,6 +306,7 @@ TimesRun | Returns the number of times the DMF_ScheduledTask routine has execute
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunSet(
   _In_ DMFMODULE DmfModule,

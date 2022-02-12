@@ -127,7 +127,7 @@ NTSTATUS
 DMF_SampleInterfaceUpper_TransportBind(
     _In_ DMFINTERFACE DmfInterface,
     _In_ DMF_INTERFACE_PROTOCOL_SampleInterfaceUpper_BIND_DATA* ProtocolBindData,
-    _Out_ DMF_INTERFACE_TRANSPORT_SampleInterfaceUpper_BIND_DATA* TransportBindData
+    _Inout_opt_ DMF_INTERFACE_TRANSPORT_SampleInterfaceUpper_BIND_DATA* TransportBindData
     )
 /*++
 

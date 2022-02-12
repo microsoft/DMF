@@ -127,6 +127,7 @@ DMF_MODULE_DECLARE_CONFIG(LiveKernelDump)
 //
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 LiveKernelDump_DataBufferSourceAdd(
     _In_ DMFMODULE DmfModule,
@@ -492,6 +493,7 @@ Exit:
 #if IS_WIN10_RS3_OR_LATER
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 LiveKernelDump_InsertDmfTriageDataToLiveDump(
     _In_ DMFMODULE DmfModule,
@@ -585,6 +587,7 @@ Exit:
 
 #if IS_WIN10_19H1_OR_LATER
 _IRQL_requires_same_
+_Must_inspect_result_
 NTSTATUS
 LiveKernelDump_InsertDmfTriageDataToCrashDump(
     _In_ DMFMODULE DmfModuleCrashDump
@@ -685,6 +688,7 @@ Return Value:
 #if IS_WIN10_RS3_OR_LATER
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 LiveKernelDump_InsertClientTriageDataToLiveDump(
     _In_ HANDLE TelemetryHandle,
@@ -745,6 +749,7 @@ Exit:
 #if IS_WIN10_RS3_OR_LATER
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 LiveKernelDump_LiveKernelMemoryDumpCreate(
     _In_ DMFMODULE DmfModule,
@@ -896,6 +901,7 @@ Exit:
 #if IS_WIN10_RS3_OR_LATER
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 LiveKernelDump_IoctlHandler(
     _In_ DMFMODULE DmfModule,
@@ -1256,6 +1262,7 @@ Exit:
 #pragma code_seg()
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_LiveKernelDump_DataBufferSourceAdd(
     _In_ DMFMODULE DmfModule,
@@ -1365,6 +1372,7 @@ Exit:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 NTSTATUS
 DMF_LiveKernelDump_LiveKernelMemoryDumpCreate(
     _In_ DMFMODULE DmfModule,
@@ -1496,6 +1504,7 @@ Return Value:
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
 ULONG
 DMF_LiveKernelDump_DmfDataSizeGet(
     _In_ DMFMODULE DmfModule
