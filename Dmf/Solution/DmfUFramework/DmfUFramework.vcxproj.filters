@@ -90,6 +90,9 @@
     <ClInclude Include="..\..\Framework\DmfIncludes.h">
       <Filter>Headers\Framework</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\DmfVersion.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Modules">

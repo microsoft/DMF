@@ -20,7 +20,7 @@ Environment:
 
 --*/
 
-// Allow Clients to know see current DMF version at compile time.
+// Allow Clients to know current DMF version at compile time.
 //
 #include "..\DmfVersion.h"
 
