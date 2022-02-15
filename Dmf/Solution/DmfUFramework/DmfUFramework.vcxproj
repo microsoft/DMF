@@ -130,7 +130,7 @@
       <WppEnabled>true</WppEnabled>
     </ClCompile>
     <ClCompile Condition="'$(Platform)'=='ARM64'">
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
@@ -149,7 +149,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
     <Link>
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -171,6 +171,7 @@
     <ClCompile Include="..\..\Framework\Modules.Core\Dmf_Bridge.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\DmfVersion.h" />
     <ClInclude Include="..\..\Framework\DmfIncludeInternal.h" />
     <ClInclude Include="..\..\Framework\DmfDefinitions.h" />
     <ClInclude Include="..\..\Framework\DmfIncludes.h" />
