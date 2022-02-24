@@ -126,14 +126,20 @@ typedef struct _DMF_CONTEXT_CrashDump
     // Management information for all the Crash Dump Data Sources.
     //
     DATA_SOURCE* DataSource;
+    // WDFMEMORY associated with allocated DataSource.
+    //
+    WDFMEMORY DataSourceMemory;
 
     // Crash Dump Context for Ring Buffers.
     // NOTE: Keep this here so the math with this element is easier. It should be in DATA_SOURCE
     //       but element is used in the callback.
     //
     KBUGCHECK_REASON_CALLBACK_RECORD* BugCheckCallbackRecordRingBuffer;
+    // WDFMEMORY associated with allocated BugCheckCallbackRecordRingBuffer.
+    //
+    WDFMEMORY BugCheckCallbackRecordRingBufferMemory;
 
-    // The Triage Dump Data Array.
+    // The Triage Dump Data Array and its associated WDFMEMORY.
     //
     WDFMEMORY TriageDumpDataArrayMemory;
     KTRIAGE_DUMP_DATA_ARRAY* TriageDumpDataArray;
@@ -1940,6 +1946,7 @@ Exit:
         {
             WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
             moduleContext->TriageDumpDataArrayMemory = NULL;
+            moduleContext->TriageDumpDataArray = NULL;
         }
     }
 
@@ -2003,6 +2010,7 @@ Return Value:
 
         WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
         moduleContext->TriageDumpDataArrayMemory = NULL;
+        moduleContext->TriageDumpDataArray = NULL;
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -3347,35 +3355,46 @@ Return Value:
 
     // Allocate space for the Data Sources.
     //
-    #pragma warning( suppress : 4996 )
-    moduleContext->DataSource = (DATA_SOURCE *)ExAllocatePoolWithTag(NonPagedPoolNx,
-                                                                     sizeof(DATA_SOURCE) * moduleContext->DataSourceCount,
-                                                                     MemoryTag);
-    if (NULL == moduleContext->DataSource)
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    size_t sizeToAllocateDataSource = sizeof(DATA_SOURCE) * moduleContext->DataSourceCount;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               NonPagedPoolNx,
+                               MemoryTag,
+                               sizeToAllocateDataSource,
+                               &moduleContext->DataSourceMemory,
+                               (VOID**)&moduleContext->DataSource);
+    if (! NT_SUCCESS(ntStatus))
     {
-        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DataSource ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     RtlZeroMemory(moduleContext->DataSource,
-                  sizeof(DATA_SOURCE) * moduleContext->DataSourceCount);
+                  sizeToAllocateDataSource);
 
     // Allocate space for the Bug Check Callback Records.
     //
-    #pragma warning( suppress : 4996 )
-    moduleContext->BugCheckCallbackRecordRingBuffer = (KBUGCHECK_REASON_CALLBACK_RECORD *)ExAllocatePoolWithTag(NonPagedPoolNx,
-                                                                                                          sizeof(KBUGCHECK_REASON_CALLBACK_RECORD) * moduleContext->DataSourceCount,
-                                                                                                          MemoryTag);
-    if (NULL == moduleContext->BugCheckCallbackRecordRingBuffer)
+    size_t sizeToAllocateCallbackRecords = sizeof(KBUGCHECK_REASON_CALLBACK_RECORD) * moduleContext->DataSourceCount;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               NonPagedPoolNx,
+                               MemoryTag,
+                               sizeToAllocateCallbackRecords,
+                               &moduleContext->BugCheckCallbackRecordRingBufferMemory,
+                               (VOID**)&moduleContext->BugCheckCallbackRecordRingBuffer);
+    if (! NT_SUCCESS(ntStatus))
     {
-        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "BugCheckCallbackRecordRingBuffer ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
     RtlZeroMemory(moduleContext->BugCheckCallbackRecordRingBuffer,
-                  sizeof(KBUGCHECK_REASON_CALLBACK_RECORD) * moduleContext->DataSourceCount);
+                  sizeToAllocateCallbackRecords);
 
     if (moduleConfig->SecondaryData.BufferCount > 0)
     {
@@ -3686,11 +3705,11 @@ Return Value:
 
     // All Data Sources are shut down. Free associated data now.
     //
-    if (moduleContext->BugCheckCallbackRecordRingBuffer != NULL)
+    if (moduleContext->BugCheckCallbackRecordRingBufferMemory != NULL)
     {
         DmfAssert(moduleContext->DataSourceCount > 0);
-        ExFreePoolWithTag(moduleContext->BugCheckCallbackRecordRingBuffer,
-                          MemoryTag);
+        WdfObjectDelete(moduleContext->BugCheckCallbackRecordRingBufferMemory);
+        moduleContext->BugCheckCallbackRecordRingBufferMemory = NULL;
         moduleContext->BugCheckCallbackRecordRingBuffer = NULL;
     }
     else
@@ -3699,11 +3718,11 @@ Return Value:
         //
     }
 
-    if (moduleContext->DataSource != NULL)
+    if (moduleContext->DataSourceMemory != NULL)
     {
         DmfAssert(moduleContext->DataSourceCount > 0);
-        ExFreePoolWithTag(moduleContext->DataSource,
-                          MemoryTag);
+        WdfObjectDelete(moduleContext->DataSourceMemory);
+        moduleContext->DataSourceMemory = NULL;
         moduleContext->DataSource = NULL;
     }
     else

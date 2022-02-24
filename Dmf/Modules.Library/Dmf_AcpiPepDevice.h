@@ -226,7 +226,7 @@ PEP_NOTIFICATION_HANDLER_RESULT
 PEP_NOTIFICATION_HANDLER_ROUTINE (
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Inout_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
     );
 
 // This handler is used during the device initialization.
@@ -388,7 +388,7 @@ PEP_NOTIFICATION_HANDLER_RESULT
 DMF_AcpiPepDevice_AsyncNotifyEvent(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Inout_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

@@ -126,7 +126,7 @@ PEP_NOTIFICATION_HANDLER_RESULT
 AcpiPepDevice_RootSyncEvaluateControlMethod(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Inout_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
     );
 
 PEP_DEVICE_NOTIFICATION_HANDLER
@@ -280,7 +280,7 @@ PEP_NOTIFICATION_HANDLER_RESULT
 AcpiPepDevice_RootSyncEvaluateControlMethod(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Inout_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
     )
 /*++
 
@@ -293,7 +293,7 @@ Arguments:
 
     DmfModule - This Module's handle.
     Data - Supplies a pointer to parameters buffer for this notification.
-    PoFxWorkInformation - Unused (but cleared for SAL).
+    PoFxWorkInformation - Unused.
 
 Return Value:
 
@@ -304,16 +304,10 @@ Return Value:
     PEP_NOTIFICATION_HANDLER_RESULT completeStatus;
     PPEP_ACPI_EVALUATE_CONTROL_METHOD ecmBuffer;
 
+    UNREFERENCED_PARAMETER(PoFxWorkInformation);
+
     ecmBuffer = (PPEP_ACPI_EVALUATE_CONTROL_METHOD)Data;
     completeStatus = PEP_NOTIFICATION_HANDLER_COMPLETE;
-
-    // For SAL.
-    //
-    if (PoFxWorkInformation != NULL)
-    {
-        RtlZeroMemory(PoFxWorkInformation,
-                      sizeof(PEP_WORK_INFORMATION));
-    }
 
     DMF_AcpiPepDevice_ReportNotSupported(DmfModule,
                                          &ecmBuffer->MethodStatus,
@@ -1280,10 +1274,10 @@ Return Value:
         handlerResult = PEP_NOTIFICATION_HANDLER_MAX;
         if (handler != NULL)
         {
-            DmfAssert(poFxWorkInformation != NULL);
-            if ((noSyncHandler == FALSE) &&
-                (poFxWorkInformation != NULL))
+            if (noSyncHandler == FALSE)
             {
+                // NOTE: poFxWorkInformation may be NULL.
+                //
                 handlerResult = handler(PepInternalDevice->DmfModule,
                                         Data,
                                         poFxWorkInformation);
@@ -2968,7 +2962,7 @@ PEP_NOTIFICATION_HANDLER_RESULT
 DMF_AcpiPepDevice_AsyncNotifyEvent(
     _In_ DMFMODULE DmfModule,
     _In_ VOID* Data,
-    _Out_ PEP_WORK_INFORMATION* PoFxWorkInformation
+    _Inout_opt_ PEP_WORK_INFORMATION* PoFxWorkInformation
     )
 /*++
 
@@ -3005,9 +2999,13 @@ Return Value:
     notifyContext = (PEP_ACPI_NOTIFY_CONTEXT*)Data;
     pepInternalDevice = notifyContext->PepInternalDevice;
     completeStatus = PEP_NOTIFICATION_HANDLER_COMPLETE;
-    PoFxWorkInformation->WorkType = PepWorkAcpiNotify;
-    PoFxWorkInformation->AcpiNotify.DeviceHandle = pepInternalDevice->KernelHandle;
-    PoFxWorkInformation->AcpiNotify.NotifyCode = notifyContext->NotifyCode;
+
+    if (PoFxWorkInformation != NULL)
+    {
+        PoFxWorkInformation->WorkType = PepWorkAcpiNotify;
+        PoFxWorkInformation->AcpiNotify.DeviceHandle = pepInternalDevice->KernelHandle;
+        PoFxWorkInformation->AcpiNotify.NotifyCode = notifyContext->NotifyCode;
+    }
 
     return completeStatus;
 }
