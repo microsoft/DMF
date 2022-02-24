@@ -1946,6 +1946,7 @@ Exit:
         {
             WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
             moduleContext->TriageDumpDataArrayMemory = NULL;
+            moduleContext->TriageDumpDataArray = NULL;
         }
     }
 
@@ -2009,6 +2010,7 @@ Return Value:
 
         WdfObjectDelete(moduleContext->TriageDumpDataArrayMemory);
         moduleContext->TriageDumpDataArrayMemory = NULL;
+        moduleContext->TriageDumpDataArray = NULL;
     }
 
     FuncExitVoid(DMF_TRACE);
