@@ -433,7 +433,6 @@ Return Value:
 
     UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(ClientWorkBufferContext);
-    UNREFERENCED_PARAMETER(NtStatus);
 
     dmfModuleHidTarget = DMF_ParentModuleGet(DmfModule);
 
