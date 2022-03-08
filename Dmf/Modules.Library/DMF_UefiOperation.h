@@ -27,12 +27,26 @@ DECLARE_DMF_MODULE_NO_CONFIG(UefiOperation)
 // Module Methods
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UNICODE_STRING* Name,
+    _In_ LPGUID Guid,
+    _Out_ VOID** VariableBuffer,
+    _Inout_ ULONG* VariableBufferSize,
+    _Inout_ WDFMEMORY* VariableBufferHandle,
+    _Out_opt_ ULONG* Attributes
+    );
+
 #if defined(DMF_USER_MODE)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS 
 DMF_UefiOperation_FirmwareEnvironmentVariableGet(
+    _In_ DMFMODULE DmfModule,
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
     _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,
@@ -45,6 +59,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
+    _In_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* Name,
     _In_ LPGUID Guid,
     _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,
@@ -58,6 +73,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSet(
+    _In_ DMFMODULE DmfModule,
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
     _In_reads_(VariableBufferSize) VOID* VariableBuffer,
@@ -70,6 +86,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSetEx(
+    _In_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* Name,
     _In_ LPGUID Guid,
     _In_reads_bytes_opt_(VariableBufferSize) VOID* VariableBuffer,

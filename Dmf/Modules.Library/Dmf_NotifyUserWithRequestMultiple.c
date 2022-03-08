@@ -33,12 +33,10 @@ Environment:
 
 typedef struct _DMF_CONTEXT_NotifyUserWithRequestMultiple
 {
-    // If ModeType is ReplayLastMessageToNewClients, this stores latest buffer.
+    // If ModeType is ReplayLastMessageToNewClients, this ring buffer stores the last
+    // buffers received from producer.
     //
-    VOID* CachedBuffer;
-    // Used to handle cases where no cached buffer is present.
-    //
-    BOOLEAN BufferAvailable;
+    DMFMODULE DmfModuleRingBuffer;
     // List containing Clients to be added to ListHead.
     //
     LIST_ENTRY PendingAddListHead;
@@ -456,6 +454,73 @@ Return Value:
     return callbackContext.FileObjectContext;
 }
 
+_Function_class_(EVT_DMF_RingBuffer_Enumeration)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+NotifyUserWithRequest_RingBuffer_Enumeration(
+    _In_ DMFMODULE DmfModule,
+    _Inout_updates_(BufferSize) UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_opt_ VOID* CallbackContext
+    )
+/*++
+
+Routine Description:
+
+    Ring buffer enumeration callback that does a non-destructive read of all
+    the entries and processes them in the target Client queue. Adds each element
+    to the Client queue and then tries to complete a Client WDFREQUEST if it is
+    available.
+
+    NOTE: Non-destructive read allows new data to be added to the cache at any time
+          and to be read at any time by new Clients. New Clients always get last
+          items added. It works because this Module does not call DMF_RingBuffer_Read()
+          which is destructive.
+
+Arguments:
+
+    DmfModule - DMF_RingBuffer Module handle.
+    Buffer - The enumerated entry from the ring buffer.
+    BufferSize - The size of the entry.
+    CallbackContext - Target client FILE_OBJECT_CONTEXT*.
+
+Return Value:
+
+    TRUE indicating to continue enumeration (enumerate the next entry).
+
+--*/
+{
+    DMFMODULE dmfModuleNotifyUserWithRequestMultiple;
+    DMF_CONTEXT_NotifyUserWithRequestMultiple* moduleContext;
+    DMF_CONFIG_NotifyUserWithRequestMultiple* moduleConfig;
+    FILE_OBJECT_CONTEXT* fileObjectContext;
+    NotifyUserWithRequestMultiple_BufferQueueBufferType* bufferQueueContext;
+
+    UNREFERENCED_PARAMETER(BufferSize);
+
+    dmfModuleNotifyUserWithRequestMultiple = DMF_ParentModuleGet(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModuleNotifyUserWithRequestMultiple);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleNotifyUserWithRequestMultiple);
+    fileObjectContext = (FILE_OBJECT_CONTEXT*)CallbackContext;
+
+    // There was cached data...transfer it.
+    // Map the Cached buffer for ease of access.
+    //
+    bufferQueueContext = (NotifyUserWithRequestMultiple_BufferQueueBufferType*)Buffer;
+
+    // Process data to service first request from Client.
+    //
+    DMF_NotifyUserWithRequest_DataProcess(fileObjectContext->DmfModuleNotifyUserWithRequest,
+                                          moduleConfig->CompletionCallback,
+                                          bufferQueueContext->DataBuffer,
+                                          bufferQueueContext->NtStatus);
+
+    // Always enumerate the next entry.
+    //
+    return TRUE;
+}
+
 _Function_class_(EVT_DMF_Doorbell_ClientCallback)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
@@ -554,20 +619,12 @@ Return Value:
 
         // If mode is set to ReplayLastMessageToNewClients, fill this User's buffer with latest cached data.
         //
-        if ((moduleConfig->ModeType.Modes.ReplayLastMessageToNewClients == 1) &&
-            (moduleContext->BufferAvailable == TRUE))
+        if (moduleConfig->ModeType.Modes.ReplayLastMessageToNewClients == 1)
         {
-            NotifyUserWithRequestMultiple_BufferQueueBufferType* bufferQueueContext;
-
-            // Map the Cached buffer for ease of access.
-            //
-            bufferQueueContext = (NotifyUserWithRequestMultiple_BufferQueueBufferType*)moduleContext->CachedBuffer;
-            // Process data to service first request from Client.
-            //
-            DMF_NotifyUserWithRequest_DataProcess(fileObjectContext->DmfModuleNotifyUserWithRequest,
-                                                  moduleConfig->CompletionCallback,
-                                                  bufferQueueContext->DataBuffer,
-                                                  bufferQueueContext->NtStatus);
+            DMF_RingBuffer_Enumerate(moduleContext->DmfModuleRingBuffer,
+                                     TRUE,
+                                     NotifyUserWithRequest_RingBuffer_Enumeration,
+                                     fileObjectContext);
         }
 
         // Add this User to the ListHead.
@@ -646,10 +703,9 @@ Return Value:
         //
         if (moduleConfig->ModeType.Modes.ReplayLastMessageToNewClients == 1)
         {
-            moduleContext->BufferAvailable = TRUE;
-            RtlCopyMemory(moduleContext->CachedBuffer,
-                          clientBuffer,
-                          moduleContext->BufferQueueBufferSize);
+            DMF_RingBuffer_Write(moduleContext->DmfModuleRingBuffer,
+                                 clientBuffer,
+                                 moduleContext->BufferQueueBufferSize);
         }
 
         // Iterate through ListHead until head is reached.
@@ -890,6 +946,7 @@ Return Value:
     DMF_CONFIG_NotifyUserWithRequestMultiple* moduleConfig;
     DMF_CONFIG_Doorbell doorbellConfig;
     DMF_CONFIG_BufferQueue bufferQueueConfig;
+    DMF_CONFIG_RingBuffer moduleConfigRingBuffer;
 
     PAGED_CODE();
 
@@ -942,6 +999,27 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfBufferQueueFileContextPool);
+
+    // Every buffer contains a ClientContext and NtStatus.
+    // It is important to do set this value here because this code executes before
+    // the Create() call completes.
+    //
+    moduleContext->BufferQueueBufferSize = moduleConfig->SizeOfDataBuffer + sizeof(NTSTATUS);
+
+    // If Client has specified ReplayLastMessageToNewClients, allocate buffers.
+    //
+    if (moduleConfig->ModeType.Modes.ReplayLastMessageToNewClients == 1)
+    {
+        DMF_CONFIG_RingBuffer_AND_ATTRIBUTES_INIT(&moduleConfigRingBuffer,
+                                                  &moduleAttributes);
+        moduleConfigRingBuffer.ItemCount = moduleConfig->MaximumNumberOfPendingDataBuffers;
+        moduleConfigRingBuffer.ItemSize = moduleContext->BufferQueueBufferSize;
+        moduleConfigRingBuffer.Mode = RingBuffer_Mode_DeleteOldestIfFullOnWrite;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleRingBuffer);
+    }
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1025,50 +1103,17 @@ Return Value:
     //
     DMF_CONTEXT_NotifyUserWithRequestMultiple* moduleContext;
     DMF_CONFIG_NotifyUserWithRequestMultiple* moduleConfig;
-    WDFMEMORY CachedBufferMemory;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
 
     moduleContext = DMF_CONTEXT_GET(*DmfModule);
     moduleConfig = DMF_CONFIG_GET(*DmfModule);
 
     // Initialize Context.
     //
-    moduleContext->BufferAvailable = FALSE;
-    moduleContext->CachedBuffer = NULL;
     moduleContext->FailureCountDuringBroadcast = 0;
     moduleContext->FailureCountDuringFileCreate = 0;
     InitializeListHead(&moduleContext->ListHead);
     InitializeListHead(&moduleContext->PendingAddListHead);
     InitializeListHead(&moduleContext->PendingRemoveListHead);
-
-    // Every buffer contains a ClientContext and NtStatus.
-    //
-    moduleContext->BufferQueueBufferSize = moduleConfig->SizeOfDataBuffer + sizeof(NTSTATUS);
-
-    // If Client has specified ReplayLastMessageToNewClients, allocate buffers.
-    //
-    if (moduleConfig->ModeType.Modes.ReplayLastMessageToNewClients == 1)
-    {
-        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-        objectAttributes.ParentObject = *DmfModule;
-        ntStatus = WdfMemoryCreate(&objectAttributes,
-                                   NonPagedPoolNx,
-                                   MemoryTag,
-                                   moduleContext->BufferQueueBufferSize,
-                                   &CachedBufferMemory,
-                                   (VOID**)&moduleContext->CachedBuffer);
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR,
-                        DMF_TRACE,
-                        "WdfMemoryCreate for CachedBuffer fails: ntStatus=%!STATUS!",
-                        ntStatus);
-            goto Exit;
-        }
-    }
-
-    // ------------------------------------------------------------
-    //
 
 Exit:
 

@@ -79,6 +79,8 @@ DMF_String_AnsiStringInitialize(
 //
 #define RtlInitAnsiString DMF_String_AnsiStringInitialize
 
+#define RtlStringCbPrintfA sprintf_s
+
 #endif
 
 typedef
