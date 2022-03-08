@@ -1066,5 +1066,133 @@ Return Value:
     return accumulatedValue;
 }
 
+_Must_inspect_result_
+_IRQL_requires_same_
+VOID
+DMF_Utility_SystemTimeCurrentGet(
+    _Out_ PLARGE_INTEGER CurrentSystemTime
+    )
+/*++
+
+Routine Description:
+
+    This function fetches the current system time in UTC.
+
+Arguments:
+
+    CurrentSystemTime - Pointer to store current system time.
+
+Return Value:
+
+    Current system time in UTC as LARGE INTEGER.
+
+--*/
+{
+#if defined(DMF_KERNEL_MODE)
+    KeQuerySystemTime(CurrentSystemTime);
+#elif defined(DMF_USER_MODE)
+    FILETIME SystemTimeAsFileTime;
+    GetSystemTimeAsFileTime(&SystemTimeAsFileTime);
+    CurrentSystemTime->LowPart = SystemTimeAsFileTime.dwLowDateTime;
+    CurrentSystemTime->HighPart = SystemTimeAsFileTime.dwHighDateTime;
+#endif
+}
+
+_Must_inspect_result_
+_IRQL_requires_same_
+BOOLEAN
+DMF_Utility_LocalTimeToUniversalTimeConvert(
+    _In_ DMF_TIME_FIELDS* LocalTimeFields,
+    _Out_ DMF_TIME_FIELDS* UtcTimeFields
+    )
+/*++
+
+Routine Description:
+
+    This function fetches the current system time in UTC.
+
+Arguments:
+
+    CurrentSystemTime - Pointer to store current system time.
+
+Return Value:
+
+    Current system time in UTC as LARGE INTEGER.
+
+--*/
+{
+#if defined(DMF_KERNEL_MODE)
+    LARGE_INTEGER convertedTime;
+    TIME_FIELDS _localTimeFields, _utcTimeFields;
+
+    _localTimeFields.Day = LocalTimeFields->Day;
+    _localTimeFields.Month = LocalTimeFields->Month;
+    _localTimeFields.Year = LocalTimeFields->Year;
+    _localTimeFields.Hour = LocalTimeFields->Hour;
+    _localTimeFields.Minute = LocalTimeFields->Minute;
+    _localTimeFields.Second = LocalTimeFields->Second;
+    _localTimeFields.Milliseconds = LocalTimeFields->Milliseconds;
+    _localTimeFields.Weekday = LocalTimeFields->Weekday;
+
+    if (!RtlTimeFieldsToTime(&_localTimeFields,
+                             &convertedTime))
+    {
+        return FALSE;
+    }
+    else
+    {
+        // Convert Local time to UTC time
+        //
+        ExLocalTimeToSystemTime(&convertedTime,
+                                &convertedTime);
+    }
+
+    RtlTimeToTimeFields(&convertedTime,
+                        &_utcTimeFields);
+
+    UtcTimeFields->Day = _utcTimeFields.Day;
+    UtcTimeFields->Month = _utcTimeFields.Month;
+    UtcTimeFields->Year = _utcTimeFields.Year;
+    UtcTimeFields->Hour = _utcTimeFields.Hour;
+    UtcTimeFields->Minute = _utcTimeFields.Minute;
+    UtcTimeFields->Second = _utcTimeFields.Second;
+    UtcTimeFields->Milliseconds = _utcTimeFields.Milliseconds;
+    UtcTimeFields->Weekday = _utcTimeFields.Weekday;
+
+    return TRUE;
+#elif defined(DMF_USER_MODE)
+    SYSTEMTIME _localTimeFields, _utcTimeFields;
+
+    _localTimeFields.wDay = LocalTimeFields->Day;
+    _localTimeFields.wMonth = LocalTimeFields->Month;
+    _localTimeFields.wYear = LocalTimeFields->Year;
+    _localTimeFields.wHour = LocalTimeFields->Hour;
+    _localTimeFields.wMinute = LocalTimeFields->Minute;
+    _localTimeFields.wSecond = LocalTimeFields->Second;
+    _localTimeFields.wMilliseconds = LocalTimeFields->Milliseconds;
+    _localTimeFields.wDayOfWeek = LocalTimeFields->Weekday;
+
+    // Convert Local Time to Coordinated Universal Time (UTC).
+    //
+    if (!TzSpecificLocalTimeToSystemTime(NULL,
+                                         &_localTimeFields,
+                                         &_utcTimeFields))
+    {
+        return FALSE;
+    }
+    
+    UtcTimeFields->Day = _utcTimeFields.wDay;
+    UtcTimeFields->Month = _utcTimeFields.wMonth;
+    UtcTimeFields->Year = _utcTimeFields.wYear;
+    UtcTimeFields->Hour = _utcTimeFields.wHour;
+    UtcTimeFields->Minute = _utcTimeFields.wMinute;
+    UtcTimeFields->Second = _utcTimeFields.wSecond;
+    UtcTimeFields->Milliseconds = _utcTimeFields.wMilliseconds;
+    UtcTimeFields->Weekday = _utcTimeFields.wDayOfWeek;
+
+    return TRUE;
+#endif
+}
+
 // eof: DmfUtility.c
 //
