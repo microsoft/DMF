@@ -249,6 +249,9 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_GpioTarget.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h">
+      <Filter>Headers\Modules\Targets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -377,6 +380,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_SpiTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c">
+      <Filter>Modules\Targets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
@@ -502,6 +508,9 @@
       <Filter>Documentation\Modules\Targets</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_SpiTarget.md">
+      <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
     </None>
   </ItemGroup>

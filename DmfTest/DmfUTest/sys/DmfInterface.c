@@ -277,6 +277,15 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
+
+        // Tests_DeviceInterfaceMultipleTarget
+        // -----------------------------------
+        //
+        DMF_Tests_DeviceInterfaceMultipleTarget_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
     }
     else
     {

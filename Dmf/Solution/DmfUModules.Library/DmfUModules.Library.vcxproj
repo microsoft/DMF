@@ -176,6 +176,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_ActivitySensor.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_GpioTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ActivitySensor.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_GpioTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
@@ -271,6 +273,7 @@
     <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferPool.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferQueue.md" />
+    <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_GpioTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
