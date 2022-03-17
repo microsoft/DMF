@@ -16,6 +16,7 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -38,7 +39,6 @@ Environment:
 // Specific external includes for this DMF Module.
 //
 #include <Guiddef.h>
-#include <wdmguid.h>
 #include <cfgmgr32.h>
 #include <ndisguid.h>
 #endif // defined(DMF_USER_MODE)
@@ -339,6 +339,15 @@ Return Value:
     Target->SymbolicLinkName.Length = symbolicLinkStringLength;
     Target->SymbolicLinkName.MaximumLength = symbolicLinkStringLength + sizeof(UNICODE_NULL);
 
+#if defined(DMF_USER_MODE)
+    // Overwrite with string.
+    //
+    RtlZeroMemory(Target->SymbolicLinkName.Buffer,
+                  Target->SymbolicLinkName.MaximumLength);
+    RtlCopyMemory(Target->SymbolicLinkName.Buffer,
+                  SymbolicLinkName->Buffer,
+                  symbolicLinkStringLength);
+#else
     ntStatus = RtlUnicodeStringCopy(&Target->SymbolicLinkName,
                                     SymbolicLinkName);
     if (! NT_SUCCESS(ntStatus))
@@ -348,6 +357,7 @@ Return Value:
                                                             Target);
         goto Exit;
     }
+#endif
 
 Exit:
     
@@ -1537,20 +1547,9 @@ Return Value:
         goto Exit;
     }
 
-    if (!target->QueryRemoveHappened)
-    {
-        // Surprise Remove happened, so QueryRemove did not happen. The Target
-        // still needs to be stopped and Module Closed.
-        //
-        DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(IoTarget);
-    }
-    else
-    {
-        // Clear for next time.
-        //
-        target->QueryRemoveHappened = FALSE;
-    }
-
+    // First, tell Client RemoveComplete is happening. In case when QueryRemove did not
+    // happen, Client still has chance to access underlying WDFIOTARGET.
+    //
     if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
     {
         DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
@@ -1563,6 +1562,22 @@ Return Value:
         moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(dmfModule,
                                                                       target->DmfIoTarget,
                                                                       DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete);
+    }
+
+    // If QueryRemove did not happen, close the underlying WDFIOTARGET.
+    //
+    if (!target->QueryRemoveHappened)
+    {
+        // Surprise Remove happened, so QueryRemove did not happen. The Target
+        // still needs to be stopped and Module Closed.
+        //
+        DeviceInterfaceMultipleTarget_StopTargetAndCloseModule(IoTarget);
+    }
+    else
+    {
+        // Clear for next time.
+        //
+        target->QueryRemoveHappened = FALSE;
     }
 
     // The underlying target has been removed and is no longer accessible.
@@ -1950,6 +1965,11 @@ Return Value:
             goto Exit;
         }
 
+        // Clear memory because it may not have been cleared in case of reuse.
+        //
+        RtlZeroMemory(target,
+                      sizeof(DeviceInterfaceMultipleTarget_IoTarget));
+
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
         objectAttributes.ParentObject = DmfModule;
 
@@ -2190,6 +2210,7 @@ Return Value:
     PAGED_CODE();
 
     ntStatus = STATUS_SUCCESS;
+    bufferPointer = NULL;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -2281,7 +2302,6 @@ Return Value:
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
     DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
     NTSTATUS ntStatus;
-    DeviceInterfaceMultipleTarget_IoTarget* target;
     UNICODE_STRING symbolickLink;
 
     UNREFERENCED_PARAMETER(hNotify);
@@ -2449,17 +2469,14 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
     CM_NOTIFY_FILTER cmNotifyFilter;
     CONFIGRET configRet;
-    DeviceInterfaceMultipleTarget_IoTarget* target;
 
     PAGED_CODE();
+
     FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_SUCCESS;
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-    Target = 0;
 
     // This function should not be not called twice.
     //

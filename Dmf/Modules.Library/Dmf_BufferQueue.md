@@ -30,10 +30,11 @@ typedef struct
   EVT_DMF_BufferQueue_ReuseCleanup* EvtBufferQueueReuseCleanup;
 } DMF_CONFIG_BufferQueue;
 ````
-Member | Description.
+Member | Description
 ----|----
 SourceSettings | Indicates the settings for a producer list. Since the producer list is internally implemented as a DMF_BufferPool source-mode list, kindly refer to the [DMF_BufferPool](Dmf_BufferPool.md) for details of this structure.
 EvtBufferQueueReuseCleanup |  The Client may register this callback to do any cleanup needed before the buffer is being flushed / reused.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types

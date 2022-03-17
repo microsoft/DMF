@@ -462,8 +462,9 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 UefiOperation);
+    // NOTE: In this Method, DmfModule can be NULL to support this call before WdfDeviceCreate() has been called.
+    //
+    UNREFERENCED_PARAMETER(DmfModule);
 
     result = UefiOperation_ProcessPrivilegeSet(TRUE,
                                                SE_SYSTEM_ENVIRONMENT_NAME);
