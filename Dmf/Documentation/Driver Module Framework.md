@@ -395,6 +395,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 [Important DMF Concepts](#important-dmf-concepts)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Simplifying Compilation and Linking with DMF](#Simplifying-Compilation-and-Linking-with-DMF)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Meaning of Open and Close Module](#meaning-of-open-and-close-module)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Notification Module Concepts](#notification-module-concepts)
@@ -7525,6 +7527,36 @@ Important DMF Concepts
 ======================
 
 This section discusses various issues related to writing device drivers using DMF.
+
+Simplifying Compilation and Linking with DMF
+--------------------------------------------
+
+In the DMF root folder there is a `DMF.props` file which can be copied to where the Client Driver resides. Inside the `DMF.props` file, update
+the `DmfRootPath` variable to indicate the location of the DMF root folder relative to the Client Driver Visual Studio Solution file using `$(SolutionDir)`.
+If the Client Driver is in a sibling directory of the DMF root directory, it is not necessary to update this value.
+
+*Important: Don't reference the `DMF.props` in the DMF root folder because that file is part of the repository.*
+
+Next, in the Client Driver Visual Studio Solution file, add an entry to cause `DMF.props` to load when the solution opens. To do so, add the following
+snippet to the solution file:
+
+````
+  <ImportGroup Label="PropertySheets">
+    <Import Project="DMF.props" />
+  </ImportGroup>
+````
+
+If the solution file already has a `PropertySheets`' section, add this line at the end of the existing section.
+
+````
+  <Import Project="DMF.props" />
+````
+
+Using this method is easier than updating all the project files include/linker paths and dependencies. The `DMF.props` has all the necessary
+settings to allow both Kernel and User-mode Client drivers to compile and link with the DMF framework, library and template libraries. You can also update 
+the `DMF.props`' copied to the Client Driver folder to include private DMF Libraries.
+
+The DMF samples and test drivers have been updated to use this method to show the above changes. See the history of the project files to see how much simpler it is to use this method.
 
 Meaning of Open and Close Module
 --------------------------------
