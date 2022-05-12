@@ -73,6 +73,9 @@ typedef struct _DMF_CONTEXT_Tests_IoctlHandler
     // Helper for thread work.
     //
     DMFMODULE DmfModuleAlertableSleep;
+    // Value get/set via direct call.
+    //
+    UCHAR InterfaceValue;
 } DMF_CONTEXT_Tests_IoctlHandler;
 
 // This macro declares the following function:
@@ -89,6 +92,10 @@ DMF_MODULE_DECLARE_CONFIG(Tests_IoctlHandler)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+// This setting disables the code that disables/enables the device interface.
+//
+#define NO_DISABLE_INTERFACE_THREAD
 
 typedef
 BOOLEAN
@@ -714,6 +721,126 @@ Exit:
 }
 #pragma code_seg()
 
+VOID
+Tests_IoctlHandler_InterfaceReference(
+    _In_ VOID* DmfModuleVoid
+    )
+/*++
+
+Routine Description:
+
+Routine Description:
+
+    Reference the interface. Module will not close until count is zero.
+
+Arguments:
+
+    DmfModuleVoid - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    DMF_ModuleReference(dmfModule);
+}
+
+VOID
+Tests_IoctlHandler_InterfaceDereference(
+    _In_ VOID* DmfModuleVoid
+    )
+/*++
+
+Routine Description:
+
+    Dereference the interface. Module will not close until count is zero.
+
+Arguments:
+
+    DmfModuleVoid - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    DMF_ModuleDereference(dmfModule);
+}
+
+BOOLEAN
+Tests_IoctlHandler_Get(
+    _In_ VOID* DmfModuleVoid,
+    _Out_ UCHAR* Value
+    )
+/*++
+
+Routine Description:
+
+    Gets the interface value from Module Context.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Value - Value from Module Context.
+
+Return Value:
+
+    TRUE
+
+--*/
+{
+    DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
+    DMFMODULE dmfModule;
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    *Value = moduleContext->InterfaceValue;
+
+    return TRUE;
+}
+
+BOOLEAN
+Tests_IoctlHandler_Set(
+    _In_ VOID* DmfModuleVoid,
+    _In_ UCHAR Value
+    )
+/*++
+
+Routine Description:
+
+    Sets the interface value in Module Context.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Value - Value to set in Module Context.
+
+Return Value:
+
+    TRUE
+
+--*/
+{
+    DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
+    DMFMODULE dmfModule;
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    moduleContext->InterfaceValue = Value;
+
+    return TRUE;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -838,7 +965,7 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleThread);
-                      
+
     // AlertableSleep Manual (Output)
     // ---------------------
     //
@@ -911,10 +1038,44 @@ Return Value:
         goto Exit;
     }
 
+#if defined(DMF_KERNEL_MODE)
+    // Create an interface that allows Client to call directly into this driver.
+    // This allows the sample to show how to use DMF_ModuleReference()/DMF_ModuleDereference()
+    // with such an interface. Drivers access this interface using IRP_MN_QUERY_INTERFACE.
+    //
+    WDF_QUERY_INTERFACE_CONFIG  queryInterrfaceConfig;
+    Tests_IoctlHandler_INTERFACE_STANDARD  testInterfaceStandard;
+
+    RtlZeroMemory(&testInterfaceStandard,
+                  sizeof(testInterfaceStandard));
+
+    testInterfaceStandard.InterfaceHeader.Size = sizeof(testInterfaceStandard);
+    testInterfaceStandard.InterfaceHeader.Version = 1;
+    testInterfaceStandard.InterfaceHeader.Context = (VOID*)DmfModule;
+
+    testInterfaceStandard.InterfaceHeader.InterfaceReference =  Tests_IoctlHandler_InterfaceReference;
+    testInterfaceStandard.InterfaceHeader.InterfaceDereference = Tests_IoctlHandler_InterfaceDereference;
+
+    testInterfaceStandard.InterfaceValueGet = Tests_IoctlHandler_Get;
+    testInterfaceStandard.InterfaceValueSet = Tests_IoctlHandler_Set;
+
+    WDF_QUERY_INTERFACE_CONFIG_INIT(&queryInterrfaceConfig,
+                                    (PINTERFACE) &testInterfaceStandard,
+                                    &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
+                                    NULL);
+    ntStatus = WdfDeviceAddQueryInterface(device,
+                                          &queryInterrfaceConfig);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+#endif // defined(DMF_KERNEL_MODE)
+
     queue = WdfDeviceGetDefaultQueue(device);
     WdfIoQueueStart(queue);
     WdfIoQueueStart(moduleContext->CancelableQueue);
 
+#if !defined(DISABLE_INTERFACE_THREAD)
     // Start the thread that disables/enables device interface.
     //
     ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread);
@@ -924,6 +1085,7 @@ Return Value:
         goto Exit;
     }
     DMF_Thread_WorkReady(moduleContext->DmfModuleThread);
+#endif
 
 Exit:
 
@@ -969,7 +1131,9 @@ Return Value:
 
     DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleep,
                              0);
+#if !defined(DISABLE_INTERFACE_THREAD)
     DMF_Thread_Stop(moduleContext->DmfModuleThread);
+#endif
 
     device = DMF_ParentDeviceGet(DmfModule);
     queue = WdfDeviceGetDefaultQueue(device);

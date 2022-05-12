@@ -9,6 +9,8 @@ Module Name:
 Abstract:
 
     Support for creating a virtual keyboard device that "types" keys into the host.
+    NOTE: See https://usb.org/sites/default/files/hut1_3_0.pdf (chapter 10) to find
+          keystroke map values.
 
 Environment:
 
@@ -350,6 +352,8 @@ Return Value:
                             inputReport.Input.KeyboardInput.Key);
                 isKeyDown = TRUE;
             }
+
+            inputReport.ReportId = REPORT_ID_KEYBOARD;
         }
         else if (UsagePage == HID_USAGE_PAGE_CONSUMER)
         {

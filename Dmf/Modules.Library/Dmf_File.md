@@ -39,6 +39,44 @@ Support for working with files in drivers.
 #### Module Methods
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_File_BufferDecompress
+
+````
+_Must_inspect_result_
+NTSTATUS
+DMF_File_BufferDecompress(
+    _In_ DMFMODULE DmfModule,
+    _In_ USHORT CompressionFormat,
+    _Inout_ UCHAR* UncompressedBuffer,
+    _Inout_ ULONG UncompressedBufferSize,
+    _In_ UCHAR* CompressedBuffer,
+    _In_ ULONG CompressedBufferSize,
+    _Inout_ ULONG* FinalUncompressedSize
+    );
+````
+
+    Decompresses the input buffer and writes the uncompressed buffer back.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | This Module's handle.
+CompressionFormat | CompressionFormat.
+UncompressedBuffer | Uncompressed output buffer handle of buffer holding data to write.
+UncompressedBufferSize |  Uncompressed output buffer size
+CompressedBuffer | Compressed input buffer handle
+CompressedBufferSize | Compressed input buffer size
+FinalUncompressedSize | Final uncompressed size of the buffer
+
+##### Remarks
+
+*
+
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_File_DriverFileRead
 
@@ -172,8 +210,6 @@ FileContentMemory | Buffer handle of buffer holding data to write.
 ##### Remarks
 
 *
-
------------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Children
 

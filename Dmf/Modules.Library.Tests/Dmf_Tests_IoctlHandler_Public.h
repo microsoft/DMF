@@ -38,5 +38,31 @@ typedef struct
 } Tests_IoctlHandler_Sleep;
 #pragma pack(pop)
 
+#if defined(DMF_KERNEL_MODE)
+
+// {6775E8C4-78EE-4269-8FF9-19DC127772F0}
+//
+DEFINE_GUID(GUID_Tests_IoctlHandler_INTERFACE_STANDARD, 
+    0x6775e8c4, 0x78ee, 0x4269, 0x8f, 0xf9, 0x19, 0xdc, 0x12, 0x77, 0x72, 0xf0);
+
+typedef
+BOOLEAN
+(*TestsIoctlHandler_ValueGet)(_In_ VOID* DmfModuleVoid,
+                              _Out_ UCHAR* Value);
+
+typedef
+BOOLEAN
+(*TestsIoctlHandler_ValueSet)(_In_ VOID* DmfModuleVoid,
+                              _In_ UCHAR Value);
+
+typedef struct _Tests_IoctlHandler_INTERFACE_STANDARD
+{
+    INTERFACE InterfaceHeader;
+    TestsIoctlHandler_ValueGet InterfaceValueGet;
+    TestsIoctlHandler_ValueSet InterfaceValueSet;
+} Tests_IoctlHandler_INTERFACE_STANDARD;
+
+#endif
+
 // eof: Dmf_Tests_IoctlHandler_Public.h
 //

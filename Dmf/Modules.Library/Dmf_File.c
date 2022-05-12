@@ -54,6 +54,17 @@ DMF_MODULE_DECLARE_NO_CONFIG(File)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#if defined(DMF_USER_MODE)
+typedef NTSTATUS
+(*RtlDecompressBuffer)(USHORT CompressionFormat,
+                       PUCHAR UncompressedBuffer,
+                       ULONG UncompressedBufferSize,
+                       PUCHAR CompressedBuffer,
+                       ULONG CompressedBufferSize,
+                       PULONG FinalUncompressedSize
+    );
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +146,83 @@ Exit:
 // Module Methods
 //
 
-#include <wdfdriver.h>
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_File_BufferDecompress(
+    _In_ DMFMODULE DmfModule,
+    _In_ USHORT CompressionFormat,
+    _Out_writes_bytes_(UncompressedBufferSize) UCHAR* UncompressedBuffer,
+    _In_ ULONG UncompressedBufferSize,
+    _In_reads_bytes_(CompressedBufferSize) UCHAR* CompressedBuffer,
+    _In_ ULONG CompressedBufferSize,
+    _Out_ ULONG* FinalUncompressedSize
+    )
+/*++
+
+Routine Description:
+
+    Decompresses the input buffer and writes the uncompressed buffer back.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    CompressionFormat - CompressionFormat.
+    UncompressedBuffer - Uncompressed output buffer handle of buffer holding data to write.
+    UncompressedBufferSize -  Uncompressed output buffer size
+    CompressedBuffer - Compressed input buffer handle
+    CompressedBufferSize - Compressed input buffer size
+    FinalUncompressedSize - Final uncompressed size of the buffer
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 File);
+
+#if defined(DMF_USER_MODE)
+    HMODULE dllModule = GetModuleHandle(TEXT("ntdll.dll"));
+    if (dllModule != 0)
+    {
+        RtlDecompressBuffer decompressBuffer = (RtlDecompressBuffer)GetProcAddress(dllModule, "RtlDecompressBuffer");
+        ntStatus = decompressBuffer(CompressionFormat,
+                                    UncompressedBuffer,
+                                    UncompressedBufferSize,
+                                    CompressedBuffer,
+                                    CompressedBufferSize,
+                                    FinalUncompressedSize);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "GetModuleHandle fails");
+        ntStatus = STATUS_UNSUCCESSFUL;
+    }
+#elif defined(DMF_KERNEL_MODE)
+    ntStatus = RtlDecompressBuffer(CompressionFormat,
+                                   UncompressedBuffer,
+                                   UncompressedBufferSize,
+                                   CompressedBuffer,
+                                   CompressedBufferSize,
+                                   FinalUncompressedSize);
+#endif
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)

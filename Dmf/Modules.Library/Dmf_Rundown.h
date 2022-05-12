@@ -21,8 +21,8 @@ Environment:
 #pragma once
 
 // This macro declares the following functions:
-// DMF_Registry_ATTRIBUTES_INIT()
-// DMF_Registry_Create()
+// DMF_Rundown_ATTRIBUTES_INIT()
+// DMF_Rundown_Create()
 //
 DECLARE_DMF_MODULE_NO_CONFIG(Rundown)
 

@@ -1066,7 +1066,6 @@ Return Value:
     return accumulatedValue;
 }
 
-_Must_inspect_result_
 _IRQL_requires_same_
 VOID
 DMF_Utility_SystemTimeCurrentGet(
@@ -1109,21 +1108,28 @@ DMF_Utility_LocalTimeToUniversalTimeConvert(
 
 Routine Description:
 
-    This function fetches the current system time in UTC.
+    Converts the given local time to universal time.
 
 Arguments:
 
-    CurrentSystemTime - Pointer to store current system time.
+    LocalTimeFields - The given local time.
+    UtcTimeFields - The returned universal time on success.
 
 Return Value:
 
-    Current system time in UTC as LARGE INTEGER.
+    TRUE if the call succeeds; FALSE, otherwise.
 
 --*/
 {
+    BOOLEAN returnValue;
+
+    RtlZeroMemory(UtcTimeFields,
+                  sizeof(DMF_TIME_FIELDS));
+
 #if defined(DMF_KERNEL_MODE)
     LARGE_INTEGER convertedTime;
-    TIME_FIELDS _localTimeFields, _utcTimeFields;
+    TIME_FIELDS _localTimeFields;
+    TIME_FIELDS _utcTimeFields;
 
     _localTimeFields.Day = LocalTimeFields->Day;
     _localTimeFields.Month = LocalTimeFields->Month;
@@ -1137,7 +1143,8 @@ Return Value:
     if (!RtlTimeFieldsToTime(&_localTimeFields,
                              &convertedTime))
     {
-        return FALSE;
+        returnValue = FALSE;
+        goto Exit;
     }
     else
     {
@@ -1159,9 +1166,10 @@ Return Value:
     UtcTimeFields->Milliseconds = _utcTimeFields.Milliseconds;
     UtcTimeFields->Weekday = _utcTimeFields.Weekday;
 
-    return TRUE;
+    returnValue = TRUE;
 #elif defined(DMF_USER_MODE)
-    SYSTEMTIME _localTimeFields, _utcTimeFields;
+    SYSTEMTIME _localTimeFields;
+    SYSTEMTIME _utcTimeFields;
 
     _localTimeFields.wDay = LocalTimeFields->Day;
     _localTimeFields.wMonth = LocalTimeFields->Month;
@@ -1178,7 +1186,8 @@ Return Value:
                                          &_localTimeFields,
                                          &_utcTimeFields))
     {
-        return FALSE;
+        returnValue = FALSE;
+        goto Exit;
     }
     
     UtcTimeFields->Day = _utcTimeFields.wDay;
@@ -1190,8 +1199,12 @@ Return Value:
     UtcTimeFields->Milliseconds = _utcTimeFields.wMilliseconds;
     UtcTimeFields->Weekday = _utcTimeFields.wDayOfWeek;
 
-    return TRUE;
+    returnValue = TRUE;
 #endif
+
+Exit:
+
+    return returnValue;
 }
 
 // eof: DmfUtility.c

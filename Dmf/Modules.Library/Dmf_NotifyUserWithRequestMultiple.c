@@ -511,6 +511,9 @@ Return Value:
 
     // Process data to service first request from Client.
     //
+    // 'Dereferencing NULL pointer. 'fileObjectContext''
+    //
+    #pragma warning(suppress:28182)
     DMF_NotifyUserWithRequest_DataProcess(fileObjectContext->DmfModuleNotifyUserWithRequest,
                                           moduleConfig->CompletionCallback,
                                           bufferQueueContext->DataBuffer,
