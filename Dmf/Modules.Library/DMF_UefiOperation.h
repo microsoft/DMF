@@ -18,6 +18,19 @@ Environment:
 
 --*/
 
+// Uefi variable attribute bits.
+// See https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-exsetfirmwareenvironmentvariable
+//
+//
+#define EFI_VARIABLE_NON_VOLATILE                           0x00000001
+#define EFI_VARIABLE_BOOTSERVICE_ACCESS                     0x00000002
+#define EFI_VARIABLE_RUNTIME_ACCESS                         0x00000004
+#define EFI_VARIABLE_HARDWARE_ERROR_RECORD                  0x00000008
+#define EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS             0x00000010
+#define EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS  0x00000020
+#define EFI_VARIABLE_APPEND_WRITE                           0x00000040
+#define EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS          0x00000080
+
 // This macro declares the following functions:
 // DMF_UefiOperation_ATTRIBUTES_INIT()
 // DMF_UefiOperation_Create()
@@ -36,7 +49,7 @@ DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet(
     _In_ LPGUID Guid,
     _Out_ VOID** VariableBuffer,
     _Inout_ ULONG* VariableBufferSize,
-    _Inout_ WDFMEMORY* VariableBufferHandle,
+    _Out_ WDFMEMORY* VariableBufferHandle,
     _Out_opt_ ULONG* Attributes
     );
 
@@ -59,7 +72,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* Name,
     _In_ LPGUID Guid,
     _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,

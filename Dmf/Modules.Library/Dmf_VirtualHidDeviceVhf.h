@@ -1138,17 +1138,11 @@ Environment:
 #define HID_LOGICAL_MAXIMUM_DWORD(val)          (HID_GLOBAL_LOGICAL_MAXIMUM | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 
 #define HID_UNIT_EXPONENT_BYTE(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_BYTE), val
-#define HID_UNIT_EXPONENT_BYTE(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_BYTE), val
 #define HID_UNIT_EXPONENT_WORD(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
-#define HID_UNIT_EXPONENT_WORD(val)             (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
-#define HID_UNIT_EXPONENT_DWORD(val)            (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 #define HID_UNIT_EXPONENT_DWORD(val)            (HID_GLOBAL_UNIT_EXPONENT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 
 #define HID_UNIT_BYTE(val)                      (HID_GLOBAL_UNIT | HID_SIZE_BYTE), val
-#define HID_UNIT_BYTE(val)                      (HID_GLOBAL_UNIT | HID_SIZE_BYTE), val
 #define HID_UNIT_WORD(val)                      (HID_GLOBAL_UNIT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
-#define HID_UNIT_WORD(val)                      (HID_GLOBAL_UNIT | HID_SIZE_WORD), (val & 0xFF), ((val >> 8) & 0xFF)
-#define HID_UNIT_DWORD(val)                     (HID_GLOBAL_UNIT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 #define HID_UNIT_DWORD(val)                     (HID_GLOBAL_UNIT | HID_SIZE_DWORD), (val & 0xFF), ((val >> 8) & 0xFF), ((val >> 16) & 0xFF), ((val >> 24) & 0xFF)
 
 // This Module is only supported in Kernel-mode because VHF only support Kernel-mode.

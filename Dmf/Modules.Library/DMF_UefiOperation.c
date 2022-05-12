@@ -504,7 +504,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* Name,
     _In_ LPGUID Guid,
     _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,

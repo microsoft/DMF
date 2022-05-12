@@ -1545,7 +1545,6 @@ DMF_Utility_IsEqualGUID(
     _In_ GUID* Guid2
     );
 
-_Must_inspect_result_
 _IRQL_requires_same_
 VOID
 DMF_Utility_SystemTimeCurrentGet(

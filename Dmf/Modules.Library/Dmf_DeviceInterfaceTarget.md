@@ -62,13 +62,19 @@ Enum to specify IO Target State.
 ````
 typedef enum
 {
-  DeviceInterfaceTarget_StateType_Invalid,
-  DeviceInterfaceTarget_StateType_Open,
-  DeviceInterfaceTarget_StateType_QueryRemove,
-  DeviceInterfaceTarget_StateType_QueryRemoveCancelled,
-  DeviceInterfaceTarget_StateType_QueryRemoveComplete,
-  DeviceInterfaceTarget_StateType_Close,
-  DeviceInterfaceTarget_StateType_Maximum
+    DeviceInterfaceTarget_StateType_Invalid,
+    DeviceInterfaceTarget_StateType_Open,
+    DeviceInterfaceTarget_StateType_QueryRemove,
+    // NOTE: This name is not correct. The correct name is on next line, but old name is kept for backward compatibility.
+    //
+    DeviceInterfaceTarget_StateType_QueryRemoveCancelled,
+    DeviceInterfaceTarget_StateType_RemoveCancel = DeviceInterfaceTarget_StateType_QueryRemoveCancelled,
+    // NOTE: This name is not correct. The correct name is on next line, but old name is kept for backward compatibility.
+    //
+    DeviceInterfaceTarget_StateType_QueryRemoveComplete,
+    DeviceInterfaceTarget_StateType_RemoveComplete = DeviceInterfaceTarget_StateType_QueryRemoveComplete,
+    DeviceInterfaceTarget_StateType_Close,
+    DeviceInterfaceTarget_StateType_Maximum
 } DeviceInterfaceTarget_StateType;
 ````
 
