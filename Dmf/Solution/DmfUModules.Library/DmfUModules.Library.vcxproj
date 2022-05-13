@@ -84,14 +84,11 @@
     <EnableInf2cat>false</EnableInf2cat>
     <DebuggerFlavor>DbgengRemoteDebugger</DebuggerFlavor>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -149,18 +146,7 @@
       <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
-    </Link>
-    <Link>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
-    </Link>
-    <Link>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
-    </Link>
-    <Link>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);hid.lib;setupapi.lib;cfgmgr32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
@@ -267,9 +253,6 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_ActivitySensor.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferPool.md" />
     <None Include="..\..\Modules.Library\Dmf_BufferQueue.md" />
@@ -306,6 +289,7 @@
     <None Include="..\..\Modules.Library\Dmf_SimpleOrientation.md" />
     <None Include="..\..\Modules.Library\Dmf_SmbiosWmi.md" />
     <None Include="..\..\Modules.Library\Dmf_SpbTarget.md" />
+    <None Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_Thread.md" />
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />
