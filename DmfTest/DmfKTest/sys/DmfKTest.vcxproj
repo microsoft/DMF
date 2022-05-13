@@ -60,8 +60,15 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="..\..\DmfTest.props" />
   </ImportGroup>
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <!-- Adding Empty PropertyGroup required after importing "$(VCTargetsPath)\Microsoft.Cpp.props" due to Visual Studio Intellisense bug -->
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
