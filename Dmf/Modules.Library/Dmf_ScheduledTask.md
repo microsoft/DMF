@@ -160,7 +160,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 ScheduledTask_Result_Type
 EVT_DMF_ScheduledTask_Callback(
-    _In_ DMFModule DmfModule,
+    _In_ DMFMODULE DmfModule,
     _In_ VOID* CallbackContext,
     _In_ WDF_POWER_DEVICE_STATE PreviousState
     );
