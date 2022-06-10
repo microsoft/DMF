@@ -48,7 +48,7 @@ DMF_Rundown_Reference(
     _In_ DMFMODULE DmfModule
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_Rundown_Start(
     _In_ DMFMODULE DmfModule

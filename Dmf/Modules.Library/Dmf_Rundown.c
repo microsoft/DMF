@@ -314,7 +314,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Rundown,
                                             Rundown,
                                             DMF_CONTEXT_Rundown,
-                                            DMF_MODULE_OPTIONS_PASSIVE,
+                                            DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     dmfModuleDescriptor_Rundown.CallbacksDmf = &dmfCallbacksDmf_Rundown;
@@ -513,7 +513,7 @@ Return Value:
     return ntStatus;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_Rundown_Start(
     _In_ DMFMODULE DmfModule

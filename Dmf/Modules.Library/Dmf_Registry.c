@@ -2492,6 +2492,15 @@ Return Value:
 
     DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
+    if (Handle == NULL)
+    {
+        // In case Client passes NULL, don't crash.
+        //
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
     // Indicate if action will be taken...default is no.
     //
     needsAction = FALSE;
@@ -2708,9 +2717,16 @@ Return Value:
 
     RtlInitUnicodeString(&valueNameString,
                          ValueName);
-    // For SAL.
-    //
-    ntStatus = STATUS_UNSUCCESSFUL;
+
+    ntStatus = STATUS_INVALID_PARAMETER;
+
+    if (Handle == NULL)
+    {
+        // In case Client passes NULL, don't crash.
+        //
+        DmfAssert(FALSE);
+        goto Exit;
+    }
 
     switch (ActionType)
     {
@@ -2799,6 +2815,8 @@ Return Value:
             break;
         }
     }
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -3618,8 +3636,8 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
 
-   // Delete the key.
-   //
+    // Delete the key.
+    //
     ntStatus = WdfRegistryRemoveKey((WDFKEY)Handle);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
