@@ -952,7 +952,7 @@ Return Value:
         sprintf_s(bufferRowString,
                   BUFFER_ROW_STRING_SIZE_IN_BYTES,
                   "");
-        for (int bufferRowIndex = 0; bufferRowIndex < BYTES_PER_ROW; bufferRowIndex++)
+        for (size_t bufferRowIndex = 0; bufferRowIndex < BYTES_PER_ROW; bufferRowIndex++)
         {
             sprintf_s(bufferRowString,
                       BUFFER_ROW_STRING_SIZE_IN_BYTES,
@@ -974,7 +974,7 @@ Return Value:
         sprintf_s(bufferRowString,
                   BUFFER_ROW_STRING_SIZE_IN_BYTES,
                   "");
-        for (int bufferRowIndex = 0; bufferRowIndex < BYTES_PER_ROW; bufferRowIndex++)
+        for (size_t bufferRowIndex = 0; bufferRowIndex < bufferRemaining; bufferRowIndex++)
         {
             sprintf_s(bufferRowString,
                       BUFFER_ROW_STRING_SIZE_IN_BYTES,

@@ -1218,6 +1218,13 @@ DMF_DmfDeviceInitOverrideDefaultQueueConfig(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
+DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_OBJECT_ATTRIBUTES* QueueObjectAttributes
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
 DMF_DmfFdoSetFilter(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     );

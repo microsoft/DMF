@@ -124,6 +124,12 @@ DECLARE_DMF_MODULE(ScheduledTask)
 // Module Methods
 //
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_ScheduledTask_Cancel(
+    _In_ DMFMODULE DmfModule
+    );
+
 _Must_inspect_result_
 ScheduledTask_Result_Type
 DMF_ScheduledTask_ExecuteNow(
@@ -141,6 +147,12 @@ DMF_ScheduledTask_ExecuteNowDeferred(
 _Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ScheduledTask_Restart(
     _In_ DMFMODULE DmfModule
     );
 

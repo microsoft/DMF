@@ -170,6 +170,9 @@ This is the DMF_ScheduledTask Client callback that performs work on behalf of th
 instantiated, this Method may or not be called as necessary. This callback is also used with the Methods that cause
 this callback to execute on demand immediately or on demand deferred.
 
+**Important:** It is possible that this callback can occur in two different threads during ReleaseHardware/D0Entry in cases when retries happen.
+It may be necessary to synchronize the code inside this callback.
+
 ##### Parameters
 Parameter | Description
 ----|----
@@ -182,12 +185,37 @@ PreviousState | Used when the callback is executed in D0Entry to tell the Client
 #### Module Methods
 
 -----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_ScheduledTask_Cancel
+
+````
+VOID
+DMF_ScheduledTask_Cancel(
+  _In_ DMFModule DmfModule
+  );
+````
+
+Cancel any pending ScheduledTask Execution.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ScheduledTask Module handle.
+
+##### Remarks
+
+* Call `DMF_ScheduledTask_Cancel()` before calling `WdfObjectDelete()` when a dynamic instance is used.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_ExecuteNow
 ````
 _Must_inspect_result_
 ScheduledTask_Result_Type
 DMF_ScheduledTask_ExecuteNow(
-  _In_ DMFMODULE DmfModule,
+  _In_ DMFModule DmfModule,
   _In_ VOID* CallbackContext
   );
 ````
@@ -215,7 +243,7 @@ CallbackContext | This is a Client specific context that is passed to the Client
 _Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferred(
-  _In_ DMFMODULE DmfModule,
+  _In_ DMFModule DmfModule,
   _In_opt_ VOID* CallbackContext
   );
 ````
@@ -243,13 +271,12 @@ CallbackContext | This is a Client specific context that is passed to the Client
 * This Method is present to maintain compatibility with legacy Clients.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ScheduledTask_ExecuteNowDeferredEx
 ````
 _Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_ExecuteNowDeferredEx(
-  _In_ DMFMODULE DmfModule
+  _In_ DMFModule DmfModule
   );
 ````
 
@@ -271,9 +298,32 @@ DmfModule | An open DMF_ScheduledTask Module handle.
 * Is possible to use this Method from a Module's Close callback.
 * It is possible to use this Method to execute code in a different thread. Sometimes, due to locking issues, this capability is needed.
 * **IMPORTANT:** When the callback returns `ScheduledTask_WorkResult_Success` it means that the callback will never execute again.
-* 
------------------------------------------------------------------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------------------------------------------------------------
+##### DMF_ScheduledTask_Restart
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_ScheduledTask_Restart(
+    _In_ DMFMODULE DmfModule
+    );
+````
+
+This Method allows Client to schedule tasks after `DMF_ScheduledTask_Cancel()` has been called.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ScheduledTask Module handle.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_TimesRunGet
 
 ````
@@ -281,7 +331,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunGet(
-  _In_ DMFMODULE DmfModule,
+  _In_ DMFModule DmfModule,
   _Out_ ULONG* TimesRun
   );
 ````
@@ -301,7 +351,6 @@ TimesRun | Returns the number of times the DMF_ScheduledTask routine has execute
 ##### Remarks
 
 -----------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ScheduledTask_TimesRunSet
 
 ````
@@ -309,7 +358,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_ScheduledTask_TimesRunSet(
-  _In_ DMFMODULE DmfModule,
+  _In_ DMFModule DmfModule,
   _In_ ULONG TimesRun
   );
 ````

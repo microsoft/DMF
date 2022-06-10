@@ -52,6 +52,12 @@ typedef struct
     // Version number of the virtual keyboard.
     //
     USHORT VersionNumber;
+    // Client can specify whether or not volume buttons are handled
+    // through VHD interface. This option should be enabled for all devices
+    // which only have volume keys on the keyboard (and not physical 
+    // volume buttons next to power button).
+    //
+    BOOLEAN DisableVolumeButtons;
 } DMF_CONFIG_HidPortableDeviceButtons;
 
 // This macro declares the following functions:
