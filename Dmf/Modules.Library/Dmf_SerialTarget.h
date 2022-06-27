@@ -36,6 +36,7 @@ typedef enum
     SerialWaitMaskFlag                = 0x0040,
     SerialClearRtsFlag                = 0x0080,
     SerialClearDtrFlag                = 0x0100,
+    SerialHighResolutionTimerFlag     = 0x0200,
     ConfigurationParametersValidFlags = SerialBaudRateFlag |
                                         SerialLineControlFlag |
                                         SerialCharsFlag |
@@ -44,7 +45,8 @@ typedef enum
                                         SerialHandflowFlag |
                                         SerialWaitMaskFlag |
                                         SerialClearRtsFlag |
-                                        SerialClearDtrFlag
+                                        SerialClearDtrFlag |
+                                        SerialHighResolutionTimerFlag
 } SerialStream_ConfigurationParameters_Flags;
 
 typedef struct
@@ -57,6 +59,7 @@ typedef struct
     SERIAL_QUEUE_SIZE QueueSize;
     SERIAL_HANDFLOW SerialHandflow;
     ULONG SerialWaitMask;
+    BOOLEAN EnableHighResolutionTimer;
 } SerialTarget_Configuration;
 
 typedef enum
