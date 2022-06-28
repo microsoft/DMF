@@ -91,6 +91,8 @@ DMF_MODULE_DECLARE_CONFIG(SerialTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#define OS_BUILD_WITH_SERIAL_CONTROLLER_HIGH_RESOLUTION_TIMER_SUPPORT 22000
+
 #define RESHUB_USE_HELPER_ROUTINES
 #include "reshub.h"
 
@@ -470,12 +472,13 @@ Environment:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_SUCCESS;
+    NTSTATUS ntStatus;
     DMF_CONTEXT_SerialTarget* moduleContext;
     DMF_CONFIG_SerialTarget* moduleConfig;
     WDF_IO_TARGET_OPEN_PARAMS  targetOpenParams;
     SerialTarget_Configuration serialIoConfigurationParameters;
     WDF_OBJECT_ATTRIBUTES targetAttributes;
+    WDF_MEMORY_DESCRIPTOR inputMemoryDescriptor;
 
     PAGED_CODE();
 
@@ -490,8 +493,6 @@ Environment:
     // Create the device path using the connection ID.
     //
     DECLARE_UNICODE_STRING_SIZE(DevicePath, RESOURCE_HUB_PATH_SIZE);
-
-    WDF_MEMORY_DESCRIPTOR   InputMemoryDescriptor;
 
     // Create the serial target.
     //
@@ -583,14 +584,14 @@ Environment:
 
     if (serialIoConfigurationParameters.Flags & SerialBaudRateFlag)
     {
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           &serialIoConfigurationParameters.BaudRate,
                                           sizeof(SERIAL_BAUD_RATE));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_BAUD_RATE,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -641,14 +642,14 @@ Environment:
 
     if (serialIoConfigurationParameters.Flags & SerialHandflowFlag)
     {
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialHandflow,
                                           sizeof(SERIAL_HANDFLOW));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_HANDFLOW,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -660,7 +661,7 @@ Environment:
 
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_HANDFLOW");
 
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialHandflow,
                                           sizeof(SERIAL_HANDFLOW));
 
@@ -670,7 +671,7 @@ Environment:
                                                      NULL,
                                                      IOCTL_SERIAL_GET_HANDFLOW,
                                                      NULL,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
@@ -687,14 +688,14 @@ Environment:
 
     if (serialIoConfigurationParameters.Flags & SerialWaitMaskFlag)
     {
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialWaitMask,
                                           sizeof(ULONG));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_WAIT_MASK,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -708,7 +709,7 @@ Environment:
             TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_WAIT_MASK to 0x%X", serialIoConfigurationParameters.SerialWaitMask);
         }
 
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialWaitMask,
                                           sizeof(ULONG));
 
@@ -718,7 +719,7 @@ Environment:
                                                      NULL,
                                                      IOCTL_SERIAL_GET_WAIT_MASK,
                                                      NULL,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
@@ -733,14 +734,14 @@ Environment:
     if (serialIoConfigurationParameters.Flags & SerialLineControlFlag)
     {
 
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialLineControl,
                                           sizeof(SERIAL_LINE_CONTROL));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_LINE_CONTROL,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -755,14 +756,14 @@ Environment:
 
     if (serialIoConfigurationParameters.Flags & SerialCharsFlag)
     {
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialChars,
                                           sizeof(SERIAL_CHARS));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_CHARS,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -774,7 +775,7 @@ Environment:
 
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_CHARS");
 
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialChars,
                                           sizeof(SERIAL_CHARS));
 
@@ -784,7 +785,7 @@ Environment:
                                                      NULL,
                                                      IOCTL_SERIAL_GET_CHARS,
                                                      NULL,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL);
         if (! NT_SUCCESS(ntStatus))
@@ -804,14 +805,14 @@ Environment:
 
     if (serialIoConfigurationParameters.Flags & SerialTimeoutsFlag)
     {
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.SerialTimeouts,
                                           sizeof(SERIAL_TIMEOUTS));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_TIMEOUTS,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -826,14 +827,14 @@ Environment:
 
     if (serialIoConfigurationParameters.Flags & SerialQueueSizeFlag)
     {
-        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&InputMemoryDescriptor,
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
                                           (VOID*)&serialIoConfigurationParameters.QueueSize,
                                           sizeof(SERIAL_QUEUE_SIZE));
 
         ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
                                                      NULL,
                                                      IOCTL_SERIAL_SET_QUEUE_SIZE,
-                                                     &InputMemoryDescriptor,
+                                                     &inputMemoryDescriptor,
                                                      NULL,
                                                      NULL,
                                                      NULL);
@@ -845,6 +846,65 @@ Environment:
 
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_QUEUE_SIZE");
     }
+
+#if IS_WIN10_21H2_OR_LATER
+    // IOCTL_SERIAL_SET_INTERVAL_TIMER_RESOLUTION was not defined until 21H2.
+    // It will not be present in earlier EWDK and code below will not compile when built with them.
+    //
+
+    if (serialIoConfigurationParameters.Flags & SerialHighResolutionTimerFlag)
+    {
+        // Serial Controller Driver did not implement IOCTL_SERIAL_SET_INTERVAL_TIMER_RESOLUTION until
+        // Windows 11 i.e. build 22000. In earlier OS, this IOCTL will fall back to the IHV serial driver and
+        // and the behavior will be dependent on the serial driver implementation. To avoid issues variabilty
+        // in how the serial driver handles this IOCTL, do not send it for versions of Windows earlier than
+        // Windows11.
+        //
+
+        RTL_OSVERSIONINFOEXW osVersion;
+        ULONGLONG conditonMask;
+
+        conditonMask = 0;
+        RtlZeroMemory(&osVersion,
+                      sizeof(osVersion));
+
+        osVersion.dwBuildNumber = OS_BUILD_WITH_SERIAL_CONTROLLER_HIGH_RESOLUTION_TIMER_SUPPORT;
+        VER_SET_CONDITION(conditonMask,
+                          VER_BUILDNUMBER,
+                          VER_GREATER_EQUAL);
+
+        ntStatus = RtlVerifyVersionInfo(&osVersion,
+                                        VER_BUILDNUMBER,
+                                        conditonMask);
+        if (NT_SUCCESS(ntStatus))
+        {
+            WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputMemoryDescriptor,
+                                              (VOID*)&serialIoConfigurationParameters.EnableHighResolutionTimer,
+                                              sizeof(BOOLEAN));
+
+            ntStatus = WdfIoTargetSendIoctlSynchronously(moduleContext->IoTarget,
+                                                         NULL,
+                                                         IOCTL_SERIAL_SET_INTERVAL_TIMER_RESOLUTION,
+                                                         &inputMemoryDescriptor,
+                                                         NULL,
+                                                         NULL,
+                                                         NULL);
+            if (! NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to SET_INTERVAL_TIMER_RESOLUTION ");
+                goto Exit;
+            }
+
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "successfully SET_INTERVAL_TIMER_RESOLUTION");
+        }
+        else
+        {
+            // Reset NTSTATUS since failing RtlVerifyVersionInfo is not an actual failure.
+            //
+            ntStatus = STATUS_SUCCESS;
+        }
+    }
+#endif
 
 Exit:
 

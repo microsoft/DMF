@@ -313,8 +313,8 @@ NotifyUserWithRequest_CompleteRequestWithEventData(
 
 Routine Description:
 
-    Looks for a request and a User-mode event. If both are found, calls the client callback function
-    to complete the request with the User-mode event.
+    Looks for both a pending request and pending data. If both exist, completes the
+    pending request using the pending data (in the manner specified by the client).
 
 Arguments:
 
@@ -360,7 +360,7 @@ Return Value:
         // Correct the error status.
         //
         ntStatus = STATUS_SUCCESS;
-        goto Exit;
+        goto ExitWithUnlock;
     }
 
     // Dereferencing the request object because every successful call to WdfIoQueueFindRequest
@@ -381,8 +381,10 @@ Return Value:
         // Correct the error status.
         //
         ntStatus = STATUS_SUCCESS;
-        goto Exit;
+        goto ExitWithUnlock;
     }
+
+    DMF_ModuleUnlock(DmfModule);
 
     userEventEntry = (USEREVENT_ENTRY*)clientBuffer;
 
@@ -403,10 +405,15 @@ Return Value:
 #if defined(DMF_USER_MODE)
         DMF_Utility_LogEmitString(DmfModule,
                                   DmfLogDataSeverity_Informational,
-                                  L"User-mode event request not found.");
+                                  L"Request not found.");
 #endif // defined(DMF_USER_MODE)
-        goto Exit;
     }
+
+    goto Exit;
+
+ExitWithUnlock:
+
+    DMF_ModuleUnlock(DmfModule);
 
 Exit:
 
@@ -416,8 +423,6 @@ Exit:
                               clientBuffer);
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_BufferQueue_Reuse");
     }
-
-    DMF_ModuleUnlock(DmfModule);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

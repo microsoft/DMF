@@ -166,6 +166,9 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_BusTarget.c">
       <Filter>Interfaces</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\DMF_UefiLogs.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -347,6 +350,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_BusTarget.h">
       <Filter>Headers\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\DMF_UefiLogs.h">
+      <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -596,6 +602,9 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.md">
       <Filter>Documentation\Interfaces</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\DMF_UefiLogs.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>

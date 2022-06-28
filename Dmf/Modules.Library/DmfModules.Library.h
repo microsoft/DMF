@@ -78,6 +78,7 @@ extern "C"
 #include "Dmf_String.h"
 #include "Dmf_ThermalCoolingInterface.h"
 #include "Dmf_UdeClient.h"
+#include "DMF_UefiLogs.h"
 #include "Dmf_UefiOperation.h"
 
 // Buffers
