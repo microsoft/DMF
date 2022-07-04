@@ -49,7 +49,8 @@ DMF_AcpiTarget_EvaluateMethod(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG MethodName,
     _In_opt_ VOID* InputBuffer,
-    __deref_opt_out_bcount_opt(*ReturnBufferSize) VOID* *ReturnBuffer,
+    _Out_opt_ WDFMEMORY* ReturnBufferMemory,
+    __deref_opt_out_bcount_opt(*ReturnBufferSize) VOID** ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag
     );
@@ -91,6 +92,7 @@ DMF_AcpiTarget_InvokeDsmRaw(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG FunctionIndex,
     _In_ ULONG FunctionCustomArgument,
+    _Out_opt_ WDFMEMORY* ReturnBufferMemory,
     _Out_writes_opt_(*ReturnBufferSize) VOID** ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag

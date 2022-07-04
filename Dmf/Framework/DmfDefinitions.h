@@ -85,6 +85,18 @@ typedef
 VOID
 EVT_DMF_MODULE_OnDeviceNotificationClose(_In_ DMFMODULE DmfModule);
 
+typedef struct _DMF_TIME_FIELDS
+{
+    UINT16 Year;
+    UINT16 Month;
+    UINT16 Day;
+    UINT16 Hour;
+    UINT16 Minute;
+    UINT16 Second;
+    UINT16 Milliseconds;
+    UINT16 Weekday;
+} DMF_TIME_FIELDS;
+
 // It means the Generic function is not overridden.
 //
 #define USE_GENERIC_CALLBACK      NULL
@@ -1206,6 +1218,13 @@ DMF_DmfDeviceInitOverrideDefaultQueueConfig(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
+DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_OBJECT_ATTRIBUTES* QueueObjectAttributes
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
 DMF_DmfFdoSetFilter(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     );
@@ -1531,6 +1550,23 @@ BOOLEAN
 DMF_Utility_IsEqualGUID(
     _In_ GUID* Guid1,
     _In_ GUID* Guid2
+    );
+
+_IRQL_requires_same_
+VOID
+DMF_Utility_SystemTimeCurrentGet(
+    _Out_ PLARGE_INTEGER CurrentSystemTime
+    );
+#if defined(DMF_USER_MODE)
+#define KeQuerySystemTime DMF_Utility_SystemTimeCurrentGet
+#endif
+
+_Must_inspect_result_
+_IRQL_requires_same_
+BOOLEAN
+DMF_Utility_LocalTimeToUniversalTimeConvert(
+    _In_ DMF_TIME_FIELDS* LocalTimeFields,
+    _Out_ DMF_TIME_FIELDS* UtcTimeFields
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

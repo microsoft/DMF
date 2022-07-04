@@ -68,13 +68,19 @@ Enum to specify IO Target State.
 ````
 typedef enum
 {
-  DeviceInterfaceMultipleTarget_StateType_Invalid,
-  DeviceInterfaceMultipleTarget_StateType_Open,
-  DeviceInterfaceMultipleTarget_StateType_QueryRemove,
-  DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled,
-  DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete,
-  DeviceInterfaceMultipleTarget_StateType_Close,
-  DeviceInterfaceMultipleTarget_StateType_Maximum
+    DeviceInterfaceMultipleTarget_StateType_Invalid,
+    DeviceInterfaceMultipleTarget_StateType_Open,
+    DeviceInterfaceMultipleTarget_StateType_QueryRemove,
+    // NOTE: This name is not correct. The correct name is on next line, but old name is kept for backward compatibility.
+    //
+    DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled,
+    DeviceInterfaceMultipleTarget_StateType_RemoveCancel = DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled,
+    // NOTE: This name is not correct. The correct name is on next line, but old name is kept for backward compatibility.
+    //
+    DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete,
+    DeviceInterfaceMultipleTarget_StateType_RemoveComplete = DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete,
+    DeviceInterfaceMultipleTarget_StateType_Close,
+    DeviceInterfaceMultipleTarget_StateType_Maximum
 } DeviceInterfaceMultipleTarget_StateType;
 ````
 
@@ -90,7 +96,7 @@ typedef enum
     // Module is opened in D0Entry and closed in D0Exit.
     //
     DeviceInterfaceMultipleTarget_PnpRegisterWhen_D0Entry,
-    // Module is opened in when module is created.
+    // Module is opened in when Module is created.
     //
     DeviceInterfaceMultipleTarget_PnpRegisterWhen_Create
 } DeviceInterfaceMultipleTarget_PnpRegisterWhen_Type;
@@ -517,6 +523,67 @@ Target | The given DMFIOTARGET handle.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_DeviceInterfaceMultipleTarget_TargetDereference
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+VOID
+DMF_DeviceInterfaceMultipleTarget_TargetDereference(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    );
+````
+
+Releases a reference to the WDFIOTARGET associated with the given Target.
+
+##### Returns
+
+None.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceMultipleTarget Module handle.
+Target | The given DMFIOTARGET handle.
+
+##### Remarks
+
+* Use this Method instead of DMF_ModuleDereference() because there more than one WDFIOTARGET may be open.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_DeviceInterfaceMultipleTarget_TargetReference
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_TargetReference(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    );
+````
+
+Acquires a reference to the WDFIOTARGET associated with the given Target.
+
+##### Returns
+
+STATUS_SUCCESS indicates that the given Target is valid and will remain available until
+`DMF_DeviceInterfaceMultipleTarget_TargetDereference` is called.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceMultipleTarget Module handle.
+Target | The given DMFIOTARGET handle.
+
+##### Remarks
+
+* Use this Method instead of DMF_ModuleReference() because there more than one WDFIOTARGET may be open.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module IOCTLs
 
 * None
@@ -548,8 +615,6 @@ Target | The given DMFIOTARGET handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### To Do
-
-* Add User-mode support.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 #### Module Category

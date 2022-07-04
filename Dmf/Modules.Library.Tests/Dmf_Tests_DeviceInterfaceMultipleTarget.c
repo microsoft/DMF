@@ -50,11 +50,18 @@ typedef enum _TEST_ACTION
 {
     TEST_ACTION_SYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUS,
+#if defined(DMF_KERNEL_MODE)
+    TEST_ACTION_DIRECTINTERFACE,
+#endif
     TEST_ACTION_ASYNCHRONOUSCANCEL,
     TEST_ACTION_COUNT,
     TEST_ACTION_MINIUM = TEST_ACTION_SYNCHRONOUS,
     TEST_ACTION_MAXIMUM = TEST_ACTION_ASYNCHRONOUSCANCEL
 } TEST_ACTION;
+
+// This option causes the veto of the remote target removal.
+//
+#define NO_TEST_VETO
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
@@ -96,6 +103,9 @@ typedef struct
     DeviceInterfaceMultipleTarget_Target Target;
     DMFMODULE DmfModuleTestsDeviceInterfaceMultipleTarget;
     DMFMODULE DmfModuleAlertableSleep;
+    // Associated with Target above.
+    //
+    DMFMODULE DmfModuleDeviceInterfaceMultipleTarget;
 } THREAD_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE(THREAD_CONTEXT);
 
@@ -112,9 +122,196 @@ typedef struct
     // Need to keep track of this because there is no pre-close per target.
     //
     BOOLEAN Closed;
+#if defined(DMF_KERNEL_MODE)
+    // Direct interface to the remote target.
+    //
+    Tests_IoctlHandler_INTERFACE_STANDARD DirectInterface;
+#endif
 } TARGET_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(TARGET_CONTEXT, DeviceInterfaceMultipleTarget_TargetContextGet);
+
+#if defined(DMF_KERNEL_MODE)
+
+NTSTATUS
+Tests_DeviceInterfaceMultipleTarget_QueryInterface(
+    _In_ DMFMODULE DmfModuleInterfaceMultipleTarget,
+    _In_ TARGET_CONTEXT* TargetContext
+    )
+/*++
+
+Routine Description:
+
+    Acquire the direct interface to underlying WDFIOTARGET.
+
+Arguments:
+
+    DmfModuleInterfaceMultipleTarget - DMF_DeviceInterfaceMultipleTarget (Child Module).
+    TargetContext - Where the direct interface data is stored for later access.
+    
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    WDFIOTARGET ioTarget;
+    NTSTATUS ntStatus;
+
+    // Reference the Module so that corresponding WDFIOTARGET can be retrieved.
+    //
+    ntStatus = DMF_DeviceInterfaceMultipleTarget_TargetReference(DmfModuleInterfaceMultipleTarget,
+                                                                 TargetContext->Target);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Module is closing or WDFIOTARGET is being removed or is removed.
+        //
+        goto ExitNoDereference;
+    }
+
+    // Get the underlying WDFIOTARGET. It will remain valid while the above reference is taken.
+    //
+    ntStatus = DMF_DeviceInterfaceMultipleTarget_Get(DmfModuleInterfaceMultipleTarget,
+                                                     TargetContext->Target,
+                                                     &ioTarget);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
+    // Use the underlying WDFIOTARGET to query for the direct interface.
+    //
+    ntStatus = WdfIoTargetQueryForInterface(ioTarget,
+                                            &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
+                                            (INTERFACE*)&TargetContext->DirectInterface,
+                                            sizeof(Tests_IoctlHandler_INTERFACE_STANDARD),
+                                            1,
+                                            NULL);
+    DmfAssert(NT_SUCCESS(ntStatus));
+
+Exit:
+
+    DMF_DeviceInterfaceMultipleTarget_TargetDereference(DmfModuleInterfaceMultipleTarget,
+                                                        TargetContext->Target);
+
+ExitNoDereference:
+
+    // If successful, call into the interface.
+    // 
+    // NOTE: It is not necessary to call DMF_ModuleReference() to call the interface because it has its own
+    //       reference counter that was acquired by WdfIoTargetQueryForInterface().
+    //
+    if (NT_SUCCESS(ntStatus))
+    {
+        UCHAR interfaceValue;
+
+        // Call the direct interface functions.
+        //
+        (*TargetContext->DirectInterface.InterfaceValueGet)(TargetContext->DirectInterface.InterfaceHeader.Context,
+                                                            &interfaceValue);
+        interfaceValue++;
+        (*TargetContext->DirectInterface.InterfaceValueSet)(TargetContext->DirectInterface.InterfaceHeader.Context,
+                                                            interfaceValue);
+    }
+
+    return ntStatus;
+}
+
+VOID
+Tests_DeviceInterfaceMultipleTarget_DirectInterfaceTest(
+    _In_ DMFMODULE DmfModuleInterfaceMultipleTarget,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Call the private direct interface function of a given Target.
+
+Arguments:
+
+    DmfModuleInterfaceMultipleTarget - DMF_DeviceInterfaceMultipleTarget (Child Module).
+    Target - The given Target.
+    
+Return Value:
+
+    None
+
+--*/
+{
+    TARGET_CONTEXT* targetContext;
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(DmfModuleInterfaceMultipleTarget);
+
+    targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
+
+    ntStatus = DMF_DeviceInterfaceMultipleTarget_TargetReference(DmfModuleInterfaceMultipleTarget,
+                                                                 Target);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Module is closing or WDFIOTARGET is being removed or is removed.
+        //
+        goto Exit;
+    }
+
+    UCHAR interfaceValue;
+    (*targetContext->DirectInterface.InterfaceValueGet)(targetContext->DirectInterface.InterfaceHeader.Context,
+                                                        &interfaceValue);
+
+    DMF_DeviceInterfaceMultipleTarget_TargetDereference(DmfModuleInterfaceMultipleTarget,
+                                                        Target);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MDI: InterfaceValue=%d", interfaceValue);
+
+Exit:
+
+    return;
+}
+
+VOID
+Tests_DeviceInterfaceMultipleTarget_DirectInterfaceDereference(
+    _In_ DMFMODULE DmfModuleInterfaceMultipleTarget,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    )
+/*++
+
+Routine Description:
+
+    Dereference the query interface reference that was acquired.
+
+Arguments:
+
+    DmfModule - DMF_DeviceInterfaceMultipleTarget.
+    Target - The Target that is to be dereferenced.
+    
+Return Value:
+
+    None
+
+--*/
+{
+    TARGET_CONTEXT* targetContext;
+
+    UNREFERENCED_PARAMETER(DmfModuleInterfaceMultipleTarget);
+
+    targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
+
+    // No need to reference the target because the target must still be available if
+    // a dereference will happen.
+    //
+    // NOTE: It can be NULL if query for interface failed or did not happen.
+    //
+    if (targetContext->DirectInterface.InterfaceHeader.InterfaceDereference != NULL)
+    {
+        // Wait for all existing calls to interface functions to finish.
+        //
+        (*targetContext->DirectInterface.InterfaceHeader.InterfaceDereference)(targetContext->DirectInterface.InterfaceHeader.Context);
+    }
+}
+
+#endif // defined(DMF_KERNEL_MODE)
 
 _Function_class_(EVT_DMF_ContinuousRequestTarget_BufferInput)
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -1277,6 +1474,14 @@ Return Value:
                                                                                              threadContext->DmfModuleAlertableSleep,
                                                                                              threadContext->Target);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            // NOTE: Unlike the above functions, first parameter here is the underlying DMF_DeviceInterfaceMultipleTarget.
+            //
+            Tests_DeviceInterfaceMultipleTarget_DirectInterfaceTest(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                    threadContext->Target);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         default:
             DmfAssert(FALSE);
             break;
@@ -1351,6 +1556,14 @@ Return Value:
                                                                                                           threadContext->DmfModuleAlertableSleep,
                                                                                                           threadContext->Target);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            // NOTE: Unlike the above functions, first parameter here is the underlying DMF_DeviceInterfaceMultipleTarget.
+            //
+            Tests_DeviceInterfaceMultipleTarget_DirectInterfaceTest(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                    threadContext->Target);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         default:
             DmfAssert(FALSE);
             break;
@@ -1422,6 +1635,14 @@ Return Value:
                                                                                             threadContext->DmfModuleAlertableSleep,
                                                                                             threadContext->Target);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            // NOTE: Unlike the above functions, first parameter here is the underlying DMF_DeviceInterfaceMultipleTarget.
+            //
+            Tests_DeviceInterfaceMultipleTarget_DirectInterfaceTest(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                    threadContext->Target);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         default:
             DmfAssert(FALSE);
             break;
@@ -1493,6 +1714,14 @@ Return Value:
                                                                                                          threadContext->DmfModuleAlertableSleep,
                                                                                                          threadContext->Target);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            // NOTE: Unlike the above functions, first parameter here is the underlying DMF_DeviceInterfaceMultipleTarget.
+            //
+            Tests_DeviceInterfaceMultipleTarget_DirectInterfaceTest(threadContext->DmfModuleDeviceInterfaceMultipleTarget,
+                                                                    threadContext->Target);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         default:
             DmfAssert(FALSE);
             break;
@@ -1674,12 +1903,16 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DeviceInterfaceMultipleTarget);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
-    targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
     device = DMF_ParentDeviceGet(DeviceInterfaceMultipleTarget);
 
+    // Allocate a specific context for this target.
+    // NOTE: In the case of RemoveCancel, the context will already have been
+    //       allocated so a new context is not allocated and the previously 
+    //       allocated context is returned. That context contains the data
+    //       set during QueryRemove. (STATUS_OBJECT_NAME_EXISTS is returned.)
+    //
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
                                             TARGET_CONTEXT);
-
     ntStatus = WdfObjectAllocateContext(Target,
                                         &objectAttributes,
                                         (VOID**)&targetContext);
@@ -1689,7 +1922,12 @@ Return Value:
     }
 
     targetContext->Target = Target;
+    // This flag may have been set previously during QueryRemove but now is reset due to 
+    // RemoveCancel.
+    //
+    targetContext->Closed = FALSE;
 
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     DMF_CONFIG_AlertableSleep moduleConfigAlertableSleep;
     DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
                                                   &moduleAttributes);
@@ -1709,8 +1947,6 @@ Return Value:
         DMF_MODULE_EVENT_CALLBACKS moduleEventCallbacks;
 
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-        objectAttributes.ParentObject = Target;
-
         DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
                                               &moduleAttributes);
         moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
@@ -1734,21 +1970,34 @@ Return Value:
                                                THREAD_CONTEXT);
         WdfObjectAllocateContext(targetContext->DmfModuleThread[threadIndex],
                                  &objectAttributes,
-                                 (PVOID*)&threadContext);
+                                 (VOID**)&threadContext);
 
         // Each thread context contains the same data as it is common for the target.
         //
         threadContext->DmfModuleTestsDeviceInterfaceMultipleTarget = dmfModuleParent;
         threadContext->Target = Target;
         threadContext->DmfModuleAlertableSleep = targetContext->DmfModuleAlertableSleep;
+        threadContext->DmfModuleDeviceInterfaceMultipleTarget = DeviceInterfaceMultipleTarget;
     }
+
+#if defined(DMF_KERNEL_MODE)
+    // Access the target's direct interface.
+    //
+    ntStatus = Tests_DeviceInterfaceMultipleTarget_QueryInterface(DeviceInterfaceMultipleTarget,
+                                                                  targetContext);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+#endif // defined(DMF_KERNEL_MODE)
 
     ntStatus = Tests_DeviceInterfaceMultipleTarget_Start(dmfModuleParent,
                                                          Target);
     DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
-    ;
+
+    return;
 }
 #pragma code_seg()
 
@@ -1803,6 +2052,16 @@ Return Value:
     Tests_DeviceInterfaceMultipleTarget_TargetThreadsStop(DeviceInterfaceMultipleTarget,
                                                           Target);
 
+    // Dereference the reference that was acquired when initial reference
+    // was acquired during WdfIoTargetQueryInterface().
+    // 
+    // NOTE: Do this after threads stop because threads use the interface.
+    //
+#if defined(DMF_KERNEL_MODE)
+    Tests_DeviceInterfaceMultipleTarget_DirectInterfaceDereference(DeviceInterfaceMultipleTarget,
+                                                                   Target);
+#endif // defined(DMF_KERNEL_MODE)
+
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
         WdfObjectDelete(targetContext->DmfModuleThread[threadIndex]);
@@ -1816,7 +2075,80 @@ Return Value:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
-VOID
+NTSTATUS
+Tests_DeviceInterfaceMultipleTarget_OnStateChange(
+    _In_ DMFMODULE DeviceInterfaceMultipleTarget,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_ DeviceInterfaceMultipleTarget_StateType IoTargetState,
+    _In_ EVT_DMF_Thread_Function ThreadCallback
+    )
+/*++
+
+Routine Description:
+
+    Called when a given Target arrives or is being removed.
+
+Arguments:
+
+    DeviceInterfaceMultipleTarget - DMF_DeviceInterfaceMultipleTarget.
+    Target - The given target.
+    IoTargetState - Indicates how the given Target state is changing.
+
+Return Value:
+
+    None
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    ntStatus = STATUS_SUCCESS;
+
+    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
+        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_RemoveCancel))
+    {
+#if defined(TEST_VETO)
+        if (IoTargetState == DeviceInterfaceMultipleTarget_StateType_RemoveCancel)
+        {
+            // This Module did nothing during the QueryRemove so it does nothing here.
+            //
+            goto Exit;
+        }
+#endif
+        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DeviceInterfaceMultipleTarget,
+                                                            Target,
+                                                            ThreadCallback);
+    }
+    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
+             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_RemoveComplete) ||
+             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
+    {
+#if defined(TEST_VETO)
+        if (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove)
+        {
+            ntStatus = STATUS_UNSUCCESSFUL;
+            goto Exit;
+        }
+#endif
+        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
+        if (! targetContext->Closed)
+        {
+            targetContext->Closed = TRUE;
+            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DeviceInterfaceMultipleTarget,
+                                                                Target);
+        }
+    }
+
+#if defined(TEST_VETO)
+Exit:
+#endif
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
 Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInput(
     _In_ DMFMODULE DeviceInterfaceMultipleTarget,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
@@ -1840,29 +2172,19 @@ Return Value:
 
 --*/
 {
-    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
-        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
-    {
-        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DeviceInterfaceMultipleTarget,
-                                                            Target,
-                                                            Tests_DeviceInterfaceMultipleTarget_WorkThreadDispatchInput);
-    }
-    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
-             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
-    {
-        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
-        if (! targetContext->Closed)
-        {
-            targetContext->Closed = TRUE;
-            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DeviceInterfaceMultipleTarget,
-                                                                Target);
-        }
-    }
+    NTSTATUS ntStatus;
+
+    ntStatus = Tests_DeviceInterfaceMultipleTarget_OnStateChange(DeviceInterfaceMultipleTarget,
+                                                                 Target,
+                                                                 IoTargetState,
+                                                                 Tests_DeviceInterfaceMultipleTarget_WorkThreadDispatchInput);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
-VOID
+NTSTATUS
 Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInputNonContinuous(
     _In_ DMFMODULE DeviceInterfaceMultipleTarget,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
@@ -1886,29 +2208,19 @@ Return Value:
 
 --*/
 {
-    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
-        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
-    {
-        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DeviceInterfaceMultipleTarget,
-                                                            Target,
-                                                            Tests_DeviceInterfaceMultipleTarget_WorkThreadDispatchInputNonContinuous);
-    }
-    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
-             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
-    {
-        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
-        if (! targetContext->Closed)
-        {
-            targetContext->Closed = TRUE;
-            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DeviceInterfaceMultipleTarget,
-                                                                Target);
-        }
-    }
+    NTSTATUS ntStatus;
+
+    ntStatus = Tests_DeviceInterfaceMultipleTarget_OnStateChange(DeviceInterfaceMultipleTarget,
+                                                                 Target,
+                                                                 IoTargetState,
+                                                                 Tests_DeviceInterfaceMultipleTarget_WorkThreadDispatchInputNonContinuous);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
-VOID
+NTSTATUS
 Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInput(
     _In_ DMFMODULE DeviceInterfaceMultipleTarget,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
@@ -1932,29 +2244,19 @@ Return Value:
 
 --*/
 {
-    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
-        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
-    {
-        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DeviceInterfaceMultipleTarget,
-                                                            Target,
-                                                            Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInput);
-    }
-    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
-             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
-    {
-        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
-        if (! targetContext->Closed)
-        {
-            targetContext->Closed = TRUE;
-            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DeviceInterfaceMultipleTarget,
-                                                                Target);
-        }
-    }
+    NTSTATUS ntStatus;
+
+    ntStatus = Tests_DeviceInterfaceMultipleTarget_OnStateChange(DeviceInterfaceMultipleTarget,
+                                                                 Target,
+                                                                 IoTargetState,
+                                                                 Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInput);
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
-VOID
+NTSTATUS
 Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInputNonContinuous(
     _In_ DMFMODULE DeviceInterfaceMultipleTarget,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
@@ -1978,24 +2280,14 @@ Return Value:
 
 --*/
 {
-    if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
-        (IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled))
-    {
-        Tests_DeviceInterfaceMultipleTarget_OnTargetArrival(DeviceInterfaceMultipleTarget,
-                                                            Target,
-                                                            Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInputNonContinuous);
-    }
-    else if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_QueryRemove) ||
-             (IoTargetState == DeviceInterfaceMultipleTarget_StateType_Close))
-    {
-        TARGET_CONTEXT* targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
-        if (! targetContext->Closed)
-        {
-            targetContext->Closed = TRUE;
-            Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval(DeviceInterfaceMultipleTarget,
-                                                                Target);
-        }
-    }
+    NTSTATUS ntStatus;
+
+    ntStatus = Tests_DeviceInterfaceMultipleTarget_OnStateChange(DeviceInterfaceMultipleTarget,
+                                                                 Target,
+                                                                 IoTargetState,
+                                                                 Tests_DeviceInterfaceMultipleTarget_WorkThreadPassiveInputNonContinuous);
+
+    return ntStatus;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2077,7 +2369,7 @@ Return Value:
     moduleConfigDeviceInterfaceMultipleTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceMultipleTarget_BufferInput;
     moduleConfigDeviceInterfaceMultipleTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceMultipleTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Automatic;
-    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChange = Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInput;
+    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChangeEx = Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInput;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -2090,7 +2382,7 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceMultipleTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceMultipleTarget,
                                                                  &moduleAttributes);
     moduleConfigDeviceInterfaceMultipleTarget.DeviceInterfaceMultipleTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
-    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChange = Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInputNonContinuous;
+    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChangeEx = Tests_DeviceInterfaceMultipleTarget_OnStateChangeDispatchInputNonContinuous;;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -2112,7 +2404,7 @@ Return Value:
     moduleConfigDeviceInterfaceMultipleTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferInput = Tests_DeviceInterfaceMultipleTarget_BufferInput;
     moduleConfigDeviceInterfaceMultipleTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceMultipleTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
-    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChange = Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInput;
+    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChangeEx = Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInput;
 
     moduleAttributes.PassiveLevel = TRUE;
     DMF_DmfModuleAdd(DmfModuleInit,
@@ -2126,7 +2418,7 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceMultipleTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceMultipleTarget,
                                                                  &moduleAttributes);
     moduleConfigDeviceInterfaceMultipleTarget.DeviceInterfaceMultipleTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
-    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChange = Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInputNonContinuous;
+    moduleConfigDeviceInterfaceMultipleTarget.EvtDeviceInterfaceMultipleTargetOnStateChangeEx = Tests_DeviceInterfaceMultipleTarget_OnStateChangePassiveInputNonContinuous;
 
     moduleAttributes.PassiveLevel = TRUE;
     DMF_DmfModuleAdd(DmfModuleInit,

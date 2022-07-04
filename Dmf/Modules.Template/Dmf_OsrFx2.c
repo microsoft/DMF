@@ -1687,6 +1687,7 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 NTSTATUS
 OsrFx2_IoctlHandler(

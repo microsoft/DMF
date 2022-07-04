@@ -1372,6 +1372,29 @@ Return Value:
         }
     }
 
+    // Ensure that Parent DMFMODULE is accessible until after
+    // Child is deleted so that Child can access Parent Module's
+    // WDFOBJECT context while running down.
+    // 
+    // NOTE: This is necessary only for a Dynamic Module since it
+    // can be deleted any time by WDF when its parent object is
+    // deleted.
+    //
+    if (DmfModuleAttributes->DynamicModuleImmediate)
+    {
+        // Remember the object that needs to be dereferenced when this Module's
+        // memory is deleted.
+        //
+        dmfObject->ObjectToDereference = parentObject;
+        // This is the call where the dereference happens (the object clean up callback).
+        //
+        DmfAssert(DmfModuleObjectAttributes->EvtCleanupCallback == DmfEvtDynamicModuleCleanupCallback);
+        // Add the reference now. Tag it so that the exact dereference can be verified.
+        //
+        WdfObjectReferenceWithTag(parentObject,
+                                  DMF_TAG_DYNAMIC_MODULE_REFERENCE);
+    }
+
     dmfModule = (DMFMODULE)memoryDmfObject;
     ntStatus = WdfObjectAddCustomType(dmfModule,
                                       DMFMODULE_TYPE);

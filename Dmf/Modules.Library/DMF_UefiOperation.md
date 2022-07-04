@@ -38,6 +38,43 @@ This Module provides UEFI basic operations. It allows clients to do data reading
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ UNICODE_STRING* Name,
+    _In_ LPGUID Guid,
+    _Out_ VOID** VariableBuffer,
+    _Inout_ ULONG* VariableBufferSize,
+    _Out_ WDFMEMORY* VariableBufferHandle,
+    _Out_opt_ ULONG* Attributes
+    );
+````
+
+Allows the Client to get the UEFI variable data from certain UEFI Guid and name in both User-mode and Kernel-mode.
+This API allocates required memory automatically and the client is responsible to free the memory.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | This Module's handle.
+Name | Name of UEFI variable to read data from.
+Guid | GUID of UEFI variable to read data from.
+VariableBuffer | Buffer that will store the data that is read from the UEFI variable.
+VariableBufferSize | As input, it pass the desired size that needs to be read. As output, it send back the actual size that was read from UEFI.
+VariableBufferHandle | WDF Memory Handle for the client
+Attributes | Location to which the routine writes the attributes of the specified environment variable.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_UefiOperation_FirmwareEnvironmentVariableGet
 
 ````
@@ -46,6 +83,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGet(
+    _In_ DMFMODULE DmfModule,
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
     _Out_writes_(*VariableBufferSize) VOID* VariableBuffer,
@@ -63,10 +101,11 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
+DmfModule | This Module's handle.
 Name | Name of UEFI variable to read data from.
 Guid | GUID of UEFI variable to read data from.
 VariableBuffer | Buffer that will store the data that is read from the UEFI variable.
-VariableBufferSize | As input, it pass the desired size that needs to be read (suggest use the one return from DMF_UefiOperation_GetFirmwareEnvironmentVariableSize). As output, it send back the actual size that was read from UEFI.
+VariableBufferSize | As input, it pass the desired size that needs to be read. As output, it send back the actual size that was read from UEFI.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -77,6 +116,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableGetEx(
+    _In_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* Name,
     _In_ LPGUID Guid,
     _Out_writes_bytes_opt_(*VariableBufferSize) VOID* VariableBuffer,
@@ -94,6 +134,7 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
+DmfModule | This Module's handle.
 Name | Name of UEFI variable to read data from.
 Guid | GUID of UEFI variable to read data from.
 VariableBuffer | Buffer that will store the data that is read from the UEFI variable.
@@ -109,6 +150,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSet(
+    _In_ DMFMODULE DmfModule,
     _In_ LPCTSTR Name,
     _In_ LPCTSTR Guid,
     _In_reads_(VariableBufferSize) VOID* VariableBuffer,
@@ -126,6 +168,7 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
+DmfModule | This Module's handle.
 Name | Name of UEFI variable to write data to. 
 Guid | GUID of UEFI variable to write data to.
 VariableBuffer | Buffer that stores the data that is to be written to the UEFI variable.
@@ -140,6 +183,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_UefiOperation_FirmwareEnvironmentVariableSetEx(
+    _In_ DMFMODULE DmfModule,
     _In_ UNICODE_STRING* Name,
     _In_ LPGUID Guid,
     _In_reads_bytes_opt_(VariableBufferSize) VOID* VariableBuffer,
@@ -157,6 +201,7 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
+DmfModule | This Module's handle.
 Name | Name of UEFI variable to write data to. 
 Guid | GUID of UEFI variable to write data to.
 VariableBuffer | Buffer that stores the data that is to be written to the UEFI variable.

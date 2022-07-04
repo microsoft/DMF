@@ -147,6 +147,64 @@ Return Value:
     return returnValue;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+Rundown_Close(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Uninitialize an instance of a DMF Module of type Rundown.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Rundown* moduleContext;
+    BOOLEAN endForClient;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    endForClient = FALSE;
+
+    DMF_ModuleLock(DmfModule);
+
+    if ((! moduleContext->WaitingForRundown) &&
+        (moduleContext->ReferenceCount >= 1))
+    {
+        // This path should be avoided. Client did not call DMF_Rundown_EndAndWait().
+        //
+        DmfAssert(FALSE);
+        endForClient = TRUE;
+    }
+    else
+    {
+        // This is the normal path that should execute.
+        //
+        DmfAssert(0 == moduleContext->ReferenceCount);
+    }
+
+    DMF_ModuleUnlock(DmfModule);
+
+    if (endForClient)
+    {
+        // Module cleans up for misbehaving Client, but this path should be avoided.
+        //
+        DMF_Rundown_EndAndWait(DmfModule);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,41 +283,13 @@ Return Value:
 
 --*/
 {
-    DMF_CONTEXT_Rundown* moduleContext;
-    BOOLEAN endForClient;
-
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-    endForClient = FALSE;
-
-    DMF_ModuleLock(DmfModule);
-
-    if ((! moduleContext->WaitingForRundown) &&
-        (moduleContext->ReferenceCount >= 1))
-    {
-        // This path should be avoided. Client did not call DMF_Rundown_EndAndWait().
-        //
-        DmfAssert(FALSE);
-        endForClient = TRUE;
-    }
-    else
-    {
-        // This is the normal path that should execute.
-        //
-        DmfAssert(0 == moduleContext->ReferenceCount);
-    }
-
-    DMF_ModuleUnlock(DmfModule);
-
-    if (endForClient)
-    {
-        // Module cleans up for misbehaving Client, but this path should be avoided.
-        //
-        DMF_Rundown_EndAndWait(DmfModule);
-    }
+    // Wait for Rundown to end in non-paged code, because a spin-lock is acquired.
+    //
+    Rundown_Close(DmfModule);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -314,7 +344,7 @@ Return Value:
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_Rundown,
                                             Rundown,
                                             DMF_CONTEXT_Rundown,
-                                            DMF_MODULE_OPTIONS_PASSIVE,
+                                            DMF_MODULE_OPTIONS_DISPATCH,
                                             DMF_MODULE_OPEN_OPTION_OPEN_Create);
 
     dmfModuleDescriptor_Rundown.CallbacksDmf = &dmfCallbacksDmf_Rundown;
@@ -513,7 +543,7 @@ Return Value:
     return ntStatus;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_Rundown_Start(
     _In_ DMFMODULE DmfModule

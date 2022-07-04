@@ -138,6 +138,7 @@ Environment:
 #include <strsafe.h>
 #include <ndisguid.h>
 #include <errno.h>
+#include <acpiioct.h>
 
 // Turn this on to debug asserts in UMDF.
 // Normal assert() causes a crash in UMDF which causes UMDF to just disable the driver

@@ -96,9 +96,37 @@ Environment:
 //
 #define IS_WIN10_19H1_OR_LATER (NTDDI_WIN10_19H1 && (NTDDI_VERSION >= NTDDI_WIN10_19H1))
 
+// Check that the Windows version is 20H1 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_20H1_OR_EARLIER (!(NTDDI_WIN10_VB && (NTDDI_VERSION > NTDDI_WIN10_VB)))
+
+// Check that the Windows version is 20H1 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_20H1_OR_LATER (NTDDI_WIN10_VB && (NTDDI_VERSION >= NTDDI_WIN10_VB))
+
+// Check that the Windows version is 20H2 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_20H2_OR_EARLIER (!(NTDDI_WIN10_MN && (NTDDI_VERSION > NTDDI_WIN10_MN)))
+
+// Check that the Windows version is 20H2 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_20H2_OR_LATER (NTDDI_WIN10_MN && (NTDDI_VERSION >= NTDDI_WIN10_MN))
+
 // Check that the Windows version is 21H1 or EARLIER. The supported versions are defined in sdkddkver.h.
 //
-#define IS_WIN10_21H1_OR_EARLIER (!(NTDDI_WIN10_MN && (NTDDI_VERSION > NTDDI_WIN10_MN)))
+#define IS_WIN10_21H1_OR_EARLIER (!(NTDDI_WIN10_FE && (NTDDI_VERSION > NTDDI_WIN10_FE)))
+
+// Check that the Windows version is 21H1 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_21H1_OR_LATER (NTDDI_WIN10_FE && (NTDDI_VERSION >= NTDDI_WIN10_FE))
+
+// Check that the Windows version is 21H2 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_21H2_OR_EARLIER (!(NTDDI_WIN10_CO && (NTDDI_VERSION > NTDDI_WIN10_CO)))
+
+// Check that the Windows version is 21H2 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_21H2_OR_LATER (NTDDI_WIN10_CO && (NTDDI_VERSION >= NTDDI_WIN10_CO))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

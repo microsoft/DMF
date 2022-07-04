@@ -262,6 +262,10 @@ struct _DMF_OBJECT_
     // Transport Interface GUID for validation.
     //
     GUID DesiredTransportInterfaceGuid;
+    // Stores the parent object that is referenced during Dynamic Module creation.
+    // This object will be dereferenced when the Module is deleted.
+    //
+    WDFOBJECT ObjectToDereference;
 };
 
 // DMF Object Signature.
@@ -271,6 +275,8 @@ struct _DMF_OBJECT_
 // Memory Allocation Tag for Dmf. ('DmfT')
 //
 #define DMF_TAG                            'TfmD'
+
+#define DMF_TAG_DYNAMIC_MODULE_REFERENCE    ((VOID*)0x7654)
 
 // Context used to iterate through the list of Child Modules.
 //
@@ -1665,6 +1671,12 @@ DMF_DmfDeviceInitClientImplementsDeviceAdd(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 WDF_IO_QUEUE_CONFIG*
 DMF_DmfDeviceInitDefaultQueueConfigGet(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+WDF_OBJECT_ATTRIBUTES*
+DMF_DmfDeviceInitDefaultQueueObjectAttributesGet(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     );
 

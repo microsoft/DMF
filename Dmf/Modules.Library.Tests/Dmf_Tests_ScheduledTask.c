@@ -355,8 +355,174 @@ TaskDescriptionArrayEx[] =
     }
 };
 
+static
+Tests_ScheduledTask_TaskDescription
+TaskDescriptionArrayExCancel[] = 
+{
+    // Non-persistent immediate tasks.
+    // Don't test Fail cases, since it'll block driver from loading.
+    // 0x0
+    //
+    {   ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x1
+    //
+    {   ScheduledTask_WorkResult_SuccessButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x2
+    //
+    {   ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x3
+    //
+    {   ScheduledTask_WorkResult_SuccessButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // Non-persistent deferred tasks.
+    //
+    // 0x4
+    //
+    {   ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x5
+    //
+    {   ScheduledTask_WorkResult_SuccessButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x6
+    //
+    {   ScheduledTask_WorkResult_Fail,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x7
+    //
+    {   ScheduledTask_WorkResult_FailButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x8
+    //
+    {   ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x9
+    //
+    {   ScheduledTask_WorkResult_SuccessButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0xA
+    //
+    {   ScheduledTask_WorkResult_Fail,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0xB
+    //
+    {   ScheduledTask_WorkResult_FailButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // Persistent tasks.
+    // (It won't executed since it already executed in legacy test.)
+    //
+    // 0xC
+    //
+    {
+        ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_PersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_PrepareHardware,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0xD
+    //
+    { 
+        ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_PersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_D0Entry,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // Tasks with manual execution.
+    //
+    // 0xE
+    //
+    {
+        ScheduledTask_WorkResult_Success,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_Other,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0xF
+    //
+    {
+        ScheduledTask_WorkResult_SuccessButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_Other,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x10
+    //
+    {
+        ScheduledTask_WorkResult_Fail,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_Other,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    },
+    // 0x11
+    //
+    {
+        ScheduledTask_WorkResult_FailButTryAgain,
+        ScheduledTask_Persistence_NotPersistentAcrossReboots,
+        ScheduledTask_ExecuteWhen_Other,
+        ScheduledTask_ExecutionMode_Deferred,
+        0
+    }
+};
+
 #define TASK_COUNT                  (ARRAYSIZE(TaskDescriptionArray))
 #define TASK_DELAY_MS               (1000)
+#define TASK_DELAY_CANCEL_MS        (4000)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
@@ -371,14 +537,19 @@ typedef struct _DMF_CONTEXT_Tests_ScheduledTask
     // ScheduledTask Modules to test.
     //
     DMFMODULE DmfModuleScheduledTaskEx[TASK_COUNT];
+    // ScheduledTask Modules to test. (Cancel)
+    //
+    DMFMODULE DmfModuleScheduledTaskExCancel[TASK_COUNT];
     // Callback contexts for scheduled tasks
     //
     Tests_ScheduledTask_TaskContext TaskContext[TASK_COUNT];
     Tests_ScheduledTask_TaskContext TaskContextEx[TASK_COUNT];
+    Tests_ScheduledTask_TaskContext TaskContextExCancel[TASK_COUNT];
     // Timer for delayed validation.
     //
     WDFTIMER ValidationTimer;
     WDFTIMER ValidationTimerEx;
+    WDFTIMER ValidationTimerExCancel;
 } DMF_CONTEXT_Tests_ScheduledTask;
 
 // This macro declares the following function:
@@ -474,6 +645,49 @@ Tests_ScheduledTask_TaskCallbackEx(
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_ScheduledTask_Callback)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+ScheduledTask_Result_Type 
+Tests_ScheduledTask_TaskCallbackExCancel(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* CallbackContext,
+    _In_ WDF_POWER_DEVICE_STATE PreviousState
+    )
+{
+    Tests_ScheduledTask_TaskContext* taskContext;
+    Tests_ScheduledTask_TaskDescription* taskDescription;
+    ScheduledTask_Result_Type result;
+    BOOLEAN firstCall;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(PreviousState);
+
+    PAGED_CODE();
+
+    // This callback should never happen since it should have been canceled.
+    //
+    DmfAssert(FALSE);
+
+    taskContext = (Tests_ScheduledTask_TaskContext*)CallbackContext;
+    DmfAssert(taskContext != NULL);
+    
+    DmfAssert(taskContext->DescriptionIndex < TASK_COUNT);
+    taskDescription = &TaskDescriptionArrayExCancel[taskContext->DescriptionIndex];
+
+    firstCall = (1 == InterlockedIncrement(&taskContext->TimesExecuted));
+
+    // From the first call return the value from task description.
+    // From the second call always return success.
+    //
+    result = (firstCall) ? taskDescription->ResultOnFirstCall
+                         : ScheduledTask_WorkResult_Success;
+
+    return result;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
 _Function_class_(EVT_WDF_TIMER)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
@@ -535,6 +749,42 @@ Tests_ScheduledTask_ValidationTimerCallbackEx(
     {
         taskDescription = &TaskDescriptionArrayEx[index];
         taskContext = &moduleContext->TaskContextEx[index];
+
+        DmfAssert(taskContext->DescriptionIndex == index);
+
+        // All the tasks should execute the specified amount of times at this point.
+        //
+        DmfAssert(taskDescription->TimesShouldExecute == taskContext->TimesExecuted);
+    }
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(EVT_WDF_TIMER)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_ScheduledTask_ValidationTimerCallbackExCancel(
+    _In_ WDFTIMER WdfTimer
+    )
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_Tests_ScheduledTask* moduleContext;
+    Tests_ScheduledTask_TaskContext* taskContext;
+    Tests_ScheduledTask_TaskDescription* taskDescription;
+    ULONG index;
+
+    PAGED_CODE();
+
+    dmfModule = (DMFMODULE)WdfTimerGetParentObject(WdfTimer);
+    DmfAssert(dmfModule != NULL);
+
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    for (index = 0; index < TASK_COUNT; index++)
+    {
+        taskDescription = &TaskDescriptionArrayExCancel[index];
+        taskContext = &moduleContext->TaskContextExCancel[index];
 
         DmfAssert(taskContext->DescriptionIndex == index);
 
@@ -679,6 +929,61 @@ Tests_ScheduledTask_RunManualTasksEx(
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+void
+Tests_ScheduledTask_RunManualTasksExCancel(
+    _In_ DMFMODULE DmfModule
+    )
+{
+    DMF_CONTEXT_Tests_ScheduledTask* moduleContext;
+    Tests_ScheduledTask_TaskDescription* taskDescription;
+    ULONG taskDescriptionIndex;
+    ULONG timesExecuted;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    for (taskDescriptionIndex = 0; taskDescriptionIndex < TASK_COUNT; taskDescriptionIndex++)
+    {
+        taskDescription = &TaskDescriptionArrayExCancel[taskDescriptionIndex];
+
+        if (taskDescription->ExecuteWhen != ScheduledTask_ExecuteWhen_Other)
+        {
+            continue;
+        }
+
+        for (timesExecuted = 0; timesExecuted < MANUAL_TASK_EXECUTE_COUNT; timesExecuted++)
+        {
+            DMFMODULE moduleUnderTest = moduleContext->DmfModuleScheduledTaskEx[taskDescriptionIndex];
+
+            // Schedule deferred execution.
+            //
+            if (timesExecuted > 0)
+            {
+                // If previously canceled, restart.
+                //
+                DMF_ScheduledTask_Restart(moduleUnderTest);
+            }
+            ntStatus = DMF_ScheduledTask_ExecuteNowDeferredEx(moduleUnderTest);
+            DmfAssert(STATUS_SUCCESS == ntStatus);
+
+            // Wait a short time...not too long otherwise start up takes a long time.
+            // TODO: Run in different thread.
+            //
+            DMF_Utility_DelayMilliseconds(30);
+
+            // Cancel it.
+            //
+            DMF_ScheduledTask_Cancel(moduleUnderTest);
+        }
+    }
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -774,6 +1079,30 @@ Tests_ScheduledTask_ModulePrepareHardware(
         }
     }
 
+    for (index = 0; index < TASK_COUNT; index++)
+    {
+        taskDescription = &TaskDescriptionArrayExCancel[index];
+        taskContext = &moduleContext->TaskContextExCancel[index];
+
+        DmfAssert(taskContext->DescriptionIndex == index);
+
+        switch (taskDescription->ExecuteWhen)
+        {
+        case ScheduledTask_ExecuteWhen_PrepareHardware:
+            DMF_ScheduledTask_Cancel(moduleContext->DmfModuleScheduledTaskExCancel[index]);
+            break;
+
+        case ScheduledTask_ExecuteWhen_D0Entry:
+            // No immediate D0Enty tasks should be executed yet.
+            //
+            DmfAssert(0 == taskContext->TimesExecuted);
+            break;
+
+        default:
+            break;
+        }
+    }
+
     return STATUS_SUCCESS;
 }
 #pragma code_seg()
@@ -853,12 +1182,35 @@ Tests_ScheduledTask_ModuleD0Entry(
         }
     }
 
+    for (index = 0; index < TASK_COUNT; index++)
+    {
+        taskDescription = &TaskDescriptionArrayExCancel[index];
+        taskContext = &moduleContext->TaskContextExCancel[index];
+
+        DmfAssert(taskContext->DescriptionIndex == index);
+
+        switch (taskDescription->ExecuteWhen)
+        {
+        case ScheduledTask_ExecuteWhen_PrepareHardware:
+            DmfAssert(0 == taskContext->TimesExecuted);
+            break;
+        case ScheduledTask_ExecuteWhen_D0Entry:
+            DMF_ScheduledTask_Cancel(moduleContext->DmfModuleScheduledTaskExCancel[index]);
+            break;
+
+        default:
+            break;
+        }
+    }
+
     // Set up a timer to validate final tasks status.
     // Double the delay, to make sure all the retried tasks are complete.
     //
     WdfTimerStart(moduleContext->ValidationTimer,
                   WDF_REL_TIMEOUT_IN_MS(TASK_DELAY_MS * 2));
     WdfTimerStart(moduleContext->ValidationTimerEx,
+                  WDF_REL_TIMEOUT_IN_MS(TASK_DELAY_MS * 10));
+    WdfTimerStart(moduleContext->ValidationTimerExCancel,
                   WDF_REL_TIMEOUT_IN_MS(TASK_DELAY_MS * 10));
 
     return STATUS_SUCCESS;
@@ -886,6 +1238,8 @@ Tests_ScheduledTask_ModuleD0Exit(
     WdfTimerStop(moduleContext->ValidationTimer,
                  TRUE);
     WdfTimerStop(moduleContext->ValidationTimerEx,
+                 TRUE);
+    WdfTimerStop(moduleContext->ValidationTimerExCancel,
                  TRUE);
 
     return STATUS_SUCCESS;
@@ -975,7 +1329,26 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-    
+
+    // Create a timer object to validate if tasks were executed properly.
+    //
+    WDF_TIMER_CONFIG_INIT(&timerConfig,
+                          Tests_ScheduledTask_ValidationTimerCallbackExCancel);
+    timerConfig.AutomaticSerialization = TRUE;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    objectAttributes.ExecutionLevel = WdfExecutionLevelPassive;
+
+    ntStatus = WdfTimerCreate(&timerConfig,
+                              &objectAttributes,
+                              &moduleContext->ValidationTimerExCancel);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfTimerCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     // Test APIs to get/set TimesRun value.
     //
     Tests_ScheduledTask_TestTimesRun(DmfModule);
@@ -984,6 +1357,7 @@ Return Value:
     //
     Tests_ScheduledTask_RunManualTasks(DmfModule);
     Tests_ScheduledTask_RunManualTasksEx(DmfModule);
+    Tests_ScheduledTask_RunManualTasksExCancel(DmfModule);
 
 Exit:
     
@@ -1028,6 +1402,8 @@ Return Value:
     WdfObjectDelete(moduleContext->ValidationTimer);
     moduleContext->ValidationTimer = NULL;
     WdfObjectDelete(moduleContext->ValidationTimerEx);
+    moduleContext->ValidationTimerEx = NULL;
+    WdfObjectDelete(moduleContext->ValidationTimerExCancel);
     moduleContext->ValidationTimerEx = NULL;
 
     FuncExitVoid(DMF_TRACE);
@@ -1113,6 +1489,24 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleScheduledTaskEx[scheduledTaskIndex]);
+
+        // Used for Cancel Method.
+        //
+        DMF_CONFIG_ScheduledTask_AND_ATTRIBUTES_INIT(&moduleConfigScheduledTask,
+                                                     &moduleAttributes);
+        moduleContext->TaskContextExCancel[scheduledTaskIndex].DescriptionIndex = scheduledTaskIndex;
+        moduleContext->TaskContextExCancel[scheduledTaskIndex].TimesExecuted = 0;
+        moduleConfigScheduledTask.EvtScheduledTaskCallback = Tests_ScheduledTask_TaskCallbackExCancel;
+        moduleConfigScheduledTask.CallbackContext = &moduleContext->TaskContextExCancel[scheduledTaskIndex];
+        moduleConfigScheduledTask.PersistenceType = TaskDescriptionArrayExCancel[scheduledTaskIndex].PersistenceType;
+        moduleConfigScheduledTask.ExecutionMode = TaskDescriptionArrayExCancel[scheduledTaskIndex].ExecutionMode;
+        moduleConfigScheduledTask.ExecuteWhen = TaskDescriptionArrayExCancel[scheduledTaskIndex].ExecuteWhen;
+        moduleConfigScheduledTask.TimerPeriodMsOnSuccess = TASK_DELAY_CANCEL_MS;
+        moduleConfigScheduledTask.TimerPeriodMsOnFail = TASK_DELAY_CANCEL_MS;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleScheduledTaskExCancel[scheduledTaskIndex]);
     }
 
     FuncExitVoid(DMF_TRACE);

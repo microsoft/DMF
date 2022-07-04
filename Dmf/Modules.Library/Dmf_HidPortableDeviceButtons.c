@@ -158,7 +158,7 @@ DMF_MODULE_DECLARE_CONFIG(HidPortableDeviceButtons)
 static
 const
 UCHAR
-g_HidPortableDeviceButtons_HidReportDescriptor[] =
+g_HidPortableDeviceButtons_HidReportDescriptorPowerAndVolume[] =
 {
     0x15, 0x00,                      // LOGICAL_MINIMUM (0)
     0x25, 0x01,                      // LOGICAL_MAXIMUM (1)
@@ -213,6 +213,115 @@ g_HidPortableDeviceButtons_HidReportDescriptor[] =
     0xA1, 0x02,                      // COLLECTION (Logical)
     0x05, 0x0C,                      // USAGE_PAGE (Consumer Devices)
     0x09, 0xEA,                      // USAGE (Volume Decrement)             // Volume Down Button
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x81, 0x02,                      // INPUT (Data,Var,Abs)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0xCB,                      // USAGE (Control Enable)           
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0xB1, 0x02,                      // FEATURE (Data,Var,Abs)
+    0xC0,                            // END_COLLECTION
+
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x0D,                      // USAGE (Portable Device Control)
+    0xA1, 0x02,                      // COLLECTION (Logical)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0xCA,                      // USAGE (System Display Rotation Lock Slider Switch) // Rotation Lock Button
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x81, 0x02,                      // INPUT (Data,Var,Abs)
+    0x95, 0x03,                      // REPORT_COUNT (3)                     // unused bits in 8-bit Input Report
+    0x81, 0x03,                      // INPUT (Cnst,Var,Abs)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0xCB,                      // USAGE (Control Enable)           
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0xB1, 0x02,                      // FEATURE (Data,Var,Abs)
+    0x95, 0x03,                      // REPORT_COUNT (3)                     // unused bits in 8-bit Feature Report
+    0xB1, 0x03,                      // FEATURE (Cnst,Var,Abs)
+    0xC0,                            // END_COLLECTION
+
+    0xC0,                            // END_COLLECTION
+
+    //***************************************************************
+    //
+    // hotkeys (consumer)
+    //
+    // report consists of:
+    // 1 byte report ID
+    // 1 word Consumer Key
+    //
+    //***************************************************************
+
+    0x05, 0x0C,                      // USAGE_PAGE (Consumer Devices)
+    0x09, 0x01,                      // HID_USAGE (Consumer Control)
+    0xA1, 0x01,                      // COLLECTION (Application)
+    0x85, REPORTID_HOTKEYS,          // REPORT_ID (REPORTID_HOTKEYS)
+    0x75, 0x10,                      // REPORT_SIZE(16),
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x15, 0x00,                      // LOGICAL_MIN (0)
+    0x26, 0xff, 0x03,                // HID_LOGICAL_MAX (1023)
+    0x19, 0x00,                      // HID_USAGE_MIN (0)
+    0x2A, 0xff, 0x03,                // HID_USAGE_MAX (1023)
+    0x81, 0x00,                      // HID_INPUT (Data,Arr,Abs)
+    0xC0                             // END_COLLECTION
+};
+
+static
+const
+UCHAR
+g_HidPortableDeviceButtons_HidReportDescriptorPowerOnly[] =
+{
+    0x15, 0x00,                      // LOGICAL_MINIMUM (0)
+    0x25, 0x01,                      // LOGICAL_MAXIMUM (1)
+    0x75, 0x01,                      // REPORT_SIZE (1)
+
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x0D,                      // USAGE (Portable Device Control)
+    0xA1, 0x01,                      // COLLECTION (Application)
+    0x85, REPORTID_BUTTONS,          // REPORT_ID (REPORTID_BUTTONS) (For Input Report & Feature Report)
+
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x0D,                      // USAGE (Portable Device Control)
+    0xA1, 0x02,                      // COLLECTION (Logical)
+    0x05, 0x07,                      // USAGE_PAGE (Keyboard)
+    0x09, 0xE3,                      // USAGE (Keyboard LGUI)                // Windows/Home Button
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x81, 0x02,                      // INPUT (Data,Var,Abs)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0xCB,                      // USAGE (Control Enable)           
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0xB1, 0x02,                      // FEATURE (Data,Var,Abs)
+    0xC0,                            // END_COLLECTION
+
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x0D,                      // USAGE (Portable Device Control)
+    0xA1, 0x02,                      // COLLECTION (Logical)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x81,                      // USAGE (System Power Down)            // Power Button
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x81, 0x02,                      // INPUT (Data,Var,Abs)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0xCB,                      // USAGE (Control Enable)           
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0xB1, 0x02,                      // FEATURE (Data,Var,Abs)
+    0xC0,                            // END_COLLECTION
+
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x0D,                      // USAGE (Portable Device Control)
+    0xA1, 0x02,                      // COLLECTION (Logical)
+    0x05, 0x0C,                      // USAGE_PAGE (Consumer Devices)
+    0x09, 0x00,                      // USAGE (Volume Increment)             // Volume Up Button
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0x81, 0x02,                      // INPUT (Data,Var,Abs)
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0xCB,                      // USAGE (Control Enable)           
+    0x95, 0x01,                      // REPORT_COUNT (1)
+    0xB1, 0x02,                      // FEATURE (Data,Var,Abs)
+    0xC0,                            // END_COLLECTION
+
+    0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
+    0x09, 0x0D,                      // USAGE (Portable Device Control)
+    0xA1, 0x02,                      // COLLECTION (Logical)
+    0x05, 0x0C,                      // USAGE_PAGE (Consumer Devices)
+    0x09, 0x00,                      // USAGE (Volume Decrement)             // Volume Down Button
     0x95, 0x01,                      // REPORT_COUNT (1)
     0x81, 0x02,                      // INPUT (Data,Var,Abs)
     0x05, 0x01,                      // USAGE_PAGE (Generic Desktop)
@@ -623,8 +732,14 @@ Return Value:
     //
     moduleContext->InputReportEnabledState.u.Data = 0;
     moduleContext->InputReportEnabledState.u.Buttons.Power = 1;
-    moduleContext->InputReportEnabledState.u.Buttons.VolumeDown = 1;
-    moduleContext->InputReportEnabledState.u.Buttons.VolumeUp = 1;
+
+    // Only enable volume buttons if specified in the config.
+    //
+    if (!moduleConfig->DisableVolumeButtons)
+    {
+        moduleContext->InputReportEnabledState.u.Buttons.VolumeDown = 1;
+        moduleContext->InputReportEnabledState.u.Buttons.VolumeUp = 1;
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -722,8 +837,20 @@ Return Value:
     virtualHidDeviceMsModuleConfig.ProductId = moduleConfig->ProductId;
     virtualHidDeviceMsModuleConfig.VersionNumber = 0x0001;
 
-    virtualHidDeviceMsModuleConfig.HidReportDescriptor = g_HidPortableDeviceButtons_HidReportDescriptor;
-    virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptor);
+    if (moduleConfig->DisableVolumeButtons == TRUE)
+    {
+        // Do not provide volume button support.
+        //
+        virtualHidDeviceMsModuleConfig.HidReportDescriptor = g_HidPortableDeviceButtons_HidReportDescriptorPowerOnly;
+        virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptorPowerOnly);
+    }
+    else
+    {
+        // Provide volume button support.
+        //
+        virtualHidDeviceMsModuleConfig.HidReportDescriptor = g_HidPortableDeviceButtons_HidReportDescriptorPowerAndVolume;
+        virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptorPowerAndVolume);
+    }
 
     // Set virtual device attributes.
     //

@@ -931,6 +931,8 @@ Return Value:
                                                                              DeviceInterfaceTarget_StateType_QueryRemove);
         }
 
+        // Only stop streaming and Close the Module if Client has not vetoed QueryRemove.
+        //
         if (NT_SUCCESS(ntStatus))
         {
             // Stop streaming and Close the Module.
@@ -942,15 +944,22 @@ Return Value:
         //
     }
 
+    // MSDN states that STATUS_SUCCESS or STATUS_UNSUCCESSFUL must be returned.
+    //
+    if (! NT_SUCCESS(ntStatus))
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+    }
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 
-EVT_WDF_IO_TARGET_REMOVE_CANCELED DeviceInterfaceTarget_EvtIoTargetRemoveCanceled;
+EVT_WDF_IO_TARGET_REMOVE_CANCELED DeviceInterfaceTarget_EvtIoTargetRemoveCancel;
 
 VOID
-DeviceInterfaceTarget_EvtIoTargetRemoveCanceled(
+DeviceInterfaceTarget_EvtIoTargetRemoveCancel(
     _In_ WDFIOTARGET IoTarget
     )
 /*++
@@ -984,51 +993,62 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
     moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
 
-    DmfAssert(moduleContext->IoTarget == NULL);
-    moduleContext->IoTarget = IoTarget;
-
-    WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
-
-    ntStatus = WdfIoTargetOpen(moduleContext->IoTarget,
-                                &openParams);
-    if (! NT_SUCCESS(ntStatus))
+    if (moduleContext->IoTarget == NULL)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
-        WdfObjectDelete(moduleContext->IoTarget);
-        moduleContext->IoTarget = NULL;
-        // In this case, ModuleCloseReason remains set so that Close will not happen,
-        // because Module is actually closed.
+        // Client did not veto QueryRemove. Reopen the WDFIOTARGET because it
+        // was closed to prepare for removal.
         //
-        goto Exit;
-    }
 
-    // RemoveCancel path: Reopen IoTarget.
-    //
-    ntStatus = DMF_ModuleOpen(*dmfModuleAddress);
-    if (! NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen fails: ntStatus=%!STATUS!", ntStatus);
-        WdfIoTargetClose(moduleContext->IoTarget);
-        WdfObjectDelete(moduleContext->IoTarget);
-        moduleContext->IoTarget = NULL;
-        // In this case, ModuleCloseReason remains set so that Close will not happen,
-        // because Module is actually closed.
-        //
-        goto Exit;
-    }
+        moduleContext->IoTarget = IoTarget;
 
-    // Transparently restart the stream in automatic mode. This must be done before notifying the
-    // Client of the state change.
-    //
-    if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
-    {
-        ntStatus = DMF_DeviceInterfaceTarget_StreamStart(*dmfModuleAddress);
+        WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
+        ntStatus = WdfIoTargetOpen(moduleContext->IoTarget,
+                                   &openParams);
         if (! NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
-            // Fall-through. (Client will detect error and deal with it.)
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
+            WdfObjectDelete(moduleContext->IoTarget);
+            moduleContext->IoTarget = NULL;
+            // In this case, ModuleCloseReason remains set so that Close will not happen,
+            // because Module is actually closed.
             //
+            goto Exit;
         }
+
+        // Reopen the Module.
+        //
+        ntStatus = DMF_ModuleOpen(*dmfModuleAddress);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen fails: ntStatus=%!STATUS!", ntStatus);
+            WdfIoTargetClose(moduleContext->IoTarget);
+            WdfObjectDelete(moduleContext->IoTarget);
+            moduleContext->IoTarget = NULL;
+            // In this case, ModuleCloseReason remains set so that Close will not happen,
+            // because Module is actually closed.
+            //
+            goto Exit;
+        }
+
+        // Transparently restart the stream in automatic mode. This must be done before notifying the
+        // Client of the state change.
+        //
+        if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
+        {
+            ntStatus = DMF_DeviceInterfaceTarget_StreamStart(*dmfModuleAddress);
+            if (! NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_DeviceInterfaceTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
+                // Fall-through. (Client will detect error and deal with it.)
+                //
+            }
+        }
+    }
+    else
+    {
+        // Client vetoed QueryRemove so WDFIOTARGET was not closed and streaming was not stopped.
+        //
+        DmfAssert(moduleContext->IoTarget == IoTarget);
     }
 
     // If the client has registered for device interface state changes, call the notification callback.
@@ -1037,12 +1057,12 @@ Return Value:
     {
         DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
         moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
-                                                            DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
+                                                            DeviceInterfaceTarget_StateType_RemoveCancel);
     }
     else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
     {
         moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
-                                                              DeviceInterfaceTarget_StateType_QueryRemoveCancelled);
+                                                              DeviceInterfaceTarget_StateType_RemoveCancel);
     }
 
     // End of sequence. Allow another close to happen. Now NotificationUnregister or
@@ -1129,12 +1149,12 @@ Return Value:
         {
             DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
             moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
-                                                                DeviceInterfaceTarget_StateType_QueryRemoveComplete);
+                                                                DeviceInterfaceTarget_StateType_RemoveComplete);
         }
         else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
         {
             moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
-                                                                  DeviceInterfaceTarget_StateType_QueryRemoveComplete);
+                                                                  DeviceInterfaceTarget_StateType_RemoveComplete);
         }
 
         if (moduleCloseReason == ModuleCloseReason_RemoveComplete)
@@ -1214,7 +1234,7 @@ Return Value:
                                                 GENERIC_READ | GENERIC_WRITE);
     openParams.ShareAccess = FILE_SHARE_READ | FILE_SHARE_WRITE;
     openParams.EvtIoTargetQueryRemove = DeviceInterfaceTarget_EvtIoTargetQueryRemove;
-    openParams.EvtIoTargetRemoveCanceled = DeviceInterfaceTarget_EvtIoTargetRemoveCanceled;
+    openParams.EvtIoTargetRemoveCanceled = DeviceInterfaceTarget_EvtIoTargetRemoveCancel;
     openParams.EvtIoTargetRemoveComplete = DeviceInterfaceTarget_EvtIoTargetRemoveComplete;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&targetAttributes);

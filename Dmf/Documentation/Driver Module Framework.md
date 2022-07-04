@@ -171,6 +171,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitOverrideDefaultQueueConfig](#dmf_dmfdeviceinitoverridedefaultqueueconfig)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes](#dmf_dmfdeviceinitoverridedefaultobjectattributes)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitSetEventCallbacks](#dmf_dmfdeviceinitseteventcallbacks)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfFdoSetFilter](#dmf_dmffdosetfilter)
@@ -395,6 +397,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 [Important DMF Concepts](#important-dmf-concepts)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Simplifying Compilation and Linking with DMF](#Simplifying-Compilation-and-Linking-with-DMF)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Meaning of Open and Close Module](#meaning-of-open-and-close-module)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Notification Module Concepts](#notification-module-concepts)
@@ -402,6 +406,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Parent-Child Module Open Option Combinations](#parent-child-module-open-option-combinations)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Using Internal Module Resources](#using-internal-module-resources)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Queue Callback Execution Level Notes](#queue-callback-execution-level-notes)
 
 [DMF Coding Conventions](#dmf-coding-conventions)
 
@@ -3614,6 +3620,33 @@ None
 
 -   It is not necessary to call `WdfIoQueueCreate()` when using this function. Simply call it instead of calling
     `WdfIoQueueCreate()` after calling `WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE()`.
+
+### DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes
+```
+VOID
+DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_OBJECT_ATTRIBUTES* QueueObjectAttributes
+    );
+```
+This function allows the Client driver to override how DMF creates the default IO queue.
+Use this function if Client IOCTL handler needs to run at PASSIVE_LEVEL.
+
+#### Parameters
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **PDMFDEVICE_INIT DmfDeviceInit**    |    The data structure created using **DMF_DmfDeviceInitAllocate()**.
+  **WDF_OBJECT_ATTRIBUTES* QueueObjectAttributes**  | The Client Driver passes an initialized instance of this structure.
+
+#### Returns
+
+None
+
+#### Remarks
+
+- See [Queue Callback Execution Level Notes](#queue-callback-execution-level-notes).<br>
+- If the Client driver's IOCTL handler needs to run at PASSIVE_LEVEL set `QueueObjectAttributes.ExecutionLevel = WdfExecutionLevelPassive` after calling `WDF_OBJECT_ATTRIBUTES_INIT(&QueueObjectAttributes)`.<br>
+- If the Client driver instantiates any Modules that have an IOCTL handler that needs to run at PASSIVE_LEVEL set `QueueObjectAttributes.ExecutionLevel = WdfExecutionLevelPassive` after calling `WDF_OBJECT_ATTRIBUTES_INIT(&QueueObjectAttributes)`.<br>
 
 ### DMF_DmfDeviceInitSetEventCallbacks
 ```
@@ -7526,6 +7559,36 @@ Important DMF Concepts
 
 This section discusses various issues related to writing device drivers using DMF.
 
+Simplifying Compilation and Linking with DMF
+--------------------------------------------
+
+In the DMF root folder there is a `DMF.props` file which can be copied to where the Client Driver resides. Inside the `DMF.props` file, update
+the `DmfRootPath` variable to indicate the location of the DMF root folder relative to the Client Driver Visual Studio Solution file using `$(SolutionDir)`.
+If the Client Driver is in a sibling directory of the DMF root directory, it is not necessary to update this value.
+
+*Important: Don't reference the `DMF.props` in the DMF root folder because that file is part of the repository.*
+
+Next, in the Client Driver Visual Studio Solution file, add an entry to cause `DMF.props` to load when the solution opens. To do so, add the following
+snippet to the solution file:
+
+````
+  <ImportGroup Label="PropertySheets">
+    <Import Project="DMF.props" />
+  </ImportGroup>
+````
+
+If the solution file already has a `PropertySheets`' section, add this line at the end of the existing section.
+
+````
+  <Import Project="DMF.props" />
+````
+
+Using this method is easier than updating all the project files include/linker paths and dependencies. The `DMF.props` has all the necessary
+settings to allow both Kernel and User-mode Client drivers to compile and link with the DMF framework, library and template libraries. You can also update 
+the `DMF.props`' copied to the Client Driver folder to include private DMF Libraries.
+
+The DMF samples and test drivers have been updated to use this method to show the above changes. See the history of the project files to see how much simpler it is to use this method.
+
 Meaning of Open and Close Module
 --------------------------------
 
@@ -7760,6 +7823,23 @@ DMF_HidTarget_PreparsedDataGet(
     );
 ````
 
+Queue Callback Execution Level Notes
+------------------------------------
+
+The default `WDFIOQUEUE` created by DMF is set to execute at `WdfExecutionLevelInheritFromParent` by default.
+
+This means that in KMDF the queue's callbacks can happen between PASSIVE_LEVEL and DISPATCH_LEVEL.
+
+If a Client has a queue callback that must run at PASSIVE_LEVEL or the Client uses a Module that has a queue callback that must execute at PASSIVE_LEVEL, then the Client has two options:
+
+1. Initialize a `WDF_OBJECT_ATTRIBUTES` structure and Set `ExecutionLevel = WdfExecutionLevelPassive` and pass it when creating the driver's `WDFDEVICE`. Because DMF is set to inherit the execution level from the parent device by default, the callback will execute at PASSIVE_LEVEL.
+2. Initialize a `WDF_OBJECT_ATTRIBUTES` structure and Set `ExecutionLevel = WdfExecutionLevelPassive` and pass it to `DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes()`. Now, DMF will cause the queue callback to execute at PASSIVE_LEVEL.
+
+Other notes:<br>
+* Callbacks that acquire a `WDFWAITLOCK` or perform synchronous I/O must run at PASSIVE_LEVEL.<br>
+* Generally speaking it is best to not perform synchronous I/O during queue callbacks it because doing so blocks the calling thread.<br>
+* These notes apply only to KMDF. In UMDF, all callbacks execute at PASSIVE_LEVEL always.<br>
+
 DMF Coding Conventions
 ======================
 
@@ -7927,6 +8007,9 @@ Client Driver and create instances of Modules.
   **DMF_ModuleCreate**                                 |  Client Drivers use this call to create Dynamic Modules. *Client drivers typically do not create Dynamic Modules.*
   **DMF_ParentDeviceGet**                              |  Client Drivers use this function to retrieve the **WDFDEVICE** that is set as parent of a Module. Using that device, the Client Driver can access the corresponding Device Context.
   **DMF_FilterDeviceGet**                              |  Client Filter Drivers use this function to retrieve the **WDFDEVICE** that corresponds to the Filter Device Filter Device Object.
+  **DMF_DmfDeviceInitOverrideDefaultQueueConfig**      |  Client Drivers use this function to modify how DMF creates the default queue.
+  **DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes** | Client Drivers use this function to explicitly set the execution level of the queue's callbacks.
+ 
 
 Module Facing DMF APIs
 ----------------------

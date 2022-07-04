@@ -44,19 +44,20 @@ Environment:
 #define NO_TEST_SYNCHRONOUS_ONLY
 #define NO_TEST_ASYNCHRONOUS_ONLY
 #define NO_TEST_ASYNCHRONOUSCANCEL_ONLY
+#define NO_TEST_DYNAMIC_ONLY
 
 // {5F4F3758-D11E-4684-B5AD-FE6D19D82A51}
 //
 DEFINE_GUID(GUID_NO_DEVICE, 0x5f4f3758, 0xd11e, 0x4684, 0xb5, 0xad, 0xfe, 0x6d, 0x19, 0xd8, 0x2a, 0x51);
 
 #define THREAD_COUNT                            (1)
-#define MAXIMUM_SLEEP_TIME_MS                   (15000)
+#define MAXIMUM_SLEEP_TIME_MS                   (8000)
 // Keep synchronous maximum time short to make driver disable faster.
 //
 #if !defined(TEST_SIMPLE)
 #define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (1000)
 #else
-#define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (30000)
+#define MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS       (1000)
 #endif
 
 // Asynchronous minimum sleep time to make sure request can be canceled.
@@ -78,11 +79,22 @@ typedef enum _TEST_ACTION
     TEST_ACTION_SYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUSCANCEL,
+#if defined(DMF_KERNEL_MODE)
+    TEST_ACTION_DIRECTINTERFACE,
+#endif // defined(DMF_KERNEL_MODE)
     TEST_ACTION_DYNAMIC,
     TEST_ACTION_COUNT,
     TEST_ACTION_MINIUM = TEST_ACTION_SYNCHRONOUS,
     TEST_ACTION_MAXIMUM = TEST_ACTION_DYNAMIC
 } TEST_ACTION;
+
+// This option causes the veto of the remote target removal.
+//
+#define NO_TEST_VETO
+
+// This option prevents Dynamic Modules from being created.
+//
+#define NO_DYNAMIC_DISABLE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
@@ -110,6 +122,12 @@ typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceTarget
     DMFMODULE DmfModuleAlertableSleepDispatchInput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepPassiveInput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepPassiveOutput[THREAD_COUNT + 1];
+
+#if defined(DMF_KERNEL_MODE)
+    // Direct interface via IRP_MN_QUERY_INTERFACE.
+    //
+    Tests_IoctlHandler_INTERFACE_STANDARD DirectInterface;
+#endif // defined(DMF_KERNEL_MODE)
 } DMF_CONTEXT_Tests_DeviceInterfaceTarget;
 
 // This macro declares the following function:
@@ -138,6 +156,201 @@ typedef struct
     DMFMODULE DmfModuleAlertableSleep;
 } Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT;
 WDF_DECLARE_CONTEXT_TYPE(Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT);
+
+#if defined(DMF_KERNEL_MODE)
+
+// NOTE: This call can fail but there is no way to return that status. So it is necessary to check
+//       for the InterfaceDereference pointer before using it in the PreClose callback.
+//
+NTSTATUS
+Tests_DeviceInterfaceTarget_QueryInterface(
+    _In_ DMFMODULE DmfModuleInterfaceTarget
+    )
+{
+    DMFMODULE parentDmfModule;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    WDFIOTARGET ioTarget;
+    NTSTATUS ntStatus;
+
+    parentDmfModule = DMF_ParentModuleGet(DmfModuleInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(parentDmfModule);
+
+    // Acquire reference to target Module before calling its Method get WDFIOTARGET
+    // handle and hold it while it is in use.
+    // 
+    ntStatus = DMF_ModuleReference(DmfModuleInterfaceTarget);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto ExitNoDereference;
+    }
+
+    // Try to acquire the handle.
+    //
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModuleInterfaceTarget,
+                                             &ioTarget);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Use the underlying WDFIOTARGET to query for the direct interface.
+    // Keep reference while doing so.
+    // NOTE: This function acquires a reference to the interface using InterfaceReference.
+    //       This interface remains available until a corresponding InterfaceDereference 
+    //       is called.
+    //
+    ntStatus = WdfIoTargetQueryForInterface(ioTarget,
+                                            &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
+                                            (INTERFACE*)&moduleContext->DirectInterface,
+                                            sizeof(Tests_IoctlHandler_INTERFACE_STANDARD),
+                                            1,
+                                            NULL);
+    DmfAssert(NT_SUCCESS(ntStatus));
+
+Exit:
+
+    // Release reference to Module which allowed safe use of ioTarget.
+    //
+    DMF_ModuleDereference(DmfModuleInterfaceTarget);
+
+ExitNoDereference:
+
+    // If successful, call into the interface.
+    // 
+    // NOTE: It is not necessary to call DMF_ModuleReference() to call the interface because it has its own
+    //       reference counter that was acquired by WdfIoTargetQueryForInterface().
+    //
+    if (NT_SUCCESS(ntStatus))
+    {
+        UCHAR interfaceValue;
+
+        // Call the direct callback functions to get the property or
+        // configuration information of the device.
+        //
+        (*moduleContext->DirectInterface.InterfaceValueGet)(moduleContext->DirectInterface.InterfaceHeader.Context,
+                                                            &interfaceValue);
+        interfaceValue++;
+        (*moduleContext->DirectInterface.InterfaceValueSet)(moduleContext->DirectInterface.InterfaceHeader.Context,
+                                                            interfaceValue);
+    }
+
+    return ntStatus;
+}
+
+VOID
+Tests_DeviceInterfaceTarget_DirectInterfaceTest(
+    _In_ DMFMODULE DmfModuleInterfaceTarget
+    )
+{
+    DMFMODULE parentDmfModule;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+
+    parentDmfModule = DMF_ParentModuleGet(DmfModuleInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(parentDmfModule);
+
+    NTSTATUS ntStatus = DMF_ModuleReference(DmfModuleInterfaceTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        UCHAR interfaceValue;
+
+        (*moduleContext->DirectInterface.InterfaceValueGet)(moduleContext->DirectInterface.InterfaceHeader.Context,
+                                                            &interfaceValue);
+
+        DMF_ModuleDereference(DmfModuleInterfaceTarget);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: InterfaceValue=%d", interfaceValue);
+    }
+}
+
+VOID
+Tests_DeviceInterfaceTarget_DirectInterfaceDecrement(
+    DMFMODULE DmfModule
+    )
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // NOTE: Call the query interface may have failed in the PostOpen callback. Regardless, PreClose always
+    //       happens so this pointer must be checked prior to use in PreClose.
+    //
+    if (moduleContext->DirectInterface.InterfaceHeader.InterfaceDereference != NULL)
+    {
+        moduleContext->DirectInterface.InterfaceHeader.InterfaceDereference(moduleContext->DirectInterface.InterfaceHeader.Context);
+    }
+}
+
+#endif // defined(DMF_KERNEL_MODE)
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+Tests_DeviceInterfaceTarget_OnStateChange(
+    _In_ DMFMODULE DeviceInterfaceTarget,
+    _In_ DeviceInterfaceTarget_StateType IoTargetState
+    )
+/*++
+
+Routine Description:
+
+    Called when a given Target arrives or is being removed.
+    This code tests veto during query remove.
+
+Arguments:
+
+    DeviceInterfaceTarget - DMF_DeviceInterfaceTarget.
+    Target - The given target.
+    IoTargetState - Indicates how the given Target state is changing.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    ntStatus = STATUS_SUCCESS;
+
+    switch (IoTargetState)
+    {
+        case DeviceInterfaceTarget_StateType_Open:
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_DeviceInterfaceTarget_OnStateChange: DeviceInterfaceTarget=0x%p IoTargetState=DeviceInterfaceTarget_StateType_Open", DeviceInterfaceTarget);
+            break;
+        }
+        case DeviceInterfaceTarget_StateType_QueryRemove:
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_DeviceInterfaceTarget_OnStateChange: DeviceInterfaceTarget=0x%p IoTargetState=DeviceInterfaceTarget_StateType_QueryRemove", DeviceInterfaceTarget);
+#if defined(TEST_VETO)
+            ntStatus = STATUS_UNSUCCESSFUL;
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_DeviceInterfaceTarget_OnStateChange: VETO DeviceInterfaceTarget=0x%p IoTargetState=DeviceInterfaceTarget_StateType_QueryRemove", DeviceInterfaceTarget);
+#endif
+            break;
+        }
+        case DeviceInterfaceTarget_StateType_RemoveCancel:
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_DeviceInterfaceTarget_OnStateChange: DeviceInterfaceTarget=0x%p IoTargetState=DeviceInterfaceTarget_StateType_RemoveCancel", DeviceInterfaceTarget);
+            break;
+        }
+        case DeviceInterfaceTarget_StateType_RemoveComplete:
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_DeviceInterfaceTarget_OnStateChange: DeviceInterfaceTarget=0x%p IoTargetState=DeviceInterfaceTarget_StateType_RemoveComplete", DeviceInterfaceTarget);
+            break;
+        }
+        case DeviceInterfaceTarget_StateType_Close:
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_DeviceInterfaceTarget_OnStateChange: DeviceInterfaceTarget=0x%p IoTargetState=DeviceInterfaceTarget_StateType_Close", DeviceInterfaceTarget);
+            break;
+        }
+        default:
+        {
+            DmfAssert(FALSE);
+            break;
+        }
+    }
+    
+    return ntStatus;
+}
 
 _Function_class_(EVT_DMF_ContinuousRequestTarget_BufferInput)
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -299,6 +512,12 @@ Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(
               (ntStatus == STATUS_DELETE_PENDING));
     // TODO: Get time and compare with send time.
     //
+
+#if defined(DMF_KERNEL_MODE)
+    // Execute the QueryInterface functions.
+    //
+    Tests_DeviceInterfaceTarget_DirectInterfaceTest(DmfModuleDeviceInterfaceTarget);
+#endif
 }
 #pragma code_seg()
 
@@ -758,18 +977,7 @@ Exit:
 }
 #pragma code_seg()
 
-// Forward declarations for Dynamic Module Test.
-//
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchInput(
-    _In_ DMFMODULE DmfModule
-    );
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchInput(
-    _In_ DMFMODULE DmfModule
-    );
+#if !defined(DYNAMIC_DISABLE)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -797,7 +1005,7 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
     objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
                                NonPagedPoolNx,
-                               '1234',
+                               MemoryTag,
                                sizeof(VOID*),
                                &memory,
                                NULL);
@@ -875,34 +1083,33 @@ Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(
                                         0,
                                         timeToWaitMs);
 
-    // Send it some data asynchronously..
+    // Send it some data synchronously..
     //
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                   MAXIMUM_SLEEP_TIME_MS);
+    // Wait at least this long for the synchronous request to return.
+    //
+    timeToWaitMs = sleepIoctlBuffer->TimeToSleepMilliseconds;
+
     bytesWritten = 0;
-    ntStatus = DMF_DeviceInterfaceTarget_Send(dynamicDeviceInterfaceTarget,
-                                              sleepIoctlBuffer,
-                                              sizeof(Tests_IoctlHandler_Sleep),
-                                              NULL,
-                                              NULL,
-                                              ContinuousRequestTarget_RequestType_Ioctl,
-                                              IOCTL_Tests_IoctlHandler_SLEEP,
-                                              timeoutMs,
-                                              Tests_DeviceInterfaceTarget_SendCompletion,
-                                              moduleContext);
+    ntStatus = DMF_DeviceInterfaceTarget_SendSynchronously(dynamicDeviceInterfaceTarget,
+                                                           sleepIoctlBuffer,
+                                                           sizeof(Tests_IoctlHandler_Sleep),
+                                                           NULL,
+                                                           NULL,
+                                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                                           timeoutMs,
+                                                           &bytesWritten);
     DmfAssert(NT_SUCCESS(ntStatus) ||
               (ntStatus == STATUS_CANCELLED) ||
               (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
-              (ntStatus == STATUS_DELETE_PENDING));
+              (ntStatus == STATUS_DELETE_PENDING) ||
+              (ntStatus == STATUS_IO_TIMEOUT));
 
-    timeToWaitMs = TestsUtility_GenerateRandomNumber(0, 
-                                                     MAXIMUM_SLEEP_TIME_MS);
-
-    // Wait for a while.
-    //
-    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
-                                        0,
-                                        timeToWaitMs);
+#if !defined(TEST_SIMPLE)
+    DMF_DeviceInterfaceTarget_StreamStop(dynamicDeviceInterfaceTarget);
+#endif
 
 Exit:
 
@@ -910,10 +1117,16 @@ Exit:
     {
         // Delete the Dynamic Module by deleting its parent to execute the hardest path.
         //
+        // NOTE: When sending asynchronous requests, the object cannot be deleted if a
+        //       WDFREQEUST is pending. WDF checks first for pending requests prior to
+        //       invoke Close() callbacks.
+        //
         WdfObjectDelete(memory);
     }
 }
 #pragma code_seg()
+
+#endif
 
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
@@ -941,6 +1154,8 @@ Tests_DeviceInterfaceTarget_WorkThreadDispatchInput(
     testAction = TEST_ACTION_ASYNCHRONOUS;
 #elif defined(TEST_ASYNCHRONOUSCANCEL_ONLY)
     testAction = TEST_ACTION_ASYNCHRONOUSCANCEL;
+#elif defined(TEST_DYNAMIC_ONLY)
+    testAction = TEST_ACTION_DYNAMIC;
 #else
     // Generate a random test action Id for a current iteration.
     //
@@ -967,9 +1182,16 @@ Tests_DeviceInterfaceTarget_WorkThreadDispatchInput(
                                                                         threadIndex->DmfModuleAlertableSleep,
                                                                         moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            Tests_DeviceInterfaceTarget_DirectInterfaceTest(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         case TEST_ACTION_DYNAMIC:
+#if !defined(DYNAMIC_DISABLE)
             Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(dmfModule,
                                                              threadIndex->DmfModuleAlertableSleep);
+#endif // !defined(DYNAMIC_DISABLE)
             break;
         default:
             DmfAssert(FALSE);
@@ -989,6 +1211,8 @@ Tests_DeviceInterfaceTarget_WorkThreadDispatchInput(
     TestsUtility_YieldExecution();
 }
 #pragma code_seg()
+
+#if !defined(TEST_SIMPLE)
 
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
@@ -1016,6 +1240,8 @@ Tests_DeviceInterfaceTarget_WorkThreadPassiveInput(
     testAction = TEST_ACTION_ASYNCHRONOUS;
 #elif defined(TEST_ASYNCHRONOUSCANCEL_ONLY)
     testAction = TEST_ACTION_ASYNCHRONOUSCANCEL;
+#elif defined(TEST_DYNAMIC_ONLY)
+    testAction = TEST_ACTION_DYNAMIC;
 #else
     // Generate a random test action Id for a current iteration.
     //
@@ -1042,9 +1268,16 @@ Tests_DeviceInterfaceTarget_WorkThreadPassiveInput(
                                                                         threadIndex->DmfModuleAlertableSleep,
                                                                         moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            Tests_DeviceInterfaceTarget_DirectInterfaceTest(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         case TEST_ACTION_DYNAMIC:
+#if !defined(DYNAMIC_DISABLE)
             Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(dmfModule,
                                                              threadIndex->DmfModuleAlertableSleep);
+#endif // !defined(DYNAMIC_DISABLE)
             break;
         default:
             DmfAssert(FALSE);
@@ -1091,6 +1324,8 @@ Tests_DeviceInterfaceTarget_WorkThreadPassiveOutput(
     testAction = TEST_ACTION_ASYNCHRONOUS;
 #elif defined(TEST_ASYNCHRONOUSCANCEL_ONLY)
     testAction = TEST_ACTION_ASYNCHRONOUSCANCEL;
+#elif defined(TEST_DYNAMIC_ONLY)
+    testAction = TEST_ACTION_DYNAMIC;
 #else
     // Generate a random test action Id for a current iteration.
     //
@@ -1117,9 +1352,16 @@ Tests_DeviceInterfaceTarget_WorkThreadPassiveOutput(
                                                                         threadIndex->DmfModuleAlertableSleep,
                                                                         moduleContext->DmfModuleDeviceInterfaceTargetPassiveOutput);
             break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            Tests_DeviceInterfaceTarget_DirectInterfaceTest(moduleContext->DmfModuleDeviceInterfaceTargetPassiveOutput);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
         case TEST_ACTION_DYNAMIC:
+#if !defined(DYNAMIC_DISABLE)
             Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(dmfModule,
                                                              threadIndex->DmfModuleAlertableSleep);
+#endif // !defined(DYNAMIC_DISABLE)
             break;
         default:
             DmfAssert(FALSE);
@@ -1139,6 +1381,8 @@ Tests_DeviceInterfaceTarget_WorkThreadPassiveOutput(
     TestsUtility_YieldExecution();
 }
 #pragma code_seg()
+
+#endif // !defined(TEST_SIMPLE)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1479,10 +1723,16 @@ Return Value:
     NTSTATUS ntStatus;
     DMFMODULE dmfModuleParent;
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+
     PAGED_CODE();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+#if defined(DMF_KERNEL_MODE)
+    ntStatus = Tests_DeviceInterfaceTarget_QueryInterface(moduleContext->DmfModuleDeviceInterfaceTargetDispatchInput);
+    DmfAssert(NT_SUCCESS(ntStatus));
+#endif // defined(DMF_KERNEL_MODE)
 
     for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
@@ -1542,11 +1792,9 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        goto Exit;
-    }
+#if defined(DMF_KERNEL_MODE)
+    Tests_DeviceInterfaceTarget_DirectInterfaceDecrement(dmfModuleParent);
+#endif // defined(DMF_KERNEL_MODE)
 
     ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
                                              &ioTarget);
@@ -1555,10 +1803,6 @@ Return Value:
         WdfIoTargetPurge(ioTarget,
                          WdfIoTargetPurgeIoAndWait);
     }
-
-    DMF_ModuleDereference(DmfModule);
-
-Exit:
 
     // Stop the threads. Streaming is automatically stopped.
     //
@@ -1593,14 +1837,20 @@ Return Value:
 {
     DMFMODULE dmfModuleParent;
     DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+
     PAGED_CODE();
 
+    ntStatus = STATUS_SUCCESS;
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
 
-#if !defined(TEST_SIMPLE)
-    NTSTATUS ntStatus;
+#if defined(DMF_KERNEL_MODE)
+    ntStatus = Tests_DeviceInterfaceTarget_QueryInterface(moduleContext->DmfModuleDeviceInterfaceTargetPassiveInput);
+    DmfAssert(NT_SUCCESS(ntStatus));
+#endif // defined(DMF_KERNEL_MODE)
 
+#if !defined(TEST_SIMPLE)
     for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
         Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndexContext;
@@ -1630,7 +1880,6 @@ Return Value:
         Tests_DeviceInterfaceTarget_StartPassiveInput(dmfModuleParent);
     }
     DmfAssert(NT_SUCCESS(ntStatus));
-
 #endif
 }
 #pragma code_seg()
@@ -1667,6 +1916,11 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+#if defined(DMF_KERNEL_MODE)
+    ntStatus = Tests_DeviceInterfaceTarget_QueryInterface(moduleContext->DmfModuleDeviceInterfaceTargetPassiveOutput);
+    DmfAssert(NT_SUCCESS(ntStatus));
+#endif // defined(DMF_KERNEL_MODE)
 
     for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
@@ -1725,20 +1979,20 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModuleParent;
+#if !defined(TEST_SIMPLE)
     NTSTATUS ntStatus;
+#endif
 
     PAGED_CODE();
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
+#if defined(DMF_KERNEL_MODE)
+    Tests_DeviceInterfaceTarget_DirectInterfaceDecrement(dmfModuleParent);
+#endif // defined(DMF_KERNEL_MODE)
+
 #if !defined(TEST_SIMPLE)
     WDFIOTARGET ioTarget;
-
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        goto Exit;
-    }
 
     ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
                                              &ioTarget);
@@ -1747,10 +2001,6 @@ Return Value:
         WdfIoTargetPurge(ioTarget,
                          WdfIoTargetPurgeIoAndWait);
     }
-
-    DMF_ModuleDereference(DmfModule);
-
-Exit:
 
     // Stop streaming.
     //
@@ -1795,11 +2045,9 @@ Return Value:
 
     dmfModuleParent = DMF_ParentModuleGet(DmfModule);
 
-    ntStatus = DMF_ModuleReference(DmfModule);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        goto Exit;
-    }
+#if defined(DMF_KERNEL_MODE)
+    Tests_DeviceInterfaceTarget_DirectInterfaceDecrement(dmfModuleParent);
+#endif // defined(DMF_KERNEL_MODE)
 
     ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
                                              &ioTarget);
@@ -1808,10 +2056,6 @@ Return Value:
         WdfIoTargetPurge(ioTarget,
                          WdfIoTargetPurgeIoAndWait);
     }
-
-    DMF_ModuleDereference(DmfModule);
-
-Exit:
 
     // Stop streaming.
     //
@@ -1981,6 +2225,7 @@ Return Value:
                                                &moduleEventCallbacks);
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchInput;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchInput;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChangeEx = Tests_DeviceInterfaceTarget_OnStateChange;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
@@ -2007,6 +2252,7 @@ Return Value:
                                                &moduleEventCallbacks);
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_PassiveInput;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_PassiveInput;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChangeEx = Tests_DeviceInterfaceTarget_OnStateChange;
     moduleAttributes.PassiveLevel = TRUE;
     moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
     DMF_DmfModuleAdd(DmfModuleInit,
@@ -2031,12 +2277,12 @@ Return Value:
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DeviceInterfaceTarget_BufferOutput;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
     moduleConfigDeviceInterfaceTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
-
     DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
                                                &moduleEventCallbacks);
     moduleAttributes.PassiveLevel = TRUE;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_PassiveOutput;
     moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_PassiveOutput;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChangeEx = Tests_DeviceInterfaceTarget_OnStateChange;
     moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
@@ -2217,7 +2463,6 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
-
 #endif
 
     FuncExitVoid(DMF_TRACE);

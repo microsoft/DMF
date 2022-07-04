@@ -952,7 +952,7 @@ Return Value:
         sprintf_s(bufferRowString,
                   BUFFER_ROW_STRING_SIZE_IN_BYTES,
                   "");
-        for (int bufferRowIndex = 0; bufferRowIndex < BYTES_PER_ROW; bufferRowIndex++)
+        for (size_t bufferRowIndex = 0; bufferRowIndex < BYTES_PER_ROW; bufferRowIndex++)
         {
             sprintf_s(bufferRowString,
                       BUFFER_ROW_STRING_SIZE_IN_BYTES,
@@ -974,7 +974,7 @@ Return Value:
         sprintf_s(bufferRowString,
                   BUFFER_ROW_STRING_SIZE_IN_BYTES,
                   "");
-        for (int bufferRowIndex = 0; bufferRowIndex < BYTES_PER_ROW; bufferRowIndex++)
+        for (size_t bufferRowIndex = 0; bufferRowIndex < bufferRemaining; bufferRowIndex++)
         {
             sprintf_s(bufferRowString,
                       BUFFER_ROW_STRING_SIZE_IN_BYTES,
@@ -1064,6 +1064,147 @@ Return Value:
     }
 
     return accumulatedValue;
+}
+
+_IRQL_requires_same_
+VOID
+DMF_Utility_SystemTimeCurrentGet(
+    _Out_ PLARGE_INTEGER CurrentSystemTime
+    )
+/*++
+
+Routine Description:
+
+    This function fetches the current system time in UTC.
+
+Arguments:
+
+    CurrentSystemTime - Pointer to store current system time.
+
+Return Value:
+
+    Current system time in UTC as LARGE INTEGER.
+
+--*/
+{
+#if defined(DMF_KERNEL_MODE)
+    KeQuerySystemTime(CurrentSystemTime);
+#elif defined(DMF_USER_MODE)
+    FILETIME SystemTimeAsFileTime;
+    GetSystemTimeAsFileTime(&SystemTimeAsFileTime);
+    CurrentSystemTime->LowPart = SystemTimeAsFileTime.dwLowDateTime;
+    CurrentSystemTime->HighPart = SystemTimeAsFileTime.dwHighDateTime;
+#endif
+}
+
+_Must_inspect_result_
+_IRQL_requires_same_
+BOOLEAN
+DMF_Utility_LocalTimeToUniversalTimeConvert(
+    _In_ DMF_TIME_FIELDS* LocalTimeFields,
+    _Out_ DMF_TIME_FIELDS* UtcTimeFields
+    )
+/*++
+
+Routine Description:
+
+    Converts the given local time to universal time.
+
+Arguments:
+
+    LocalTimeFields - The given local time.
+    UtcTimeFields - The returned universal time on success.
+
+Return Value:
+
+    TRUE if the call succeeds; FALSE, otherwise.
+
+--*/
+{
+    BOOLEAN returnValue;
+
+    RtlZeroMemory(UtcTimeFields,
+                  sizeof(DMF_TIME_FIELDS));
+
+#if defined(DMF_KERNEL_MODE)
+    LARGE_INTEGER convertedTime;
+    TIME_FIELDS _localTimeFields;
+    TIME_FIELDS _utcTimeFields;
+
+    _localTimeFields.Day = LocalTimeFields->Day;
+    _localTimeFields.Month = LocalTimeFields->Month;
+    _localTimeFields.Year = LocalTimeFields->Year;
+    _localTimeFields.Hour = LocalTimeFields->Hour;
+    _localTimeFields.Minute = LocalTimeFields->Minute;
+    _localTimeFields.Second = LocalTimeFields->Second;
+    _localTimeFields.Milliseconds = LocalTimeFields->Milliseconds;
+    _localTimeFields.Weekday = LocalTimeFields->Weekday;
+
+    if (!RtlTimeFieldsToTime(&_localTimeFields,
+                             &convertedTime))
+    {
+        returnValue = FALSE;
+        goto Exit;
+    }
+    else
+    {
+        // Convert Local time to UTC time
+        //
+        ExLocalTimeToSystemTime(&convertedTime,
+                                &convertedTime);
+    }
+
+    RtlTimeToTimeFields(&convertedTime,
+                        &_utcTimeFields);
+
+    UtcTimeFields->Day = _utcTimeFields.Day;
+    UtcTimeFields->Month = _utcTimeFields.Month;
+    UtcTimeFields->Year = _utcTimeFields.Year;
+    UtcTimeFields->Hour = _utcTimeFields.Hour;
+    UtcTimeFields->Minute = _utcTimeFields.Minute;
+    UtcTimeFields->Second = _utcTimeFields.Second;
+    UtcTimeFields->Milliseconds = _utcTimeFields.Milliseconds;
+    UtcTimeFields->Weekday = _utcTimeFields.Weekday;
+
+    returnValue = TRUE;
+#elif defined(DMF_USER_MODE)
+    SYSTEMTIME _localTimeFields;
+    SYSTEMTIME _utcTimeFields;
+
+    _localTimeFields.wDay = LocalTimeFields->Day;
+    _localTimeFields.wMonth = LocalTimeFields->Month;
+    _localTimeFields.wYear = LocalTimeFields->Year;
+    _localTimeFields.wHour = LocalTimeFields->Hour;
+    _localTimeFields.wMinute = LocalTimeFields->Minute;
+    _localTimeFields.wSecond = LocalTimeFields->Second;
+    _localTimeFields.wMilliseconds = LocalTimeFields->Milliseconds;
+    _localTimeFields.wDayOfWeek = LocalTimeFields->Weekday;
+
+    // Convert Local Time to Coordinated Universal Time (UTC).
+    //
+    if (!TzSpecificLocalTimeToSystemTime(NULL,
+                                         &_localTimeFields,
+                                         &_utcTimeFields))
+    {
+        returnValue = FALSE;
+        goto Exit;
+    }
+    
+    UtcTimeFields->Day = _utcTimeFields.wDay;
+    UtcTimeFields->Month = _utcTimeFields.wMonth;
+    UtcTimeFields->Year = _utcTimeFields.wYear;
+    UtcTimeFields->Hour = _utcTimeFields.wHour;
+    UtcTimeFields->Minute = _utcTimeFields.wMinute;
+    UtcTimeFields->Second = _utcTimeFields.wSecond;
+    UtcTimeFields->Milliseconds = _utcTimeFields.wMilliseconds;
+    UtcTimeFields->Weekday = _utcTimeFields.wDayOfWeek;
+
+    returnValue = TRUE;
+#endif
+
+Exit:
+
+    return returnValue;
 }
 
 // eof: DmfUtility.c

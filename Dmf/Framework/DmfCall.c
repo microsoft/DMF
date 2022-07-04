@@ -547,6 +547,7 @@ Return Value:
     DMFMODULE dmfModule;
     DMF_OBJECT* dmfObject;
     PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
+    WDFOBJECT objectToDereference;
 
     // NOTE: DMFMODULE should always be deleted in PASSIVE_LEVEL.
     // (Even though it can technically be called at DISPATCH_LEVEL, Clients should
@@ -559,6 +560,11 @@ Return Value:
 
     dmfModule = (DMFMODULE)Object;
     dmfObject = DMF_ModuleToObject(dmfModule);
+
+    // Remember the parent object that was referenced when this Module was
+    // created so it can be dereferenced at end of this clean up call.
+    //
+    objectToDereference = dmfObject->ObjectToDereference;
 
     // Save off Client's callback so it can be called after object is destroyed.
     //
@@ -600,6 +606,14 @@ Return Value:
     {
         clientEvtCleanupCallback(Object);
     }
+
+    // Undo reference acquired when this Module was attached to Parent.
+    // Ensures that Parent DMFMODULE is accessible until after
+    // Child is deleted so that Child can access Parent Module's
+    // WDFOBJECT context while running down.
+    //
+    WdfObjectDereferenceWithTag(objectToDereference,
+                                DMF_TAG_DYNAMIC_MODULE_REFERENCE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

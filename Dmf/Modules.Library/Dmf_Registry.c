@@ -81,6 +81,9 @@ typedef struct
     // Used for list management.
     //
     LIST_ENTRY ListEntry;
+    // Memory allocated for this buffer.
+    //
+    WDFMEMORY DeferredContextObject;
 } REGISTRY_DEFERRED_CONTEXT;
 
 // It is the time interval to use for polling (how often to attempt
@@ -285,7 +288,6 @@ Registry_DeviceInterfaceKeyOpen(
 
     if (!NT_SUCCESS(ntStatus))
     {
-        ntStatus = STATUS_UNSUCCESSFUL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -1170,12 +1172,12 @@ Return Value:
         }
         case REG_MULTI_SZ:
         {
-            PWCHAR current;
+            WCHAR* current;
             ULONG count;
             BOOLEAN done;
 
             DmfAssert(Entry->ValueName != NULL);
-            current = (PWCHAR)Entry->ValueData;
+            current = (WCHAR*)Entry->ValueData;
             count = 0;
             done = FALSE;
             while (! done)
@@ -1342,7 +1344,7 @@ _Must_inspect_result_
 static
 NTSTATUS
 Registry_RecursivePathCreate(
-    _Inout_ PWCHAR RegistryPath
+    _Inout_ WCHAR* RegistryPath
     )
 /*++
 
@@ -1434,6 +1436,7 @@ _Must_inspect_result_
 static
 NTSTATUS
 Registry_BranchWrite(
+    _In_ DMFMODULE DmfModule,
     _In_ CONST WCHAR* RegistryPath,
     _In_ Registry_Branch* Branches,
     _In_ ULONG NumberOfBranches
@@ -1446,6 +1449,8 @@ Routine Description:
 
 Arguments:
 
+    DmfModule - This Module's handle.
+    RegistryPath - The location in the registry where to write Branches.
     Branches - The array of registry branches.
     NumberOfBranches - The number of entries in the array.
 
@@ -1457,8 +1462,9 @@ Return Value:
 {
     NTSTATUS ntStatus;
     ULONG branchIndex;
-    PWCHAR fullPathName;
+    WCHAR* fullPathName;
     size_t mainRegistryPathNameLength;
+    WDFMEMORY fullPathNameObject;
 
     PAGED_CODE();
 
@@ -1466,6 +1472,7 @@ Return Value:
 
     ntStatus = STATUS_UNSUCCESSFUL;
     fullPathName = NULL;
+    fullPathNameObject = NULL;
 
     // Get the length of main registry path.
     //
@@ -1515,13 +1522,22 @@ Return Value:
 
         // Allocate a buffer for the full path name.
         //
-        #pragma warning( suppress : 4996 )
-        fullPathName = (PWCHAR)ExAllocatePoolWithTag(PagedPool,
-                                                     fullPathNameSize,
-                                                     MemoryTag);
-        if (NULL == fullPathName)
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        objectAttributes.ParentObject = DmfModule;
+        ntStatus = WdfMemoryCreate(&objectAttributes,
+                                   PagedPool,
+                                   MemoryTag,
+                                   fullPathNameSize,
+                                   &fullPathNameObject,
+                                   (VOID**)&fullPathName);
+        if (! NT_SUCCESS(ntStatus) ||
+            (fullPathName == NULL))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag fails");
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+            // For SAL. (Need to actually check the pointer, unfortunately.)
+            //
+            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
             goto Exit;
         }
 
@@ -1580,18 +1596,16 @@ Return Value:
 
         // Free the buffer allocated above for the next iteration in the loop.
         //
-        ExFreePoolWithTag(fullPathName,
-                          MemoryTag);
+        WdfObjectDelete(fullPathNameObject);
+        fullPathNameObject = NULL;
         fullPathName = NULL;
     }
 
 Exit:
 
-    if (fullPathName != NULL)
+    if (fullPathNameObject != NULL)
     {
-        ExFreePoolWithTag(fullPathName,
-                          MemoryTag);
-        fullPathName = NULL;
+        WdfObjectDelete(fullPathNameObject);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1629,8 +1643,6 @@ Return Value:
 
     PAGED_CODE();
 
-    UNREFERENCED_PARAMETER(DmfModule);
-
     FuncEntry(DMF_TRACE);
 
     ntStatus = STATUS_UNSUCCESSFUL;
@@ -1642,7 +1654,8 @@ Return Value:
         Registry_Tree* tree;
 
         tree = &Tree[treeIndex];
-        ntStatus = Registry_BranchWrite(tree->RegistryPath,
+        ntStatus = Registry_BranchWrite(DmfModule,
+                                        tree->RegistryPath,
                                         tree->Branches,
                                         tree->NumberOfBranches);
         if (! NT_SUCCESS(ntStatus))
@@ -1826,7 +1839,7 @@ Return Value:
     {
 
 #if defined(DMF_USER_MODE)
-        // User-mode driver cannot create subkey. 
+        // User-mode driver cannot create sub-key. 
         // If the user tries to create a key, try opening instead.
         //
         ntStatus = WdfRegistryOpenKey(NULL,
@@ -1919,7 +1932,7 @@ Return Value:
     if (TryToCreate)
     {
 #if defined(DMF_USER_MODE)
-        // User-mode driver cannot create subkey. 
+        // User-mode driver cannot create sub-key. 
         // If the user tries to create a key, try opening instead.
         //
         ntStatus = WdfRegistryOpenKey((WDFKEY)Handle,
@@ -1928,7 +1941,7 @@ Return Value:
                                       WDF_NO_OBJECT_ATTRIBUTES, 
                                       &key);
 
-        // if the key doesnt exist, we get Access denied error.
+        // if the key does not exist, we get Access denied error.
         //
         if (STATUS_ACCESS_DENIED == ntStatus)
         {
@@ -2013,6 +2026,7 @@ Return Value:
 #if !defined(DMF_USER_MODE)
 BOOLEAN
 Registry_SubKeysFromHandleEnumerate(
+    _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
     _In_ EVT_DMF_Registry_KeyEnumerationCallback* RegistryEnumerationFunction,
     _In_ VOID* Context
@@ -2025,6 +2039,7 @@ Routine Description:
 
 Arguments:
 
+    DmfModule - This Module's handle.
     Handle - The handle the registry key.
     RegistryEnumerationFunction - The enumeration function to call for each sub key.
     Context - The client context to pass into the enumeration function.
@@ -2041,6 +2056,7 @@ Return Value:
     ULONG currentSubKeyIndex;
     BOOLEAN done;
     HANDLE handleWdm;
+    WDFMEMORY keyInformationBufferObject;
 
     PAGED_CODE();
 
@@ -2049,6 +2065,7 @@ Return Value:
     returnValue = FALSE;
     done = FALSE;
     currentSubKeyIndex = 0;
+    keyInformationBufferObject = NULL;
 
     // Grab the WDM Handle. Handle that is coming in is WDFKEY.
     //
@@ -2074,7 +2091,7 @@ Return Value:
             if ((ntStatus == STATUS_BUFFER_OVERFLOW) ||
                 (ntStatus == STATUS_BUFFER_TOO_SMALL))
             {
-                PKEY_BASIC_INFORMATION keyInformationBuffer;
+                PKEY_BASIC_INFORMATION keyInformationBuffer = NULL;
                 ULONG keyInformationBufferSize;
 
                 // This driver needs to zero terminate the name that is returned. So, add 1 to the length
@@ -2088,14 +2105,23 @@ Return Value:
 
                 // Allocate a buffer for the path name.
                 //
-                #pragma warning( suppress : 4996 )
-                keyInformationBuffer = (PKEY_BASIC_INFORMATION)ExAllocatePoolWithTag(PagedPool,
-                                                                                     resultLength,
-                                                                                     MemoryTag);
-                if (NULL == keyInformationBuffer)
+                WDF_OBJECT_ATTRIBUTES objectAttributes;
+                WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+                objectAttributes.ParentObject = DmfModule;
+                ntStatus = WdfMemoryCreate(&objectAttributes,
+                                           PagedPool,
+                                           MemoryTag,
+                                           resultLength,
+                                           &keyInformationBufferObject,
+                                           (VOID**)&keyInformationBuffer);
+                if ((! NT_SUCCESS(ntStatus)) ||
+                    (keyInformationBuffer == NULL))
                 {
                     returnValue = FALSE;
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag fails");
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+                    // For SAL. (Need to actually check the pointer, unfortunately.)
+                    //
+                    ntStatus = STATUS_INSUFFICIENT_RESOURCES;
                     goto Exit;
                 }
 
@@ -2129,10 +2155,10 @@ Return Value:
                                                           Handle,
                                                           keyInformationBuffer->Name);
 
-                // Prepare to get next subkey.
+                // Prepare to get next sub-key.
                 //
-                ExFreePoolWithTag(keyInformationBuffer,
-                                  MemoryTag);
+                WdfObjectDelete(keyInformationBufferObject);
+                keyInformationBufferObject = NULL;
                 keyInformationBuffer = NULL;
                 keyInformationBufferSize = 0;
                 currentSubKeyIndex++;
@@ -2155,6 +2181,11 @@ Return Value:
 
 Exit:
 
+    if (keyInformationBufferObject != NULL)
+    {
+        WdfObjectDelete(keyInformationBufferObject);
+    }
+
     FuncExit(DMF_TRACE, "returnValue=%d", returnValue);
 
     return returnValue;
@@ -2162,6 +2193,7 @@ Exit:
 #else
 BOOLEAN
 Registry_SubKeysFromHandleEnumerate(
+    _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
     _In_ EVT_DMF_Registry_KeyEnumerationCallback* RegistryEnumerationFunction,
     _In_ VOID* Context
@@ -2174,6 +2206,7 @@ Routine Description:
 
 Arguments:
 
+    DmfModule - This Module's handle.
     Handle - The handle the registry key.
     RegistryEnumerationFunction - The enumeration function to call for each sub key.
     Context - The client context to pass into the enumeration function.
@@ -2202,12 +2235,12 @@ Return Value:
     numberOfSubKeys = 0;
     maximumSubKeyLength = 0;
     maximumBytesRequired = 0;
-    subKeyNameMemory = WDF_NO_HANDLE;
+    subKeyNameMemory = NULL;
     subKeyNameMemoryBuffer = NULL;
 
     handle = WdfRegistryWdmGetHandle((WDFKEY) Handle);
 
-    // Get the subkey count and maximum subkey name size.
+    // Get the sub-key count and maximum sub-key name size.
     //
     ntStatus = RegQueryInfoKey((HKEY)handle,
                                NULL,
@@ -2233,19 +2266,22 @@ Return Value:
         goto Exit;
     }
 
-    // Enumerate the subkeys.
+    // Enumerate the sub-keys.
     //
-    // Create a buffer which is big enough to hold the largest subkey.
+    // Create a buffer which is big enough to hold the largest sub-key.
     // Account for NULL as well. Note: No overflow check as the registry key length maximum is limited.
     //
     elementCountOfSubKeyName = maximumSubKeyLength + 1;
     maximumBytesRequired = (elementCountOfSubKeyName * sizeof(WCHAR));
-    ntStatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES,
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
                                PagedPool, 
                                MemoryTag, 
                                maximumBytesRequired,
                                &subKeyNameMemory,
-                               (PVOID*)&subKeyNameMemoryBuffer);
+                               (VOID**)&subKeyNameMemoryBuffer);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
@@ -2258,7 +2294,7 @@ Return Value:
         ZeroMemory(subKeyNameMemoryBuffer,
                    maximumBytesRequired);
 
-        // Read the subkey.
+        // Read the sub-key.
         //
         ntStatus = RegEnumKeyEx((HKEY)handle,
                                 keyIndex,
@@ -2290,7 +2326,7 @@ Return Value:
 
 Exit:
 
-    if (subKeyNameMemory != WDF_NO_HANDLE)
+    if (subKeyNameMemory != NULL)
     {
         WdfObjectDelete(subKeyNameMemory);
     }
@@ -2357,7 +2393,7 @@ Registry_KeyEnumerationFilterStrstr(
     )
 {
     RegistryKeyEnumerationContextType* context;
-    PWCHAR lookFor;
+    WCHAR* lookFor;
     BOOLEAN returnValue;
     HANDLE subKeyHandle;
 
@@ -2367,7 +2403,7 @@ Registry_KeyEnumerationFilterStrstr(
 
     returnValue = TRUE;
     context = (RegistryKeyEnumerationContextType*)ClientContext;
-    lookFor = (PWCHAR)context->FilterEnumeratorContext;
+    lookFor = (WCHAR*)context->FilterEnumeratorContext;
     if (wcsstr(KeyName,
                lookFor))
     {
@@ -2456,6 +2492,15 @@ Return Value:
 
     DmfAssert(ActionType != Registry_ActionTypeInvalid);
 
+    if (Handle == NULL)
+    {
+        // In case Client passes NULL, don't crash.
+        //
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
     // Indicate if action will be taken...default is no.
     //
     needsAction = FALSE;
@@ -2497,13 +2542,13 @@ Return Value:
         #pragma warning(suppress: 6102)
 
         valueLength = valueLengthQueried;
-        valueMemory = WDF_NO_HANDLE;
+        valueMemory = NULL;
         ntStatus = WdfMemoryCreate(&objectAttributes,
                                    NonPagedPoolNx,
                                    MemoryTag,
                                    valueLength,
                                    &valueMemory,
-                                   (PVOID*)&valueMemoryBuffer);
+                                   (VOID**)&valueMemoryBuffer);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
@@ -2544,7 +2589,7 @@ Return Value:
         }
 
         WdfObjectDelete(valueMemory);
-        valueMemory = WDF_NO_HANDLE;
+        valueMemory = NULL;
     }
     else
     {
@@ -2672,9 +2717,16 @@ Return Value:
 
     RtlInitUnicodeString(&valueNameString,
                          ValueName);
-    // For SAL.
-    //
-    ntStatus = STATUS_UNSUCCESSFUL;
+
+    ntStatus = STATUS_INVALID_PARAMETER;
+
+    if (Handle == NULL)
+    {
+        // In case Client passes NULL, don't crash.
+        //
+        DmfAssert(FALSE);
+        goto Exit;
+    }
 
     switch (ActionType)
     {
@@ -2764,6 +2816,8 @@ Return Value:
         }
     }
 
+Exit:
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
@@ -2773,6 +2827,7 @@ Return Value:
 // Registry Deferred Operations
 //-----------------------------------------------------------------------------------------------------
 //
+
 #if !defined(DMF_USER_MODE)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -2840,6 +2895,8 @@ Return:
     NTSTATUS ntStatus;
     REGISTRY_DEFERRED_CONTEXT* deferredContext;
     DMF_CONTEXT_Registry* moduleContext;
+    WDFMEMORY deferredContextObject;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
 
     PAGED_CODE();
 
@@ -2850,20 +2907,21 @@ Return:
     // Allocate space for the deferred operation. If it cannot be allocated an error code
     // is returned and the operation is not deferred.
     //
-    #pragma warning( suppress : 4996 )
-    deferredContext = (REGISTRY_DEFERRED_CONTEXT*)ExAllocatePoolWithTag(PagedPool,
-                                                                        sizeof(REGISTRY_DEFERRED_CONTEXT),
-                                                                        MemoryTag);
-    if (NULL == deferredContext)
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               sizeof(REGISTRY_DEFERRED_CONTEXT),
+                               &deferredContextObject,
+                               (VOID**)&deferredContext);
+    if (!NT_SUCCESS(ntStatus))
     {
         // Out of memory.
         //
-        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-
-    ntStatus = STATUS_SUCCESS;
 
     // Populate the deferred operation context.
     //
@@ -2872,6 +2930,7 @@ Return:
     deferredContext->DeferredOperation = DeferredOperationType;
     deferredContext->RegistryTree = RegistryTree;
     deferredContext->ItemCount = ItemCount;
+    deferredContext->DeferredContextObject = deferredContextObject;
 
     // Add the operation to the list of operations.
     //
@@ -2978,8 +3037,7 @@ Return:
                     // Remove it from the list.
                     //
                     RemoveEntryList(listEntry);
-                    ExFreePoolWithTag(deferredContext,
-                                      MemoryTag);
+                    WdfObjectDelete(deferredContext->DeferredContextObject);
                     deferredContext = NULL;
                 }
                 break;
@@ -3008,6 +3066,7 @@ Return:
     FuncExitVoid(DMF_TRACE);
 }
 #endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3160,12 +3219,11 @@ Return Value:
         // Remove from list.
         //
         RemoveEntryList(listEntry);
-#if !defined(DMF_USER_MODE)
+
         // Free its allocated memory.
         //
-        ExFreePoolWithTag(deferredContext,
-                          MemoryTag);
-#endif
+        WdfObjectDelete(deferredContext->DeferredContextObject);
+
         deferredContext = NULL;
 
         // Get the next entry.
@@ -3295,15 +3353,16 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
 
-   // There is nothing to pass in this context. (All subkeys are presented to enumerator callback.)
+   // There is nothing to pass in this context. (All sub-keys are presented to enumerator callback.)
    //
     context.FilterEnumeratorContext = NULL;
-    // For each subkey of the current key, this function will be called. It will actually create the entries.
+    // For each sub-key of the current key, this function will be called. It will actually create the entries.
     //
     context.RegistryKeyEnumerationFunction = ClientCallback;
     context.ClientCallbackContext = ClientCallbackContext;
 
-    returnValue = Registry_SubKeysFromHandleEnumerate(Handle,
+    returnValue = Registry_SubKeysFromHandleEnumerate(DmfModule,
+                                                      Handle,
                                                       Registry_KeyEnumerationFilterAllSubkeys,
                                                       &context);
 
@@ -3491,7 +3550,8 @@ Return Value:
         goto Exit;
     }
 
-    returnValue = Registry_SubKeysFromHandleEnumerate(handle,
+    returnValue = Registry_SubKeysFromHandleEnumerate(DmfModule,
+                                                      handle,
                                                       ClientCallback,
                                                       ClientCallbackContext);
 
@@ -3576,8 +3636,8 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
 
-   // Delete the key.
-   //
+    // Delete the key.
+    //
     ntStatus = WdfRegistryRemoveKey((WDFKEY)Handle);
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -4351,7 +4411,7 @@ DMF_Registry_PathAndValueReadMultiString(
     _In_ DMFMODULE DmfModule,
     _In_opt_ CONST WCHAR* RegistryPathName,
     _In_ CONST WCHAR* ValueName,
-    _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
+    _Out_writes_opt_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
     )
@@ -4544,7 +4604,7 @@ DMF_Registry_PathAndValueReadString(
     _In_ DMFMODULE DmfModule,
     _In_opt_ CONST WCHAR* RegistryPathName,
     _In_ CONST WCHAR* ValueName,
-    _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
+    _Out_writes_opt_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
     )
@@ -4793,7 +4853,7 @@ DMF_Registry_PathAndValueWriteMultiString(
     _In_ DMFMODULE DmfModule,
     _In_opt_ CONST WCHAR* RegistryPathName,
     _In_ CONST WCHAR* ValueName,
-    _In_reads_(NumberOfCharacters) PWCHAR Buffer,
+    _In_reads_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters
     )
 /*++
@@ -4901,7 +4961,7 @@ DMF_Registry_PathAndValueWriteString(
     _In_ DMFMODULE DmfModule,
     _In_opt_ CONST WCHAR* RegistryPathName,
     _In_ CONST WCHAR* ValueName,
-    _In_reads_(NumberOfCharacters) PWCHAR Buffer,
+    _In_reads_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters
     )
 /*++
@@ -5133,7 +5193,8 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Registry);
 
-    returnValue = Registry_SubKeysFromHandleEnumerate(Handle,
+    returnValue = Registry_SubKeysFromHandleEnumerate(DmfModule,
+                                                      Handle,
                                                       ClientCallback,
                                                       ClientCallbackContext);
 
@@ -5697,7 +5758,7 @@ DMF_Registry_ValueReadMultiString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
     _In_ CONST WCHAR* ValueName,
-    _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
+    _Out_writes_opt_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
     )
@@ -5900,7 +5961,7 @@ DMF_Registry_ValueReadString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
     _In_ CONST WCHAR* ValueName,
-    _Out_writes_opt_(NumberOfCharacters) PWCHAR Buffer,
+    _Out_writes_opt_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters,
     _Out_opt_ ULONG* BytesRead
     )
@@ -6198,7 +6259,7 @@ DMF_Registry_ValueWriteMultiString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
     _In_ CONST WCHAR* ValueName,
-    _In_reads_(NumberOfCharacters) PWCHAR Buffer,
+    _In_reads_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters
     )
 /*++
@@ -6309,7 +6370,7 @@ DMF_Registry_ValueWriteString(
     _In_ DMFMODULE DmfModule,
     _In_ HANDLE Handle,
     _In_ CONST WCHAR* ValueName,
-    _In_reads_(NumberOfCharacters) PWCHAR Buffer,
+    _In_reads_(NumberOfCharacters) WCHAR* Buffer,
     _In_ ULONG NumberOfCharacters
     )
 /*++

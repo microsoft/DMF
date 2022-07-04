@@ -74,11 +74,13 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 AcpiTarget_PrepareInputParametersForDsmMethod(
+    _In_ DMFMODULE DmfModule,
     _In_ GUID* Guid,
     _In_ ULONG FunctionIndex,
     _In_ ULONG FunctionRevision,
     __in_bcount_opt(FunctionCustomArgumentsBufferSize) VOID* FunctionCustomArgumentsBuffer,
     _In_ ULONG FunctionCustomArgumentsBufferSize,
+    _Out_ WDFMEMORY* ReturnBufferMemory,
     __deref_out_bcount(*ReturnBufferSize) PACPI_EVAL_INPUT_BUFFER_COMPLEX *ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize
     )
@@ -91,11 +93,13 @@ Routine Description:
 
 Arguments:
 
+    DmfModule - This Module's handle.
     Guid - ACPI Guid.
     FunctionIndex - Supplies the value of a function index for an input parameter.
     FunctionRevision - Supplies the version of the function.
     FunctionCustomArgumentsBuffer - Supplies the buffer containing custom arguments to be passed to the function.
     FunctionCustomArgumentsBufferSize - Supplies the size of the custom arguments buffer.
+    ReturnBufferMemory - WDFMEMORY associated with allocated ReturnBuffer.
     ReturnBuffer - Supplies a pointer to receive the input parameter blob.
     ReturnBufferSize - Supplies a pointer to receive the size of the data blob returned.
 
@@ -110,10 +114,14 @@ Return Value:
     ULONG parametersBufferSize;
     NTSTATUS ntStatus;
     errno_t error;
+    WDFMEMORY parametersBufferMemory;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
+
+    parametersBufferMemory = NULL;
+    *ReturnBufferMemory = NULL;
 
     parametersBufferSize = sizeof(ACPI_EVAL_INPUT_BUFFER_COMPLEX) +
                            (sizeof(GUID) - sizeof(ULONG)) +
@@ -128,14 +136,18 @@ Return Value:
         parametersBufferSize += (FunctionCustomArgumentsBufferSize - sizeof(ULONG));
     }
 
-    #pragma warning( suppress : 4996 )
-    parametersBuffer = (ACPI_EVAL_INPUT_BUFFER_COMPLEX*)ExAllocatePoolWithTag(PagedPool,
-                                                                              parametersBufferSize,
-                                                                              MemoryTag);
-    if (NULL == parametersBuffer)
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               parametersBufferSize,
+                               &parametersBufferMemory,
+                               (VOID**)&parametersBuffer);
+    if (!NT_SUCCESS(ntStatus))
     {
-        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ExAllocatePoolWithTag ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -146,33 +158,25 @@ Return Value:
     parametersBuffer->Size = parametersBufferSize;
     parametersBuffer->ArgumentCount = DSM_METHOD_ARGUMENTS_COUNT;
 
-    //
     // Argument 0: UUID.
     //
-
     argument = &parametersBuffer->Argument[0];
     ACPI_METHOD_SET_ARGUMENT_BUFFER(argument,
                                     Guid,
                                     sizeof(GUID));
 
-    //
     // Argument 1: Revision.
     //
-
     argument = ACPI_METHOD_NEXT_ARGUMENT(argument);
     ACPI_METHOD_SET_ARGUMENT_INTEGER(argument, FunctionRevision);
 
-    //
     // Argument 2: Function index.
     //
-
     argument = ACPI_METHOD_NEXT_ARGUMENT(argument);
     ACPI_METHOD_SET_ARGUMENT_INTEGER(argument, FunctionIndex);
 
-    //
     // Argument 3: Custom package for DSM functions.
     //
-
     argument = ACPI_METHOD_NEXT_ARGUMENT(argument);
     argument->Type = ACPI_METHOD_ARGUMENT_PACKAGE;
     argument->DataLength = (USHORT)FunctionCustomArgumentsBufferSize;
@@ -195,6 +199,7 @@ Return Value:
     }
 
     *ReturnBuffer = parametersBuffer;
+    *ReturnBufferMemory = parametersBufferMemory;
     if (ARGUMENT_PRESENT(ReturnBufferSize) != FALSE)
     {
         *ReturnBufferSize = parametersBufferSize;
@@ -213,9 +218,10 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 AcpiTarget_EvaluateAcpiMethod(
-    _In_ WDFDEVICE Device,
+    _In_ DMFMODULE DmfModule,
     _In_ ULONG MethodName,
     _In_opt_ VOID* InputBuffer,
+    _Out_opt_ WDFMEMORY* ReturnBufferMemory,
     __deref_out_bcount_opt(*ReturnBufferSize) VOID* *ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag
@@ -229,10 +235,11 @@ Routine Description:
 
 Arguments:
 
-    Device - Supplies a handle to the framework device object.
+    DmfModule - This Module's handle.
     MethodName - Supplies a packed string identifying the method.
     InputBuffer - Supplies arguments for the method. If specified, the method
                       name must match MethodName.
+    ReturnBufferMemory - WDFMEMORY corresponding to allocated ReturnBuffer.
     ReturnBuffer - Supplies a pointer to receive the return value(s) from
                    the method.
     ReturnBufferSize - Supplies a pointer to receive the size of the data
@@ -251,22 +258,53 @@ Return Value:
     WDF_MEMORY_DESCRIPTOR inputDescriptor;
     WDFIOTARGET ioTarget;
     PACPI_EVAL_OUTPUT_BUFFER outputBuffer;
+    WDFMEMORY outputBufferMemory;
     ULONG outputBufferLength;
     WDF_MEMORY_DESCRIPTOR outputDescriptor;
     ULONG_PTR sizeReturned;
     ACPI_EVAL_INPUT_BUFFER smallInputBuffer;
     NTSTATUS ntStatus;
+    WDFDEVICE device;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
     outputBuffer = NULL;
+    outputBufferMemory = NULL;
+    device = DMF_ParentDeviceGet(DmfModule);
 
+    // If ReturnBuffer is present, so must ReturnBufferMemory be present.
     //
+    if (ARGUMENT_PRESENT(ReturnBuffer) &&
+        ARGUMENT_PRESENT(ReturnBufferMemory))
+    {
+        // OK to continue. Both are present.
+        //
+    }
+    else if ((!ARGUMENT_PRESENT(ReturnBuffer)) && 
+             (!ARGUMENT_PRESENT(ReturnBufferMemory)))
+    {
+        // OK to continue. Both are not present.
+        //
+    }
+    else
+    {
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+    if (ARGUMENT_PRESENT(ReturnBuffer))
+    {
+        *ReturnBuffer = NULL;
+    }
+    if (ARGUMENT_PRESENT(ReturnBufferMemory))
+    {
+        *ReturnBufferMemory = NULL;
+    }
+
     // Build input buffer if one was not passed in.
     //
-
     if (NULL == InputBuffer)
     {
         if (0 == MethodName)
@@ -285,10 +323,8 @@ Return Value:
     {
         inputBuffer = (ACPI_EVAL_INPUT_BUFFER *)InputBuffer;
 
-        //
         // Calculate input buffer size.
         //
-
         switch (((PACPI_EVAL_INPUT_BUFFER)InputBuffer)->Signature)
         {
             case ACPI_EVAL_INPUT_BUFFER_SIGNATURE:
@@ -322,33 +358,34 @@ Return Value:
         }
     }
 
-    //
     // Set the IO target and initial size for the output buffer to be allocated.
     // The IO target is the default underlying device object, which is ACPI
     // in this case.
     //
-
     attempts = 0;
-    ioTarget = WdfDeviceGetIoTarget(Device);
+    ioTarget = WdfDeviceGetIoTarget(device);
     outputBufferLength = INITIAL_CONTROL_METHOD_OUTPUT_SIZE;
 
-    //
     // Set the input buffer.
     //
-
     WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&inputDescriptor,
                                       (VOID*)inputBuffer,
                                       inputBufferLength);
 
     do
     {
-        #pragma warning( suppress : 4996 )
-        outputBuffer = (PACPI_EVAL_OUTPUT_BUFFER)ExAllocatePoolWithTag(PagedPool,
-                                                                       outputBufferLength,
-                                                                       Tag);
-        if (NULL == outputBuffer)
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        objectAttributes.ParentObject = DmfModule;
+        ntStatus = WdfMemoryCreate(&objectAttributes,
+                                   PagedPool,
+                                   Tag,
+                                   outputBufferLength,
+                                   &outputBufferMemory,
+                                   (VOID**)&outputBuffer);
+        if (!NT_SUCCESS(ntStatus))
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -364,16 +401,14 @@ Return Value:
                                                      NULL,
                                                      &sizeReturned);
 
-        //
         // If the output buffer was insufficient, then re-allocate one with
         // appropriate size and retry.
         //
-
         if (STATUS_BUFFER_OVERFLOW == ntStatus)
         {
             outputBufferLength = outputBuffer->Length;
-            ExFreePoolWithTag(outputBuffer,
-                              Tag);
+            WdfObjectDelete(outputBufferMemory);
+            outputBufferMemory = NULL;
             outputBuffer = NULL;
         }
 
@@ -385,7 +420,6 @@ Return Value:
     // If successful and data returned, return data to caller. If the method
     // returned no data, then set the return values to NULL.
     //
-
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -402,6 +436,15 @@ Return Value:
         if (ARGUMENT_PRESENT(ReturnBuffer))
         {
             *ReturnBuffer = outputBuffer;
+            // For SAL.
+            //
+            if (ARGUMENT_PRESENT(ReturnBufferMemory))
+            {
+                *ReturnBufferMemory = outputBufferMemory;
+            }
+            // Prevent it from being freed at exit.
+            //
+            outputBufferMemory = NULL;
             outputBuffer = NULL;
         }
         if (ARGUMENT_PRESENT(ReturnBufferSize))
@@ -415,22 +458,24 @@ Return Value:
         {
             *ReturnBuffer = NULL;
         }
+        if (ARGUMENT_PRESENT(ReturnBufferMemory))
+        {
+            *ReturnBufferMemory = NULL;
+        }
         if (ARGUMENT_PRESENT(ReturnBufferSize))
         {
             *ReturnBufferSize = 0;
         }
     }
 
-    //
     // If the method execution fails: then free up the resources.
     //
 
 Exit:
 
-    if (outputBuffer != NULL)
+    if (outputBufferMemory != NULL)
     {
-        ExFreePoolWithTag(outputBuffer,
-                          Tag);
+        WdfObjectDelete(outputBufferMemory);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -531,8 +576,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 AcpiTarget_IsDsmFunctionSupported(
+    _In_ DMFMODULE DmfModule,
     _In_ GUID* Guid,
-    _In_ WDFDEVICE Device,
     _In_ ULONG FunctionIndex,
     _In_ ULONG FunctionRevision,
     __in_bcount_opt(FunctionCustomArgumentBufferSize) VOID* FunctionCustomArgumentBuffer,
@@ -548,7 +593,8 @@ Routine Description:
 
 Arguments:
 
-    Device - Supplies a handle to the framework device object.
+    DmfModule = This Module's handle.
+    Guid - ACPI Guid.
     FunctionIndex - Supplies the function index to check for.
     FunctionRevision - Indicates the revision of the function of interest.
     FunctionCustomArgumentsBuffer - Supplies the buffer containing custom arguments to be passed to the function.
@@ -569,16 +615,22 @@ Return Value:
 --*/
 {
     PACPI_EVAL_OUTPUT_BUFFER outputBuffer;
+    WDFMEMORY outputBufferMemory;
     ULONG outputBufferSize;
     PACPI_EVAL_INPUT_BUFFER_COMPLEX parametersBuffer;
+    WDFMEMORY parametersBufferMemory;
     NTSTATUS ntStatus;
+    WDFDEVICE device;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
+    device = DMF_ParentDeviceGet(DmfModule);
     outputBuffer = NULL;
+    outputBufferMemory = NULL;
     parametersBuffer = NULL;
+    parametersBufferMemory = NULL;
 
     *Supported = FALSE;
 
@@ -587,16 +639,19 @@ Return Value:
     // revision level."  I.e. "Revision 1" could return an entirely disjoint
     // bit field than "Revision 2.".
     //
-    ntStatus = AcpiTarget_PrepareInputParametersForDsmMethod(Guid,
+    ntStatus = AcpiTarget_PrepareInputParametersForDsmMethod(DmfModule,
+                                                             Guid,
                                                              DSM_QUERY_FUNCTION_INDEX,
                                                              FunctionRevision,
                                                              FunctionCustomArgumentBuffer,
                                                              FunctionCustomArgumentBufferSize,
+                                                             &parametersBufferMemory,
                                                              &parametersBuffer,
                                                              NULL);
     if (! NT_SUCCESS(ntStatus))
     {
         parametersBuffer = NULL;
+        parametersBufferMemory = NULL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiTarget_PrepareInputParametersForDsmMethod ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -604,16 +659,17 @@ Return Value:
     // Invoke a helper function to send an IOCTL to ACPI to evaluate this
     // control method.
     //
-    ntStatus = AcpiTarget_EvaluateAcpiMethod(Device,
+    ntStatus = AcpiTarget_EvaluateAcpiMethod(DmfModule,
                                              parametersBuffer->MethodNameAsUlong,
                                              parametersBuffer,
-                                             (VOID* *)&outputBuffer,
+                                             &outputBufferMemory,
+                                             (VOID**)&outputBuffer,
                                              &outputBufferSize,
                                              MemoryTag);
-
     if (! NT_SUCCESS(ntStatus))
     {
         outputBuffer = NULL;
+        outputBufferMemory = NULL;
 
         // WdfIoTargetSendIoctlSynchronously call inside the above function can return
         // ntStatus failure of STATUS_INVALID_DEVICE_REQUEST in case when _DSM does not exist.
@@ -662,18 +718,14 @@ Return Value:
 
 Exit:
 
-    if (parametersBuffer != NULL)
+    if (parametersBufferMemory != NULL)
     {
-        ExFreePoolWithTag(parametersBuffer,
-                          MemoryTag);
-        parametersBuffer = NULL;
+        WdfObjectDelete(parametersBufferMemory);
     }
 
-    if (outputBuffer != NULL)
+    if (outputBufferMemory != NULL)
     {
-        ExFreePoolWithTag(outputBuffer,
-                          MemoryTag);
-        outputBuffer = NULL;
+        WdfObjectDelete(outputBufferMemory);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -689,6 +741,7 @@ AcpiTarget_InvokeDsm(
     _In_ ULONG FunctionIndex,
     __in_bcount_opt(FunctionCustomArgumentsBufferSize) VOID* FunctionCustomArgumentsBuffer,
     _In_ ULONG FunctionCustomArgumentsBufferSize,
+    _Out_opt_ WDFMEMORY* ReturnBufferMemory,
     __deref_opt_out_bcount_opt(*ReturnBufferSize) VOID** ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag
@@ -706,6 +759,7 @@ Arguments:
     FunctionIndex - DSM Function Index.
     FunctionCustomArgumentsBuffer - DSM Function Custom Arguments buffer.
     FunctionCustomArgumentsBufferSize - The size of the Custom Arguments buffer.
+    ReturnBufferMemory - WDFMEMORY associated with allocated ReturnBuffer.
     ReturnBuffer - The data returned by the DSM.
     ReturnBufferSize - Indicates how much data is returned to the Client.
     Tag - Identifies memory allocation source
@@ -720,32 +774,57 @@ Return Value:
     NTSTATUS ntStatus;
     BOOLEAN supported;
     PACPI_EVAL_OUTPUT_BUFFER outputBuffer;
+    WDFMEMORY outputBufferMemory;
     ULONG outputBufferSize;
     PACPI_EVAL_INPUT_BUFFER_COMPLEX parametersBuffer;
+    WDFMEMORY parametersBufferMemory;
     DMF_CONFIG_AcpiTarget* moduleConfig;
-    WDFDEVICE device;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    device = DMF_ParentDeviceGet(DmfModule);
-
     outputBuffer = NULL;
+    outputBufferMemory = NULL;
     parametersBuffer = NULL;
-    if (ARGUMENT_PRESENT(ReturnBuffer) != FALSE)
+    parametersBufferMemory = NULL;
+
+    // If ReturnBuffer is present, so must ReturnBufferMemory be present.
+    //
+    if (ARGUMENT_PRESENT(ReturnBuffer) &&
+        ARGUMENT_PRESENT(ReturnBufferMemory))
+    {
+        // OK to continue. Both are present.
+        //
+    }
+    else if ((!ARGUMENT_PRESENT(ReturnBuffer)) && 
+             (!ARGUMENT_PRESENT(ReturnBufferMemory)))
+    {
+        // OK to continue. Both are not present.
+        //
+    }
+    else
+    {
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+    if (ARGUMENT_PRESENT(ReturnBuffer))
     {
         *ReturnBuffer = NULL;
     }
-    if (ARGUMENT_PRESENT(ReturnBufferSize) != FALSE)
+    if (ARGUMENT_PRESENT(ReturnBufferMemory))
+    {
+        *ReturnBufferMemory = NULL;
+    }
+    if (ARGUMENT_PRESENT(ReturnBufferSize))
     {
         *ReturnBufferSize = 0;
     }
 
-    ntStatus = AcpiTarget_IsDsmFunctionSupported(&moduleConfig->Guid,
-                                                 device,
+    ntStatus = AcpiTarget_IsDsmFunctionSupported(DmfModule,
+                                                 &moduleConfig->Guid,
                                                  FunctionIndex,
                                                  moduleConfig->DsmRevision,
                                                  FunctionCustomArgumentsBuffer,
@@ -753,7 +832,7 @@ Return Value:
                                                  &supported);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to check if _DSM method is supported.");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "AcpiTarget_IsDsmFunctionSupported fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -766,16 +845,19 @@ Return Value:
 
     // Evaluate this method for real.
     //
-    ntStatus = AcpiTarget_PrepareInputParametersForDsmMethod(&moduleConfig->Guid,
+    ntStatus = AcpiTarget_PrepareInputParametersForDsmMethod(DmfModule,
+                                                             &moduleConfig->Guid,
                                                              FunctionIndex,
                                                              moduleConfig->DsmRevision,
                                                              FunctionCustomArgumentsBuffer,
                                                              FunctionCustomArgumentsBufferSize,
+                                                             &parametersBufferMemory,
                                                              &parametersBuffer,
                                                              NULL);
     if (! NT_SUCCESS(ntStatus))
     {
         parametersBuffer = NULL;
+        parametersBufferMemory = NULL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to prepare input parameters for _DSM call.");
         goto Exit;
     }
@@ -783,9 +865,10 @@ Return Value:
     // Invoke a helper function to send an IOCTL to ACPI to evaluate this
     // control method.
     //
-    ntStatus = AcpiTarget_EvaluateAcpiMethod(device,
+    ntStatus = AcpiTarget_EvaluateAcpiMethod(DmfModule,
                                              parametersBuffer->MethodNameAsUlong,
                                              parametersBuffer,
+                                             &outputBufferMemory,
                                              (VOID* *)&outputBuffer,
                                              &outputBufferSize,
                                              Tag);
@@ -806,9 +889,11 @@ Return Value:
         if (ARGUMENT_PRESENT(ReturnBuffer) != FALSE)
         {
             *ReturnBuffer = outputBuffer;
+            *ReturnBufferMemory = outputBufferMemory;
             // Caller will free *ReturnBuffer
             //
             outputBuffer = NULL;
+            outputBufferMemory = NULL;
         }
 
         if (ARGUMENT_PRESENT(ReturnBufferSize) != FALSE)
@@ -819,16 +904,14 @@ Return Value:
 
 Exit:
 
-    if (parametersBuffer != NULL)
+    if (parametersBufferMemory != NULL)
     {
-        ExFreePoolWithTag(parametersBuffer, MemoryTag);
-        parametersBuffer = NULL;
+        WdfObjectDelete(parametersBufferMemory);
     }
 
-    if (outputBuffer != NULL)
+    if (outputBufferMemory != NULL)
     {
-        ExFreePoolWithTag(outputBuffer, Tag);
-        outputBuffer = NULL;
+        WdfObjectDelete(outputBufferMemory);
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -919,6 +1002,7 @@ DMF_AcpiTarget_EvaluateMethod(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG MethodName,
     _In_opt_ VOID* InputBuffer,
+    _Out_opt_ WDFMEMORY* ReturnBufferMemory,
     __deref_opt_out_bcount_opt(*ReturnBufferSize) VOID** ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag
@@ -936,6 +1020,7 @@ Arguments:
     MethodName - Supplies a packed string identifying the method.
     InputBuffer - Supplies arguments for the method. If specified, the method
                       name must match MethodName.
+    ReturnBufferMemory - WDFMEMORY corresponding to allocated ReturnBuffer.
     ReturnBuffer - Supplies a pointer to receive the return value(s) from
                    the method.
     ReturnBufferSize - Supplies a pointer to receive the size of the data
@@ -954,9 +1039,10 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = AcpiTarget_EvaluateAcpiMethod(DMF_ParentDeviceGet(DmfModule),
+    ntStatus = AcpiTarget_EvaluateAcpiMethod(DmfModule,
                                              MethodName,
                                              InputBuffer,
+                                             ReturnBufferMemory,
                                              ReturnBuffer,
                                              ReturnBufferSize,
                                              Tag);
@@ -1111,6 +1197,7 @@ Return Value:
 {
     NTSTATUS ntStatus;
     PACPI_EVAL_OUTPUT_BUFFER outputBuffer;
+    WDFMEMORY outputBufferMemory;
     ULONG outputBufferSize;
     PACPI_METHOD_ARGUMENT argument;
 
@@ -1127,10 +1214,10 @@ Return Value:
                                     FunctionIndex,
                                     &FunctionCustomArgument,
                                     sizeof(FunctionCustomArgument),
+                                    &outputBufferMemory,
                                     (VOID* *)&outputBuffer,
                                     &outputBufferSize,
                                     MemoryTag);
-
     if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1204,11 +1291,9 @@ Return Value:
 
 Exit:
 
-    if (outputBuffer != NULL)
+    if (outputBufferMemory != NULL)
     {
-        ExFreePoolWithTag(outputBuffer,
-                          MemoryTag);
-        outputBuffer = NULL;
+        WdfObjectDelete(outputBufferMemory);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -1223,6 +1308,7 @@ DMF_AcpiTarget_InvokeDsmRaw(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG FunctionIndex,
     _In_ ULONG FunctionCustomArgument,
+    _Out_opt_ WDFMEMORY* ReturnBufferMemory,
     _Out_writes_opt_(*ReturnBufferSize) VOID** ReturnBuffer,
     _Out_opt_ ULONG* ReturnBufferSize,
     _In_ ULONG Tag
@@ -1238,6 +1324,7 @@ Arguments:
     DmfModule - This Module's handle.
     FunctionIndex - DSM Function Index.
     FunctionCustomArgument - DSM Function Custom Argument.
+    ReturnBufferMemory - WDFMEMORY corresponding to allocated ReturnBuffer.
     ReturnBuffer - Pointer to a buffer containing raw ACPI output buffer.
     ReturnBufferSize - Size of data returned by the DSM.
     Tag - Indicates memory allocation source
@@ -1254,22 +1341,22 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiTarget);
+
     if (ARGUMENT_PRESENT(ReturnBufferSize))
     {
         *ReturnBufferSize = 0;
     }
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 AcpiTarget);
-
     ntStatus = AcpiTarget_InvokeDsm(DmfModule,
                                     FunctionIndex,
                                     &FunctionCustomArgument,
                                     sizeof(FunctionCustomArgument),
+                                    ReturnBufferMemory,
                                     ReturnBuffer,
                                     ReturnBufferSize,
                                     Tag);
-
     if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1323,6 +1410,7 @@ Return Value:
                                     FunctionIndex,
                                     FunctionCustomArgumentsBuffer,
                                     FunctionCustomArgumentsBufferSize,
+                                    NULL,
                                     NULL,
                                     NULL,
                                     MemoryTag);

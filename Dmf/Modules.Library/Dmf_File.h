@@ -32,6 +32,19 @@ DECLARE_DMF_MODULE_NO_CONFIG(File)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_File_BufferDecompress(
+    _In_ DMFMODULE DmfModule,
+    _In_ USHORT CompressionFormat,
+    _Out_writes_bytes_(UncompressedBufferSize) UCHAR* UncompressedBuffer,
+    _In_ ULONG UncompressedBufferSize,
+    _In_reads_bytes_(CompressedBufferSize) UCHAR* CompressedBuffer,
+    _In_ ULONG CompressedBufferSize,
+    _Out_ ULONG* FinalUncompressedSize
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_File_DriverFileRead(
     _In_ DMFMODULE DmfModule,
     _In_ WCHAR* FileName, 

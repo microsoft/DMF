@@ -52,7 +52,7 @@ __forceinline
 _Must_inspect_result_
 NTSTATUS
 DMF_String_AnsiStringInitialize(
-    _In_ ANSI_STRING* AnsiString,
+    _Out_ ANSI_STRING* AnsiString,
     _In_ CHAR* String
     )
 {
@@ -78,6 +78,8 @@ DMF_String_AnsiStringInitialize(
 // This function is not available in User-mode drivers.
 //
 #define RtlInitAnsiString DMF_String_AnsiStringInitialize
+
+#define RtlStringCbPrintfA sprintf_s
 
 #endif
 

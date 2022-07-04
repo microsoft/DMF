@@ -74,6 +74,11 @@ typedef struct DMFDEVICE_INIT
     //
     WDF_IO_QUEUE_CONFIG DefaultQueueConfig;
 
+    // Contains the object attributes for the default queue.
+    // DMF assigns a default that can be overridden by the Client.
+    //
+    WDF_OBJECT_ATTRIBUTES DefaultQueueObjectAttributes;
+
     // DMF Event Callbacks.
     //
     DMF_EVENT_CALLBACKS* DmfEventCallbacks;
@@ -460,6 +465,35 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+WDF_OBJECT_ATTRIBUTES*
+DMF_DmfDeviceInitDefaultQueueObjectAttributesGet(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    )
+/*++
+
+Routine Description:
+
+    Retrieve DMF's default queue object attributes.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    Pointer to the default queue object attributes.
+
+--*/
+{
+    PAGED_CODE();
+
+    DmfAssert(DmfDeviceInit != NULL);
+    return &DmfDeviceInit->DefaultQueueObjectAttributes;;
+}
+#pragma code_seg()
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Client Driver APIs related to PDMFDEVICE_INIT
@@ -587,6 +621,9 @@ Return Value:
     //
     WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&dmfDeviceInit->DefaultQueueConfig,
                                            WdfIoQueueDispatchParallel);
+    // By default queue callback will be called at WdfExecutionLevelInheritFromParent.
+    // 
+    WDF_OBJECT_ATTRIBUTES_INIT(&dmfDeviceInit->DefaultQueueObjectAttributes);
 
 Exit:
 
@@ -707,6 +744,9 @@ Return Value:
     //
     WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&dmfDeviceInit->DefaultQueueConfig,
                                            WdfIoQueueDispatchParallel);
+    // By default queue callback will be called at WdfExecutionLevelInheritFromParent.
+    // 
+    WDF_OBJECT_ATTRIBUTES_INIT(&dmfDeviceInit->DefaultQueueObjectAttributes);
 
 Exit:
 
@@ -1347,6 +1387,36 @@ Return Value:
 
     DmfAssert(DmfDeviceInit != NULL);
     DmfDeviceInit->DefaultQueueConfig = *QueueConfig;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit,
+    _In_ WDF_OBJECT_ATTRIBUTES* QueueObjectAttributes
+    )
+/*++
+
+Routine Description:
+
+    Retrieve DMF's default queue object attributes.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    Pointer to the default queue object attributes.
+
+--*/
+{
+    PAGED_CODE();
+
+    DmfAssert(DmfDeviceInit != NULL);
+    DmfDeviceInit->DefaultQueueObjectAttributes = *QueueObjectAttributes;
 }
 #pragma code_seg()
 

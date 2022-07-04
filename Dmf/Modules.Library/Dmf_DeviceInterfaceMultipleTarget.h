@@ -31,8 +31,14 @@ typedef enum
     DeviceInterfaceMultipleTarget_StateType_Invalid,
     DeviceInterfaceMultipleTarget_StateType_Open,
     DeviceInterfaceMultipleTarget_StateType_QueryRemove,
+    // NOTE: This name is not correct. The correct name is on next line, but old name is kept for backward compatibility.
+    //
     DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled,
+    DeviceInterfaceMultipleTarget_StateType_RemoveCancel = DeviceInterfaceMultipleTarget_StateType_QueryRemoveCancelled,
+    // NOTE: This name is not correct. The correct name is on next line, but old name is kept for backward compatibility.
+    //
     DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete,
+    DeviceInterfaceMultipleTarget_StateType_RemoveComplete = DeviceInterfaceMultipleTarget_StateType_QueryRemoveComplete,
     DeviceInterfaceMultipleTarget_StateType_Close,
     DeviceInterfaceMultipleTarget_StateType_Maximum
 } DeviceInterfaceMultipleTarget_StateType;
@@ -48,7 +54,7 @@ typedef enum
     // Module is opened in D0Entry and closed in D0Exit.
     //
     DeviceInterfaceMultipleTarget_PnpRegisterWhen_D0Entry,
-    // Module is opened in when module is created.
+    // Module is opened in when Module is created.
     //
     DeviceInterfaceMultipleTarget_PnpRegisterWhen_Create
 } DeviceInterfaceMultipleTarget_PnpRegisterWhen_Type;
@@ -226,6 +232,21 @@ DMF_DeviceInterfaceMultipleTarget_StreamStart(
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_DeviceInterfaceMultipleTarget_StreamStop(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_DeviceInterfaceMultipleTarget_TargetDereference(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_TargetReference(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_Target Target
     );
