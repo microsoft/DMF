@@ -152,6 +152,12 @@ Tests_Pdo_DmfModulesAdd(
                      NULL);
 }
 
+// {71D84E2B-73E5-4235-B16E-706BF96AAD37}
+DEFINE_GUID(GUID_Test, 
+0x71d84e2b, 0x73e5, 0x4235, 0xb1, 0x6e, 0x70, 0x6b, 0xf9, 0x6a, 0xad, 0x37);
+
+#include <devpkey.h>
+
 #pragma code_seg("PAGE")
 static
 void
@@ -205,6 +211,28 @@ Tests_Pdo_ThreadAction(
 #if defined(PDO_ENABLE_KERNELMODE)
     // Create the Kernel-mode function driver PDO.
     //
+    ULONG propertyValue = 0x010002000;
+    Pdo_DevicePropertyEntry propertyTableEntry;
+    Pdo_DeviceProperty_Table propertyTable;
+
+    RtlZeroMemory(&propertyTableEntry,
+                  sizeof(propertyTableEntry));
+    propertyTableEntry.ValueData = (VOID*)&propertyValue;
+    propertyTableEntry.ValueSize = sizeof(ULONG);
+    propertyTableEntry.ValueType = DEVPROP_TYPE_UINT32;
+    propertyTableEntry.DeviceInterfaceGuid = (GUID*)&GUID_Test;
+    propertyTableEntry.RegisterDeviceInterface = TRUE;
+    propertyTableEntry.DevicePropertyData.Flags = 0;
+    propertyTableEntry.DevicePropertyData.Lcid = LOCALE_NEUTRAL;
+    propertyTableEntry.DevicePropertyData.Size = sizeof(propertyTableEntry.DevicePropertyData);
+    propertyTableEntry.DevicePropertyData.PropertyKey = &DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities;
+    propertyTableEntry.DevicePropertyData.PropertyKey = &DEVPKEY_DeviceInterface_Restricted;
+
+    RtlZeroMemory(&propertyTable,
+                  sizeof(propertyTable));
+    propertyTable.ItemCount = 1;
+    propertyTable.TableEntries = &propertyTableEntry;
+
     RtlZeroMemory(&pdoRecord,
                   sizeof(pdoRecord));
     pdoRecord.HardwareIds[0] = L"{0ACF873A-242F-4C8B-A97D-8CA4DD9F86F1}\\DmfKTestFunction";
@@ -213,10 +241,21 @@ Tests_Pdo_ThreadAction(
     pdoRecord.SerialNumber = serialNumberPair + 0;
     pdoRecord.EnableDmf = TRUE;
     pdoRecord.EvtDmfDeviceModulesAdd = Tests_Pdo_DmfModulesAdd;
+    pdoRecord.DeviceProperties = &propertyTable;
+
     ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
                                     &pdoRecord,
                                     &devicePair[0]);
     DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DMF_ModuleLock(DmfModule);
+        moduleContext->SerialNumbersInUse[serialNumberPair + 0] = FALSE;
+        moduleContext->SerialNumbersInUse[serialNumberPair + 1] = FALSE;
+        DMF_ModuleUnlock(DmfModule);
+
+        goto Exit;
+    }
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: PLUG [%S] device=0x%p", pdoRecord.Description, devicePair[0]);
 #endif
 
@@ -235,6 +274,19 @@ Tests_Pdo_ThreadAction(
                                     &pdoRecord,
                                     &devicePair[1]);
     DmfAssert(NT_SUCCESS(ntStatus));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Undo the successful plug in above.
+        //
+        ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
+                                        devicePair[1]);
+        DMF_ModuleLock(DmfModule);
+        moduleContext->SerialNumbersInUse[serialNumberPair + 0] = FALSE;
+        moduleContext->SerialNumbersInUse[serialNumberPair + 1] = FALSE;
+        DMF_ModuleUnlock(DmfModule);
+
+        goto Exit;
+    }
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: PLUG [%S] device=0x%p", pdoRecord.Description, devicePair[1]);
 #endif
 
@@ -262,13 +314,12 @@ Tests_Pdo_ThreadAction(
 #endif
 #if defined(PDO_ENABLE_USERMODE)
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: UNPLUG START device=0x%p", devicePair[1]);
+    // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
+    //
     ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
                                     devicePair[1]);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "PDO: UNPLUG END device=0x%p", devicePair[1]);
 #endif
-
-    // NOTE: This can fail when driver is unloading as WDF deletes the PDO automatically.
-    //
 
     DMF_ModuleLock(DmfModule);
     moduleContext->SerialNumbersInUse[serialNumberPair + 0] = FALSE;
