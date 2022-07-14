@@ -153,8 +153,16 @@ Tests_Pdo_DmfModulesAdd(
 }
 
 // {71D84E2B-73E5-4235-B16E-706BF96AAD37}
-DEFINE_GUID(GUID_Test, 
+DEFINE_GUID(GUID_Test1, 
 0x71d84e2b, 0x73e5, 0x4235, 0xb1, 0x6e, 0x70, 0x6b, 0xf9, 0x6a, 0xad, 0x37);
+
+// {7A7907AC-D445-4E38-B444-9382AADF97AF}
+DEFINE_GUID(GUID_Test2, 
+0x7a7907ac, 0xd445, 0x4e38, 0xb4, 0x44, 0x93, 0x82, 0xaa, 0xdf, 0x97, 0xaf);
+
+DEFINE_DEVPROPKEY(DEVPKEY_Test1, 0x3696efa5, 0x5f52, 0x4fb8, 0xad, 0x89, 0x1a, 0xfd, 0xb1, 0x91, 0xb3, 0x36, 1);
+
+DEFINE_DEVPROPKEY(DEVPKEY_Test2, 0xd80a5b3c, 0x4e5c, 0x4f1e, 0x84, 0x34, 0xc5, 0x3a, 0x1a, 0x41, 0xe3, 0x95, 2);
 
 #include <devpkey.h>
 
@@ -211,27 +219,38 @@ Tests_Pdo_ThreadAction(
 #if defined(PDO_ENABLE_KERNELMODE)
     // Create the Kernel-mode function driver PDO.
     //
-    ULONG propertyValue = 0x010002000;
-    Pdo_DevicePropertyEntry propertyTableEntry;
+    const int numberOfProperties = 2;
+    ULONG propertyValue[numberOfProperties] = { 0x010002000, 0x020003000 };
+    Pdo_DevicePropertyEntry propertyTableEntry[numberOfProperties];
     Pdo_DeviceProperty_Table propertyTable;
 
     RtlZeroMemory(&propertyTableEntry,
                   sizeof(propertyTableEntry));
-    propertyTableEntry.ValueData = (VOID*)&propertyValue;
-    propertyTableEntry.ValueSize = sizeof(ULONG);
-    propertyTableEntry.ValueType = DEVPROP_TYPE_UINT32;
-    propertyTableEntry.DeviceInterfaceGuid = (GUID*)&GUID_Test;
-    propertyTableEntry.RegisterDeviceInterface = TRUE;
-    propertyTableEntry.DevicePropertyData.Flags = 0;
-    propertyTableEntry.DevicePropertyData.Lcid = LOCALE_NEUTRAL;
-    propertyTableEntry.DevicePropertyData.Size = sizeof(propertyTableEntry.DevicePropertyData);
-    propertyTableEntry.DevicePropertyData.PropertyKey = &DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities;
-    propertyTableEntry.DevicePropertyData.PropertyKey = &DEVPKEY_DeviceInterface_Restricted;
+
+    propertyTableEntry[0].ValueData = (VOID*)&propertyValue[0];
+    propertyTableEntry[0].ValueSize = sizeof(ULONG);
+    propertyTableEntry[0].ValueType = DEVPROP_TYPE_UINT32;
+    propertyTableEntry[0].DeviceInterfaceGuid = (GUID*)&GUID_Test1;
+    propertyTableEntry[0].RegisterDeviceInterface = TRUE;
+    propertyTableEntry[0].DevicePropertyData.Flags = 0;
+    propertyTableEntry[0].DevicePropertyData.Lcid = LOCALE_NEUTRAL;
+    propertyTableEntry[0].DevicePropertyData.Size = sizeof(propertyTableEntry[0].DevicePropertyData);
+    propertyTableEntry[0].DevicePropertyData.PropertyKey = &DEVPKEY_Test1;
+
+    propertyTableEntry[1].ValueData = (VOID*)&propertyValue[1];
+    propertyTableEntry[1].ValueSize = sizeof(ULONG);
+    propertyTableEntry[1].ValueType = DEVPROP_TYPE_UINT32;
+    propertyTableEntry[1].DeviceInterfaceGuid = (GUID*)&GUID_Test2;
+    propertyTableEntry[1].RegisterDeviceInterface = TRUE;
+    propertyTableEntry[1].DevicePropertyData.Flags = 0;
+    propertyTableEntry[1].DevicePropertyData.Lcid = LOCALE_NEUTRAL;
+    propertyTableEntry[1].DevicePropertyData.Size = sizeof(propertyTableEntry[1].DevicePropertyData);
+    propertyTableEntry[1].DevicePropertyData.PropertyKey = &DEVPKEY_Test2;
 
     RtlZeroMemory(&propertyTable,
                   sizeof(propertyTable));
-    propertyTable.ItemCount = 1;
-    propertyTable.TableEntries = &propertyTableEntry;
+    propertyTable.ItemCount = 2;
+    propertyTable.TableEntries = propertyTableEntry;
 
     RtlZeroMemory(&pdoRecord,
                   sizeof(pdoRecord));

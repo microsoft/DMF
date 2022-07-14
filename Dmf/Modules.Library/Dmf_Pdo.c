@@ -245,7 +245,9 @@ Return Value:
     // Copy each property from source table to target table.
     //
     target = table; 
-    for (ULONG propertyIndex = 0; propertyIndex < SourceDevicePropertyTable->ItemCount; propertyIndex++)
+    for (ULONG propertyIndex = 0; 
+         propertyIndex < SourceDevicePropertyTable->ItemCount; 
+         propertyIndex++, target++)
     {
         source = &SourceDevicePropertyTable->TableEntries[propertyIndex];
 
