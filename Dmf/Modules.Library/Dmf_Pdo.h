@@ -24,7 +24,7 @@ Environment:
 //
 typedef struct
 {
-    // The device property data that can be set on the SID driver.
+    // Device property that can be set by Client.
     //
     WDF_DEVICE_PROPERTY_DATA DevicePropertyData;
     
