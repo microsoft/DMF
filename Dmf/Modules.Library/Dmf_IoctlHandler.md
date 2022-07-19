@@ -44,7 +44,7 @@ typedef struct
   // TRUE means that the module allows only requests from kernel mode clients.
   //
   BOOLEAN KernelModeRequestsOnly;
-  // Windows Store App access settings.
+  // Do not use. (For backward compatibility purposes only.)
   //
   WCHAR* CustomCapabilities;
   DEVPROP_BOOLEAN IsRestricted;
@@ -64,8 +64,8 @@ EvtIoctlHandlerAccessModeFilter | A callback that allows the Client to filter th
 IoctlRecords | A table of records that specify information about each supported IOCTL.
 ManualMode | Module open configuration.
 KernelModeRequestsOnly | This allows the module to handle only requests from kernel mode clients.
-CustomCapabilities | Windows Store App access capabilities string.
-IsRestricted | If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.
+CustomCapabilities | Do not use. This field is only present for backward compatibility purposes.
+IsRestricted | Do not use. This field is only present for backward compatibility purposes.
 PostDeviceInterfaceCreate | Allows Client to perform actions after the Device Interface is created.
 ForwardUnhandledRequests | Allows request forwarding for IOCTLs not handled by this Module.
 ReferenceString | Optional device interface instance reference string. It must remain in memory while for the lifetime of the driver.
