@@ -44,12 +44,6 @@ typedef struct _DMF_CONTEXT_IoctlHandler
     // It is a collection of all the Open File Objects that are running "As Administrator".
     //
     WDFCOLLECTION AdministratorFileObjectsCollection;
-    // Access to IoGetDeviceInterfacePropertyData().
-    //
-    IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA* IoGetDeviceInterfacePropertyData;
-    // Access to IoSetDeviceInterfacePropertyData().
-    //
-    IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfacePropertyData;
     // ReferenceString.
     //
     UNICODE_STRING ReferenceStringUnicode;
@@ -73,8 +67,6 @@ DMF_MODULE_DECLARE_CONFIG(IoctlHandler)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#include <devpkey.h>
 
 _Must_inspect_result_
 NTSTATUS
@@ -135,151 +127,6 @@ Return Value:
 }
 
 #pragma code_seg("PAGE")
-static
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-NTSTATUS
-IoctlHandler_PostDeviceInterfaceCreate(
-    _In_ DMFMODULE DmfModule
-    )
-{
-    NTSTATUS ntStatus;
-    DMF_CONTEXT_IoctlHandler* moduleContext;
-    DMF_CONFIG_IoctlHandler* moduleConfig;
-    WDFDEVICE device;
-    UNICODE_STRING symbolicLinkName;
-    WDFSTRING symbolicLinkNameString;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    ntStatus = STATUS_SUCCESS;
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
-    device = DMF_ParentDeviceGet(DmfModule);
-    symbolicLinkNameString = NULL;
-
-    ntStatus = WdfStringCreate(NULL,
-                               WDF_NO_OBJECT_ATTRIBUTES,
-                               &symbolicLinkNameString);
-    if (!NT_SUCCESS(ntStatus)) 
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    ntStatus = WdfDeviceRetrieveDeviceInterfaceString(device,
-                                                      &moduleConfig->DeviceInterfaceGuid,
-                                                      moduleContext->ReferenceStringUnicodePointer,
-                                                      symbolicLinkNameString);
-    if (!NT_SUCCESS(ntStatus)) 
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceRetrieveDeviceInterfaceString fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    WdfStringGetUnicodeString(symbolicLinkNameString, 
-                              &symbolicLinkName);
-
-#if !defined(DMF_USER_MODE)
-
-    DEVPROP_BOOLEAN isRestricted;
-    UNICODE_STRING functionName;
-
-    // If possible, get the IoSetDeviceInterfacePropertyData.
-    //
-    RtlInitUnicodeString(&functionName, 
-                         L"IoSetDeviceInterfacePropertyData");
-    moduleContext->IoSetDeviceInterfacePropertyData = (IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA*)(ULONG_PTR)MmGetSystemRoutineAddress(&functionName);
-
-    // If possible, get the IoGetDeviceInterfacePropertyData.
-    //
-    RtlInitUnicodeString(&functionName, 
-                         L"IoGetDeviceInterfacePropertyData");
-    moduleContext->IoGetDeviceInterfacePropertyData = (IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA*)(ULONG_PTR)MmGetSystemRoutineAddress(&functionName);
-
-    // If the Client has set the IsRestricted or CustomProperty fields, try to set those properties.
-    //
-    if ((moduleContext->IoSetDeviceInterfacePropertyData != NULL) &&
-        ((moduleConfig->IsRestricted) || 
-         (moduleConfig->CustomCapabilities != NULL)))
-    {
-        isRestricted = moduleConfig->IsRestricted;
-
-        ntStatus = moduleContext->IoSetDeviceInterfacePropertyData(&symbolicLinkName,
-                                                                   &DEVPKEY_DeviceInterface_Restricted,
-                                                                   0,
-                                                                   0,
-                                                                   DEVPROP_TYPE_BOOLEAN,
-                                                                   sizeof(isRestricted),
-                                                                   &isRestricted );
-        if (!NT_SUCCESS(ntStatus)) 
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-
-#if defined(NTDDI_WIN10_RS2) && (NTDDI_VERSION >= NTDDI_WIN10_RS2)
-        if (moduleConfig->CustomCapabilities != NULL)
-        {
-            // Adds a custom capability to device interface instance that allows a Windows
-            // Store device app to access this interface using Windows.Devices.Custom namespace.
-
-            // Get size of buffer. Add space for double \0 terminator.
-            //
-            ULONG stringLength = (ULONG)wcslen(moduleConfig->CustomCapabilities);
-            ULONG bufferSize = (stringLength * sizeof(WCHAR)) + (2 * sizeof(WCHAR));
-
-            ntStatus = moduleContext->IoSetDeviceInterfacePropertyData(&symbolicLinkName,
-                                                                       &DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities,
-                                                                       0,
-                                                                       0,
-                                                                       DEVPROP_TYPE_STRING_LIST,
-                                                                       bufferSize,
-                                                                       (PVOID)moduleConfig->CustomCapabilities);
-            if (!NT_SUCCESS(ntStatus)) 
-            {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
-                goto Exit;
-            }
-        }
-#endif // defined(NTDDI_WIN10_RS2) && (NTDDI_VERSION >= NTDDI_WIN10_RS2)
-    }
-
-#endif // defined(DMF_USER_MODE)
-
-    // Optionaly, allow Client to perform other operations. Give Client access to functions that allow query/set of
-    // device interface properties. However, Client is responsible for checking if they are NULL.
-    //
-    if (moduleConfig->PostDeviceInterfaceCreate != NULL)
-    {
-        // ''symbolicLinkNameString' could be '0''
-        //
-        #pragma warning(suppress:6387)
-        ntStatus = moduleConfig->PostDeviceInterfaceCreate(DmfModule,
-                                                           moduleConfig->DeviceInterfaceGuid,
-                                                           &symbolicLinkName,
-                                                           moduleContext->IoGetDeviceInterfacePropertyData,
-                                                           moduleContext->IoSetDeviceInterfacePropertyData);
-    }
-
-Exit:
-
-    if (symbolicLinkNameString != NULL)
-    {
-        WdfObjectDelete(symbolicLinkNameString);
-    }
-
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    // NOTE: Module will not open if this function returns an error.
-    //
-    return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -328,16 +175,21 @@ Return Value:
         goto Exit;
     }
 
-    // Perform some optional tasks for Client. Also, let Client know when device interface is created.
-    //
-    ntStatus = IoctlHandler_PostDeviceInterfaceCreate(DmfModule);
-    if (! NT_SUCCESS(ntStatus)) 
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
     moduleContext->IsDeviceInterfaceCreated = TRUE;
+
+    // Let Client know when device interface is created so that Client can perform optional tasks.
+    //
+    if (moduleConfig->PostDeviceInterfaceCreate != NULL)
+    {
+        ntStatus = moduleConfig->PostDeviceInterfaceCreate(DmfModule,
+                                                           &moduleConfig->DeviceInterfaceGuid,
+                                                           moduleContext->ReferenceStringUnicodePointer);
+        if (! NT_SUCCESS(ntStatus)) 
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "PostDeviceInterfaceCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
 
 Exit:
 

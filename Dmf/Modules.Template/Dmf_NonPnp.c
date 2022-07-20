@@ -237,7 +237,6 @@ Return Value:
     moduleConfigIoctlHandler.IoctlRecordCount = _countof(NonPnp_IoctlHandlerTable);
     moduleConfigIoctlHandler.IoctlRecords = NonPnp_IoctlHandlerTable;
     moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
-    moduleConfigIoctlHandler.IsRestricted = DEVPROP_TRUE;
     DMF_DmfModuleAdd(DmfModuleInit,
                         &moduleAttributes,
                         WDF_NO_OBJECT_ATTRIBUTES,

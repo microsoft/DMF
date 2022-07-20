@@ -44,7 +44,7 @@ typedef struct
   // TRUE means that the module allows only requests from kernel mode clients.
   //
   BOOLEAN KernelModeRequestsOnly;
-  // Windows Store App access settings.
+  // Do not use. (For backward compatibility purposes only.)
   //
   WCHAR* CustomCapabilities;
   DEVPROP_BOOLEAN IsRestricted;
@@ -64,8 +64,8 @@ EvtIoctlHandlerAccessModeFilter | A callback that allows the Client to filter th
 IoctlRecords | A table of records that specify information about each supported IOCTL.
 ManualMode | Module open configuration.
 KernelModeRequestsOnly | This allows the module to handle only requests from kernel mode clients.
-CustomCapabilities | Windows Store App access capabilities string.
-IsRestricted | If set to DEVPROP_TRUE, sets the restricts access to the Device Interface.
+CustomCapabilities | Do not use. This field is only present for backward compatibility purposes.
+IsRestricted | Do not use. This field is only present for backward compatibility purposes.
 PostDeviceInterfaceCreate | Allows Client to perform actions after the Device Interface is created.
 ForwardUnhandledRequests | Allows request forwarding for IOCTLs not handled by this Module.
 ReferenceString | Optional device interface instance reference string. It must remain in memory while for the lifetime of the driver.
@@ -179,7 +179,7 @@ InputBuffer | The Request's input buffer, if any.
 InputBufferSize | The size of the Request's input buffer.
 OutputBuffer | The Request's output buffer, if any.
 OutputBufferSize | The size of the Request's output buffer.
-BytesReturned | The number of bytes returned to the caller. Indicates the number of bytes transferred usually.
+BytesReturned | The number of bytes returned to the caller. Indicates the number of bytes transferred usually. __IMPORTANT: Set *BytesReturned to zero when the Request is NOT completed by this callback. If the callback returns STATUS_PENDING, the number of bytes returned can be set when the Client completes the Request using `WdfRequestCompleteWithInformation()`. If STATUS_PENDING is returned, do not store BytesReturned and write to it when Request is completed.__
 
 ##### Remarks
 
