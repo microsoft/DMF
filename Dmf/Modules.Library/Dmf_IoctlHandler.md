@@ -179,7 +179,7 @@ InputBuffer | The Request's input buffer, if any.
 InputBufferSize | The size of the Request's input buffer.
 OutputBuffer | The Request's output buffer, if any.
 OutputBufferSize | The size of the Request's output buffer.
-BytesReturned | The number of bytes returned to the caller. Indicates the number of bytes transferred usually.
+BytesReturned | The number of bytes returned to the caller. Indicates the number of bytes transferred usually. __IMPORTANT: Set *BytesReturned to zero when the Request is NOT completed by this callback. If the callback returns STATUS_PENDING, the number of bytes returned can be set when the Client completes the Request using `WdfRequestCompleteWithInformation()`. If STATUS_PENDING is returned, do not store BytesReturned and write to it when Request is completed.__
 
 ##### Remarks
 

@@ -20,9 +20,14 @@ Environment:
 
 #pragma once
 
-// Client returns STATUS_PENDING if client retains buffer.
-// Any other status causes object to complete buffer.
+// Client returns STATUS_PENDING if Client retains buffer.
+// Any other status causes Module to complete Request.
 //
+// IMPORTANT: Set *BytesReturned to zero when the Request is NOT completed by this callback. If the callback returns STATUS_PENDING,
+//            the number of bytes returned can be set when the Client completes the Request using WdfRequestCompleteWithInformation().
+//            If STATUS_PENDING is returned, do not store BytesReturned and write to it when Request is completed.
+//
+
 typedef
 _Function_class_(EVT_DMF_IoctlHandler_Callback)
 _IRQL_requires_max_(DISPATCH_LEVEL)
