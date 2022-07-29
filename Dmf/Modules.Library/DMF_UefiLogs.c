@@ -40,6 +40,9 @@ typedef struct _DMF_CONTEXT_UefiLogs
     // Path to store the log files to. Extracted from Registry.
     //
     WDFSTRING UefiLogPath;
+    // UefiOperation.
+    //
+    DMFMODULE DmfModuleUefiOperation;
 } DMF_CONTEXT_UefiLogs;
 
 // This macro declares the following function:
@@ -58,6 +61,21 @@ DMF_MODULE_DECLARE_CONFIG(UefiLogs)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+#if defined(DMF_USER_MODE)
+typedef _Null_terminated_ char* NTSTRSAFE_PSTR;
+typedef _Null_terminated_ const char* NTSTRSAFE_PCSTR;
+
+typedef NTSTATUS
+(*RtlStringCbVPrintfExA)(NTSTRSAFE_PSTR  pszDest,
+                         size_t          cbDest,
+                         NTSTRSAFE_PSTR  *ppszDestEnd,
+                         size_t          *pcbRemaining,
+                         DWORD           dwFlags,
+                         NTSTRSAFE_PCSTR pszFormat,
+                         va_list         argList
+);
+#endif
 
 // ASCII character for carriage return
 //
@@ -232,13 +250,36 @@ Return Value:
 
     // Put arguments inside format strings.
     //
-    ntStatus = RtlStringCbVPrintfExA((NTSTRSAFE_PSTR)DestinationBuffer,
+#if defined(DMF_USER_MODE)
+    HMODULE dllModule = GetModuleHandle(TEXT("Ntstrsafe.dll"));
+    if (dllModule != 0)
+    {
+        RtlStringCbVPrintfExA StringCbVPrintfExA = (RtlStringCbVPrintfExA)GetProcAddress(dllModule, "RtlStringCbVPrintfExA");
+        ntStatus = StringCbVPrintfExA((NTSTRSAFE_PSTR)DestinationBuffer,
                                       MaximumSizeOfBufferBytes,
                                       (NTSTRSAFE_PSTR*)StringEndAddress,
                                       &remainingBytes,
                                       STRSAFE_NULL_ON_FAILURE,
                                       FormatString,
                                       argumentList);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "GetModuleHandle fails");
+        ntStatus = STATUS_UNSUCCESSFUL;
+    }
+#elif defined(DMF_KERNEL_MODE)
+
+    ntStatus = RtlStringCbVPrintfExA((NTSTRSAFE_PSTR)DestinationBuffer,
+                                     MaximumSizeOfBufferBytes,
+                                     (NTSTRSAFE_PSTR*)StringEndAddress,
+                                     &remainingBytes,
+                                     STRSAFE_NULL_ON_FAILURE,
+                                     FormatString,
+                                     argumentList);
+#endif
 
     va_end(argumentList);
 
@@ -424,33 +465,20 @@ Return Value:
     eventLogSize = DMF_EVENTLOG_MAXIMUM_LENGTH_OF_STRING * sizeof(WCHAR);
     blobSize = 0;
 
-    // The full UEFI log blob size is unknown and needs to be queried.
-    // ExGetFirmwareEnvironmentVariable routine will fail with STATUS_BUFFER_TOO_SMALL
-    // error but will return the blobSize that needs to be allocated to store UEFI logs.
-    //
-    ntStatus = ExGetFirmwareEnvironmentVariable((PUNICODE_STRING)&UefiVariableName,
-                                                (LPGUID)&UEFI_LOGS_GUID,
-                                                uefiLog,
-                                                &blobSize,
-                                                NULL);
+    ntStatus = DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet(moduleContext->DmfModuleUefiOperation,
+                                                                        (PUNICODE_STRING)&UefiVariableName,
+                                                                        (LPGUID)&UEFI_LOGS_GUID,
+                                                                        (VOID**)&uefiLog,
+                                                                        &blobSize,
+                                                                        &uefiLogMemory,
+                                                                        NULL);
 
-    if (!NT_SUCCESS(ntStatus) && (ntStatus != STATUS_BUFFER_TOO_SMALL))
-    {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "ExGetFirmwareEnvironmentVariable fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = DmfModule;
-    ntStatus = WdfMemoryCreate(&objectAttributes,
-                               PagedPool,
-                               MemoryTag,
-                               blobSize,
-                               &uefiLogMemory,
-                               (VOID**)&(uefiLog));
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_WARNING,
+                    DMF_TRACE,
+                    "DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet fails: ntStatus=%!STATUS!",
+                    ntStatus);
         goto Exit;
     }
 
@@ -463,18 +491,6 @@ Return Value:
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    ntStatus = ExGetFirmwareEnvironmentVariable((PUNICODE_STRING)&UefiVariableName,
-                                                (LPGUID)&UEFI_LOGS_GUID,
-                                                uefiLog,
-                                                &blobSize,
-                                                NULL);
-
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "UEFI Logs not available. ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -776,6 +792,15 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleFile);
+
+    // UefiOperation
+    //
+    DMF_UefiOperation_ATTRIBUTES_INIT(&moduleAttributes);
+
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleUefiOperation);
 
     FuncExitVoid(DMF_TRACE);
 }

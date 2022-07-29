@@ -397,6 +397,7 @@ Return Value:
                 allocateMoreMemory = TRUE;
             }
             WdfObjectDelete(*VariableBufferHandle);
+            *VariableBufferHandle = NULL;
         }
     } while (allocateMoreMemory);
 
@@ -407,6 +408,7 @@ Return Value:
                     "DMF_UefiOperation_FirmwareEnvironmentVariableGetEx fails: ntStatus=%!STATUS!",
                     ntStatus);
         WdfObjectDelete(*VariableBufferHandle);
+        *VariableBufferHandle = NULL;
         goto Exit;
     }
 
