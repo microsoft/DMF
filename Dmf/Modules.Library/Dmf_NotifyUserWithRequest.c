@@ -397,9 +397,10 @@ Return Value:
 
     if (0 == numberOfRequestsCompleted)
     {
-        // Failed to complete the request.
+        // Failed to complete the request. Set ntStatus to STATUS_SUCCESS so the caller does
+        // not complete the request since the request has probably been cancelled.
         //
-        ntStatus = STATUS_INTERNAL_ERROR;
+        ntStatus = STATUS_SUCCESS;
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn fails to complete request.");
         moduleConfig = DMF_CONFIG_GET(DmfModule);
 #if defined(DMF_USER_MODE)
@@ -427,7 +428,6 @@ Exit:
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

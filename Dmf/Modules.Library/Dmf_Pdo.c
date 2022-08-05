@@ -67,6 +67,19 @@ typedef struct _PDO_DEVICE_DATA
     // Hardware of the device on the bus.
     //
     WCHAR HardwareIdBuffer[MAXIMUM_ID_LENGTH];
+
+    // Used to assign properties after enumeration.
+    //
+    DMFMODULE DmfModulePdo;
+
+    // The table entry for this device's properties.
+    // It is a copy of the table originally supplied.
+    //
+    Pdo_DeviceProperty_Table DeviceProperties;
+
+    // Used delete when no longer needed.
+    //
+    WDFMEMORY DevicePropertiesMemory;
 } PDO_DEVICE_DATA;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(PDO_DEVICE_DATA, PdoGetData)
@@ -78,19 +91,21 @@ _Must_inspect_result_
 NTSTATUS
 Pdo_DevicePropertyTableWrite(
     _In_ DMFMODULE DmfModule,
-    _In_ Pdo_DeviceProperty_Table* DevicePropertyTable
+    _In_ Pdo_DeviceProperty_Table* DevicePropertyTable,
+    _In_ WDFDEVICE ChildDevice
     )
 /*++
 
 Routine Description:
 
-    This routine writes a given table of device properties to the devices's 
-    proptery store.
+    This routine writes a given table of device properties to the given child devices's 
+    property store.
 
 Arguments:
 
     DmfModule - This Module's handle.
     DevicePropertyTable - The given table.
+    ChildDevice - The given child device (where properties are written)..
 
 Return Value:
 
@@ -99,20 +114,19 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDFDEVICE device;
     Pdo_DevicePropertyEntry* entry;
+
     UNREFERENCED_PARAMETER(DmfModule);
 
-    DmfAssert(DevicePropertyTable);
+    PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    PAGED_CODE();
+    DmfAssert(DevicePropertyTable != NULL);
 
     // Assign the properties for this device.
     //
     ntStatus = STATUS_SUCCESS;
-    device = DMF_ParentDeviceGet(DmfModule);
     for (ULONG propertyIndex = 0; propertyIndex < DevicePropertyTable->ItemCount; propertyIndex++)
     {
         entry = &DevicePropertyTable->TableEntries[propertyIndex];
@@ -121,7 +135,7 @@ Return Value:
         //
         if (entry->RegisterDeviceInterface)
         {
-            // Complain if the client requested us to register the device interface,
+            // Complain if the Client requested us to register the device interface,
             // but did not provide a device interface GUID.
             //
             DmfAssert(entry->DeviceInterfaceGuid != NULL);
@@ -131,7 +145,7 @@ Return Value:
                 goto Exit;
             }
 
-            ntStatus = WdfDeviceCreateDeviceInterface(device, 
+            ntStatus = WdfDeviceCreateDeviceInterface(ChildDevice, 
                                                       entry->DeviceInterfaceGuid,
                                                       NULL);
             if (!NT_SUCCESS(ntStatus))
@@ -143,13 +157,14 @@ Return Value:
 
         // Now set the properties.
         //
-        ntStatus = WdfDeviceAssignProperty(device,
+        ntStatus = WdfDeviceAssignProperty(ChildDevice,
                                            &entry->DevicePropertyData,
                                            entry->ValueType,
                                            entry->ValueSize,
                                            entry->ValueData);
         if (!NT_SUCCESS(ntStatus))
         {
+            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfDeviceAssignProperty fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -161,6 +176,293 @@ Exit:
     return ntStatus;
 }
 #pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Check_return_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+Pdo_DevicePropertyTableCreate(
+    _In_ DMFMODULE DmfModule,
+    _In_ Pdo_DeviceProperty_Table* SourceDevicePropertyTable,
+    _Out_ Pdo_DeviceProperty_Table* TargetDeviceProperyTable,
+    _Out_ WDFMEMORY* AllocatedMemoryHandle
+    )
+/*++
+
+Routine Description:
+
+    This routine copies the given table of properties supplied by Client because that table is
+    used in a separate thread.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    SourceDevicePropertyTable - The given table.
+    TargetDevicePropertyTable - The copy of the given table.
+    AllocatedMemoryHandle - Parent of all memory allocated to create the copy.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    Pdo_DevicePropertyEntry* table;
+    Pdo_DevicePropertyEntry* source;
+    Pdo_DevicePropertyEntry* target;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    size_t sizeToAllocate;
+    WDFMEMORY tableMemory;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DmfAssert(SourceDevicePropertyTable != NULL);
+
+    *AllocatedMemoryHandle = NULL;
+
+    sizeToAllocate = sizeof(Pdo_DevicePropertyEntry) * SourceDevicePropertyTable->ItemCount;
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               NonPagedPoolNx,
+                               MemoryTag,
+                               sizeToAllocate,
+                               &tableMemory,
+                               (VOID**)&table);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    RtlZeroMemory(table,
+                  sizeToAllocate);
+
+    // Copy each property from source table to target table.
+    //
+    target = table; 
+    for (ULONG propertyIndex = 0; 
+         propertyIndex < SourceDevicePropertyTable->ItemCount; 
+         propertyIndex++, target++)
+    {
+        source = &SourceDevicePropertyTable->TableEntries[propertyIndex];
+
+        target->ValueSize = source->ValueSize;
+        target->ValueType = source->ValueType;
+        target->DevicePropertyData = source->DevicePropertyData;
+
+        if (source->RegisterDeviceInterface)
+        {
+            if (source->DeviceInterfaceGuid != NULL)
+            {
+                // guidMemory is parented to tableMemory so it is deleted when tableMemory is deleted.
+                // No need to store it.
+                //
+                WDFMEMORY guidMemory;
+                WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+                objectAttributes.ParentObject = tableMemory;
+                ntStatus = WdfMemoryCreate(&objectAttributes,
+                                           NonPagedPoolNx,
+                                           MemoryTag,
+                                           sizeof(GUID),
+                                           &guidMemory,
+                                           (VOID**)&target->DeviceInterfaceGuid);
+                if (!NT_SUCCESS(ntStatus))
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+                    goto Exit;
+                }
+
+                RtlCopyMemory(target->DeviceInterfaceGuid,
+                              source->DeviceInterfaceGuid,
+                              sizeof(GUID));
+                target->RegisterDeviceInterface = source->RegisterDeviceInterface;
+            }
+            else
+            {
+                DmfAssert(FALSE);
+            }
+        }
+
+        // valueMemory is parented to tableMemory so it is deleted when tableMemory is deleted.
+        // No need to store it.
+        //
+        WDFMEMORY valueMemory;
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        objectAttributes.ParentObject = tableMemory;
+        ntStatus = WdfMemoryCreate(&objectAttributes,
+                                    NonPagedPoolNx,
+                                    MemoryTag,
+                                    target->ValueSize,
+                                    &valueMemory,
+                                    (VOID**)&target->ValueData);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        RtlCopyMemory(target->ValueData,
+                      source->ValueData,
+                      target->ValueSize);
+    }
+
+    TargetDeviceProperyTable->TableEntries = table;
+    TargetDeviceProperyTable->ItemCount = SourceDevicePropertyTable->ItemCount;
+    *AllocatedMemoryHandle = tableMemory;
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+NTSTATUS
+Pdo_DeviceWdmIrpPnPPowerPreprocess(
+    _In_ WDFDEVICE Device,
+    _In_ PIRP Irp
+    )
+/*++
+
+Routine Description:
+
+    Assigns device properties to child device after enumeration since it cannot be done
+    before due to WDM rules.
+
+Arguments:
+
+    Device - Child device just created by this Module.
+    Irp - Irp sent to DEVICE_OBJECT corresponding to Device.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    PIO_STACK_LOCATION irpStack;
+    NTSTATUS ntStatus;
+
+    enum
+    {
+        IrpActionCompleteIrp,
+        IrpActionFireAndForget
+    } irpAction;
+
+    // Need this to satisfy compiler warnings in Release build.
+    //
+    ntStatus = STATUS_SUCCESS;
+
+    __try
+    {
+        irpStack = IoGetCurrentIrpStackLocation( Irp );
+        // Sets default action and NTSTATUS for all IRPs although only one type is expected.
+        //
+        irpAction = IrpActionFireAndForget;
+
+        switch (irpStack->MajorFunction)
+        {
+            case IRP_MJ_PNP:
+            {
+                switch (irpStack->MinorFunction)
+                {
+                    case IRP_MN_DEVICE_ENUMERATED:
+                    {
+                        PDO_DEVICE_DATA* pdoData = PdoGetData(Device);
+
+                        // If Client has specified that properties should be assigned to Child device,
+                        // assign the properties now. Also, this code sets the device interface if 
+                        // specified by the Client. (That can be done earlier, but it is done here since
+                        // the table is enumerated here.)
+                        //
+                        if (pdoData->DeviceProperties.TableEntries != NULL)
+                        {
+                            ntStatus = Pdo_DevicePropertyTableWrite(pdoData->DmfModulePdo, 
+                                                                    &pdoData->DeviceProperties,
+                                                                    Device);
+                            if (!NT_SUCCESS(ntStatus))
+                            {
+                                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Pdo_DevicePropertyTableWrite fails: ntStatus=%!STATUS!", ntStatus);
+                                // An error has happened, just complete the IRP now.
+                                //
+                                Irp->IoStatus.Status = ntStatus;
+                                irpAction = IrpActionCompleteIrp;
+                            }
+                            else
+                            {
+                                // Properties have been written. Pass the IRP down.
+                                //
+                                DmfAssert(irpAction == IrpActionFireAndForget);
+                                // Need to overwrite IRP's status before sending down.
+                                //
+                                DmfAssert(Irp->IoStatus.Status == STATUS_NOT_SUPPORTED);
+                                Irp->IoStatus.Status = ntStatus;
+                            }
+
+                            WdfObjectDelete(pdoData->DevicePropertiesMemory);
+                            pdoData->DeviceProperties.TableEntries = NULL;
+                        }
+                        else
+                        {
+                            // The pointer to the table must have been set. If not, something is wrong.
+                            // Complete the IRP now.
+                            //
+                            DmfAssert(FALSE);
+                            ntStatus = STATUS_INVALID_PARAMETER;
+                            Irp->IoStatus.Status = ntStatus;
+                            irpAction = IrpActionCompleteIrp;
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        DmfAssert(FALSE);
+                        break;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                DmfAssert(FALSE);
+                break;
+            }
+        }
+
+        switch (irpAction) 
+        {
+            case IrpActionCompleteIrp:
+                // For error case.
+                //
+                ntStatus = Irp->IoStatus.Status;
+                IoCompleteRequest(Irp,
+                                  IO_NO_INCREMENT);
+                break;
+            case IrpActionFireAndForget:
+                // Success case.
+                //
+                IoSkipCurrentIrpStackLocation(Irp);
+                ntStatus = WdfDeviceWdmDispatchPreprocessedIrp(Device,
+                                                               Irp);
+                break;
+            default:
+                DmfAssert(FALSE);
+                ntStatus = STATUS_UNSUCCESSFUL;
+                break;
+        }
+    }
+    __finally
+    {
+    }
+
+    return ntStatus;
+}
 
 #pragma code_seg("PAGE")
 _Check_return_
@@ -183,7 +485,7 @@ Arguments:
 
     Device - A handle to a framework driver object.
     PdoRecord - Pdo Record.
-    DeviceInit - Pre-allocated WDFDEVICE_INIT structure.
+    DeviceInit - Preallocated WDFDEVICE_INIT structure.
     Device - The new PDO created (optional).
 
 Return Value:
@@ -214,6 +516,7 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
+
     DmfAssert(PdoRecord != NULL);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
@@ -275,7 +578,7 @@ Return Value:
     WdfDeviceInitSetDeviceType(deviceInit,
                                FILE_DEVICE_BUS_EXTENDER);
 
-    // Add Each Hardware IDs one by one in the order that was specified to preserve the matching order.
+    // Add Each Hardware Id one by one in the order that was specified to preserve the matching order.
     //
     for (USHORT hardwareIdIndex = 0; hardwareIdIndex < PdoRecord->HardwareIdsCount; ++hardwareIdIndex)
     {
@@ -283,7 +586,7 @@ Return Value:
 
         if (moduleConfig->EvtPdoHardwareIdFormat != NULL)
         {
-            // HardwareIds contain format strings, populate them with client's parameters
+            // Hardware Ids contain format strings, populate them with Client's parameters
             //
             RtlZeroMemory(formattedIdBuffer,
                           _countof(formattedIdBuffer));
@@ -303,7 +606,7 @@ Return Value:
             idString = formattedIdBuffer;
         }
 
-        // Assign HardwareID
+        // Assign Hardware Id.
         //
         ntStatus = RtlUnicodeStringInit(&hardwareId,
                                         idString);
@@ -335,7 +638,7 @@ Return Value:
         }
     }
 
-    // Add Each optional Compatible IDs one by one in the order that was specified to preserve the matching order.
+    // Add each optional Compatible IDs one by one in the order that was specified to preserve the matching order.
     //
     for (USHORT compatibleIdIndex = 0; compatibleIdIndex < PdoRecord->CompatibleIdsCount; ++compatibleIdIndex)
     {
@@ -343,7 +646,7 @@ Return Value:
 
         if (moduleConfig->EvtPdoCompatibleIdFormat != NULL)
         {
-            // CompatibleIds contain format strings, populate them with client's parameters
+            // CompatibleIds contain format strings, populate them with Client's parameters
             //
             RtlZeroMemory(formattedIdBuffer,
                           _countof(formattedIdBuffer));
@@ -464,6 +767,27 @@ Return Value:
         }
     }
 
+    if (PdoRecord->DeviceProperties != NULL)
+    {
+        // IRP filter so that properties can be set after device has enumerated.
+        //
+        UCHAR minorFunctionsToFilter[] =
+        {
+            IRP_MN_DEVICE_ENUMERATED
+        };
+
+        ntStatus = WdfDeviceInitAssignWdmIrpPreprocessCallback(deviceInit,
+                                                               Pdo_DeviceWdmIrpPnPPowerPreprocess,
+                                                               IRP_MJ_PNP,
+                                                               minorFunctionsToFilter,
+                                                               ARRAYSIZE(minorFunctionsToFilter));
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceInitAssignWdmIrpPreprocessCallback fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
     // Initialize the attributes to specify the size of PDO device extension.
     // All the state information private to the PDO will be tracked here.
     //
@@ -494,20 +818,6 @@ Return Value:
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-    }
-
-    // If the product has specified optional product specific properties, add them here.
-    // This allows different products to specify what is supported on their platform.
-    //
-    if (PdoRecord->DeviceProperties != NULL)
-    {
-        ntStatus = Pdo_DevicePropertyTableWrite(DmfModule, 
-                                                PdoRecord->DeviceProperties);
-        if (!NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Pdo_DevicePropertyTableWrite fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
     }
@@ -551,6 +861,23 @@ Return Value:
     pdoData = PdoGetData(childDevice);
 
     pdoData->SerialNumber = PdoRecord->SerialNumber;
+
+    // If Client has provided a property table, create a copy of the table because
+    // the table is used in a separate thread.
+    //
+    if (PdoRecord->DeviceProperties != NULL)
+    {
+         ntStatus = Pdo_DevicePropertyTableCreate(DmfModule,
+                                                  PdoRecord->DeviceProperties,
+                                                  &pdoData->DeviceProperties,
+                                                  &pdoData->DevicePropertiesMemory);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Pdo_DevicePropertyTableCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+    pdoData->DmfModulePdo = DmfModule;
 
     // Store the device ID (1st instance of the hardwareID[] in PDO_RECORD) to be used during device removal
     //

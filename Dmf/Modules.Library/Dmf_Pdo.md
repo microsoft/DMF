@@ -61,7 +61,7 @@ EvtPdoCompatibleIdFormat | Callback to format CompatibleIds strings in PDO_RECOR
 ##### Remarks
 
 * All strings must reside in global memory.
-* That PDO table must reside in global memory.
+* The PDO table must reside in global memory.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -72,6 +72,73 @@ EvtPdoCompatibleIdFormat | Callback to format CompatibleIds strings in PDO_RECOR
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### Pdo_DevicePropertyEntry
+
+Holds information for a single device property.
+
+````
+typedef struct
+{
+    // Device property that can be set by Client.
+    //
+    WDF_DEVICE_PROPERTY_DATA DevicePropertyData;
+    
+    // The property type.
+    //
+    DEVPROPTYPE ValueType;
+    
+    // The value data for this property.
+    //
+    VOID* ValueData;
+
+    // The size of the value data.
+    //
+    ULONG ValueSize;
+    
+    // BOOL to specify if we should register the device interface GUID.
+    //
+    BOOLEAN RegisterDeviceInterface;
+
+    // Device interface GUID that will be set on this property, so that
+    // we can retrieve the properties at runtime with the CM API's.
+    // 
+    GUID* DeviceInterfaceGuid;
+} Pdo_DevicePropertyEntry;
+````
+
+Member | Description
+----|----
+DevicePropertyData | See MSDN.
+ValueType | See MSDN.
+ValueData | Pointer to buffer that contains data to set.
+ValueSize | Size of data pointed to by ValueData.
+RegisterDeviceInterface | TRUE if a corresponding device interface should be created for this property.
+DeviceInterfaceGuid | GUID of device interface to set if RegisterDeviceInterface is TRUE.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+##### Pdo_DeviceProperty_Table
+
+Indicates the properties to set when a child device is created.
+
+````
+typedef struct
+{
+    // The entries int he branch.
+    //
+    Pdo_DevicePropertyEntry* TableEntries;
+
+    // The number of entries in the branch.
+    //
+    ULONG ItemCount;
+} Pdo_DeviceProperty_Table;
+````
+
+Member | Description
+----|----
+TableEntries | Table of properties to set.
+ItemCount | Number of entries in the table.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 ##### PDO_RECORD
@@ -126,6 +193,7 @@ typedef struct
   WDF_OBJECT_ATTRIBUTES* CustomClientContext;
 } PDO_RECORD;
 ````
+
 Member | Description
 ----|----
 HardwareId | Array of Wide string Hardware Id of the PDO to be created. The strings can contain format strings that will be formatted by the client at PDO creation time using EvtPdoHardwareIdFormat callback.
@@ -434,7 +502,6 @@ DMF_Pdo_DevicePlugEx(
     _In_ PDO_RECORD* PdoRecord,
     _Out_opt_ WDFDEVICE* Device
     );
-
 ````
 
 Create and attach a static PDO to the Client Driver's FDO. This version of the API allows the Client to create a
@@ -595,6 +662,7 @@ SerialNumber | Serial number of the PDO to be unplugged.
 #### Examples
 
 * DMF_ToasterBus
+* DMF_Tests_Pdo
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

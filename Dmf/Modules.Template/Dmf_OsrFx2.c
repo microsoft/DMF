@@ -1925,6 +1925,185 @@ Returns:
 }
 #pragma code_seg()
 
+#include <devpkey.h>
+
+typedef
+_Function_class_(IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS 
+IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA(PUNICODE_STRING SymbolicLinkName,
+                                                   CONST DEVPROPKEY *PropertyKey,
+                                                   LCID Lcid,
+                                                   ULONG Flags,
+                                                   ULONG Size,
+                                                   PVOID Data,
+                                                   PULONG RequiredSize,
+                                                   PDEVPROPTYPE Type);
+
+typedef
+_Function_class_(IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA(_In_ PUNICODE_STRING SymbolicLinkName,
+                                                   _In_ CONST DEVPROPKEY* PropertyKey,
+                                                   _In_ LCID Lcid,
+                                                   _In_ ULONG Flags,
+                                                   _In_ DEVPROPTYPE Type,
+                                                   _In_ ULONG Size,
+                                                   _In_opt_ PVOID Data);
+
+#pragma code_seg("PAGE")
+static
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+IoctlHandler_PostDeviceInterfaceCreate(
+    _In_ DMFMODULE DmfModuleIoctlHandler,
+    _In_ GUID* DeviceInterfaceGuid,
+    _In_opt_ UNICODE_STRING* ReferenceStringUnicodePointer
+    )
+/*++
+
+Routine Description:
+
+    This code sets properties on a given device interface after it has been created.
+    NOTE: This code only works for FOD, not PDO.
+
+Arguments:
+
+    DmfModuleIoctlHandler - The Child Module from which this callback is called.
+    DeviceInterfaceGuid - The GUID of the given device interface.
+    ReferenceStringUnicodePointer - The optional reference string of the given device interface.
+
+Returns:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModule;
+    DMF_CONFIG_OsrFx2* moduleConfig;
+    WDFDEVICE device;
+    UNICODE_STRING symbolicLinkName;
+    WDFSTRING symbolicLinkNameString;
+    // Access to IoGetDeviceInterfacePropertyData().
+    //
+    IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA* IoGetDeviceInterfacePropertyData;
+    // Access to IoSetDeviceInterfacePropertyData().
+    //
+    IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfacePropertyData;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    ntStatus = STATUS_SUCCESS;
+    dmfModule = DMF_ParentModuleGet(DmfModuleIoctlHandler);
+    moduleConfig = DMF_CONFIG_GET(dmfModule);
+    device = DMF_ParentDeviceGet(dmfModule);
+    symbolicLinkNameString = NULL;
+
+    ntStatus = WdfStringCreate(NULL,
+                               WDF_NO_OBJECT_ATTRIBUTES,
+                               &symbolicLinkNameString);
+    if (!NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = WdfDeviceRetrieveDeviceInterfaceString(device,
+                                                      DeviceInterfaceGuid,
+                                                      ReferenceStringUnicodePointer,
+                                                      symbolicLinkNameString);
+    if (!NT_SUCCESS(ntStatus)) 
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDeviceRetrieveDeviceInterfaceString fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    WdfStringGetUnicodeString(symbolicLinkNameString, 
+                              &symbolicLinkName);
+
+#if !defined(DMF_USER_MODE)
+
+    DEVPROP_BOOLEAN isRestricted;
+    UNICODE_STRING functionName;
+
+    // If possible, get the IoSetDeviceInterfacePropertyData.
+    //
+    RtlInitUnicodeString(&functionName, 
+                         L"IoSetDeviceInterfacePropertyData");
+    IoSetDeviceInterfacePropertyData = (IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA*)(ULONG_PTR)MmGetSystemRoutineAddress(&functionName);
+
+    // If possible, get the IoGetDeviceInterfacePropertyData.
+    //
+    RtlInitUnicodeString(&functionName, 
+                         L"IoGetDeviceInterfacePropertyData");
+    IoGetDeviceInterfacePropertyData = (IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA*)(ULONG_PTR)MmGetSystemRoutineAddress(&functionName);
+
+    if (IoSetDeviceInterfacePropertyData != NULL)
+    {
+        isRestricted = DEVPROP_TRUE;
+
+        ntStatus = IoSetDeviceInterfacePropertyData(&symbolicLinkName,
+                                                    &DEVPKEY_DeviceInterface_Restricted,
+                                                    0,
+                                                    0,
+                                                    DEVPROP_TYPE_BOOLEAN,
+                                                    sizeof(isRestricted),
+                                                    &isRestricted );
+        if (!NT_SUCCESS(ntStatus)) 
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+#if defined(NTDDI_WIN10_RS2) && (NTDDI_VERSION >= NTDDI_WIN10_RS2)
+        // Adds a custom capability to device interface instance that allows a Windows
+        // Store device app to access this interface using Windows.Devices.Custom namespace.
+
+        WCHAR* customCapabilities = L"microsoft.hsaTestCustomCapability_q536wpkpf5cy2\0";
+        // Get size of buffer. Add space for double \0 terminator.
+        //
+        ULONG stringLength = (ULONG)wcslen(customCapabilities);
+        ULONG bufferSize = (stringLength * sizeof(WCHAR)) + (2 * sizeof(WCHAR));
+
+        ntStatus = IoSetDeviceInterfacePropertyData(&symbolicLinkName,
+                                                     &DEVPKEY_DeviceInterface_UnrestrictedAppCapabilities,
+                                                     0,
+                                                     0,
+                                                     DEVPROP_TYPE_STRING_LIST,
+                                                     bufferSize,
+                                                     (PVOID)customCapabilities);
+        if (!NT_SUCCESS(ntStatus)) 
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoSetDeviceInterfacePropertyData fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+#endif // defined(NTDDI_WIN10_RS2) && (NTDDI_VERSION >= NTDDI_WIN10_RS2)
+    }
+
+#endif // defined(DMF_USER_MODE)
+
+Exit:
+
+    if (symbolicLinkNameString != NULL)
+    {
+        WdfObjectDelete(symbolicLinkNameString);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    // NOTE: Module will not open if this function returns an error.
+    //
+    return ntStatus;
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2185,8 +2364,7 @@ Return Value:
         moduleConfigIoctlHandler.IoctlRecordCount = _countof(OsrFx2_IoctlHandlerTable);
         moduleConfigIoctlHandler.IoctlRecords = OsrFx2_IoctlHandlerTable;
         moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
-        moduleConfigIoctlHandler.CustomCapabilities = L"microsoft.hsaTestCustomCapability_q536wpkpf5cy2\0";
-        moduleConfigIoctlHandler.IsRestricted = DEVPROP_TRUE;
+        moduleConfigIoctlHandler.PostDeviceInterfaceCreate = IoctlHandler_PostDeviceInterfaceCreate;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
