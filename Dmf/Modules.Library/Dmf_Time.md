@@ -1,4 +1,4 @@
-## DMF_Stack
+## DMF_Time
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -13,17 +13,7 @@ Implements a time keeper module which gets current cpu ticks and also calculates
 #### Module Configuration
 
 -----------------------------------------------------------------------------------------------------------------------------------
-##### DMF_CONFIG_Stack
-````
-typedef struct
-{
-    // Keeping empty for now. Might add something later.
-    //
-} DMF_CONFIG_Stack;
-````
-Member | Description
-----|----
-
+* None
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
@@ -71,7 +61,7 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_Stack Module handle.
+DmfModule | An open DMF_Time Module handle.
 StartTime | StartTime in tick count from which the elapsed time has to be calculated.
 ElapsedTimeInMilliSeconds | Return the elapsed time in milliseconds.
 
@@ -103,7 +93,7 @@ NTSTATUS
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_Stack Module handle.
+DmfModule | An open DMF_Time Module handle.
 StartTime | StartTime in tick count from which the elapsed time has to be calculated.
 ElapsedTimeInNanoSeconds | Return the elapsed time in nanoseconds.
 
@@ -133,7 +123,7 @@ Tick count.
 ##### Parameters
 Parameter | Description
 ----|----
-DmfModule | An open DMF_Stack Module handle.
+DmfModule | An open DMF_Time Module handle.
 
 ##### Remarks
 

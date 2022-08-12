@@ -123,6 +123,8 @@ Return Value:
         ntStatus = STATUS_INTEGER_OVERFLOW;
         goto Exit;
     }
+
+    ntStatus = STATUS_SUCCESS;
 #endif
 
     *ElapsedTimeInNanoseconds = (result / PerformanceFrequency);
