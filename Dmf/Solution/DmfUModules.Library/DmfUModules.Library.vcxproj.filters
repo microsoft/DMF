@@ -252,6 +252,12 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h">
       <Filter>Headers\Modules\Targets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\DMF_UefiLogs.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_Time.h">
+      <Filter>Headers\Modules\Driver Patterns</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">

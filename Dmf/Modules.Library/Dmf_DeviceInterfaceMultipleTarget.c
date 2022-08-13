@@ -1363,10 +1363,25 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceMultipleTarget* moduleConfig;
     DeviceInterfaceMultipleTarget_IoTargetContext* targetContext;
     DeviceInterfaceMultipleTarget_IoTarget* target;
+    WDF_IO_TARGET_STATE wdfIoTargetState;
 
     ntStatus = STATUS_SUCCESS;
 
     FuncEntry(DMF_TRACE);
+
+    wdfIoTargetState = WdfIoTargetGetState(IoTarget);
+    if (wdfIoTargetState == WdfIoTargetClosedForQueryRemove)
+    {
+        // This can happen if PnP tries again due to some error condition.
+        // it means something is wrong, but running code in this callback twice
+        // results in BSOD. So avoid this path.
+        //
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE,
+                    "Duplicate QueryRemove: IoTarget=0x%p",
+                    IoTarget);
+        DmfAssert(FALSE);
+        goto Exit;
+    }
 
     // The IoTarget's Module Context area has the DMF Module.
     //
@@ -1378,12 +1393,11 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
-                "IoTarget=0x%p target=0x%p  DmfModuleRundown=0x%p QueryRemoveHappened=%d target->IoTarget=0x%p ENTER",
-                IoTarget, target, target->DmfModuleRundown, target->QueryRemoveHappened, target->IoTarget);
+                "IoTarget=0x%p target=0x%p  DmfModuleRundown=0x%p wdfIoTargetState=%d target->IoTarget=0x%p ENTER",
+                IoTarget, target, target->DmfModuleRundown, wdfIoTargetState, target->IoTarget);
 
     // Remember QueryRemove happened so that we can adjust for cases where it does not (surprise removal).
     //
-    DmfAssert(! target->QueryRemoveHappened);
     target->QueryRemoveHappened = TRUE;
 
     // If the WDFIOTARGET was opened, it must equal the WDFIOTARGET in the context.
@@ -1445,8 +1459,10 @@ Return Value:
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
-                "IoTarget=0x%p target=0x%p  DmfModuleRundown=0x%p QueryRemoveHappened=%d target->IoTarget=0x%p EXIT",
-                IoTarget, target, target->DmfModuleRundown, target->QueryRemoveHappened, target->IoTarget);
+                "IoTarget=0x%p target=0x%p  DmfModuleRundown=0x%p wdfIoTargetState=%d target->IoTarget=0x%p EXIT",
+                IoTarget, target, target->DmfModuleRundown, wdfIoTargetState, target->IoTarget);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -1646,21 +1662,9 @@ Return Value:
                 "IoTarget=0x%p target=0x%p  DmfModuleRundown=0x%p QueryRemoveHappened=%d target->IoTarget=0x%p",
                 IoTarget, target, target->DmfModuleRundown, target->QueryRemoveHappened, target->IoTarget);
 
-    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
-    {
-        DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
-        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
-                                                                    target->DmfIoTarget,
-                                                                    DeviceInterfaceMultipleTarget_StateType_RemoveComplete);
-    }
-    else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
-    {
-        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(dmfModule,
-                                                                      target->DmfIoTarget,
-                                                                      DeviceInterfaceMultipleTarget_StateType_RemoveComplete);
-    }
-
     // If QueryRemove did not happen, close the underlying WDFIOTARGET.
+    // NOTE: Do this before calling the Client's callback so that the view from the Client is the
+    //       same in both QueryRemove-RemoveComplete and Remove-Complete paths.
     //
     if (!target->QueryRemoveHappened)
     {
@@ -1674,6 +1678,20 @@ Return Value:
         // Clear for next time.
         //
         target->QueryRemoveHappened = FALSE;
+    }
+
+    if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
+    {
+        DmfAssert(moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx == NULL);
+        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange(dmfModule,
+                                                                    target->DmfIoTarget,
+                                                                    DeviceInterfaceMultipleTarget_StateType_RemoveComplete);
+    }
+    else if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx != NULL)
+    {
+        moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChangeEx(dmfModule,
+                                                                      target->DmfIoTarget,
+                                                                      DeviceInterfaceMultipleTarget_StateType_RemoveComplete);
     }
 
     // The underlying target has been removed and is no longer accessible.
