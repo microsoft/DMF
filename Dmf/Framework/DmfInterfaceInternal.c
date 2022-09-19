@@ -649,9 +649,10 @@ Return Value:
         // Wait for Reference count to run down to 0.
         //
         DMF_Utility_DelayMilliseconds(referenceCountPollingIntervalMs);
-        TraceInformation(DMF_TRACE, "DmfInterfaceObject=0x%p Waiting to close Interface", DmfInterfaceObject);
+        TraceInformation(DMF_TRACE, "DmfInterfaceObject=0x%p Waiting for Interface to rundown: referenceCount=%d", DmfInterfaceObject, referenceCount);
     }
 
+    TraceInformation(DMF_TRACE, "DmfInterfaceObject=0x%p Interface rundown satisfied", DmfInterfaceObject);
 }
 
 _Must_inspect_result_

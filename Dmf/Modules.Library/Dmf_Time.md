@@ -103,6 +103,64 @@ ElapsedTimeInNanoSeconds | Return the elapsed time in nanoseconds.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_Time_LocalTimeGet
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Time_LocalTimeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DMF_TIME_FIELDS* DmfTimeFields
+    );
+````
+
+This function returns local time in DMF_TIME_FIELDS structure.
+
+##### Returns
+
+*None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | This Module's handle.
+DmfTimeFields | Represents time in Year, Month, Day, Hour, Minute, Seconds, Milliseconds, Weekday.
+
+##### Remarks
+
+*None
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_Time_SystemTimeGet
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Time_SystemTimeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ LARGE_INTEGER* CurrentSystemTime
+    );
+````
+
+This function fetches the current system time in UTC..
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | This Module's handle.
+CurrentSystemTime | Pointer to store current system time.
+
+##### Remarks
+
+*None
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_Time_TickCountGet
 
 ````

@@ -75,12 +75,14 @@ typedef struct _DMF_CONTEXT_Tests_DefaultTarget
     DMFMODULE DmfModuleDefaultTargetDispatchInput;
     DMFMODULE DmfModuleDefaultTargetPassiveInput;
     DMFMODULE DmfModuleDefaultTargetPassiveOutput;
+    DMFMODULE DmfModuleDefaultTargetPassiveOutputZeroSize;
     // These are needed to purge IO during D0Entry/D0Exit transitions.
     // TODO: Allows Clients to do this without getting WDFIOTARGET directly.
     //
     WDFIOTARGET IoTargetDispatchInput;
     WDFIOTARGET IoTargetPassiveInput;
     WDFIOTARGET IoTargetPassiveOutput;
+    WDFIOTARGET IoTargetPassiveOutputZeroSize;
     // Source of buffers sent asynchronously.
     //
     DMFMODULE DmfModuleBufferPool;
@@ -171,6 +173,44 @@ Tests_DefaultTarget_BufferOutput(
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%!FUNC!:  ntStatus=%!STATUS!", CompletionStatus);
 
     DmfAssert((NT_SUCCESS(CompletionStatus) && (OutputBufferSize == sizeof(DWORD)) && (OutputBuffer != NULL)) ||
+              (CompletionStatus == ERROR_INCORRECT_FUNCTION) ||
+              (CompletionStatus == STATUS_CANCELLED));
+
+    if ((CompletionStatus == STATUS_CANCELLED) ||
+        (CompletionStatus == ERROR_INCORRECT_FUNCTION))
+    {
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+    }
+    else
+    {
+        returnValue = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
+    }
+
+    return returnValue;
+}
+
+_Function_class_(EVT_DMF_ContinuousRequestTarget_BufferOutput)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+ContinuousRequestTarget_BufferDisposition
+Tests_DefaultTarget_BufferOutputZeroSize(
+    _In_ DMFMODULE DmfModule,
+    _In_reads_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _In_ VOID* ClientBufferContextOutput,
+    _In_ NTSTATUS CompletionStatus
+    )
+{
+    ContinuousRequestTarget_BufferDisposition returnValue;
+
+    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(OutputBuffer);
+    UNREFERENCED_PARAMETER(OutputBufferSize);
+    UNREFERENCED_PARAMETER(ClientBufferContextOutput);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "%!FUNC!:  ntStatus=%!STATUS!", CompletionStatus);
+
+    DmfAssert((NT_SUCCESS(CompletionStatus) && (OutputBufferSize == 0) && (OutputBuffer == NULL)) ||
               (CompletionStatus == ERROR_INCORRECT_FUNCTION) ||
               (CompletionStatus == STATUS_CANCELLED));
 
@@ -1127,6 +1167,8 @@ Return Value:
                               &moduleContext->IoTargetPassiveInput);
         DMF_DefaultTarget_Get(moduleContext->DmfModuleDefaultTargetPassiveOutput,
                               &moduleContext->IoTargetPassiveOutput);;
+        DMF_DefaultTarget_Get(moduleContext->DmfModuleDefaultTargetPassiveOutputZeroSize,
+                              &moduleContext->IoTargetPassiveOutputZeroSize);;
     }
     else
     {
@@ -1135,12 +1177,16 @@ Return Value:
         WdfIoTargetStart(moduleContext->IoTargetDispatchInput);
         WdfIoTargetStart(moduleContext->IoTargetPassiveInput);
         WdfIoTargetStart(moduleContext->IoTargetPassiveOutput);
+        WdfIoTargetStart(moduleContext->IoTargetPassiveOutputZeroSize);
     }
 
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveInput);
     DmfAssert(NT_SUCCESS(ntStatus));
 
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveOutput);
+    DmfAssert(NT_SUCCESS(ntStatus));
+
+    ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveOutputZeroSize);
     DmfAssert(NT_SUCCESS(ntStatus));
 
     ntStatus = Tests_DefaultTarget_NonContinousStartAuto(DmfModule);
@@ -1196,12 +1242,15 @@ Return Value:
                      WdfIoTargetPurgeIoAndWait);
     WdfIoTargetPurge(moduleContext->IoTargetPassiveOutput,
                      WdfIoTargetPurgeIoAndWait);
+    WdfIoTargetPurge(moduleContext->IoTargetPassiveOutputZeroSize,
+                     WdfIoTargetPurgeIoAndWait);
 
     Tests_DefaultTarget_NonContinousStopAuto(DmfModule);
     Tests_DefaultTarget_NonContinousStopManual(DmfModule);
 
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveInput);
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveOutput);
+    DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveOutputZeroSize);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1379,6 +1428,24 @@ Return Value:
                             WDF_NO_OBJECT_ATTRIBUTES,
                             &moduleContext->DmfModuleAlertableSleepManual[threadIndex]);
     }
+
+    // DefaultTarget (PASSIVE_LEVEL)
+    // Processes Output Buffers with zero size.
+    //
+    DMF_CONFIG_DefaultTarget_AND_ATTRIBUTES_INIT(&moduleConfigDefaultTarget,
+                                                 &moduleAttributes);
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 0;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = 0;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_ZEROSIZE;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DefaultTarget_BufferOutputZeroSize;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode = ContinuousRequestTarget_Mode_Manual;
+    moduleAttributes.PassiveLevel = TRUE;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDefaultTargetPassiveOutputZeroSize);
 
     FuncExitVoid(DMF_TRACE);
 }

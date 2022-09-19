@@ -267,7 +267,7 @@ Return:
         goto Exit;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
     workResult = moduleConfig->EvtScheduledTaskCallback(DmfModule,
                                                         ClientContext,
                                                         PreviousState);
@@ -461,7 +461,7 @@ Return:
             //       first call. (Essentially it is only used to determine if the call
             //       is On Demand or not.)
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Call EvtScheduledTaskCallback=0x%p", &moduleConfig->EvtScheduledTaskCallback);
             if (moduleContext->OnDemandCallbackContext != NULL)
             {
                 ScheduledTask_Result_Type workResult;

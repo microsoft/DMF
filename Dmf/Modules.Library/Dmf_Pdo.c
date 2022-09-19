@@ -405,18 +405,26 @@ Return Value:
                                 Irp->IoStatus.Status = ntStatus;
                             }
 
+                            // Table has been processed. It is no longer needed.
+                            //
                             WdfObjectDelete(pdoData->DevicePropertiesMemory);
                             pdoData->DeviceProperties.TableEntries = NULL;
+                            pdoData->DeviceProperties.ItemCount = 0;
                         }
                         else
                         {
-                            // The pointer to the table must have been set. If not, something is wrong.
-                            // Complete the IRP now.
+                            // This path happens after the PDO has been created with a property table
+                            // and its driver is disabled. Then, when the driver is enabled, this path
+                            // happens.
+                            // To see this path, create a PDO with properties. Then,
+                            // disable its function driver. Then, enable its function driver.
+                            // This path will execute.
                             //
-                            DmfAssert(FALSE);
-                            ntStatus = STATUS_INVALID_PARAMETER;
-                            Irp->IoStatus.Status = ntStatus;
-                            irpAction = IrpActionCompleteIrp;
+                            DmfAssert(irpAction == IrpActionFireAndForget);
+                            // Need to overwrite IRP's status before sending down.
+                            //
+                            DmfAssert(Irp->IoStatus.Status == STATUS_NOT_SUPPORTED);
+                            Irp->IoStatus.Status = STATUS_SUCCESS;
                         }
                         break;
                     }

@@ -383,6 +383,119 @@ Return Value:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Time_LocalTimeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DMF_TIME_FIELDS* DmfTimeFields
+    )
+/*++
+
+Routine Description:
+
+    This function returns local time in DMF_TIME_FIELDS structure..
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DmfTimeFields - Represents time in Year, Month, Day, Hour, Minute, Seconds, Milliseconds, Weekday.
+
+Return Value:
+
+    None
+
+--*/
+{
+    
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Time);
+
+    RtlZeroMemory(DmfTimeFields,
+                  sizeof(DMF_TIME_FIELDS));
+
+#if defined(DMF_KERNEL_MODE)
+    LARGE_INTEGER systemTime;
+    LARGE_INTEGER localTime;
+    TIME_FIELDS utcTimeFields;
+
+    DMF_Time_SystemTimeGet(DmfModule,
+                           &systemTime);
+
+    ExSystemTimeToLocalTime(&systemTime,
+                            &localTime);
+
+    RtlTimeToTimeFields(&localTime,
+                        &utcTimeFields);
+
+    DmfTimeFields->Day = utcTimeFields.Day;
+    DmfTimeFields->Month = utcTimeFields.Month;
+    DmfTimeFields->Year = utcTimeFields.Year;
+    DmfTimeFields->Hour = utcTimeFields.Hour;
+    DmfTimeFields->Minute = utcTimeFields.Minute;
+    DmfTimeFields->Second = utcTimeFields.Second;
+    DmfTimeFields->Milliseconds = utcTimeFields.Milliseconds;
+    DmfTimeFields->Weekday = utcTimeFields.Weekday;
+
+#else
+    SYSTEMTIME localTimeAsSystemTime;
+    
+    GetLocalTime(&localTimeAsSystemTime);
+
+    DmfTimeFields->Day = localTimeAsSystemTime.wDay;
+    DmfTimeFields->Month = localTimeAsSystemTime.wMonth;
+    DmfTimeFields->Year = localTimeAsSystemTime.wYear;
+    DmfTimeFields->Hour = localTimeAsSystemTime.wHour;
+    DmfTimeFields->Minute = localTimeAsSystemTime.wMinute;
+    DmfTimeFields->Second = localTimeAsSystemTime.wSecond;
+    DmfTimeFields->Milliseconds = localTimeAsSystemTime.wMilliseconds;
+    DmfTimeFields->Weekday = localTimeAsSystemTime.wDayOfWeek;
+#endif
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Time_SystemTimeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ LARGE_INTEGER* CurrentSystemTime
+    )
+/*++
+
+Routine Description:
+
+    This function fetches the current system time in UTC.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    CurrentSystemTime - Pointer to store current system time.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 Time);
+
+#if defined(DMF_KERNEL_MODE)
+    KeQuerySystemTimePrecise(CurrentSystemTime);
+#elif defined(DMF_USER_MODE)
+    FILETIME SystemTimeAsFileTime;
+    GetSystemTimePreciseAsFileTime(&SystemTimeAsFileTime);
+    CurrentSystemTime->LowPart = SystemTimeAsFileTime.dwLowDateTime;
+    CurrentSystemTime->HighPart = SystemTimeAsFileTime.dwHighDateTime;
+#endif
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 LONGLONG
 DMF_Time_TickCountGet(

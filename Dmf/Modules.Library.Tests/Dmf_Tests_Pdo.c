@@ -249,7 +249,7 @@ Tests_Pdo_ThreadAction(
 
     RtlZeroMemory(&propertyTable,
                   sizeof(propertyTable));
-    propertyTable.ItemCount = 2;
+    propertyTable.ItemCount = numberOfProperties;
     propertyTable.TableEntries = propertyTableEntry;
 
     RtlZeroMemory(&pdoRecord,

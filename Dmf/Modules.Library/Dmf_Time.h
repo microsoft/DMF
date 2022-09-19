@@ -48,6 +48,20 @@ DMF_Time_ElapsedTimeNanosecondsGet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Time_LocalTimeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DMF_TIME_FIELDS* DmfTimeFields
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_Time_SystemTimeGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ LARGE_INTEGER* CurrentSystemTime
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 LONGLONG
 DMF_Time_TickCountGet(

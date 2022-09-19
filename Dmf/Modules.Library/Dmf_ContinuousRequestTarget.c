@@ -841,28 +841,39 @@ Return Value:
                                                                           &outputBuffer,
                                                                           &outputBufferSize);
 
-    if (outputBuffer != NULL)
+    
+    // If Client has stopped streaming, then regardless of what the Client returns from the callback, return buffers
+    // back to the original state and delete corresponding requests.
+    //
+    if (moduleContext->Stopping)
     {
-        DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolOutput,
-                                  outputBuffer,
-                                  &clientBufferContextOutput);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [STOPPED]", Request);
+        bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Not Stopped]", Request);
 
-        // If Client has stopped streaming, then regardless of what the Client returns from the callback, return buffers
-        // back to the original state and delete corresponding requests.
-        //
-        if (moduleContext->Stopping)
+        if (outputBuffer != NULL)
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Request=0x%p [STOPPED]", Request);
-            bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
+            DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolOutput,
+                                      outputBuffer,
+                                      &clientBufferContextOutput);
         }
         else
         {
-            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Request=0x%p [Not Stopped]", Request);
-            if (NT_SUCCESS(ntStatus))
-            {
-                ContinuousRequestTarget_PrintDataReceived((BYTE*)outputBuffer,
-                                                          (ULONG)outputBufferSize);
-            }
+            clientBufferContextOutput = NULL;
+        }
+
+        if (NT_SUCCESS(ntStatus) &&
+            outputBuffer != NULL)
+        {
+            ContinuousRequestTarget_PrintDataReceived((BYTE*)outputBuffer,
+                                                      (ULONG)outputBufferSize);
+        }
+
+        if (moduleConfig->EvtContinuousRequestTargetBufferOutput != NULL)
+        {
             // Call the Client's callback function to give the Client Buffer a chance to use the output buffer.
             // The Client returns TRUE if Client expects this Module to return the buffer to its own list.
             // Otherwise, the Client will take ownership of the buffer and return it later using a Module Method.
@@ -876,22 +887,7 @@ Return Value:
             DmfAssert(bufferDisposition > ContinuousRequestTarget_BufferDisposition_Invalid);
             DmfAssert(bufferDisposition < ContinuousRequestTarget_BufferDisposition_Maximum);
         }
-
-        if (((bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming) ||
-            (bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming)) &&
-             (outputBuffer != NULL))
-        {
-            // The Client indicates that it is finished with the buffer. So return it back to the
-            // list of output buffers.
-            //
-            DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolOutput,
-                               outputBuffer);
-        }
-    }
-    else
-    {
-        if ((!NT_SUCCESS(ntStatus)) ||
-            (moduleContext->Stopping))
+        else if (!NT_SUCCESS(ntStatus))
         {
             bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming;
         }
@@ -899,6 +895,17 @@ Return Value:
         {
             bufferDisposition = ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming;
         }
+    }
+
+    if (((bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndContinueStreaming) ||
+        (bufferDisposition == ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreaming)) &&
+        (outputBuffer != NULL))
+    {
+        // The Client indicates that it is finished with the buffer. So return it back to the
+        // list of output buffers.
+        //
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPoolOutput,
+                           outputBuffer);
     }
 
     // Input buffer will be NULL for Request types Read and Write.

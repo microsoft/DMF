@@ -481,8 +481,10 @@ Return Value:
         // Wait for Reference count to run down to 0.
         //
         DMF_Utility_DelayMilliseconds(referenceCountPollingIntervalMs);
-        TraceInformation(DMF_TRACE, "DmfModule=0x%p Waiting to close", DmfModule);
+        TraceInformation(DMF_TRACE, "DmfModule=0x%p Waiting for rundown: referenceCount=%d", DmfModule, referenceCount);
     }
+
+    TraceInformation(DMF_TRACE, "DmfModule=0x%p Rundown wait satisfied", DmfModule);
 
     FuncExitVoid(DMF_TRACE);
 }
