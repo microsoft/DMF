@@ -1331,6 +1331,17 @@ Return Value:
         goto Exit;
     }
 
+    // Create the event that tells DMF it is OK to destroy the Module because it is either "created" or "closed".
+    //
+    ntStatus = DMF_Portable_EventCreate(&dmfObject->ModuleCanBeDeletedEvent,
+                                        NotificationEvent,
+                                        TRUE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleObjectCallbacksInitialize fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     // Copy the In Flight Recorder size.
     //
     dmfObject->ModuleDescriptor.InFlightRecorderSize = ModuleDescriptor->InFlightRecorderSize;
@@ -1562,6 +1573,9 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
+    DeleteMemory - Indicates if this function is called from clean up callback. In that
+                   case only the handles in the context should be deleted because WDF will
+                   actually delete DmfModule.
 
 Return Value:
 
@@ -1613,6 +1627,10 @@ Return Value:
         DmfAssert(NULL == dmfObject->ModuleConfig);
         DmfAssert(NULL == dmfObject->ModuleConfigMemory);
     }
+
+    // This event must be manually deleted for User-mode.
+    //
+    DMF_Portable_EventClose(&dmfObject->ModuleCanBeDeletedEvent);
 
     if (DeleteMemory)
     {

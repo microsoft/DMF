@@ -48,6 +48,12 @@ typedef struct
     // Underlying Device Target.
     //
     WDFIOTARGET IoTarget;
+    // During QueryRemove, IoTarget is closed and set to NULL.
+    // This is a copy of IoTarget so that if the driver is removed
+    // right after QueryRemove but before RemoveCancel/RemoveComplete,
+    // the IoTarget can be deleted.
+    //
+    WDFIOTARGET IoTargetForDestroyAfterQueryRemove;
     // Support proper rundown per target.
     //
     DMFMODULE DmfModuleRundown;
@@ -420,7 +426,17 @@ Return Value:
     {
         closeTarget = FALSE;
     }
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IoTarget=0x%p Target=0x%p closeTarget=%d", Target->IoTarget, Target, closeTarget);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "IoTarget=0x%p Target=0x%p closeTarget=%d Target->QueryRemoveHappened=%d", Target->IoTarget, Target, closeTarget, Target->QueryRemoveHappened);
+
+    if (Target->QueryRemoveHappened)
+    {
+        // QueryRemove has happened but this call happens before RemoveCancel or RemoveComplete.
+        // Setting IoTarget enforces that the target is deleted.
+        //
+        IoTarget = Target->IoTargetForDestroyAfterQueryRemove;
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Force WDFIOTARGET=0x%p to be deleted", IoTarget);
+    }
+
     DMF_ModuleUnlock(DmfModule);
 
     if (closeTarget)
@@ -502,7 +518,7 @@ Return Value:
         Target->DmfModuleRundown = NULL;
     }
 
-    // In case WDFIOTARGET was opened but not deleted, delete it now.
+    // In case WDFIOTARGET not previously deleted, delete it now.
     //
     if (IoTarget != NULL)
     {
@@ -566,7 +582,13 @@ Return Value:
         // Open the Module.
         //
         ntStatus = DMF_ModuleOpen(DmfModule);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule=0x%p) OPENED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
     }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule=0x%p) NOT OPENED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
+    }
+    DmfAssert(moduleContext->NumberOfTargetsOpened >= 1);
 
     return ntStatus;
 }
@@ -608,6 +630,11 @@ Return Value:
         // Close the Module.
         //
         DMF_ModuleClose(DmfModule);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule=0x%p) CLOSED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule=0x%p) NOT CLOSED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
     }
 }
 #pragma code_seg()
@@ -644,6 +671,8 @@ Return Value:
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_TargetDestroyAndCloseModule(Target=0x%p)", Target);
 
     DeviceInterfaceMultipleTarget_TargetDestroy(DmfModule,
                                                 Target,
@@ -1449,6 +1478,11 @@ Return Value:
         // target is still open.
         //
         target->IoTarget = NULL;
+
+        // IoTarget will be closed, but not deleted. Save it so that it can be deleted in case
+        // the driver is removed right after QueryRemove happens but before RemoveCance/RemoveComplete.
+        //
+        target->IoTargetForDestroyAfterQueryRemove = IoTarget;
     }
 
     // MSDN states that STATUS_SUCCESS or STATUS_UNSUCCESSFUL must be returned.
@@ -1519,6 +1553,7 @@ Return Value:
     // Clear this flag in case it was set during QueryRemove.
     //
     target->QueryRemoveHappened = FALSE;
+    target->IoTargetForDestroyAfterQueryRemove = NULL;
 
     if ((target->IoTarget == NULL) &&
         (target->DmfModuleRundown != NULL))
@@ -1678,6 +1713,7 @@ Return Value:
         // Clear for next time.
         //
         target->QueryRemoveHappened = FALSE;
+        target->IoTargetForDestroyAfterQueryRemove = NULL;
     }
 
     if (moduleConfig->EvtDeviceInterfaceMultipleTargetOnStateChange != NULL)
@@ -1941,7 +1977,9 @@ Return Value:
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
-        Target->IoTarget = NULL;
+        // WDFIOTARGET cannot be opened. Fall through to delete so that no state
+        // changes happen.
+        //
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -1951,6 +1989,10 @@ Return Value:
                                                                            Target);
     if (!NT_SUCCESS(ntStatus))
     {
+        // WDFIOTARGET cannot be used so close because it will be deleted and
+        // not state changes will happen.
+        //
+        WdfIoTargetClose(Target->IoTarget);
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceMultipleTarget_ContinuousRequestTargetCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -2040,6 +2082,8 @@ Return Value:
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_InitializeIoTargetIfNeeded(SymbolicLinkName=%S)", SymbolicLinkName->Buffer);
 
     device = DMF_ParentDeviceGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
@@ -2136,12 +2180,16 @@ Return Value:
                                                                                SymbolicLinkName);
         if (! NT_SUCCESS(ntStatus))
         {
+            // ioTarget is already NULL so no WDFIOTARGET will be deleted at the end of this call.
+            //
+            DmfAssert(ioTarget == NULL);
+            DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule);
             // TODO: Display SymbolicLinkName.
             //
-            DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule);
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceMultipleTarget_DeviceCreateNewIoTargetByName() fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
+
         // Save so it can be destroyed if rest of code fails.
         //
         ioTarget = target->IoTarget;
@@ -2220,6 +2268,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_UninitializeIoTargetIfNeeded SymbolicLinkName=%S", SymbolicLinkName->Buffer);
+
     device = DMF_ParentDeviceGet(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -2276,6 +2326,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_NotificationUnregisterCleanup");
+
     // Already unregistered from PnP notification.
     // Clean the buffer queue here since the notifications callback will no longer be called.
     //
@@ -2288,6 +2340,7 @@ Return Value:
         DMF_BufferQueue_Dequeue(moduleContext->DmfModuleBufferQueue,
                                 (VOID**)&target,
                                 NULL);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_NotificationUnregisterCleanup =0x%p", target);
         DeviceInterfaceMultipleTarget_TargetDestroyAndCloseModule(DmfModule,
                                                                   target);
     }
@@ -2461,6 +2514,9 @@ Return Value:
     {
         if (EventData->FilterType == CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE)
         {
+            // This path executes when the device interface is disabled.
+            // This is different than when the underlying device is actually removed.
+            //
             RtlInitUnicodeString(&symbolickLink,
                                  EventData->u.DeviceInterface.SymbolicLink);
             DeviceInterfaceMultipleTarget_UninitializeIoTargetIfNeeded(dmfModule,
@@ -2810,7 +2866,7 @@ Return Value:
         if (! NT_SUCCESS(ntStatus))
         {
             DmfAssert(FALSE);
-            TraceEvents(TRACE_LEVEL_VERBOSE,
+            TraceEvents(TRACE_LEVEL_ERROR,
                         DMF_TRACE,
                         "IoUnregisterPlugPlayNotificationEx fails: ntStatus=%!STATUS!",
                         ntStatus);
@@ -3042,7 +3098,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3055,7 +3111,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3113,7 +3169,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         returnValue = FALSE;
         goto Exit;
     }
@@ -3127,7 +3183,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         returnValue = FALSE;
         goto Exit;
     }
@@ -3187,7 +3243,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3202,7 +3258,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3319,7 +3375,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3330,7 +3386,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3416,7 +3472,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3427,7 +3483,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3511,7 +3567,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3522,7 +3578,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3585,7 +3641,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3596,7 +3652,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3649,7 +3705,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3660,7 +3716,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3752,7 +3808,7 @@ Return Value:
     ntStatus = DMF_ModuleReference(DmfModule);
     if (! NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -3762,7 +3818,7 @@ Return Value:
     if (! NT_SUCCESS(ntStatus))
     {
         DMF_ModuleDereference(DmfModule);
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference");
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

@@ -811,6 +811,46 @@ Exit:
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+BOOLEAN
+DMF_AcpiPepDeviceFan_FanInitializedFlagGet(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    This Method gets FanInitialized flag value.
+
+Arguments:
+
+    DmfModule - Handle to this Module.
+
+Return Value:
+
+    BOOLEAN
+
+--*/
+{
+    DMF_CONTEXT_AcpiPepDeviceFan* moduleContext;
+
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%!FUNC!");
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiPepDeviceFan);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "FAN Initialized = %d", moduleContext->FanInitialized);
+
+    FuncExit(DMF_TRACE, "%!FUNC!");
+
+    // It is not necessary to lock since the flag only changes from FALSE to TRUE, never back to FALSE.
+    //
+    return moduleContext->FanInitialized;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_AcpiPepDeviceFan_NotifyRequestSchedule(
     _In_ DMFMODULE DmfModule,

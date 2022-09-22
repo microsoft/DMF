@@ -122,6 +122,7 @@ NtStatus | The NTSTATUS value to set in the Request that is to be returned.
 
 * This Method does not extract data from the queue to return. The data to return is passed to the Method.
 * This Method allows pending requests to be completed when data they consume is available.
+* This Method should not be called if MaximumNumberOfPendingDataBuffers in the Module's config is set to zero.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -184,6 +185,7 @@ Request | The given Request.
 ##### Remarks
 
 * Use this Method when the DMF_NotifyUserWithRequest instance enqueues data to be returned to the Caller.
+* This Method should not be called if MaximumNumberOfPendingDataBuffers in the Module's config is set to zero.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

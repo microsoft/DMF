@@ -1537,6 +1537,10 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
+    // Indicate the Module is open and cannot be deleted.
+    //
+    DMF_Portable_EventReset(&dmfObject->ModuleCanBeDeletedEvent);
+
     DMF_HandleValidate_Open(dmfObject);
     dmfObject->ModuleState = ModuleState_Opening;
 
@@ -1584,6 +1588,10 @@ Return Value:
         // This breakpoint makes it easy to determine which Module fails.
         //
         DmfAssert(FALSE);
+
+        // Indicate the Module has can be deleted (because it was not opened).
+        //
+        DMF_Portable_EventSet(&dmfObject->ModuleCanBeDeletedEvent);
     }
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
@@ -1648,6 +1656,10 @@ Return Value:
     DmfAssert(dmfObject->ModuleOpenedDuring < ModuleOpenedDuringType_Maximum);
     DmfAssert(dmfObject->ModuleOpenedDuring != ModuleOpenedDuringType_Invalid);
     dmfObject->ModuleOpenedDuring = ModuleOpenedDuringType_Invalid;
+
+    // Indicate the Module has been closed and can be deleted.
+    //
+    DMF_Portable_EventSet(&dmfObject->ModuleCanBeDeletedEvent);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 }

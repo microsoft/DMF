@@ -2972,8 +2972,10 @@ Return Value:
         // Wait for Reference count to run down to 0.
         //
         DMF_Utility_DelayMilliseconds(referenceCountPollingIntervalMs);
-        TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Waiting to close", DmfModule, dmfObject->ClientModuleInstanceName);
+        TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Waiting for Module to rundown: referenceCount=%d", DmfModule, dmfObject->ClientModuleInstanceName, referenceCount);
     }
+
+    TraceInformation(DMF_TRACE, "DmfModule=0x%p [%s] Module rundown wait satisfied", DmfModule, dmfObject->ClientModuleInstanceName);
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 }
@@ -3059,6 +3061,20 @@ Return Value:
     {
         DmfAssert(dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister != NULL);
         (dmfObject->InternalCallbacksDmf.DeviceNotificationUnregister)(DmfModule);
+        // It is possible due to race conditions that are hard for the Client to deal with that
+        // the Module has not closed yet. This can happen in the case where QueryRemove and
+        // the above call to NotificationUnregister both execute at the same time, for example.
+        // NotificationUnregister is supposed to close the Module, however it can be difficult
+        // to synchronize with WDFIOTARGET callbacks. Waiting for the event here makes it possible
+        // to verify that the Module actually Closed.
+        //
+        DMF_Portable_EventWaitForSingleObject(&dmfObject->ModuleCanBeDeletedEvent,
+                                              NULL,
+                                              FALSE);
+        // Module should have been closed (or not opened) because the above event is set.
+        //
+        DmfAssert((dmfObject->ModuleState == ModuleState_Closed) ||
+                  (dmfObject->ModuleState == ModuleState_Created));
     }
 
     // Dispatch callback to Child DMF Modules next.

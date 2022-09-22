@@ -153,6 +153,13 @@ DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+BOOLEAN
+DMF_AcpiPepDeviceFan_FanInitializedFlagGet(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_AcpiPepDeviceFan_NotifyRequestSchedule(
     _In_ DMFMODULE DmfModule,
