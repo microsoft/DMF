@@ -2061,6 +2061,12 @@ Return Value:
 
     DMF_HandleValidate_IsAvailable(dmfObject);
 
+    // In case the Module does not follow the rules and does not Close the Module in this callback,
+    // do it for the Module. This works because the Close is synchronized such that it can only 
+    // ever happen one time.
+    //
+    DMF_ModuleClose(DmfModule);
+
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
 }
 #pragma code_seg()

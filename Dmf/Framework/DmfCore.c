@@ -1263,6 +1263,10 @@ Return Value:
     dmfObject->ClientEvtCleanupCallback = clientEvtCleanupCallback;
     dmfObject->IsTransport = DmfModuleAttributes->IsTransportModule;
 
+    // Prevent Module's Close() handler from being called if it was never opened.
+    //
+    dmfObject->ModuleClosed = TRUE;
+
     RtlCopyMemory(&dmfObject->ModuleAttributes,
                   DmfModuleAttributes,
                   sizeof(DMF_MODULE_ATTRIBUTES));

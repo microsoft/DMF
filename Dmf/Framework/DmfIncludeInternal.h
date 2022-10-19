@@ -272,6 +272,9 @@ struct _DMF_OBJECT_
     // both threads think the other thread will close the Module.
     //
     DMF_PORTABLE_EVENT ModuleCanBeDeletedEvent;
+    // Allows Modules to ensure Module is closed a single time.
+    //
+    BOOLEAN ModuleClosed;
 };
 
 // DMF Object Signature.
