@@ -542,7 +542,6 @@ Return Value:
                           (VOID *)Target);
 }
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 static
@@ -568,33 +567,34 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
-
-    PAGED_CODE();
+    LONG numberOfTargetsOpened;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = STATUS_SUCCESS;
 
-    // No lock is used here, since the PnP callback is synchronous.
-    //
-    if (InterlockedIncrement(&moduleContext->NumberOfTargetsOpened) == 1)
+    DMF_ModuleLock(DmfModule);
+    DmfAssert(moduleContext->NumberOfTargetsOpened >= 0);
+    moduleContext->NumberOfTargetsOpened++;
+    numberOfTargetsOpened = moduleContext->NumberOfTargetsOpened;
+    DmfAssert(moduleContext->NumberOfTargetsOpened >= 1);
+    DMF_ModuleUnlock(DmfModule);
+
+    if (numberOfTargetsOpened == 1)
     {
         // Open the Module.
         //
         ntStatus = DMF_ModuleOpen(DmfModule);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule=0x%p) OPENED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule=0x%p) OPENED NumberOfTargetsOpened=%d", DmfModule, numberOfTargetsOpened);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule=0x%p) NOT OPENED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleOpenIfNoOpenTargets(DmfModule=0x%p) NOT OPENED NumberOfTargetsOpened=%d", DmfModule, numberOfTargetsOpened);
     }
-    DmfAssert(moduleContext->NumberOfTargetsOpened >= 1);
 
     return ntStatus;
 }
-#pragma code_seg()
 
-#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -618,26 +618,49 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
-
-    PAGED_CODE();
+    LONG numberOfTargetsOpened;
+    BOOLEAN callModuleClose;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // No lock is used here, since the PnP callback is synchronous.
+    DMF_ModuleLock(DmfModule);
+    // Only decrement if there are open targets.
     //
-    if (InterlockedDecrement(&moduleContext->NumberOfTargetsOpened) == 0)
+    if (moduleContext->NumberOfTargetsOpened > 0)
+    {
+        moduleContext->NumberOfTargetsOpened--;
+        if (moduleContext->NumberOfTargetsOpened == 0)
+        {
+            // Only Close the Module when there are no open WDFIOTARGETS.
+            //
+            callModuleClose = TRUE;
+        }
+        else
+        {
+            callModuleClose = FALSE;
+        }
+    }
+    else
+    {
+        // Module was previously closed or never opened.
+        //
+        callModuleClose = FALSE;
+    }
+    numberOfTargetsOpened = moduleContext->NumberOfTargetsOpened;
+    DMF_ModuleUnlock(DmfModule);
+
+    if (callModuleClose)
     {
         // Close the Module.
         //
         DMF_ModuleClose(DmfModule);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule=0x%p) CLOSED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule=0x%p) CLOSED NumberOfTargetsOpened=%d", DmfModule, numberOfTargetsOpened);
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule=0x%p) NOT CLOSED NumberOfTargetsOpened=%d", DmfModule, moduleContext->NumberOfTargetsOpened);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceMultipleTarget_ModuleCloseIfNoOpenTargets(DmfModule=0x%p) NOT CLOSED NumberOfTargetsOpened=%d", DmfModule, numberOfTargetsOpened);
     }
 }
-#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)

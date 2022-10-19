@@ -1576,6 +1576,10 @@ Return Value:
         // context means.
         //
         (dmfObject->Callbacks.EvtModuleOnDeviceNotificationPostOpen)(DmfModule);
+
+        // Flag that indicates when Module can be closed.
+        //
+        dmfObject->ModuleClosed = FALSE;
     }
     else
     {
@@ -1597,6 +1601,43 @@ Return Value:
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s] ntStatus=%!STATUS!", DmfModule, dmfObject->ClientModuleInstanceName, ntStatus);
 
     return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_ModuleIsClosed(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Allows caller to know if the Module can be closed. Checks that status and clears it to ensure
+    Client closes Module only a single time.
+
+Arguments:
+
+    DmfModule - The given DMF Module.
+
+Return Value:
+
+    TRUE if Module can be closed; FALSE, otherwise.
+
+--*/
+{
+    DMF_OBJECT* dmfObject;
+    BOOLEAN moduleClosed;
+
+    dmfObject = DMF_ModuleToObject(DmfModule);
+
+    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+
+    moduleClosed = dmfObject->ModuleClosed;
+    dmfObject->ModuleClosed = TRUE;
+
+    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
+
+    return moduleClosed;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1625,6 +1666,13 @@ Return Value:
     dmfObject = DMF_ModuleToObject(DmfModule);
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
+
+    // Prevent the Module from being closed twice.
+    //
+    if (DMF_ModuleIsClosed(DmfModule))
+    {
+        goto Exit;
+    }
 
     DMF_HandleValidate_Close(dmfObject);
 
@@ -1660,6 +1708,8 @@ Return Value:
     // Indicate the Module has been closed and can be deleted.
     //
     DMF_Portable_EventSet(&dmfObject->ModuleCanBeDeletedEvent);
+
+Exit:
 
     FuncExit(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 }
