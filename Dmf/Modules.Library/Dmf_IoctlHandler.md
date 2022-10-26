@@ -223,13 +223,9 @@ _Function_class_(EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 NTSTATUS
-EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate(
-    _In_ DMFMODULE DmfModule,
-    _In_ GUID DeviceInterfaceGuid,
-    _In_ UNICODE_STRING* SymbolicLinkNameString,
-    _In_ IoctlHandler_IO_GET_DEVICE_INTERFACE_PROPERTY_DATA* IoGetDeviceInterfaceProperty,
-    _In_ IoctlHandler_IO_SET_DEVICE_INTERFACE_PROPERTY_DATA* IoSetDeviceInterfaceProperty
-    );
+EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate(_In_ DMFMODULE DmfModule,
+                                               _In_ GUID* DeviceInterfaceGuid,
+                                               _In_opt_ UNICODE_STRING* ReferenceStringUnicodePointer);
 ````
 Allows the Client to perform Client specific tasks after the device interface is created.
 
@@ -242,9 +238,7 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_IoctlHandler Module handle.
 DeviceInterfaceGuid | The GUID passed in the Module's Config when the Module is instantiated.
-SymbolicLinkName | The symbolic link name corresponding to the instance of the device interface.
-IoGetDeviceInterfaceProperty | This is a function pointer to a function that allows the Client to get device interface properties. The Client must always check this pointer to make sure it is not NULL before using it because it is not available on all platforms. It is not available in User Mode drivers.
-IoSetDeviceInterfaceProperty | This is a function pointer to a function that allows the Client to set device interface properties. The Client must always check this pointer to make sure it is not NULL before using it because it is not available on all platforms. It is not available in User Mode drivers.
+ReferenceStringUnicodePointer | Indicates the Reference String corresponding to the Device Interface for which this callback is called.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
