@@ -389,11 +389,12 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
+    <ClCompile Include="..\..\Modules.Library\Dmf_Time.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\DMF_UefiLogs.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md">
@@ -518,6 +519,15 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_Time.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\DMF_UefiLogs.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>
