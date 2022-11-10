@@ -216,6 +216,95 @@ Returns:
 }
 #pragma code_seg()
 
+_Use_decl_annotations_
+VOID
+NonPnp_EvtFileCreate(
+    _In_ WDFDEVICE Device,
+    _In_ WDFREQUEST Request,
+    _In_ WDFFILEOBJECT FileObject
+    )
+/*++
+
+Routine Description:
+
+    File Create callback. This callback is included to show it is possible to receive
+    WDFFILEOBJECT callbacks using a Control Device.
+
+Arguments:
+
+    Device - Corresponding WDFDEVICE.
+    Request - WDFILEOBJECT Create request.
+    FileObject - Corresponding WDFFILEOBJECT.
+
+Returns:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(Device);
+    UNREFERENCED_PARAMETER(FileObject);
+
+    // Complete the request to allow file to open.
+    //
+    WdfRequestComplete(Request,
+                       STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+VOID
+NonPnp_EvtFileClose(
+    _In_ WDFFILEOBJECT FileObject
+    )
+/*++
+
+Routine Description:
+
+    File Close callback. This callback is included to show it is possible to receive
+    WDFFILEOBJECT callbacks using a Control Device.
+
+Arguments:
+
+    FileObject - Corresponding WDFFILEOBJECT.
+
+Returns:
+
+    None
+
+--*/
+{
+    INT a;
+
+    UNREFERENCED_PARAMETER(FileObject);
+
+    a = 0;
+}
+
+_Use_decl_annotations_
+VOID
+NonPnp_EvtFileCleanup(
+    _In_ WDFFILEOBJECT FileObject
+    )
+/*++
+
+Routine Description:
+
+    File Cleanup callback. This callback is included to show it is possible to receive
+    WDFFILEOBJECT callbacks using a Control Device.
+
+Arguments:
+
+    FileObject - Corresponding WDFFILEOBJECT.
+
+Returns:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(FileObject);
+}
+
 NTSTATUS
 NonPnp_ControlDeviceCreate(
     _In_ PWDFDEVICE_INIT DeviceInit
@@ -270,6 +359,24 @@ Returns:
     WdfDeviceInitSetDeviceType(DeviceInit, 
                                FILE_DEVICE_UNKNOWN);
 
+    // Connect WDFFILEOBJECT callbacks.
+    //
+    WDF_FILEOBJECT_CONFIG fileObjConfig;
+    WDF_FILEOBJECT_CONFIG_INIT(&fileObjConfig,
+                               NonPnp_EvtFileCreate,
+                               NonPnp_EvtFileClose,
+                               NonPnp_EvtFileCleanup);
+    fileObjConfig.FileObjectClass = WdfFileObjectWdfCanUseFsContext;
+
+    // Hook DMF's callbacks and associate this drivers' callbacks.
+    //
+    DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit, &fileObjConfig);
+    WdfDeviceInitSetFileObjectConfig(DeviceInit,
+                                     &fileObjConfig,
+                                     &deviceAttributes);
+
+    // Create the Control device.
+    //
     ntStatus = WdfDeviceCreate(&DeviceInit,
                                &deviceAttributes,
                                &device );
