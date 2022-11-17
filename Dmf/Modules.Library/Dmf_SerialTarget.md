@@ -26,9 +26,21 @@ typedef struct
   // Share Access.
   //
   ULONG ShareAccess;
+  // Module's Open option.
+  //
+  SerialTarget_OpenOption ModuleOpenOption;
   // Child Request Stream Module.
   //
   DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;
+  // Client's QueryRemove callback.
+  //
+  EVT_DMF_SerialTarget_QueryRemove* EvtSerialTargetQueryRemove;
+  // Client's RemoveCancel callback.
+  //
+  EVT_DMF_SerialTarget_RemoveCanceled* EvtSerialTargetRemoveCanceled;
+  // Client's RemoveComplete callback.
+  //
+  EVT_DMF_SerialTarget_RemoveComplete* EvtSerialTargetRemoveComplete;
 } DMF_CONFIG_SerialTarget;
 ````
 Member | Description
@@ -36,7 +48,11 @@ Member | Description
 EvtSerialTargetCustomConfiguration | Callback that allows the Client to perform specialized configuration of the serial device.
 OpenMode | See WDK documentation.
 ShareAccess | See WDK documentation.
+ModuleOpenOption |  Indicates when the Module should be opened.
 ContinuousRequestTargetModuleConfig | Allows the Client to configure the underlying Child DMF_ContinuousRequestTarget Module to send and receive data from the Serial device.
+EvtSerialTargetQueryRemove | Callback that allows the Client to perform action before the Module closes the IoTarget.
+EvtSerialTargetRemoveCanceled | Callback that allows the Client to perform action after the Module opens the IoTarget.
+EvtSerialTargetRemoveComplete | Callback that allows the Client to perform action on RemoveComplete.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,6 +133,81 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_SerialTarget Module handle.
 ConfigurationParameters | The Serial configuration parameters specified by the Client on return.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### EVT_DMF_SerialTarget_QueryRemove
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_SerialTarget_QueryRemove(
+    _In_ DMFMODULE DmfModule
+    );
+````
+
+The Client uses this callback to take any action necessary before the Module closes the IoTarget.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_SerialTarget Module handle.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### EVT_DMF_SerialTarget_RemoveCanceled
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_SerialTarget_RemoveCanceled(
+    _In_ DMFMODULE DmfModule
+    );
+````
+
+The Client uses this callback to take any action necessary after the Module opens the IoTarget.
+
+##### Returns
+
+VOID
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_SerialTarget Module handle.
+
+##### Remarks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### EVT_DMF_SerialTarget_RemoveComplete
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_SerialTarget_RemoveComplete(
+    _In_ DMFMODULE DmfModule
+    );
+````
+
+The Client uses this callback to take any action when target device has been removed.
+
+##### Returns
+
+VOID
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_SerialTarget Module handle.
 
 ##### Remarks
 

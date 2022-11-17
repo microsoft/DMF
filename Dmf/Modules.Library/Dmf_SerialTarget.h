@@ -85,6 +85,33 @@ BOOLEAN
 EVT_DMF_SerialTarget_CustomConfiguration(_In_ DMFMODULE DmfModule,
                                          _Out_ SerialTarget_Configuration* ConfigurationParameters);
 
+// Client Driver callback function for QueryRemove.
+//
+typedef
+_Function_class_(EVT_DMF_SerialTarget_QueryRemove)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_SerialTarget_QueryRemove(_In_ DMFMODULE DmfModule);
+
+// Client Driver callback function for RemoveCanceled.
+//
+typedef
+_Function_class_(EVT_DMF_SerialTarget_RemoveCanceled)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_SerialTarget_RemoveCanceled(_In_ DMFMODULE DmfModule);
+
+// Client Driver callback function for RemoveComplete.
+//
+typedef
+_Function_class_(EVT_DMF_SerialTarget_RemoveComplete)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_SerialTarget_RemoveComplete(_In_ DMFMODULE DmfModule);
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -104,6 +131,15 @@ typedef struct
     // Child Request Stream Module.
     //
     DMF_CONFIG_ContinuousRequestTarget ContinuousRequestTargetModuleConfig;
+    // Client's QueryRemove callback.
+    //
+    EVT_DMF_SerialTarget_QueryRemove* EvtSerialTargetQueryRemove;
+    // Client's RemoveCancel callback.
+    //
+    EVT_DMF_SerialTarget_RemoveCanceled* EvtSerialTargetRemoveCanceled;
+    // Client's RemoveComplete callback.
+    //
+    EVT_DMF_SerialTarget_RemoveComplete* EvtSerialTargetRemoveComplete;
 } DMF_CONFIG_SerialTarget;
 
 // This macro declares the following functions:

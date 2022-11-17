@@ -526,6 +526,135 @@ Exit:
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
+DMF_CmApi_DeviceIdListGet(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Get the list of Device Ids with device interface GUID, get its Device Instances and call client driver's registered callback.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    TRUE - Successfully read Device Id list.
+    FALSE - Failed.
+
+--*/
+{
+    DMF_CONFIG_CmApi* moduleConfig;
+    PWSTR deviceIdList;
+    PWSTR currentdevice;
+    auto getDeviceIdListError = CR_BUFFER_SMALL;
+    WCHAR deviceGuidString[MAX_GUID_STRING_LEN];
+    BOOLEAN returnValue;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 CmApi);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    deviceIdList = NULL;
+    returnValue = FALSE;
+
+    if (!moduleConfig->CmApi_Callback_DeviceInstance)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Callback CmApi_Callback_DeviceInstance not registered by client");
+        goto Exit;
+    }
+
+    int guidError = StringFromGUID2(moduleConfig->DeviceInterfaceGuid, 
+                                    deviceGuidString, 
+                                    MAX_GUID_STRING_LEN);
+    if (MAX_GUID_STRING_LEN != guidError)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Not able to prepare string from COMPUTEACCELERATOR GUID");
+        goto Exit;
+    }
+
+    while (CR_BUFFER_SMALL == getDeviceIdListError)
+    {
+        ULONG deviceIdListSize = 0;
+        ULONG deviceIdListFlags = CM_GETIDLIST_FILTER_CLASS | CM_GETIDLIST_FILTER_PRESENT;
+
+        auto getDeviceIdListSizeError = CM_Get_Device_ID_List_Size(&deviceIdListSize,
+                                                                   deviceGuidString,
+                                                                   deviceIdListFlags);
+        if (CR_SUCCESS != getDeviceIdListSizeError) 
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_ID_List_Size fails: Result=%d lastError=%!WINERROR!", getDeviceIdListSizeError, GetLastError());
+            goto Exit;
+        }
+
+        deviceIdList = (PWSTR)HeapAlloc(GetProcessHeap(),
+                                        HEAP_ZERO_MEMORY,
+                                        deviceIdListSize * sizeof(WCHAR));
+        if (deviceIdList == NULL)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "HeapAlloc fails: lastError=%!WINERROR!", GetLastError());
+            goto Exit;
+        }
+
+        getDeviceIdListError = CM_Get_Device_ID_List(deviceGuidString,
+                                                     deviceIdList,
+                                                     deviceIdListSize,
+                                                     deviceIdListFlags);
+    }
+
+    if (CR_SUCCESS != getDeviceIdListError)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Get_Device_ID_List fails: Result=%d lastError=%!WINERROR!", getDeviceIdListError, GetLastError());
+        goto Exit;
+    }
+
+    currentdevice = deviceIdList;
+
+    while (*currentdevice)
+    {
+        DEVINST devinst = 0;
+
+        if (CR_SUCCESS != CM_Locate_DevNode(&devinst, 
+                                            currentdevice, 
+                                            0))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Locate_DevNodeW fails: lastError=%!WINERROR!", GetLastError());
+            goto Exit;
+        }
+
+        moduleConfig->CmApi_Callback_DeviceInstance(DmfModule,
+                                                    devinst);
+        currentdevice += wcslen(currentdevice) + 1;
+    }
+
+    returnValue = TRUE;
+
+Exit:
+    if (deviceIdList)
+    {
+        if (!HeapFree(GetProcessHeap(),
+                      0,
+                      deviceIdList))
+        {
+            DWORD lastError = GetLastError();
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "HeapFree fails: %!WINERROR!",
+                        lastError);
+            deviceIdList = NULL;
+            returnValue = FALSE;
+        }
+    }
+    return returnValue;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
 DMF_CmApi_DevNodeStatusAndProblemCodeGet(
     _In_ DMFMODULE DmfModule,
     _In_ WCHAR* DeviceInstanceId,

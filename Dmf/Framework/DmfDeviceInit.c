@@ -712,20 +712,16 @@ Return Value:
         dmfDeviceInit->PnpPowerCallbacksHooked = TRUE;
         dmfDeviceInit->PowerPolicyCallbacksHooked = TRUE;
 
-        DMF_ContainerFileObjectConfigInit(&fileObjectConfig);
-
-        WDF_OBJECT_ATTRIBUTES_INIT(&fileObjectAttributes);
-
-        // Allow NonPnP Client driver to hook File Object callback
-        // (since it is legitimate to do so.).
+        // By default, initialize the File Object callbacks.
         //
-        if (! dmfDeviceInit->FileObjectConfigHooked)
-        {
-            WdfDeviceInitSetFileObjectConfig(DeviceInit,
-                                             &fileObjectConfig,
-                                             &fileObjectAttributes);
-            dmfDeviceInit->FileObjectConfigHooked = TRUE;
-        }
+        DMF_ContainerFileObjectConfigInit(&fileObjectConfig);
+        WDF_OBJECT_ATTRIBUTES_INIT(&fileObjectAttributes);
+        WdfDeviceInitSetFileObjectConfig(DeviceInit,
+                                         &fileObjectConfig,
+                                         &fileObjectAttributes);
+        // Client Control drivers may override if necessary regardless of this flag.
+        //
+        dmfDeviceInit->FileObjectConfigHooked = TRUE;
     }
     else
     {
@@ -1054,8 +1050,10 @@ Return Value:
     if (DmfDeviceInit != &g_DmfDefaultDeviceInit)
     {
         // Hook APIs should be called only once per device instance.
+        // Control drivers are allowed to override, however.
         //
-        DmfAssert(DmfDeviceInit->FileObjectConfigHooked != TRUE);
+        DmfAssert((DmfDeviceInit->FileObjectConfigHooked != TRUE) ||
+                  (DmfDeviceInit->IsControlDevice));
 
         if (FileObjectConfig != NULL)
         {

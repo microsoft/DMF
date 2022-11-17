@@ -3166,7 +3166,9 @@ DMF_CrashDump_FileClose(
                                          FileObject);
     }
 
-    return TRUE;
+    // Allow Client driver and other Modules to process this callback.
+    //
+    return FALSE;
 }
 #pragma code_seg()
 

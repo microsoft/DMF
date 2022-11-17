@@ -22,6 +22,14 @@ Environment:
 #if defined(DMF_USER_MODE)
 
 typedef
+_Function_class_(EVT_DMF_CmApi_DeviceInstance)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_CmApi_DeviceInstance(_In_ DMFMODULE DmfModule,
+                             _In_ DEVINST DeviceInstance);
+
+typedef
 _Function_class_(EVT_DMF_CmApi_DeviceInterfaceList)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
@@ -51,6 +59,9 @@ typedef struct
     // Callback to get device information.
     //
     EVT_DMF_CmApi_DeviceInterfaceList* CmApi_Callback_DeviceInterfaceList;
+    // Callback to get Device Instance and take action.
+    //
+    EVT_DMF_CmApi_DeviceInstance* CmApi_Callback_DeviceInstance;
 } DMF_CONFIG_CmApi;
 
 // This macro declares the following functions:
@@ -62,6 +73,12 @@ DECLARE_DMF_MODULE(CmApi)
 
 // Module Methods
 //
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+DMF_CmApi_DeviceIdListGet(
+    _In_ DMFMODULE DmfModule
+    );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
