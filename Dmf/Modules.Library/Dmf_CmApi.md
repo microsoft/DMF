@@ -25,6 +25,9 @@ typedef struct
     // Callback to get device information.
     //
     EVT_DMF_CmApi_DeviceInterfaceList* CmApi_Callback_DeviceInterfaceList;
+    // Callback to get Device Instance and take action.
+    //
+    EVT_DMF_CmApi_DeviceInstance* CmApi_Callback_DeviceInstance;
 } DMF_CONFIG_CmApi;
 ````
 Member | Description
@@ -47,6 +50,36 @@ CmApi_Callback_DeviceInterfaceList: | Client callback that executes when the Dev
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### EVT_DMF_CmApi_DeviceInstance
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID 
+EVT_DMF_CmApi_DeviceInstance(
+    _In_ DMFMODULE DmfModule,
+    _In_ DEVINST DeviceInstance
+    );
+````
+
+This callback gets the device instance of the given device interface.
+
+##### Returns
+
+None.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_CmApi Module handle.
+DeviceInstance:  | A DEVINST with a device instance of the given device interfaces of type DeviceInterfaceGuid.
+
+##### Remarks
+
+* This gets called after client calls DMF_CmApi_DeviceIdListGet.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,6 +152,34 @@ ClientContext | Caller's private context.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_CmApi_DeviceIdListGet
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+DMF_CmApi_DeviceIdListGet(
+    _In_ DMFMODULE DmfModule
+    );
+````
+
+Get the list of Device Ids with device interface GUID, get its Device Instances and call client driver's registered callback.
+
+##### Returns
+
+TRUE - Successfully read Device Id list.
+FALSE - Failed.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_CmApi Module handle.
+
+##### Remarks
+
+*
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

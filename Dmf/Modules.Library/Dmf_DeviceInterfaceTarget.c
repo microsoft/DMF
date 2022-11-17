@@ -1042,6 +1042,9 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
             WdfObjectDelete(moduleContext->IoTarget);
             moduleContext->IoTarget = NULL;
+            // Clear symbolic link to reset to original state before remote target appeared.
+            //
+            DeviceInterfaceTarget_SymbolicLinkNameClear(*dmfModuleAddress);
             // In this case, ModuleCloseReason remains set so that Close will not happen,
             // because Module is actually closed.
             //
@@ -1057,6 +1060,9 @@ Return Value:
             WdfIoTargetClose(moduleContext->IoTarget);
             WdfObjectDelete(moduleContext->IoTarget);
             moduleContext->IoTarget = NULL;
+            // Clear symbolic link to reset to original state before remote target appeared.
+            //
+            DeviceInterfaceTarget_SymbolicLinkNameClear(*dmfModuleAddress);
             // In this case, ModuleCloseReason remains set so that Close will not happen,
             // because Module is actually closed.
             //
@@ -1082,6 +1088,7 @@ Return Value:
         // Client vetoed QueryRemove so WDFIOTARGET was not closed and streaming was not stopped.
         //
         DmfAssert(moduleContext->IoTarget == IoTarget);
+        ntStatus = STATUS_SUCCESS;
     }
 
     // If the client has registered for device interface state changes, call the notification callback.
@@ -1097,6 +1104,8 @@ Return Value:
         moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
                                                               DeviceInterfaceTarget_StateType_RemoveCancel);
     }
+
+Exit:
 
     // End of sequence. Allow another close to happen. Now NotificationUnregister or
     // QueryRemove can happen.
@@ -1136,10 +1145,13 @@ Return Value:
             moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
                                                                   DeviceInterfaceTarget_StateType_Close);
         }
-        DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        // Stop streaming and close the Module only if it was successfully reopened.
+        //
+        if (NT_SUCCESS(ntStatus))
+        {
+            DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        }
     }
-
-Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
