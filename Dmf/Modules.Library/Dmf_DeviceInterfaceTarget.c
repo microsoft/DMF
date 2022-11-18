@@ -1514,6 +1514,11 @@ Return Value:
 
 Exit:
 
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DeviceInterfaceTarget_SymbolicLinkNameClear(dmfModule);
+    }
+
     return ntStatus;
 }
 #pragma code_seg()
@@ -1736,8 +1741,7 @@ Return Value:
                                                                            deviceInterfaceChangeNotification->SymbolicLinkName);
             if (! NT_SUCCESS(ntStatus))
             {
-                // TODO: Display SymbolicLinkName.
-                //
+                DeviceInterfaceTarget_SymbolicLinkNameClear(dmfModule);
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceTarget_DeviceCreateNewIoTargetByName() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
@@ -1755,6 +1759,7 @@ Return Value:
             ntStatus = DMF_ModuleOpen(dmfModule);
             if (! NT_SUCCESS(ntStatus))
             {
+                DeviceInterfaceTarget_SymbolicLinkNameClear(dmfModule);
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
