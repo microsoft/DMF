@@ -102,6 +102,11 @@ typedef ULONG BufferPool_SentinelType;
 #define BufferPool_SentinelData     0x33334444
 #define BufferPool_SentinelSize     sizeof(BufferPool_SentinelType)
 
+// Enforce the client buffer, which comes after this structure, to be 4-byte aligned, which
+// is a requirement on ARM systems. Without this forced alignment, in certain situations, Windows on
+// ARM will crash due to a misalignment fault when executing specific load instructions.
+//
+#pragma pack(push, 4)
 typedef struct
 {
     // Stores the location of this buffer in the list.
@@ -152,6 +157,7 @@ typedef struct
     BufferPool_SentinelType* SentinelContext;
     ULONG Signature;
 } BUFFERPOOL_ENTRY;
+#pragma pack(pop)
 
 // Function that inserts a buffer in the BufferList.
 //
