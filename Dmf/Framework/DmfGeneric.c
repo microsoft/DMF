@@ -821,6 +821,9 @@ Return Value:
         // This Module's Notification Registration is automatically closed in D0Exit.
         //
         DMF_Internal_NotificationUnregister(DmfModule);
+        // This is needed for cases where Module Opens, Close and Opens again.
+        //
+        dmfObject->ModuleNotificationRegisteredDuring = ModuleOpenedDuringType_Invalid;
     }
     else if (dmfObject->ModuleDescriptor.OpenOption < DMF_MODULE_OPEN_OPTION_LAST)
     {
@@ -1404,10 +1407,9 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-    // It is possible for a Module to be created but not open if the Module uses a
-    // notification to open but the notification has not happened yet.
+    // Module can be in any valid state.
     //
-    DMF_HandleValidate_IsCreatedOrOpened(dmfObject);
+    DMF_HandleValidate_IsAvailable(dmfObject);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s] returnValue=0", dmfObject, dmfObject->ClientModuleInstanceName);
 
@@ -2058,6 +2060,12 @@ Return Value:
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p dmfObject=0x%p [%s]", DmfModule, dmfObject, dmfObject->ClientModuleInstanceName);
 
     DMF_HandleValidate_IsAvailable(dmfObject);
+
+    // In case the Module does not follow the rules and does not Close the Module in this callback,
+    // do it for the Module. This works because the Close is synchronized such that it can only 
+    // ever happen one time.
+    //
+    DMF_ModuleClose(DmfModule);
 
     FuncExit(DMF_TRACE, "dmfObject=0x%p [%s]", dmfObject, dmfObject->ClientModuleInstanceName);
 }

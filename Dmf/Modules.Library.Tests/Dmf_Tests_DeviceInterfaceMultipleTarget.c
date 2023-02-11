@@ -2030,6 +2030,12 @@ Return Value:
 
     PAGED_CODE();
 
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE,
+                "Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval (0x%p) Target=0x%p ENTER",
+                DeviceInterfaceMultipleTarget,
+                Target);
+
     targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
 
     WDFIOTARGET ioTarget;
@@ -2070,6 +2076,12 @@ Return Value:
 
     WdfObjectDelete(targetContext->DmfModuleAlertableSleep);
     targetContext->DmfModuleAlertableSleep = NULL;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE,
+                "Tests_DeviceInterfaceMultipleTarget_OnTargetRemoval (0x%p) Target=0x%p EXIT",
+                DeviceInterfaceMultipleTarget,
+                Target);
 }
 #pragma code_seg()
 
@@ -2103,6 +2115,13 @@ Return Value:
     NTSTATUS ntStatus;
 
     ntStatus = STATUS_SUCCESS;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE,
+                "Tests_DeviceInterfaceMultipleTarget_OnStateChange (0x%p) Target=0x%p IoTargetState=%d ENTER",
+                DeviceInterfaceMultipleTarget,
+                Target,
+                IoTargetState);
 
     if ((IoTargetState == DeviceInterfaceMultipleTarget_StateType_Open) ||
         (IoTargetState == DeviceInterfaceMultipleTarget_StateType_RemoveCancel))
@@ -2142,6 +2161,13 @@ Return Value:
 #if defined(TEST_VETO)
 Exit:
 #endif
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                DMF_TRACE,
+                "Tests_DeviceInterfaceMultipleTarget_OnStateChange (0x%p) Target=0x%p IoTargetState=%d EXIT",
+                DeviceInterfaceMultipleTarget,
+                Target,
+                IoTargetState);
 
     return ntStatus;
 }

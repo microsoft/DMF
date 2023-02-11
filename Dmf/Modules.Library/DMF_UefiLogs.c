@@ -298,7 +298,7 @@ UefiLogs_BufferTimeAppend(
     _In_ ADVANCED_LOGGER_MESSAGE_ENTRY* LoggerMessageEntry,
     _In_ VOID* DestinationBuffer,
     _In_ size_t MaximumSizeOfBufferBytes,
-    _Out_ size_t* LineSize
+    _Inout_ size_t* LineSize
     )
 /*++
 
@@ -440,6 +440,7 @@ Return Value:
     DMF_CONTEXT_UefiLogs* moduleContext;
     DMF_CONFIG_UefiLogs* moduleConfig;
     ULONG blobSize;
+    size_t maximumBytesToCopy;
     size_t eventLogSize;
     ADVANCED_LOGGER_INFO* loggerInfo;
     UCHAR* parsedLogHead;
@@ -450,6 +451,7 @@ Return Value:
     ADVANCED_LOGGER_MESSAGE_ENTRY* loggerMessageEntry;
     UCHAR* messageText;
     UCHAR* uefiLogEndAddress;
+    UCHAR* parsedLogHeadEnd;
 
     PAGED_CODE();
 
@@ -462,7 +464,8 @@ Return Value:
     uefiLogMemory = NULL;
     parsedUefiLogMemory = NULL;
     eventLogMemory = NULL;
-    eventLogSize = DMF_EVENTLOG_MAXIMUM_LENGTH_OF_STRING * sizeof(WCHAR);
+    maximumBytesToCopy = (DMF_EVENTLOG_MAXIMUM_LENGTH_OF_STRING * sizeof(WCHAR)) + sizeof(L"\0");
+    eventLogSize = maximumBytesToCopy + sizeof(L"\0");
     blobSize = 0;
 
     ntStatus = DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet(moduleContext->DmfModuleUefiOperation,
@@ -472,7 +475,6 @@ Return Value:
                                                                         &blobSize,
                                                                         &uefiLogMemory,
                                                                         NULL);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_WARNING,
@@ -482,6 +484,8 @@ Return Value:
         goto Exit;
     }
 
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
     ntStatus = WdfMemoryCreate(&objectAttributes,
                                PagedPool,
                                MemoryTag,
@@ -493,6 +497,11 @@ Return Value:
         TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
+
+    // Clear so that parsing logic can just copy characters without terminating the string.
+    //
+    RtlZeroMemory(eventLogLine,
+                  eventLogSize);
 
     // Parse logs.
     //
@@ -519,6 +528,8 @@ Return Value:
                   blobSize);
 
     parsedLogHead = (UCHAR*) parsedUefiLog;
+    parsedLogHeadEnd = (UCHAR*) parsedLogHead + blobSize;
+
     uefiLogHead = (UCHAR*)uefiLog + sizeof(ADVANCED_LOGGER_INFO);
     eventLogLineHead = (UCHAR*)eventLogLine;
     lineSize = 0;
@@ -579,9 +590,21 @@ Return Value:
 
         // Add message to line.
         //
-        RtlCopyMemory(eventLogLineHead,
-                      messageText,
-                      loggerMessageEntry->MessageLengthBytes);
+        if (eventLogLineHead + loggerMessageEntry->MessageLengthBytes <= ((UCHAR*)eventLogLine) + maximumBytesToCopy)
+        {
+            RtlCopyMemory(eventLogLineHead,
+                          messageText,
+                          loggerMessageEntry->MessageLengthBytes);
+        }
+        else
+        {
+            // The payload of the message is too long.
+            //
+            DmfAssert(FALSE);
+            // Cannot trust the rest of the data. Exit now.
+            //
+            break;
+        }
 
         // Move the event log head to last character of the string which was just extracted
         // to check if it is end of line.
@@ -595,13 +618,25 @@ Return Value:
         {
             // Copy the line to parsed buffer.
             //
-            RtlCopyMemory(parsedLogHead,
-                          eventLogLine,
-                          lineSize);
-            parsedLogHead += lineSize;
+            if (parsedLogHead + lineSize <= parsedLogHeadEnd)
+            {
+                RtlCopyMemory(parsedLogHead,
+                              eventLogLine,
+                              lineSize);
+                parsedLogHead += lineSize;
+            }
+            else
+            {
+                // Data won't fit into target buffer to write to file.
+                //
+                DmfAssert(FALSE);
+                // Stop processing.
+                //
+                break;
+            }
 
             // Send line out as ETW event (if it is not an empty line).
-            // Empty lines in UEFI logs have 2 characters, return cartidge and newline.
+            // Empty lines in UEFI logs have 2 characters, return carriage and newline.
             //
             if (lineSize > timeStampSize + sizeof('\n') + sizeof('\r'))
             {

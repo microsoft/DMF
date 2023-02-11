@@ -343,7 +343,10 @@ Return Value:
     clientBuffer = NULL;
     clientBufferExtracted = FALSE;
 
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleConfig->MaximumNumberOfPendingDataBuffers > 0);
 
     DMF_ModuleLock(DmfModule);
 
@@ -402,7 +405,6 @@ Return Value:
         //
         ntStatus = STATUS_SUCCESS;
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn fails to complete request.");
-        moduleConfig = DMF_CONFIG_GET(DmfModule);
 #if defined(DMF_USER_MODE)
         DMF_Utility_LogEmitString(DmfModule,
                                   DmfLogDataSeverity_Informational,
@@ -602,29 +604,31 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // BufferQueue
-    // -----------
-    //
-    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&moduleBufferQueueConfigList,
-                                               &moduleAttributes);
-    moduleBufferQueueConfigList.SourceSettings.EnableLookAside = FALSE;
-    moduleBufferQueueConfigList.SourceSettings.BufferCount = moduleConfig->MaximumNumberOfPendingDataBuffers;
-    moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(USEREVENT_ENTRY) +
-                                                            moduleConfig->SizeOfDataBuffer;
-    if (DmfParentModuleAttributes->PassiveLevel)
+    if (moduleConfig->MaximumNumberOfPendingDataBuffers > 0)
     {
-        moduleBufferQueueConfigList.SourceSettings.PoolType = PagedPool;
+        // BufferQueue
+        // -----------
+        //
+        DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&moduleBufferQueueConfigList,
+                                                   &moduleAttributes);
+        moduleBufferQueueConfigList.SourceSettings.EnableLookAside = FALSE;
+        moduleBufferQueueConfigList.SourceSettings.BufferCount = moduleConfig->MaximumNumberOfPendingDataBuffers;
+        moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(USEREVENT_ENTRY) + moduleConfig->SizeOfDataBuffer;
+        if (DmfParentModuleAttributes->PassiveLevel)
+        {
+            moduleBufferQueueConfigList.SourceSettings.PoolType = PagedPool;
+        }
+        else
+        {
+            moduleBufferQueueConfigList.SourceSettings.PoolType = NonPagedPoolNx;
+        }
+        moduleAttributes.ClientModuleInstanceName = "NotifyUserWithRequestBufferQueue";
+        moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleBufferQueue);
     }
-    else
-    {
-        moduleBufferQueueConfigList.SourceSettings.PoolType = NonPagedPoolNx;
-    }
-    moduleAttributes.ClientModuleInstanceName = "NotifyUserWithRequestBufferQueue";
-    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
-    DMF_DmfModuleAdd(DmfModuleInit,
-                     &moduleAttributes,
-                     WDF_NO_OBJECT_ATTRIBUTES,
-                     &moduleContext->DmfModuleBufferQueue);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -760,6 +764,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    DmfAssert(moduleConfig->MaximumNumberOfPendingDataBuffers > 0);
     DmfAssert(((EventCallbackContext != NULL) && moduleConfig->SizeOfDataBuffer > 0) ||
               (NULL == EventCallbackContext));
 
@@ -945,6 +950,7 @@ Return Value:
 
 --*/
 {
+    DMF_CONFIG_NotifyUserWithRequest* moduleConfig;
     NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
@@ -958,6 +964,9 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
         goto ExitNoDereference;
     }
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    DmfAssert(moduleConfig->MaximumNumberOfPendingDataBuffers > 0);
 
     // Store the request.
     //

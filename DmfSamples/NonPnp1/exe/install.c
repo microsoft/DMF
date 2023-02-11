@@ -510,7 +510,7 @@ SetupDriverName(
     //
     if (FAILED(StringCbPrintf(DriverLocation,
                               BufferLength,
-                              "%s%s.sys",
+                              "%s\\%s.sys",
                               DriverLocation,
                               DriverName)))
     {

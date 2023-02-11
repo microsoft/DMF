@@ -74,6 +74,10 @@ typedef struct _DMF_CONTEXT_SerialTarget
     // RemoveCancel.
     //
     StreamingStateType StreamingState;
+    // Tracks if QueryRemove succeeded. This is needed for surprise remove where RemoveComplete can
+    // happened without a QueryRemove.
+    //
+    BOOLEAN QueryRemoveSucceeded;
 } DMF_CONTEXT_SerialTarget;
 
 // This macro declares the following function:
@@ -274,16 +278,34 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_SerialTarget* moduleContext;
+    StreamingStateType currentState;
 
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DmfAssert(moduleContext->IoTarget != NULL);
+    DmfAssert(TargetState == StreamingState_Stopped || 
+              TargetState == StreamingState_StoppedDuringQueryRemove);
 
-    DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
-    moduleContext->StreamingState = TargetState;
+    DMF_ModuleLock(DmfModule);
+    currentState = moduleContext->StreamingState;
 
+    if (currentState == StreamingState_Started)
+    {
+        // Only change state if streaming was started.
+        //
+        moduleContext->StreamingState = TargetState;
+    }
+    DMF_ModuleUnlock(DmfModule);
+
+    if (currentState == StreamingState_Started)
+    {
+        // Only stop streaming if streaming was started.
+        //
+        DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
+    }
+ 
     FuncExitVoid(DMF_TRACE);
 }
 
@@ -294,18 +316,52 @@ NTSTATUS
 SerialTarget_EvtIoTargetQueryRemove(
     _In_ WDFIOTARGET IoTarget
     )
+/*++
+
+Routine Description:
+
+    Indicates whether the framework can safely remove a specified remote I/O target's device.
+
+Arguments:
+
+    IoTarget - A handle to an I/O target object.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
 {
     NTSTATUS ntStatus;
     DMFMODULE* dmfModuleAddress;
     DMF_CONTEXT_SerialTarget* moduleContext;
-
-    ntStatus = STATUS_SUCCESS;
+    DMF_CONFIG_SerialTarget* moduleConfig;
 
     FuncEntry(DMF_TRACE);
 
+    ntStatus = STATUS_SUCCESS;
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
+    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
     DmfAssert(moduleContext != NULL);
+
+    // Call client's QueryRemove callback so client can take action before IoTarget is closed.
+    //
+    if (moduleConfig->EvtSerialTargetQueryRemove != NULL)
+    {
+        ntStatus = moduleConfig->EvtSerialTargetQueryRemove(*dmfModuleAddress);
+
+        // Only stop streaming and close the target if Client has not vetoed QueryRemove.
+        //
+        if (!NT_SUCCESS(ntStatus))
+        {
+            moduleContext->QueryRemoveSucceeded = FALSE;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "EvtSerialTargetQueryRemove fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
+    moduleContext->QueryRemoveSucceeded = TRUE;
 
     // Let any Start/Stop that has started executing finish.
     //
@@ -315,13 +371,12 @@ SerialTarget_EvtIoTargetQueryRemove(
     // calls those Methods while QueryRemove/QueryCancel/RemoveComplete path is executing
     // so this state can be checked.
     //
-    if (moduleContext->StreamingState == StreamingState_Started)
-    {
-        SerialTarget_StreamStop(*dmfModuleAddress,
-                                StreamingState_StoppedDuringQueryRemove);
-    }
+    SerialTarget_StreamStop(*dmfModuleAddress,
+                            StreamingState_StoppedDuringQueryRemove);
 
     WdfIoTargetCloseForQueryRemove(IoTarget);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -353,25 +408,43 @@ Return Value:
     NTSTATUS ntStatus;
     DMFMODULE* dmfModuleAddress;
     DMF_CONTEXT_SerialTarget* moduleContext;
+    DMF_CONFIG_SerialTarget* moduleConfig;
+
     WDF_IO_TARGET_OPEN_PARAMS openParams;
 
     FuncEntry(DMF_TRACE);
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
+    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
     DmfAssert(moduleContext != NULL);
 
-    WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
+    if (moduleContext->QueryRemoveSucceeded == FALSE)
+    {
+        DmfAssert(IoTarget == moduleContext->IoTarget);
+        // No need to re-open IoTarget if client vetoed QueryRemove.
+        //
+        goto Exit;
+    }
 
+    moduleContext->QueryRemoveSucceeded = FALSE;
+
+    WDF_IO_TARGET_OPEN_PARAMS_INIT_REOPEN(&openParams);
     ntStatus = WdfIoTargetOpen(IoTarget,
                                &openParams);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to re-open serial target - %!STATUS!", ntStatus);
-        WdfObjectDelete(IoTarget);
+
+        // No need to clear or delete IoTarget here.
+        // Any Module calls to IoTarget will fail gracefully and ModuleClose will handle cleanup.
+        // IoTarget is Created/Destroyed in ModuleClose/ModuleOpen. A new target will not created before Module is closed.
+        //
+
         // Back to original state after Module Open.
         //
         moduleContext->StreamingState = StreamingState_Stopped;
+
         goto Exit;
     }
 
@@ -389,11 +462,18 @@ Return Value:
         }
     }
 
-Exit:
-
     // Allow Start/Stop to execute.
     //
     DMF_Rundown_Start(moduleContext->DmfModuleRundown);
+
+    // Call client's RemoveCanceled callback so client can take action after IoTarget is opened.
+    //
+    if (moduleConfig->EvtSerialTargetRemoveCanceled != NULL)
+    {
+        moduleConfig->EvtSerialTargetRemoveCanceled(*dmfModuleAddress);
+    }
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -408,6 +488,8 @@ SerialTarget_EvtIoTargetRemoveComplete(
 
 Routine Description:
 
+    Called when the Target device is removed (either the target
+    received IRP_MN_REMOVE_DEVICE or IRP_MN_SURPRISE_REMOVAL)
 
 Arguments:
 
@@ -421,24 +503,50 @@ Return Value:
 {
     DMFMODULE* dmfModuleAddress;
     DMF_CONTEXT_SerialTarget* moduleContext;
+    DMF_CONFIG_SerialTarget* moduleConfig;
 
     FuncEntry(DMF_TRACE);
 
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
     moduleContext = DMF_CONTEXT_GET(*dmfModuleAddress);
+    moduleConfig = DMF_CONFIG_GET(*dmfModuleAddress);
     DmfAssert(moduleContext != NULL);
 
     // Start/Stop will fail with STATUS_INVALID_DEVICE_STATE if a thread calls those Methods while
     // QueryRemove/QueryCancel/RemoveComplete path is executing so this state can be checked.
     //
+    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RemoveComplete");
 
-    // Reset state back to stopped to clear the state that it was stopped during QueryRemove.
+    // Call client's RemoveCanceled callback so client can take action on RemoveComplete.
     //
-    moduleContext->StreamingState = StreamingState_Stopped;
+    if (moduleConfig->EvtSerialTargetRemoveComplete != NULL)
+    {
+        moduleConfig->EvtSerialTargetRemoveComplete(*dmfModuleAddress);
+    }
 
-    // Allow Start/Stop to execute.
+    if (moduleContext->QueryRemoveSucceeded == FALSE)
+    {
+        // QueryRemove did not happen e.g. Surprise Removal. Do necessary clean up.
+        // 
+
+        // Let any Start/Stop that has started executing finish.
+        //
+        DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
+
+        // After this point Start/Stop will fail with STATUS_INVALID_DEVICE_STATE if a thread
+        // calls those Methods while QueryRemove/QueryCancel/RemoveComplete path is executing
+        // so this state can be checked.
+        //
+        SerialTarget_StreamStop(*dmfModuleAddress,
+                                StreamingState_Stopped);
+    }
+
+    moduleContext->QueryRemoveSucceeded = FALSE;
+
+    // No need to delete target here. ModuleClose will handle clean up.
+    // IoTarget is Created/Destroyed in ModuleOpen/ModuleClose. A new target will not be created before Module is closed.
     //
-    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
+    WdfIoTargetClose(IoTarget);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1059,7 +1167,13 @@ DMF_SerialTarget_Open(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    moduleContext->QueryRemoveSucceeded = FALSE;
     moduleContext->StreamingState = StreamingState_Stopped;
+    
+    // Allow Start/Stop to execute.
+    // Call before SerialTarget_InitializeSerialPort since QueryRemove can happen once the target is created.
+    //
+    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
 
     ntStatus = SerialTarget_InitializeSerialPort(DmfModule);
     if (!NT_SUCCESS(ntStatus))
@@ -1067,10 +1181,6 @@ DMF_SerialTarget_Open(
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "SerialTarget_InitializeSerialPort fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-
-    // Allow Start/Stop to execute.
-    //
-    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
 
     if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
     {
@@ -1081,15 +1191,19 @@ DMF_SerialTarget_Open(
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SerialTarget_StreamStart fails: ntStatus=%!STATUS!", ntStatus);
-            // Close won't be called.
-            //
-            DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
         }
     }
 
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
 Exit:
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // ModuleClose won't be called.
+        //
+        DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
+    }
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
@@ -1112,6 +1226,8 @@ DMF_SerialTarget_Close(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
+
     if (moduleContext->IoTarget != NULL)
     {
         if (moduleContext->ContinuousRequestTargetMode == ContinuousRequestTarget_Mode_Automatic)
@@ -1119,7 +1235,8 @@ DMF_SerialTarget_Close(
             // If QueryRemove path starts before this call, this call does nothing.
             //
             DmfAssert(moduleContext->DmfModuleContinuousRequestTarget != NULL);
-            DMF_SerialTarget_StreamStop(DmfModule);
+            SerialTarget_StreamStop(DmfModule,
+                                    StreamingState_Stopped);
         }
 
         // Close the associated target.

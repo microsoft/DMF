@@ -48,6 +48,9 @@
     <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">True</UseDebugLibraries>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <UMDF_VERSION_MAJOR>2</UMDF_VERSION_MAJOR>
+  </PropertyGroup>
   <PropertyGroup>
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <SigningCertPath Condition="'$(SigningCertPath)'==''">$(SigningCertificatesDir)OEMTest_OS_DRIVER.pfx</SigningCertPath>

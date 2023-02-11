@@ -80,6 +80,7 @@ extern "C"
 #include "Dmf_UdeClient.h"
 #include "DMF_UefiLogs.h"
 #include "Dmf_UefiOperation.h"
+#include "Dmf_Time.h"
 
 // Buffers
 //

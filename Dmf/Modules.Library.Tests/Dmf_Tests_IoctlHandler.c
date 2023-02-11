@@ -644,6 +644,50 @@ Return Value:
                                                   sleepContext->SleepRequest.TimeToSleepMilliseconds);
             break;
         }
+        case IOCTL_Tests_IoctlHandler_ZEROSIZE:
+        {
+            SleepContext* sleepContext;
+            WDF_OBJECT_ATTRIBUTES objectAttributes;
+            REQUEST_CONTEXT* requestContext;
+
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "IOCTL_Tests_IoctlHandler_ZEROSIZE: Request=0x%p", Request);
+
+            // Perform the work.
+            //
+            WdfRequestSetInformation(Request,
+                                     OutputBufferSize);
+
+            WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes,
+                                                    REQUEST_CONTEXT);
+            ntStatus = WdfObjectAllocateContext(Request,
+                                                &objectAttributes,
+                                                (VOID**)&requestContext);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                goto Exit;
+            }
+
+            // Save the Module in private context for cancel routine.
+            // It is necessary so that it can be removed from lists.
+            //
+            requestContext->DmfModuleTestIoctlHandler = dmfModuleParent;
+
+            ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolFree,
+                                          &clientBuffer,
+                                          NULL);
+            DmfAssert(NT_SUCCESS(ntStatus));
+
+            sleepContext = (SleepContext*)clientBuffer;
+            sleepContext->Request = Request;
+            sleepContext->SleepRequest.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0,
+                                                                                                   5000);
+            requestContext->TimeToSleepMilliseconds = sleepContext->SleepRequest.TimeToSleepMilliseconds;
+            ntStatus = Tests_IoctlHandler_Enqueue(dmfModuleParent,
+                                                  Request,
+                                                  clientBuffer,
+                                                  sleepContext->SleepRequest.TimeToSleepMilliseconds);
+            break;
+        }
     }
 
 Exit:
@@ -855,6 +899,7 @@ IoctlHandler_IoctlRecord Tests_IoctlHandlerTable[] =
 {
     { (LONG)IOCTL_Tests_IoctlHandler_SLEEP,         sizeof(Tests_IoctlHandler_Sleep), 0, Tests_IoctlHandler_Callback, FALSE },
     { (LONG)IOCTL_Tests_IoctlHandler_ZEROBUFFER,    0,                                0, Tests_IoctlHandler_Callback, FALSE },
+    { (LONG)IOCTL_Tests_IoctlHandler_ZEROSIZE,      0,                                0, Tests_IoctlHandler_Callback, FALSE },
 };
 
 #pragma code_seg("PAGE")

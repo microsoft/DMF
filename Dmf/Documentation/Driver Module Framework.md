@@ -5875,6 +5875,8 @@ None
     never called directly (nor is it accessible to Clients or other
     Modules). Modules must never call this callback directly because 
     DMF performs important processing before and after the call to this callback.
+-   Modules that support this callback must call `DMF_ModuleClose()`.
+-   If a Module does not support this callback, DMF will automatically calls `DMF_ModuleClose()` from its generic handler.
 
 #### Example
 ```
@@ -5882,7 +5884,7 @@ None
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
-DMF_DeviceInterfaceTarget_NotificationUnregister(
+DMF_Example_NotificationUnregister(
     _In_ DMFMODULE DmfModule
     )
 /*++
@@ -5903,35 +5905,23 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    DMF_CONTEXT_Example* moduleContext;
 
     PAGED_CODE();
-
-    FuncEntry(DMF_TRACE_DeviceInterfaceTarget);
 
     ntStatus = STATUS_SUCCESS;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // The notification routine could be called after the IoUnregisterPlugPlayNotification method 
-    // has returned which was undesirable. IoUnregisterPlugPlayNotificationEx prevents the
-    // notification routine from being called after IoUnregisterPlugPlayNotificationEx returns.
-    //
-    if (moduleContext->DeviceInterfaceNotification != NULL)
+    if (moduleContext->ExampleNotification != NULL)
     {
-        ntStatus = IoUnregisterPlugPlayNotificationEx(moduleContext->DeviceInterfaceNotification);
+        ntStatus = IoUnregisterPlugPlayNotificationEx(moduleContext->ExampleNotification);
         if (! NT_SUCCESS(ntStatus))
         {
-            DmfAssert(FALSE);
-            TraceEvents(TRACE_LEVEL_VERBOSE,
-                        DMF_TRACE_DeviceInterfaceTarget,
-                        "IoUnregisterPlugPlayNotificationEx fails: ntStatus=%!STATUS!",
-                        ntStatus);
             goto Exit;
         }
 
-        moduleContext->DeviceInterfaceNotification = NULL;
-        DeviceInterfaceTarget_ModuleCloseAndTargetDestroyAsNeeded(DmfModule);
+        moduleContext->ExampleNotification = NULL;
     }
     else
     {
@@ -5939,10 +5929,13 @@ Return Value:
         //
     }
 
-    Exit:
+    // When this callback is supported, it must call DMF_ModuleClose().
+    //_
+    DMF_ModuleClose();
+    _
+Exit:
 
-    FuncExit(DMF_TRACE_DeviceInterfaceTarget, "ntStatus=%!STATUS!", ntStatus);
-
+    return;
 }
 #pragma code_seg()
 ```
@@ -7681,11 +7674,16 @@ Non-Notification Modules are different because for these Modules DMF does not au
 
 #### Notification Registration
 
-The Module's Notification Register performs the work of starting the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationRegister.
+The Module's Notification Register callback performs the work of starting the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationRegister.
 
 #### Notification Unregistration
 
-The Module's Notification Unregister performs the work of stopping up the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationUnregister.
+The Module's Notification Unregister callback performs the work of stopping up the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationUnregister.
+
+**Important Note**: Starting with v1.1.127, it is no longer mandatory for Notification Modules to support this callback. Prior to v1.1.127, it was mandatory for Notification Modules to support this callback and call `DMF_ModuleClose()` from this callback.
+
+In all versions including v1.1.127 and above, if a Notification Module supports `DMF_NotificationUnregister`, it must call `DMF_ModuleClose()`.
+Starting with v1.1.127, `DMF_ModuleClose()` can be called by more than one thread because DMF now ensures that the Module's Close() callback is called only a single time.
 
 #### Resource Arrival
 

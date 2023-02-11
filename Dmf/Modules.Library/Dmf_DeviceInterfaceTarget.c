@@ -256,6 +256,11 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DMF_ModuleLock(DmfModule);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,  DMF_TRACE,
+                "DeviceInterfaceTarget_ModuleCloseReasonSet DmfModule=0x%p ModuleCloseReason=%d ENTER",
+                DmfModule, ModuleCloseReason);
+
     moduleCloseReasonType = moduleContext->ModuleCloseReason;
     if (moduleContext->ModuleCloseReason == ModuleCloseReason_NotSet)
     {
@@ -273,13 +278,19 @@ Return Value:
         //
         moduleCloseReasonType = ModuleCloseReason_Duplicate;
     }
-    else if (ModuleCloseReason == ModuleCloseReason_NotificationUnregister)
+    else if ((ModuleCloseReason == ModuleCloseReason_NotificationUnregister) ||
+             (ModuleCloseReason == ModuleCloseReason_NotificationRemoval))
     {
         // If this is not the first path to try to close, then always close after
         // RemoveCancel.
         //
         moduleContext->CloseAfterRemoveCancel = TRUE;
     }
+    
+    TraceEvents(TRACE_LEVEL_INFORMATION,  DMF_TRACE,
+                "DeviceInterfaceTarget_ModuleCloseReasonSet DmfModule=0x%p ModuleCloseReason=%d moduleCloseReasonType=%d EXIT",
+                DmfModule, ModuleCloseReason, moduleCloseReasonType);
+
     DMF_ModuleUnlock(DmfModule);
 
     // Return the current path that has started executing.
@@ -322,8 +333,6 @@ Return Value:
     }
 }
 
-#if ! defined(DMF_USER_MODE)
-
 _Must_inspect_result_
 NTSTATUS
 DeviceInterfaceTarget_SymbolicLinkNameStore(
@@ -358,11 +367,12 @@ Return Value:
     symbolicLinkStringLength = SymbolicLinkName->Length;
     if (0 == symbolicLinkStringLength)
     {
-        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Symbolic link name length is 0");
         goto Exit;
     }
+
+    DmfAssert(NULL == moduleContext->SymbolicLinkName.Buffer);
 
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DMF_ParentDeviceGet(DmfModule);
@@ -383,25 +393,29 @@ Return Value:
     moduleContext->SymbolicLinkName.Length = symbolicLinkStringLength;
     moduleContext->SymbolicLinkName.MaximumLength = symbolicLinkStringLength + sizeof(UNICODE_NULL);
 
+#if defined(DMF_USER_MODE)
+    // Overwrite with string.
+    //
+    RtlZeroMemory(moduleContext->SymbolicLinkName.Buffer,
+                  moduleContext->SymbolicLinkName.MaximumLength);
+    RtlCopyMemory(moduleContext->SymbolicLinkName.Buffer,
+                  SymbolicLinkName->Buffer,
+                  symbolicLinkStringLength);
+#else
     ntStatus = RtlUnicodeStringCopy(&(moduleContext->SymbolicLinkName),
                                     SymbolicLinkName);
     if (! NT_SUCCESS(ntStatus))
     {
+        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE, "RtlUnicodeStringCopy fails: ntStatus=%!STATUS!", ntStatus);
         DeviceInterfaceTarget_SymbolicLinkNameClear(DmfModule);
         goto Exit;
     }
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR,  DMF_TRACE, "RtlUnicodeStringCopy fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
+#endif
 
 Exit:
     
     return ntStatus;
 }
-
-#endif // defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -898,6 +912,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_EvtIoTargetQueryRemove IoTarget=0x%p", IoTarget);
+
     ntStatus = STATUS_SUCCESS;
 
     // The IoTarget's Module Context area has the DMF Module.
@@ -940,8 +956,23 @@ Return Value:
             DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
         }
 
-        // After this, RemoveCancel or RemoveComplete will happen.
+#if defined(DMF_USER_MODE)
+        // Case where unregister happens during QueryRemove. In User-mode, it appears to
+        // be necessary to delete the WDFIOTARGET now so that RemoveCancel does not happen
+        // otherwise BSOD happens.
         //
+        BOOLEAN closeAfterRemoveCancel;
+        DMF_ModuleLock(*dmfModuleAddress);
+        closeAfterRemoveCancel = moduleContext->CloseAfterRemoveCancel;
+        DMF_ModuleUnlock(*dmfModuleAddress);
+
+        if (closeAfterRemoveCancel)
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_EvtIoTargetQueryRemove Delete due to Unregistration: IoTarget=0x%p", IoTarget);
+            WdfObjectDelete(IoTarget);
+            DeviceInterfaceTarget_SymbolicLinkNameClear(*dmfModuleAddress);
+        }
+#endif
     }
 
     // MSDN states that STATUS_SUCCESS or STATUS_UNSUCCESSFUL must be returned.
@@ -986,6 +1017,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_EvtIoTargetRemoveCancel IoTarget=0x%p", IoTarget);
+
     // The IoTarget's Module Context area has the DMF Module.
     //
     dmfModuleAddress = WdfObjectGet_DMFMODULE(IoTarget);
@@ -1009,6 +1042,9 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfIoTargetOpen fails: ntStatus=%!STATUS!", ntStatus);
             WdfObjectDelete(moduleContext->IoTarget);
             moduleContext->IoTarget = NULL;
+            // Clear symbolic link to reset to original state before remote target appeared.
+            //
+            DeviceInterfaceTarget_SymbolicLinkNameClear(*dmfModuleAddress);
             // In this case, ModuleCloseReason remains set so that Close will not happen,
             // because Module is actually closed.
             //
@@ -1024,6 +1060,9 @@ Return Value:
             WdfIoTargetClose(moduleContext->IoTarget);
             WdfObjectDelete(moduleContext->IoTarget);
             moduleContext->IoTarget = NULL;
+            // Clear symbolic link to reset to original state before remote target appeared.
+            //
+            DeviceInterfaceTarget_SymbolicLinkNameClear(*dmfModuleAddress);
             // In this case, ModuleCloseReason remains set so that Close will not happen,
             // because Module is actually closed.
             //
@@ -1049,6 +1088,7 @@ Return Value:
         // Client vetoed QueryRemove so WDFIOTARGET was not closed and streaming was not stopped.
         //
         DmfAssert(moduleContext->IoTarget == IoTarget);
+        ntStatus = STATUS_SUCCESS;
     }
 
     // If the client has registered for device interface state changes, call the notification callback.
@@ -1065,10 +1105,14 @@ Return Value:
                                                               DeviceInterfaceTarget_StateType_RemoveCancel);
     }
 
+Exit:
+
     // End of sequence. Allow another close to happen. Now NotificationUnregister or
     // QueryRemove can happen.
     //
+    BOOLEAN closeAfterRemoveCancel;
     DMF_ModuleLock(*dmfModuleAddress);
+    closeAfterRemoveCancel = moduleContext->CloseAfterRemoveCancel;
     if (moduleContext->CloseAfterRemoveCancel)
     {
         // NotificationUnregsiter happened while removing target. Now, execute that path so
@@ -1085,15 +1129,29 @@ Return Value:
     }
     DMF_ModuleUnlock(*dmfModuleAddress);
 
-    if (moduleContext->CloseAfterRemoveCancel)
+    if (closeAfterRemoveCancel)
     {
         // NotificationUnregister happened during RemoveCancel. So, act as if it
         // if happened just afterward.
         //
-        DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
+        {
+            DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
+            moduleConfig->EvtDeviceInterfaceTargetOnStateChange(*dmfModuleAddress,
+                                                                DeviceInterfaceTarget_StateType_Close);
+        }
+        else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+        {
+            moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(*dmfModuleAddress,
+                                                                  DeviceInterfaceTarget_StateType_Close);
+        }
+        // Stop streaming and close the Module only if it was successfully reopened.
+        //
+        if (NT_SUCCESS(ntStatus))
+        {
+            DeviceInterfaceTarget_StreamStopAndModuleClose(*dmfModuleAddress);
+        }
     }
-
-Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -1126,6 +1184,8 @@ Return Value:
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
 
     FuncEntry(DMF_TRACE);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_EvtIoTargetRemoveComplete IoTarget=0x%p", IoTarget);
 
     // The IoTarget's Module Context area has the DMF Module.
     //
@@ -1172,6 +1232,10 @@ Return Value:
             // QueryRemove.)
             //
             WdfObjectDelete(IoTarget);
+            // Module Close has already happened during QueryRemove. The symbolic link was
+            // not cleared, so it must be cleared here.
+            //
+            DeviceInterfaceTarget_SymbolicLinkNameClear(*dmfModuleAddress);
         }
 
         // Do not allow another close to begin until after a new IoTarget has opened.
@@ -1384,6 +1448,20 @@ Return Value:
         RtlInitUnicodeString(&targetName,
                              bufferPointer);
 
+        if ( moduleContext->SymbolicLinkName.Buffer == NULL)
+        {
+            // This is necessary for the first call after user-mode registration of the PnP callback because
+            // the caller has not yet set the symbolic link.
+            //
+            ntStatus = DeviceInterfaceTarget_SymbolicLinkNameStore(dmfModule,
+                                                                   &targetName);
+            if (! NT_SUCCESS(ntStatus))
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_SymbolicLinkNameStore fails: ntStatus=%!STATUS!", ntStatus);
+                goto Exit;
+            }
+        }
+
         // Ask Client if this IoTarget needs to be opened if the Client 
         // requested notification.
         //
@@ -1406,6 +1484,7 @@ Return Value:
                 // a re-open.
                 //
                 moduleContext->ModuleCloseReason = ModuleCloseReason_NotSet;
+                moduleContext->CloseAfterRemoveCancel = FALSE;
 
                 ntStatus = DMF_ModuleOpen(dmfModule);
             }
@@ -1434,6 +1513,11 @@ Return Value:
     }
 
 Exit:
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DeviceInterfaceTarget_SymbolicLinkNameClear(dmfModule);
+    }
 
     return ntStatus;
 }
@@ -1470,9 +1554,9 @@ Return Value:
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
     DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
     NTSTATUS ntStatus;
+    UNICODE_STRING symbolicLinkName;
 
     UNREFERENCED_PARAMETER(hNotify);
-    UNREFERENCED_PARAMETER(EventData);
     UNREFERENCED_PARAMETER(EventDataSize);
 
     ntStatus = STATUS_SUCCESS;
@@ -1480,9 +1564,28 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
+    RtlInitUnicodeString(&symbolicLinkName,
+                         EventData->u.DeviceInterface.SymbolicLink);
+
     if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL)
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: ARRIVAL");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: ARRIVAL symbolicLinkName=%S", symbolicLinkName.Buffer);
+
+        // NOTE: WDFIOTARGET may be NULL if this callback happens after QueryRemove.
+        //
+        if (moduleContext->SymbolicLinkName.Buffer != NULL)
+        {
+            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Duplicate Arrival Interface Notification. Do Nothing");
+            goto Exit;
+        }
+
+        ntStatus = DeviceInterfaceTarget_SymbolicLinkNameStore(dmfModule,
+                                                               &symbolicLinkName);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_SymbolicLinkNameStore fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
         // NOTE: This function does everything that Kernel-mode arrival does. The organization of
         //       the code is different because in User-mode the arrival callback is not called
@@ -1492,19 +1595,34 @@ Return Value:
     }
     else if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
     {
+        // Verify that the device to be removed is the same as the device that was opened. 
+        //
+        LONG comparisonResult;
+
+        comparisonResult = RtlCompareUnicodeString(&symbolicLinkName,
+                                                   &moduleContext->SymbolicLinkName,
+                                                   FALSE);
+        if (comparisonResult != 0)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlCompareUnicodeStrings comparisonResult=%d", comparisonResult);
+            goto Exit;
+        }
+
         // NOTE: Targets are not closed when underlying driver disables device interface.
         //
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: REMOVAL");
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: REMOVAL symbolicLinkName=%S", symbolicLinkName.Buffer);
 
+        // This path executes when the device interface is disabled.
+        // This is different than when the underlying device is actually removed.
+        //
         // If any arrival/remove path code is executing the fact that the driver is closing is remembered. 
         // After the target arrival/removal operation finishes, the Module is closed gracefully.
         //
         if (DeviceInterfaceTarget_ModuleCloseReasonSet(dmfModule,
-                                                        ModuleCloseReason_NotificationRemoval) == ModuleCloseReason_NotificationRemoval)
+                                                       ModuleCloseReason_NotificationRemoval) == ModuleCloseReason_NotificationRemoval)
         {
             // Module has not started closing yet. If the Module is Open, Close it.
             // It is safe to check this handle because no other path can modify it.
-            // Arrival cannot happen because notification handler is unregistered.
             //
             if (moduleContext->IoTarget != NULL)
             {
@@ -1512,6 +1630,8 @@ Return Value:
             }
         }
     }
+
+Exit:
 
     return STATUS_SUCCESS;
 }
@@ -1587,8 +1707,9 @@ Return Value:
         // Can safely ignore the second call to the callback.
         // The operating system will not call the callback more than twice for a single event
         // So, if the IoTarget is already created, do nothing.
+        // NOTE: WDFIOTARGET may be NULL if this callback happens after QueryRemove.
         //
-        if (moduleContext->IoTarget != NULL)
+        if (moduleContext->SymbolicLinkName.Buffer != NULL)
         {
             TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Duplicate Arrival Interface Notification. Do Nothing");
             goto Exit;
@@ -1607,14 +1728,11 @@ Return Value:
         {
             // IoTarget will be opened. Save symbolic link name to make sure removal is referenced to correct interface.
             //
-            if (NULL == moduleContext->SymbolicLinkName.Buffer)
+            ntStatus = DeviceInterfaceTarget_SymbolicLinkNameStore(dmfModule,
+                                                                    deviceInterfaceChangeNotification->SymbolicLinkName);
+            if (! NT_SUCCESS(ntStatus))
             {
-                ntStatus = DeviceInterfaceTarget_SymbolicLinkNameStore(dmfModule,
-                                                                       deviceInterfaceChangeNotification->SymbolicLinkName);
-                if (! NT_SUCCESS(ntStatus))
-                {
-                    goto Exit;
-                }
+                goto Exit;
             }
 
             // Create and open the underlying target.
@@ -1623,8 +1741,7 @@ Return Value:
                                                                            deviceInterfaceChangeNotification->SymbolicLinkName);
             if (! NT_SUCCESS(ntStatus))
             {
-                // TODO: Display SymbolicLinkName.
-                //
+                DeviceInterfaceTarget_SymbolicLinkNameClear(dmfModule);
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DeviceInterfaceTarget_DeviceCreateNewIoTargetByName() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
@@ -1634,6 +1751,7 @@ Return Value:
             // has finished executing.
             //
             moduleContext->ModuleCloseReason = ModuleCloseReason_NotSet;
+            moduleContext->CloseAfterRemoveCancel = FALSE;
 
             // The target has been opened. Perform any other operation that must be done.
             // NOTE: That this causes any children to open.
@@ -1641,6 +1759,7 @@ Return Value:
             ntStatus = DMF_ModuleOpen(dmfModule);
             if (! NT_SUCCESS(ntStatus))
             {
+                DeviceInterfaceTarget_SymbolicLinkNameClear(dmfModule);
                 TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }
@@ -1663,15 +1782,27 @@ Return Value:
     {
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface Notification: REMOVAL");
 
+        // Verify that the device to be removed is the same as the device that was opened. 
+        //
+        LONG comparisonResult;
+
+        comparisonResult = RtlCompareUnicodeString(deviceInterfaceChangeNotification->SymbolicLinkName,
+                                                   &moduleContext->SymbolicLinkName,
+                                                   FALSE);
+        if (comparisonResult != 0)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlCompareUnicodeString comparisonResult=%d", comparisonResult);
+            goto Exit;
+        }
+
         // If any arrival/remove path code is executing the fact that the driver is closing is remembered. 
         // After the target arrival/removal operation finishes, the Module is closed gracefully.
         //
         if (DeviceInterfaceTarget_ModuleCloseReasonSet(dmfModule,
-                                                        ModuleCloseReason_NotificationRemoval) == ModuleCloseReason_NotificationRemoval)
+                                                       ModuleCloseReason_NotificationRemoval) == ModuleCloseReason_NotificationRemoval)
         {
             // Module has not started closing yet. If the Module is Open, Close it.
             // It is safe to check this handle because no other path can modify it.
-            // Arrival cannot happen because notification handler is unregistered.
             //
             if (moduleContext->IoTarget != NULL)
             {
@@ -1742,6 +1873,8 @@ Return Value:
 
     PAGED_CODE();
     FuncEntry(DMF_TRACE);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_DeviceInterfaceTarget_NotificationRegisterUser: DmfModule=0x%p", DmfModule);
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1823,6 +1956,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_DeviceInterfaceTarget_NotificationUnregisterUser: DmfModule=0x%p", DmfModule);
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     CM_Unregister_Notification(moduleContext->DeviceInterfaceNotification);
@@ -1841,6 +1976,23 @@ Return Value:
         //
         if (moduleContext->IoTarget != NULL)
         {
+            // Inform Client that Module will close so that Client will stop communicating with Module.
+            // This needs to be done before Module is closed otherwise there might be outstanding references.
+            //
+            DMF_CONFIG_DeviceInterfaceTarget* moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+            if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
+            {
+                DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
+                moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
+                                                                    DeviceInterfaceTarget_StateType_Close);
+            }
+            else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+            {
+                moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
+                                                                      DeviceInterfaceTarget_StateType_Close);
+            }
+
             DeviceInterfaceTarget_StreamStopAndModuleClose(DmfModule);
         }
     }
@@ -1990,6 +2142,23 @@ Return Value:
             //
             if (moduleContext->IoTarget != NULL)
             {
+                // Inform Client that Module will close so that Client will stop communicating with Module.
+                // This needs to be done before Module is closed otherwise there might be outstanding references.
+                //
+                DMF_CONFIG_DeviceInterfaceTarget* moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+                if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
+                {
+                    DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
+                    moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
+                                                                        DeviceInterfaceTarget_StateType_Close);
+                }
+                else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
+                {
+                    moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
+                                                                          DeviceInterfaceTarget_StateType_Close);
+                }
+
                 DeviceInterfaceTarget_StreamStopAndModuleClose(DmfModule);
             }
         }
@@ -2098,6 +2267,8 @@ Return Value:
 
     moduleContext->RequestSink_IoTargetClear(DmfModule);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_DeviceInterfaceTarget_Close: DmfModule=0x%p, ModuleCloseReason=%d", DmfModule, moduleContext->ModuleCloseReason);
+
     switch (moduleContext->ModuleCloseReason)
     {
         case ModuleCloseReason_NotificationUnregister:
@@ -2105,17 +2276,6 @@ Return Value:
             // Normal close that happens without QueryRemove.
             //
             WdfIoTargetClose(moduleContext->IoTarget);
-            if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
-            {
-                DmfAssert(moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx == NULL);
-                moduleConfig->EvtDeviceInterfaceTargetOnStateChange(DmfModule,
-                                                                    DeviceInterfaceTarget_StateType_Close);
-            }
-            else if (moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx != NULL)
-            {
-                moduleConfig->EvtDeviceInterfaceTargetOnStateChangeEx(DmfModule,
-                                                                      DeviceInterfaceTarget_StateType_Close);
-            }
             WdfObjectDelete(moduleContext->IoTarget);
             // Delete stored symbolic link if set. (This will never be set in User-mode.)
             //
@@ -2149,6 +2309,13 @@ Return Value:
             // Delete stored symbolic link if set. (This will never be set in User-mode.)
             //
             DeviceInterfaceTarget_SymbolicLinkNameClear(DmfModule);
+            break;
+        }
+        case ModuleCloseReason_NotSet:
+        {
+            // It means PnP notification was registered and then unregistered without
+            // the WDFIOTARGET opening.
+            //
             break;
         }
         default:

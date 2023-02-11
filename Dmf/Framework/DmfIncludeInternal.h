@@ -266,6 +266,15 @@ struct _DMF_OBJECT_
     // This object will be dereferenced when the Module is deleted.
     //
     WDFOBJECT ObjectToDereference;
+    // Indicates that the Module can be deleted because it has been closed. There are race conditions
+    // that are hard for the Client to deal with when using PnP Notification such that it is possible
+    // that QueryRemove and the PnP Notification race such that the Module does not close because 
+    // both threads think the other thread will close the Module.
+    //
+    DMF_PORTABLE_EVENT ModuleCanBeDeletedEvent;
+    // Allows Modules to ensure Module is closed a single time.
+    //
+    BOOLEAN ModuleClosed;
 };
 
 // DMF Object Signature.

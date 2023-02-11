@@ -1263,6 +1263,10 @@ Return Value:
     dmfObject->ClientEvtCleanupCallback = clientEvtCleanupCallback;
     dmfObject->IsTransport = DmfModuleAttributes->IsTransportModule;
 
+    // Prevent Module's Close() handler from being called if it was never opened.
+    //
+    dmfObject->ModuleClosed = TRUE;
+
     RtlCopyMemory(&dmfObject->ModuleAttributes,
                   DmfModuleAttributes,
                   sizeof(DMF_MODULE_ATTRIBUTES));
@@ -1328,6 +1332,17 @@ Return Value:
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_SynchronizationCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Create the event that tells DMF it is OK to destroy the Module because it is either "created" or "closed".
+    //
+    ntStatus = DMF_Portable_EventCreate(&dmfObject->ModuleCanBeDeletedEvent,
+                                        NotificationEvent,
+                                        TRUE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleObjectCallbacksInitialize fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -1562,6 +1577,9 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
+    DeleteMemory - Indicates if this function is called from clean up callback. In that
+                   case only the handles in the context should be deleted because WDF will
+                   actually delete DmfModule.
 
 Return Value:
 
@@ -1613,6 +1631,10 @@ Return Value:
         DmfAssert(NULL == dmfObject->ModuleConfig);
         DmfAssert(NULL == dmfObject->ModuleConfigMemory);
     }
+
+    // This event must be manually deleted for User-mode.
+    //
+    DMF_Portable_EventClose(&dmfObject->ModuleCanBeDeletedEvent);
 
     if (DeleteMemory)
     {

@@ -226,6 +226,29 @@ PepAcpiRegistrationTables | Tables containing information on Fan device's HW ID,
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_AcpiPepDeviceFan_FanInitializedFlagGet
+
+````
+_Must_inspect_result_
+BOOLEAN
+DMF_AcpiPepDeviceFan_FanInitializedFlagGet(
+    _In_ DMFMODULE DmfModule
+    );
+````
+
+This Method gets FanInitialized flag value.
+
+##### Returns
+
+BOOLEAN
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_AcpiPepDeviceFan_NotifyRequestSchedule
 
 ````
