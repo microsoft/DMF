@@ -1294,6 +1294,186 @@ DMF_FilterControl_DeviceDelete(
 #endif // !defined(DMF_USER_MODE)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Bus Filter support
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+#if defined(DMF_KERNEL_MODE)
+
+// Declare an opaque handle representing a filtered PDO.
+//
+DECLARE_HANDLE(DMFBUSCHILDDEVICE);
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_PreBusDeviceAdd)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+EVT_DMF_BusFilter_PreBusDeviceAdd(
+    _In_ WDFDRIVER Driver,
+    _Inout_ PWDFDEVICE_INIT DeviceInit,
+    _Out_ WDF_OBJECT_ATTRIBUTES* Attributes,
+    _Outptr_result_maybenull_ PDMFDEVICE_INIT* DmfDeviceInit
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_PostBusDeviceAdd)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+EVT_DMF_BusFilter_PostBusDeviceAdd(
+    _In_ WDFDEVICE Device,
+    _In_opt_ PDMFDEVICE_INIT DmfDeviceInit
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_DeviceAdd)
+_IRQL_requires_max_(APC_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_BusFilter_DeviceAdd(
+    _In_ WDFDEVICE Device,
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_DeviceRemove)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_BusFilter_DeviceRemove(
+    _In_ WDFDEVICE Device,
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_DeviceStarted)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_BusFilter_DeviceStarted(
+    _In_ DMFBUSCHILDDEVICE ChildDevice,
+    _In_ PIRP Irp
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_DeviceEnumerated)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_BusFilter_DeviceEnumerated(
+    _In_ DMFBUSCHILDDEVICE ChildDevice,
+    _In_ PIRP Irp
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_DeviceQueryId)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+EVT_DMF_BusFilter_DeviceQueryId(
+    _In_ DMFBUSCHILDDEVICE ChildDevice,
+    _In_ PIRP Irp
+    );
+
+typedef
+_Function_class_(EVT_DMF_BusFilter_DeviceQueryInterface)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+EVT_DMF_BusFilter_DeviceQueryInterface(
+    _In_ DMFBUSCHILDDEVICE ChildDevice,
+    _In_ PIRP Irp
+    );
+
+// Client uses this structure to configure the Module specific parameters.
+//
+typedef struct
+{
+    // The driver object.
+    // 
+    _In_ PDRIVER_OBJECT DriverObject;
+
+    // The device type.
+    // 
+    _In_ DEVICE_TYPE DeviceType;
+
+    // The device characteristics.
+    // 
+    _In_ ULONG DeviceCharacteristics;
+
+    // Called before bus device object is created.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_PreBusDeviceAdd* EvtPreBusDeviceAdd;
+
+    // Called after bus device object was created.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_PostBusDeviceAdd* EvtPostBusDeviceAdd;
+
+    // Called when child proxy device was created.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceAdd* EvtDeviceAdd;
+
+    // Called when child proxy device gets removed.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceRemove* EvtDeviceRemove;
+
+    // Called when IRP_MN_START_DEVICE is set to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceStarted* EvtDeviceStarted;
+
+    // Called when IRP_MN_DEVICE_ENUMERATED is sent to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceEnumerated* EvtDeviceEnumerated;
+
+    // Called when IRP_MN_QUERY_ID is sent to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceQueryId* EvtDeviceQueryId;
+
+    // Called when IRP_MN_QUERY_INTERFACE is sent to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceQueryInterface* EvtDeviceQueryInterface;
+} DMF_BusFilter_CONFIG;
+
+__forceinline
+VOID
+DMF_BusFilter_CONFIG_INIT(
+    _Out_ DMF_BusFilter_CONFIG* BusFilterConfig,
+    _In_ PDRIVER_OBJECT DriverObject
+    )
+{
+    RtlZeroMemory(BusFilterConfig,
+                  sizeof(DMF_BusFilter_CONFIG));
+    BusFilterConfig->DriverObject = DriverObject;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_BusFilter_Initialize(
+    _In_ DMF_BusFilter_CONFIG* BusFilterConfig
+    );
+
+EVT_WDF_DRIVER_DEVICE_ADD DMF_BusFilter_DeviceAdd;
+
+PDEVICE_OBJECT
+DMF_BusFilter_WdmDeviceObjectGet(
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+
+PDEVICE_OBJECT
+DMF_BusFilter_WdmAttachedDeviceGet(
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+
+PDEVICE_OBJECT
+DMF_BusFilter_WdmPhysicalDeviceGet(
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+
+#endif // defined(DMF_KERNEL_MODE)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Portable Api prototypes and dependencies.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
