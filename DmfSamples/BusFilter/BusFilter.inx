@@ -1,0 +1,93 @@
+;/*++
+;
+;Copyright (c) Microsoft Corporation.  All rights reserved.
+;
+;   THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+;   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+;   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+;   PURPOSE.
+;
+;Module Name:
+;
+;    BusFilter.inx
+;
+;Abstract:
+;
+;   Demonstrates a Bus Filter Driver written that uses DMF's bus filter support.'
+;
+
+;
+;--*/
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=DmfSample
+ClassGuid={FA82D5B2-4681-437B-81DA-06FB7C8E5C39}
+Provider=%ManufacturerName%
+DriverVer=03/07/2023,5.00.3788
+CatalogFile = DmfBusFilter.cat
+PnpLockdown = 1
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+DmfBusFilter.sys = 1,,
+
+[DestinationDirs]
+DefaultDestDir = 12
+DmfBusFilter.DriverFiles = 12
+
+[DefaultInstall.NT$ARCH$]
+OptionDesc = %DmfBusFilterServiceDesc%
+CopyFiles = DmfBusFilter.DriverFiles
+AddReg = DmfBusFilter_AddReg
+
+[DefaultUninstall.NT$ARCH$]
+LegacyUninstall = 1
+DelFiles = @DmfBusFilter.sys
+DelReg = DmfBusFilter_DelReg
+
+[DmfBusFilter_AddReg]
+HKLM, System\CurrentControlSet\Control\Class\{fa82d5b2-4681-437b-81da-06fb7c8e5c39}, UpperFilters, 0x00010008, DmfBusFilter
+
+[DmfBusFilter_DelReg]
+HKLM, System\CurrentControlSet\Control\Class\{fa82d5b2-4681-437b-81da-06fb7c8e5c39}, UpperFilters, 0x00010008, DmfBusFilter
+
+[DmfBusFilter.DriverFiles]
+DmfBusFilter.sys
+
+[DefaultInstall.NT$ARCH$.Services]
+AddService = %DmfBusFilterServiceName%,,DmfBusFilter.Service
+
+[DmfBusFilter.Service]
+DisplayName    = %DmfBusFilterServiceName%
+Description    = %DmfBusFilterServiceDesc%
+ServiceBinary  = %12%\DmfBusFilter.sys
+ServiceType    = 1 ;    SERVICE_KERNEL_DRIVER
+StartType      = 3 ;    SERVICE_DEMAND_START
+ErrorControl   = 1 ;    SERVICE_ERROR_NORMAL
+ 
+[Strings]
+ManufacturerName = "Surface" 
+DiskName = "DMF Bus Filter Sample Installation Disk"
+DmfBusFilterServiceDesc = "DMF Bus Filter Sample"
+DmfBusFilterServiceName = "DmfBusFilter"
+
+SERVICE_BOOT_START     = 0x0 
+SERVICE_SYSTEM_START   = 0x1 
+SERVICE_AUTO_START     = 0x2 
+SERVICE_DEMAND_START   = 0x3 
+SERVICE_DISABLED       = 0x4 
+
+SERVICE_KERNEL_DRIVER  = 0x1 
+SERVICE_ERROR_IGNORE   = 0x0 
+SERVICE_ERROR_NORMAL   = 0x1 
+SERVICE_ERROR_SEVERE   = 0x2 
+SERVICE_ERROR_CRITICAL = 0x3 
+
+REG_EXPAND_SZ          = 0x00020000 
+REG_DWORD              = 0x00010001 
+REG_MULTI_SZ           = 0x00010000
+REG_BINARY             = 0x00000001
+REG_SZ                 = 0x00000000

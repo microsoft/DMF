@@ -95,6 +95,12 @@ typedef struct _DMF_CONTEXT_Tests_DefaultTarget
     //
     DMFMODULE DmfModuleAlertableSleepAuto[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepManual[THREAD_COUNT + 1];
+
+#if defined(DMF_KERNEL_MODE)
+    // Direct interface via IRP_MN_QUERY_INTERFACE.
+    //
+    Tests_IoctlHandler_INTERFACE_STANDARD DirectInterface;
+#endif // defined(DMF_KERNEL_MODE)
 } DMF_CONTEXT_Tests_DefaultTarget;
 
 // This macro declares the following function:
@@ -1121,6 +1127,60 @@ Return Value:
 }
 #pragma code_seg()
 
+#if defined(DMF_KERNEL_MODE)
+
+// NOTE: When called using DefaultTarget the call to query interface is interecepted
+//       by BusFilter Sample if it is installed. When called via a Remote Target the
+//       call is not intercepted by BusFilter.
+//
+NTSTATUS
+Tests_DefaultTarget_QueryInterface(
+    _In_ DMFMODULE DmfModuleDefaultTarget
+    )
+{
+    DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
+    WDFDEVICE device;
+    NTSTATUS ntStatus;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModuleDefaultTarget);
+
+    // Interface is in same stack so don't use WdfIoTargetQueryForInterface() per MSDN.
+    //
+    device = DMF_ParentDeviceGet(DmfModuleDefaultTarget);
+
+    ntStatus = WdfFdoQueryForInterface(device,
+                                       &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
+                                       (INTERFACE*)&moduleContext->DirectInterface,
+                                       sizeof(Tests_IoctlHandler_INTERFACE_STANDARD),
+                                       1,
+                                       NULL);
+    DmfAssert(NT_SUCCESS(ntStatus));
+
+    // If successful, call into the interface.
+    // 
+    if (NT_SUCCESS(ntStatus))
+    {
+        UCHAR interfaceValue;
+
+        // Call the direct callback functions to get the property or
+        // configuration information of the device.
+        //
+        (*moduleContext->DirectInterface.InterfaceValueGet)(moduleContext->DirectInterface.InterfaceHeader.Context,
+                                                            &interfaceValue);
+        interfaceValue++;
+        (*moduleContext->DirectInterface.InterfaceValueSet)(moduleContext->DirectInterface.InterfaceHeader.Context,
+                                                            interfaceValue);
+
+        // It is mandatory to call dereference function after interface is no longer needed.
+        //
+        (*moduleContext->DirectInterface.InterfaceHeader.InterfaceDereference)(moduleContext->DirectInterface.InterfaceHeader.Context);
+    }
+
+    return ntStatus;
+}
+
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1194,6 +1254,10 @@ Return Value:
 
     ntStatus = Tests_DefaultTarget_NonContinousStartManual(DmfModule);
     DmfAssert(NT_SUCCESS(ntStatus));
+
+#if defined(DMF_KERNEL_MODE)
+    Tests_DefaultTarget_QueryInterface(DmfModule);
+#endif
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

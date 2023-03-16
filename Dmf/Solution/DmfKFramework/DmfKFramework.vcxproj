@@ -157,7 +157,7 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;$(DDK_LIB_PATH)wdmsec.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -184,7 +184,7 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;$(DDK_LIB_PATH)wdmsec.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -213,7 +213,7 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;$(DDK_LIB_PATH)wdmsec.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -240,7 +240,7 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;$(DDK_LIB_PATH)wdmsec.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -267,7 +267,7 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;$(DDK_LIB_PATH)wdmsec.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -296,7 +296,7 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(LatestTargetPlatformVersion)' &gt;= '10.0.16299.0'">$(DDK_LIB_PATH)lkmdtel.lib;$(DDK_LIB_PATH)werkernelapi.lib;$(DDK_LIB_PATH)wdmsec.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
