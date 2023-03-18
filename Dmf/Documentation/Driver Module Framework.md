@@ -357,7 +357,21 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[WdfObjectGet_DMFMODULE 188](#wdfobjectget_dmfmodule)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FilterControl API 189](#filtercontrol-api)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[BusFilter API 189](#busfilter-api)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_BusFilter_DeviceAdd](#dmf_busfilter_deviceAdd)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_BusFilter_CONFIG_INIT](#dmf_busfilter_config_init)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_BusFilter_Initialize](#dmf_busfilter_initialize)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_BusFilter_WdmDeviceObjectGet](#dmf_busfilter_wdmdeviceobjectget)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_BusFilter_WdmAttachedDeviceObjectGet](#dmf_busfilter_wdmattacheddeviceget)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_BusFilter_WdmPhysicalDeviceObjectGet](#dmf_busfilter_wdmphysicaldeviceget)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FilterControl API 190](#filtercontrol-api)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterControl_DeviceCreate](#dmf_filtercontrol_devicecreate)
 
@@ -6951,6 +6965,193 @@ The address that contains the **DMFMODULE** context area.
 
 -   This function is used, for example, when passing a **DMFMODULE** in
     the context of a **WDFTIMER**.
+
+BusFilter API
+-------------
+
+DMF provides an API that allows a Client Driver to easily create a Bus Filter driver. This API is listed here.
+See the "BusFilter" sample driver to see an example of this API's use.
+
+### DMF_BusFilter_DeviceAdd
+```
+EVT_WDF_DRIVER_DEVICE_ADD DMF_BusFilter_DeviceAdd;
+```
+**Important:** Use `DMF_BusFilter_DeviceAdd` as the DeviceAdd callback when `DriverEntry()` calls `WdfDriverCreate()`.
+
+#### Remarks
+
+* *DMF BusFilter API will call the Client driver before, during and after the device is created to give the 
+Client Driver the ability to perform operations as needed.
+
+### DMF_BusFilter_CONFIG_INIT
+```
+VOID
+DMF_BusFilter_CONFIG_INIT(
+    _Out_ DMF_BusFilter_CONFIG* BusFilterConfig,
+    _In_ PDRIVER_OBJECT DriverObject
+    )
+```
+Initializes the given BusFilter Config structure.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  DMF_BusFilter_CONFIG* BusFilterConfig | The given Config structure.
+  PDRIVER_OBJECT DriverObject | DRIVER_OBJECT passed by `DriverEntry()`.
+
+#### Returns
+
+None
+
+#### Remarks
+
+-   Always call this function before calling `DMF_BusFilter_Initialize()`.
+-   This structure sets the callbacks that DMF will call in the Client Driver. The
+Client Driver is able to filter all aspects of communication to/from the bus driver.
+- The Config structure allows the Client driver to set callbacks which make it possible for
+- the Client Driver to filter data passed to/from the attached driver.
+
+````
+typedef struct
+{
+    // The driver object.
+    // 
+    _In_ PDRIVER_OBJECT DriverObject;
+
+    // The device type.
+    // 
+    _In_ DEVICE_TYPE DeviceType;
+
+    // The device characteristics.
+    // 
+    _In_ ULONG DeviceCharacteristics;
+
+    // Called before bus device object is created.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_PreBusDeviceAdd* EvtPreBusDeviceAdd;
+
+    // Called after bus device object was created.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_PostBusDeviceAdd* EvtPostBusDeviceAdd;
+
+    // Called when child proxy device was created.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceAdd* EvtDeviceAdd;
+
+    // Called when child proxy device gets removed.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceRemove* EvtDeviceRemove;
+
+    // Called when IRP_MN_START_DEVICE is set to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceStarted* EvtDeviceStarted;
+
+    // Called when IRP_MN_DEVICE_ENUMERATED is sent to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceEnumerated* EvtDeviceEnumerated;
+
+    // Called when IRP_MN_QUERY_ID is sent to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceQueryId* EvtDeviceQueryId;
+
+    // Called when IRP_MN_QUERY_INTERFACE is sent to child device.
+    // 
+    _In_opt_ EVT_DMF_BusFilter_DeviceQueryInterface* EvtDeviceQueryInterface;
+} DMF_BusFilter_CONFIG;
+````
+
+### DMF_BusFilter_Initialize
+```
+NTSTATUS
+DMF_BusFilter_Initialize(
+    _In_ DMF_BusFilter_CONFIG* BusFilterConfig
+    )
+```
+Initializes DMF's Bus Filter API for use in a Client Driver.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  DMF_BusFilter_CONFIG* BusFilterConfig | An initialized DMF_BusFilter_CONFIG.
+
+#### Returns
+
+NTSTATUS
+
+#### Remarks
+
+-   Always call this function from `DriverEntry().`
+
+### DMF_BusFilter_WdmDeviceObjectGet
+```
+PDEVICE_OBJECT
+DMF_BusFilter_WdmDeviceObjectGet(
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+```
+Returns the DEVICE_OBJECT associated with the given WDF handle.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  DMFBUSCHILDDEVICE ChildDevice | The given WDF handle.
+
+#### Returns
+
+DEVICE_OBJECT*
+
+#### Remarks
+
+* This function can be called from the callbacks.
+
+### DMF_BusFilter_WdmAttachedDeviceGet
+```
+PDEVICE_OBJECT
+DMF_BusFilter_WdmAttachedDeviceGet(
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+```
+Returns the DEVICE_OBJECT of the attached WDM device associated with the given WDF handle.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  DMFBUSCHILDDEVICE ChildDevice | The given WDF handle.
+
+#### Returns
+
+DEVICE_OBJECT*
+
+#### Remarks
+
+* This function can be called from the callbacks.
+
+### DMF_BusFilter_WdmPhysicalDeviceGet
+```
+PDEVICE_OBJECT
+DMF_BusFilter_WdmPhysicalDeviceGet(
+    _In_ DMFBUSCHILDDEVICE ChildDevice
+    );
+```
+Returns the DEVICE_OBJECT of the physical WDM device associated with the given WDF handle.
+
+#### Parameters
+
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  DMFBUSCHILDDEVICE ChildDevice | The given WDF handle.
+
+#### Returns
+
+DEVICE_OBJECT*
+
+#### Remarks
+
+* This function can be called from the callbacks.
 
 FilterControl API
 -----------------

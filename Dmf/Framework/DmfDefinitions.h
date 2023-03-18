@@ -1353,7 +1353,7 @@ _IRQL_requires_same_
 VOID
 EVT_DMF_BusFilter_DeviceStarted(
     _In_ DMFBUSCHILDDEVICE ChildDevice,
-    _In_ PIRP Irp
+    _In_ IRP* Irp
     );
 
 typedef
@@ -1363,7 +1363,7 @@ _IRQL_requires_same_
 VOID
 EVT_DMF_BusFilter_DeviceEnumerated(
     _In_ DMFBUSCHILDDEVICE ChildDevice,
-    _In_ PIRP Irp
+    _In_ IRP* Irp
     );
 
 typedef
@@ -1373,7 +1373,7 @@ _IRQL_requires_same_
 BOOLEAN
 EVT_DMF_BusFilter_DeviceQueryId(
     _In_ DMFBUSCHILDDEVICE ChildDevice,
-    _In_ PIRP Irp
+    _In_ IRP* Irp
     );
 
 typedef
@@ -1383,16 +1383,14 @@ _IRQL_requires_same_
 BOOLEAN
 EVT_DMF_BusFilter_DeviceQueryInterface(
     _In_ DMFBUSCHILDDEVICE ChildDevice,
-    _In_ PIRP Irp
+    _In_ IRP* Irp
     );
 
-// Client uses this structure to configure the Module specific parameters.
-//
 typedef struct
 {
     // The driver object.
     // 
-    _In_ PDRIVER_OBJECT DriverObject;
+    _In_ DRIVER_OBJECT* DriverObject;
 
     // The device type.
     // 
