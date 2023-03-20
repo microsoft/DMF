@@ -30,14 +30,24 @@ Environment:
 
 #include "BusFilter.tmh"
 
-#include "BusFilter.h"
+// Child device context
+// 
+typedef struct _CHILD_DEVICE_CONTEXT
+{
+    WDFDEVICE Parent;
+    Tests_IoctlHandler_INTERFACE_STANDARD OriginalInterface;
+} CHILD_DEVICE_CONTEXT;
 
-#define MemoryTag 'FsuB'
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CHILD_DEVICE_CONTEXT, ChildDeviceGetContext)
 
 DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_OBJECT_CONTEXT_CLEANUP EvtDriverContextCleanup;
-EVT_DMF_BusFilter_DeviceAdd EvtChildDeviceAdded;
-EVT_DMF_BusFilter_DeviceQueryInterface EvtChildDeviceQueryInterface;
+EVT_WDF_OBJECT_CONTEXT_CLEANUP BusFilter_EvtDriverContextCleanup;
+EVT_DMF_BusFilter_DeviceAdd BusFilter_EvtChildDeviceAdded;
+EVT_DMF_BusFilter_DeviceQueryInterface BusFilter_EvtChildDeviceQueryInterface;
+
+// Memory allocation tag.
+//
+#define MemoryTag 'FsuB'
 
 #pragma code_seg("INIT")
 NTSTATUS
@@ -57,7 +67,7 @@ DriverEntry(
     driver = NULL;
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.EvtCleanupCallback = EvtDriverContextCleanup;
+    attributes.EvtCleanupCallback = BusFilter_EvtDriverContextCleanup;
 
     // NOTE: Use the DeviceAdd provided by DMF. This driver receives callbacks from there.
     //
@@ -83,8 +93,8 @@ DriverEntry(
     DMF_BusFilter_CONFIG_INIT(&filterConfig,
                               DriverObject);
     filterConfig.DeviceType = FILE_DEVICE_BUS_EXTENDER;
-    filterConfig.EvtDeviceAdd = EvtChildDeviceAdded;
-    filterConfig.EvtDeviceQueryInterface = EvtChildDeviceQueryInterface;
+    filterConfig.EvtDeviceAdd = BusFilter_EvtChildDeviceAdded;
+    filterConfig.EvtDeviceQueryInterface = BusFilter_EvtChildDeviceQueryInterface;
     ntStatus = DMF_BusFilter_Initialize(&filterConfig);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -98,14 +108,14 @@ DriverEntry(
 
 Exit:
 
-    //WPP_CLEANUP(DriverObject);
+    WPP_CLEANUP(DriverObject);
     return ntStatus;
 }
 #pragma code_seg()
 
 #pragma code_seg("PAGED")
 VOID
-EvtDriverContextCleanup(
+BusFilter_EvtDriverContextCleanup(
     _In_ WDFOBJECT DriverObject
     )
 {
@@ -199,7 +209,7 @@ BusFilter_ValueSet(
 }
 
 NTSTATUS
-EvtChildDeviceAdded(
+BusFilter_EvtChildDeviceAdded(
     _In_ WDFDEVICE Device,
     _In_ DMFBUSCHILDDEVICE ChildDevice
     )
@@ -232,7 +242,7 @@ Exit:
 }
 
 BOOLEAN
-EvtChildDeviceQueryInterface(
+BusFilter_EvtChildDeviceQueryInterface(
     _In_ DMFBUSCHILDDEVICE ChildDevice,
     _In_ PIRP Irp
     )

@@ -19,9 +19,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BusFilter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>

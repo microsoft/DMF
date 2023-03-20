@@ -144,7 +144,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BusFilter.h" />
     <ClInclude Include="Trace.h" />
   </ItemGroup>
   <ItemGroup>

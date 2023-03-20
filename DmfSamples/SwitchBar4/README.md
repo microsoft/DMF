@@ -1,4 +1,4 @@
-SwitchBar4 Sample KMDF/DMF Function Driver for OSR USB-FX2 (DMF Sample 7)
+SwitchBar4 Sample KMDF/DMF Filter Driver for OSR USB-FX2 (DMF Sample 7)
 ========================================================================
 This sample shows how to write a filter driver using DMF. This sample is similar to SwitchBar3. This sample,
 however, uses the DMF_IoctlHandler Module to filter IOCTLs.
