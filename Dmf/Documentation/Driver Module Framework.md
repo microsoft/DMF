@@ -7082,7 +7082,7 @@ NTSTATUS
 
 #### Remarks
 
--   Always call this function from `DriverEntry().`
+-   Always call this function from `DriverEntry()`.
 
 ### DMF_BusFilter_WdmDeviceObjectGet
 ```
