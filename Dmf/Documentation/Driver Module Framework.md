@@ -8158,7 +8158,7 @@ ways to DMF. These include:
 
 -   Mika Rintamaeki
 
--   Benjamin Höglinger-Stelzer
+-   Benjamin HÃ¶glinger-Stelzer
 
 -   Sam Tertzakian
 
