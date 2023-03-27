@@ -96,6 +96,12 @@ DMF_QueuedWorkItem_EnqueueAndWait(
     _In_ ULONG ContextBufferSize
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_QueuedWorkItem_Flush(
+    _In_ DMFMODULE DmfModule
+    );
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_QueuedWorkItem_StatusSet(

@@ -1457,6 +1457,7 @@ Return Value:
                                                                    &targetName);
             if (! NT_SUCCESS(ntStatus))
             {
+                free(bufferPointer);
                 TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DeviceInterfaceTarget_SymbolicLinkNameStore fails: ntStatus=%!STATUS!", ntStatus);
                 goto Exit;
             }

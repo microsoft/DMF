@@ -811,7 +811,7 @@ Return Value:
 #if defined(DMF_USER_MODE)
     BOOL returnValue = FALSE;
     fileHandle = CreateFile(fileNameString.Buffer,
-                            GENERIC_ALL,
+                            GENERIC_WRITE,
                             0,
                             NULL,
                             CREATE_ALWAYS,

@@ -815,7 +815,7 @@ Return Value:
                                             SpiTarget,
                                             DMF_CONTEXT_SpiTarget,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_D0Entry);
+                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
 
     dmfModuleDescriptor_SpiTarget.CallbacksDmf = &dmfCallbacksDmf_SpiTarget;
 

@@ -155,6 +155,33 @@ ContextBufferSize | The size in bytes of ContextBuffer.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_QueuedWorkItem_Flush
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_QueuedWorkItem_Flush(
+    _In_ DMFMODULE DmfModule
+    )
+````
+Flushes any pending work. If its callback has not yet started executing, it won't start. If its callback has 
+started executing this Method waits until its callback has finished executing.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_QueuedWorkItem Module handle.
+
+##### Remarks
+
+* Use this Method to prevent the callback from executing before releasing resource used by the callback.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_QueuedWorkItem_StatusSet
 
 ````
