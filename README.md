@@ -17,7 +17,7 @@ https://blogs.windows.com/buildingapps/2018/08/15/introducing-driver-module-fram
 The Documentation\ folder has detailed information about the framework and how to use it.
 
 #### DMF Documentation: 
-https://github.com/Microsoft/DMF/blob/master/Dmf/Documentation/Driver%20Module%20Framework.md
+To learn how to **build** and use DMF in a driver, please look here: https://github.com/Microsoft/DMF/blob/master/Dmf/Documentation/Driver%20Module%20Framework.md
 
 #### Module Documentation: 
 Detailed documentation about each Module is available on the wiki: https://github.com/Microsoft/DMF/wiki/DMF-Overview
