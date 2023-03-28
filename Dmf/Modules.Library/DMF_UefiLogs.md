@@ -12,22 +12,9 @@ This Module provides UEFI log extraction, parsing, and output capabilities for I
 
 #### Module Configuration
 -----------------------------------------------------------------------------------------------------------------------------------
-##### DMF_CONFIG_WakeReason
+##### DMF_CONFIG_UefiLogs
 
-````
-typedef struct
-{
-    // Name of the Registry entry (string type) in Driver's registry path.
-    // If set, this Module will collect logs and store it in path specified
-    // in the value of this Registry entry.
-    //
-    PCUNICODE_STRING RegistryEntryName;
-} DMF_CONFIG_UefiLogs;
-
-````
-Member | Description
-----|----
-RegistryEntryName | Name of the Registry entry (string type) in Driver's registry path. If set, this Module will collect logs and store it in path specified in the value of this Registry entry.
+* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -76,11 +63,9 @@ RegistryEntryName | Name of the Registry entry (string type) in Driver's registr
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Examples
-To make use of this Module, add a new string key called: UefiLogFile
+This Module automatically stores the UEFI.log file in the path
 
-in path: HKLM,System\CurrentControlSet\Services\[DriverServiceName]\Parameters
-
-with value: \DosDevices\C:\UEFI.log
+"%temp%\Surface" folder every time device boots from shutdown. 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

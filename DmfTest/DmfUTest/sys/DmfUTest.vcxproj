@@ -43,6 +43,7 @@
     <DriverType>UMDF</DriverType>
     <ProjectName>DmfUTest</ProjectName>
     <TargetName>DmfUTest</TargetName>
+    <TargetVersion>Windows10</TargetVersion>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Release'">
     <UseDebugLibraries>False</UseDebugLibraries>

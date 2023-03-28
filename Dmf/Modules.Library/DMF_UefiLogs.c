@@ -31,18 +31,18 @@ Environment:
 
 typedef struct _DMF_CONTEXT_UefiLogs
 {
-    // Handle to the default Driver key.
-    //
-    WDFKEY RegistryKey;
     // Handle to the Dmf_File child Module.
     //
     DMFMODULE DmfModuleFile;
-    // Path to store the log files to. Extracted from Registry.
+    // Path to store the log files to.
     //
     WDFSTRING UefiLogPath;
     // UefiOperation.
     //
     DMFMODULE DmfModuleUefiOperation;
+    // QueuedWorkItem
+    //
+    DMFMODULE DmfModuleQueuedWorkItem;
 } DMF_CONTEXT_UefiLogs;
 
 // This macro declares the following function:
@@ -50,10 +50,9 @@ typedef struct _DMF_CONTEXT_UefiLogs
 //
 DMF_MODULE_DECLARE_CONTEXT(UefiLogs)
 
-// This macro declares the following function:
-// DMF_CONFIG_GET()
+// This Module has no CONFIG.
 //
-DMF_MODULE_DECLARE_CONFIG(UefiLogs)
+DMF_MODULE_DECLARE_NO_CONFIG(UefiLogs)
 
 #define MemoryTag 'LFEU'
 
@@ -61,21 +60,6 @@ DMF_MODULE_DECLARE_CONFIG(UefiLogs)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-#if defined(DMF_USER_MODE)
-typedef _Null_terminated_ char* NTSTRSAFE_PSTR;
-typedef _Null_terminated_ const char* NTSTRSAFE_PCSTR;
-
-typedef NTSTATUS
-(*RtlStringCbVPrintfExA)(NTSTRSAFE_PSTR  pszDest,
-                         size_t          cbDest,
-                         NTSTRSAFE_PSTR  *ppszDestEnd,
-                         size_t          *pcbRemaining,
-                         DWORD           dwFlags,
-                         NTSTRSAFE_PCSTR pszFormat,
-                         va_list         argList
-);
-#endif
 
 // ASCII character for carriage return
 //
@@ -250,26 +234,28 @@ Return Value:
 
     // Put arguments inside format strings.
     //
+
 #if defined(DMF_USER_MODE)
-    HMODULE dllModule = GetModuleHandle(TEXT("Ntstrsafe.dll"));
-    if (dllModule != 0)
+    HRESULT hResult;
+    ntStatus = STATUS_SUCCESS;
+    UNREFERENCED_PARAMETER(StringEndAddress);
+    UNREFERENCED_PARAMETER(remainingBytes);
+    hResult = StringCchVPrintfA((STRSAFE_LPSTR)DestinationBuffer,
+                                MaximumSizeOfBufferBytes,
+                                FormatString,
+                                argumentList);
+    // Allow truncated results to pass to Client.
+    //
+    if (hResult != S_OK &&
+        hResult != STRSAFE_E_INSUFFICIENT_BUFFER)
     {
-        RtlStringCbVPrintfExA StringCbVPrintfExA = (RtlStringCbVPrintfExA)GetProcAddress(dllModule, "RtlStringCbVPrintfExA");
-        ntStatus = StringCbVPrintfExA((NTSTRSAFE_PSTR)DestinationBuffer,
-                                      MaximumSizeOfBufferBytes,
-                                      (NTSTRSAFE_PSTR*)StringEndAddress,
-                                      &remainingBytes,
-                                      STRSAFE_NULL_ON_FAILURE,
-                                      FormatString,
-                                      argumentList);
-    }
-    else
-    {
-        TraceEvents(TRACE_LEVEL_ERROR,
-                    DMF_TRACE,
-                    "GetModuleHandle fails");
+        DmfAssert(FALSE);
         ntStatus = STATUS_UNSUCCESSFUL;
     }
+    size_t stringLength = strlen((CHAR*)DestinationBuffer);
+    CHAR* endAddress = (CHAR*)DestinationBuffer + stringLength;
+    CHAR** endAddressWrite = (CHAR**)StringEndAddress;
+    *endAddressWrite = endAddress;
 #elif defined(DMF_KERNEL_MODE)
 
     ntStatus = RtlStringCbVPrintfExA((NTSTRSAFE_PSTR)DestinationBuffer,
@@ -406,12 +392,12 @@ Exit:
 #pragma code_seg()
 
 #pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-UefiLogs_Retrieve(
-    _In_ DMFMODULE DmfModule
+_Function_class_(EVT_DMF_QueuedWorkItem_Callback)
+ScheduledTask_Result_Type
+UefiLogs_Retrieve_QueuedWorkItemCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ VOID* ClientBufferContext
     )
 /*++
 
@@ -429,6 +415,8 @@ Return Value:
 
 --*/
 {
+    DMFMODULE dmfModuleUefiLogs;
+    ScheduledTask_Result_Type scheduledTaskResult;
     NTSTATUS ntStatus;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
     WDFMEMORY uefiLogMemory;
@@ -438,7 +426,6 @@ Return Value:
     WDFMEMORY eventLogMemory;
     VOID* eventLogLine;
     DMF_CONTEXT_UefiLogs* moduleContext;
-    DMF_CONFIG_UefiLogs* moduleConfig;
     ULONG blobSize;
     size_t maximumBytesToCopy;
     size_t eventLogSize;
@@ -457,9 +444,13 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    UNREFERENCED_PARAMETER(ClientBuffer);
+    UNREFERENCED_PARAMETER(ClientBufferContext);
 
+    dmfModuleUefiLogs = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleUefiLogs);
+
+    scheduledTaskResult = ScheduledTask_WorkResult_Success;
     uefiLog = NULL;
     uefiLogMemory = NULL;
     parsedUefiLogMemory = NULL;
@@ -537,7 +528,7 @@ Return Value:
 
     // Add timestamp to the beginning of the log.
     //
-    ntStatus = UefiLogs_BufferStringAppend(DmfModule,
+    ntStatus = UefiLogs_BufferStringAppend(dmfModuleUefiLogs,
                                            parsedUefiLog,
                                            blobSize,
                                            (VOID**)&parsedLogHead,
@@ -556,7 +547,7 @@ Return Value:
 
     // Add first timestamp to ETW.
     //
-    DMF_Utility_LogEmitString(DmfModule,
+    DMF_Utility_LogEmitString(dmfModuleUefiLogs,
                               DmfLogDataSeverity_Informational,
                               L"%S",
                               parsedUefiLog);
@@ -578,7 +569,7 @@ Return Value:
         //
         if (lineSize == 0)
         {
-            UefiLogs_BufferTimeAppend(DmfModule,
+            UefiLogs_BufferTimeAppend(dmfModuleUefiLogs,
                                       loggerInfo,
                                       loggerMessageEntry,
                                       eventLogLineHead,
@@ -640,7 +631,7 @@ Return Value:
             //
             if (lineSize > timeStampSize + sizeof('\n') + sizeof('\r'))
             {
-                DMF_Utility_LogEmitString(DmfModule,
+                DMF_Utility_LogEmitString(dmfModuleUefiLogs,
                                           DmfLogDataSeverity_Informational,
                                           L"%S",
                                           eventLogLine);
@@ -671,17 +662,6 @@ Return Value:
         uefiLogHead = (UCHAR*)((((UINT64)uefiLogHead + 7) / 8) * 8);
     }
 
-    // Clear Registry Key.
-    //
-    ntStatus =  WdfRegistryRemoveValue(moduleContext->RegistryKey,
-                                       moduleConfig->RegistryEntryName);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryRemoveValue fails: ntStatus=%!STATUS!", ntStatus);
-        // Fall through because registry failing to clear has no impact on log save routine that follows.
-        //
-    }
-
     // UEFI logs obtained. Create log file.
     //
     ntStatus = DMF_File_Write(moduleContext->DmfModuleFile,
@@ -708,9 +688,14 @@ Exit:
         WdfObjectDelete(eventLogMemory);
     }
 
+    if (!NT_SUCCESS(ntStatus))
+    {
+        scheduledTaskResult = ScheduledTask_WorkResult_Fail;
+    }
+
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
-    return ntStatus;
+    return scheduledTaskResult;
 }
 #pragma code_seg()
 
@@ -747,26 +732,21 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_CONTEXT_UefiLogs* moduleContext;
-    DMF_CONFIG_UefiLogs* moduleConfig;
 
     UNREFERENCED_PARAMETER(PreviousState);
 
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    ntStatus = STATUS_SUCCESS;
 
-    ntStatus = WdfRegistryQueryString(moduleContext->RegistryKey,
-                                      moduleConfig->RegistryEntryName,
-                                      moduleContext->UefiLogPath);
-    if (!NT_SUCCESS(ntStatus))
+    // Save the UEFI logs if there is a D0 transition from a reboot.
+    //
+    if (PreviousState == WdfPowerDeviceD3Final)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfRegistryQueryString fails: ntStatus=%!STATUS!", ntStatus);
-        ntStatus = STATUS_SUCCESS;
-    }
-    else
-    {
-         UefiLogs_Retrieve(DmfModule);
+        DMF_QueuedWorkItem_Enqueue(moduleContext->DmfModuleQueuedWorkItem,
+                                   NULL,
+                                   0);
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_UefiLogs_ModuleD0Entry ntStatus=%!STATUS!", ntStatus);
@@ -810,6 +790,7 @@ Return Value:
 {
     DMF_CONTEXT_UefiLogs* moduleContext;
     DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONFIG_QueuedWorkItem moduleConfigQueuedWorkItem;
 
     PAGED_CODE();
 
@@ -820,7 +801,6 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     // File
-    // ----
     //
     DMF_File_ATTRIBUTES_INIT(&moduleAttributes);
     DMF_DmfModuleAdd(DmfModuleInit,
@@ -831,11 +811,25 @@ Return Value:
     // UefiOperation
     //
     DMF_UefiOperation_ATTRIBUTES_INIT(&moduleAttributes);
-
     DMF_DmfModuleAdd(DmfModuleInit,
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleUefiOperation);
+
+    // QueuedWorkItem
+    //
+    DMF_CONFIG_QueuedWorkItem_AND_ATTRIBUTES_INIT(&moduleConfigQueuedWorkItem,
+                                                  &moduleAttributes);
+    moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferCount = 1;
+    moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.BufferSize = sizeof(CHAR);
+    moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.PoolType = PagedPool;
+    moduleConfigQueuedWorkItem.BufferQueueConfig.SourceSettings.EnableLookAside = FALSE;
+    moduleAttributes.PassiveLevel = TRUE;
+    moduleConfigQueuedWorkItem.EvtQueuedWorkitemFunction = UefiLogs_Retrieve_QueuedWorkItemCallback;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleQueuedWorkItem);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -878,9 +872,69 @@ Return Value:
     device = DMF_ParentDeviceGet(DmfModule);
     driver = WdfDeviceGetDriver(device);
 
+#if defined (DMF_USER_MODE)
+    // Expand %temp% directory before passing it as path to DMF_File_Create.
+    //
+    BOOL result;
+    DWORD expandResult;
+    WCHAR* uefiLogPathExpanded;
+    size_t sizeToAllocate = MAX_PATH * sizeof(WCHAR);
+    WDFMEMORY expandedPathMemory;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
     objectAttributes.ParentObject = DmfModule;
-    ntStatus = WdfStringCreate(NULL,
+    ntStatus = WdfMemoryCreate(&objectAttributes,
+                               PagedPool,
+                               MemoryTag,
+                               sizeToAllocate,
+                               &expandedPathMemory,
+                               (VOID**)&(uefiLogPathExpanded));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+    WCHAR* uefiLogPathWstr = L"\\\\?\\%temp%\\Surface";
+    WCHAR* uefiLogFilenameWstr = L"UEFI.log";
+    WCHAR uefiLogFullName[MAX_PATH];
+    expandResult = ExpandEnvironmentStrings(uefiLogPathWstr,
+                                            uefiLogPathExpanded,
+                                            MAX_PATH);
+    if (expandResult == 0)
+    {
+        DWORD lastError = GetLastError();
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE,"ExpandEnvironmentStrings fails: Error = %llu\n", lastError);
+        ntStatus = STATUS_UNSUCCESSFUL;
+        goto Exit;
+    }
+    swprintf_s(uefiLogFullName,
+               L"%s\\%s",
+               uefiLogPathExpanded,
+               uefiLogFilenameWstr);
+    // Create directory for storing the file.
+    //
+    result = CreateDirectory(uefiLogPathExpanded,
+                             NULL);
+    if (!result)
+    {
+        DWORD lastError = GetLastError();
+        if (lastError != ERROR_ALREADY_EXISTS)
+        {
+            TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE,"CreateDirectory() fails: Error = %llu\n", lastError);
+            ntStatus = STATUS_UNSUCCESSFUL;
+            goto Exit;
+        }
+    }
+    UNICODE_STRING uefiLogPathUnicode;
+    RtlInitUnicodeString(&uefiLogPathUnicode,
+                         uefiLogFullName);
+
+#else
+    DECLARE_CONST_UNICODE_STRING(uefiLogPathUnicode, L"\\DosDevices\\C:\\Users\\Default\\Surface\\UEFI.log");
+#endif
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = DmfModule;
+    ntStatus = WdfStringCreate(&uefiLogPathUnicode,
                                &objectAttributes,
                                &moduleContext->UefiLogPath);
     if (!NT_SUCCESS(ntStatus))
@@ -888,61 +942,10 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfStringCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
-    ntStatus = WdfDriverOpenParametersRegistryKey(driver,
-                                                  KEY_READ,
-                                                  &objectAttributes,
-                                                  &moduleContext->RegistryKey);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfDriverOpenParametersRegistryKey fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
 
 Exit:
 
     return ntStatus;
-}
-#pragma code_seg()
-
-#pragma code_seg("PAGE")
-_Function_class_(DMF_Close)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
-VOID
-DMF_UefiLogs_Close(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Close an instance of a DMF Module of type UefiLogs.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMF_CONTEXT_UefiLogs* moduleContext;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    if (moduleContext->RegistryKey != NULL)
-    {
-        WdfRegistryClose(moduleContext->RegistryKey);
-        moduleContext->RegistryKey = NULL;
-    }
-
-    FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
 
@@ -992,7 +995,6 @@ Return Value:
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_UefiLogs);
     dmfCallbacksDmf_UefiLogs.ChildModulesAdd = DMF_UefiLogs_ChildModulesAdd;
     dmfCallbacksDmf_UefiLogs.DeviceOpen = DMF_UefiLogs_Open;
-    dmfCallbacksDmf_UefiLogs.DeviceClose = DMF_UefiLogs_Close;
 
     DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_UefiLogs);
     dmfCallbacksWdf_UefiLogs.ModuleD0Entry = DMF_UefiLogs_ModuleD0Entry;

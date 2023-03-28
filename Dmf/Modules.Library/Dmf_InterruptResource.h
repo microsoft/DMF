@@ -36,7 +36,7 @@ typedef enum
     InterruptResource_QueuedWorkItem_WorkItem
 } InterruptResource_QueuedWorkItem_Type;
 
-// Client Driver DIRQL_LEVEL Callback.
+// Client's DIRQL_LEVEL callback.
 //
 typedef
 _Function_class_(EVT_DMF_InterruptResource_InterruptIsr)
@@ -46,7 +46,7 @@ EVT_DMF_InterruptResource_InterruptIsr(_In_ DMFMODULE DmfModule,
                                        _In_ ULONG MessageId,
                                        _Out_ InterruptResource_QueuedWorkItem_Type* QueuedWorkItem);
 
-// Client Driver DPC_LEVEL Callback.
+// Client's DPC_LEVEL callback.
 //
 typedef
 _Function_class_(EVT_DMF_InterruptResource_InterruptDpc)
@@ -56,7 +56,7 @@ VOID
 EVT_DMF_InterruptResource_InterruptDpc(_In_ DMFMODULE DmfModule,
                                        _Out_ InterruptResource_QueuedWorkItem_Type* QueuedWorkItem);
 
-// Client Driver PASSIVE_LEVEL Callback.
+// Client's PASSIVE_LEVEL callback.
 //
 typedef
 _Function_class_(EVT_DMF_InterruptResource_InterruptPassive)
@@ -64,6 +64,24 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _IRQL_requires_same_
 VOID
 EVT_DMF_InterruptResource_InterruptPassive(_In_ DMFMODULE DmfModule);
+
+// Client's interrupt disable callback.
+//
+typedef
+_Function_class_(EVT_DMF_InterruptResource_InterruptDisable)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_InterruptResource_InterruptDisable(_In_ DMFMODULE DmfModule);
+
+// Client's interrupt enable callback.
+//
+typedef
+_Function_class_(EVT_DMF_InterruptResource_InterruptEnable)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+NTSTATUS
+EVT_DMF_InterruptResource_InterruptEnable(_In_ DMFMODULE DmfModule);
 
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -81,7 +99,7 @@ typedef struct
     // Can the interrupt resource wake the device.
     //
     BOOLEAN CanWakeDevice;
-    // Optional Callback from ISR (with Interrupt Spin Lock held).
+    // Optional Callback from ISR (with interrupt spinlock held).
     //
     EVT_DMF_InterruptResource_InterruptIsr* EvtInterruptResourceInterruptIsr;
     // Optional Callback at DPC_LEVEL Level.
@@ -90,6 +108,12 @@ typedef struct
     // Optional Callback at PASSIVE_LEVEL Level.
     //
     EVT_DMF_InterruptResource_InterruptPassive* EvtInterruptResourceInterruptPassive;
+    // Optional callback called when the interrupt must be enabled.
+    //
+    EVT_DMF_InterruptResource_InterruptEnable* EvtInterruptResourceInterruptEnable;
+    // Optional callback called when the interrupt must be disabled.
+    //
+    EVT_DMF_InterruptResource_InterruptDisable* EvtInterruptResourceInterruptDisable;
 } DMF_CONFIG_InterruptResource;
 
 // This macro declares the following functions:
@@ -105,6 +129,18 @@ DECLARE_DMF_MODULE(InterruptResource)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_InterruptResource_InterruptAcquireLock(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_InterruptResource_InterruptDisable(
+    _In_ DMFMODULE DmfModule
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_InterruptResource_InterruptEnable(
     _In_ DMFMODULE DmfModule
     );
 

@@ -830,8 +830,6 @@ Return Value:
 
     // Allocate space for the list entry that holds the meta data for the buffer.
     //
-    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-    objectAttributes.ParentObject = DmfModule;
     ntStatus = DMF_Portable_LookasideListCreateMemory(&moduleContext->LookasideList,
                                                       &memory);
     if (! NT_SUCCESS(ntStatus))
@@ -1236,7 +1234,7 @@ Return Value:
                                BufferPool_SentinelSize;
 
         WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-        objectAttributes.ParentObject = DMF_ParentDeviceGet(DmfModule);
+        objectAttributes.ParentObject = DmfModule;
 
         // 'Error annotation: __formal(3,BufferSize) cannot be zero.'
         // '_Param_(1)' could be '0':  this does not adhere to the specification for the function 'DMF_Portable_LookasideListCreate'. 

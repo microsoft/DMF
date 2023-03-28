@@ -168,7 +168,168 @@ DmfModule | An open DMF_InterruptResource Module handle.
 
 #### Module Methods
 
-* None
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_InterruptResource_InterruptAcquireLock
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_InterruptResource_InterruptAcquireLock(
+    _In_ DMFMODULE DmfModule
+    )
+````
+Acquires the interrupt's spin lock.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_InterruptResource Module handle.
+
+##### Remarks
+
+* Use this Method to synchronize execution of the ISR's handler with other code in the driver.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_InterruptResource_InterruptDisable
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_InterruptResource_InterruptDisable(
+    _In_ DMFMODULE DmfModule
+    )
+````
+Disables the interrupt from firing.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_InterruptResource Module handle.
+
+##### Remarks
+
+* WDF automatically disables the interrupt during D0Exit. However, in some cases it might be necessary to disable the interrupt on demand.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_InterruptResource_InterruptEnable
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_InterruptResource_InterruptEnable(
+    _In_ DMFMODULE DmfModule
+    )
+````
+Enables the interrupt.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_InterruptResource Module handle.
+
+##### Remarks
+
+* WDF automatically enables the interrupt during D0Entry so it is normally not necessary to call this Method.
+* Some drivers need the interrupt enabled earlier than D0Entry in order to perform operations such as download firmware. Use this Method in such cases.
+* It is not necessary to explicitly disable the interrupt if this Method is called because WDF does so automatically.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_InterruptResource_InterruptReleaseLock
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+DMF_InterruptResource_InterruptReleaseLock(
+    _In_ DMFMODULE DmfModule
+    )
+````
+Releases the interrupt's spin lock.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_InterruptResource Module handle.
+
+##### Remarks
+
+* Use this Method to synchronize execution of the ISR's handler with other code in the driver.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_InterruptResource_InterruptTryToAcquireLock
+
+````
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+DMF_InterruptResource_InterruptTryToAcquireLock(
+    _In_ DMFMODULE DmfModule
+    )
+````
+Attempts to acquire the interrupt's spin lock if it is not already held.
+
+##### Returns
+
+TRUE if the the call to this Method is able to acquire the interrupt's spin lock; FALSE, otherwise.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_InterruptResource Module handle.
+
+##### Remarks
+
+* Use this Method to synchronize execution of the ISR's handler with other code in the driver.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_InterruptResource_IsResourceAssigned
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_InterruptResource_IsResourceAssigned(
+    _In_ DMFMODULE DmfModule,
+    _Out_opt_ BOOLEAN* InterruptAssigned
+    )
+````
+Tells the caller if the requested interrupt resource is available.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_InterruptResource Module handle.
+InterruptAssigned | TRUE if the resource is available and assigned.
+
+##### Remarks
+
+* This Method is useful in cases where the interrupt is not mandatory.
+* Use this Method in a driver that supports configurations that may or may not use an interrupt.
+* The availability of the interrupt is determined by the ASL code that describes the device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

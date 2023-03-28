@@ -630,6 +630,46 @@ Exit:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_QueuedWorkItem_Flush(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Flushes any pending work. If its callback has not yet started executing, it won't start. If its callback has 
+    started executing this Method waits until its callback has finished executing.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_QueuedWorkItem* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 QueuedWorkItem);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DMF_ScheduledTask_Cancel(moduleContext->DmfModuleScheduledTask);
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_QueuedWorkItem_StatusSet(
