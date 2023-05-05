@@ -992,6 +992,8 @@ Return Value:
 
             bridgeModuleConfig->EvtDevicePrepareHardware = PnpPowerEventCallbacks->EvtDevicePrepareHardware;
             bridgeModuleConfig->EvtDeviceReleaseHardware = PnpPowerEventCallbacks->EvtDeviceReleaseHardware;
+            bridgeModuleConfig->EvtDeviceD0EntryPostInterruptsEnabled = PnpPowerEventCallbacks->EvtDeviceD0EntryPostInterruptsEnabled;
+            bridgeModuleConfig->EvtDeviceD0ExitPreInterruptsDisabled = PnpPowerEventCallbacks->EvtDeviceD0ExitPreInterruptsDisabled;
             bridgeModuleConfig->EvtDeviceD0Entry = PnpPowerEventCallbacks->EvtDeviceD0Entry;
             bridgeModuleConfig->EvtDeviceD0Exit = PnpPowerEventCallbacks->EvtDeviceD0Exit;
             bridgeModuleConfig->EvtDeviceSelfManagedIoCleanup = PnpPowerEventCallbacks->EvtDeviceSelfManagedIoCleanup;
