@@ -135,19 +135,19 @@ DMF_##ModuleName##_ATTRIBUTES_INIT(                                             
     )                                                                                           \
 {                                                                                               \
     DMF_MODULE_ATTRIBUTES_INIT(Attributes,                                                      \
-                               sizeof(DMF_CONFIG_##ModuleName##));                              \
+                               sizeof(DMF_CONFIG_##ModuleName));                                \
     Attributes->InstanceCreator = DMF_##ModuleName##_Create;                                    \
 }                                                                                               \
                                                                                                 \
 __forceinline                                                                                   \
 VOID                                                                                            \
 DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT(                                                  \
-    _Out_ DMF_CONFIG_##ModuleName##* ModuleConfig,                                              \
+    _Out_ DMF_CONFIG_##ModuleName* ModuleConfig,                                                \
     _Out_ volatile DMF_MODULE_ATTRIBUTES* ModuleAttributes                                      \
     )                                                                                           \
 {                                                                                               \
     RtlZeroMemory(ModuleConfig,                                                                 \
-                  sizeof(DMF_CONFIG_##ModuleName##));                                           \
+                  sizeof(DMF_CONFIG_##ModuleName));                                             \
     DMF_CONFIG_##ModuleName##_DEFAULT(ModuleConfig);                                            \
     DMF_##ModuleName##_ATTRIBUTES_INIT(ModuleAttributes);                                       \
     ModuleAttributes->ModuleConfigPointer = ModuleConfig;                                       \
@@ -159,7 +159,7 @@ DMF_CONFIG_##ModuleName##_AND_ATTRIBUTES_INIT(                                  
 __forceinline                                                                                   \
 VOID                                                                                            \
 DMF_CONFIG_##ModuleName##_DEFAULT(                                                              \
-    _Inout_ DMF_CONFIG_##ModuleName##* ModuleConfig                                             \
+    _Inout_ DMF_CONFIG_##ModuleName* ModuleConfig                                               \
     )                                                                                           \
 {                                                                                               \
     UNREFERENCED_PARAMETER(ModuleConfig);                                                       \
@@ -922,10 +922,10 @@ DMF_ModuleInterfaceDescriptorAdd(
 
 // Defines an accessory methods for the Protocol and Transport Declaration Data. 
 //
-#define DECLARE_DMF_INTERFACE(InterfaceName)                                                                                                                                                 \
+#define DECLARE_DMF_INTERFACE(InterfaceName)                                                                                                                                        \
                                                                                                                                                                                     \
-WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_PROTOCOL_##InterfaceName##_DECLARATION_DATA, ##InterfaceName##ProtocolDeclarationDataGet);                                             \
-WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_TRANSPORT_##InterfaceName##_DECLARATION_DATA, ##InterfaceName##TransportDeclarationDataGet);                                           \
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_PROTOCOL_##InterfaceName##_DECLARATION_DATA, InterfaceName##ProtocolDeclarationDataGet);                                           \
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DMF_INTERFACE_TRANSPORT_##InterfaceName##_DECLARATION_DATA, InterfaceName##TransportDeclarationDataGet);                                         \
                                                                                                                                                                                     \
 
 // Methods used by DMF Interfaces.

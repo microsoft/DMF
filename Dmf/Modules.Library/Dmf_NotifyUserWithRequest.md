@@ -36,6 +36,9 @@ typedef struct
   // event logging from the DMF_NotifyUserWithRequest Module.
   //
   PWSTR ClientDriverProviderName;
+  // Optional callback for Client to process data before it is flushed.
+  //
+  EVT_DMF_BufferQueue_ReuseCleanup* EvtDataCleanup;
 } DMF_CONFIG_NotifyUserWithRequest;
 ````
 Member | Description
@@ -45,6 +48,7 @@ MaximumNumberOfPendingDataBuffers | The maximum number of entries that contain d
 SizeOfDataBuffer | Size of context data that is passed to the Client's callback.
 EvtPendingRequestsCancel | The callback that is called Requests are canceled.
 ClientDriverProviderName | Used for Event Logging purposes if the Client has this capability.
+EvtDataCleanup | Callback to process queued data before it is flushed.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

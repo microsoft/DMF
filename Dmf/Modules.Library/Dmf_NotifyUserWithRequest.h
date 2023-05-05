@@ -51,6 +51,9 @@ typedef struct
     // event logging from the Dmf_NotifyUserWithRequest Module.
     //
     PWSTR ClientDriverProviderName;
+    // Optional callback for Client to process data before it is flushed.
+    //
+    EVT_DMF_BufferQueue_ReuseCleanup* EvtDataCleanup;
 } DMF_CONFIG_NotifyUserWithRequest;
 
 // This macro declares the following functions:

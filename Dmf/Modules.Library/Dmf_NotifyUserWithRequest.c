@@ -622,6 +622,7 @@ Return Value:
         {
             moduleBufferQueueConfigList.SourceSettings.PoolType = NonPagedPoolNx;
         }
+        moduleBufferQueueConfigList.EvtBufferQueueReuseCleanup = moduleConfig->EvtDataCleanup;
         moduleAttributes.ClientModuleInstanceName = "NotifyUserWithRequestBufferQueue";
         moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
         DMF_DmfModuleAdd(DmfModuleInit,
