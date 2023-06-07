@@ -139,14 +139,15 @@ DMF_MODULE_DECLARE_CONFIG(MobileBroadband)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-#define AntennaBackOffTableIndexMin                     0
-#define AntennaBackOffTableIndexMax                     8
+#define AntennaBackOffTableIndexMinimum                 0
+#define AntennaBackOffTableIndexMaximum                 32
 #define DefaultAntennaIndex                             0
 #define DefaultBackOffTableIndex                        0
 #define MccMncReportLengthMinimum                       5
 #define MccMncReportLengthMaximum                       6
 #define RetryTimesAmount                                10
 #define WaitTimeMilliseconds                            1000
+#define WaitTimeMillisecondsOnInitialize                5000
 #define MobileBroadband_AdapterWatcherEventLockIndex    0
 #define MobileBroadband_AuxiliaryLockCount              1
 
@@ -279,9 +280,33 @@ Return Value:
     //
     hstring mbbSelector = L"System.Devices.InterfaceClassGuid:=\"{CAC88484-7515-4C03-82E6-71A87ABAC361}\""
                           L" AND System.Devices.Wwan.InterfaceGuid:-[] AND System.Devices.InterfaceEnabled:=System.StructuredQueryType.Boolean#True";
-
-    modemWatcher = DeviceInformation::CreateWatcher(mbbSelector, nullptr);
-
+    // CreateWatcher API may fail during OS boot up time due to resource not ready. Retry with RetryTimesAmount times.
+    //
+    for (int tryTimes = 0; tryTimes < RetryTimesAmount; tryTimes++)
+    {
+        try {
+            modemWatcher = DeviceInformation::CreateWatcher(mbbSelector, 
+                                                            nullptr);
+            // if success, break the loop.
+            //
+            break;
+        }
+        catch (hresult_error const& ex)
+        {
+            // if failed, wait for WaitTimeMillisecondsOnInitialize and retry.
+            //
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to create modem device watcher, %ws", ex.message().c_str());
+            Sleep(WaitTimeMillisecondsOnInitialize);
+        }
+    }
+    if (modemWatcher == nullptr)
+    {
+        // Last try and don't catch the exception here if fail. Let the WUDFHost handle it.
+        //
+        modemWatcher = DeviceInformation::CreateWatcher(mbbSelector, 
+                                                        nullptr);
+    }
+    
     // Using lambda function is necessary here, because it need access variables that outside function scope,
     // but these callbacks don't have void pointer to pass in.
     //
@@ -464,7 +489,7 @@ Return Value:
     // start device watcher
     //
     modemWatcher.Start();
-
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ModemWatcher starts");
     ntStatus = STATUS_SUCCESS;
 
 Exit:
@@ -1055,7 +1080,7 @@ Return Value:
 
     for (INT32 antennaIndex = 0; antennaIndex < AntennaCount; antennaIndex++)
     {
-        if (AntennaBackOffTableIndex[antennaIndex] > AntennaBackOffTableIndexMax)
+        if (AntennaBackOffTableIndex[antennaIndex] > AntennaBackOffTableIndexMaximum)
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Antenna back off index exceed the limit");
             goto ExitNoRelease;
