@@ -404,22 +404,9 @@ Return Value:
                                 DmfAssert(Irp->IoStatus.Status == STATUS_NOT_SUPPORTED);
                                 Irp->IoStatus.Status = ntStatus;
                             }
-
-                            // Table has been processed. It is no longer needed.
-                            //
-                            WdfObjectDelete(pdoData->DevicePropertiesMemory);
-                            pdoData->DeviceProperties.TableEntries = NULL;
-                            pdoData->DeviceProperties.ItemCount = 0;
                         }
                         else
                         {
-                            // This path happens after the PDO has been created with a property table
-                            // and its driver is disabled. Then, when the driver is enabled, this path
-                            // happens.
-                            // To see this path, create a PDO with properties. Then,
-                            // disable its function driver. Then, enable its function driver.
-                            // This path will execute.
-                            //
                             DmfAssert(irpAction == IrpActionFireAndForget);
                             // Need to overwrite IRP's status before sending down.
                             //
