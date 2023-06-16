@@ -1845,6 +1845,11 @@ Return Value:
 }
 #pragma code_seg()
 
+typedef NTSTATUS (*t_KeInitializeTriageDumpDataArray)(
+  PKTRIAGE_DUMP_DATA_ARRAY KtriageDumpDataArray,
+  ULONG                    Size
+);
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -1882,6 +1887,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    DECLARE_CONST_UNICODE_STRING(routineName, L"KeInitializeTriageDumpDataArray");
+
     arraySize = moduleConfig->TriageDumpData.TriageDumpDataArraySize;
     if (arraySize == 0)
     {
@@ -1907,8 +1914,19 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
+    
+    t_KeInitializeTriageDumpDataArray fpInitializeTriage = (t_KeInitializeTriageDumpDataArray)MmGetSystemRoutineAddress(
+        (PUNICODE_STRING)&routineName
+    );
 
-    ntStatus = KeInitializeTriageDumpDataArray(moduleContext->TriageDumpDataArray,
+    if (fpInitializeTriage == NULL)
+    {
+        ntStatus = STATUS_NOT_IMPLEMENTED;
+	    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "KeInitializeTriageDumpDataArray fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    ntStatus = fpInitializeTriage(moduleContext->TriageDumpDataArray,
                                                bufferSize);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -4041,6 +4059,12 @@ Return Value:
 
 #if IS_WIN10_19H1_OR_LATER
 
+typedef NTSTATUS (*t_KeAddTriageDumpDataBlock)(
+    PKTRIAGE_DUMP_DATA_ARRAY KtriageDumpDataArray,
+    PVOID Address,
+    SIZE_T Size
+);
+
 _IRQL_requires_same_
 _Must_inspect_result_
 NTSTATUS
@@ -4085,12 +4109,25 @@ Return Value:
     }
     else
     {
-        // Add the block to the list. The validity of the buffer does not need to be
-        // checked at this time, it will not cause a fault later if it is invalid.
-        //
-        ntStatus = KeAddTriageDumpDataBlock(moduleContext->TriageDumpDataArray,
-                                            Data,
-                                            DataLength);
+        DECLARE_CONST_UNICODE_STRING(routineName, L"KeAddTriageDumpDataBlock");
+
+        t_KeAddTriageDumpDataBlock fpDumpDataBlock = (t_KeAddTriageDumpDataBlock)MmGetSystemRoutineAddress(
+            (PUNICODE_STRING)&routineName
+        );
+
+        if (fpDumpDataBlock == NULL)
+        {
+	        ntStatus = STATUS_NOT_IMPLEMENTED;
+        }
+        else
+        {
+	        // Add the block to the list. The validity of the buffer does not need to be
+	        // checked at this time, it will not cause a fault later if it is invalid.
+	        //
+	        ntStatus = fpDumpDataBlock(moduleContext->TriageDumpDataArray,
+                                        Data,
+                                        DataLength);
+        }
     }
 
     FuncExit(DMF_TRACE, "Buffer = 0x%p, Length = %d, ntStatus=%!STATUS!", Data, DataLength, ntStatus);
