@@ -1915,9 +1915,8 @@ Return Value:
         goto Exit;
     }
     
-    t_KeInitializeTriageDumpDataArray fpInitializeTriage = (t_KeInitializeTriageDumpDataArray)MmGetSystemRoutineAddress(
-        (PUNICODE_STRING)&routineName
-    );
+    t_KeInitializeTriageDumpDataArray fpInitializeTriage = 
+        (t_KeInitializeTriageDumpDataArray)MmGetSystemRoutineAddress((PUNICODE_STRING)&routineName);
 
     if (fpInitializeTriage == NULL)
     {
@@ -4111,9 +4110,8 @@ Return Value:
     {
         DECLARE_CONST_UNICODE_STRING(routineName, L"KeAddTriageDumpDataBlock");
 
-        t_KeAddTriageDumpDataBlock fpDumpDataBlock = (t_KeAddTriageDumpDataBlock)MmGetSystemRoutineAddress(
-            (PUNICODE_STRING)&routineName
-        );
+        t_KeAddTriageDumpDataBlock fpDumpDataBlock = 
+            (t_KeAddTriageDumpDataBlock)MmGetSystemRoutineAddress((PUNICODE_STRING)&routineName);
 
         if (fpDumpDataBlock == NULL)
         {
