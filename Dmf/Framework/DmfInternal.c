@@ -1630,12 +1630,15 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->ReferenceCountLock,
+                               &lockContext);
 
     moduleClosed = dmfObject->ModuleClosed;
     dmfObject->ModuleClosed = TRUE;
 
-    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
+    DMF_GenericSpinLockRelease(&dmfObject->ReferenceCountLock,
+                               lockContext);
 
     return moduleClosed;
 }

@@ -283,8 +283,8 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = interfaceMemory;
 
-    ntStatus = WdfSpinLockCreate(&attributes,
-                                 &dmfInterfaceObject->InterfaceLock);
+    ntStatus = DMF_GenericSpinLockCreate(&attributes,
+                                         &dmfInterfaceObject->InterfaceLock);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfSpinLockCreate for InterfaceLock fails: ntStatus=%!STATUS!", ntStatus);
@@ -319,13 +319,18 @@ Return Value:
 
     // Set the Interface State to Closed.
     //
-    WdfSpinLockAcquire(DmfInterfaceObject->InterfaceLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&DmfInterfaceObject->InterfaceLock,
+                               &lockContext);
 
     DmfInterfaceObject->InterfaceState = InterfaceState_Closed;
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface state closed. DmfInterfaceObject: 0x%p", DmfInterfaceObject);
 
-    WdfSpinLockRelease(DmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockRelease(&DmfInterfaceObject->InterfaceLock,
+                               lockContext);
+
+    DMF_GenericSpinLockDestroy(&DmfInterfaceObject->InterfaceLock);
 
     WdfObjectDelete(DmfInterfaceObject->DmfInterface);
 }
@@ -376,7 +381,9 @@ Return Value:
         *DmfInterfaceObject = NULL;
     }
 
-    WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                               &lockContext);
 
     for (interfaceIndex = 0; interfaceIndex < WdfCollectionGetCount(dmfObject->InterfaceBindings); interfaceIndex++)
     {
@@ -408,7 +415,8 @@ Return Value:
         }
     }
 
-    WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                               lockContext);
 
     return interfaceFound;
 }
@@ -461,7 +469,9 @@ Return Value:
         *DmfInterfaceObject = NULL;
     }
 
-    WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                               &lockContext);
 
     for (interfaceIndex = 0; interfaceIndex < WdfCollectionGetCount(dmfObject->InterfaceBindings); interfaceIndex++)
     {
@@ -498,7 +508,8 @@ Return Value:
                             dmfInterface);
     }
 
-    WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                               lockContext);
 
     return interfaceFound;
 }
@@ -534,7 +545,9 @@ Return Value:
 
     // Modify the ReferenceCount of the DmfInterfaceObject.
     //
-    WdfSpinLockAcquire(dmfInterfaceObject->InterfaceLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfInterfaceObject->InterfaceLock,
+                               &lockContext);
 
     if (dmfInterfaceObject->InterfaceState == InterfaceState_Opened)
     {
@@ -547,7 +560,8 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Interface reference add failed. DmfInterfaceObject: 0x%p, InterfaceState: %d", dmfInterfaceObject, dmfInterfaceObject->InterfaceState);
     }
 
-    WdfSpinLockRelease(dmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockRelease(&dmfInterfaceObject->InterfaceLock,
+                               lockContext);
 
     return ntStatus;
 }
@@ -578,7 +592,9 @@ Return Value:
 
     // Modify the ReferenceCount of the DmfInterfaceObject.
     //
-    WdfSpinLockAcquire(dmfInterfaceObject->InterfaceLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfInterfaceObject->InterfaceLock,
+                               &lockContext);
 
     DmfAssert((dmfInterfaceObject->InterfaceState == InterfaceState_Opened)||
               (dmfInterfaceObject->InterfaceState == InterfaceState_Closing));
@@ -589,7 +605,8 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Interface reference count after de-reference: %d", dmfInterfaceObject->ReferenceCount);
 
-    WdfSpinLockRelease(dmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockRelease(&dmfInterfaceObject->InterfaceLock,
+                               lockContext);
 
     return;
 }
@@ -619,7 +636,9 @@ Return Value:
 
     referenceCountPollingIntervalMs = 100;
 
-    WdfSpinLockAcquire(DmfInterfaceObject->InterfaceLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&DmfInterfaceObject->InterfaceLock,
+                               &lockContext);
 
     DmfAssert(DmfInterfaceObject->InterfaceState == InterfaceState_Opened);
 
@@ -630,15 +649,18 @@ Return Value:
     DmfInterfaceObject->InterfaceState = InterfaceState_Closing;
     referenceCount = DmfInterfaceObject->ReferenceCount;
 
-    WdfSpinLockRelease(DmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockRelease(&DmfInterfaceObject->InterfaceLock,
+                               lockContext);
 
     while (referenceCount > 0)
     {
-        WdfSpinLockAcquire(DmfInterfaceObject->InterfaceLock);
+        DMF_GenericSpinLockAcquire(&DmfInterfaceObject->InterfaceLock,
+                                   &lockContext);
 
         referenceCount = DmfInterfaceObject->ReferenceCount;
 
-        WdfSpinLockRelease(DmfInterfaceObject->InterfaceLock);
+        DMF_GenericSpinLockRelease(&DmfInterfaceObject->InterfaceLock,
+                                   lockContext);
 
         if (referenceCount == 0)
         {
@@ -680,11 +702,44 @@ Return Value:
 {
     NTSTATUS ntStatus;
     DMF_INTERFACE_DESCRIPTOR* declarationData;
+    DMF_OBJECT* dmfObject;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
 
-    ntStatus = STATUS_SUCCESS;
+    dmfObject = DMF_ModuleToObject(DmfModule);
 
     DmfAssert(((InterfaceDescriptor->InterfaceType == Interface_Transport) && (InterfaceDescriptor->Size >= sizeof(DMF_INTERFACE_TRANSPORT_DESCRIPTOR))) ||
               ((InterfaceDescriptor->InterfaceType == Interface_Protocol) && (InterfaceDescriptor->Size >= sizeof(DMF_INTERFACE_PROTOCOL_DESCRIPTOR))));
+
+    // Original implementation allows this function to be called more than one time.
+    // No code does so, but it was possible. Use this flag to allow that behavior
+    // without regression.
+    //
+    if (! dmfObject->NeedToCleanupInterfaceBindings)
+    {
+        // Create WDFCOLLECTION to store the Interface Bindings of this Module.
+        //
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        objectAttributes.ParentObject = DmfModule;
+        ntStatus = WdfCollectionCreate(&objectAttributes,
+                                       &dmfObject->InterfaceBindings);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        // Create a spin lock to protect access to the Interface Bindings Collection.
+        //
+        ntStatus = DMF_GenericSpinLockCreate(&objectAttributes,
+                                             &dmfObject->InterfaceBindingsLock);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_GenericSpinLockCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        dmfObject->NeedToCleanupInterfaceBindings = TRUE;
+    }
 
     // Associate the Declaration Data with the DmfModule.
     //
@@ -835,12 +890,15 @@ Return Value:
     //
     dmfObject = DMF_ModuleToObject(ProtocolModule);
 
-    WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                               &lockContext);
 
     ntStatus = WdfCollectionAdd(dmfObject->InterfaceBindings,
                                 dmfInterfaceObject->DmfInterface);
 
-    WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                               lockContext);
 
     if (!NT_SUCCESS(ntStatus))
     {
@@ -850,12 +908,14 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(TransportModule);
 
-    WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                               &lockContext);
 
     ntStatus = WdfCollectionAdd(dmfObject->InterfaceBindings,
                                 dmfInterfaceObject->DmfInterface);
 
-    WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                               lockContext);
 
     if (!NT_SUCCESS(ntStatus))
     {
@@ -863,21 +923,25 @@ Return Value:
         //
         dmfObject = DMF_ModuleToObject(ProtocolModule);
 
-        WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+        DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                                   &lockContext);
 
         WdfCollectionRemove(dmfObject->InterfaceBindings,
                             dmfInterfaceObject->DmfInterface);
 
-        WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+        DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                                   lockContext);
 
         goto Exit;
     }
 
-    WdfSpinLockAcquire(dmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockAcquire(&dmfInterfaceObject->InterfaceLock,
+                               &lockContext);
 
     dmfInterfaceObject->InterfaceState = InterfaceState_Opening;
 
-    WdfSpinLockRelease(dmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockRelease(&dmfInterfaceObject->InterfaceLock,
+                               lockContext);
 
     // Interface state is set to Opening when Bind call is made.
     //
@@ -900,9 +964,11 @@ Return Value:
 
     // Set the Interface State to Open.
     //
-    WdfSpinLockAcquire(dmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockAcquire(&dmfInterfaceObject->InterfaceLock,
+                               &lockContext);
     dmfInterfaceObject->InterfaceState = InterfaceState_Opened;
-    WdfSpinLockRelease(dmfInterfaceObject->InterfaceLock);
+    DMF_GenericSpinLockRelease(&dmfInterfaceObject->InterfaceLock,
+                               lockContext);
 
     // Interface state is set to Opened when PostBind callbacks are called.
     //
@@ -1049,15 +1115,25 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
+    if (!dmfObject->NeedToCleanupInterfaceBindings)
+    {
+        // The Module never created these structures so they are NULL.
+        //
+        goto Exit;
+    }
+
     // Unbind all interface bindings of this Module.
     // NOTE: Generally speaking this loop should not execute.
     // This will happen in the case of non-PnP Client drivers.
     //
-    WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                               &lockContext);
 
     dmfInterface = (DMFINTERFACE)WdfCollectionGetFirstItem(dmfObject->InterfaceBindings);
 
-    WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                               lockContext);
 
     while (dmfInterface)
     {
@@ -1070,12 +1146,18 @@ Return Value:
                                   dmfInterfaceObject->ProtocolDescriptor,
                                   dmfInterfaceObject->TransportDescriptor);
 
-        WdfSpinLockAcquire(dmfObject->InterfaceBindingsLock);
+        DMF_GenericSpinLockAcquire(&dmfObject->InterfaceBindingsLock,
+                                   &lockContext);
 
         dmfInterface = (DMFINTERFACE)WdfCollectionGetFirstItem(dmfObject->InterfaceBindings);
 
-        WdfSpinLockRelease(dmfObject->InterfaceBindingsLock);
+        DMF_GenericSpinLockRelease(&dmfObject->InterfaceBindingsLock,
+                                   lockContext);
     }
+
+Exit:
+
+    return;
 }
 
 // eof: DmfInterfaceInternal.c

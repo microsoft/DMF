@@ -306,7 +306,7 @@ Arguments:
 
 Return Value:
 
-    None.
+    NTSTATUS
 
 --*/
 {
@@ -315,8 +315,6 @@ Return Value:
     //
     NTSTATUS ntStatus;
     DMF_OBJECT* dmfObject;
-    size_t configSize;
-    PVOID moduleConfig;
 
     dmfObject = DMF_ModuleToObject(DmfModule);
     ntStatus = STATUS_SUCCESS;
@@ -325,22 +323,17 @@ Return Value:
 
     DmfAssert(dmfObject != NULL);
 
-    if (dmfObject->ModuleConfigMemory != NULL)
+    if (dmfObject->ModuleConfig != NULL)
     {
-        moduleConfig = WdfMemoryGetBuffer(dmfObject->ModuleConfigMemory,
-                                          &configSize);
-
-        DmfAssert(dmfObject->ModuleConfig == moduleConfig);
-    
-        if (configSize != ModuleConfigSize)
+        if (dmfObject->ModuleConfigSize > ModuleConfigSize)
         {
             ntStatus = STATUS_INVALID_BUFFER_SIZE;
         }
         else
         {
             RtlCopyMemory(ModuleConfigPointer,
-                          moduleConfig,
-                          configSize);
+                          dmfObject->ModuleConfig,
+                          dmfObject->ModuleConfigSize);
         }
     }
     else
@@ -395,6 +388,463 @@ Return Value:
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+#if !defined(DMF_USER_MODE)
+    VOID*
+    DMF_GenericMemoryAllocate(
+        _In_ ULONG PoolFlags,
+        _In_ size_t Size,
+        _In_ ULONG Tag
+        )
+/*++
+
+Routine Description:
+
+    Allocates memory in Kernel-mode using native NT API instead of WDF.
+    For some memory allocations it is not necessary to incur the overhead
+    of WDF handles. In those cases, use this function instead of 
+    WdfMemoryCreate() to avoid creating a new handle.
+
+Arguments:
+
+    PoolFlags - Type of pool to allocate NonPagedPoolNx or PagedPool.
+    Size - Number of bytes to allocate.
+    Tag - Tag to assign for debug purposes.
+
+Return Value:
+
+    NULL if memory cannot be allocated.
+    If not NULL, it is the address of allocated memory
+
+--*/
+    {
+        VOID* returnValue;
+
+        returnValue = ExAllocatePool2(PoolFlags,
+                                      Size,
+                                      Tag);
+
+        return returnValue;
+    }
+
+    VOID
+    DMF_GenericMemoryFree(
+        _In_ VOID* Pointer,
+        _In_ ULONG Tag
+        )
+    /*++
+
+    Routine Description:
+
+        Free memory allocated by DMF_GenericMemoryAllocate().
+
+    Arguments:
+
+        Pointer - Address of memory to free.
+        Tag - Tag to assign for debug purposes.
+
+    Return Value:
+
+        NULL if memory cannot be allocated.
+        If not NULL, it is the address of allocated memory
+
+    --*/
+    {
+        ExFreePoolWithTag(Pointer,
+                          Tag);
+    }
+#else
+    VOID*
+    DMF_GenericMemoryAllocate(
+        _In_ ULONG PoolFlags,
+        _In_ size_t Size,
+        _In_ ULONG Tag
+        )
+    /*++
+
+    Routine Description:
+
+        Allocates memory in User-mode using native C runtime instead of WDF.
+        For some memory allocations it is not necessary to incur the overhead
+        of WDF handles. In those cases, use this function instead of 
+        WdfMemoryCreate() to avoid creating a new handle.
+
+    Arguments:
+
+        PoolFlags - Type of pool to allocate NonPagedPoolNx or PagedPool. (Not used).
+        Size - Number of bytes to allocate.
+        Tag - Tag to assign for debug purposes. (Not used).
+
+    Return Value:
+
+        NULL if memory cannot be allocated.
+        If not NULL, it is the address of allocated memory
+
+    --*/
+    {
+        VOID* returnValue;
+
+        UNREFERENCED_PARAMETER(PoolFlags);
+        UNREFERENCED_PARAMETER(Tag);
+
+        returnValue = malloc(Size);
+
+        return returnValue;
+    }
+
+    VOID
+    DMF_GenericMemoryFree(
+        _In_ VOID* Pointer,
+        _In_ ULONG Tag
+        )
+    /*++
+
+    Routine Description:
+
+        Free memory allocated by DMF_GenericMemoryAllocate().
+
+    Arguments:
+
+        Pointer - Address of memory to free.
+        Tag - Tag to assign for debug purposes. (Not used.)
+
+    Return Value:
+
+        NULL if memory cannot be allocated.
+        If not NULL, it is the address of allocated memory
+
+    --*/
+    {
+        UNREFERENCED_PARAMETER(Tag);
+
+        free(Pointer);
+    }
+#endif
+
+#if defined(DMF_ALWAYS_USE_WDF_HANDLES)
+    NTSTATUS
+    DMF_GenericSpinLockCreate(
+        _In_ GENERIC_SPINLOCK_CREATE_CONTEXT* NativeLockCreateContext,
+        _Out_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+        )
+    /*++
+
+    Routine Description:
+
+        Allocates a spinlock using WDF API.
+
+    Arguments:
+
+        NativeLockCreateContext - WDF_OBJECT_ATTRIBUTES*.
+        GenericSpinLock - The returned spinlock.
+
+    Return Value:
+
+        NTSTATUS
+
+    --*/
+    {
+        NTSTATUS ntStatus;
+
+        ntStatus = WdfSpinLockCreate(NativeLockCreateContext,
+                                     GenericSpinLock);
+
+        return ntStatus;
+    }
+
+    VOID
+    DMF_GenericSpinLockAcquire(
+        _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+        _Out_ GENERIC_SPINLOCK_CONTEXT *NativeLockContext
+        )
+    /*++
+
+    Routine Description:
+
+        Acquire a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+    Arguments:
+
+        GenericSpinLock - The returned spinlock to acquire.
+        NativeLockCreateContext - Not used.
+
+    Return Value:
+
+        None
+
+    --*/
+    {
+        UNREFERENCED_PARAMETER(NativeLockContext);
+
+        WdfSpinLockAcquire(*GenericSpinLock);
+    }
+
+    VOID
+    DMF_GenericSpinLockRelease(
+        _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+        _In_ GENERIC_SPINLOCK_CONTEXT NativeLockContext
+        )
+    /*++
+
+    Routine Description:
+
+        Release a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+    Arguments:
+
+        GenericSpinLock - The returned spinlock to release.
+        NativeLockCreateContext - Not used.
+
+    Return Value:
+
+        None
+
+    --*/
+    {
+        UNREFERENCED_PARAMETER(NativeLockContext);
+
+        WdfSpinLockRelease(*GenericSpinLock);
+    }
+
+    VOID
+    DMF_GenericSpinLockDestroy(
+        _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+        )
+    /*++
+
+    Routine Description:
+
+        Destroy a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+    Arguments:
+
+        GenericSpinLock - The returned spinlock to destroy..
+
+    Return Value:
+
+        None
+
+    --*/
+    {
+        // Do not call "WdfObjectDelete(*GenericSpinLock);" here to maintain same code path
+        // with historical code. This lock is created by the DMF and used only by DMF and it
+        // is deleted automatically because its parent is the DMFMODULE.
+        //
+        UNREFERENCED_PARAMETER(GenericSpinLock);
+    }
+#else
+    #if !defined(DMF_USER_MODE)
+        NTSTATUS
+        DMF_GenericSpinLockCreate(
+            _In_ GENERIC_SPINLOCK_CREATE_CONTEXT* NativeLockCreateContext,
+            _Out_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+            )
+        /*++
+
+        Routine Description:
+
+            Allocates a spinlock using NT API.
+
+        Arguments:
+
+            NativeLockCreateContext - Not used.
+            GenericSpinLock - The returned spinlock.
+
+        Return Value:
+
+            STATUS_SUCCESS
+
+        --*/
+        {
+            UNREFERENCED_PARAMETER(NativeLockCreateContext);
+
+            KeInitializeSpinLock(GenericSpinLock);
+
+            return STATUS_SUCCESS;
+        }
+
+        VOID
+        DMF_GenericSpinLockAcquire(
+            _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+            _Out_ GENERIC_SPINLOCK_CONTEXT *NativeLockContext
+            )
+        /*++
+
+        Routine Description:
+
+            Acquire a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+        Arguments:
+
+            GenericSpinLock - The returned spinlock to acquire.
+            NativeLockCreateContext - Old IRQL before spinlock was acquired.
+
+        Return Value:
+
+            None
+
+        --*/
+        {
+            KeAcquireSpinLock(GenericSpinLock,
+                              NativeLockContext);
+        }
+
+        VOID
+        DMF_GenericSpinLockRelease(
+            _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+            _In_ GENERIC_SPINLOCK_CONTEXT NativeLockContext
+            )
+        /*++
+
+        Routine Description:
+
+            Release a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+        Arguments:
+
+            GenericSpinLock - The returned spinlock to acquire.
+            NativeLockCreateContext - Old IRQL before spinlock was acquired.
+
+        Return Value:
+
+            None
+
+        --*/
+        {
+            KeReleaseSpinLock(GenericSpinLock,
+                              NativeLockContext);
+        }
+
+        VOID
+        DMF_GenericSpinLockDestroy(
+            _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+            )
+        /*++
+
+        Routine Description:
+
+            Destroy a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+        Arguments:
+
+            GenericSpinLock - The returned spinlock to destroy.
+
+        Return Value:
+
+            None
+
+        --*/
+        {
+            UNREFERENCED_PARAMETER(GenericSpinLock);
+        }
+    #else
+        NTSTATUS
+        DMF_GenericSpinLockCreate(
+            _In_ GENERIC_SPINLOCK_CREATE_CONTEXT* NativeLockCreateContext,
+            _Out_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+            )
+        /*++
+
+        Routine Description:
+
+            Allocates a spinlock using Win32 API.
+
+        Arguments:
+
+            NativeLockCreateContext - Not used.
+            GenericSpinLock - The returned spinlock.
+
+        Return Value:
+
+            STATUS_SUCCESS
+
+        --*/
+        {
+            UNREFERENCED_PARAMETER(NativeLockCreateContext);
+
+            InitializeCriticalSection(GenericSpinLock);
+
+            return STATUS_SUCCESS;
+        }
+
+        VOID
+        DMF_GenericSpinLockAcquire(
+            _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+            _Out_ GENERIC_SPINLOCK_CONTEXT *NativeLockContext
+            )
+        /*++
+
+        Routine Description:
+
+            Acquire a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+        Arguments:
+
+            GenericSpinLock - The returned spinlock to acquire.
+            NativeLockCreateContext - Not used.
+
+        Return Value:
+
+            None
+
+        --*/
+        {
+            UNREFERENCED_PARAMETER(NativeLockContext);
+
+            EnterCriticalSection(GenericSpinLock);
+        }
+
+        VOID
+        DMF_GenericSpinLockRelease(
+            _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+            _In_ GENERIC_SPINLOCK_CONTEXT NativeLockContext
+            )
+        /*++
+
+        Routine Description:
+
+            Release a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+        Arguments:
+
+            GenericSpinLock - The returned spinlock to acquire.
+            NativeLockCreateContext - Not used.
+
+        Return Value:
+
+            None
+
+        --*/
+        {
+            UNREFERENCED_PARAMETER(NativeLockContext);
+
+            LeaveCriticalSection(GenericSpinLock);
+        }
+
+        VOID
+        DMF_GenericSpinLockDestroy(
+            _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+            )
+        /*++
+
+        Routine Description:
+
+            Destroy a spinlock created by its corresponding DMF_GenericSpinLockCreate();.
+
+        Arguments:
+
+            GenericSpinLock - The returned spinlock to destroy.
+
+        Return Value:
+
+            None
+
+        --*/
+        {
+            DeleteCriticalSection(GenericSpinLock);
+        }
+    #endif
+#endif
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)

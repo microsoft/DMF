@@ -210,5 +210,13 @@ Environment:
 //
 #define DmfBreak    DbgBreakPoint
 
+// There are many spin locks created which causes the number of WDF handles to be high.
+// In order to reduce the number of handles, for internal locks DMF can use the native OS
+// locks instead.
+//
+// NOTE: In Kernel-mode, minimize use of WDF handles.
+//
+#define DMF_ALWAYS_USE_WDF_HANDLES_DISABLE
+
 // eof: DmfIncludes_KERNEL_MODE.h
 //

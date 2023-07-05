@@ -518,6 +518,15 @@ Return Value:
         Target->DmfModuleRundown = NULL;
     }
 
+    // Delete the associated DmfModuleRequestTarget.
+    //
+    if (Target->DmfModuleRequestTarget != NULL)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "WdfObjectDelete(Target->DmfModuleRequestTarget=0x%p) Target=0x%p Target->IoTarget=0x%p", Target->DmfModuleRequestTarget, Target, Target->IoTarget);
+        WdfObjectDelete(Target->DmfModuleRequestTarget);
+        Target->DmfModuleRequestTarget = NULL;
+    }
+
     // In case WDFIOTARGET not previously deleted, delete it now.
     //
     if (IoTarget != NULL)
