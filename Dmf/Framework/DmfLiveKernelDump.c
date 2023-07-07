@@ -80,10 +80,6 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModule;
-    VOID* dmfConfig;
-    VOID* clientModuleInstanceName;
-    size_t dmfConfigSize;
-    size_t clientModuleInstanceNameSize;
     DMF_OBJECT* childDmfObject;
     CHILD_OBJECT_INTERATION_CONTEXT childObjectIterationContext;
 
@@ -112,25 +108,16 @@ Return Value:
                                             DmfObject,
                                             sizeof(DMF_OBJECT));
 
-    if (DmfObject->ModuleConfigMemory != NULL)
+    if (DmfObject->ModuleConfig != NULL)
     {
-        dmfConfig = WdfMemoryGetBuffer(DmfObject->ModuleConfigMemory,
-                                       &dmfConfigSize);
-
         DMF_MODULE_LIVEKERNELDUMP_POINTER_STORE(dmfModule,
-                                                dmfConfig,
-                                                dmfConfigSize);
+                                                DmfObject->ModuleConfig,
+                                                DmfObject->ModuleConfigSize);
     }
 
-    if (DmfObject->ClientModuleInstanceNameMemory != NULL)
-    {
-        clientModuleInstanceName = WdfMemoryGetBuffer(DmfObject->ClientModuleInstanceNameMemory,
-                                                      &clientModuleInstanceNameSize);
-
-        DMF_MODULE_LIVEKERNELDUMP_POINTER_STORE(dmfModule,
-                                                clientModuleInstanceName,
-                                                clientModuleInstanceNameSize);
-    }
+    DMF_MODULE_LIVEKERNELDUMP_POINTER_STORE(dmfModule,
+                                            DmfObject->ClientModuleInstanceName,
+                                            DmfObject->ClientModuleInstanceNameSizeBytes);
 
     // Call the Module specific Initialize function where the Module can store 
     // private structures to the ring buffer.

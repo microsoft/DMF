@@ -273,11 +273,13 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
-    size_t clientModuleInstanceNameSizeBytes;
     CONST CHAR* clientModuleInstanceName;
 
+    UNREFERENCED_PARAMETER(MemoryDmfObject);
+
     PAGED_CODE();
+
+    ntStatus = STATUS_SUCCESS;
 
     // Create space for the Client Module Instance Name. It needs to be allocated because
     // the name that is passed in may not be statically allocated. A copy needs to be made
@@ -300,35 +302,32 @@ Return Value:
         //
         clientModuleInstanceName = DmfModuleAttributes->ClientModuleInstanceName;
     }
-    clientModuleInstanceNameSizeBytes = strlen(clientModuleInstanceName) + sizeof(CHAR);
-    DmfAssert(clientModuleInstanceNameSizeBytes > 1);
+    DmfObject->ClientModuleInstanceNameSizeBytes = strlen(clientModuleInstanceName) + sizeof(CHAR);
+    DmfAssert(DmfObject->ClientModuleInstanceNameSizeBytes > 1);
 
     // Allocate space for the instance name. This name is useful during debugging.
+    // NOTE: Don't use WDFMEMORY to reduce number of use WDFOBJECT.
     //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = MemoryDmfObject;
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               DMF_TAG,
-                               clientModuleInstanceNameSizeBytes,
-                               &DmfObject->ClientModuleInstanceNameMemory,
-                               (VOID* *)&DmfObject->ClientModuleInstanceName);
-    if (! NT_SUCCESS(ntStatus))
+    DmfObject->ClientModuleInstanceName = (CHAR*)DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
+                                                                           DmfObject->ClientModuleInstanceNameSizeBytes,
+                                                                           DMF_TAG);
+    if (DmfObject->ClientModuleInstanceName == NULL)
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate ClientModuleInstanceName");
+        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         goto Exit;
     }
     RtlZeroMemory(DmfObject->ClientModuleInstanceName,
-                  clientModuleInstanceNameSizeBytes);
+                  DmfObject->ClientModuleInstanceNameSizeBytes);
     // Copy the string. The length passed is one more than the length but that
     // extra byte is terminating zero which will not be copied.
     //
     strncpy_s(DmfObject->ClientModuleInstanceName,
-              clientModuleInstanceNameSizeBytes,
+              DmfObject->ClientModuleInstanceNameSizeBytes,
               clientModuleInstanceName,
-              clientModuleInstanceNameSizeBytes);
-    DmfAssert(clientModuleInstanceNameSizeBytes > 0);
-    DmfAssert(DmfObject->ClientModuleInstanceName[clientModuleInstanceNameSizeBytes - 1] == '\0');
+              DmfObject->ClientModuleInstanceNameSizeBytes);
+    DmfAssert(DmfObject->ClientModuleInstanceNameSizeBytes > 0);
+    DmfAssert(DmfObject->ClientModuleInstanceName[DmfObject->ClientModuleInstanceNameSizeBytes - 1] == '\0');
     DmfAssert(DmfObject->ClientModuleInstanceName[0] != '\0');
 
 Exit:
@@ -367,7 +366,7 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
 
     PAGED_CODE();
 
@@ -377,19 +376,16 @@ Return Value:
     if (DmfModuleAttributes->SizeOfModuleSpecificConfig != NULL)
     {
         DmfAssert(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
-        WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-        attributes.ParentObject = MemoryDmfObject;
-        ntStatus = WdfMemoryCreate(&attributes,
-                                   NonPagedPoolNx,
-                                   DMF_TAG,
-                                   ModuleDescriptor->ModuleConfigSize,
-                                   &DmfObject->ModuleConfigMemory,
-                                   &DmfObject->ModuleConfig);
-        if (! NT_SUCCESS(ntStatus))
+        DmfObject->ModuleConfig = DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
+                                                            ModuleDescriptor->ModuleConfigSize,
+                                                            DMF_TAG);
+        if (DmfObject->ModuleConfig == NULL)
         {
+            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Module Config");
             goto Exit;
         }
+        DmfObject->ModuleConfigSize = ModuleDescriptor->ModuleConfigSize;
 
         // Save off the Module Config information for when the Open happens later.
         // If Client calls DMF_##ModuleName##_ATTRIBUTES_INIT instead of
@@ -421,35 +417,15 @@ Return Value:
         //
     }
 
-    // Create WDFCOLLECTION to store the Interface Bindings of this Module.
-    //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = MemoryDmfObject;
-    ntStatus = WdfCollectionCreate(&attributes,
-                                   &DmfObject->InterfaceBindings);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate Collection for InterfaceBindings.");
-        goto Exit;
-    }
-
-    // Create a spin lock to protect access to the Interface Bindings Collection.
-    //
-    ntStatus = WdfSpinLockCreate(&attributes,
-                                 &DmfObject->InterfaceBindingsLock);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "InterfaceBindingsLock create fails.");
-        goto Exit;
-    }
-
     // Create a spin lock to protect the Module's reference count.
     // (Reference count must be accessible from both PASSIVE_LEVEL and DISPATCH_LEVEL
     // code so the Module's synchronization locks cannot be used because they can 
     // be either waitlocks or spinlocks.)
     //
-    ntStatus = WdfSpinLockCreate(&attributes,
-                                 &DmfObject->ReferenceCountLock);
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = MemoryDmfObject;
+    ntStatus = DMF_GenericSpinLockCreate(&objectAttributes,
+                                         &DmfObject->ReferenceCountLock);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ReferenceCountLock create fails.");
@@ -468,7 +444,6 @@ static
 NTSTATUS
 DmfModuleCallbacksInitialize(
     _Inout_ DMF_OBJECT* DmfObject,
-    _In_ WDFMEMORY MemoryDmfObject,
     _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
     _In_ DMF_MODULE_DESCRIPTOR* ModuleDescriptor
     )
@@ -492,23 +467,16 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
-    WDF_OBJECT_ATTRIBUTES attributes;
     DMF_MODULE_EVENT_CALLBACKS* callbacks;
-    WDFMEMORY callbacksDmfMemory;
-    WDFMEMORY callbacksWdfMemory;
 
     PAGED_CODE();
 
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = MemoryDmfObject;
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               DMF_TAG,
-                               sizeof(DMF_CALLBACKS_DMF),
-                               &callbacksDmfMemory,
-                               (VOID* *)&DmfObject->ModuleDescriptor.CallbacksDmf);
-    if (! NT_SUCCESS(ntStatus))
+    DmfObject->ModuleDescriptor.CallbacksDmf = (DMF_CALLBACKS_DMF*)DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
+                                                                                             sizeof(DMF_CALLBACKS_DMF),
+                                                                                             DMF_TAG);
+    if (NULL == DmfObject->ModuleDescriptor.CallbacksDmf)
     {
+        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
@@ -516,17 +484,19 @@ Return Value:
     RtlZeroMemory(DmfObject->ModuleDescriptor.CallbacksDmf,
                   sizeof(DMF_CALLBACKS_DMF));
 
-    ntStatus = WdfMemoryCreate(&attributes,
-                               NonPagedPoolNx,
-                               DMF_TAG,
-                               sizeof(DMF_CALLBACKS_WDF),
-                               &callbacksWdfMemory,
-                               (VOID* *)&DmfObject->ModuleDescriptor.CallbacksWdf);
-    if (! NT_SUCCESS(ntStatus))
+    DmfObject->ModuleDescriptor.CallbacksWdf = (DMF_CALLBACKS_WDF*)DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
+                                                                                             sizeof(DMF_CALLBACKS_WDF),
+                                                                                             DMF_TAG);
+    if (NULL == DmfObject->ModuleDescriptor.CallbacksWdf)
     {
+        DMF_GenericMemoryFree(DmfObject->ModuleDescriptor.CallbacksDmf,
+                              DMF_TAG);
+        ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
+
+    ntStatus = STATUS_SUCCESS;
 
     RtlZeroMemory(DmfObject->ModuleDescriptor.CallbacksWdf,
                   sizeof(DMF_CALLBACKS_WDF));
@@ -1353,7 +1323,6 @@ Return Value:
     // Initialize Callbacks.
     //
     ntStatus = DmfModuleCallbacksInitialize(dmfObject,
-                                            memoryDmfObject,
                                             DmfModuleAttributes,
                                             ModuleDescriptor);
     if (!NT_SUCCESS(ntStatus))
@@ -1602,9 +1571,16 @@ Return Value:
 
     DmfAssert(dmfObject->MemoryDmfObject != NULL);
 
-    DmfAssert(dmfObject->ClientModuleInstanceNameMemory != NULL);
-    WdfObjectDelete(dmfObject->ClientModuleInstanceNameMemory);
-    dmfObject->ClientModuleInstanceNameMemory = NULL;
+    DmfAssert(dmfObject->ClientModuleInstanceName != NULL);
+    DMF_GenericMemoryFree(dmfObject->ClientModuleInstanceName,
+                          DMF_TAG);
+    dmfObject->ClientModuleInstanceName = NULL;
+
+    DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksDmf,
+                          DMF_TAG);
+
+    DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksWdf,
+                          DMF_TAG);
 
 #if defined(DMF_KERNEL_MODE)
     if (dmfObject->InFlightRecorder != NULL)
@@ -1617,24 +1593,26 @@ Return Value:
     }
 #endif // defined(DMF_KERNEL_MODE)
 
-    if (dmfObject->ModuleConfigMemory != NULL)
+    if (dmfObject->ModuleConfig != NULL)
     {
-        DmfAssert(dmfObject->ModuleConfig != NULL);
-        WdfObjectDelete(dmfObject->ModuleConfigMemory);
-        dmfObject->ModuleConfigMemory = NULL;
+        DMF_GenericMemoryFree(dmfObject->ModuleConfig,
+                              DMF_TAG);
         dmfObject->ModuleConfig = NULL;
     }
     else
     {
-        // Module Config Memory is optional.
+        // NOTE: Module Config Memory is optional.
         //
-        DmfAssert(NULL == dmfObject->ModuleConfig);
-        DmfAssert(NULL == dmfObject->ModuleConfigMemory);
     }
 
     // This event must be manually deleted for User-mode.
     //
     DMF_Portable_EventClose(&dmfObject->ModuleCanBeDeletedEvent);
+
+    // User-mode non-WDF versions need to clean up.
+    //
+    DMF_GenericSpinLockDestroy(&dmfObject->InterfaceBindingsLock);
+    DMF_GenericSpinLockDestroy(&dmfObject->ReferenceCountLock);
 
     if (DeleteMemory)
     {

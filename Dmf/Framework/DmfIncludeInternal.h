@@ -130,6 +130,31 @@ typedef struct
     DMF_AuxiliaryLock* AuxiliaryUnlock;
 } DMF_CALLBACKS_INTERNAL;
 
+// Allow DMF framework to use either WDF locks or native OS locks so that number of
+// WDF locks is minimized so there is less chance for "too many WDF handles" warning.
+//
+#if defined(DMF_ALWAYS_USE_WDF_HANDLES)
+    // Use WDF primitives.
+    //
+    typedef WDFSPINLOCK DMF_GENERIC_SPINLOCK;
+    typedef VOID* GENERIC_SPINLOCK_CONTEXT;
+    typedef WDF_OBJECT_ATTRIBUTES GENERIC_SPINLOCK_CREATE_CONTEXT;
+#else
+    #if !defined(DMF_USER_MODE)
+        // Use NT primitives.
+        //
+        typedef KSPIN_LOCK DMF_GENERIC_SPINLOCK;
+        typedef KIRQL GENERIC_SPINLOCK_CONTEXT;
+        typedef WDF_OBJECT_ATTRIBUTES GENERIC_SPINLOCK_CREATE_CONTEXT;
+    #else
+        // Use Win32 primitives.
+        //
+        typedef CRITICAL_SECTION DMF_GENERIC_SPINLOCK;
+        typedef VOID* GENERIC_SPINLOCK_CONTEXT;
+        typedef WDF_OBJECT_ATTRIBUTES GENERIC_SPINLOCK_CREATE_CONTEXT;
+    #endif
+#endif
+
 // Forward declaration for DMF Object.
 //
 typedef struct _DMF_OBJECT_ DMF_OBJECT;
@@ -147,7 +172,7 @@ struct _DMF_OBJECT_
     // Context using during Open.
     //
     VOID* ModuleConfig;
-    WDFMEMORY ModuleConfigMemory;
+    size_t ModuleConfigSize;
     // For debug purposes only.
     // If Client wants allocates its own context, then
     // ModuleContext will not be the primary context of DMFMODULE.
@@ -161,7 +186,7 @@ struct _DMF_OBJECT_
     volatile LONG ReferenceCount;
     // Spin Lock to protect Module's reference count.
     //
-    WDFSPINLOCK ReferenceCountLock;
+    DMF_GENERIC_SPINLOCK ReferenceCountLock;
     // Associated WDF Device.
     //
     WDFDEVICE ParentDevice;
@@ -181,11 +206,8 @@ struct _DMF_OBJECT_
     //
     CHAR* ModuleName;
     // For debug purposes only.
-    // This allows the Client Driver to easily identify which instance
-    // of a DMF Module this handle is associated with.
-    //
-    WDFMEMORY ClientModuleInstanceNameMemory;
     CHAR* ClientModuleInstanceName;
+    size_t ClientModuleInstanceNameSizeBytes;
     // For debug purposes only.
     //
     ULONGLONG Signature;
@@ -225,14 +247,15 @@ struct _DMF_OBJECT_
     // Number of Child Modules.
     //
     ULONG NumberOfChildModules;
-    // Collection of Interface Bindings where this Module is either the Transport or the Protocol.
+    // Interface list and lock are only created when interface descriptor is defined by Module.
     //
-    // TODO: Check if a lock is needed to protect this?
+    BOOLEAN NeedToCleanupInterfaceBindings;
+    // Collection of Interface Bindings where this Module is either the Transport or the Protocol.
     //
     WDFCOLLECTION InterfaceBindings;
     // Spin Lock to protect access to InterfaceBindings.
     //
-    WDFSPINLOCK InterfaceBindingsLock;
+    DMF_GENERIC_SPINLOCK InterfaceBindingsLock;
     // Transport Modules.
     // (NOTE: These are subset of ChildModulesVoid.)
     //
@@ -371,7 +394,7 @@ typedef struct _DMF_INTERFACE_OBJECT
     LONG ReferenceCount;
     // Lock to protect accesses to this structure.
     //
-    WDFSPINLOCK InterfaceLock;
+    DMF_GENERIC_SPINLOCK InterfaceLock;
     // WDF Object corresponding to DMF_INTERFACE_OBJECT.
     //
     DMFINTERFACE DmfInterface;
@@ -564,6 +587,47 @@ DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(
 
 // DmfHelpers.h
 //
+
+#if defined(DMF_USER_MODE)
+#define POOL_FLAG_NON_PAGED               0x0000000000000040UI64     // Non paged pool NX
+#define POOL_FLAG_PAGED                   0x0000000000000100UI64     // Paged pool
+#endif
+
+VOID*
+DMF_GenericMemoryAllocate(
+    _In_ ULONG PoolFlags,
+    _In_ size_t Size,
+    _In_ ULONG Tag
+    );
+
+VOID
+DMF_GenericMemoryFree(
+    _In_ VOID* Pointer,
+    _In_ ULONG Tag
+    );
+
+NTSTATUS
+DMF_GenericSpinLockCreate(
+    _In_ GENERIC_SPINLOCK_CREATE_CONTEXT* NativeLockCreateContext,
+    _Out_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+    );
+
+VOID
+DMF_GenericSpinLockAcquire(
+    _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+    _Out_ GENERIC_SPINLOCK_CONTEXT *NativeLockContext
+    );
+
+VOID
+DMF_GenericSpinLockRelease(
+    _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
+    _In_ GENERIC_SPINLOCK_CONTEXT NativeLockContext
+    );
+
+VOID
+DMF_GenericSpinLockDestroy(
+    _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock
+    );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_

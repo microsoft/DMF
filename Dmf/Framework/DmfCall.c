@@ -2838,7 +2838,9 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->ReferenceCountLock,
+                               &lockContext);
 
     // Increase reference only if Module is open (ReferenceCount >= 1) and if the Module close is not pending.
     // This is to stop new Module method callers from repeatedly accessing the Module when it should be closing.
@@ -2858,7 +2860,8 @@ Return Value:
         ntStatus = STATUS_INVALID_DEVICE_STATE;
     }
 
-    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
+    DMF_GenericSpinLockRelease(&dmfObject->ReferenceCountLock,
+                               lockContext);
 
     return ntStatus;
 }
@@ -2888,13 +2891,16 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
 
-    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->ReferenceCountLock,
+                               &lockContext);
 
     DmfAssert(dmfObject->ReferenceCount >= 1);
 
     DMF_ModuleReferenceDelete(DmfModule);
 
-    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
+    DMF_GenericSpinLockRelease(&dmfObject->ReferenceCountLock,
+                               lockContext);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -2936,7 +2942,9 @@ Return Value:
 
     FuncEntryArguments(DMF_TRACE, "DmfModule=0x%p [%s]", DmfModule, dmfObject->ClientModuleInstanceName);
 
-    WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+    GENERIC_SPINLOCK_CONTEXT lockContext;
+    DMF_GenericSpinLockAcquire(&dmfObject->ReferenceCountLock,
+                               &lockContext);
 
     // Set IsClosePending to TRUE, to avoid Module Method from acquiring
     // a reference to the Module infinitely and blocking the Module from closing.
@@ -2944,11 +2952,13 @@ Return Value:
     dmfObject->IsClosePending = TRUE;
     referenceCount = dmfObject->ReferenceCount;
 
-    WdfSpinLockRelease(dmfObject->ReferenceCountLock);
+    DMF_GenericSpinLockRelease(&dmfObject->ReferenceCountLock,
+                               lockContext);
 
     while (referenceCount > 0)
     {
-        WdfSpinLockAcquire(dmfObject->ReferenceCountLock);
+        DMF_GenericSpinLockAcquire(&dmfObject->ReferenceCountLock,
+                                   &lockContext);
 
         if (referenceCount == 1)
         {
@@ -2961,7 +2971,8 @@ Return Value:
         }
         referenceCount = dmfObject->ReferenceCount;
 
-        WdfSpinLockRelease(dmfObject->ReferenceCountLock);
+        DMF_GenericSpinLockRelease(&dmfObject->ReferenceCountLock,
+                                   lockContext);
 
         if (referenceCount == 0)
         {

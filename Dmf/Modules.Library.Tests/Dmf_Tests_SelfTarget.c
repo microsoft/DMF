@@ -270,7 +270,13 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
                                    timeoutMs,
                                    Tests_SelfTarget_SendCompletion,
                                    moduleContext);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Completion routine will not happen. Return buffer now or a leak happens.
+        //
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           sleepIoctlBuffer);
+    }
 
 #if !defined(TEST_SIMPLE)
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
@@ -294,7 +300,13 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
                                    timeoutMs,
                                    Tests_SelfTarget_SendCompletion,
                                    moduleContext);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Completion routine will not happen. Return buffer now or a leak happens.
+        //
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           sleepIoctlBuffer);
+    }
 #endif
 }
 #pragma code_seg()
@@ -343,7 +355,13 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
                                    ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                    Tests_SelfTarget_SendCompletion,
                                    moduleContext);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Completion routine will not happen. Return buffer now or a leak happens.
+        //
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           sleepIoctlBuffer);
+    }
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
                                         0,
                                         timeToSleepMilliseconds / 2);
@@ -376,7 +394,13 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
                                    ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                    Tests_SelfTarget_SendCompletion,
                                    moduleContext);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Completion routine will not happen. Return buffer now or a leak happens.
+        //
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           sleepIoctlBuffer);
+    }
     DMF_AlertableSleep_ResetForReuse(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
                                      0);
     ntStatus = DMF_AlertableSleep_Sleep(moduleContext->DmfModuleAlertableSleep[ThreadIndex],
