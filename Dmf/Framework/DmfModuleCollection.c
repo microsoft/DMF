@@ -2838,7 +2838,7 @@ Return Value:
                                                  ModuleAttributes->SizeOfModuleSpecificConfig;
     ntStatus = WdfMemoryCreate(&objectAttributes,
                                NonPagedPoolNx,
-                               DMF_TAG,
+                               DMF_TAG5,
                                totalSizeOfAttributesAndCallbacksAndConfig,
                                &memoryConfigAndAttributes,
                                &memoryConfigAndAttributesBuffer);
@@ -3412,7 +3412,7 @@ Return Value:
     }
     ntStatus = WdfMemoryCreate(&attributes,
                                NonPagedPoolNx,
-                               DMF_TAG,
+                               DMF_TAG6,
                                sizeof(DMF_MODULE_COLLECTION),
                                &moduleCollectionHandleMemory,
                                (VOID**)&moduleCollectionHandle);
@@ -3453,7 +3453,7 @@ Return Value:
         attributes.ParentObject = (DMFCOLLECTION)(moduleCollectionHandle->ModuleCollectionHandleMemory);
         ntStatus = WdfMemoryCreate(&attributes,
                                    NonPagedPoolNx,
-                                   DMF_TAG,
+                                   DMF_TAG8,
                                    sizeof(DMF_OBJECT*) * numberOfClientModulesToCreate,
                                    &moduleCollectionHandle->ClientDriverDmfModulesMemory,
                                    (VOID**)&moduleCollectionHandle->ClientDriverDmfModules);

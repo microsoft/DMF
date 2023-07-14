@@ -609,7 +609,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     ntStatus = WdfMemoryCreate(&attributes,
                                 NonPagedPoolNx,
-                                DMF_TAG,
+                                DMF_TAG7,
                                 outputString.MaximumLength,
                                 &writeBufferMemoryHandle,
                                 (PVOID*)&outputString.Buffer);

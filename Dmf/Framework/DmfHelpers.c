@@ -389,10 +389,26 @@ Return Value:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+typedef
+PVOID
+(*InternalExAllocatePoolWithTag)(
+    _In_ POOL_TYPE PoolType,
+    _In_ SIZE_T NumberOfBytes,
+    _In_ ULONG Tag
+    );
+
+typedef
+PVOID
+(*InternalExAllocatePool2)(
+    _In_ ULONG64 Flags,
+    _In_ SIZE_T NumberOfBytes,
+    _In_ ULONG Tag
+    );
+
 #if !defined(DMF_USER_MODE)
     VOID*
     DMF_GenericMemoryAllocate(
-        _In_ ULONG PoolFlags,
+        _In_ ULONG64 PoolFlags,
         _In_ size_t Size,
         _In_ ULONG Tag
         )
@@ -404,6 +420,11 @@ Routine Description:
     For some memory allocations it is not necessary to incur the overhead
     of WDF handles. In those cases, use this function instead of 
     WdfMemoryCreate() to avoid creating a new handle.
+
+    NOTE: This code needs support legacy Windows which does not support 
+          ExAllocatePool2. Therefore, the checks below are necessary.
+          This code only executes internally in DMF and performance is not
+          a consideration since it only executes while creating a Module.
 
 Arguments:
 
@@ -419,10 +440,69 @@ Return Value:
 --*/
     {
         VOID* returnValue;
+        UNICODE_STRING functionName;
+        static InternalExAllocatePool2 internalExAllocatePool2;
+        static InternalExAllocatePoolWithTag internalExAllocatePoolWithTag;
 
-        returnValue = ExAllocatePool2(PoolFlags,
-                                      Size,
-                                      Tag);
+        if (internalExAllocatePool2 == NULL)
+        {
+            if (internalExAllocatePoolWithTag != NULL)
+            {
+                goto Legacy;
+            }
+            // Search for the function the first time.
+            //
+            RtlInitUnicodeString(&functionName,
+                                 L"ExAllocatePool2");
+            internalExAllocatePool2 = (InternalExAllocatePool2)MmGetSystemRoutineAddress(&functionName);
+            if (internalExAllocatePool2 != NULL)
+            {
+                goto NonLegacy;
+            }
+            else
+            {
+                if (internalExAllocatePoolWithTag == NULL)
+                {
+                    // Search for the function the first time.
+                    // NOTE: To pass CodeQL, code cannot reference ExAllocatePoolWithTag directly.
+                    //
+                    RtlInitUnicodeString(&functionName,
+                                         L"ExAllocatePoolWithTag");
+                    internalExAllocatePoolWithTag = (InternalExAllocatePoolWithTag)MmGetSystemRoutineAddress(&functionName);
+                    if (internalExAllocatePoolWithTag != NULL)
+                    {
+                        goto Legacy;
+                    }
+                    else
+                    {
+                        // This should never happen.
+                        //
+                        DmfAssert(FALSE);
+                        returnValue = NULL;
+                    }
+                }
+                else
+                {
+Legacy:
+                    POOL_TYPE poolType = NonPagedPoolNx;
+
+                    if (PoolFlags == POOL_FLAG_PAGED)
+                    {
+                        poolType = PagedPool;
+                    }
+                    returnValue = internalExAllocatePoolWithTag(poolType,
+                                                                Size,
+                                                                Tag);
+                }
+            }
+        }
+        else
+        {
+NonLegacy:
+            returnValue = internalExAllocatePool2(PoolFlags,
+                                                  Size,
+                                                  Tag);
+        }
 
         return returnValue;
     }
@@ -456,7 +536,7 @@ Return Value:
 #else
     VOID*
     DMF_GenericMemoryAllocate(
-        _In_ ULONG PoolFlags,
+        _In_ ULONG64 PoolFlags,
         _In_ size_t Size,
         _In_ ULONG Tag
         )

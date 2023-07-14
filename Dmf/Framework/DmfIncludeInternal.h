@@ -38,6 +38,9 @@ Environment:
 typedef enum
 {
     ModuleState_Invalid = 0,
+    // The Module is being created.
+    //
+    ModuleState_PreCreate,
     // The Module has been created but not opened.
     //
     ModuleState_Created,
@@ -307,6 +310,15 @@ struct _DMF_OBJECT_
 // Memory Allocation Tag for Dmf. ('DmfT')
 //
 #define DMF_TAG                            'TfmD'
+#define DMF_TAG0                           '0fmD'
+#define DMF_TAG1                           '1fmD'
+#define DMF_TAG2                           '2fmD'
+#define DMF_TAG3                           '3fmD'
+#define DMF_TAG4                           '4fmD'
+#define DMF_TAG5                           '5fmD'
+#define DMF_TAG6                           '6fmD'
+#define DMF_TAG7                           '7fmD'
+#define DMF_TAG8                           '8fmD'
 
 #define DMF_TAG_DYNAMIC_MODULE_REFERENCE    ((VOID*)0x7654)
 
@@ -595,7 +607,7 @@ DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(
 
 VOID*
 DMF_GenericMemoryAllocate(
-    _In_ ULONG PoolFlags,
+    _In_ ULONG64 PoolFlags,
     _In_ size_t Size,
     _In_ ULONG Tag
     );

@@ -203,6 +203,14 @@ DMF_HidTarget_FeatureSetEx(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_HidTarget_HidCollectionInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ HID_COLLECTION_INFORMATION* CollectionInformation
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_HidTarget_InputRead(
     _In_ DMFMODULE DmfModule
     );

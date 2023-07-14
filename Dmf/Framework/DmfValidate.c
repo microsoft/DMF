@@ -191,8 +191,7 @@ Return Value:
     DmfAssert(DmfObject != NULL);
     DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
     DmfAssert(((ModuleState_Opened == DmfObject->ModuleState) || (ModuleState_Created == DmfObject->ModuleState)) ||
-              ((DmfObject->DmfObjectParent != NULL) && (DmfObject->ModuleState == ModuleState_Closed))
-              );
+              ((DmfObject->DmfObjectParent != NULL) && (DmfObject->ModuleState == ModuleState_Closed)));
 }
 
 VOID
@@ -282,7 +281,8 @@ Return Value:
     DmfAssert(DmfObject != NULL);
     DmfAssert(DMF_OBJECT_SIGNATURE == DmfObject->Signature);
     DmfAssert((ModuleState_Closed == DmfObject->ModuleState) ||
-              (ModuleState_Created == DmfObject->ModuleState));
+              (ModuleState_Created == DmfObject->ModuleState) ||
+              (ModuleState_PreCreate == DmfObject->ModuleState));
 }
 
 VOID
