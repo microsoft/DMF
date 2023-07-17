@@ -73,6 +73,10 @@ typedef struct _DMF_CONTEXT_BufferPool
     // For debug purposes.
     //
     BOOLEAN BufferPoolEnumerating;
+    // For debug purposes. Helps to understand how many preallocated buffers are needed.
+    //
+    LONG BuffersUsed;
+    LONG MaximumBuffersUsed;
 } DMF_CONTEXT_BufferPool;
 
 // This macro declares the following function:
@@ -205,6 +209,47 @@ Return Value:
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
+BufferPool_BuffersInListDecrement(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_CONTEXT_BufferPool* ModuleContext
+    )
+/*++
+
+Routine Description:
+
+    Decrements buffers in list and tracks high water mark.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ModuleContext - This Module's context.
+
+Return Value:
+
+    None
+
+--*/
+{
+    UNREFERENCED_PARAMETER(DmfModule);
+
+    DmfAssert(DMF_ModuleIsLocked(DmfModule));
+
+    ModuleContext->NumberOfBuffersInList--;
+
+    // For debug purposes so Client can choose appropriate number of buffers to preallocate.
+    //
+    if (ModuleContext->BufferPoolMode == BufferPool_Mode_Source)
+    {
+        ModuleContext->BuffersUsed++;
+        if (ModuleContext->BuffersUsed > ModuleContext->MaximumBuffersUsed)
+        {
+            ModuleContext->MaximumBuffersUsed = ModuleContext->BuffersUsed;
+        }
+    }
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
 BufferPool_RemoveEntryList(
     _In_ DMFMODULE DmfModule,
     _In_ DMF_CONTEXT_BufferPool* ModuleContext,
@@ -237,7 +282,9 @@ Return Value:
     DmfAssert(ModuleContext->NumberOfBuffersInList > 0);
 
     RemoveEntryList(&BufferPoolEntry->ListEntry);
-    ModuleContext->NumberOfBuffersInList--;
+
+    BufferPool_BuffersInListDecrement(DmfModule,
+                                      ModuleContext);
 
     BufferPoolEntry->CurrentlyInsertedList = NULL;
     BufferPoolEntry->CurrentlyInsertedDmfModule = NULL;
@@ -320,7 +367,9 @@ Return Value:
         DmfAssert(ModuleContext->NumberOfBuffersInList > 0);
         RemoveEntryList(listEntry);
 
-        ModuleContext->NumberOfBuffersInList--;
+        BufferPool_BuffersInListDecrement(DmfModule,
+                                          ModuleContext);
+
         DmfAssert(bufferPoolEntry->CurrentlyInsertedList == &ModuleContext->BufferList);
         DmfAssert(bufferPoolEntry->CurrentlyInsertedDmfModule == DmfModule);
         bufferPoolEntry->CurrentlyInsertedList = NULL;
@@ -489,7 +538,12 @@ Return Value:
     BufferPool_InsertionCallback(ModuleContext,
                                  BufferPoolEntry);
     ModuleContext->NumberOfBuffersInList++;
-
+    if (ModuleContext->BufferPoolMode == BufferPool_Mode_Source)
+    {
+        // NOTE: It can be negative during preallocation.
+        //
+        ModuleContext->BuffersUsed--;
+    }
     DmfAssert(((ModuleContext->NumberOfBuffersSpecifiedByClient > 0) &&
               (ModuleContext->NumberOfBuffersInList <= ModuleContext->NumberOfBuffersSpecifiedByClient)) ||
               (0 == ModuleContext->NumberOfBuffersSpecifiedByClient));
@@ -1264,6 +1318,11 @@ Return Value:
                 break;
             }
         }
+
+        // BuffersUsed is negative due to preallocation.
+        //
+        moduleContext->BuffersUsed = 0;
+
         DMF_ModuleUnlock(DmfModule);
 
         if (!NT_SUCCESS(ntStatus))

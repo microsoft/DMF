@@ -310,7 +310,7 @@ Return Value:
     //
     DmfObject->ClientModuleInstanceName = (CHAR*)DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
                                                                            DmfObject->ClientModuleInstanceNameSizeBytes,
-                                                                           DMF_TAG);
+                                                                           DMF_TAG0);
     if (DmfObject->ClientModuleInstanceName == NULL)
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Unable to allocate ClientModuleInstanceName");
@@ -378,7 +378,7 @@ Return Value:
         DmfAssert(ModuleDescriptor->ModuleConfigSize == DmfModuleAttributes->SizeOfModuleSpecificConfig);
         DmfObject->ModuleConfig = DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
                                                             ModuleDescriptor->ModuleConfigSize,
-                                                            DMF_TAG);
+                                                            DMF_TAG1);
         if (DmfObject->ModuleConfig == NULL)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
@@ -473,7 +473,7 @@ Return Value:
 
     DmfObject->ModuleDescriptor.CallbacksDmf = (DMF_CALLBACKS_DMF*)DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
                                                                                              sizeof(DMF_CALLBACKS_DMF),
-                                                                                             DMF_TAG);
+                                                                                             DMF_TAG2);
     if (NULL == DmfObject->ModuleDescriptor.CallbacksDmf)
     {
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
@@ -486,11 +486,11 @@ Return Value:
 
     DmfObject->ModuleDescriptor.CallbacksWdf = (DMF_CALLBACKS_WDF*)DMF_GenericMemoryAllocate(POOL_FLAG_NON_PAGED,
                                                                                              sizeof(DMF_CALLBACKS_WDF),
-                                                                                             DMF_TAG);
+                                                                                             DMF_TAG3);
     if (NULL == DmfObject->ModuleDescriptor.CallbacksWdf)
     {
         DMF_GenericMemoryFree(DmfObject->ModuleDescriptor.CallbacksDmf,
-                              DMF_TAG);
+                              DMF_TAG2);
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
@@ -1191,7 +1191,7 @@ Return Value:
 
     ntStatus = WdfMemoryCreate(DmfModuleObjectAttributes,
                                NonPagedPoolNx,
-                               DMF_TAG,
+                               DMF_TAG4,
                                sizeof(DMF_OBJECT),
                                &memoryDmfObject,
                                (VOID**)&dmfObject);
@@ -1232,6 +1232,12 @@ Return Value:
     dmfObject->NeedToCallPreClose = FALSE;
     dmfObject->ClientEvtCleanupCallback = clientEvtCleanupCallback;
     dmfObject->IsTransport = DmfModuleAttributes->IsTransportModule;
+
+    // Initialize the Module State.
+    // This state is to prevent asserts during fault-injection or low memory conditions.
+    //
+    DmfAssert(ModuleState_Invalid == dmfObject->ModuleState);
+    dmfObject->ModuleState = ModuleState_PreCreate;
 
     // Prevent Module's Close() handler from being called if it was never opened.
     //
@@ -1331,9 +1337,9 @@ Return Value:
         goto Exit;
     }
 
-    // Initialize the Module State.
+    // Initialize the Module State as "created".
     //
-    DmfAssert(ModuleState_Invalid == dmfObject->ModuleState);
+    DmfAssert(ModuleState_PreCreate == dmfObject->ModuleState);
     dmfObject->ModuleState = ModuleState_Created;
 
     // Check if ParentObject is of type DMFMODULE.
@@ -1453,6 +1459,39 @@ Exit:
     {
         if (memoryDmfObject != NULL)
         {
+            // Need to delete all non-WDF allocations for the non-Dynamic Module case.
+            // This code runs in the case of fault-injection or low memory scenaarios.
+            //
+            if (dmfObject->ClientModuleInstanceName != NULL)
+            {
+                DMF_GenericMemoryFree(dmfObject->ClientModuleInstanceName,
+                                      DMF_TAG0);
+                dmfObject->ClientModuleInstanceName = NULL;
+            }
+            if (dmfObject->ModuleDescriptor.CallbacksDmf != NULL)
+            {
+                DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksDmf,
+                                      DMF_TAG2);
+                dmfObject->ModuleDescriptor.CallbacksDmf = NULL;
+            }
+            if (dmfObject->ModuleDescriptor.CallbacksWdf != NULL)
+            {
+                DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksWdf,
+                                      DMF_TAG3);
+                dmfObject->ModuleDescriptor.CallbacksWdf = NULL;
+            }
+            if (dmfObject->ModuleConfig != NULL)
+            {
+                DMF_GenericMemoryFree(dmfObject->ModuleConfig,
+                                      DMF_TAG1);
+                dmfObject->ModuleConfig = NULL;
+            }
+            if (DmfModuleAttributes->DynamicModuleImmediate)
+            {
+                // This is necessary to prevent assert in case of fault-injection or low memory scenarios.
+                //
+                dmfObject->DynamicModuleImmediate = TRUE;
+            }
             // All subsequent allocations after memoryDmfObject use memoryDmfObject as parent. So, this
             // call deletes all the allocations made.
             //
@@ -1571,16 +1610,32 @@ Return Value:
 
     DmfAssert(dmfObject->MemoryDmfObject != NULL);
 
-    DmfAssert(dmfObject->ClientModuleInstanceName != NULL);
-    DMF_GenericMemoryFree(dmfObject->ClientModuleInstanceName,
-                          DMF_TAG);
-    dmfObject->ClientModuleInstanceName = NULL;
+    // NOTE: It can be NULL in cases of fault-injection or low memory.
+    //
+    if (dmfObject->ClientModuleInstanceName != NULL)
+    {
+        DMF_GenericMemoryFree(dmfObject->ClientModuleInstanceName,
+                              DMF_TAG0);
+        dmfObject->ClientModuleInstanceName = NULL;
+    }
 
-    DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksDmf,
-                          DMF_TAG);
+    // NOTE: It can be NULL in cases of fault-injection or low memory.
+    //
+    if (dmfObject->ModuleDescriptor.CallbacksDmf != NULL)
+    {
+        DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksDmf,
+                              DMF_TAG2);
+        dmfObject->ModuleDescriptor.CallbacksDmf = NULL;
+    }
 
-    DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksWdf,
-                          DMF_TAG);
+    // NOTE: It can be NULL in cases of fault-injection or low memory.
+    //
+    if (dmfObject->ModuleDescriptor.CallbacksWdf)
+    {
+        DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksWdf,
+                              DMF_TAG3);
+        dmfObject->ModuleDescriptor.CallbacksWdf = NULL;
+    }
 
 #if defined(DMF_KERNEL_MODE)
     if (dmfObject->InFlightRecorder != NULL)
@@ -1596,7 +1651,7 @@ Return Value:
     if (dmfObject->ModuleConfig != NULL)
     {
         DMF_GenericMemoryFree(dmfObject->ModuleConfig,
-                              DMF_TAG);
+                              DMF_TAG1);
         dmfObject->ModuleConfig = NULL;
     }
     else

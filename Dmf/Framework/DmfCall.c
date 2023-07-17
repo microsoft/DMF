@@ -584,13 +584,21 @@ Return Value:
                                          DMF_ModuleTreeDestroy,
                                          &DmfChildObjectIterateBackward);
 
-    // Dispatch callback to the given Parent DMF Module next.
-    //
-    DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
-    // 'The current function is permitted to run at an IRQ level above the maximum permitted'
-    //
-    #pragma warning(suppress:28118)
-    (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(dmfModule);
+    if (dmfObject->ModuleDescriptor.CallbacksDmf != NULL)
+    {
+        // Dispatch callback to the given Parent DMF Module next.
+        //
+        DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
+        // 'The current function is permitted to run at an IRQ level above the maximum permitted'
+        //
+        #pragma warning(suppress:28118)
+        (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(dmfModule);
+    }
+    else 
+    {
+        // NOTE: In cases of low memory or fault injection, CallbacksDmf can be NULL.
+        //
+    }
 
     // The Module Callback always does this. Do it for the Module.
     // NOTE: Don't delete the memory because it will be deleted by WDF.
@@ -612,8 +620,16 @@ Return Value:
     // Child is deleted so that Child can access Parent Module's
     // WDFOBJECT context while running down.
     //
-    WdfObjectDereferenceWithTag(objectToDereference,
-                                DMF_TAG_DYNAMIC_MODULE_REFERENCE);
+    if (objectToDereference != NULL)
+    {
+        WdfObjectDereferenceWithTag(objectToDereference,
+                                    DMF_TAG_DYNAMIC_MODULE_REFERENCE);
+    }
+    else
+    {
+        // It can be NULL in case of fault-injection or low memory scenarios.
+        //
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -60,10 +60,13 @@ typedef struct _DMF_CONTEXT_HidTarget
     // Copy of the Symbolic Name of HID Device.
     //
     WDFMEMORY SymbolicLinkToSearchMemory;
-    // Cached PreparsedData and Hid Caps.
+    // Cached PreparsedData, Hid Capabilities and Hid Collection Information.
     // These remains constant for a specific hid device.
+    //
     WDFMEMORY PreparsedDataMemory;
     HIDP_CAPS HidCaps;
+    HID_COLLECTION_INFORMATION HidCollectionInformation;
+
     // Child ContinuousRequestTarget DMF Module.
     //
     DMFMODULE DmfModuleContinuousRequestTarget;
@@ -608,6 +611,8 @@ Return Value:
                     ntStatus);
         goto Exit;
     }
+
+    moduleContext->HidCollectionInformation = hidCollectionInformation;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = DmfModule;
@@ -4295,6 +4300,60 @@ ExitNoRelease:
     return ntStatus;
 }
 #pragma code_seg()
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_HidTarget_HidCollectionInformationGet(
+    _In_ DMFMODULE DmfModule,
+    _Out_ HID_COLLECTION_INFORMATION* HidCollectionInformation
+    )
+/*++
+
+Routine Description:
+
+    Get the Hid Collection Information.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    HidCollectionInformation - Pointer to return the Hid Collection Information.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_HidTarget* moduleContext;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 HidTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    *HidCollectionInformation = moduleContext->HidCollectionInformation;
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
