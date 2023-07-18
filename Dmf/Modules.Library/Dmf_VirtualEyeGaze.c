@@ -41,11 +41,8 @@ typedef unsigned char HID_REPORT_DESCRIPTOR, *PHID_REPORT_DESCRIPTOR;
 //
 
 #define HID_USAGE_PAGE_EYE_HEAD_TRACKER             (0x0012)
-#define HID_USAGE_PAGE_NAME_EYE_HEAD_TRACKER        "Eye and Head Trackers"
 
-#define HID_USAGE_UNDEFINED                         (0x0000)        // Type
 #define HID_USAGE_EYE_TRACKER                       (0x0001)        // CA
-#define HID_USAGE_HEAD_TRACKER                      (0x0002)        // CA
 //RESERVED                                          0x0003-0x000F
 //
 
