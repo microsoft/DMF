@@ -52,6 +52,10 @@ typedef struct _DMF_CONTEXT_NotifyUserWithRequest
     // List used to store events.
     //
     DMFMODULE DmfModuleBufferQueue;
+
+    // Used to timestamp requests and data buffers.
+    //
+    DMFMODULE DmfModuleTime;
 } DMF_CONTEXT_NotifyUserWithRequest;
 
 // This macro declares the following function:
@@ -83,7 +87,17 @@ typedef struct
     // Status used to complete the request.
     //
     NTSTATUS NtStatus;
+
+    // Time that data is received.
+    //
+    LONGLONG Timestamp;
 } USEREVENT_ENTRY;
+
+struct REQUESTCONTEXT 
+{
+    LONGLONG Timestamp;
+};
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(REQUESTCONTEXT, RequestContextGet)
 
 EVT_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE EvtIoCanceledOnQueue;
 
@@ -631,6 +645,15 @@ Return Value:
                          &moduleContext->DmfModuleBufferQueue);
     }
 
+    if (moduleConfig->TimeStamping)
+    {
+        DMF_Time_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleTime);
+    }
+
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
@@ -708,6 +731,47 @@ Return Value:
 
 // Module Methods
 //
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+LONGLONG
+DMF_NotifyUserWithRequest_DataBufferTimestampGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* DataBuffer
+    )
+/*++
+
+Routine Description:
+
+    Given a dequeued data buffer, this Method returns its corresponding time stamp.
+    NOTE: Only call this Method from the callback.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    DataBuffer - The given data buffer.
+
+Return Value:
+
+    The data buffer's time stamp.
+
+++*/
+{
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
+
+#if defined(DEBUG)
+    DMF_CONFIG_NotifyUserWithRequest* moduleConfig = DMF_CONFIG_GET(DmfModule);
+    DmfAssert(moduleConfig->TimeStamping);
+#endif
+
+    USEREVENT_ENTRY* userEventEntry = (USEREVENT_ENTRY*)(((CHAR*)DataBuffer) - sizeof(USEREVENT_ENTRY));
+
+    FuncExit(DMF_TRACE,"timeStamp=%lld", userEventEntry->Timestamp);
+
+    return userEventEntry->Timestamp;
+}
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -809,6 +873,11 @@ Return Value:
     userEventEntry->EventCallbackFunction = EventCallbackFunction;
     userEventEntry->NtStatus = NtStatus;
     userEventEntry->EventCallbackContext = ((BYTE*)userEventEntry) + sizeof(USEREVENT_ENTRY);
+    if (moduleConfig->TimeStamping)
+    {
+        userEventEntry->Timestamp = DMF_Time_TickCountGet(moduleContext->DmfModuleTime);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "userEventEntry Timestamp=%lld", userEventEntry->Timestamp);
+    }
     // It is not necessary to check if EventCallbackContext is NULL because if that is the case
     // SizeOfDataBuffer is asserted to be 0.
     // 'warning C6387: 'EventCallbackContext' could be '0':  this does not adhere to the specification for the function 'memcpy'. '.
@@ -900,6 +969,26 @@ Return Value:
         ntStatus = STATUS_INVALID_DEVICE_STATE;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Too many events (%d): Request=%p", moduleConfig->MaximumNumberOfPendingRequests, Request);
         goto Exit;
+    }
+
+    if (moduleConfig->TimeStamping)
+    {
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+        WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&objectAttributes, 
+                                                REQUESTCONTEXT);
+
+        REQUESTCONTEXT* requestContext;
+        ntStatus = WdfObjectAllocateContext(Request, 
+                                            &objectAttributes, 
+                                            (VOID**)&requestContext);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        requestContext->Timestamp = DMF_Time_TickCountGet(moduleContext->DmfModuleTime);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "requestContext Timestamp=%lld", requestContext->Timestamp);
     }
 
     // When a process comes or goes this request will be dequeued and completed.
@@ -1184,6 +1273,47 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 
     return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+LONGLONG
+DMF_NotifyUserWithRequest_RequestTimestampGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
+    )
+/*++
+
+Routine Description:
+
+    Given a dequeued WDFREQUEST, this Method returns its corresponding time stamp.
+    NOTE: Only call this Method from the callback.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    Request - The given WDFREQUEST.
+
+Return Value:
+
+    The given request's time stamp.
+
+++*/
+{
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 NotifyUserWithRequest);
+
+#if defined(DEBUG)
+    DMF_CONFIG_NotifyUserWithRequest* moduleConfig = DMF_CONFIG_GET(DmfModule);
+    DmfAssert(moduleConfig->TimeStamping);
+#endif
+
+    REQUESTCONTEXT* requestContext = RequestContextGet(Request);
+
+    FuncExit(DMF_TRACE,"timeStamp=%lld", requestContext->Timestamp);
+
+    return requestContext->Timestamp;
 }
 
 // eof: Dmf_NotifyUserWithRequest.c

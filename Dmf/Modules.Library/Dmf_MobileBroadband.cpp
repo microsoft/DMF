@@ -155,8 +155,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 inline
 NTSTATUS
-MobileCodeCalulate(
-    _In_ const wchar_t* ProviderId,
+MobileBroadband_MobileCodeCalculate(
+    _In_ hstring ProviderId,
     _In_ int StartPosition, 
     _In_ int CodeLength,
     _Out_ DWORD* Result
@@ -181,12 +181,14 @@ Return Value:
     --*/
 {
     DWORD result = 0;
+    int currentPosition = 0;
     for (int providerIdIndex = 0; providerIdIndex < CodeLength; providerIdIndex++) 
     {
-        if (ProviderId[providerIdIndex + StartPosition] >= '0' && 
-            ProviderId[providerIdIndex + StartPosition] <= '9')
+        currentPosition = providerIdIndex + StartPosition;
+        if (ProviderId[currentPosition] >= '0' &&
+            ProviderId[currentPosition] <= '9')
         {
-            result = result * 10 + (ProviderId[providerIdIndex + StartPosition] - '0');
+            result = result * 10 + (DWORD)(ProviderId[currentPosition] - '0');
         }
         else
         {
@@ -1210,7 +1212,7 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONTEXT_MobileBroadband* moduleContext;
     MobileBroadbandNetwork currentNetwork = nullptr;
-    const wchar_t* providerId;
+    hstring providerId;
     uint32_t productIdLength;
     DWORD mobileAreaCode;
     DWORD mobileNetworkCode;
@@ -1237,7 +1239,7 @@ Return Value:
         currentNetwork = moduleContext->ModemDevice->modem.CurrentNetwork();
         // Product Id contains 3 digit Mcc value together with 2 or 3 digit Mnc value.
         //
-        providerId = currentNetwork.RegisteredProviderId().c_str();
+        providerId = currentNetwork.RegisteredProviderId();
         productIdLength = currentNetwork.RegisteredProviderId().size();
     }
     catch (hresult_error ex)
@@ -1265,10 +1267,10 @@ Return Value:
     // Mcc is always 3 digits.
     //
     mccLength = MccMncReportLengthMaximum / 2;
-    ntStatus = MobileCodeCalulate(providerId, 
-                                  0, 
-                                  mccLength, 
-                                  &mobileAreaCode);
+    ntStatus = MobileBroadband_MobileCodeCalculate(providerId,
+                                                   0, 
+                                                   mccLength, 
+                                                   &mobileAreaCode);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "mobileAreaCode get fails");
@@ -1278,10 +1280,10 @@ Return Value:
     // Mnc value can be 2 or 3, total length divided by 2 can get the result.
     //
     mncLength = productIdLength / 2;
-    ntStatus = MobileCodeCalulate(providerId, 
-                                  mccLength, 
-                                  mncLength, 
-                                  &mobileNetworkCode);
+    ntStatus = MobileBroadband_MobileCodeCalculate(providerId,
+                                                   mccLength, 
+                                                   mncLength, 
+                                                   &mobileNetworkCode);
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "mobileAreaCode get fails");
