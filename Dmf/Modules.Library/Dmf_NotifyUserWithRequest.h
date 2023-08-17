@@ -54,6 +54,9 @@ typedef struct
     // Optional callback for Client to process data before it is flushed.
     //
     EVT_DMF_BufferQueue_ReuseCleanup* EvtDataCleanup;
+    // Use automatic time stamping.
+    //
+    BOOLEAN TimeStamping;
 } DMF_CONFIG_NotifyUserWithRequest;
 
 // This macro declares the following functions:
@@ -65,6 +68,13 @@ DECLARE_DMF_MODULE(NotifyUserWithRequest)
 
 // Module Methods
 //
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+LONGLONG
+DMF_NotifyUserWithRequest_DataBufferTimestampGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* DataBuffer
+    );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
@@ -117,6 +127,13 @@ DMF_NotifyUserWithRequest_RequestReturnEx(
     _In_opt_ EVT_DMF_NotifyUserWithRequest_Complete* EventCallbackFunction,
     _In_opt_ ULONG_PTR EventCallbackContext,
     _In_ NTSTATUS NtStatus
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+LONGLONG
+DMF_NotifyUserWithRequest_RequestTimestampGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
     );
 
 // eof: Dmf_NotifyUserWithRequest.h

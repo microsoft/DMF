@@ -77,6 +77,18 @@ typedef struct _DMF_CONTEXT_BufferPool
     //
     LONG BuffersUsed;
     LONG MaximumBuffersUsed;
+    // Offset of the client buffer in the lookaside list for a given buffer entry.
+    //
+    size_t ClientBufferOffset;
+    // Offset of the client buffer context in lookaside list for a given buffer entry.
+    //
+    size_t ClientBufferContextOffset;
+    // Offset of the first sentinel for a given buffer entry.
+    //
+    size_t DataSentinelOffset;
+    // Offset of the second sentinel for a given buffer entry.
+    //
+    size_t ContextSentinelOffset;
 } DMF_CONTEXT_BufferPool;
 
 // This macro declares the following function:
@@ -106,11 +118,6 @@ typedef ULONG BufferPool_SentinelType;
 #define BufferPool_SentinelData     0x33334444
 #define BufferPool_SentinelSize     sizeof(BufferPool_SentinelType)
 
-// Enforce the client buffer, which comes after this structure, to be 4-byte aligned, which
-// is a requirement on ARM systems. Without this forced alignment, in certain situations, Windows on
-// ARM will crash due to a misalignment fault when executing specific load instructions.
-//
-#pragma pack(push, 4)
 typedef struct
 {
     // Stores the location of this buffer in the list.
@@ -161,7 +168,6 @@ typedef struct
     BufferPool_SentinelType* SentinelContext;
     ULONG Signature;
 } BUFFERPOOL_ENTRY;
-#pragma pack(pop)
 
 // Function that inserts a buffer in the BufferList.
 //
@@ -916,17 +922,17 @@ Return Value:
     bufferPoolEntry->BufferContextSize = moduleConfig->Mode.SourceSettings.BufferContextSize;
     // The client buffer is located immediately after the buffer list entry.
     //
-    bufferPoolEntry->ClientBuffer = (VOID*)(bufferPoolEntry + 1);
+    bufferPoolEntry->ClientBuffer = (UCHAR*)((UCHAR*)bufferPoolEntry + moduleContext->ClientBufferOffset);
     // For validation purposes to check for buffer overrun.
     //
-    bufferPoolEntry->SentinelData = (BufferPool_SentinelType*)(((UCHAR*)bufferPoolEntry->ClientBuffer) + bufferPoolEntry->SizeOfClientBuffer);
+    bufferPoolEntry->SentinelData = (BufferPool_SentinelType*)(UCHAR*)((UCHAR*)bufferPoolEntry + moduleContext->DataSentinelOffset);
     *(bufferPoolEntry->SentinelData) = BufferPool_SentinelData;
     // The client buffer context is located immediately after the buffer sentinel data.
     //
-    bufferPoolEntry->ClientBufferContext = (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize;
+    bufferPoolEntry->ClientBufferContext = (UCHAR*)((UCHAR*)bufferPoolEntry + moduleContext->ClientBufferContextOffset);
     // For validation purposes to check for buffer context overrun.
     //
-    bufferPoolEntry->SentinelContext = (BufferPool_SentinelType*)(((UCHAR*)bufferPoolEntry->ClientBufferContext) + bufferPoolEntry->BufferContextSize);
+    bufferPoolEntry->SentinelContext = (BufferPool_SentinelType*)((UCHAR*)bufferPoolEntry + moduleContext->ContextSentinelOffset);
     *(bufferPoolEntry->SentinelContext) = BufferPool_SentinelContext;
     // Timer related.
     //
@@ -1224,17 +1230,23 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    WDFDEVICE device;
     DMF_CONTEXT_BufferPool* moduleContext;
     DMF_CONFIG_BufferPool* moduleConfig;
-    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    WDF_OBJECT_ATTRIBUTES memoryObjectAttributes;
+    WDF_OBJECT_ATTRIBUTES lookasideObjectAttributes;
     ULONG bufferIndex;
-    ULONG sizeOfEachAllocation;
+    size_t sizeOfEachAllocation;
+    size_t bufferPoolEntrySizeAligned;
+    size_t bufferSizeAligned;
+    size_t bufferContextSizeAligned;
+    size_t sentinelSizeAligned;
 
     FuncEntry(DMF_TRACE);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    device = DMF_ParentDeviceGet(DmfModule);
 
     // Populate Module Context.
     //
@@ -1281,24 +1293,65 @@ Return Value:
     if (moduleConfig->BufferPoolMode == BufferPool_Mode_Source)
     {
         DmfAssert(moduleConfig->Mode.SourceSettings.BufferSize > 0);
-        sizeOfEachAllocation = sizeof(BUFFERPOOL_ENTRY) +
-                               moduleConfig->Mode.SourceSettings.BufferSize +
-                               moduleConfig->Mode.SourceSettings.BufferContextSize +
-                               BufferPool_SentinelSize +
+
+        // Each buffer allocated in the look aside list and contains components that are asigned
+        // in the bffer as described below.
+        // 
+        // +----------------+---------------+---------------+----------------+------------------+
+        // | Entry Metadata | Client Buffer | Data Sentinel | Buffer Context | Context Sentinel |
+        // +----------------+---------------+---------------+----------------+------------------+
+        // 
+        // The size of Client Buffer and Buffer Context are arbitrarily set by the client of this Module. This 
+        // means they could have sizes that will make the components start in memory address that are misaligned.
+        // Misalignment means slower memory access on most devices and in some instances an exception on arm64
+        // devices. To avoid this issue, the size of each component is rounded up to the memory allocation alignment
+        // to ensure that client memory will aligned regardless of how client uses Client Buffer and Buffer Context.
+        // 
+
+        // Calculate sizes that is aligned to maximum alignment requirement.
+        //
+        bufferPoolEntrySizeAligned = WDF_ALIGN_SIZE_UP(sizeof(BUFFERPOOL_ENTRY),
+                                                       MEMORY_ALLOCATION_ALIGNMENT);
+        bufferSizeAligned = WDF_ALIGN_SIZE_UP(moduleConfig->Mode.SourceSettings.BufferSize,
+                                              MEMORY_ALLOCATION_ALIGNMENT);
+        sentinelSizeAligned = WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize,
+                                                MEMORY_ALLOCATION_ALIGNMENT);
+        bufferContextSizeAligned = WDF_ALIGN_SIZE_UP(moduleConfig->Mode.SourceSettings.BufferSize,
+                                                     MEMORY_ALLOCATION_ALIGNMENT);
+
+        sizeOfEachAllocation = bufferPoolEntrySizeAligned +
+                               bufferSizeAligned +
+                               sentinelSizeAligned +
+                               bufferContextSizeAligned +
                                BufferPool_SentinelSize;
 
-        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
-        objectAttributes.ParentObject = DmfModule;
+        // Calculate offsets.
+        //
+        moduleContext->ClientBufferOffset = bufferPoolEntrySizeAligned;
+        moduleContext->DataSentinelOffset = moduleContext->ClientBufferOffset + bufferSizeAligned;
+        moduleContext->ClientBufferContextOffset =  moduleContext->DataSentinelOffset + sentinelSizeAligned;
+        moduleContext->ContextSentinelOffset = moduleContext->ClientBufferContextOffset + bufferContextSizeAligned;
+        
+        // Parent the memory objects created from the lookaside list to the device because if the buffers associated with
+        // them is removed from the source Module, their lifetime is not be tied to the source Module's.
+        //
+        WDF_OBJECT_ATTRIBUTES_INIT(&memoryObjectAttributes);
+        memoryObjectAttributes.ParentObject = device;
+
+        // The lookaside list itself should be parented to the Module since is used only the this Module.
+        //
+        WDF_OBJECT_ATTRIBUTES_INIT(&lookasideObjectAttributes);
+        lookasideObjectAttributes.ParentObject = DmfModule;
 
         // 'Error annotation: __formal(3,BufferSize) cannot be zero.'
         // '_Param_(1)' could be '0':  this does not adhere to the specification for the function 'DMF_Portable_LookasideListCreate'. 
         //
         #pragma warning(suppress:28160)
         #pragma warning(suppress:6387)
-        ntStatus = DMF_Portable_LookasideListCreate(&objectAttributes,
+        ntStatus = DMF_Portable_LookasideListCreate(&lookasideObjectAttributes,
                                                     sizeOfEachAllocation,
                                                     moduleConfig->Mode.SourceSettings.PoolType,
-                                                    &objectAttributes,
+                                                    &memoryObjectAttributes,
                                                     MemoryTag,
                                                     &moduleContext->LookasideList);
         if (! NT_SUCCESS(ntStatus))
@@ -1782,7 +1835,8 @@ Return Value:
 
     bufferPoolEntry = BufferPool_BufferPoolEntryGetFromClientBuffer(ClientBuffer);
 
-    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) +
+              WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize, MEMORY_ALLOCATION_ALIGNMENT));
 
     DmfAssert(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
@@ -1997,7 +2051,8 @@ Return Value:
 
                 if (ClientBufferContext != NULL)
                 {
-                    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+                    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) +
+                              WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize, MEMORY_ALLOCATION_ALIGNMENT));
                     DmfAssert(ClientBufferContext != NULL);
                     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
                 }
@@ -2100,7 +2155,8 @@ Return Value:
     DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
-    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) +
+              WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize, MEMORY_ALLOCATION_ALIGNMENT));
     if (ClientBufferContext != NULL)
     {
         if (bufferPoolEntry->BufferContextSize > 0)
@@ -2175,7 +2231,8 @@ Return Value:
     DmfAssert(bufferPoolEntry->ClientBuffer != NULL);
     *ClientBuffer = bufferPoolEntry->ClientBuffer;
 
-    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) +
+              WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize, MEMORY_ALLOCATION_ALIGNMENT));
     DmfAssert(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
 
@@ -2245,7 +2302,8 @@ Return Value:
     DmfAssert(MemoryDescriptor != NULL);
     *MemoryDescriptor = bufferPoolEntry->MemoryDescriptor;
 
-    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) + BufferPool_SentinelSize);
+    DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->SentinelData) +
+              WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize, MEMORY_ALLOCATION_ALIGNMENT));
     DmfAssert(ClientBufferContext != NULL);
     *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
 
@@ -2323,7 +2381,9 @@ Return Value:
 
     if (ClientBufferContext != NULL)
     {
-        DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->ClientBuffer) + bufferPoolEntry->SizeOfClientBuffer + sizeof(BufferPool_SentinelType));
+        DmfAssert(bufferPoolEntry->ClientBufferContext == (UCHAR*)(bufferPoolEntry->ClientBuffer)
+            + WDF_ALIGN_SIZE_UP(bufferPoolEntry->SizeOfClientBuffer, MEMORY_ALLOCATION_ALIGNMENT)
+            + WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize, MEMORY_ALLOCATION_ALIGNMENT));
         *ClientBufferContext = bufferPoolEntry->ClientBufferContext;
     }
 

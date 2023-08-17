@@ -19,26 +19,29 @@ Requests are completed.
 ````
 typedef struct
 {
-  // Maximum number of pending events allowed. This is to prevent a caller from
-  // submitting millions of events.
-  //
-  LONG MaximumNumberOfPendingRequests;
-  // Maximum number of User-mode data entries stored.
-  //
-  LONG MaximumNumberOfPendingDataBuffers;
-  // Size of User-mode data entry.
-  //
-  LONG SizeOfDataBuffer;
-  // This Handler is optionally called when a Request is canceled.
-  //
-  EVT_DMF_NotifyUserWithRequest_Function* EvtPendingRequestsCancel;
-  // Client Driver's Event Log Provider name to enable
-  // event logging from the DMF_NotifyUserWithRequest Module.
-  //
-  PWSTR ClientDriverProviderName;
-  // Optional callback for Client to process data before it is flushed.
-  //
-  EVT_DMF_BufferQueue_ReuseCleanup* EvtDataCleanup;
+    // Maximum number of pending events allowed. This is to prevent a caller from
+    // submitting millions of events.
+    //
+    LONG MaximumNumberOfPendingRequests;
+    // Maximum number of User-mode data entries stored.
+    //
+    LONG MaximumNumberOfPendingDataBuffers;
+    // Size of User-mode data entry.
+    //
+    LONG SizeOfDataBuffer;
+    // This Handler is optionally called when a Request is canceled.
+    //
+    EVT_DMF_NotifyUserWithRequest_Function* EvtPendingRequestsCancel;
+    // Client Driver's Event Log Provider name to enable
+    // event logging from the DMF_NotifyUserWithRequest Module.
+    //
+    PWSTR ClientDriverProviderName;
+    // Optional callback for Client to process data before it is flushed.
+    //
+    EVT_DMF_BufferQueue_ReuseCleanup* EvtDataCleanup;
+    // Use automatic time stamping.
+    //
+    BOOLEAN TimeStamping;
 } DMF_CONFIG_NotifyUserWithRequest;
 ````
 Member | Description
@@ -49,6 +52,7 @@ SizeOfDataBuffer | Size of context data that is passed to the Client's callback.
 EvtPendingRequestsCancel | The callback that is called Requests are canceled.
 ClientDriverProviderName | Used for Event Logging purposes if the Client has this capability.
 EvtDataCleanup | Callback to process queued data before it is flushed.
+TimeStamping | If TRUE, this Module timestamps enqueued requests and data buffers.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,6 +95,36 @@ NtStatus | The NTSTATUS to return in the Request to the caller.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_NotifyUserWithRequest_DataBufferTimestampGet
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+LONGLONG
+DMF_NotifyUserWithRequest_DataBufferTimestampGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* DataBuffer
+    );
+````
+
+Given a data buffer passed to Client callback, this Method returns its timestamp in clock ticks.
+
+##### Returns
+
+The clock tick count when the data buffer was enqueued.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_NotifyUserWithRequest Module handle.
+DataBuffer | The given data buffer passed in the callback.
+
+##### Remarks
+
+* Time stamp is zero unless time stamping is enabled when the Module is instantiated using its Config.
+* **Only call this Method from the callback using the supplied formal parameter.**
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -298,6 +332,36 @@ NtStatus | The NTSTATUS value to set in the Request that is to be returned.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_NotifyUserWithRequest_RequestTimestampGet
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+LONGLONG
+DMF_NotifyUserWithRequest_RequestTimestampGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFREQUEST Request
+    );
+````
+
+Given a WDFREQUEST passed to Client callback, this Method returns its time stamp in clock ticks.
+
+##### Returns
+
+The clock tick count when the WDFREQUEST was enqueued.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_NotifyUserWithRequest Module handle.
+Request | The given request passed in the callback.
+
+##### Remarks
+
+* Time stamp is zero unless time stamping is enabled when the Module is instantiated using its Config.
+* **Only call this Method from the callback using the supplied formal parameter.**
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module IOCTLs
 
 * None
@@ -331,12 +395,15 @@ NtStatus | The NTSTATUS value to set in the Request that is to be returned.
 
 #### To Do
 
+* Add this capability to DMF_NotifyUserWithRequestMultiple.
+
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Category
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-User Notification
+Driver Patterns
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
