@@ -282,7 +282,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_Stack_Pop(
     _In_ DMFMODULE DmfModule,
-    _In_reads_(ClientBufferSize) VOID* ClientBuffer,
+    _Out_writes_bytes_(ClientBufferSize) VOID* ClientBuffer,
     _In_ size_t ClientBufferSize
     )
 /*++
@@ -335,6 +335,11 @@ Return Value:
 
     // Copy dequeued buffer to the client buffer.
     //
+
+    // 'Possibly incorrect single element annotation on buffer'
+    //
+    __analysis_assume(ClientBufferSize == moduleConfig->StackElementSize);
+    #pragma warning(suppress:26007)
     RtlCopyMemory(ClientBuffer,
                   stackBuffer,
                   moduleConfig->StackElementSize);
@@ -401,6 +406,10 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
+
+    // 'Possibly incorrect single element annotation on buffer'
+    //
+    #pragma warning(suppress:26007)
 
     // Copy client buffer to the fetched buffer.
     //

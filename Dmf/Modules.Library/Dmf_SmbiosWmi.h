@@ -64,7 +64,7 @@ _Check_return_
 NTSTATUS
 DMF_SmbiosWmi_TableCopy(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* TargetBuffer,
+    _Out_writes_(TargetBufferSize) UCHAR* TargetBuffer,
     _In_ ULONG TargetBufferSize
     );
 
@@ -74,8 +74,8 @@ _Check_return_
 NTSTATUS
 DMF_SmbiosWmi_TableCopyEx(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* TargetBuffer,
-    _In_ size_t* TargetBufferSize
+    _Out_writes_(*TargetBufferSize) UCHAR* TargetBuffer,
+    _Inout_ size_t* TargetBufferSize
     );
 
 #if !defined(DMF_USER_MODE)

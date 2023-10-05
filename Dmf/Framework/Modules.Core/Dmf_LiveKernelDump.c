@@ -196,7 +196,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 LiveKernelDump_InvalidateDataBuffer(
     _In_ DMFMODULE DmfModule,
-    _Inout_updates_(BufferSize) UCHAR* Buffer,
+    _Inout_updates_(sizeof(DATA_BUFFER)) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ VOID* CallbackContext
     )

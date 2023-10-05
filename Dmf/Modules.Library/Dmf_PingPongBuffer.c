@@ -500,6 +500,10 @@ Return Value:
 
         // Copy the data from Ping Buffer to Pong Buffer.
         //
+
+        // 'Possibly incorrect single element annotation on buffer'
+        //
+        #pragma warning(suppress:26007)
         RtlCopyMemory(inactivePacket,           // lgtm
                       source,
                       numberOfBytesToWrite);

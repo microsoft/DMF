@@ -78,6 +78,38 @@ FinalUncompressedSize | Final uncompressed size of the buffer
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
+##### DMF_File_Exists
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_File_FileExists(
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName,
+    _Out_ BOOLEAN* FileExists
+    )
+````
+
+Determines if a file exists.
+
+##### Returns
+
+NTSTATUS
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_File Module handle.
+FileName  | Name of the file to search for.
+FileExists | Returns TRUE if the file exists; FALSE, otherwise.
+
+##### Remarks
+
+* FileExists is only valid if NTSTATUS is returned.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_File_DriverFileRead
 
 ````
@@ -85,7 +117,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_File_DriverFileRead(
     _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* FileName, 
+    _In_z_ WCHAR* FileName, 
     _Out_ WDFMEMORY* FileContentMemory,
     _Out_opt_ UCHAR** Buffer,
     _Out_opt_ size_t* BufferLength
@@ -154,7 +186,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_File_ReadEx(
     _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* FileName, 
+    _In_z_ WCHAR* FileName, 
     _Out_ WDFMEMORY* FileContentMemory
     _Out_opt_ UCHAR** Buffer,
     _Out_opt_ size_t* BufferLength

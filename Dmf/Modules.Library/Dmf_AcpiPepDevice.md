@@ -288,14 +288,14 @@ DmfModule | An open DMF_AcpiPepDevice Module handle.
 ````
 VOID
 DMF_AcpiPepDevice_PepAcpiDataReturn(
-    _In_ VOID* Value,
+    _In_reads_bytes_(ValueLength) VOID* Value,
     _In_ USHORT ValueType,
     _In_ ULONG ValueLength,
     _In_ BOOLEAN ReturnAsPackage,
-    _Out_ PACPI_METHOD_ARGUMENT Arguments,
+    _Inout_ PACPI_METHOD_ARGUMENT Arguments,
     _Inout_ SIZE_T* OutputArgumentSize,
     _Out_opt_ ULONG* OutputArgumentCount,
-    _Out_ NTSTATUS* ntStatus,
+    _Out_ NTSTATUS* NtStatus,
     _In_opt_ CHAR* MethodName,
     _In_opt_ CHAR* DebugInfo,
     _Out_ PEP_NOTIFICATION_HANDLER_RESULT* CompleteResult

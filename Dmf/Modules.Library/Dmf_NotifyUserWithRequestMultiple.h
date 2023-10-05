@@ -102,7 +102,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequestMultiple_DataBroadcast(
     _In_ DMFMODULE DmfModule,
-    _In_reads_(DataBufferSize) VOID* DataBuffer,
+    _In_reads_bytes_(DataBufferSize) VOID* DataBuffer,
     _In_ size_t DataBufferSize,
     _In_ NTSTATUS NtStatus
     );

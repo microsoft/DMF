@@ -20,21 +20,6 @@ Environment:
 
 #pragma once
 
-// Enum to specify the type of request
-//
-typedef enum
-{
-    ContinuousRequestTarget_RequestType_Invalid,
-    ContinuousRequestTarget_RequestType_InternalIoctl,
-    ContinuousRequestTarget_RequestType_Ioctl,
-    ContinuousRequestTarget_RequestType_Read,
-    ContinuousRequestTarget_RequestType_Write
-} ContinuousRequestTarget_RequestType;
-
-// WDFOBJECT that abstracts a WDFREQUEST instance.
-//
-DECLARE_HANDLE(RequestTarget_DmfRequest);
-
 // Enum to specify who owns the buffer and whether to continue streaming the request or stop
 // The streaming callback function returns this value.
 //
@@ -83,18 +68,7 @@ EVT_DMF_ContinuousRequestTarget_BufferOutput(_In_ DMFMODULE DmfModule,
 
 // Client Driver callback function to be called from single request completion routine.
 //
-typedef
-_Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_IRQL_requires_same_
-VOID
-EVT_DMF_ContinuousRequestTarget_SendCompletion(_In_ DMFMODULE DmfModule,
-                                               _In_ VOID* ClientRequestContext,
-                                               _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
-                                               _In_ size_t InputBufferBytesWritten,
-                                               _In_reads_(OutputBufferBytesRead) VOID* OutputBuffer,
-                                               _In_ size_t OutputBufferBytesRead,
-                                               _In_ NTSTATUS CompletionStatus);
+typedef EVT_DMF_RequestTarget_SendCompletion EVT_DMF_ContinuousRequestTarget_SendCompletion;
 
 typedef enum
 {

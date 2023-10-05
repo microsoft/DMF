@@ -151,7 +151,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_BufferDecompress(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ USHORT CompressionFormat,
     _Out_writes_bytes_(UncompressedBufferSize) UCHAR* UncompressedBuffer,
     _In_ ULONG UncompressedBufferSize,
@@ -187,8 +187,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 File);
+    DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(DmfModule,
+                                          File);
 
 #if defined(DMF_USER_MODE)
     HMODULE dllModule = GetModuleHandle(TEXT("ntdll.dll"));
@@ -209,7 +209,7 @@ Return Value:
                     "GetModuleHandle fails");
         ntStatus = STATUS_UNSUCCESSFUL;
     }
-#elif defined(DMF_KERNEL_MODE)
+#else
     ntStatus = RtlDecompressBuffer(CompressionFormat,
                                    UncompressedBuffer,
                                    UncompressedBufferSize,
@@ -229,8 +229,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_DriverFileRead(
-    _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* FileName, 
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName, 
     _Out_ WDFMEMORY* FileContentMemory,
     _Out_opt_ UCHAR** Buffer,
     _Out_opt_ size_t* BufferLength
@@ -272,8 +272,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 File);
+    DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(DmfModule,
+                                          File);
 
     TraceEvents(TRACE_LEVEL_VERBOSE, 
                 DMF_TRACE, 
@@ -409,8 +409,111 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_File_FileExists(
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName,
+    _Out_ BOOLEAN* FileExists
+    )
+/*++
+
+Routine Description:
+
+    Determines if a file exists.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    FileName - Name of the file to search for.
+    FileExists - Returns TRUE if the file exists; FALSE, otherwise.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(DmfModule,
+                                          File);
+
+    ntStatus = STATUS_SUCCESS;
+
+#if defined(DMF_USER_MODE)
+    DWORD fileAttributes;
+
+    fileAttributes = GetFileAttributes(FileName);
+
+    // Files exists if it has valid attributes and is not a directory.
+    //
+    *FileExists = (fileAttributes != INVALID_FILE_ATTRIBUTES
+                   && (fileAttributes & FILE_ATTRIBUTE_DIRECTORY) != FILE_ATTRIBUTE_DIRECTORY);
+#elif defined(DMF_KERNEL_MODE)
+    OBJECT_ATTRIBUTES fileAttributes;
+    IO_STATUS_BLOCK fileIoStatusBlockOpen;
+    UNICODE_STRING unicodeFileName;
+    HANDLE fileHandle;
+
+    RtlInitUnicodeString(&unicodeFileName,
+                         FileName);
+
+    InitializeObjectAttributes(&fileAttributes,
+                               &unicodeFileName,
+                               OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                               NULL,
+                               NULL);
+
+    fileHandle = NULL;
+
+    ntStatus = ZwOpenFile(&fileHandle,
+                          GENERIC_READ | SYNCHRONIZE,
+                          &fileAttributes,
+                          &fileIoStatusBlockOpen,
+                          0,
+                          FILE_SYNCHRONOUS_IO_NONALERT);
+    if (!NT_SUCCESS(ntStatus)
+        && ntStatus != STATUS_OBJECT_NAME_NOT_FOUND)
+    {
+        TraceError(DMF_TRACE,
+                   "ZwOpenFile fails: to Read %S !ntStatus=%!STATUS!",
+                   FileName,
+                   ntStatus);
+        goto Exit;
+    }
+
+    if (ntStatus == STATUS_OBJECT_NAME_NOT_FOUND)
+    {
+        *FileExists = FALSE;
+        ntStatus = STATUS_SUCCESS;
+    }
+    else
+    {
+        *FileExists = TRUE;
+    }
+#endif
+
+#if defined(DMF_KERNEL_MODE)
+Exit:
+
+    if (fileHandle != NULL)
+    {
+        ZwClose(fileHandle);
+        fileHandle = NULL;
+    }
+#endif
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_File_Read(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ WDFSTRING FileName, 
     _Out_ WDFMEMORY* FileContentMemory
     )
@@ -441,14 +544,13 @@ Return Value:
     LARGE_INTEGER fileSize;
     UNICODE_STRING fileNameString;
     WDFMEMORY fileContentsMemory;
-    WDFDEVICE device;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 File);
+    DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(DmfModule,
+                                          File);
 
     WdfStringGetUnicodeString(FileName,
                               &fileNameString);
@@ -458,7 +560,6 @@ Return Value:
                 "Reading file %S ",
                 fileNameString.Buffer);
 
-    device = DMF_ParentDeviceGet(DmfModule);
     fileContentsMemory = WDF_NO_HANDLE;
     *FileContentMemory = WDF_NO_HANDLE;
     fileSize.QuadPart = 0;
@@ -649,8 +750,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_ReadEx(
-    _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* FileName, 
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName, 
     _Out_ WDFMEMORY* FileContentMemory,
     _Out_opt_ UCHAR** Buffer,
     _Out_opt_ size_t* BufferLength
@@ -685,8 +786,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 File);
+    DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(DmfModule,
+                                          File);
 
     wdfFileNameString = NULL;
 
@@ -746,7 +847,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Write(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ WDFSTRING FileName,
     _In_ WDFMEMORY FileContentMemory
     )
@@ -783,8 +884,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 File);
+    DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(DmfModule,
+                                          File);
 #if defined(DMF_USER_MODE)
     fileHandle = INVALID_HANDLE_VALUE;
 #elif defined(DMF_KERNEL_MODE)

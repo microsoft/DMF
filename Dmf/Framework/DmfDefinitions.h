@@ -1282,7 +1282,7 @@ DMF_FilterControl_DeviceCreate(
     _In_ WDFDEVICE Device,
     _In_opt_ DMF_CONFIG_BranchTrack* FilterBranchTrackConfig,
     _In_opt_ PWDF_IO_QUEUE_CONFIG QueueConfig,
-    _In_ WCHAR* ControlDeviceName
+    _In_z_ WCHAR* ControlDeviceName
     );
 
 _IRQL_always_function_max_(PASSIVE_LEVEL)
@@ -1382,7 +1382,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
-    _In_ DMF_PORTABLE_EVENT** EventPointer,
+    _In_reads_(EventCount) DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
     _In_opt_ ULONG* TimeoutMs,
     _In_ BOOLEAN Alertable
@@ -1514,7 +1514,7 @@ NTSTATUS
 DMF_Utility_UserModeAccessCreate(
     _In_ WDFDEVICE Device,
     _In_opt_ const GUID* DeviceInterfaceGuid,
-    _In_opt_ WCHAR* SymbolicLinkName
+    _In_opt_z_ PCWSTR SymbolicLinkName
     );
 
 VOID
@@ -1576,7 +1576,7 @@ VOID
 DMF_Utility_LogEmitString(
     _In_ DMFMODULE DmfModule,
     _In_ DmfLogDataSeverity DmfLogDataSeverity,
-    _In_ WCHAR* FormatString,
+    _In_z_ WCHAR* FormatString,
     ...
     );
 

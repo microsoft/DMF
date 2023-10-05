@@ -1204,11 +1204,14 @@ DMF_SpbTarget_BufferFullDuplex(
     // 
 
     ULONG index = 0;
-    sequence.List.Transfers[index] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
-                                                                         0,
-                                                                         InputBuffer,
-                                                                         (ULONG)InputBufferLength);
+    sequence.List.Transfers[index + 0] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
+                                                                             0,
+                                                                             InputBuffer,
+                                                                             (ULONG)InputBufferLength);
 
+    // 'Overflow using expression 'sequence.List.Transfers[transferIndex + 1]''
+    //                                                                                     
+    #pragma warning(suppress:26000)
     sequence.List.Transfers[index + 1] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionFromDevice,
                                                                              0,
                                                                              OutputBuffer,
@@ -1399,11 +1402,14 @@ DMF_SpbTarget_BufferWriteReadEx(
     // 
 
     ULONG index = 0;
-    sequence.List.Transfers[index] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
-                                                                         0,
-                                                                         InputBuffer,
-                                                                         (ULONG)InputBufferLength);
+    sequence.List.Transfers[index + 0] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
+                                                                             0,
+                                                                             InputBuffer,
+                                                                             (ULONG)InputBufferLength);
 
+    // 'Overflow using expression 'sequence.List.Transfers[transferIndex + 1]''
+    //                                                                                     
+    #pragma warning(suppress:26000)
     sequence.List.Transfers[index + 1] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionFromDevice,
                                                                              0,
                                                                              OutputBuffer,
@@ -1484,11 +1490,14 @@ DMF_SpbTarget_BufferWriteRead(
     // 
 
     ULONG index = 0;
-    sequence.List.Transfers[index] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
-                                                                         0,
-                                                                         InputBuffer,
-                                                                         (ULONG)InputBufferLength);
+    sequence.List.Transfers[index + 0] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
+                                                                             0,
+                                                                             InputBuffer,
+                                                                             (ULONG)InputBufferLength);
 
+    // 'Overflow using expression 'sequence.List.Transfers[transferIndex + 1]''
+    //                                                                                     
+    #pragma warning(suppress:26000)
     sequence.List.Transfers[index + 1] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionFromDevice,
                                                                              0,
                                                                              OutputBuffer,
@@ -1621,7 +1630,7 @@ Arguments:
 
 Return Value:
 
-    TRUE if it successfully acquires the interrupt’s lock.
+    TRUE if it successfully acquires the interrupt's lock.
     FALSE otherwise.
 
 --*/

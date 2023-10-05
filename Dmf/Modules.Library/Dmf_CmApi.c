@@ -231,7 +231,7 @@ BOOLEAN
 CmApi_FirstParentInterfaceOpen(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG InterfaceIndex,
-    _In_ WCHAR* InterfaceName,
+    _In_z_ WCHAR* InterfaceName,
     _In_ UNICODE_STRING* SymbolicLinkName,
     _In_ VOID* ClientContext
     )
@@ -657,7 +657,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 DMF_CmApi_DevNodeStatusAndProblemCodeGet(
     _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* DeviceInstanceId,
+    _In_z_ WCHAR* DeviceInstanceId,
     _Out_ UINT32* DevNodeStatus,
     _Out_ UINT32* ProblemCode
     )
@@ -771,9 +771,9 @@ NTSTATUS
 DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
     _In_ DMFMODULE DmfModule,
     _In_ PWSTR DeviceInterface,
-    _Out_ WCHAR* DeviceInstanceId,
+    _Out_writes_(DeviceInstanceIdSize) WCHAR* DeviceInstanceId,
     _In_ UINT32 DeviceInstanceIdSize,
-    _Out_ WCHAR* DeviceHardwareIds,
+    _Out_writes_(DeviceHardwareIdsSize) WCHAR* DeviceHardwareIds,
     _In_ UINT32 DeviceHardwareIdsSize
     )
 /*++
@@ -889,7 +889,7 @@ NTSTATUS
 DMF_CmApi_ParentDevNodeGet(
     _In_ DMFMODULE DmfModule,
     _Out_ DEVINST* ParentDevNode,
-    _Out_ WCHAR* ParentDeviceInstanceId,
+    _Out_writes_(ParentDeviceInstanceIdBufferSize) WCHAR* ParentDeviceInstanceId,
     _In_ ULONG ParentDeviceInstanceIdBufferSize
     )
 /*++
@@ -1396,7 +1396,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_CmApi_PropertyUint32Get(
     _In_  DMFMODULE DmfModule,
-    _In_  GUID* PropertyInterfaceGuid,
+    _In_reads_bytes_(sizeof(GUID)) GUID* PropertyInterfaceGuid,
     _In_  PDEVPROPKEY PropertyKey,
     _Out_ UINT32* Value
     )
@@ -1574,15 +1574,15 @@ Return Value:
        goto Exit;
    }
 
-   // Now we can query the property.
+   // Query the property.
    //
+   propertySize = sizeof(UINT32);
    configRet = CM_Get_DevNode_Property(deviceInstance,
                                        PropertyKey,
                                        &propertyType,
                                        (BYTE*)Value,
                                        &propertySize,
                                        0);
-
    if (CR_SUCCESS != configRet)
    {
        TraceEvents(TRACE_LEVEL_ERROR,

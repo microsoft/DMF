@@ -307,6 +307,7 @@ Return Value:
 
         DmfAssert(segmentSize > 0);
         DmfAssert(segmentOffset + segmentSize <= ItemSize);
+        __analysis_assume(segmentOffset + segmentSize <= ItemSize);
 
         // Transfer the data to/from the Ring Buffer.
         //
@@ -678,8 +679,7 @@ Return Value:
     //
     if (RtlCompareMemory(Buffer,
                          bufferToFind->Item,
-                         bufferToFind->ItemSize) ==
-        bufferToFind->ItemSize)
+                         bufferToFind->ItemSize) == bufferToFind->ItemSize)
     {
         // Found a matching buffer, call the callback supplied by Client.
         //
@@ -1093,8 +1093,13 @@ Return Value:
     entriesRead = 0;
     sizeOfEachItem = moduleContext->RingBuffer.ItemSize;
     DmfAssert(sizeOfEachItem > 0);
+    DmfAssert((sizeOfEachItem * entriesRead) <= TargetBufferSize);
+    __analysis_assume((sizeOfEachItem * entriesRead) <= TargetBufferSize);
     do
     {
+        // 'Potential overflow using expression 'TargetBuffer''
+        //
+        #pragma warning(suppress: 26015)
         ntStatus = RingBuffer_Read(&moduleContext->RingBuffer,
                                    TargetBuffer,
                                    sizeOfEachItem,
@@ -1296,6 +1301,9 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
+    // 'Potential overflow using expression 'TargetBuffer''
+    //
+    #pragma warning(suppress: 26015)
     ntStatus = RingBuffer_Read(&moduleContext->RingBuffer,
                                (UCHAR*)&customItemProcessContext,
                                moduleContext->RingBuffer.ItemSize,

@@ -139,7 +139,7 @@ DMF_HashTable_Read(
     _In_ DMFMODULE DmfModule,
     _In_reads_(KeyLength) UCHAR* Key,
     _In_ ULONG KeyLength,
-    _Out_writes_(ValueBufferLength) UCHAR* ValueBuffer,
+    _Out_writes_bytes_(ValueBufferLength) UCHAR* ValueBuffer,
     _In_ ULONG ValueBufferLength,
     _Out_opt_ ULONG* ValueLength
     );

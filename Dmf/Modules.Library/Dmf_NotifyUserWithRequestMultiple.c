@@ -315,7 +315,9 @@ Return Value:
     //
     fileObjectContext = (FILE_OBJECT_CONTEXT*)clientBuffer;
     // Initialize Client buffer.
+    // 'Possibly incorrect single element annotation on buffer'
     //
+    #pragma warning(suppress:26007)
     RtlZeroMemory(fileObjectContext,
                   sizeof(FILE_OBJECT_CONTEXT));
     fileObjectContext->DmfModuleNotifyUserWithRequest = dmfModuleNotifyUserWithRequest;
@@ -1137,7 +1139,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_NotifyUserWithRequestMultiple_DataBroadcast(
     _In_ DMFMODULE DmfModule,
-    _In_reads_(DataBufferSize) VOID* DataBuffer,
+    _In_reads_bytes_(DataBufferSize) VOID* DataBuffer,
     _In_ size_t DataBufferSize,
     _In_ NTSTATUS NtStatus
     )
@@ -1204,10 +1206,14 @@ Return Value:
     //
     bufferQueueContext = (NotifyUserWithRequestMultiple_BufferQueueBufferType*)clientBuffer;
     // Copy NtStatus.
+    // 'Possibly incorrect single element annotation on buffer'
     //
+    #pragma warning(suppress:26007)
     bufferQueueContext->NtStatus = NtStatus;
     // Copy Client context.
+    // 'Possibly incorrect single element annotation on buffer'
     //
+    #pragma warning(suppress: 26007)
     RtlCopyMemory(bufferQueueContext->DataBuffer,
                   DataBuffer,
                   moduleConfig->SizeOfDataBuffer);
