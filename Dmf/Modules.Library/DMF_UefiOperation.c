@@ -565,7 +565,7 @@ Return Value:
     UINT returnValue;
     WCHAR guidString[GUID_STRING_SIZE];
     WCHAR variableName[MAXIMUM_VARIABLE_NAME_LENGTH + 1];
-    errno_t errno;
+    errno_t errorCode;
 
     if (Attributes != NULL)
     {
@@ -598,14 +598,14 @@ Return Value:
         goto Exit;
     }
 
-    errno = wcsncpy_s(variableName, 
-                      ARRAYSIZE(variableName), 
-                      Name->Buffer, 
-                      numberOfElementsToCopy);
-    if (errno != 0)
+    errorCode = wcsncpy_s(variableName, 
+                          ARRAYSIZE(variableName), 
+                          Name->Buffer, 
+                          numberOfElementsToCopy);
+    if (errorCode != 0)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "wcsncpy_s fails: errno=%d", errno);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "wcsncpy_s fails: errno=%d", errorCode);
         goto Exit;
     }
 
@@ -765,7 +765,7 @@ Return Value:
     UINT returnValue;
     WCHAR guidString[GUID_STRING_SIZE];
     WCHAR variableName[MAXIMUM_VARIABLE_NAME_LENGTH + 1];
-    errno_t errno;
+    errno_t errorCode;
 
     returnValue = StringFromGUID2(*Guid,
                                   guidString,
@@ -791,14 +791,14 @@ Return Value:
         goto Exit;
     }
 
-    errno = wcsncpy_s(variableName, 
-                      ARRAYSIZE(variableName), 
-                      Name->Buffer, 
-                      numberOfElementsToCopy);
-    if (errno != 0)
+    errorCode = wcsncpy_s(variableName, 
+                          ARRAYSIZE(variableName), 
+                          Name->Buffer, 
+                          numberOfElementsToCopy);
+    if (errorCode != 0)
     {
         ntStatus = STATUS_BUFFER_TOO_SMALL;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "wcsncpy_s fails: errno=%d", errno);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "wcsncpy_s fails: errno=%d", errorCode);
         goto Exit;
     }
 
