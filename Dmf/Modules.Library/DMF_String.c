@@ -61,8 +61,8 @@ _Function_class_(EVT_DMF_String_CompareCharCallback)
 LONG
 String_FindInListExactCharCallback(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR* StringInList,
-    _In_ CHAR* LookFor
+    _In_z_ CHAR* StringInList,
+    _In_z_ CHAR* LookFor
     )
 /*++
 
@@ -94,8 +94,8 @@ _Function_class_(EVT_DMF_String_CompareCharCallback)
 LONG
 String_FindInListLeftLookForMatchCharCallback(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR* StringInList,
-    _In_ CHAR* LookFor
+    _In_z_ CHAR* StringInList,
+    _In_z_ CHAR* LookFor
     )
 /*++
 
@@ -161,7 +161,7 @@ Exit:
 static
 WCHAR* 
 String_MultiStringToWideString(
-    _In_ CHAR* NarrowString
+    _In_z_ CHAR* NarrowString
     )
 /*++
 
@@ -234,7 +234,7 @@ Exit:
 static
 CHAR* 
 String_WideStringToMultiString(
-    _In_ WCHAR* WideString
+    _In_z_ WCHAR* WideString
     )
 {
     ULONG numberOfBytes;
@@ -491,7 +491,7 @@ _IRQL_requires_same_
 BOOLEAN
 String_MultiSzFindLastCallback(
     _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* String,
+    _In_z_ WCHAR* String,
     _In_ VOID* CallbackContext
     )
 /*++
@@ -603,9 +603,9 @@ _Must_inspect_result_
 LONG
 DMF_String_FindInListChar(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR** StringList,
+    _In_reads_(NumberOfStringsInStringList) CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
-    _In_ CHAR* LookFor,
+    _In_z_ CHAR* LookFor,
     _In_ EVT_DMF_String_CompareCharCallback ComparisonCallback
     )
 /*++
@@ -648,6 +648,9 @@ Return Value:
                     stringIndex,
                     StringList[stringIndex],
                     LookFor);
+        // 'Possibly incorrect single element annotation on string buffer'
+        //
+        #pragma warning(suppress:26006)                    
         if (ComparisonCallback(DmfModule,
                                StringList[stringIndex],
                                LookFor) == 0)
@@ -668,9 +671,9 @@ _Must_inspect_result_
 LONG
 DMF_String_FindInListExactChar(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR** StringList,
+    _In_reads_(NumberOfStringsInStringList) CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
-    _In_ CHAR* LookFor
+    _In_z_ CHAR* LookFor
     )
 /*++
 
@@ -756,9 +759,9 @@ _Must_inspect_result_
 LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR** StringList,
+    _In_reads_(NumberOfStringsInStringList) CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
-    _In_ CHAR* LookFor
+    _In_z_ CHAR* LookFor
     )
 /*++
 

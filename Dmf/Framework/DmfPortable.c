@@ -287,7 +287,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_Portable_EventWaitForMultiple(
     _In_ ULONG EventCount,
-    _In_ DMF_PORTABLE_EVENT** EventPointer,
+    _In_reads_(EventCount) DMF_PORTABLE_EVENT** EventPointer,
     _In_ BOOLEAN WaitForAll,
     _In_opt_ ULONG* TimeoutMs,
     _In_ BOOLEAN Alertable

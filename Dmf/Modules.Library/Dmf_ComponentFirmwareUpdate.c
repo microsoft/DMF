@@ -697,6 +697,28 @@ Return Value:
         goto Exit;
     }
 
+    if (TransferBufferSize < sizeof(PAYLOAD))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "TransferBufferSize Buffer size is too small. Size is %Iu. Expected (%Iu)",
+                    TransferBufferSize,
+                    sizeof(PAYLOAD));
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    if (PayloadBufferBinRecordStartIndex + sizeof(BIN_RECORD) > PayloadBufferSize)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Payload Buffer size is too small. Size is %Iu. Expected (%Iu)",
+                    PayloadBufferSize,
+                    PayloadBufferBinRecordStartIndex + sizeof(BIN_RECORD));
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
     // Clear the output buffer.
     //
     ZeroMemory(TransferBuffer, 
@@ -1174,6 +1196,9 @@ Return Value:
                 goto Exit;
             }
 
+            // 'Possibly incorrect single element annotation on buffer'
+            //
+            #pragma warning(suppress: 26007)
             CopyMemory(payloadBufferLocallyCreated,
                        payloadBufferFromClient,
                        payloadBufferSize);
@@ -1226,6 +1251,9 @@ Return Value:
                 goto Exit;
             }
 
+            // 'Possibly incorrect single element annotation on buffer'
+            //
+            #pragma warning(suppress: 26007)
             CopyMemory(offerBufferLocallyCreated,
                        offerBufferFromClient,
                        offerBufferSize);
@@ -1342,7 +1370,9 @@ Return Value:
     if (moduleConfig->InstanceIdentifierLength != 0)
     {
         // Create the registry value name as InstanceID:<ModuleConfig->InstanceIdentifier>:Component<ComponentIdentifier><ValueName>.
+        // 'Overflow using expression 'RegistryValueNameString->Buffer'
         //
+        #pragma warning(suppress: 26000)
         hr = StringCchPrintf(RegistryValueNameString->Buffer,
                              RegistryValueNameString->MaximumLength,
                              L"InstanceID:%s:Component%02X%s",
@@ -1354,6 +1384,9 @@ Return Value:
     {
         // Create the registry value name as Component<ComponentIdentifier><ValueName>.
         //
+        // 'Overflow using expression 'RegistryValueNameString->Buffer'
+        //
+        #pragma warning(suppress: 26000)
         hr = StringCchPrintf(RegistryValueNameString->Buffer,
                              RegistryValueNameString->MaximumLength,
                              L"Component%02X%s",
@@ -1401,6 +1434,10 @@ Exit:
     return ntStatus;
 }
 
+// 'Function uses '32820' bytes of stack.  Consider moving some data to heap.'
+// (User-mode driver has 1M+ of stack.)
+//
+#pragma warning(suppress:6262)
 _Must_inspect_result_
 static
 NTSTATUS
@@ -1480,6 +1517,10 @@ Exit:
     return ntStatus;
 }
 
+// 'Function uses '32820' bytes of stack.  Consider moving some data to heap.'
+// (User-mode driver has 1M+ of stack.)
+//
+#pragma warning(suppress:6262)
 _Must_inspect_result_
 static
 NTSTATUS
@@ -1557,6 +1598,10 @@ Exit:
     return ntStatus;
 }
 
+// 'Function uses '32820' bytes of stack.  Consider moving some data to heap.'
+// (User-mode driver has 1M+ of stack.)
+//
+#pragma warning(suppress:6262)
 _Must_inspect_result_
 static
 NTSTATUS
@@ -2939,6 +2984,10 @@ Return Value:
     return DMF_Thread_IsStopPending(moduleContext->DmfModuleThread);
 }
 
+// 'Function uses '32820' bytes of stack.  Consider moving some data to heap.'
+// (User-mode driver has 1M+ of stack.)
+//
+#pragma warning(suppress:6262)
 _Must_inspect_result_
 static
 NTSTATUS 
@@ -3319,6 +3368,10 @@ Exit:
     return ntStatus;
 }
 
+// 'Function uses '32820' bytes of stack.  Consider moving some data to heap.'
+// (User-mode driver has 1M+ of stack.)
+//
+#pragma warning(suppress:6262)
 _Must_inspect_result_
 static
 NTSTATUS
@@ -5039,7 +5092,7 @@ _IRQL_requires_same_
 VOID
 DMF_ComponentFirmwareUpdate_FirmwareVersionResponseEvt(
     _In_ DMFINTERFACE DmfInterface,
-    _In_ UCHAR* FirmwareVersionsBuffer,
+    _In_reads_(FirmwareVersionsBufferSize) UCHAR* FirmwareVersionsBuffer,
     _In_ size_t FirmwareVersionsBufferSize,
     _In_ NTSTATUS ntStatusCallback
     )
@@ -5060,7 +5113,7 @@ Parameters:
 
 Return:
 
-    NTSTATUS
+    None
 
 --*/
 {
@@ -5177,7 +5230,7 @@ _IRQL_requires_same_
 VOID
 DMF_ComponentFirmwareUpdate_OfferResponseEvt(
     _In_ DMFINTERFACE DmfInterface,
-    _In_ UCHAR* ResponseBuffer,
+    _In_reads_bytes_(ResponseBufferSize) UCHAR* ResponseBuffer,
     _In_ size_t ResponseBufferSize,
     _In_ NTSTATUS ntStatusCallback
     )
@@ -5196,7 +5249,7 @@ Parameters:
 
 Return:
 
-    NTSTATUS
+    None
 
 --*/
 {
@@ -5276,7 +5329,7 @@ _IRQL_requires_same_
 VOID
 DMF_ComponentFirmwareUpdate_PayloadResponseEvt(
     _In_ DMFINTERFACE DmfInterface,
-    _In_ UCHAR* ResponseBuffer,
+    _In_reads_(ResponseBufferSize) UCHAR* ResponseBuffer,
     _In_ size_t ResponseBufferSize,
     _In_ NTSTATUS ntStatusCallback
     )
@@ -5295,7 +5348,7 @@ Parameters:
 
 Return:
 
-    NTSTATUS
+    None
 
 --*/
 {

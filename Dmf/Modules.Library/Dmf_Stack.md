@@ -119,7 +119,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_Stack_Pop(
     _In_ DMFMODULE DmfModule,
-    _In_reads_(ClientBufferSize) VOID* ClientBuffer,
+    _Out_writes_bytes_(ClientBufferSize) VOID* ClientBuffer,
     _In_ size_t ClientBufferSize
     )
 ````

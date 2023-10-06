@@ -3057,7 +3057,7 @@ _Success_(NT_SUCCESS(ntStatus))
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_AcpiPepDevice_PepAcpiDataReturn(
-    _In_ VOID* Value,
+    _In_reads_bytes_(ValueLength) VOID* Value,
     _In_ USHORT ValueType,
     _In_ ULONG ValueLength,
     _In_ BOOLEAN ReturnAsPackage,
@@ -3134,6 +3134,10 @@ Return Value:
         case ACPI_METHOD_ARGUMENT_INTEGER:
         {
             valueAsInteger = (ULONG*)Value;
+            // 'Potential overflow using expression 'argumentLocal->Type''
+            // ' Read overflow using expression '*valueAsInteger'
+            //
+            #pragma warning(suppress : 26014; suppress: 26000)
             ACPI_METHOD_SET_ARGUMENT_INTEGER(argumentLocal, (*valueAsInteger));
             TraceEvents(TRACE_LEVEL_VERBOSE,
                         DMF_TRACE,
@@ -3157,8 +3161,18 @@ Return Value:
             //      error C4057: char * is different from PUCHAR.
             //
             {
+                // 'Potential overflow using expression 'argumentLocal->Type''
+                // ' Read overflow using expression '*valueAsInteger'
+                //
+                #pragma warning(suppress : 26014; suppress: 26000)
                 argumentLocal->Type = ACPI_METHOD_ARGUMENT_STRING;
-                argumentLocal->DataLength = (USHORT)(strlen((const char*)valueAsString)) + (USHORT)sizeof(UCHAR);
+                // 'Potential overflow using expression 'argumentLocal->DataLength''
+                //
+                #pragma warning(suppress : 26015)
+                argumentLocal->DataLength = (USHORT)((USHORT)strlen((const char*)valueAsString)) + (USHORT)sizeof(UCHAR);
+                // 'Potential overflow using expression '(void *)(&argumentLocal->Data[0])''
+                //
+                #pragma warning(suppress : 26015)
                 memcpy_s(&argumentLocal->Data[0],
                         argumentLocal->DataLength,
                         (PUCHAR)valueAsString,
@@ -3176,6 +3190,9 @@ Return Value:
         case ACPI_METHOD_ARGUMENT_BUFFER:
         {
             valueAsString = (UCHAR*)Value;
+            // 'Potential overflow using expression 'argumentLocal->Type''
+            //
+            #pragma warning(suppress : 26014)
             ACPI_METHOD_SET_ARGUMENT_BUFFER(argumentLocal,
                                             valueAsString,
                                             (USHORT)ValueLength);

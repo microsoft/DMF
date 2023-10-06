@@ -20,6 +20,21 @@ Environment:
 
 #pragma once
 
+// WDFOBJECT that abstracts a WDFREQUEST instance.
+//
+DECLARE_HANDLE(RequestTarget_DmfRequest);
+
+// Enum to specify the type of request
+//
+typedef enum
+{
+    ContinuousRequestTarget_RequestType_Invalid,
+    ContinuousRequestTarget_RequestType_InternalIoctl,
+    ContinuousRequestTarget_RequestType_Ioctl,
+    ContinuousRequestTarget_RequestType_Read,
+    ContinuousRequestTarget_RequestType_Write
+} ContinuousRequestTarget_RequestType;
+
 // Client Driver callback function to be called from single request completion routine.
 //
 typedef

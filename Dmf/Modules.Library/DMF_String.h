@@ -53,7 +53,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_String_AnsiStringInitialize(
     _Out_ ANSI_STRING* AnsiString,
-    _In_ CHAR* String
+    _In_z_ CHAR* String
     )
 {
     size_t size;
@@ -90,8 +90,8 @@ _IRQL_requires_same_
 _Must_inspect_result_
 LONG
 (EVT_DMF_String_CompareCharCallback)(_In_ DMFMODULE DmfModule,
-                                     _In_ CHAR* StringInList, 
-                                     _In_ CHAR* LookFor);
+                                     _In_z_ CHAR* StringInList, 
+                                     _In_z_ CHAR* LookFor);
 
 typedef
 _Function_class_(EVT_DMF_String_MutilSzCallback)
@@ -100,7 +100,7 @@ _IRQL_requires_same_
 _Must_inspect_result_
 BOOLEAN
 (EVT_DMF_String_MultiSzCallback)(_In_ DMFMODULE DmfModule,
-                                 _In_ WCHAR* String,
+                                 _In_z_ WCHAR* String,
                                  _In_ VOID* CallbackContext);
 
 // This macro declares the following functions:
@@ -116,9 +116,9 @@ _Must_inspect_result_
 LONG
 DMF_String_FindInListChar(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR** StringList,
+    _In_reads_(NumberOfStringsInStringList) CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
-    _In_ CHAR* LookFor,
+    _In_z_ CHAR* LookFor,
     _In_ EVT_DMF_String_CompareCharCallback ComparisonCallback
     );
 
@@ -126,9 +126,9 @@ _Must_inspect_result_
 LONG
 DMF_String_FindInListExactChar(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR** StringList,
+    _In_reads_(NumberOfStringsInStringList) CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
-    _In_ CHAR* LookFor
+    _In_z_ CHAR* LookFor
     );
 
 _Must_inspect_result_
@@ -144,9 +144,9 @@ _Must_inspect_result_
 LONG
 DMF_String_FindInListLookForLeftMatchChar(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR** StringList,
+    _In_reads_(NumberOfStringsInStringList) CHAR** StringList,
     _In_ ULONG NumberOfStringsInStringList,
-    _In_ CHAR* LookFor
+    _In_z_ CHAR* LookFor
     );
 
 _Must_inspect_result_

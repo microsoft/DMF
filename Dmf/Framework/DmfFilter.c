@@ -166,7 +166,7 @@ DMF_FilterControl_DeviceCreate(
     _In_ WDFDEVICE Device,
     _In_opt_ DMF_CONFIG_BranchTrack* FilterBranchTrackConfig,
     _In_opt_ PWDF_IO_QUEUE_CONFIG QueueConfig,
-    _In_ WCHAR* ControlDeviceName
+    _In_z_ WCHAR* ControlDeviceName
     )
 /*++
 

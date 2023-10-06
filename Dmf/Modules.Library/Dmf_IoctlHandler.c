@@ -1003,8 +1003,10 @@ Return Value:
     if (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterKernelModeOnly)
     {
         // Only allow IOCTLs to come from other Kernel-mode components.
+        // 'The function pointer being assigned to is annotated with the function class 'DMF_ModuleInternalDeviceIoControl', which is not contained in the function class(es) 'DMF_ModuleDeviceIoControl'.'
         //
-        dmfCallbacksWdf_IoctlHandler.ModuleInternalDeviceIoControl = DMF_IoctlHandler_ModuleDeviceIoControl;
+        #pragma warning(suppress:28024)
+        dmfCallbacksWdf_IoctlHandler.ModuleInternalDeviceIoControl = (DMF_ModuleInternalDeviceIoControl*)DMF_IoctlHandler_ModuleDeviceIoControl;
     }
     else
     {

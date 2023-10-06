@@ -585,6 +585,10 @@ Return Value:
     // Copy over the parameters.
     //
     DmfAssert(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
+    __analysis_assume(ContextBufferSize <= moduleConfig->BufferQueueConfig.SourceSettings.BufferSize - sizeof(QUEUEDWORKITEM_WAIT_BLOCK));
+    // 'Possibly incorrect single element annotation on buffer'
+    //
+    #pragma warning(suppress:26007)
     RtlCopyMemory(clientBuffer,
                   ContextBuffer,
                   ContextBufferSize);

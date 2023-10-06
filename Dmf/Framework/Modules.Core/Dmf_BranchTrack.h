@@ -28,7 +28,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 BOOLEAN
 EVT_DMF_BranchTrack_StatusQuery(_In_ DMFMODULE DmfModule,
-                                _In_ CHAR* BranchName,
+                                _In_z_ CHAR* BranchName,
                                 _In_ ULONG_PTR BranchContext,
                                 _In_ ULONGLONG Count);
 
@@ -93,7 +93,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_BranchTrack_CONFIG_INIT(
     _Out_ DMF_CONFIG_BranchTrack* ModuleConfig,
-    _In_ CHAR* ClientName
+    _In_z_ CHAR* ClientName
     );
 
 _Function_class_(EVT_DMF_BranchTrack_StatusQuery)
@@ -101,7 +101,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_Count(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR* BranchName,
+    _In_z_ CHAR* BranchName,
     _In_ ULONG_PTR BranchContext,
     _In_ ULONGLONG Count
     );
@@ -111,7 +111,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_MoreThan(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR* BranchName,
+    _In_z_ CHAR* BranchName,
     _In_ ULONG_PTR BranchContext,
     _In_ ULONGLONG Count
     );
@@ -121,7 +121,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_LessThan(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR* BranchName,
+    _In_z_ CHAR* BranchName,
     _In_ ULONG_PTR BranchContext,
     _In_ ULONGLONG Count
     );
@@ -131,7 +131,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_BranchTrack_Helper_BranchStatusQuery_AtLeast(
     _In_ DMFMODULE DmfModule,
-    _In_ CHAR* BranchName,
+    _In_z_ CHAR* BranchName,
     _In_ ULONG_PTR BranchContext,
     _In_ ULONGLONG Count
     );
@@ -143,9 +143,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_BranchTrack_CheckPointExecute(
     _In_opt_ DMFMODULE DmfModule,
-    _In_ CHAR* BranchName,
-    _In_ CHAR* HintName,
-    _In_ CHAR* FileName,
+    _In_z_ CHAR* BranchName,
+    _In_z_ CHAR* HintName,
+    _In_z_ CHAR* FileName,
     _In_ ULONG Line,
     _In_ EVT_DMF_BranchTrack_StatusQuery* CallbackStatusQuery,
     _In_ ULONG_PTR Context,
@@ -156,9 +156,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_BranchTrack_CheckPointCreate(
     _In_opt_ DMFMODULE DmfModule,
-    _In_ CHAR* BranchName,
-    _In_ CHAR* HintName,
-    _In_ CHAR* FileName,
+    _In_z_ CHAR* BranchName,
+    _In_z_ CHAR* HintName,
+    _In_z_ CHAR* FileName,
     _In_ ULONG Line,
     _In_ EVT_DMF_BranchTrack_StatusQuery* CallbackStatusQuery,
     _In_ ULONG_PTR Context,

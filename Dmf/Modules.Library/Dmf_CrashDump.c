@@ -560,7 +560,7 @@ NTSTATUS
 CrashDump_DataSourceWriteInternal(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG DataSourceIndex,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength
     )
 /*++
@@ -617,7 +617,7 @@ NTSTATUS
 CrashDump_DataSourceReadInternal(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG DataSourceIndex,
-    _Out_ UCHAR* Buffer,
+    _Out_writes_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength
     )
 /*++
@@ -674,7 +674,7 @@ NTSTATUS
 CrashDump_DataSourceCaptureInternal(
     _In_ DMFMODULE DmfModule,
     _In_ ULONG DataSourceIndex,
-    _Inout_ UCHAR* Buffer,
+    _Out_writes_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength,
     _Out_ ULONG* BytesWritten
     )
@@ -883,8 +883,7 @@ Return Value:
 
     if (RtlCompareMemory(Left,
                          Right,
-                         sizeof(GUID))
-        == sizeof(GUID))
+                         sizeof(GUID)) == sizeof(GUID))
     {
         match = TRUE;
     }
@@ -2087,7 +2086,7 @@ NTSTATUS
 CrashDump_DataSourceWriteAuxiliary(
     _In_ DMFMODULE DmfModule,
     _In_ WDFFILEOBJECT FileObject,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength
     )
 /*++
@@ -2173,7 +2172,7 @@ NTSTATUS
 CrashDump_DataSourceReadAuxiliary(
     _In_ DMFMODULE DmfModule,
     _In_ WDFFILEOBJECT FileObject,
-    _Out_ UCHAR* Buffer,
+    _Out_writes_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength
     )
 /*++
@@ -3998,7 +3997,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_DataSourceWriteSelf(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength
     )
 /*++

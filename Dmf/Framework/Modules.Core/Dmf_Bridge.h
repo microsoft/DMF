@@ -35,7 +35,7 @@ typedef struct
     PFN_WDF_IO_QUEUE_IO_WRITE EvtQueueIoWrite;
     PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL EvtDeviceIoControl;
 #if !defined(DMF_USER_MODE)
-    PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL EvtInternalDeviceIoControl;
+    PFN_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL EvtInternalDeviceIoControl;
 #endif // !defined(DMF_USER_MODE)
     PFN_WDF_DEVICE_SELF_MANAGED_IO_CLEANUP EvtDeviceSelfManagedIoCleanup;
     PFN_WDF_DEVICE_SELF_MANAGED_IO_FLUSH EvtDeviceSelfManagedIoFlush;

@@ -402,7 +402,7 @@ _Success_(NT_SUCCESS(ntStatus))
 _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_AcpiPepDevice_PepAcpiDataReturn(
-    _In_ VOID* Value,
+    _In_reads_bytes_(ValueLength) VOID* Value,
     _In_ USHORT ValueType,
     _In_ ULONG ValueLength,
     _In_ BOOLEAN ReturnAsPackage,
