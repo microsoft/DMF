@@ -304,7 +304,7 @@ Tests_HashTable_ThreadAction_ReadSuccess(
     DmfAssert(valueSize == dataRecord->BufferSize);
     DmfAssert(RtlCompareMemory(valueBuffer,
                                dataRecord->Buffer,
-                               valueSize));
+                               valueSize) == valueSize);
 
     valueSize = sizeof(valueBuffer);
     ntStatus = DMF_HashTable_Read(moduleContext->DmfModuleHashTableCustom,
@@ -317,7 +317,7 @@ Tests_HashTable_ThreadAction_ReadSuccess(
     DmfAssert(valueSize == dataRecord->BufferSize);
     DmfAssert(RtlCompareMemory(valueBuffer,
                                dataRecord->Buffer,
-                               valueSize));
+                               valueSize) == valueSize);
 
     ntStatus = DMF_HashTable_Find(moduleContext->DmfModuleHashTableDefault,
                                   dataRecord->Key,
@@ -327,7 +327,7 @@ Tests_HashTable_ThreadAction_ReadSuccess(
     DmfAssert(valueSize == dataRecord->BufferSize);
     DmfAssert(RtlCompareMemory(valueBuffer,
                                dataRecord->Buffer,
-                               valueSize));
+                               valueSize) == valueSize);
 
     ntStatus = DMF_HashTable_Find(moduleContext->DmfModuleHashTableCustom,
                                   dataRecord->Key,
@@ -337,7 +337,7 @@ Tests_HashTable_ThreadAction_ReadSuccess(
     DmfAssert(valueSize == dataRecord->BufferSize);
     DmfAssert(RtlCompareMemory(valueBuffer,
                                dataRecord->Buffer,
-                               valueSize));
+                               valueSize) == valueSize);
 }
 #pragma code_seg()
 

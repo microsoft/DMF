@@ -72,7 +72,7 @@ NTSTATUS
 DMF_Utility_UserModeAccessCreate(
     _In_ WDFDEVICE Device,
     _In_opt_ const GUID* DeviceInterfaceGuid,
-    _In_opt_ WCHAR* SymbolicLinkName
+    _In_opt_z_ PCWSTR SymbolicLinkName
     )
 /*++
 
@@ -541,7 +541,7 @@ VOID
 DMF_Utility_LogEmitString(
     _In_ DMFMODULE DmfModule,
     _In_ DmfLogDataSeverity DmfLogDataSeverity,
-    _In_ WCHAR* FormatString,
+    _In_z_ WCHAR* FormatString,
     ...
     )
 /*++

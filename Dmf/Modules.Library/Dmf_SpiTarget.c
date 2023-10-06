@@ -87,7 +87,7 @@ _Must_inspect_result_
 NTSTATUS
 SpiTarget_SpbWrite(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* Buffer,
+    _Inout_updates_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength,
     _In_ ULONG TimeoutMilliseconds
     )
@@ -185,7 +185,9 @@ Return Value:
                                                                                      0,
                                                                                      outData,
                                                                                      BufferLength);
-
+    // 'Overflow using expression 'sequence.List.Transfers[transferIndex + 1]''
+    //                                                                                     
+    #pragma warning(suppress:26000)
     sequence.List.Transfers[transferIndex + 1] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionFromDevice,
                                                                                      0,
                                                                                      inData,
@@ -273,9 +275,9 @@ _Must_inspect_result_
 NTSTATUS
 SpiTarget_SpbWriteRead(
     _In_ DMFMODULE DmfModule,
-    _Inout_ UCHAR* OutData,
+    _In_reads_(OutDataLength) UCHAR* OutData,
     _In_ ULONG OutDataLength,
-    _Inout_ UCHAR* InData,
+    _Out_writes_(InDataLength) UCHAR* InData,
     _In_ ULONG InDataLength,
     _In_ ULONG Timeout
     )
@@ -289,10 +291,10 @@ Routine Description:
 Arguments:
 
     DmfModule - The given DMF Module.
-    OutData - The output byte buffer containing the data to be sent on MOSI
-    OutDataLength - The length of the byte buffer data
-    InData - The input byte buffer containing the data read from MISO
-    InDataLength - The length of the byte buffer data
+    OutData - The output byte buffer containing the data to be sent on MOSI.
+    OutDataLength - The length of the byte buffer data.
+    InData - The input byte buffer containing the data read from MISO.
+    InDataLength - The length of the byte buffer data.
     Timeout - Not used.
 
 Return Value:

@@ -143,7 +143,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_CrashDump_DataSourceWriteSelf(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferLength) UCHAR* Buffer,
     _In_ ULONG BufferLength
     );
 

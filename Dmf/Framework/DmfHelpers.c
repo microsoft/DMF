@@ -1074,7 +1074,11 @@ Return Value:
 
     moduleCollectionHandle = DMF_CollectionToHandle(DmfCollection);
 
-    DmfAssert(DmfFeature < DmfFeature_NumberOfFeatures);
+    DmfAssert((DmfFeature > DmfFeature_Invalid) && 
+              (DmfFeature < DmfFeature_NumberOfFeatures));
+    __analysis_assume((DmfFeature > DmfFeature_Invalid) && 
+                      (DmfFeature < DmfFeature_NumberOfFeatures));
+
     dmfObjectFeature = moduleCollectionHandle->DmfObjectFeature[DmfFeature];
     // It can be NULL if this feature is not running.
     //

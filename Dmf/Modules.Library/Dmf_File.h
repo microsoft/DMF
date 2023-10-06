@@ -33,7 +33,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_BufferDecompress(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ USHORT CompressionFormat,
     _Out_writes_bytes_(UncompressedBufferSize) UCHAR* UncompressedBuffer,
     _In_ ULONG UncompressedBufferSize,
@@ -46,8 +46,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_DriverFileRead(
-    _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* FileName, 
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName, 
     _Out_ WDFMEMORY* FileContentMemory,
     _Out_opt_ UCHAR** Buffer,
     _Out_opt_ size_t* BufferLength
@@ -56,8 +56,17 @@ DMF_File_DriverFileRead(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_File_FileExists(
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName,
+    _Out_ BOOLEAN* FileExists
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_File_Read(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ WDFSTRING FileName, 
     _Out_ WDFMEMORY* FileContentMemory
     );
@@ -66,8 +75,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_ReadEx(
-    _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* FileName, 
+    _In_opt_ DMFMODULE DmfModule,
+    _In_z_ WCHAR* FileName, 
     _Out_ WDFMEMORY* FileContentMemory,
     _Out_opt_ UCHAR** Buffer,
     _Out_opt_ size_t* BufferLength
@@ -77,7 +86,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_File_Write(
-    _In_ DMFMODULE DmfModule,
+    _In_opt_ DMFMODULE DmfModule,
     _In_ WDFSTRING FileName,
     _In_ WDFMEMORY FileContentMemory
     );

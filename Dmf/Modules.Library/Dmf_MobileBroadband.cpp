@@ -1040,8 +1040,8 @@ _Must_inspect_result_
 NTSTATUS
 DMF_MobileBroadband_AntennaBackOffTableIndexSet(
     _In_ DMFMODULE DmfModule,
-    _In_ INT32* AntennaIndex,
-    _In_ INT32* AntennaBackOffTableIndex,
+    _In_reads_(AntennaCount) INT32* AntennaIndex,
+    _In_reads_(AntennaCount) INT32* AntennaBackOffTableIndex,
     _In_ INT32 AntennaCount,
     _In_ BOOLEAN AbsoluteAntennaIndexMode
     )

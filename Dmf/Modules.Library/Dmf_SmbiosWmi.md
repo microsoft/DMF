@@ -74,9 +74,9 @@ SmbiosTable01BufferSize | The size of TargetBuffer passed by Client. If the buff
 _Check_return_
 NTSTATUS
 DMF_SmbiosWmi_TableCopy(
-  _In_ DMFMODULE DmfModule,
-  _In_ UCHAR* TargetBuffer,
-  _In_ ULONG TargetBufferSize
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(TargetBufferSize) UCHAR* TargetBuffer,
+    _In_ ULONG TargetBufferSize
   );
 ````
 
@@ -107,9 +107,9 @@ TargetBufferSize | The size of TargetBuffer.
 _Check_return_
 NTSTATUS
 DMF_SmbiosWmi_TableCopyEx(
-  _In_ DMFMODULE DmfModule,
-  _In_ UCHAR* TargetBuffer,
-  _In_ ULONG* TargetBufferSize
+    _In_ DMFMODULE DmfModule,
+    _Out_writes_(*TargetBufferSize) UCHAR* TargetBuffer,
+    _Inout_ size_t* TargetBufferSize
   );
 ````
 

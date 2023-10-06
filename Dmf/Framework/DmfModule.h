@@ -977,6 +977,15 @@ DMF_HandleValidate_ModuleMethod(
               (DmfAssert(FALSE)) :                                                              \
               (DMF_HandleValidate_ModuleMethod(ModuleHandle))                                   \
 
+#define DMFMODULE_VALIDATE_IN_METHOD_OPTIONAL(ModuleHandle, ModuleType)                         \
+                                                                                                \
+     if (ModuleHandle != NULL)                                                                  \
+     {                                                                                          \
+          (! WdfObjectIsCustomType(ModuleHandle, DMF_##ModuleType)) ?                           \
+              (DmfAssert(FALSE)) :                                                              \
+              (DMF_HandleValidate_ModuleMethod(ModuleHandle));                                  \
+     }                                                                                          \
+  
 // These two validation functions are deprecated
 // Do not use it.
 //

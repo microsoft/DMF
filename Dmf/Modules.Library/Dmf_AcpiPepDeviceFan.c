@@ -354,16 +354,19 @@ Return Value:
             // Check the first input argument to decide which UUID is called, and
             // invoke the corresponding methods.
             //
-            uuidIndex = 0;
             if (RtlCompareMemory(dsmUUID,
                                  &moduleConfig->FanDsmGuid,
-                                 sizeof(GUID)) == 0)
+                                 sizeof(GUID)) == sizeof(GUID))
             {
-                uuidIndex = 0;
+                // This is the fan GUID.
+                //
+                uuidIndex = 1;
             }
             else
             {
-                uuidIndex = 1;
+                // It is not the fan GUID.
+                //
+                uuidIndex = 0;
             }
 
             // Now check for Fan specific parameters.

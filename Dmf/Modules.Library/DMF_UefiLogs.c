@@ -194,7 +194,7 @@ UefiLogs_BufferStringAppend(
     _In_ VOID* DestinationBuffer,
     _In_ size_t MaximumSizeOfBufferBytes,
     _Out_ VOID** StringEndAddress,
-    _In_ CHAR* FormatString,
+    _In_z_ CHAR* FormatString,
     ...
     )
 /*++
@@ -221,7 +221,6 @@ Return Value:
 {
     va_list argumentList;
     NTSTATUS ntStatus;
-    size_t remainingBytes;
 
     PAGED_CODE();
 
@@ -238,8 +237,9 @@ Return Value:
 #if defined(DMF_USER_MODE)
     HRESULT hResult;
     ntStatus = STATUS_SUCCESS;
+
     UNREFERENCED_PARAMETER(StringEndAddress);
-    UNREFERENCED_PARAMETER(remainingBytes);
+
     hResult = StringCchVPrintfA((STRSAFE_LPSTR)DestinationBuffer,
                                 MaximumSizeOfBufferBytes,
                                 FormatString,
@@ -257,7 +257,7 @@ Return Value:
     CHAR** endAddressWrite = (CHAR**)StringEndAddress;
     *endAddressWrite = endAddress;
 #elif defined(DMF_KERNEL_MODE)
-
+    size_t remainingBytes;
     ntStatus = RtlStringCbVPrintfExA((NTSTRSAFE_PSTR)DestinationBuffer,
                                      MaximumSizeOfBufferBytes,
                                      (NTSTRSAFE_PSTR*)StringEndAddress,
@@ -611,6 +611,9 @@ Return Value:
             //
             if (parsedLogHead + lineSize <= parsedLogHeadEnd)
             {
+                // 'Possibly incorrect single element annotation on buffer'
+                //
+                #pragma warning(suppress: 26007)
                 RtlCopyMemory(parsedLogHead,
                               eventLogLine,
                               lineSize);

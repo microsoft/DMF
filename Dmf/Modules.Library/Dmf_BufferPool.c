@@ -2012,6 +2012,7 @@ Return Value:
                 doneEnumerating = TRUE;
                 // Fall through
                 //
+                __fallthrough;
             }
             case BufferPool_EnumerationDisposition_ContinueEnumeration:
             {
@@ -2063,6 +2064,7 @@ Return Value:
                 doneEnumerating = TRUE;
                 // Fall through
                 //
+                __fallthrough;
             }
             case BufferPool_EnumerationDisposition_StopTimerAndContinueEnumeration:
             {
@@ -2077,6 +2079,7 @@ Return Value:
                 doneEnumerating = TRUE;
                 // Fall through
                 //
+                __fallthrough;
             }
             case BufferPool_EnumerationDisposition_ResetTimerAndContinueEnumeration:
             {

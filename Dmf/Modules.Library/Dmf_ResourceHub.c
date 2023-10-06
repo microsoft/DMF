@@ -646,9 +646,9 @@ Exit:
 _Must_inspect_result_
 NTSTATUS
 ResourceHub_ValidateTransferList(
-    _In_  DMFMODULE DmfModule,
-    _In_  VOID* TransferBuffer,
-    _In_  size_t TransferBufferLength
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* TransferBuffer,
+    _In_ size_t TransferBufferLength
     )
 /*++
 
@@ -816,9 +816,9 @@ ResourceHub_IoctlClientCallback_SpbExecuteSequence(
     _In_ WDFQUEUE Queue,
     _In_ WDFREQUEST Request,
     _In_ ULONG IoctlCode,
-    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_reads_bytes_(InputBufferSize) VOID* InputBuffer,
     _In_ size_t InputBufferSize,
-    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _Out_writes_bytes_(OutputBufferSize) VOID* OutputBuffer,
     _In_ size_t OutputBufferSize,
     _Out_ size_t* BytesReturned
     )
@@ -870,15 +870,11 @@ Return Value:
     // This is ResourceHub Module.
     //
     dmfModule = DMF_ParentModuleGet(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(dmfModule);
-
     moduleConfig = DMF_CONFIG_GET(dmfModule);
 
     *BytesReturned = 0;
-
     fileObject = WdfRequestGetFileObject(Request);
-
     resourceHubFileObjectContext = ResourceHub_FileContextGet(fileObject);
 
     ntStatus = ResourceHub_ValidateTransferList(dmfModule,
@@ -896,6 +892,9 @@ Return Value:
 
     if (moduleConfig->EvtResourceHubDispatchTransferList != NULL)
     {
+        // 'Potential overflow using expression 'spbTransferList''
+        //
+        #pragma warning(suppress:26015)
         ntStatus = moduleConfig->EvtResourceHubDispatchTransferList(dmfModule,
                                                                     spbTransferList,
                                                                     InputBufferSize,

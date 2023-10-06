@@ -91,7 +91,7 @@ _IRQL_requires_same_
 VOID 
 EVT_DMF_CmApi_DeviceInterfaceList(
     _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* DeviceInterfaceList,
+    _In_z_ WCHAR* DeviceInterfaceList,
     _In_ GUID DeviceInterfaceGuid
     );
 ````
@@ -123,7 +123,7 @@ _IRQL_requires_same_
 BOOLEAN 
 EVT_DMF_CmApi_ParentTargetSymbolicLinkName(_In_ DMFMODULE DmfModule,
                                            _In_ ULONG InterfaceIndex,
-                                           _In_ WCHAR* InterfaceName,
+                                           _In_z_ WCHAR* InterfaceName,
                                            _In_ UNICODE_STRING* SymbolicLinkName,
                                            _In_ VOID* ClientContext);
 ````
@@ -191,9 +191,9 @@ NTSTATUS
 DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet(
     _In_ DMFMODULE DmfModule,
     _In_ PWSTR DeviceInterface,
-    _Out_ PWCHAR DeviceInstanceId,
+    _Out_writes_(DeviceInstanceIdSize) WCHAR* DeviceInstanceId,
     _In_ UINT32 DeviceInstanceIdSize,
-    _Out_ PWCHAR DeviceHardwareIds,
+    _Out_writes_(DeviceHardwareIdsSize) WCHAR* DeviceHardwareIds,
     _In_ UINT32 DeviceHardwareIdsSize
     );
 ````
@@ -228,7 +228,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 DMF_CmApi_DevNodeStatusAndProblemCodeGet(
     _In_ DMFMODULE DmfModule,
-    _In_ WCHAR* DeviceInstanceId,
+    _In_z_ WCHAR* DeviceInstanceId,
     _Out_ UINT32* DevNodeStatus,
     _Out_ UINT32* ProblemCode
     );
@@ -384,7 +384,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_CmApi_PropertyUint32Get(
     _In_ DMFMODULE DmfModule,
-    _In_ GUID* PropertyInterfaceGuid,
+    _In_reads_bytes_(sizeof(GUID)) GUID* PropertyInterfaceGuid,
     _In_ PDEVPROPKEY PropertyKey,
     _Out_ UINT32* Value
     );
@@ -394,7 +394,7 @@ Given a device interface GUID, return the UINT32 value of the specified device p
 
 ##### Returns
 
-* STATUS_SUCCESS - on a successfull query, and a CONFIGRET error converted to an NTSTATUS code on failure.
+* STATUS_SUCCESS - on a successful query, and a CONFIGRET error converted to an NTSTATUS code on failure.
 
 
 ##### Parameters

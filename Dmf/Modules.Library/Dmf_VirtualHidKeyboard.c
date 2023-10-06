@@ -279,7 +279,7 @@ _Must_inspect_result_
 NTSTATUS
 VirtualHidKeyboard_Type(
     _In_ DMFMODULE DmfModule,
-    _In_ PUSHORT KeysToType,
+    _In_reads_(NumberOfKeysToType) USHORT* KeysToType,
     _In_ ULONG NumberOfKeysToType,
     _In_ USHORT UsagePage
     )
@@ -834,7 +834,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_VirtualHidKeyboard_Type(
     _In_ DMFMODULE DmfModule,
-    _In_ PUSHORT const KeysToType,
+    _In_reads_(NumberOfKeys) USHORT* const KeysToType,
     _In_ ULONG NumberOfKeys,
     _In_ USHORT UsagePage
     )

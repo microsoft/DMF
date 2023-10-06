@@ -2832,6 +2832,10 @@ Return Value:
     DmfAssert(deviceObject != NULL);
     driverObject = deviceObject->DriverObject;
 
+    // 'Leaking memory 'moduleContext->DeviceInterfaceNotification'
+    // (It is freed in DMF_DeviceInterfaceMultipleTarget_NotificationUnregister()).
+    //
+    #pragma warning(suppress: 6014)
     ntStatus = IoRegisterPlugPlayNotification(EventCategoryDeviceInterfaceChange,
                                               PNPNOTIFY_DEVICE_INTERFACE_INCLUDE_EXISTING_INTERFACES,
                                               (void*)&moduleConfig->DeviceInterfaceMultipleTargetGuid,

@@ -48,7 +48,7 @@ DMF_MODULE_DECLARE_NO_CONFIG(UefiOperation)
 #if defined(DMF_USER_MODE)
 
 #define GUID_STRING_SIZE                                        (sizeof(L"{00000000-0000-0000-0000-000000000000}") / sizeof(WCHAR))
-#define MAX_VARIABLE_NAME_LENGTH                                128
+#define MAXIMUM_VARIABLE_NAME_LENGTH                                128
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 HRESULT 
@@ -564,7 +564,8 @@ Return Value:
 #else // !defined(DMF_USER_MODE).
     UINT returnValue;
     WCHAR guidString[GUID_STRING_SIZE];
-    WCHAR variableName[MAX_VARIABLE_NAME_LENGTH];
+    WCHAR variableName[MAXIMUM_VARIABLE_NAME_LENGTH + 1];
+    errno_t errorCode;
 
     if (Attributes != NULL)
     {
@@ -591,10 +592,22 @@ Return Value:
     //
     size_t numberOfElementsToCopy = (Name->Length) / sizeof(WCHAR);
 
-    wcsncpy_s(variableName, 
-              ARRAYSIZE(variableName), 
-              Name->Buffer, 
-              numberOfElementsToCopy);
+    if (numberOfElementsToCopy > MAXIMUM_VARIABLE_NAME_LENGTH)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    errorCode = wcsncpy_s(variableName, 
+                          ARRAYSIZE(variableName), 
+                          Name->Buffer, 
+                          numberOfElementsToCopy);
+    if (errorCode != 0)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "wcsncpy_s fails: errno=%d", errorCode);
+        goto Exit;
+    }
 
     variableName[numberOfElementsToCopy] = L'\0';
 
@@ -751,7 +764,8 @@ Return Value:
 
     UINT returnValue;
     WCHAR guidString[GUID_STRING_SIZE];
-    WCHAR variableName[MAX_VARIABLE_NAME_LENGTH];
+    WCHAR variableName[MAXIMUM_VARIABLE_NAME_LENGTH + 1];
+    errno_t errorCode;
 
     returnValue = StringFromGUID2(*Guid,
                                   guidString,
@@ -771,10 +785,22 @@ Return Value:
     //
     size_t numberOfElementsToCopy = (Name->Length) / sizeof(WCHAR);
 
-    wcsncpy_s(variableName, 
-              ARRAYSIZE(variableName), 
-              Name->Buffer, 
-              numberOfElementsToCopy);
+    if (numberOfElementsToCopy >= MAXIMUM_VARIABLE_NAME_LENGTH)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        goto Exit;
+    }
+
+    errorCode = wcsncpy_s(variableName, 
+                          ARRAYSIZE(variableName), 
+                          Name->Buffer, 
+                          numberOfElementsToCopy);
+    if (errorCode != 0)
+    {
+        ntStatus = STATUS_BUFFER_TOO_SMALL;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "wcsncpy_s fails: errno=%d", errorCode);
+        goto Exit;
+    }
 
     variableName[numberOfElementsToCopy] = L'\0';
 

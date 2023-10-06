@@ -134,7 +134,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGet(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _Out_ UCHAR* Buffer,
+    _Out_writes_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
@@ -156,7 +156,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGetWithTimeout(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _Out_ UCHAR* Buffer,
+    _Out_writes_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy,
@@ -169,7 +169,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSet(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
@@ -181,7 +181,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSetWithTimeout(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy,
@@ -194,7 +194,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSetEx(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
@@ -244,7 +244,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_OutputReportSet(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG TimeoutMs
     );

@@ -1441,7 +1441,10 @@ Return Value:
 #if defined(DMF_USER_MODE)
     dmfCallbacksWdf_VirtualHidMini.ModuleDeviceIoControl = DMF_VirtualHidMini_ModuleDeviceIoControl;
 #else
-    dmfCallbacksWdf_VirtualHidMini.ModuleInternalDeviceIoControl = DMF_VirtualHidMini_ModuleDeviceIoControl;
+    // 'The function pointer being assigned to is annotated with the function class 'DMF_ModuleInternalDeviceIoControl', which is not contained in the function class(es) 'DMF_ModuleDeviceIoControl''
+    //
+    #pragma warning(suppress:28024)
+    dmfCallbacksWdf_VirtualHidMini.ModuleInternalDeviceIoControl = (DMF_ModuleInternalDeviceIoControl*)DMF_VirtualHidMini_ModuleDeviceIoControl;
 #endif
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualHidMini,
                                             VirtualHidMini,

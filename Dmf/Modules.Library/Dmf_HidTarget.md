@@ -251,12 +251,12 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_FeatureGet(
-  _In_ DMFMODULE DmfModule,
-  _In_ UCHAR FeatureId,
-  _In_ UCHAR* Buffer,
-  _In_ ULONG BufferSize,
-  _In_ ULONG OffsetOfDataToCopy,
-  _In_ ULONG NumberOfBytesToCopy
+    _In_ DMFMODULE DmfModule,
+    _In_ UCHAR FeatureId,
+    _Out_writes_(BufferSize) UCHAR* Buffer,
+    _In_ ULONG BufferSize,
+    _In_ ULONG OffsetOfDataToCopy,
+    _In_ ULONG NumberOfBytesToCopy
   );
 ````
 
@@ -317,7 +317,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGetWithTimeout(
   _In_ DMFMODULE DmfModule,
   _In_ UCHAR FeatureId,
-  _In_ UCHAR* Buffer,
+   _Out_writes_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _In_ ULONG OffsetOfDataToCopy,
   _In_ ULONG NumberOfBytesToCopy,
@@ -353,7 +353,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSet(
   _In_ DMFMODULE DmfModule,
   _In_ UCHAR FeatureId,
-  _In_ UCHAR* Buffer,
+  _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _In_ ULONG OffsetOfDataToCopy,
   _In_ ULONG NumberOfBytesToCopy
@@ -387,7 +387,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSetWithTimeout(
   _In_ DMFMODULE DmfModule,
   _In_ UCHAR FeatureId,
-  _In_ UCHAR* Buffer,
+  _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _In_ ULONG OffsetOfDataToCopy,
   _In_ ULONG NumberOfBytesToCopy,
@@ -423,7 +423,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSet(
   _In_ DMFMODULE DmfModule,
   _In_ UCHAR FeatureId,
-  _In_ UCHAR* Buffer,
+  _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _In_ ULONG OffsetOfDataToCopy,
   _In_ ULONG NumberOfBytesToCopy
@@ -514,7 +514,7 @@ DMF_HidTarget_InputReadEx(
 Allows the Client to send _PendedInputReadRequestCount_ number of input report read requests to the HID device connected the instance of this Module.
 
 NOTE: The requests sent here are automatically sent back to the HID device after completion unless
-      the request is cancelled or device disconnected.
+      the request is canceled or device disconnected.
 
 ##### Returns
 
@@ -569,7 +569,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_OutputReportSet(
   _In_ DMFMODULE DmfModule,
-  _In_ UCHAR* Buffer,
+  _In_reads_(BufferSize) UCHAR* Buffer,
   _In_ ULONG BufferSize,
   _In_ ULONG TimeoutMs
   );

@@ -168,7 +168,7 @@ Return Value:
 {
     ContinuousRequestTarget_BufferDisposition returnValue;
     DMF_CONTEXT_HidTarget* moduleContext;
-    PVOID clientBufferInputReport;
+    VOID* clientBufferInputReport;
     NTSTATUS ntStatus;
     DMFMODULE dmfModuleHidTarget;
 
@@ -239,7 +239,6 @@ ExitNoRelease:
     return returnValue;
 }
 
-_Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 static
@@ -312,7 +311,6 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
-_Function_class_(EVT_DMF_ContinuousRequestTarget_SendCompletion)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
@@ -401,7 +399,7 @@ _IRQL_requires_same_
 ThreadedBufferQueue_BufferDisposition
 HidTarget_InputReportConsumeWork(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* ClientWorkBuffer,
+    _In_reads_(ClientWorkBufferSize) UCHAR* ClientWorkBuffer,
     _In_ ULONG ClientWorkBufferSize,
     _In_ VOID* ClientWorkBufferContext,
     _Out_ NTSTATUS* NtStatus
@@ -972,7 +970,7 @@ static
 BOOLEAN
 HidTarget_IsPidInList(
     _In_ UINT16 LookForPid,
-    _In_ UINT16* PidList,
+    _In_reads_(PidListArraySize) UINT16* PidList,
     _In_ ULONG PidListArraySize
     )
 /*++
@@ -3457,7 +3455,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGet(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _Out_ UCHAR* Buffer,
+    _Out_writes_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
@@ -3582,7 +3580,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolContextHidFeatureGetAsynchronous,
-                                 (PVOID*)&featureGetPoolbuffer,
+                                 (VOID**)&featureGetPoolbuffer,
                                  NULL);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -3593,6 +3591,9 @@ Return Value:
         goto Exit;
     }
 
+    // 'Possibly incorrect single element annotation on buffer'
+    //
+    #pragma warning(suppress:26007)
     RtlZeroMemory(featureGetPoolbuffer,
                   sizeof(HidFeatureGetContext));
 
@@ -3677,7 +3678,7 @@ NTSTATUS
 DMF_HidTarget_FeatureGetWithTimeout(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _Out_ UCHAR* Buffer,
+    _Out_writes_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy,
@@ -3835,7 +3836,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSet(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
@@ -3891,7 +3892,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSetWithTimeout(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy,
@@ -4062,7 +4063,7 @@ NTSTATUS
 DMF_HidTarget_FeatureSetEx(
     _In_ DMFMODULE DmfModule,
     _In_ UCHAR FeatureId,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG OffsetOfDataToCopy,
     _In_ ULONG NumberOfBytesToCopy
@@ -4149,7 +4150,7 @@ Return Value:
                                MemoryTag,
                                sizeof(HIDP_VALUE_CAPS) * moduleContext->HidCaps.NumberFeatureValueCaps,
                                &memoryValueCaps,
-                               (PVOID*)&valueCaps);
+                               (VOID**)&valueCaps);
     if (! NT_SUCCESS(ntStatus))
     {
         TraceError(DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
@@ -4301,6 +4302,7 @@ ExitNoRelease:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS
@@ -4354,6 +4356,7 @@ Exit:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -4412,7 +4415,7 @@ Return Value:
     }
 
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolInputReport,
-                                  (PVOID*)&buffer,
+                                  (VOID**)&buffer,
                                   NULL);
     if (! NT_SUCCESS(ntStatus))
     {
@@ -4420,6 +4423,9 @@ Return Value:
         goto Exit;
     }
 
+    // 'Possibly incorrect single element annotation on buffer'
+    //
+    #pragma warning(suppress: 26007)
     ntStatus = DMF_ContinuousRequestTarget_Send(moduleContext->DmfModuleContinuousRequestTarget,
                                                 NULL,
                                                 0,
@@ -4633,7 +4639,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    PVOID reportBuffer = WdfMemoryGetBuffer(InputReportMemory,
+    VOID* reportBuffer = WdfMemoryGetBuffer(InputReportMemory,
                                             &bufferSize);
 
     if (NULL == reportBuffer)
@@ -4690,7 +4696,7 @@ _Must_inspect_result_
 NTSTATUS
 DMF_HidTarget_OutputReportSet(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* Buffer,
+    _In_reads_(BufferSize) UCHAR* Buffer,
     _In_ ULONG BufferSize,
     _In_ ULONG TimeoutMs
     )

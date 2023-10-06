@@ -133,7 +133,7 @@ typedef struct
 CHAR*
 SmbiosViaWmi_StringAssign(
     _In_ CHAR StringNumber,
-    _Inout_ UCHAR* *StringData,
+    _Inout_ UCHAR** StringData,
     _In_ UCHAR* EndPointer
     )
 /*++
@@ -169,7 +169,9 @@ Return Value:
     returnValue = *StringData;
        
     // Move StringData to next string.
+    // 'Possibly incorrect single element annotation on buffer'
     //
+    #pragma warning(suppress:26007)
     while (((*StringData) < EndPointer) && 
            (!((0 == **StringData))))
     {
@@ -177,7 +179,9 @@ Return Value:
     }
        
     // If double NULL then it is the last string.
+    // 'Possibly incorrect single element annotation on buffer'
     //
+    #pragma warning(suppress:26007)
     if ((*(*StringData + 1) != 0))
     {
         (*StringData)++;
@@ -832,7 +836,7 @@ _Check_return_
 NTSTATUS
 DMF_SmbiosWmi_TableCopy(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* TargetBuffer,
+    _Out_writes_(TargetBufferSize) UCHAR* TargetBuffer,
     _In_ ULONG TargetBufferSize
     )
 /*++
@@ -890,8 +894,8 @@ _Check_return_
 NTSTATUS
 DMF_SmbiosWmi_TableCopyEx(
     _In_ DMFMODULE DmfModule,
-    _In_ UCHAR* TargetBuffer,
-    _In_ size_t* TargetBufferSize
+    _Out_writes_(*TargetBufferSize) UCHAR* TargetBuffer,
+    _Inout_ size_t* TargetBufferSize
     )
 /*++
 
