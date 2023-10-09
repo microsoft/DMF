@@ -72,6 +72,11 @@ Environment:
 //
 #pragma warning(disable:26494)
 
+// 'A SAL annotation cannot be applied to '...''
+// (This warning is emitted from .tmh files.)
+//
+#pragma warning(disable:4425)
+
 // Check that the Windows version is Win10 or later. The supported versions are defined in sdkddkver.h.
 //
 #define IS_WIN10_OR_LATER (NTDDI_WIN10_RS3 && (NTDDI_VERSION >= NTDDI_WIN10))
