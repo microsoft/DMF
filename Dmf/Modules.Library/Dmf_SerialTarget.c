@@ -478,7 +478,7 @@ Exit:
     FuncExitVoid(DMF_TRACE);
 }
 
-EVT_WDF_IO_TARGET_REMOVE_CANCELED SerialTarget_EvtIoTargetRemoveComplete;
+EVT_WDF_IO_TARGET_REMOVE_COMPLETE SerialTarget_EvtIoTargetRemoveComplete;
 
 VOID
 SerialTarget_EvtIoTargetRemoveComplete(
