@@ -265,7 +265,8 @@ Tests_Pdo_ThreadAction(
     ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
                                     &pdoRecord,
                                     &devicePair[0]);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    // It can fail during low memory situations.
+    //
     if (!NT_SUCCESS(ntStatus))
     {
         DMF_ModuleLock(DmfModule);
@@ -292,13 +293,14 @@ Tests_Pdo_ThreadAction(
     ntStatus = DMF_Pdo_DevicePlugEx(moduleContext->DmfModulePdo,
                                     &pdoRecord,
                                     &devicePair[1]);
-    DmfAssert(NT_SUCCESS(ntStatus));
+    // It can fail during low memory situations.
+    //
     if (!NT_SUCCESS(ntStatus))
     {
         // Undo the successful plug in above.
         //
         ntStatus = DMF_Pdo_DeviceUnplug(moduleContext->DmfModulePdo,
-                                        devicePair[1]);
+                                        devicePair[0]);
         DMF_ModuleLock(DmfModule);
         moduleContext->SerialNumbersInUse[serialNumberPair + 0] = FALSE;
         moduleContext->SerialNumbersInUse[serialNumberPair + 1] = FALSE;

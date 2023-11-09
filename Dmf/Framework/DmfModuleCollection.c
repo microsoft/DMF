@@ -3017,6 +3017,13 @@ Return Value:
                                                 &moduleAttributes,
                                                 WDF_NO_OBJECT_ATTRIBUTES,
                                                 NULL);
+        // In low memory case, the above call can fail.
+        //
+        if (!NT_SUCCESS(ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus))
+        {
+            ntStatus = ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus;
+            goto Exit;
+        }
     }
 
 #if !defined(DMF_USER_MODE)
@@ -3034,6 +3041,13 @@ Return Value:
                                                 &moduleAttributes,
                                                 WDF_NO_OBJECT_ATTRIBUTES,
                                                 NULL);
+        // In low memory case, the above call can fail.
+        //
+        if (!NT_SUCCESS(ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus))
+        {
+            ntStatus = ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus;
+            goto Exit;
+        }
     }
 #endif // !defined(DMF_USER_MODE)
 
@@ -3373,6 +3387,13 @@ Return Value:
                                                 &moduleAttributes,
                                                 WDF_NO_OBJECT_ATTRIBUTES,
                                                 NULL);
+        // In low memory case, the above call can fail.
+        //
+        if (!NT_SUCCESS(ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus))
+        {
+            ntStatus = ModuleCollectionConfig->DmfPrivate.ErrorCodeNtStatus;
+            goto Exit;
+        }
 
         numberOfClientModulesToCreate++;
     }
@@ -3628,8 +3649,17 @@ Exit:
             //
             DMF_ModuleCollectionCleanup(moduleCollectionHandle,
                                         ModuleOpenedDuringType_Create);
+            if (ModuleCollectionConfig->DmfPrivate.ParentDmfModule != NULL)
+            {
+                // In this case, the clean up callback has not been set (see above), so it must be called
+                // directly. This path is needed for the case where the Child Modules are not able
+                // to be created due to low memory.
+                //
+                DMF_ModuleCollectionDestroy(moduleCollectionHandle->ModuleCollectionHandleMemory);
+            }
             // Destroy the collection this call created.
-            // NOTE: DMF_ModuleCollectionDestroy is called via the destroy callback.
+            // NOTE: DMF_ModuleCollectionDestroy is called via the destroy callback or
+            //       it has been called just above.
             //
             WdfObjectDelete(moduleCollectionHandle->ModuleCollectionHandleMemory);
             moduleCollectionHandle = NULL;

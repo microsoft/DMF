@@ -644,8 +644,9 @@ DMF_QueuedWorkItem_Flush(
 
 Routine Description:
 
-    Flushes any pending work. If its callback has not yet started executing, it won't start. If its callback has 
-    started executing this Method waits until its callback has finished executing.
+    Flushes any pending work item. If its callback has not yet started executing, it will execute before
+    this Method returns. If its callback has started executing it will finish executing before this
+    Method returns.
 
 Arguments:
 
