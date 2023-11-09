@@ -168,7 +168,7 @@ Tests_BufferPool_Validate(
     {
         DmfAssert(RtlCompareMemory(MemoryDescriptor, 
                                    &paramMemoryDescriptor, 
-                                   sizeof(paramMemoryDescriptor) == sizeof(paramMemoryDescriptor)));
+                                   sizeof(paramMemoryDescriptor)) == sizeof(paramMemoryDescriptor));
     }
 }
 

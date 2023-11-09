@@ -493,6 +493,7 @@ Return Value:
                               DMF_TAG2);
         ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
+        DmfObject->ModuleDescriptor.CallbacksDmf = NULL;
         goto Exit;
     }
 
@@ -1409,6 +1410,16 @@ Return Value:
     dmfObject->ModuleDescriptor.CallbacksDmf->ChildModulesAdd(dmfModule,
                                                               DmfModuleAttributes,
                                                               (PDMFMODULE_INIT)&moduleCollectionConfig);
+    // Check for failure to allocate memory inside the above call, which, by design
+    // returns nothing.
+    //
+    if (!NT_SUCCESS(moduleCollectionConfig.DmfPrivate.ErrorCodeNtStatus))
+    {
+        ntStatus = moduleCollectionConfig.DmfPrivate.ErrorCodeNtStatus;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ChildModulesAdd fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     // Allow the Client to set a Transport if it is required.
     //
     if (dmfObject->ModuleDescriptor.ModuleOptions & DMF_MODULE_OPTIONS_TRANSPORT_REQUIRED)
@@ -1438,7 +1449,7 @@ Return Value:
                                               &childModuleCollection);
         if (!NT_SUCCESS(ntStatus))
         {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionCreateEx fails: ntStatus=%!STATUS!", ntStatus);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
 
@@ -1460,7 +1471,7 @@ Exit:
         if (memoryDmfObject != NULL)
         {
             // Need to delete all non-WDF allocations for the non-Dynamic Module case.
-            // This code runs in the case of fault-injection or low memory scenaarios.
+            // This code runs in the case of fault-injection or low memory scenarios.
             //
             if (dmfObject->ClientModuleInstanceName != NULL)
             {

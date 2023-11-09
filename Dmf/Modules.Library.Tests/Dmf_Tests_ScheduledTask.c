@@ -1449,8 +1449,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    // Thread
-    // ------
+    // ScheduledTask
+    // -------------
     //
     for (ULONG scheduledTaskIndex = 0; scheduledTaskIndex < TASK_COUNT; scheduledTaskIndex++)
     {
@@ -1503,6 +1503,7 @@ Return Value:
         moduleConfigScheduledTask.ExecuteWhen = TaskDescriptionArrayExCancel[scheduledTaskIndex].ExecuteWhen;
         moduleConfigScheduledTask.TimerPeriodMsOnSuccess = TASK_DELAY_CANCEL_MS;
         moduleConfigScheduledTask.TimerPeriodMsOnFail = TASK_DELAY_CANCEL_MS;
+        moduleConfigScheduledTask.TimeMsBeforeInitialCall = TASK_DELAY_CANCEL_MS;
         DMF_DmfModuleAdd(DmfModuleInit,
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,

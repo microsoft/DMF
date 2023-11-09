@@ -190,10 +190,14 @@ typedef enum
     // Default result for control access. This means that no communication is required towards MCU.
     //
     NoCommunicationNeeded,
-    // "Processor Hot"-signal removal control. 
+    // "Processor Hot"-signal removal control for PSU Detach.
     // This is used when SmfSoCBatteryModeInstanceId-channel indicates that reconfiguration is complete.
     //
-    ClearProcessorHotSignal,
+    ClearProcessorHotSignalPsuDetach,
+    // "Processor Hot"-signal removal control for Missing/Dead battery.
+    // This is used when SmfSoCBatteryModeInstanceId-channel indicates that reconfiguration is complete.
+    //
+    ClearProcessorHotSignalDeadBattery,
 } SMFSOCPLUGIN_SAM_EC_COMMUNICATION;
 
 // Enumeration for the transport to send operation information to protocol.
@@ -210,6 +214,9 @@ typedef enum
     // This indicates the data variable contains SoC reset reason.
     //
     ProtocolNotifyOperation_SocResetReasonTelemetry,
+    // This indicates that the given channel has to be marked as offline.
+    //
+    ProtocolNotifyOperation_ChannelOffline,
     ProtocolNotifyOperation_Max
 } SMFSOC_PROTOCOL_NOTIFY_OPERATION;
 
