@@ -9,7 +9,8 @@ Module Name:
 
 Abstract:
 
-    Provides Connected Standby Notification Facilities.
+    Provides Connected (a.k.a. Modern) Standby Notification support.
+    NOTE: In this Module "Connected Standby" also means "Modern Standby".
 
 Environment:
 
@@ -67,10 +68,10 @@ DMF_MODULE_DECLARE_CONFIG(ConnectedStandby)
 #pragma code_seg("PAGE")
 NTSTATUS
 ConnectedStandby_OnConnectedStandby(
-    LPCGUID SettingGuid,
-    VOID* Value,
-    ULONG ValueLength,
-    VOID* Context
+    _In_ LPCGUID SettingGuid,
+    _In_reads_bytes_(ValueLength) VOID* Value,
+    _In_ ULONG ValueLength,
+    _In_ VOID* Context
     )
 /*++
 
@@ -105,7 +106,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 DMF_TRACE,
-                "ConnectedStandby_OnConnectedStandby entered.");
+                "ConnectedStandby_OnConnectedStandby enters");
 
     ntStatus = STATUS_SUCCESS;
 
@@ -116,12 +117,15 @@ Return Value:
                          (LPCGUID)&GUID_CONSOLE_DISPLAY_STATE,
                          sizeof(GUID)) != sizeof(GUID))
     {
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
 
-    if ((ValueLength != sizeof(ULONG)) || (Value == NULL))
+    if ((ValueLength != sizeof(ULONG)) || 
+        (Value == NULL))
     {
+        DmfAssert(FALSE);
         ntStatus = STATUS_INVALID_PARAMETER;
         goto Exit;
     }
@@ -156,7 +160,7 @@ Exit:
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 DMF_TRACE,
-                "ConnectedStandby_OnConnectedStandby exited.");
+                "ConnectedStandby_OnConnectedStandby exits");
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -203,13 +207,11 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-
     ntStatus = PoRegisterPowerSettingCallback(NULL,
                                               &GUID_CONSOLE_DISPLAY_STATE,
                                               &ConnectedStandby_OnConnectedStandby,
                                               (VOID*)DmfModule,
                                               &moduleContext->PowerSettingHandle);
-
     if (!NT_SUCCESS(ntStatus))
     {
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "PoRegisterPowerSettingCallback fails: ntStatus=%!STATUS!", ntStatus);
@@ -237,7 +239,6 @@ DMF_ConnectedStandby_Close(
 Routine Description:
 
     Close an instance of a DMF Module of type ConnectedStandby.
-    Clean up po handle if it exists.
 
 Arguments:
 
@@ -256,7 +257,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    ntStatus = STATUS_SUCCESS;
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     if (moduleContext->PowerSettingHandle != NULL)

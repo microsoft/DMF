@@ -6,7 +6,8 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-This Module allows the Client to request and receive notifications when the system has entered or exited Connected Standby.
+This Module allows the Client to request and receive notifications when the system enters or exit Connected (a.k.a. Modern) Standby.
+NOTE: In this Module "Connected Standby" also means "Modern Standby".
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
