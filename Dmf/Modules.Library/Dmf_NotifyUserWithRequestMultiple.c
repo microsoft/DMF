@@ -690,7 +690,8 @@ Return Value:
 
         // Dereference FileObject.
         //
-        WdfObjectDereference(fileObjectForDereference);
+        WdfObjectDereferenceWithTag(fileObjectForDereference,
+                                    (VOID*)dmfModuleNotifyUserWithRequestMultiple);
     }
 
     // 3. Broadcast data to the Clients in the ListHead list.
