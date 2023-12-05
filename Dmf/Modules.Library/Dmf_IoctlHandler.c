@@ -286,6 +286,36 @@ Return Value:
         goto Exit;
     }
 
+    // If this Module instance has been created using a reference string, route the WDFREQUEST to 
+    // its corresponding instance based on reference string.
+    // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
+    // WDFDEVICE.
+    //
+    if (moduleContext->ReferenceStringUnicodePointer != NULL)
+    {
+        WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
+        UNICODE_STRING* fileName = WdfFileObjectGetFileName(fileObjectOfRequest);
+        if (fileName->Length > sizeof(L'\\'))
+        {
+            // Skip preceding '\'.
+            //
+            WCHAR* stringFileObject = &fileName->Buffer[1];
+            size_t stringLengthFileObject = fileName->Length - sizeof(L'\\');
+            WCHAR* stringModule = moduleContext->ReferenceStringUnicode.Buffer;
+            size_t stringLengthModule = moduleContext->ReferenceStringUnicode.Length;
+            LONG comparisonLength = RtlCompareUnicodeStrings(stringFileObject,
+                                                             stringLengthFileObject,
+                                                             stringModule,
+                                                             stringLengthModule,
+                                                             FALSE);
+            if (comparisonLength != 0)
+            {
+                handled = FALSE;
+                goto Exit;
+            }
+        }
+    }
+
     for (ULONG tableIndex = 0; tableIndex < moduleConfig->IoctlRecordCount; tableIndex++)
     {
         IoctlHandler_IoctlRecord* ioctlRecord;

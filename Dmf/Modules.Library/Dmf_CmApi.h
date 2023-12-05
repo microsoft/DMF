@@ -107,7 +107,7 @@ NTSTATUS
 DMF_CmApi_ParentDevNodeGet(
     _In_ DMFMODULE DmfModule,
     _Out_ DEVINST* ParentDevNode,
-    _Out_writes_(ParentDeviceInstanceIdBufferSize) WCHAR* ParentDeviceInstanceId,
+    _Out_writes_bytes_(ParentDeviceInstanceIdBufferSize) WCHAR* ParentDeviceInstanceId,
     _In_ ULONG ParentDeviceInstanceIdBufferSize
     );
 
