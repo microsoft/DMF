@@ -198,13 +198,15 @@ Tests_DeviceInterfaceTarget_QueryInterface(
     // NOTE: This function acquires a reference to the interface using InterfaceReference.
     //       This interface remains available until a corresponding InterfaceDereference 
     //       is called.
+    // Pass something unique to InterfaceSpecificData (i.e. the last argument) so that the driver exposing
+    // the interface can distinguish to caller.
     //
     ntStatus = WdfIoTargetQueryForInterface(ioTarget,
                                             &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
                                             (INTERFACE*)&moduleContext->DirectInterface,
                                             sizeof(Tests_IoctlHandler_INTERFACE_STANDARD),
                                             1,
-                                            NULL);
+                                            ioTarget);
     DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
