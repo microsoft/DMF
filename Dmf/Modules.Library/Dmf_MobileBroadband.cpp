@@ -29,9 +29,9 @@ Environment:
 #include "Dmf_MobileBroadband.tmh"
 #endif
 
-// Only support 19H1 and above because of library size limitations on RS5.
+// Only support 21H1 and above because of some APIs are introduced after that.
 //
-#if IS_WIN10_19H1_OR_LATER
+#if IS_WIN10_21H1_OR_LATER
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -85,6 +85,12 @@ public:
     // Event token for transmission state change.
     //
     event_token tokenTransmissionStateChanged;
+    // IAsyncAction for modem and SAR object get.
+    // 
+    IAsyncAction ModemAndSarResourceGetAsync();
+    // IAsyncAction for timeout helper.
+    // 
+    IAsyncAction TimeoutHelperAsync(int milliseconds);
     // Initialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -116,6 +122,9 @@ public:
 
 typedef struct _DMF_CONTEXT_MobileBroadband
 {
+    // DmfModuleRundown
+    //
+    DMFMODULE DmfModuleRundown;
     // MobileBroadbandModemDevice class instance pointer.
     //
     MobileBroadbandModemDevice* ModemDevice = nullptr;
@@ -200,6 +209,113 @@ Return Value:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+IAsyncAction
+MobileBroadbandModemDevice::ModemAndSarResourceGetAsync()
+/*++
+
+Routine Description:
+
+    IAsyncAction function for get MobileBroadbandModem and MobileBroadbandSarManager resource as async call.
+
+Arguments:
+
+    None
+
+Return Value:
+
+    IAsyncAction
+
+--*/
+{
+    // Mark task as background task for async operation.
+    //
+    co_await resume_background();
+    // MobileBroadbandModem is not ready right after modem interface arrived.
+    // Need for wait for MobileBroadbandModem be available. Otherwise modem get will return nullptr.
+    //
+    for (int tryTimes = 0; tryTimes < RetryTimesAmount; tryTimes++)
+    {
+        try
+        {
+            Sleep(WaitTimeMilliseconds);
+            // This call might hangs here. This is a OS/WinRT bug. 
+            // Here, it is being called in an async method to ensure that it does not block other threads.
+            //
+            modem = MobileBroadbandModem::GetDefault();
+            if (modem != nullptr)
+            {
+                auto config = modem.GetCurrentConfigurationAsync().get();
+                // This call return success only when used in RS5 and above! Otherwise will raise 0x80070005 access deny error.
+                //
+                sarManager = config.SarManager();
+
+                // This check is a workaround. WinRT Api has a bug that causes above call to silently fail. Once it's fixed the
+                // call will raise hresult_error ERROR_NOT_SUPPORTED.
+                //
+                if (sarManager == nullptr)
+                {
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Get MobileBroadbandSarManager fails");
+                    modem = nullptr;
+                    continue;
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem resource get success");
+                    break;
+                }
+            }
+            else
+            {
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Get MobileBroadbandModem fails");
+                continue;
+            }
+        }
+        catch (hresult_error ex)
+        {
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "could not get valid MobileBroadbandModem, error code 0x%08x - %ws",
+                        ex.code().value,
+                        ex.message().c_str());
+            modem = nullptr;
+            sarManager = nullptr;
+            mobileBroadbandWirelessState.IsModemValid = FALSE;
+        }
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ModemAndSarResourceGetAsync finished");
+    co_return;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+IAsyncAction
+MobileBroadbandModemDevice::TimeoutHelperAsync(
+    _In_ int milliseconds
+    )
+/*++
+
+Routine Description:
+
+    Timeour helper function as IAsyncAction. 
+    It sleeps for certain milliseconds and then return as async call.
+
+Arguments:
+
+    milliseconds: The time to sleep in milliseconds.
+
+Return Value:
+
+    IAsyncAction
+
+--*/
+{
+    co_await resume_background();
+    this_thread::sleep_for(chrono::milliseconds(milliseconds));
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "TimeoutHelperAsync with timeout %d ms finished", milliseconds);
+    co_return;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 MobileBroadbandModemDevice::DeInitialize()
 /*++
@@ -236,6 +352,7 @@ Return Value:
         modemWatcher.Stop();
     }
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem Watcher stopped");
     FuncExitVoid(DMF_TRACE);
 }
 
@@ -326,70 +443,47 @@ Return Value:
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem deviceInfoAddedHandler triggered");
 
         moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+        ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_ModuleReference() fails: ntStatus=%!STATUS!", ntStatus);
+            return;
+        }
         DMF_ModuleAuxiliaryLock(DmfModule,
                                 MobileBroadband_AdapterWatcherEventLockIndex);
         // New modem interface arrived.
         //
         if (modem == nullptr)
         {        
-            // MobileBroadbandModem is not ready right after modem interface arrived.
-            // Need for wait for MobileBroadbandModem be available. Otherwise modem get will return nullptr.
-            // This wait will not block other threads.
+            // Use IAsyncAction and when_any to give timeout for modem resource get action to prevent hang forever.
             //
-            for (int tryTimes = 0; tryTimes < RetryTimesAmount; tryTimes++)
+            IAsyncAction modemAndSarResourceGetAsync = ModemAndSarResourceGetAsync();
+            IAsyncAction timeoutHelperAsync = TimeoutHelperAsync(WaitTimeMillisecondsOnInitialize);
+            when_any(modemAndSarResourceGetAsync,
+                     timeoutHelperAsync).get();
+            if (modem != nullptr)
             {
-                try
+                ntStatus = DMF_ModuleOpen(DmfModule);
+                if (!NT_SUCCESS(ntStatus))
                 {
-                    Sleep(WaitTimeMilliseconds);
-                    modem = MobileBroadbandModem::GetDefault();
-                    if (modem != nullptr)
-                    {
-                        auto config = modem.GetCurrentConfigurationAsync().get();
-                        // This call return success only when used in RS5 and above! Otherwise will raise 0x80070005 access deny error.
-                        //
-                        sarManager = config.SarManager();
-
-                        // This check is a workaround. WinRT Api has a bug that causes above call to silently fail. Once it's fixed the
-                        // call will raise hresult_error ERROR_NOT_SUPPORTED.
-                        //
-                        if (sarManager == nullptr)
-                        {
-                            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Get MobileBroadbandSarManager fails");
-                            modem = nullptr;
-                            break;
-                        }
-                        // Open this Module.
-                        //
-                        ntStatus = DMF_ModuleOpen(DmfModule);
-                        if (!NT_SUCCESS(ntStatus))
-                        {
-                            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen fails, ntStatus = %!STATUS!", ntStatus);
-                            modem = nullptr;
-                            sarManager = nullptr;
-                            break;
-                        }
-                        mobileBroadbandWirelessState.IsModemValid = TRUE;
-                        modemId = args.Id();
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem is found , device Id is %ws", modemId.c_str());
-                        MobileBroadband_TransmissionStateMonitorStart(DmfModule);
-                        break;
-                    }
-                    else
-                    {
-                        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem get failed");
-                    }
-                }
-                catch (hresult_error ex)
-                {
-                    TraceEvents(TRACE_LEVEL_ERROR,
-                                DMF_TRACE,
-                                "could not get valid MobileBroadbandModem, error code 0x%08x - %ws",
-                                ex.code().value,
-                                ex.message().c_str());
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleOpen() fails: ntStatus=%!STATUS!", ntStatus);
                     modem = nullptr;
                     sarManager = nullptr;
-                    mobileBroadbandWirelessState.IsModemValid = FALSE;
                 }
+                else
+                {
+                    mobileBroadbandWirelessState.IsModemValid = TRUE;
+                    modemId = args.Id();
+                    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem is found , device Id is %ws", modemId.c_str());
+                    MobileBroadband_TransmissionStateMonitorStart(DmfModule);
+                    timeoutHelperAsync.Cancel();
+                }
+            }
+            else
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem resource get failed");
+                modemAndSarResourceGetAsync.Cancel();
             }
         }
         // Only one instance of mobile broad band is supported.
@@ -401,6 +495,8 @@ Return Value:
 
         DMF_ModuleAuxiliaryUnlock(DmfModule,
                                   MobileBroadband_AdapterWatcherEventLockIndex);
+        DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown deferef from add event");
     });
 
     // Event handler for MobileBroadband interface remove event.
@@ -410,15 +506,22 @@ Return Value:
                                                                                                 DeviceInformationUpdate args)
     {
         DMF_CONTEXT_MobileBroadband* moduleContext;
+        NTSTATUS ntStatus;
 
         UNREFERENCED_PARAMETER(sender);
 
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem deviceInfoRemovedHandler triggered");
 
         moduleContext = DMF_CONTEXT_GET(DmfModule);
+        ntStatus = DMF_Rundown_Reference(moduleContext->DmfModuleRundown);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_ModuleReference() fails: ntStatus=%!STATUS!", ntStatus);
+            return;
+        }
+
         DMF_ModuleAuxiliaryLock(DmfModule,
                                 MobileBroadband_AdapterWatcherEventLockIndex);
-
         // modem interface removed.
         //
         if (modem != nullptr)
@@ -450,7 +553,8 @@ Return Value:
 
         DMF_ModuleAuxiliaryUnlock(DmfModule,
                                   MobileBroadband_AdapterWatcherEventLockIndex);
-
+        DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown deferef from remove event");
     });
 
     TypedEventHandler deviceInfoUpdatedHandler = TypedEventHandler<DeviceWatcher,
@@ -790,6 +894,11 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    // Start Rundown module.
+    //
+    DMF_Rundown_Start(moduleContext->DmfModuleRundown);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown starts finish");
+
     // Store Module config.
     //
     moduleContext->EvtMobileBroadbandWirelessStateChangeCallback = moduleConfig->EvtMobileBroadbandWirelessStateChangeCallback;
@@ -857,6 +966,10 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Waiting for rundown...");
+    DMF_Rundown_EndAndWait(moduleContext->DmfModuleRundown);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown satisfied.");
+
     if (moduleContext->ModemDevice != nullptr)
     {
         if (moduleContext->ModemDevice->modem != nullptr)
@@ -877,6 +990,57 @@ Return Value:
 
 }
 #pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(DMF_ChildModulesAdd)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_MobileBroadband_ChildModulesAdd(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMF_MODULE_ATTRIBUTES* DmfParentModuleAttributes,
+    _In_ PDMFMODULE_INIT DmfModuleInit
+    )
+/*++
+
+Routine Description:
+
+    Configure and add the required Child Modules to the given Parent Module.
+
+Arguments:
+
+    DmfModule - The given Parent Module.
+    DmfParentModuleAttributes - Pointer to the parent DMF_MODULE_ATTRIBUTES structure.
+    DmfModuleInit - Opaque structure to be passed to DMF_DmfModuleAdd.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_MODULE_ATTRIBUTES moduleAttributes;
+    DMF_CONTEXT_MobileBroadband* moduleContext;
+
+    UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
+    UNREFERENCED_PARAMETER(DmfModuleInit);
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Rundown
+    // -------
+    //
+    DMF_Rundown_ATTRIBUTES_INIT(&moduleAttributes);
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleRundown);
+
+    FuncExitVoid(DMF_TRACE);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -923,6 +1087,7 @@ Return Value:
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_MobileBroadband);
     dmfCallbacksDmf_MobileBroadband.DeviceNotificationRegister = DMF_MobileBroadband_NotificationRegister;
     dmfCallbacksDmf_MobileBroadband.DeviceNotificationUnregister = DMF_MobileBroadband_NotificationUnregister;
+    dmfCallbacksDmf_MobileBroadband.ChildModulesAdd = DMF_MobileBroadband_ChildModulesAdd;
     
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_MobileBroadband,
                                             MobileBroadband,

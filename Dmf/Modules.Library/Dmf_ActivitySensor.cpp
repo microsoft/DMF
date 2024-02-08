@@ -495,9 +495,27 @@ Return Value:
     ActivitySensorDevice* activitySensorDevice = moduleContext->activitySensorDevice;
 
     ActivitySensorReadingDataContainer* activitySensorReadingDataContainer = (ActivitySensorReadingDataContainer*)ClientWorkBuffer;
-
-    activitySensorDevice->activitySensorState.CurrentActivitySensorState = (ActivitySensor_Reading)activitySensorReadingDataContainer->activitySensorReadingData->activitySensorReadingChangedEventArgs.Reading().Activity();
-
+    try
+    {
+        if (activitySensorReadingDataContainer != nullptr &&
+            activitySensorReadingDataContainer->activitySensorReadingData != nullptr &&
+            activitySensorReadingDataContainer->activitySensorReadingData->activitySensorReadingChangedEventArgs != nullptr &&
+            activitySensorReadingDataContainer->activitySensorReadingData->activitySensorReadingChangedEventArgs.Reading() != nullptr)
+        {
+            activitySensorDevice->activitySensorState.CurrentActivitySensorState = (ActivitySensor_Reading)activitySensorReadingDataContainer->activitySensorReadingData->activitySensorReadingChangedEventArgs.Reading().Activity();
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "No motion activity data");
+            goto Exit;
+        }
+    }
+    catch (hresult_error const& ex)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to get motion activity data, HRESULT=0x%08X", ex.code().value);
+        goto Exit;
+    }
+       
     if (activitySensorDevice->EvtActivitySensorReadingChangeCallback != nullptr)
     {
         // callback to client, send motion activity state data back.
@@ -506,6 +524,7 @@ Return Value:
                                                                      &activitySensorDevice->activitySensorState);
     }
 
+Exit:
     FuncExit(DMF_TRACE, "returnValue=ThreadedBufferQueue_BufferDisposition_WorkComplete");
 
     // Tell the Child Module that this Module is not longer the owner of the buffer.

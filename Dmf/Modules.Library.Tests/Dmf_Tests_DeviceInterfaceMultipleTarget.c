@@ -181,13 +181,15 @@ Return Value:
     }
 
     // Use the underlying WDFIOTARGET to query for the direct interface.
+    // Pass something unique to InterfaceSpecificData (i.e. the last argument) so that the driver exposing
+    // the interface can distinguish to caller.
     //
     ntStatus = WdfIoTargetQueryForInterface(ioTarget,
                                             &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
                                             (INTERFACE*)&TargetContext->DirectInterface,
                                             sizeof(Tests_IoctlHandler_INTERFACE_STANDARD),
                                             1,
-                                            NULL);
+                                            ioTarget);
     DmfAssert(NT_SUCCESS(ntStatus));
 
 Exit:
