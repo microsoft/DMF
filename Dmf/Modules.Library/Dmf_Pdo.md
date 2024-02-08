@@ -23,7 +23,10 @@ typedef struct
   // Number of records in the above table.
   //
   ULONG PdoRecordCount;
-  // Instance Id format string.
+  // Indicates if the client provides a InstanceId in the PdoRecord. TRUE if Client provides InstanceId. FALSE if Client wants SerialNumber to be used for InstanceId.
+  //
+  BOOLEAN InstanceIdProvidedByClient;
+  // Format string used to format SerialNumber from the PdoRecord into InstanceId assigned to a PDO. Used if InstanceIdProvidedByClient is FALSE.
   //
   PWSTR InstanceIdFormatString;
   // Description of the bus where child devices are discovered.
@@ -50,7 +53,8 @@ Member | Description
 ----|----
 PdoRecords | The table that lists all the PDOs that this Module should create.
 PdoRecordCount | The number of table entries in PdoRecords.
-InstanceIdFormatString | The Instance Id to assign to all the PDOs that are created.
+InstanceIdProvidedByClient | Indicates if the client provides a InstanceId in the PdoRecord. TRUE if Client provides InstanceId. FALSE if Client wants SerialNumber to be used for InstanceId. 
+InstanceIdFormatString | Format string used to format SerialNumber from the PdoRecord into InstanceId assigned to a PDO. Used if InstanceIdProvidedByClient is FALSE.
 DeviceLocation | The description of the bus to assign to all the PDOs that are created.
 EvtPdoPnpCapabilities | Callback to get or set PnpCapabilities for each PDO that is created.
 EvtPdoPowerCapabilities | Callback to get or set PowerCapabilities for each PDO that is created.
@@ -191,6 +195,9 @@ typedef struct
   // Allows Client to allocate custom context.
   //
   WDF_OBJECT_ATTRIBUTES* CustomClientContext;
+  // The InstanceId assigned to the PDO that is to be created.
+  //
+  UNICODE_STRING InstanceId;
 } PDO_RECORD;
 ````
 
@@ -211,6 +218,7 @@ DeviceProperties | The table entry for this device's properties.
 UseAddress | Set this to true if the PDO has non-default address.
 Address | The address of the PDO that is to be created.
 CustomClientContext | Allows Client to assign a context type that is added to the PDO's WDFDEVICE WDF contexts. This context is private to the Client.
+InstanceId | The InstanceId assigned to the PDO that is to be created. Client must set InstanceIdProvidedByClient to TRUE in Module's config to use this.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

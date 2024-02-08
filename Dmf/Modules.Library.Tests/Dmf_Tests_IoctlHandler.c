@@ -42,6 +42,19 @@ typedef struct
 
 typedef struct
 {
+    // Context associated with the interface (provider specific).
+    // NOTE: Provider calls WdfDeviceAddQueryInterface.
+    //
+    VOID* ProviderContext;
+    // Context associated with the interface (subscriber specific). 
+    // This value provided by subscriber as a parameter to WdfIoTargetQueryForInterface.
+    // NOTE: Subscriber calls WdfIoTargetQueryForInterface.
+    //
+    VOID* SubscriberContext;
+} QueryInterfaceContext;
+
+typedef struct
+{
     DMFMODULE DmfModuleTestIoctlHandler;
     LONG TimeToSleepMilliseconds;
 } REQUEST_CONTEXT, *PREQUEST_CONTEXT;
@@ -76,6 +89,9 @@ typedef struct _DMF_CONTEXT_Tests_IoctlHandler
     // Value get/set via direct call.
     //
     UCHAR InterfaceValue;
+    // Context for QueryInterface.
+    //
+    QueryInterfaceContext InterfaceContext;
 } DMF_CONTEXT_Tests_IoctlHandler;
 
 // This macro declares the following function:
@@ -96,6 +112,13 @@ DMF_MODULE_DECLARE_CONFIG(Tests_IoctlHandler)
 // This setting disables the code that disables/enables the device interface.
 //
 #define NO_DISABLE_INTERFACE_THREAD
+
+#if defined(DMF_KERNEL_MODE)
+// Callback for Pre Processing Query Interface Request.
+//
+EVT_WDF_DEVICE_PROCESS_QUERY_INTERFACE_REQUEST Tests_IoctlHandler_ProcessQueryInterfaceRequest_Callback;
+
+#endif
 
 typedef
 BOOLEAN
@@ -767,7 +790,7 @@ Exit:
 
 VOID
 Tests_IoctlHandler_InterfaceReference(
-    _In_ VOID* DmfModuleVoid
+    _In_ VOID* InterfaceContext
     )
 /*++
 
@@ -779,7 +802,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModuleVoid - This Module's handle.
+    InterfaceContext - Context for this interface.
 
 Return Value:
 
@@ -788,14 +811,18 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModule;
+    QueryInterfaceContext* interfaceContext;
 
-    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    interfaceContext = (QueryInterfaceContext*)InterfaceContext;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_InterfaceReference by Subscriber 0x%p", interfaceContext->SubscriberContext);
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(interfaceContext->ProviderContext);
     DMF_ModuleReference(dmfModule);
 }
 
 VOID
 Tests_IoctlHandler_InterfaceDereference(
-    _In_ VOID* DmfModuleVoid
+    _In_ VOID* InterfaceContext
     )
 /*++
 
@@ -805,7 +832,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModuleVoid - This Module's handle.
+    InterfaceContext - Context for this interface.
 
 Return Value:
 
@@ -814,14 +841,18 @@ Return Value:
 --*/
 {
     DMFMODULE dmfModule;
+    QueryInterfaceContext* interfaceContext;
 
-    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    interfaceContext = (QueryInterfaceContext*) InterfaceContext;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_InterfaceDereference by Subscriber 0x%p", interfaceContext->SubscriberContext);
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(interfaceContext->ProviderContext);
     DMF_ModuleDereference(dmfModule);
 }
 
 BOOLEAN
 Tests_IoctlHandler_Get(
-    _In_ VOID* DmfModuleVoid,
+    _In_ VOID* InterfaceContext,
     _Out_ UCHAR* Value
     )
 /*++
@@ -832,7 +863,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module's handle.
+    InterfaceContext - Interface Context.
     Value - Value from Module Context.
 
 Return Value:
@@ -843,8 +874,11 @@ Return Value:
 {
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
     DMFMODULE dmfModule;
+    QueryInterfaceContext* interfaceContext;
 
-    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    interfaceContext = (QueryInterfaceContext*)InterfaceContext;
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(interfaceContext->ProviderContext);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     *Value = moduleContext->InterfaceValue;
@@ -854,7 +888,7 @@ Return Value:
 
 BOOLEAN
 Tests_IoctlHandler_Set(
-    _In_ VOID* DmfModuleVoid,
+    _In_ VOID* InterfaceContext,
     _In_ UCHAR Value
     )
 /*++
@@ -865,7 +899,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - This Module's handle.
+    InterfaceContext - Interface Context.
     Value - Value to set in Module Context.
 
 Return Value:
@@ -876,14 +910,75 @@ Return Value:
 {
     DMF_CONTEXT_Tests_IoctlHandler* moduleContext;
     DMFMODULE dmfModule;
+    QueryInterfaceContext* interfaceContext;
 
-    dmfModule = DMFMODULEVOID_TO_MODULE(DmfModuleVoid);
+    interfaceContext = (QueryInterfaceContext*)InterfaceContext;
+
+    dmfModule = DMFMODULEVOID_TO_MODULE(interfaceContext->ProviderContext);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
     moduleContext->InterfaceValue = Value;
 
     return TRUE;
 }
+
+#if defined(DMF_KERNEL_MODE)
+
+_Use_decl_annotations_
+NTSTATUS
+Tests_IoctlHandler_ProcessQueryInterfaceRequest_Callback(
+    _In_ WDFDEVICE Device,
+    _In_ LPGUID InterfaceType,
+    _Inout_ PINTERFACE ExposedInterface,
+    _Inout_opt_ VOID* ExposedInterfaceSpecificData
+    )
+/*++
+
+Routine Description:
+
+    Sets the subscriber context inside the 'Context' which is part of the Interface structure. 
+    This callback is called when a driver calls WdfIoTargetQueryForInterface.
+
+Arguments:
+
+    Device - Device corresponding this interface.
+    InterfaceType - GUID for this interface.
+    ExposedInterface - The interface structure that is going to be returned to the driver which called WdfIoTargetQueryForInterface
+    ExposedInterfaceSpecificData - Specific data provided by the driver. This is same as the last argument passed into WdfIoTargetQueryForInterface 
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    QueryInterfaceContext* interfaceContext;
+    NTSTATUS ntStatus;
+
+    UNREFERENCED_PARAMETER(Device);
+
+    DmfAssert(Device != NULL);
+    DmfAssert(InterfaceType != NULL);
+
+    if (DMF_Utility_IsEqualGUID(InterfaceType,
+                                (LPGUID)&GUID_Tests_IoctlHandler_INTERFACE_STANDARD) == FALSE)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
+    // Set the subscriber specific context in the returned Interface->Context.
+    // NOTE: provider context is already populated in the returned Interface->Context.
+    //
+    interfaceContext = (QueryInterfaceContext*)ExposedInterface->Context;
+    interfaceContext->SubscriberContext = ExposedInterfaceSpecificData;
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+    return ntStatus;
+}
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -1096,7 +1191,13 @@ Return Value:
 
     testInterfaceStandard.InterfaceHeader.Size = sizeof(testInterfaceStandard);
     testInterfaceStandard.InterfaceHeader.Version = 1;
-    testInterfaceStandard.InterfaceHeader.Context = (VOID*)DmfModule;
+
+    // Configure Provider side Context.
+    // This value will be set on the returned Interface->Context when a subscriber calls WdfIoTargetQueryForInterface.
+    //
+    moduleContext->InterfaceContext.ProviderContext   = (VOID*)DmfModule;
+    moduleContext->InterfaceContext.SubscriberContext = NULL;
+    testInterfaceStandard.InterfaceHeader.Context = &moduleContext->InterfaceContext;
 
     testInterfaceStandard.InterfaceHeader.InterfaceReference =  Tests_IoctlHandler_InterfaceReference;
     testInterfaceStandard.InterfaceHeader.InterfaceDereference = Tests_IoctlHandler_InterfaceDereference;
@@ -1107,7 +1208,7 @@ Return Value:
     WDF_QUERY_INTERFACE_CONFIG_INIT(&queryInterrfaceConfig,
                                     (PINTERFACE) &testInterfaceStandard,
                                     &GUID_Tests_IoctlHandler_INTERFACE_STANDARD,
-                                    NULL);
+                                    Tests_IoctlHandler_ProcessQueryInterfaceRequest_Callback);
     ntStatus = WdfDeviceAddQueryInterface(device,
                                           &queryInterrfaceConfig);
     if (!NT_SUCCESS(ntStatus))

@@ -172,6 +172,9 @@ typedef struct
     // Allows Client to allocate custom context.
     //
     WDF_OBJECT_ATTRIBUTES* CustomClientContext;
+    // The InstanceId assigned to the PDO that is to be created.
+    //
+    UNICODE_STRING InstanceId;
 } PDO_RECORD;
 
 // Allows Client to perform other operations before the PDO is created.
@@ -211,7 +214,10 @@ typedef struct
     // Number of records in the above table.
     //
     ULONG PdoRecordCount;
-    // Instance Id format string.
+    // Indicates if the client provides a InstanceId in the PdoRecord. TRUE if Client provides InstanceId. FALSE if Client wants SerialNumber to be used for InstanceId.
+    //
+    BOOLEAN InstanceIdProvidedByClient;
+    // Format string used to format SerialNumber from the PdoRecord into InstanceId assigned to a PDO. Used if InstanceIdProvidedByClient is FALSE.
     //
     PWSTR InstanceIdFormatString;
     // Description of the bus where child devices are discovered.

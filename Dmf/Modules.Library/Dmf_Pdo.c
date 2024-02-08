@@ -680,23 +680,36 @@ Return Value:
         }
     }
 
-    // InstanceId.
-    //
-    ntStatus = RtlUnicodeStringPrintf(&instanceId,
-                                      moduleConfig->InstanceIdFormatString,
-                                      PdoRecord->SerialNumber);
-    if (! NT_SUCCESS(ntStatus))
+    if (moduleConfig->InstanceIdProvidedByClient == TRUE)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlIntegerToUnicodeString fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
+        ntStatus = WdfPdoInitAssignInstanceID(deviceInit,
+                                              &PdoRecord->InstanceId);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAssignInstanceID fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
-
-    ntStatus = WdfPdoInitAssignInstanceID(deviceInit,
-                                          &instanceId);
-    if (! NT_SUCCESS(ntStatus))
+    else
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAssignInstanceID fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
+        // InstanceId.
+        //
+        ntStatus = RtlUnicodeStringPrintf(&instanceId,
+                                          moduleConfig->InstanceIdFormatString,
+                                          PdoRecord->SerialNumber);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "RtlIntegerToUnicodeString fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+
+        ntStatus = WdfPdoInitAssignInstanceID(deviceInit,
+                                              &instanceId);
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfPdoInitAssignInstanceID fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
 
     // Provide a description about the device. This text is usually read from
@@ -1059,14 +1072,13 @@ Return Value:
             continue;
         }
 
-        DmfAssert(moduleConfig->InstanceIdFormatString != NULL);
+        DmfAssert(moduleConfig->InstanceIdProvidedByClient == FALSE && moduleConfig->InstanceIdFormatString != NULL);
         DmfAssert(pdoRecord->HardwareIds != NULL);
         DmfAssert(pdoRecord->HardwareIdsCount != 0);
         DmfAssert(pdoRecord->HardwareIdsCount < PDO_RECORD_MAXIMUM_NUMBER_OF_HARDWARE_IDS);
         DmfAssert(pdoRecord->CompatibleIdsCount == 0 || pdoRecord->CompatibleIds != NULL);
         DmfAssert(pdoRecord->CompatibleIdsCount < PDO_RECORD_MAXIMUM_NUMBER_OF_COMPAT_IDS);
         DmfAssert(pdoRecord->Description != NULL);
-
 
         // Create PDO.
         //
