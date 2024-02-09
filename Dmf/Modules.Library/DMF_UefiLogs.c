@@ -69,9 +69,14 @@ DMF_MODULE_DECLARE_NO_CONFIG(UefiLogs)
 //
 #define LOGGER_INFO_SIGNATURE 0x474F4C41
 
-// Signature of a valid ADVANCED_LOGGER_MESSAGE_ENTRY structure.
+// Signature of a valid ADVANCED_LOGGER_MESSAGE_ENTRY structure ('ALOG').
 //
 #define LOGGER_MESSAGE_ENTRY_SIGNATURE 0x534D4C41
+
+// Version definitions.
+//
+#define ADVANCED_LOGGER_VERSION_V2 2
+#define ADVANCED_LOGGER_VERSION_V3 3
 
 // Name of the variable that is queried for UEFI logs.
 //
@@ -117,6 +122,9 @@ typedef struct
 } EFI_TIME;
 
 #pragma pack (push, 1)
+// Since Project Mu definition uses volatile, 
+// this Module has it here too for consistency.
+//
 typedef volatile struct
 {
     // Signature 'ALOG'
@@ -167,7 +175,68 @@ typedef volatile struct
     // Uefi Time Field
     //
     EFI_TIME Time;
-} ADVANCED_LOGGER_INFO;
+} ADVANCED_LOGGER_INFO_V2;
+
+// Since Project Mu definition uses volatile, 
+// this Module has it here too for consistency.
+//
+typedef volatile struct
+{
+    // Signature 'ALOG'
+    //
+    UINT32 Signature;
+    // Current Version
+    //
+    UINT16 Version;
+    // Reserved for future
+    //
+    UINT16 Reserved;
+    // Fixed pointer to start of log
+    //
+    UINT64 LogBuffer;
+    // Where to store next log entry.
+    //
+    UINT64 LogCurrent;
+    // Number of bytes of messages missed.
+    //
+    UINT32 DiscardedSize;
+    // Size of allocated buffer.
+    //
+    UINT32 LogBufferSize;
+    // Log in permanent RAM
+    //
+    BOOLEAN InPermanentRAM;
+    // After ExitBootServices
+    //
+    BOOLEAN AtRuntime;
+    // After VirtualAddressChange
+    //
+    BOOLEAN GoneVirtual;
+    // HdwPort initialized
+    //
+    BOOLEAN HdwPortInitialized;
+    // HdwPort is Disabled
+    //
+    BOOLEAN HdwPortDisabled;
+    // Reserved field.
+    //
+    BOOLEAN Reserved2[3];
+    // Ticks per second for log timing
+    //
+    UINT64 TimerFrequency;
+    // Ticks when Time Acquired
+    //
+    UINT64 TicksAtTime;
+    // Uefi Time Field
+    //
+    EFI_TIME Time;
+    // Logging level to be printed at hw port.
+    //
+    UINT32 HwPrintLevel;
+    // Reserved field.
+    //
+    UINT32 Reserved3;
+} ADVANCED_LOGGER_INFO_V3;
 
 typedef struct
 {
@@ -280,7 +349,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 UefiLogs_BufferTimeAppend(
     _In_ DMFMODULE DmfModule,
-    _In_ ADVANCED_LOGGER_INFO* LoggerInfo,
+    _In_ ADVANCED_LOGGER_INFO_V2* LoggerInfo,
     _In_ ADVANCED_LOGGER_MESSAGE_ENTRY* LoggerMessageEntry,
     _In_ VOID* DestinationBuffer,
     _In_ size_t MaximumSizeOfBufferBytes,
@@ -429,7 +498,7 @@ Return Value:
     ULONG blobSize;
     size_t maximumBytesToCopy;
     size_t eventLogSize;
-    ADVANCED_LOGGER_INFO* loggerInfo;
+    ADVANCED_LOGGER_INFO_V2* loggerInfo;
     UCHAR* parsedLogHead;
     UCHAR* uefiLogHead;
     UCHAR* eventLogLineHead;
@@ -496,7 +565,11 @@ Return Value:
 
     // Parse logs.
     //
-    loggerInfo = (ADVANCED_LOGGER_INFO*)uefiLog;
+    // Since the new fields introduced in V3 struct are not being used in
+    // this Module, it is okay to cast all blobs to V2 to keep it concise. 
+    // Version is checked for offsets only.
+    //
+    loggerInfo = (ADVANCED_LOGGER_INFO_V2*)uefiLog;
     if (loggerInfo->Signature != LOGGER_INFO_SIGNATURE)
     {
         TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Unknown NVRAM Log signature = %u",loggerInfo->Signature);
@@ -521,7 +594,21 @@ Return Value:
     parsedLogHead = (UCHAR*) parsedUefiLog;
     parsedLogHeadEnd = (UCHAR*) parsedLogHead + blobSize;
 
-    uefiLogHead = (UCHAR*)uefiLog + sizeof(ADVANCED_LOGGER_INFO);
+    // Version check for message offset.
+    //
+    if (loggerInfo->Version == ADVANCED_LOGGER_VERSION_V2)
+    {
+        uefiLogHead = (UCHAR*)uefiLog + sizeof(ADVANCED_LOGGER_INFO_V2);
+    }
+    else if (loggerInfo->Version == ADVANCED_LOGGER_VERSION_V3)
+    {
+        uefiLogHead = (UCHAR*)uefiLog + sizeof(ADVANCED_LOGGER_INFO_V3);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Unsupported version. Version = %u",loggerInfo->Version);
+        goto Exit;
+    }
     eventLogLineHead = (UCHAR*)eventLogLine;
     lineSize = 0;
     timeStampSize = 0;
