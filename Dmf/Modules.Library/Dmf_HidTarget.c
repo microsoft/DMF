@@ -1078,7 +1078,7 @@ Return Value:
                   sizeof(hidCollectionInformation));
 
     // Open the device to be queried.
-    // NOTE: Per OSG (Austin Hodges), when opening HID device for enumeration purposes (to see if
+    // NOTE: When opening HID device for enumeration purposes (to see if
     // it is the required device, the Open Mode should be zero and share should be Read/Write.
     //
     ntStatus = HidTarget_IoTargetCreateByName(device,

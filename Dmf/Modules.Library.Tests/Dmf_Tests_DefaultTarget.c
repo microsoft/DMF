@@ -323,7 +323,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DefaultTarget_SendCompletion(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDefaultTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -332,19 +332,23 @@ Tests_DefaultTarget_SendCompletion(
     _In_ NTSTATUS CompletionStatus
     )
 {
+    DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext;
+    dmfModule = DMF_ParentModuleGet(DmfModuleDefaultTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
@@ -355,7 +359,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DefaultTarget_SendCompletionMustBeCancelled(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDefaultTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -364,18 +368,22 @@ Tests_DefaultTarget_SendCompletionMustBeCancelled(
     _In_ NTSTATUS CompletionStatus
     )
 {
+    DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext;
+    dmfModule = DMF_ParentModuleGet(DmfModuleDefaultTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);

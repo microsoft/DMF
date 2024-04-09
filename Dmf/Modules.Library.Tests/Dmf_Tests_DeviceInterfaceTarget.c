@@ -528,7 +528,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DeviceInterfaceTarget_SendCompletion(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDeviceInterfaceTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -542,14 +542,17 @@ Tests_DeviceInterfaceTarget_SendCompletion(
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext;
+    DMFMODULE dmfModule = DMF_ParentModuleGet(DmfModuleDeviceInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p CompletionStatus=%!STATUS!", 
@@ -566,7 +569,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDeviceInterfaceTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -580,13 +583,16 @@ Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext;
+    DMFMODULE dmfModule = DMF_ParentModuleGet(DmfModuleDeviceInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: CANCELED sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 

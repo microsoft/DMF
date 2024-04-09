@@ -166,7 +166,10 @@ typedef enum
     // Channel types are SMF_POWER_LIMIT_CONTROL_TYPE and SMF_TIME_LIMIT_CONTROL_OUTPUT_TYPE.
     //
     SmfSoCControlChannelSystemAverageInstanceId = 54,
+    SmfSoCControlChannelSystemCurrentAverageInstanceId = 60,
+    SmfSoCControlChannelSystemCurrentMaximumInstanceId = 61,
     SmfSoCControlChannelSystemAverageTimeInstanceId = 63,
+    SmfSoCControlChannelSystemCurrentAverageTimeInstanceId = 65,
     SmfSoCControlChannelSystemMaximumInstanceId = 55,
     SmfSoCControlChannelSystemPeakInstanceId = 59,
     // This sets the maximum SOC temperature. Time coefficient can be used for dynamic behavior calculations.

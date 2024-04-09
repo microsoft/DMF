@@ -233,6 +233,10 @@ typedef struct _DMF_CONTEXT_DeviceInterfaceMultipleTarget
     // Passive level desired by Client. This is used to instantiate underlying Child Modules.
     //
     BOOLEAN PassiveLevel;
+
+    // Stores callback/callback context for asynchronous sends.
+    //
+    DMFMODULE DmfModuleBufferPool;
 } DMF_CONTEXT_DeviceInterfaceMultipleTarget;
 
 // This macro declares the following function:
@@ -251,6 +255,77 @@ DMF_MODULE_DECLARE_CONFIG(DeviceInterfaceMultipleTarget)
 // DMF Module Support Code
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+// Context that stores client's callback information so that proper callback chaining happens.
+//
+typedef struct
+{
+    // Client's callbck.
+    //
+    EVT_DMF_RequestTarget_SendCompletion* SendCompletionCallback;
+    // Client's callback context.
+    //
+    VOID* SendCompletionCallbackContext;
+} DeviceInterfaceMultipleTarget_SingleAsynchronousRequestContext;
+
+_Function_class_(EVT_DMF_RequestTarget_SendCompletion)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+DeviceInterfaceMultipleTarget_SendCompletion(
+    _In_ DMFMODULE DmfModuleContinuousRequestTarget,
+    _In_ VOID* ClientRequestContext,
+    _In_reads_(InputBufferBytesRead) VOID* InputBuffer,
+    _In_ size_t InputBufferBytesRead,
+    _In_reads_(OutputBufferBytesWritten) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesWritten,
+    _In_ NTSTATUS CompletionStatus
+    )
+/*++
+
+Routine Description:
+
+    Completion routine for _Send() and _SendEx().
+
+Arguments:
+
+    DmfModuleContinuousRequestTarget - Child Module that calls this callback.
+    ClientRequestContext - Context passed by caller of _Send() or _SendEx().
+    InputBuffer - Input buffer  passed by caller of _Send() or _SendEx().
+    InputBufferBytesRead - Bytes read by WDFIOTARGET.
+    OutputBuffer - Output buffer  passed by caller of _Send() or _SendEx().
+    OutputBufferBytesRead - Bytes written by WDFIOTARGET.
+    CompletionStatus - Completion status returned by WDFIOTARGET.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    DeviceInterfaceMultipleTarget_SingleAsynchronousRequestContext* completionCallbackContext;
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleContinuousRequestTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    completionCallbackContext = (DeviceInterfaceMultipleTarget_SingleAsynchronousRequestContext*)ClientRequestContext;
+
+    if (completionCallbackContext->SendCompletionCallback != NULL)
+    {
+        completionCallbackContext->SendCompletionCallback(dmfModule,
+                                                          completionCallbackContext->SendCompletionCallbackContext,
+                                                          InputBuffer,
+                                                          InputBufferBytesRead,
+                                                          OutputBuffer,
+                                                          OutputBufferBytesWritten,
+                                                          CompletionStatus);
+    }
+
+    DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                       completionCallbackContext);
+}
 
 VOID
 DeviceInterfaceMultipleTarget_SymbolicLinkNameClear(
@@ -770,6 +845,23 @@ DeviceInterfaceMultipleTarget_Stream_SendSynchronously(
 
 _Must_inspect_result_
 NTSTATUS
+DeviceInterfaceMultipleTarget_Stream_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    );
+
+_Must_inspect_result_
+NTSTATUS
 DeviceInterfaceMultipleTarget_Stream_Send(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
@@ -784,21 +876,18 @@ DeviceInterfaceMultipleTarget_Stream_Send(
     _In_opt_ VOID* SingleAsynchronousRequestClientContext
     )
 {
-    DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    DmfAssert(moduleContext->ContinuousReaderMode);
-    return DMF_ContinuousRequestTarget_Send(Target->DmfModuleRequestTarget,
-                                            RequestBuffer,
-                                            RequestLength,
-                                            ResponseBuffer,
-                                            ResponseLength,
-                                            RequestType,
-                                            RequestIoctl,
-                                            RequestTimeoutMilliseconds,
-                                            EvtRequestSinkSingleAsynchronousRequest,
-                                            SingleAsynchronousRequestClientContext);
+    return DeviceInterfaceMultipleTarget_Stream_SendEx(DmfModule,
+                                                       Target,
+                                                       RequestBuffer,
+                                                       RequestLength,
+                                                       ResponseBuffer,
+                                                       ResponseLength,
+                                                       RequestType,
+                                                       RequestIoctl,
+                                                       RequestTimeoutMilliseconds,
+                                                       EvtRequestSinkSingleAsynchronousRequest,
+                                                       SingleAsynchronousRequestClientContext,
+                                                       NULL);
 }
 
 _Must_inspect_result_
@@ -819,21 +908,44 @@ DeviceInterfaceMultipleTarget_Stream_SendEx(
     )
 {
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    DeviceInterfaceMultipleTarget_SingleAsynchronousRequestContext* completionCallbackContext;
+    NTSTATUS ntStatus;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DmfAssert(moduleContext->ContinuousReaderMode);
-    return DMF_ContinuousRequestTarget_SendEx(Target->DmfModuleRequestTarget,
-                                              RequestBuffer,
-                                              RequestLength,
-                                              ResponseBuffer,
-                                              ResponseLength,
-                                              RequestType,
-                                              RequestIoctl,
-                                              RequestTimeoutMilliseconds,
-                                              EvtRequestSinkSingleAsynchronousRequest,
-                                              SingleAsynchronousRequestClientContext,
-                                              DmfRequestId);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&completionCallbackContext,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    completionCallbackContext->SendCompletionCallback = EvtRequestSinkSingleAsynchronousRequest;
+    completionCallbackContext->SendCompletionCallbackContext = SingleAsynchronousRequestClientContext;
+
+    ntStatus = DMF_ContinuousRequestTarget_SendEx(Target->DmfModuleRequestTarget,
+                                                  RequestBuffer,
+                                                  RequestLength,
+                                                  ResponseBuffer,
+                                                  ResponseLength,
+                                                  RequestType,
+                                                  RequestIoctl,
+                                                  RequestTimeoutMilliseconds,
+                                                  DeviceInterfaceMultipleTarget_SendCompletion,
+                                                  completionCallbackContext,
+                                                  DmfRequestId);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           completionCallbackContext);
+    }
+
+Exit:
+
+    return ntStatus;
 }
 
 VOID
@@ -926,6 +1038,23 @@ DeviceInterfaceMultipleTarget_Target_SendSynchronously(
 
 _Must_inspect_result_
 NTSTATUS
+DeviceInterfaceMultipleTarget_Target_SendEx(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    );
+
+_Must_inspect_result_
+NTSTATUS
 DeviceInterfaceMultipleTarget_Target_Send(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_IoTarget* Target,
@@ -945,17 +1074,18 @@ DeviceInterfaceMultipleTarget_Target_Send(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
-    ntStatus = DMF_RequestTarget_Send(Target->DmfModuleRequestTarget,
-                                      RequestBuffer,
-                                      RequestLength,
-                                      ResponseBuffer,
-                                      ResponseLength,
-                                      RequestType,
-                                      RequestIoctl,
-                                      RequestTimeoutMilliseconds,
-                                      EvtRequestSinkSingleAsynchronousRequest,
-                                      SingleAsynchronousRequestClientContext);
+    ntStatus = DeviceInterfaceMultipleTarget_Target_SendEx(DmfModule,
+                                                           Target,
+                                                           RequestBuffer,
+                                                           RequestLength,
+                                                           ResponseBuffer,
+                                                           ResponseLength,
+                                                           RequestType,
+                                                           RequestIoctl,
+                                                           RequestTimeoutMilliseconds,
+                                                           EvtRequestSinkSingleAsynchronousRequest,
+                                                           SingleAsynchronousRequestClientContext,
+                                                           NULL);
 
     return ntStatus;
 }
@@ -977,12 +1107,25 @@ DeviceInterfaceMultipleTarget_Target_SendEx(
     _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
     )
 {
-    NTSTATUS ntStatus;
     DMF_CONTEXT_DeviceInterfaceMultipleTarget* moduleContext;
+    DeviceInterfaceMultipleTarget_SingleAsynchronousRequestContext* completionCallbackContext;
+    NTSTATUS ntStatus;
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     DmfAssert(! moduleContext->ContinuousReaderMode);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&completionCallbackContext,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    completionCallbackContext->SendCompletionCallback = EvtRequestSinkSingleAsynchronousRequest;
+    completionCallbackContext->SendCompletionCallbackContext = SingleAsynchronousRequestClientContext;
+
     ntStatus = DMF_RequestTarget_SendEx(Target->DmfModuleRequestTarget,
                                         RequestBuffer,
                                         RequestLength,
@@ -991,9 +1134,16 @@ DeviceInterfaceMultipleTarget_Target_SendEx(
                                         RequestType,
                                         RequestIoctl,
                                         RequestTimeoutMilliseconds,
-                                        EvtRequestSinkSingleAsynchronousRequest,
-                                        SingleAsynchronousRequestClientContext,
+                                        DeviceInterfaceMultipleTarget_SendCompletion,
+                                        completionCallbackContext,
                                         DmfRequestId);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           completionCallbackContext);
+    }
+
+Exit:
 
     return ntStatus;
 }
@@ -2987,6 +3137,28 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleBufferQueue);
+
+    // BufferPoolContext
+    // -----------------
+    //
+    DMF_CONFIG_BufferPool moduleConfigBufferPool;
+    DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
+                                              &moduleAttributes);
+    moduleConfigBufferPool.BufferPoolMode = BufferPool_Mode_Source;
+    moduleConfigBufferPool.Mode.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferCount = 1;
+    // NOTE: BufferPool context must always be NonPagedPool because it is accessed in the
+    //       completion routine running at DISPATCH_LEVEL.
+    //
+    moduleConfigBufferPool.Mode.SourceSettings.PoolType = NonPagedPoolNx;
+    moduleConfigBufferPool.Mode.SourceSettings.BufferSize = sizeof(DeviceInterfaceMultipleTarget_SingleAsynchronousRequestContext);
+    moduleAttributes.ClientModuleInstanceName = "BufferPoolContext";
+    moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferPool);
+
 
     FuncExitVoid(DMF_TRACE);
 }
