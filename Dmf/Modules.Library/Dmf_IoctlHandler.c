@@ -635,7 +635,7 @@ Return Value:
                 if (!NT_SUCCESS(ntStatus))
                 {
                     DmfAssert(!handled);
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails ntStatus=%!STATUS!", ntStatus);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
                     goto RequestCompleteOnError;
                 }
             }
@@ -651,8 +651,8 @@ Return Value:
         else 
         {
             // To maintain backward compatibility, if the incoming WDFFILEOBJECT has no
-            // filename, then this file object is processed by the first instance of the 
-            // Module.
+            // filename (no reference string specified), then this file object is processed 
+            // by the first instance of the Module.
             //
             DMF_ModuleLock(DmfModule);
             ntStatus = WdfCollectionAdd(moduleContext->AssociatedFileObjects,
@@ -661,7 +661,7 @@ Return Value:
             if (!NT_SUCCESS(ntStatus))
             {
                 DmfAssert(!handled);
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
                 goto RequestCompleteOnError;
             }
         }
@@ -756,22 +756,17 @@ Return Value:
 
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "AccessModeFilterAdministrator ntStatus=%!STATUS!", ntStatus);
 
-RequestCompleteOnError:
-
         if (!NT_SUCCESS(ntStatus))
         {
-            // This call completes the request correctly for both filter and non-filter drivers.
+            // It means the access to this IOCTL for this request is denied.
             //
-            handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
-                                                         Request,
-                                                         ntStatus);
+            goto RequestCompleteOnError;
         }
     }
     else if (IoctlHandler_AccessModeFilterClientCallback == moduleConfig->AccessModeFilter)
     {
         // Allow the Client to determine if the connection to User-mode should be allowed.
         //
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         DmfAssert(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
         // If Client wishes to deny access, the callback should:
         // 1. Complete Request with STATUS_ACCESS_DENIED.
@@ -784,6 +779,7 @@ RequestCompleteOnError:
                                                                 Device,
                                                                 Request,
                                                                 FileObject);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EvtIoctlHandlerAccessModeFilter returns handled=%d", handled);
     }
     else
     {
@@ -794,6 +790,18 @@ RequestCompleteOnError:
         // WARNING: Request is not completed. This code should not run.
         //
     }
+
+    // Normal path.
+    //
+    goto Exit;
+
+RequestCompleteOnError:
+
+    // This call completes the request correctly for both filter and non-filter drivers.
+    //
+    handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
+                                                    Request,
+                                                    ntStatus);
 
 Exit:
 
