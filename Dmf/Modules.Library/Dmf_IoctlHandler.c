@@ -337,18 +337,6 @@ Return Value:
     //
     DmfAssert((moduleConfig->IoctlRecordCount > 0) || (moduleConfig->ForwardUnhandledRequests));
 
-    // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
-    // 
-    requestSenderMode = WdfRequestGetRequestorMode(Request);
-
-    if (moduleConfig->KernelModeRequestsOnly &&
-        requestSenderMode != KernelMode)
-    {
-        handled = TRUE;
-        ntStatus = STATUS_ACCESS_DENIED;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "User mode access detected on kernel mode only queue.");
-        goto Exit;
-    }
 
     // If this Module instance has been created using a reference string, route the WDFREQUEST to 
     // its corresponding instance based on reference string.
@@ -392,6 +380,18 @@ Return Value:
             //
             DmfAssert((ioctlRecord->AdministratorAccessOnly && (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl)) ||
                       (! (ioctlRecord->AdministratorAccessOnly)));
+
+            // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
+            // 
+            requestSenderMode = WdfRequestGetRequestorMode(Request);
+
+            if (moduleConfig->KernelModeRequestsOnly &&
+                requestSenderMode != KernelMode)
+            {
+                ntStatus = STATUS_ACCESS_DENIED;
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "User mode access detected on kernel mode only queue.");
+                goto Exit;
+            }
 
             // Deny access if the IOCTLs are granted access on per-IOCTL basis.
             //
@@ -800,8 +800,8 @@ RequestCompleteOnError:
     // This call completes the request correctly for both filter and non-filter drivers.
     //
     handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
-                                                    Request,
-                                                    ntStatus);
+                                                 Request,
+                                                 ntStatus);
 
 Exit:
 
