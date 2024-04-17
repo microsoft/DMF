@@ -217,6 +217,7 @@ Return Value:
                                        &clientBufferContext);
     if (! NT_SUCCESS(ntStatus))
     {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Dequeue fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -470,6 +471,7 @@ Return Value:
                                      &clientBufferContext);
     if (! NT_SUCCESS(ntStatus))
     {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -510,8 +512,13 @@ Return Value:
 
     // Execute deferred call.
     //
-    DMF_ScheduledTask_ExecuteNowDeferred(moduleContext->DmfModuleScheduledTask,
-                                         DmfModule);
+    ntStatus = DMF_ScheduledTask_ExecuteNowDeferred(moduleContext->DmfModuleScheduledTask,
+                                                    DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ScheduledTask_ExecuteNowDeferred fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
 
 Exit:
 
@@ -558,6 +565,7 @@ Return Value:
     VOID* clientBufferContext;
     DMF_PORTABLE_EVENT event;
     NTSTATUS ntStatusCall;
+    BOOLEAN eventCreated;
 
     PAGED_CODE();
 
@@ -570,6 +578,8 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    eventCreated = FALSE;
+
     // Get an empty buffer to place parameters for this call.
     //
     ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueue,
@@ -577,6 +587,7 @@ Return Value:
                                      &clientBufferContext);
     if (! NT_SUCCESS(ntStatus))
     {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_BufferQueue_Fetch fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 
@@ -595,9 +606,16 @@ Return Value:
 
     QUEUEDWORKITEM_WAIT_BLOCK* queuedWorkItemWaitBlock = QueuedWorkItem_WaitBlockFromClientBufferWithMetadata(clientBufferWithMetadata);
 
-    DMF_Portable_EventCreate(&event,
-                             NotificationEvent,
-                             FALSE);
+    ntStatus = DMF_Portable_EventCreate(&event,
+                                        NotificationEvent,
+                                        FALSE);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    eventCreated = TRUE;
 
     // Default to STATUS_SUCCESS. Let the callback override using
     // DMF_QueuedWorkItem_StatusSet() if desired.
@@ -613,8 +631,13 @@ Return Value:
 
     // Execute deferred call.
     //
-    DMF_ScheduledTask_ExecuteNowDeferred(moduleContext->DmfModuleScheduledTask,
-                                         DmfModule);
+    ntStatus = DMF_ScheduledTask_ExecuteNowDeferred(moduleContext->DmfModuleScheduledTask,
+                                                    DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ScheduledTask_ExecuteNowDeferred fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
 
      // Wait for the work to execute.
      //
@@ -627,6 +650,11 @@ Return Value:
     ntStatus = ntStatusCall;
 
 Exit:
+
+    if (eventCreated == TRUE)
+    {
+        DMF_Portable_EventClose(&event);
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

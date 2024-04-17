@@ -572,7 +572,7 @@ DefaultTarget_Target_SendEx(
     completionCallbackContext->SendCompletionCallback = EvtRequestSinkSingleAsynchronousRequest;
     completionCallbackContext->SendCompletionCallbackContext = SingleAsynchronousRequestClientContext;
 
-    ntStatus = DMF_RequestTarget_SendEx(moduleContext->DmfModuleContinuousRequestTarget,
+    ntStatus = DMF_RequestTarget_SendEx(moduleContext->DmfModuleRequestTarget,
                                         RequestBuffer,
                                         RequestLength,
                                         ResponseBuffer,

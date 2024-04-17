@@ -72,7 +72,12 @@ DEFINE_GUID(GUID_NO_DEVICE, 0x5f4f3758, 0xd11e, 0x4684, 0xb5, 0xad, 0xfe, 0x6d, 
 #define TIMEOUT_CANCEL_MS           15
 #define TIMEOUT_CANCEL_LONG_MS      250
 
-#define NUMBER_OF_CONTINUOUS_REQUESTS   32
+#define USE_STREAMING
+#if defined(USE_STREAMING)
+    #define NUMBER_OF_CONTINUOUS_REQUESTS   32
+#else
+    #define NUMBER_OF_CONTINUOUS_REQUESTS   0
+#endif
 
 typedef enum _TEST_ACTION
 {
@@ -1878,9 +1883,13 @@ Return Value:
                                          0);
     }
 
+#if defined(USE_STREAMING)
     // Start streaming.
     //
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
+#else
+    ntStatus = STATUS_SUCCESS;
+#endif
     if (NT_SUCCESS(ntStatus))
     {
         // Start threads.
@@ -1949,9 +1958,13 @@ Return Value:
                                          0);
     }
 
+#if defined(USE_STREAMING)
     // Start streaming.
     //
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
+#else
+    ntStatus = STATUS_SUCCESS;
+#endif
     if (NT_SUCCESS(ntStatus))
     {
         // Start threads.
@@ -2010,9 +2023,11 @@ Return Value:
                          WdfIoTargetPurgeIoAndWait);
     }
 
+#if defined(USE_STREAMING)
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+#endif
     // Stop threads.
     //
     Tests_DeviceInterfaceTarget_StopPassiveInput(dmfModuleParent);
@@ -2065,9 +2080,11 @@ Return Value:
                          WdfIoTargetPurgeIoAndWait);
     }
 
+#if defined(USE_STREAMING)
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+#endif
     // Stop threads.
     //
     Tests_DeviceInterfaceTarget_StopPassiveOutput(dmfModuleParent);

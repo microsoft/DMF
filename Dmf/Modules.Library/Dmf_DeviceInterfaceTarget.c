@@ -814,7 +814,7 @@ DeviceInterfaceTarget_Target_Send(
 
     DmfAssert(! moduleContext->ContinuousReaderMode);
 
-    return DeviceInterfaceTarget_Target_SendEx(moduleContext->DmfModuleRequestTarget,
+    return DeviceInterfaceTarget_Target_SendEx(DmfModule,
                                                RequestBuffer,
                                                RequestLength,
                                                ResponseBuffer,
