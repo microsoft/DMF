@@ -489,6 +489,7 @@ Return:
         {
             // Let NumberOfPendingCalls decrement to zero.
             //
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
         }
         pendingCalls = InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
     } while (pendingCalls > 0);
@@ -1301,7 +1302,7 @@ Return Value:
         }
         else
         {
-            ntStatus = STATUS_UNSUCCESSFUL;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Rundown_Reference fails: ntStatus=%!STATUS!", ntStatus);
             InterlockedDecrement(&moduleContext->NumberOfPendingCalls);
         }
     }

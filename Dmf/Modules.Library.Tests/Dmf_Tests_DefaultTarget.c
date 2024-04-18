@@ -48,6 +48,13 @@ Environment:
 #define TIMEOUT_SLOW_MS             5000
 #define TIMEOUT_TRAFFIC_DELAY_MS    1000
 
+#define USE_STREAMING
+#if defined(USE_STREAMING)
+    #define NUMBER_OF_CONTINUOUS_REQUESTS   1
+#else
+    #define NUMBER_OF_CONTINUOUS_REQUESTS   0
+#endif
+
 // This is returned from User-mode stack sometimes.
 // TODO: Investigate root cause.
 //
@@ -323,7 +330,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DefaultTarget_SendCompletion(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDefaultTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -332,19 +339,23 @@ Tests_DefaultTarget_SendCompletion(
     _In_ NTSTATUS CompletionStatus
     )
 {
+    DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext;
+    dmfModule = DMF_ParentModuleGet(DmfModuleDefaultTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
@@ -355,7 +366,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DefaultTarget_SendCompletionMustBeCancelled(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDefaultTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -364,18 +375,22 @@ Tests_DefaultTarget_SendCompletionMustBeCancelled(
     _In_ NTSTATUS CompletionStatus
     )
 {
+    DMFMODULE dmfModule;
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext;
+    dmfModule = DMF_ParentModuleGet(DmfModuleDefaultTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
@@ -1180,6 +1195,7 @@ Return Value:
         WdfIoTargetStart(moduleContext->IoTargetPassiveOutputZeroSize);
     }
 
+#if defined(USE_STREAMING)
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveInput);
     DmfAssert(NT_SUCCESS(ntStatus));
 
@@ -1188,6 +1204,7 @@ Return Value:
 
     ntStatus = DMF_DefaultTarget_StreamStart(moduleContext->DmfModuleDefaultTargetPassiveOutputZeroSize);
     DmfAssert(NT_SUCCESS(ntStatus));
+#endif
 
     ntStatus = Tests_DefaultTarget_NonContinousStartAuto(DmfModule);
     DmfAssert(NT_SUCCESS(ntStatus));
@@ -1248,9 +1265,11 @@ Return Value:
     Tests_DefaultTarget_NonContinousStopAuto(DmfModule);
     Tests_DefaultTarget_NonContinousStopManual(DmfModule);
 
+#if defined(USE_STREAMING)
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveInput);
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveOutput);
     DMF_DefaultTarget_StreamStop(moduleContext->DmfModuleDefaultTargetPassiveOutputZeroSize);
+#endif
 
     ntStatus = STATUS_SUCCESS;
 
@@ -1325,9 +1344,9 @@ Return Value:
     //
     DMF_CONFIG_DefaultTarget_AND_ATTRIBUTES_INIT(&moduleConfigDefaultTarget,
                                                  &moduleAttributes);
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferInputSize = sizeof(Tests_IoctlHandler_Sleep);
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.PoolTypeInput = NonPagedPoolNx;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_SLEEP;
@@ -1345,9 +1364,9 @@ Return Value:
     //
     DMF_CONFIG_DefaultTarget_AND_ATTRIBUTES_INIT(&moduleConfigDefaultTarget,
                                                  &moduleAttributes);
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountInput = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferInputSize = sizeof(Tests_IoctlHandler_Sleep);
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.PoolTypeInput = NonPagedPoolNx;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_SLEEP;
@@ -1366,9 +1385,9 @@ Return Value:
     //
     DMF_CONFIG_DefaultTarget_AND_ATTRIBUTES_INIT(&moduleConfigDefaultTarget,
                                                  &moduleAttributes);
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = sizeof(DWORD);
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.PoolTypeOutput = NonPagedPoolNx;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.PurgeAndStartTargetInD0Callbacks = FALSE;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_ZEROBUFFER;
@@ -1436,7 +1455,7 @@ Return Value:
                                                  &moduleAttributes);
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferCountOutput = 0;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.BufferOutputSize = 0;
-    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = 1;
+    moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestCount = NUMBER_OF_CONTINUOUS_REQUESTS;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.ContinuousRequestTargetIoctl = IOCTL_Tests_IoctlHandler_ZEROSIZE;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.EvtContinuousRequestTargetBufferOutput = Tests_DefaultTarget_BufferOutputZeroSize;
     moduleConfigDefaultTarget.ContinuousRequestTargetModuleConfig.RequestType = ContinuousRequestTarget_RequestType_Ioctl;

@@ -51,6 +51,13 @@ typedef struct _DMF_CONTEXT_IoctlHandler
     // Set to TRUE when device interface is created successfully.
     //
     BOOLEAN IsDeviceInterfaceCreated;
+    // In cases when a reference string is set, this element tracks the WDFFILEOBJECT
+    // that opened the WDFIOTARGET associated with the specific instance of the Module.
+    // This is necessary so that multiple instances of the SAME Parent Module that use
+    // this Module as a Child Module can be instantiated. It enables the code to ensure
+    // that the IOCTL call's WDFREQUEST is routed to the specific instance.
+    //
+    WDFCOLLECTION AssociatedFileObjects;
 } DMF_CONTEXT_IoctlHandler;
 
 // This macro declares the following function:
@@ -199,6 +206,63 @@ Exit:
 }
 #pragma code_seg()
 
+BOOLEAN
+IoctlHandler_AssociatedFileObjectsLookUp(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFFILEOBJECT LookFor,
+    _In_ BOOLEAN DeleteIfFound
+    )
+/*++
+
+Routine Description:
+
+    Search the list of associated file objects for a given WDFFILEOBJECT.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    LookFor - The given WDFFILEOBJECT.
+    DeleteIfFound - If TRUE, the given WDFFILEOBJECT is removed from list.
+
+Return Value:
+
+    TRUE if found. FALSE if not found in list.
+
+--*/
+{
+    BOOLEAN returnValue;
+    ULONG numberOfItemsInCollection;
+    ULONG itemIndex;
+    DMF_CONTEXT_IoctlHandler* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    returnValue = FALSE;
+
+    DMF_ModuleLock(DmfModule);
+    
+    numberOfItemsInCollection = WdfCollectionGetCount(moduleContext->AssociatedFileObjects);
+    for (itemIndex = 0; itemIndex < numberOfItemsInCollection; itemIndex++)
+    {
+        WDFOBJECT currentObject = WdfCollectionGetItem(moduleContext->AssociatedFileObjects,
+                                                       itemIndex);
+        if (currentObject == LookFor)                                                       
+        {
+            returnValue = TRUE;
+            if (DeleteIfFound)
+            {
+                WdfCollectionRemoveItem(moduleContext->AssociatedFileObjects,
+                                        itemIndex);
+            }
+            break;
+        }
+    }
+
+    DMF_ModuleUnlock(DmfModule);
+
+    return returnValue;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,18 +337,6 @@ Return Value:
     //
     DmfAssert((moduleConfig->IoctlRecordCount > 0) || (moduleConfig->ForwardUnhandledRequests));
 
-    // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
-    // 
-    requestSenderMode = WdfRequestGetRequestorMode(Request);
-
-    if (moduleConfig->KernelModeRequestsOnly &&
-        requestSenderMode != KernelMode)
-    {
-        handled = TRUE;
-        ntStatus = STATUS_ACCESS_DENIED;
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "User mode access detected on kernel mode only queue.");
-        goto Exit;
-    }
 
     // If this Module instance has been created using a reference string, route the WDFREQUEST to 
     // its corresponding instance based on reference string.
@@ -294,25 +346,17 @@ Return Value:
     if (moduleContext->ReferenceStringUnicodePointer != NULL)
     {
         WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
-        UNICODE_STRING* fileName = WdfFileObjectGetFileName(fileObjectOfRequest);
-        if (fileName->Length > sizeof(L'\\'))
+        BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
+                                                                 fileObjectOfRequest,
+                                                                 FALSE);
+        if (! found)                                                                 
         {
-            // Skip preceding '\'.
+            // This instance only accepts WDFREQUEST where WDFFILEOBJECT is 
+            // equal to AssociatedFileObject. Another instance of this Module should
+            // handle this request.
             //
-            WCHAR* stringFileObject = &fileName->Buffer[1];
-            size_t stringLengthFileObject = fileName->Length - sizeof(L'\\');
-            WCHAR* stringModule = moduleContext->ReferenceStringUnicode.Buffer;
-            size_t stringLengthModule = moduleContext->ReferenceStringUnicode.Length;
-            LONG comparisonLength = RtlCompareUnicodeStrings(stringFileObject,
-                                                             stringLengthFileObject,
-                                                             stringModule,
-                                                             stringLengthModule,
-                                                             FALSE);
-            if (comparisonLength != 0)
-            {
-                handled = FALSE;
-                goto Exit;
-            }
+            handled = FALSE;
+            goto Exit;
         }
     }
 
@@ -336,6 +380,18 @@ Return Value:
             //
             DmfAssert((ioctlRecord->AdministratorAccessOnly && (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl)) ||
                       (! (ioctlRecord->AdministratorAccessOnly)));
+
+            // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
+            // 
+            requestSenderMode = WdfRequestGetRequestorMode(Request);
+
+            if (moduleConfig->KernelModeRequestsOnly &&
+                requestSenderMode != KernelMode)
+            {
+                ntStatus = STATUS_ACCESS_DENIED;
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "User mode access detected on kernel mode only queue.");
+                goto Exit;
+            }
 
             // Deny access if the IOCTLs are granted access on per-IOCTL basis.
             //
@@ -545,6 +601,72 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+    // If this Module instance has been created using a reference string, route the WDFREQUEST to 
+    // its corresponding instance based on reference string.
+    // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
+    // WDFDEVICE.
+    //
+    if (moduleContext->ReferenceStringUnicodePointer != NULL)
+    {
+        WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
+        UNICODE_STRING* fileName = WdfFileObjectGetFileName(fileObjectOfRequest);
+        if (fileName->Length > sizeof(L'\\'))
+        {
+            // Skip preceding '\'.
+            //
+            WCHAR* stringFileObject = &fileName->Buffer[1];
+            size_t stringLengthFileObject = fileName->Length - sizeof(L'\\');
+            WCHAR* stringModule = moduleContext->ReferenceStringUnicode.Buffer;
+            size_t stringLengthModule = moduleContext->ReferenceStringUnicode.Length;
+            LONG comparisonLength = RtlCompareUnicodeStrings(stringFileObject,
+                                                             stringLengthFileObject,
+                                                             stringModule,
+                                                             stringLengthModule,
+                                                             FALSE);
+            if (comparisonLength == 0)
+            {
+                // It means this instance will only accept WDREQUEST where its WDFFILEOBJECT
+                // is equal to fileObjectRequest.
+                //
+                DMF_ModuleLock(DmfModule);
+                ntStatus = WdfCollectionAdd(moduleContext->AssociatedFileObjects,
+                                            fileObjectOfRequest);
+                DMF_ModuleUnlock(DmfModule);
+                if (!NT_SUCCESS(ntStatus))
+                {
+                    DmfAssert(!handled);
+                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
+                    goto RequestCompleteOnError;
+                }
+            }
+            else
+            {
+                // Another instance of this Module will handle this request because the file object's reference
+                // string does not match the reference string of this Module's instance.
+                //
+                DmfAssert(!handled);
+                goto Exit;
+            }
+        }
+        else 
+        {
+            // To maintain backward compatibility, if the incoming WDFFILEOBJECT has no
+            // filename (no reference string specified), then this file object is processed 
+            // by the first instance of the Module.
+            //
+            DMF_ModuleLock(DmfModule);
+            ntStatus = WdfCollectionAdd(moduleContext->AssociatedFileObjects,
+                                        fileObjectOfRequest);
+            DMF_ModuleUnlock(DmfModule);
+            if (!NT_SUCCESS(ntStatus))
+            {
+                DmfAssert(!handled);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
+                goto RequestCompleteOnError;
+            }
+        }
+    }
+
     if (IoctlHandler_AccessModeDefault == moduleConfig->AccessModeFilter ||
         IoctlHandler_AccessModeFilterKernelModeOnly == moduleConfig->AccessModeFilter)
     {
@@ -582,7 +704,7 @@ Return Value:
         {
             DmfAssert(FALSE);
             DmfAssert(! NT_SUCCESS(ntStatus));
-            goto RequestComplete;
+            goto RequestCompleteOnError;
         }
 
         // This is empirically determined.
@@ -592,7 +714,7 @@ Return Value:
         {
             DmfAssert(FALSE);
             DmfAssert(! NT_SUCCESS(ntStatus));
-            goto RequestComplete;
+            goto RequestCompleteOnError;
         }
 
         // Check if an Administrator is creating the handle.
@@ -630,25 +752,21 @@ Return Value:
             }
         }
 
-RequestComplete:
-
 #endif // !defined(DMF_USER_MODE)
 
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterAdministrator* ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "AccessModeFilterAdministrator ntStatus=%!STATUS!", ntStatus);
+
         if (!NT_SUCCESS(ntStatus))
         {
-            // This call completes the request correctly for both filter and non-filter drivers.
+            // It means the access to this IOCTL for this request is denied.
             //
-            handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
-                                                         Request,
-                                                         ntStatus);
+            goto RequestCompleteOnError;
         }
     }
     else if (IoctlHandler_AccessModeFilterClientCallback == moduleConfig->AccessModeFilter)
     {
         // Allow the Client to determine if the connection to User-mode should be allowed.
         //
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EVT_DMF_IoctlHandler_AccessModeFilterClientCallback");
         DmfAssert(moduleConfig->EvtIoctlHandlerAccessModeFilter != NULL);
         // If Client wishes to deny access, the callback should:
         // 1. Complete Request with STATUS_ACCESS_DENIED.
@@ -661,6 +779,7 @@ RequestComplete:
                                                                 Device,
                                                                 Request,
                                                                 FileObject);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "EvtIoctlHandlerAccessModeFilter returns handled=%d", handled);
     }
     else
     {
@@ -671,6 +790,20 @@ RequestComplete:
         // WARNING: Request is not completed. This code should not run.
         //
     }
+
+    // Normal path.
+    //
+    goto Exit;
+
+RequestCompleteOnError:
+
+    // This call completes the request correctly for both filter and non-filter drivers.
+    //
+    handled = DMF_ModuleRequestCompleteOrForward(DmfModule,
+                                                 Request,
+                                                 ntStatus);
+
+Exit:
 
     FuncExit(DMF_TRACE, "handled=%d", handled);
 
@@ -716,12 +849,28 @@ Return Value:
     PAGED_CODE();
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     // Allow Client driver and other Modules to process this callback.
     //
     handled = FALSE;
+
+    if (moduleContext->ReferenceStringUnicodePointer != NULL)
+    {
+        // This file handle is being closed so it must be removed from the list
+        // of associated file objects. If it is not found, then another instance
+        // of this Module should handle it.
+        //
+        BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
+                                                                 FileObject,
+                                                                 TRUE);
+        if (!found)                                                                 
+        {
+            // Another instances of this Module should handle this request.
+            //
+            goto Exit;
+        }
+    }
 
     // (Optimize to add to list only in mode where the list is used.)
     //
@@ -926,6 +1075,18 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
+    }
+
+    // Create the collection of WDFILEOBJECTS whose filename matches this instance in the 
+    // case where a ReferenceString is set.
+    //
+    if (moduleContext->ReferenceStringUnicodePointer != NULL)
+    {
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        objectAttributes.ParentObject = DmfModule;
+        ntStatus = WdfCollectionCreate(&objectAttributes,
+                                       &moduleContext->AssociatedFileObjects);
     }
 
 Exit:

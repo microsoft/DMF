@@ -164,7 +164,7 @@ Return Value:
 
     DmfAssert(transportData != NULL);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_TransportBind");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_TransportBind");
 
     ntStatus = transportData->DMF_SystemManagementFramework_TransportBind(DmfInterface,
                                                                           ProtocolBindData, 
@@ -199,7 +199,7 @@ Return Value:
 
     DmfAssert(transportData != NULL);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "SystemManagementFramework_UnbindSystemManagementFramework_Unbind");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "SystemManagementFramework_UnbindSystemManagementFramework_Unbind");
 
     transportData->DMF_SystemManagementFramework_TransportUnbind(DmfInterface);
 
@@ -246,7 +246,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_ChannelsGet");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_ChannelsGet");
 
     ntStatus = transportData->DMF_SystemManagementFramework_ChannelsGet(DmfInterface,
                                                                         NumberOfSensorChannels,
@@ -289,7 +289,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_TransportInitialize");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_TransportInitialize");
 
     ntStatus = transportData->DMF_SystemManagementFramework_TransportInitialize(DmfInterface,
                                                                                 Capabilities,
@@ -327,7 +327,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_TransportUninitialize");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_TransportUninitialize");
 
     ntStatus = transportData->DMF_SystemManagementFramework_TransportUninitialize(DmfInterface);
 
@@ -369,7 +369,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_TransportControlSet");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_TransportControlSet");
 
     ntStatus = transportData->DMF_SystemManagementFramework_TransportControlSet(DmfInterface,
                                                                                 ChannelIndex,
@@ -412,7 +412,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_TransportDataGet");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_TransportDataGet");
 
     ntStatus = transportData->DMF_SystemManagementFramework_TransportDataGet(DmfInterface,
                                                                              ChannelIndex,
@@ -454,7 +454,7 @@ Return Value:
 
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_SystemManagementFramework_TransportResetCauseGet");
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_SystemManagementFramework_TransportResetCauseGet");
 
     ntStatus = transportData->DMF_SystemManagementFramework_TransportResetCauseGet(DmfInterface,
                                                                                    Data,

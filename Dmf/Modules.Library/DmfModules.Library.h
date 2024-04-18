@@ -116,6 +116,7 @@ extern "C"
 //
 #include "Dmf_EyeGazeIoctl.h"
 #include "Dmf_HidPortableDeviceButtons.h"
+#include "Dmf_HidDeviceListener.h"
 #include "Dmf_VirtualEyeGaze.h"
 #include "Dmf_VirtualHidAmbientColorSensor.h"
 #include "Dmf_VirtualHidAmbientLightSensor.h"

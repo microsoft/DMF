@@ -31,7 +31,7 @@ Environment:
 
 // Only support 21H1 and above because of some APIs are introduced after that.
 //
-#if IS_WIN10_21H1_OR_LATER
+#if IS_WIN10_20H2_OR_LATER
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Enumerations and Structures
@@ -227,9 +227,6 @@ Return Value:
 
 --*/
 {
-    // Mark task as background task for async operation.
-    //
-    co_await resume_background();
     // MobileBroadbandModem is not ready right after modem interface arrived.
     // Need for wait for MobileBroadbandModem be available. Otherwise modem get will return nullptr.
     //
@@ -237,7 +234,10 @@ Return Value:
     {
         try
         {
-            Sleep(WaitTimeMilliseconds);
+            // co_await here with a timeout, this does not create seperate thread for below task like resume_background, and can be cancelled.
+            // And can create the IAsyncAction correctly.
+            //
+            co_await winrt::resume_after(std::chrono::milliseconds(WaitTimeMilliseconds));
             // This call might hangs here. This is a OS/WinRT bug. 
             // Here, it is being called in an async method to ensure that it does not block other threads.
             //
@@ -309,8 +309,11 @@ Return Value:
 
 --*/
 {
-    co_await resume_background();
-    this_thread::sleep_for(chrono::milliseconds(milliseconds));
+    auto cancellation = co_await get_cancellation_token();
+    cancellation.enable_propagation();
+
+    co_await winrt::resume_after(std::chrono::milliseconds(milliseconds));
+
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "TimeoutHelperAsync with timeout %d ms finished", milliseconds);
     co_return;
 }
@@ -485,6 +488,8 @@ Return Value:
                 TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem resource get failed");
                 modemAndSarResourceGetAsync.Cancel();
             }
+            timeoutHelperAsync.Close();
+            modemAndSarResourceGetAsync.Close();
         }
         // Only one instance of mobile broad band is supported.
         //
@@ -927,6 +932,13 @@ Return Value:
     }
 
 Exit:
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Unintialize C++/WinRT environment.
+        //
+        uninit_apartment();
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

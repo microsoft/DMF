@@ -72,7 +72,12 @@ DEFINE_GUID(GUID_NO_DEVICE, 0x5f4f3758, 0xd11e, 0x4684, 0xb5, 0xad, 0xfe, 0x6d, 
 #define TIMEOUT_CANCEL_MS           15
 #define TIMEOUT_CANCEL_LONG_MS      250
 
-#define NUMBER_OF_CONTINUOUS_REQUESTS   32
+#define USE_STREAMING
+#if defined(USE_STREAMING)
+    #define NUMBER_OF_CONTINUOUS_REQUESTS   32
+#else
+    #define NUMBER_OF_CONTINUOUS_REQUESTS   0
+#endif
 
 typedef enum _TEST_ACTION
 {
@@ -528,7 +533,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DeviceInterfaceTarget_SendCompletion(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDeviceInterfaceTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -542,14 +547,17 @@ Tests_DeviceInterfaceTarget_SendCompletion(
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext;
+    DMFMODULE dmfModule = DMF_ParentModuleGet(DmfModuleDeviceInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p CompletionStatus=%!STATUS!", 
@@ -566,7 +574,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleDeviceInterfaceTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -580,13 +588,16 @@ Tests_DeviceInterfaceTarget_SendCompletionMustBeCancelled(
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext;
+    DMFMODULE dmfModule = DMF_ParentModuleGet(DmfModuleDeviceInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DeviceInterfaceTarget*)ClientRequestContext);
+
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: CANCELED sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
@@ -1872,9 +1883,13 @@ Return Value:
                                          0);
     }
 
+#if defined(USE_STREAMING)
     // Start streaming.
     //
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
+#else
+    ntStatus = STATUS_SUCCESS;
+#endif
     if (NT_SUCCESS(ntStatus))
     {
         // Start threads.
@@ -1943,9 +1958,13 @@ Return Value:
                                          0);
     }
 
+#if defined(USE_STREAMING)
     // Start streaming.
     //
     ntStatus = DMF_DeviceInterfaceTarget_StreamStart(DmfModule);
+#else
+    ntStatus = STATUS_SUCCESS;
+#endif
     if (NT_SUCCESS(ntStatus))
     {
         // Start threads.
@@ -2004,9 +2023,11 @@ Return Value:
                          WdfIoTargetPurgeIoAndWait);
     }
 
+#if defined(USE_STREAMING)
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+#endif
     // Stop threads.
     //
     Tests_DeviceInterfaceTarget_StopPassiveInput(dmfModuleParent);
@@ -2059,9 +2080,11 @@ Return Value:
                          WdfIoTargetPurgeIoAndWait);
     }
 
+#if defined(USE_STREAMING)
     // Stop streaming.
     //
     DMF_DeviceInterfaceTarget_StreamStop(DmfModule);
+#endif
     // Stop threads.
     //
     Tests_DeviceInterfaceTarget_StopPassiveOutput(dmfModuleParent);

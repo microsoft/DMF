@@ -220,13 +220,13 @@ Return Value:
         DmfAssert(moduleContext->EventCountHeld > 0);
         InterlockedDecrement(&moduleContext->EventCountHeld);
         numberOfRequestsCompleted++;
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DEQUEUE request=0x%p PendingEvents=%d", request, moduleContext->EventCountHeld);
         if (NULL == EventCallbackFunction)
         {
             // Complete the request on behalf of Client Driver.
             // NOTE: NtStatus can be STATUS_CANCELLED or any other NTSTATUS.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Complete request=0x%p", request);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Complete request=0x%p", request);
             WdfRequestComplete(request,
                                NtStatus);
         }
@@ -234,7 +234,7 @@ Return Value:
         {
             // Allow Client Driver to complete this request.
             //
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Pass request=0x%p to Client Driver", request);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Pass request=0x%p to Client Driver", request);
             EventCallbackFunction(DmfModule,
                                   request,
                                   EventCallbackContext,
@@ -243,7 +243,7 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Cannot find request ntStatus:%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cannot find request ntStatus:%!STATUS!", ntStatus);
     }
 
     FuncExit(DMF_TRACE, "numberOfRequestsCompleted=%d", numberOfRequestsCompleted);
@@ -988,7 +988,7 @@ Return Value:
         }
 
         requestContext->Timestamp = DMF_Time_TickCountGet(moduleContext->DmfModuleTime);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "requestContext Timestamp=%lld", requestContext->Timestamp);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "requestContext Timestamp=%lld", requestContext->Timestamp);
     }
 
     // When a process comes or goes this request will be dequeued and completed.
@@ -997,7 +997,7 @@ Return Value:
                                           moduleContext->EventRequestQueue);
     if (NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ENQUEUE Request=0x%p EventsHeld=%d", Request, moduleContext->EventCountHeld);
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "ENQUEUE Request=0x%p EventsHeld=%d", Request, moduleContext->EventCountHeld);
     }
     else
     {
