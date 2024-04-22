@@ -29,7 +29,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferPool.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_BufferQueue.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_ConnectedStandby.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_HidDeviceListener.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
@@ -88,7 +90,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferPool.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_BufferQueue.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_ConnectedStandby.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDeviceListener.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
@@ -438,11 +442,13 @@
     <Text Include="..\..\Modules.Library\Dmf_HashTable.md" />
     <Text Include="..\..\Modules.Library\Dmf_String.md" />
     <Text Include="..\..\Modules.Library\Dmf_IoctlHandler.md" />
+    <None Include="..\..\Modules.Library\Dmf_ConnectedStandby.md" />
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md" />
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_File.md" />
+    <None Include="..\..\Modules.Library\Dmf_HidDeviceListener.md" />
     <None Include="..\..\Modules.Library\Dmf_Interface_SystemManagementFramework.md" />
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md" />
     <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md" />
