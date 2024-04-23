@@ -471,7 +471,7 @@ Return Value:
                           GENERIC_READ | SYNCHRONIZE,
                           &fileAttributes,
                           &fileIoStatusBlockOpen,
-                          0,
+                          FILE_SHARE_READ,
                           FILE_SYNCHRONOUS_IO_NONALERT);
     if (!NT_SUCCESS(ntStatus)
         && ntStatus != STATUS_OBJECT_NAME_NOT_FOUND)
@@ -615,7 +615,7 @@ Return Value:
                           GENERIC_READ | SYNCHRONIZE,
                           &fileAttributes,
                           &fileIoStatusBlockOpen,
-                          0,
+                          FILE_SHARE_READ,
                           FILE_SYNCHRONOUS_IO_NONALERT);
     if (!NT_SUCCESS(ntStatus))
     {

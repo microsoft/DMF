@@ -570,22 +570,29 @@ Return Value:
     //
     clientEvtCleanupCallback = dmfObject->ClientEvtCleanupCallback;
 
-    // Since  it is a Dynamic Module automatically close it before it is destroyed.
-    // (Client has no access to the Close API.)
+    // If the Module has ony been partially initalized, don't call any of its callbacks
+    // because they are not set yet. It has no Child Modules so don't do anything with
+    // the list. Note: CallbacksDmf are not set yet because the Module could not finish
+    // initializing, most likely due to stress testing.
     //
-    DmfAssert(dmfObject->DynamicModuleImmediate);
-    DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
-
-    // Dispatch callback to Child DMF Modules first.
-    // 'The current function is permitted to run at an IRQ level above the maximum permitted'
-    //
-    #pragma warning(suppress:28118)
-    DMF_ChildDispatchSingleParameterVoid(dmfModule,
-                                         DMF_ModuleTreeDestroy,
-                                         &DmfChildObjectIterateBackward);
-
-    if (dmfObject->ModuleDescriptor.CallbacksDmf != NULL)
+    if (dmfObject->ModuleState >= ModuleState_Created)
     {
+        DmfAssert(dmfObject->ModuleState != ModuleState_Destroying);
+
+        // Since  it is a Dynamic Module automatically close it before it is destroyed.
+        // (Client has no access to the Close API.)
+        //
+        DmfAssert(dmfObject->DynamicModuleImmediate);
+        DMF_Module_CloseOrUnregisterNotificationOnDestroy(dmfModule);
+
+        // Dispatch callback to Child DMF Modules first.
+        // 'The current function is permitted to run at an IRQ level above the maximum permitted'
+        //
+        #pragma warning(suppress:28118)
+        DMF_ChildDispatchSingleParameterVoid(dmfModule,
+                                             DMF_ModuleTreeDestroy,
+                                             &DmfChildObjectIterateBackward);
+
         // Dispatch callback to the given Parent DMF Module next.
         //
         DmfAssert(dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy != NULL);
@@ -593,11 +600,6 @@ Return Value:
         //
         #pragma warning(suppress:28118)
         (dmfObject->ModuleDescriptor.CallbacksDmf->ModuleInstanceDestroy)(dmfModule);
-    }
-    else 
-    {
-        // NOTE: In cases of low memory or fault injection, CallbacksDmf can be NULL.
-        //
     }
 
     // The Module Callback always does this. Do it for the Module.
@@ -3067,6 +3069,9 @@ Return Value:
 
     dmfObject = DMF_ModuleToObject(DmfModule);
     DmfAssert(dmfObject != NULL);
+
+    DmfAssert((dmfObject->ModuleDescriptor.OpenOption >= DMF_MODULE_OPEN_OPTION_OPEN_Create) &&
+              (dmfObject->ModuleDescriptor.OpenOption < DMF_MODULE_OPEN_OPTION_LAST));
 
     // Dispatch callback to this Module first.
     //

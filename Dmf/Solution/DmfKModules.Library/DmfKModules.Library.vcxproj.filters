@@ -172,6 +172,12 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Time.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_ConnectedStandby.c">
+      <Filter>Modules\Driver Patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_HidDeviceListener.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Modules.Library\Dmf_PingPongBuffer.h">
@@ -359,6 +365,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Time.h">
       <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_ConnectedStandby.h">
+      <Filter>Headers\Driver Patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDeviceListener.h">
+      <Filter>Headers\Hid</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -614,6 +626,12 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_Time.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_ConnectedStandby.md">
+      <Filter>Documentation\Modules\Driver Patterns</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_HidDeviceListener.md">
+      <Filter>Documentation\Modules\Hid</Filter>
     </None>
   </ItemGroup>
 </Project>

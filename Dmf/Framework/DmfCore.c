@@ -1207,23 +1207,12 @@ Return Value:
     RtlZeroMemory(dmfObject,
                   sizeof(DMF_OBJECT));
 
-    if (ModuleDescriptor->ModuleContextAttributes != WDF_NO_OBJECT_ATTRIBUTES)
-    {
-        // Allocate Module Context.
-        // NOTE: This (ModuleContext) pointer is used only for debugging purposes.
-        //
-        ntStatus = WdfObjectAllocateContext(memoryDmfObject,
-                                            ModuleDescriptor->ModuleContextAttributes,
-                                            &(dmfObject->ModuleContext));
-        if (! NT_SUCCESS(ntStatus))
-        {
-            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
-            goto Exit;
-        }
-    }
-
-    // Begin populating the DMF Object.
+    // IMPORTANT: Make sure the object is initialized before exiting so that deletion code
+    //            will work properly in case subsequent allocations fail during stress.
+    // NOTE: This is particulary an issue for Dynamic Modules because DmfEvtDynamicModuleCleanupCallback
+    //       executes when the DMFOBJECT is deleted.
     //
+
     InitializeListHead(&dmfObject->ChildObjectList);
     dmfObject->MemoryDmfObject = memoryDmfObject;
     dmfObject->ParentDevice = Device;
@@ -1247,29 +1236,6 @@ Return Value:
     RtlCopyMemory(&dmfObject->ModuleAttributes,
                   DmfModuleAttributes,
                   sizeof(DMF_MODULE_ATTRIBUTES));
-
-    // Initialize Client Module Instance Name.
-    //
-    ntStatus = DmfModuleInstanceNameInitialize(dmfObject,
-                                               memoryDmfObject,
-                                               DmfModuleAttributes);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleInstanceNameInitialize fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
-
-    // Initialize child objects.
-    //
-    ntStatus = DmfModuleChildObjectsInitialize(dmfObject, 
-                                               memoryDmfObject,
-                                               DmfModuleAttributes,
-                                               ModuleDescriptor);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleChildObjectsInitialize fails: ntStatus=%!STATUS!", ntStatus);
-        goto Exit;
-    }
 
     // Initialize the callbacks to generic handlers.
     //
@@ -1302,6 +1268,48 @@ Return Value:
     //
     dmfObject->ModuleDescriptor.NumberOfAuxiliaryLocks = ModuleDescriptor->NumberOfAuxiliaryLocks;
 
+    // IMPORTANT: The object has now been initialized so deletion code will work in case there is a 
+    //            subsequent failure.
+    //
+
+    if (ModuleDescriptor->ModuleContextAttributes != WDF_NO_OBJECT_ATTRIBUTES)
+    {
+        // Allocate Module Context.
+        // NOTE: This (ModuleContext) pointer is used only for debugging purposes.
+        //
+        ntStatus = WdfObjectAllocateContext(memoryDmfObject,
+                                            ModuleDescriptor->ModuleContextAttributes,
+                                            &(dmfObject->ModuleContext));
+        if (! NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfObjectAllocateContext fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
+    }
+
+    // Initialize Client Module Instance Name.
+    //
+    ntStatus = DmfModuleInstanceNameInitialize(dmfObject,
+                                               memoryDmfObject,
+                                               DmfModuleAttributes);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleInstanceNameInitialize fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Initialize child objects.
+    //
+    ntStatus = DmfModuleChildObjectsInitialize(dmfObject, 
+                                               memoryDmfObject,
+                                               DmfModuleAttributes,
+                                               ModuleDescriptor);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleChildObjectsInitialize fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
     // Create the auxiliary locks based on Module Options.
     //
     ntStatus = DMF_SynchronizationCreate(dmfObject,
@@ -1319,7 +1327,7 @@ Return Value:
                                         TRUE);
     if (!NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleObjectCallbacksInitialize fails: ntStatus=%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
         goto Exit;
     }
 

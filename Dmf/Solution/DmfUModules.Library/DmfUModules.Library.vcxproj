@@ -180,6 +180,7 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_GpioTarget.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_HashTable.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidDeviceListener.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_RingBuffer.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_SpiTarget.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_GpioTarget.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_HashTable.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_HidDeviceListener.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_IoctlHandler.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_RingBuffer.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_SpiTarget.c" />
@@ -280,6 +282,7 @@
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md" />
     <None Include="..\..\Modules.Library\Dmf_GpioTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_HashTable.md" />
+    <None Include="..\..\Modules.Library\Dmf_HidDeviceListener.md" />
     <None Include="..\..\Modules.Library\Dmf_IoctlHandler.md" />
     <None Include="..\..\Modules.Library\Dmf_RingBuffer.md" />
     <None Include="..\..\Modules.Library\Dmf_SpiTarget.md" />
