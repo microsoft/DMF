@@ -1,3 +1,10 @@
+pr:
+  autoCancel: true
+  drafts: true
+  branches:
+    include:
+    - master
+
 extends:
   template: build.yml
   parameters:
