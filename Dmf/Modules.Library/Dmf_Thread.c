@@ -46,9 +46,6 @@ typedef struct _DMF_CONTEXT_Thread
     // Thread object.
     //
     VOID* ThreadObject;
-    // Thread work callback function.
-    //
-    EVT_DMF_Thread_Function* EvtThreadFunction;
     // Work Ready Event.
     //
     DMF_PORTABLE_EVENT EventWorkReady;

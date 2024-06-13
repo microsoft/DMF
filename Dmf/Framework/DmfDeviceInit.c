@@ -110,6 +110,10 @@ typedef struct DMFDEVICE_INIT
 //
 struct DMFDEVICE_INIT g_DmfDefaultDeviceInit = { 0 };
 
+// TRUE if Client does not use WPP Recorder.
+//
+BOOLEAN g_DisableWppRecorder = FALSE;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Helper Functions
@@ -1268,6 +1272,63 @@ Return Value:
 
         DmfDeviceInit->DmfEventCallbacks = DmfEventCallbacks;
     }
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+DMF_DmfDeviceInitDisableWppRecorder(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    )
+/*++
+
+Routine Description:
+
+    Disables all checks for WppRecorder. Client should call it if the driver does not use WPP at all.
+
+Parameters Description:
+
+    DmfDeviceInit - A pointer to a framework-allocated DMFDEVICE_INIT structure.
+
+Return Value:
+
+    None
+
+--*/
+{
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(DmfDeviceInit);
+
+    g_DisableWppRecorder = TRUE;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+BOOLEAN
+DMF_DmfDeviceInitIsWppRecorderDisabled(
+    )
+/*++
+
+Routine Description:
+
+    Let the caller know if DisableWppRecorder is set.
+
+Parameters Description:
+
+Return Value:
+
+    TRUE if DisableWppRecorder is set.
+    FALSE otherwise.
+
+--*/
+{
+    PAGED_CODE();
+
+    return g_DisableWppRecorder;
 }
 #pragma code_seg()
 

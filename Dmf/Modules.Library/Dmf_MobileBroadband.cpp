@@ -88,9 +88,15 @@ public:
     // IAsyncAction for modem and SAR object get.
     // 
     IAsyncAction ModemAndSarResourceGetAsync();
+    // IAsyncOperation to check if MobileBroadband network is connected.
+    //
+    IAsyncOperation<bool> MobileBroadband_IsNetworkConnectedAsync();
     // IAsyncAction for timeout helper.
     // 
     IAsyncAction TimeoutHelperAsync(int milliseconds);
+    // IAsyncAction for timeout helper with bool return.
+    // 
+    IAsyncOperation<bool> TimeoutHelperOperationAsync(int milliseconds);
     // Initialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -100,14 +106,12 @@ public:
     // DeInitialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL) VOID DeInitialize();
-    // Check if MobileBroadband network is connected.
+    // Check if MobileBroadband network is transmitting.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)
     _Must_inspect_result_
     BOOLEAN
     MobileBroadband_IsNetworkConnected();
-    // Check if MobileBroadband network is transmitting.
-    //
     _IRQL_requires_max_(PASSIVE_LEVEL)
     _Must_inspect_result_
     BOOLEAN
@@ -155,8 +159,9 @@ DMF_MODULE_DECLARE_CONFIG(MobileBroadband)
 #define MccMncReportLengthMinimum                       5
 #define MccMncReportLengthMaximum                       6
 #define RetryTimesAmount                                10
-#define WaitTimeMilliseconds                            1000
+#define WaitTimeMillisecondOneSecond                    1000
 #define WaitTimeMillisecondsOnInitialize                5000
+#define WaitTimeMillisecondsFiveSeconds                 5000
 #define MobileBroadband_AdapterWatcherEventLockIndex    0
 #define MobileBroadband_AuxiliaryLockCount              1
 
@@ -237,7 +242,7 @@ Return Value:
             // co_await here with a timeout, this does not create seperate thread for below task like resume_background, and can be cancelled.
             // And can create the IAsyncAction correctly.
             //
-            co_await winrt::resume_after(std::chrono::milliseconds(WaitTimeMilliseconds));
+            co_await winrt::resume_after(std::chrono::milliseconds(WaitTimeMillisecondOneSecond));
             // This call might hangs here. This is a OS/WinRT bug. 
             // Here, it is being called in an async method to ensure that it does not block other threads.
             //
@@ -316,6 +321,37 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "TimeoutHelperAsync with timeout %d ms finished", milliseconds);
     co_return;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+IAsyncOperation<bool>
+MobileBroadbandModemDevice::TimeoutHelperOperationAsync(
+    _In_ int milliseconds
+    )
+/*++
+
+Routine Description:
+
+    Timeour helper function as IAsyncAction. 
+    It sleeps for certain milliseconds and then return as async call.
+
+Arguments:
+
+    milliseconds: The time to sleep in milliseconds.
+
+Return Value:
+
+    IAsyncOperation<bool>:  false as always to indicate timeout.
+
+--*/
+{
+    auto cancellation = co_await get_cancellation_token();
+    cancellation.enable_propagation();
+
+    co_await winrt::resume_after(std::chrono::milliseconds(milliseconds));
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "TimeoutHelperOperationAsync with timeout %d ms finished", milliseconds);
+    co_return false;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -611,14 +647,13 @@ Exit:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-BOOLEAN
-MobileBroadbandModemDevice::MobileBroadband_IsNetworkConnected()
+IAsyncOperation<bool>
+MobileBroadbandModemDevice::MobileBroadband_IsNetworkConnectedAsync()
 /*++
 
 Routine Description:
 
-    Check if network is connected or not.
+    Async operation Check if network is connected or not.
 
 Arguments:
 
@@ -626,11 +661,11 @@ Arguments:
 
 Return Value:
 
-    BOOLEAN - TURE for connected. FALSE for disconnected.
+    bool - TURE for connected. false for disconnected.
 
     --*/
 {
-    BOOLEAN isConnected = FALSE;
+    bool isConnected = false;
     MobileBroadbandNetwork currentNetwork = nullptr;
     NetworkRegistrationState networkRegistrationState;
 
@@ -640,6 +675,9 @@ Return Value:
 
     try
     {
+        // co_await here with a no need timeout, this is mainly to to make this function async.
+        // 
+        co_await winrt::resume_background();
         currentNetwork = modem.CurrentNetwork();
 
         if (currentNetwork == nullptr)
@@ -656,11 +694,11 @@ Return Value:
             (networkRegistrationState == NetworkRegistrationState::Searching) ||
             (networkRegistrationState == NetworkRegistrationState::None))
         {
-            isConnected = FALSE;
+            isConnected = false;
         }
         else
         {
-            isConnected = TRUE;
+            isConnected = true;
         }
     }
     catch (hresult_error ex)
@@ -681,8 +719,76 @@ Exit:
 
     FuncExit(DMF_TRACE, "isConnected = %d", isConnected);
 
-    return isConnected;
+    co_return isConnected;
 
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+BOOLEAN
+MobileBroadbandModemDevice::MobileBroadband_IsNetworkConnected()
+/*++
+
+Routine Description:
+
+    Async operation Check if network is connected or not.
+
+Arguments:
+
+    None
+
+Return Value:
+
+    bool - TURE for connected. false for disconnected.
+
+    --*/
+{
+    bool isConnected = false;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    try 
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Checking MobileBroadband_IsNetworkConnected");
+        // Use IAsyncOperation and when_any to give timeout for async action to prevent hang forever.
+        //
+        IAsyncOperation<bool> timeoutHelperOperationAsync = TimeoutHelperOperationAsync(WaitTimeMillisecondsFiveSeconds);
+        IAsyncOperation<bool> getIsNetworkConnectedAsync = MobileBroadband_IsNetworkConnectedAsync();
+        mobileBroadbandWirelessState.IsNetworkConnected = (BOOLEAN)when_any(getIsNetworkConnectedAsync,
+                                                                            timeoutHelperOperationAsync).get();
+
+        if (timeoutHelperOperationAsync.Status() == AsyncStatus::Completed)
+        {
+            getIsNetworkConnectedAsync.Cancel();
+        }
+        else
+        {
+            timeoutHelperOperationAsync.Cancel();
+        }
+        getIsNetworkConnectedAsync.Close();
+        timeoutHelperOperationAsync.Close();
+    }
+    catch (hresult_error ex)
+    {
+        // At certain point. C++/WinRT sarManager component will raise 0x8007008 not enough memory exception due to a bug.
+        // If that happen, don't change the IsTransmitting state.
+        //
+        isConnected = FALSE;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "MobileBroadband_IsNetworkConnectedAsync fails, error code 0x%08x - %ws",
+                    ex.code().value,
+                    ex.message().c_str());
+        goto Exit;
+    }
+
+Exit:
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "isConnected = %d", isConnected);
+
+    return isConnected;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -713,7 +819,24 @@ Return Value:
 
     try
     {
-        isTransmitting = (BOOLEAN)sarManager.GetIsTransmittingAsync().get();
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Checking MobileBroadband_IsTransmitting");
+        // Use IAsyncOperation and when_any to give timeout for async action to prevent hang forever.
+        //
+        IAsyncOperation<bool> timeoutHelperOperationAsync = TimeoutHelperOperationAsync(WaitTimeMillisecondsFiveSeconds);
+        IAsyncOperation<bool> getIsTransmittingAsync = sarManager.GetIsTransmittingAsync();
+        isTransmitting = (BOOLEAN)when_any(getIsTransmittingAsync,
+                                           timeoutHelperOperationAsync).get();
+
+        if(timeoutHelperOperationAsync.Status() == AsyncStatus::Completed)
+        {
+            getIsTransmittingAsync.Cancel();
+        }
+        else
+        {
+            timeoutHelperOperationAsync.Cancel(); 
+        }
+        getIsTransmittingAsync.Close();
+        timeoutHelperOperationAsync.Close();
     }
     catch (hresult_error ex)
     {
@@ -731,7 +854,7 @@ Return Value:
 
 Exit:
 
-    FuncExit(DMF_TRACE, "isTransmitting = %d", isTransmitting);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "isTransmitting = %d", isTransmitting);
 
     return isTransmitting;
 
@@ -839,6 +962,7 @@ Return Value:
 
     // Unregister callback using token.
     //
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MobileBroadband_TransmissionStateMonitorStop enter");
     try
     {
         sarManager.StopTransmissionStateMonitoring();
@@ -1329,8 +1453,23 @@ Return Value:
                                                             AntennaBackOffTableIndex[antennaIndex]);
         }
 
-        moduleContext->ModemDevice->sarManager.SetConfigurationAsync(std::move(antennas)).get();
-
+        // Use IAsyncAction and when_any to give timeout for modem resource get action to prevent hang forever.
+        //
+        IAsyncAction timeoutHelperAsync = moduleContext->ModemDevice->TimeoutHelperAsync(WaitTimeMillisecondsFiveSeconds);
+        IAsyncAction antennasSetAsync = moduleContext->ModemDevice->sarManager.SetConfigurationAsync(std::move(antennas));
+        when_any(antennasSetAsync,
+                 timeoutHelperAsync).get();
+        if (timeoutHelperAsync.Status() == AsyncStatus::Completed)
+        {
+            antennasSetAsync.Cancel();
+        }
+        else
+        {
+            timeoutHelperAsync.Cancel();
+        }
+        antennasSetAsync.Close();
+        timeoutHelperAsync.Close();
+        
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Set Antenna back off index success");
 
     }
@@ -1518,6 +1657,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Try to set SarBackOffDisable ");
+
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -1527,7 +1668,23 @@ Return Value:
 
     try
     {
-        moduleContext->ModemDevice->sarManager.DisableBackoffAsync().get();
+        // Use IAsyncAction and when_any to give timeout for modem resource get action to prevent hang forever.
+        //
+        IAsyncAction timeoutHelperAsync = moduleContext->ModemDevice->TimeoutHelperAsync(WaitTimeMillisecondsFiveSeconds);
+        IAsyncAction disableSarAsync = moduleContext->ModemDevice->sarManager.DisableBackoffAsync();
+        when_any(disableSarAsync,
+                 timeoutHelperAsync).get();
+        if (timeoutHelperAsync.Status() == AsyncStatus::Completed)
+        {
+            disableSarAsync.Cancel();
+        }
+        else
+        {
+            timeoutHelperAsync.Cancel();
+        }
+        disableSarAsync.Close();
+        timeoutHelperAsync.Close();
+
     }
     catch (hresult_error ex)
     {
@@ -1620,6 +1777,8 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Try to SarBackOffEnable");
+
     ntStatus = DMF_ModuleReference(DmfModule);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -1629,7 +1788,23 @@ Return Value:
 
     try
     {
-        moduleContext->ModemDevice->sarManager.EnableBackoffAsync().get();
+        // Use IAsyncAction and when_any to give timeout for modem resource get action to prevent hang forever.
+        //
+        IAsyncAction timeoutHelperAsync = moduleContext->ModemDevice->TimeoutHelperAsync(WaitTimeMillisecondsFiveSeconds);
+        IAsyncAction sarEnableAsync = moduleContext->ModemDevice->sarManager.EnableBackoffAsync();
+        when_any(sarEnableAsync,
+                 timeoutHelperAsync).get();
+        if (timeoutHelperAsync.Status() == AsyncStatus::Completed)
+        {
+            sarEnableAsync.Cancel();
+        }
+        else
+        {
+            timeoutHelperAsync.Cancel();
+        }
+        sarEnableAsync.Close();
+        timeoutHelperAsync.Close();
+        
     }
     catch (hresult_error ex)
     {

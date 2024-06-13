@@ -813,7 +813,8 @@ DmfModuleParentUpdate(
     _In_ WDFDEVICE Device,
     _Inout_ WDFOBJECT ParentObject,
     _Inout_ DMF_OBJECT* DmfObject,
-    _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes
+    _In_ DMF_MODULE_ATTRIBUTES* DmfModuleAttributes,
+    _Out_ BOOLEAN* AddedToParentChildModuleList
     )
 /*++
 
@@ -827,6 +828,7 @@ Arguments:
     ParentObject - The given Parent Object.
     DmfObject - The given DMF_OBJECT structure of a child DMF Module.
     DmfModuleAttributes - Pointer to the initialized DMF_MODULE_ATTRIBUTES structure.
+    AddedToParentChildModuleList - Tells caller if Module has been added to Parent's Child Module list.
 
 Return Value:
 
@@ -843,6 +845,7 @@ Return Value:
     UNREFERENCED_PARAMETER(Device);
     
     ntStatus = STATUS_SUCCESS;
+    *AddedToParentChildModuleList = FALSE;
 
     dmfModuleParent = (DMFMODULE)ParentObject;
     DmfAssert(dmfModuleParent != NULL);
@@ -875,6 +878,18 @@ Return Value:
         // Increment the Number of Child Modules.
         //
         dmfObjectParent->NumberOfChildModules += 1;
+
+        // Tell caller Module has been added to list so if rest of Module
+        // initialization fails, it can be immediately removed.
+        //
+        *AddedToParentChildModuleList = TRUE;
+
+        // Indicate Module has been added to list so it can be removed from the
+        // list when the Module is destroyed.
+        //
+        DmfObject->AddedToParentChildModuleList = TRUE;
+
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Add Child=0x%p Parent=0x%p NumberOfChildModules=%d", DmfObject->MemoryDmfObject, dmfObjectParent->MemoryDmfObject, dmfObjectParent->NumberOfChildModules);
     }
 
     // Save the Parent in the Child.
@@ -952,6 +967,10 @@ Return Value:
 #if defined(DMF_KERNEL_MODE)
 
     RECORDER_LOG recorder;
+    BOOLEAN setDefaultWppRecorder;
+
+    recorder = NULL;
+    setDefaultWppRecorder = FALSE;
 
     if (DmfObject->ModuleDescriptor.InFlightRecorderSize > 0)
     {
@@ -976,33 +995,27 @@ Return Value:
             // A new buffer could not be created. Check if the default log is available and set the Module's recorder handle to it 
             // to not miss capturing logs from this Module.
             //
-            if (WppRecorderIsDefaultLogAvailable())
-            {
-                recorder = WppRecorderLogGetDefault();
-                // Don't delete it.
-                //
-                DmfObject->UsingDefaultInFlightRecorder = TRUE;
-            }
-            else
-            {
-                recorder = NULL;
-            }
+            setDefaultWppRecorder = TRUE;
         }
     }
     else
     {
         // The Module's logs will be part of the default log if the Module chose to not have a separate custom buffer.
         //
-        if (WppRecorderIsDefaultLogAvailable())
+        setDefaultWppRecorder = TRUE;
+    }
+
+    if (setDefaultWppRecorder)
+    {
+        if (!DMF_DmfDeviceInitIsWppRecorderDisabled())
         {
-            recorder = WppRecorderLogGetDefault();
-            // Don't delete it.
-            //
-            DmfObject->UsingDefaultInFlightRecorder = TRUE;
-        }
-        else
-        {
-            recorder = NULL;
+            if (WppRecorderIsDefaultLogAvailable())
+            {
+                recorder = WppRecorderLogGetDefault();
+                // WppRecorder is in use.
+                //
+                DmfObject->UsingDefaultInFlightRecorder = TRUE;
+            }
         }
     }
 
@@ -1105,10 +1118,13 @@ Return Value:
     PFN_WDF_OBJECT_CONTEXT_CLEANUP clientEvtCleanupCallback;
     WDF_OBJECT_ATTRIBUTES copyOfDmfModuleObjectAttributes;
     WDFOBJECT parentObject;
+    BOOLEAN addedToParentChildModuleList;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
+
+    addedToParentChildModuleList = FALSE;
 
     // Ensure returned handle is set only if this call is successful.
     //
@@ -1204,12 +1220,14 @@ Return Value:
         goto Exit;
     }
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Creating Module: Handle=0x%p Object=0x%p", memoryDmfObject, dmfObject);
+
     RtlZeroMemory(dmfObject,
                   sizeof(DMF_OBJECT));
 
     // IMPORTANT: Make sure the object is initialized before exiting so that deletion code
     //            will work properly in case subsequent allocations fail during stress.
-    // NOTE: This is particulary an issue for Dynamic Modules because DmfEvtDynamicModuleCleanupCallback
+    // NOTE: This is particularly an issue for Dynamic Modules because DmfEvtDynamicModuleCleanupCallback
     //       executes when the DMFOBJECT is deleted.
     //
 
@@ -1363,7 +1381,8 @@ Return Value:
         ntStatus = DmfModuleParentUpdate(Device,
                                          parentObject,
                                          dmfObject,
-                                         DmfModuleAttributes);
+                                         DmfModuleAttributes,
+                                         &addedToParentChildModuleList);
         if (!NT_SUCCESS(ntStatus))
         {
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DmfModuleParentUpdate fails: ntStatus=%!STATUS!", ntStatus);
@@ -1478,42 +1497,70 @@ Exit:
     {
         if (memoryDmfObject != NULL)
         {
-            // Need to delete all non-WDF allocations for the non-Dynamic Module case.
-            // This code runs in the case of fault-injection or low memory scenarios.
+            // If this Module is a Child Module remove it now from the list of Parent's Child Modules
+            // because the Module will become invalid since the memory is about to be destroyed.
+            // This makes it impossible for the Module to be used after being destroyed. This is 
+            // especially important in the case of partial initialization of a Module Tree.
             //
-            if (dmfObject->ClientModuleInstanceName != NULL)
+            if (addedToParentChildModuleList)
             {
-                DMF_GenericMemoryFree(dmfObject->ClientModuleInstanceName,
-                                      DMF_TAG0);
-                dmfObject->ClientModuleInstanceName = NULL;
+                // Decrement the Number of Child Modules.
+                //
+                DmfAssert(dmfObject->DmfObjectParent->NumberOfChildModules >= 1);
+                dmfObject->DmfObjectParent->NumberOfChildModules -= 1;
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+                            "Remove Child=0x%p Parent=0x%p NumberOfChildModules=%d",
+                            memoryDmfObject,
+                            dmfObject->DmfObjectParent->MemoryDmfObject,
+                            dmfObject->DmfObjectParent->NumberOfChildModules);
+                RemoveEntryList(&dmfObject->ChildListEntry);
+                dmfObject->AddedToParentChildModuleList = FALSE;
             }
-            if (dmfObject->ModuleDescriptor.CallbacksDmf != NULL)
-            {
-                DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksDmf,
-                                      DMF_TAG2);
-                dmfObject->ModuleDescriptor.CallbacksDmf = NULL;
-            }
-            if (dmfObject->ModuleDescriptor.CallbacksWdf != NULL)
-            {
-                DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksWdf,
-                                      DMF_TAG3);
-                dmfObject->ModuleDescriptor.CallbacksWdf = NULL;
-            }
-            if (dmfObject->ModuleConfig != NULL)
-            {
-                DMF_GenericMemoryFree(dmfObject->ModuleConfig,
-                                      DMF_TAG1);
-                dmfObject->ModuleConfig = NULL;
-            }
+
             if (DmfModuleAttributes->DynamicModuleImmediate)
             {
                 // This is necessary to prevent assert in case of fault-injection or low memory scenarios.
                 //
                 dmfObject->DynamicModuleImmediate = TRUE;
             }
+            else
+            {
+                // Need to delete all non-WDF allocations for the non-Dynamic Module case.
+                // This code runs in the case of fault-injection or low memory scenarios.
+                // 
+                // In Dynamic Module case, this clean up is handled in the cleanup callback
+                // by DMF_ModuleDestroy.
+                //
+                if (dmfObject->ClientModuleInstanceName != NULL)
+                {
+                    DMF_GenericMemoryFree(dmfObject->ClientModuleInstanceName,
+                                          DMF_TAG0);
+                    dmfObject->ClientModuleInstanceName = NULL;
+                }
+                if (dmfObject->ModuleDescriptor.CallbacksDmf != NULL)
+                {
+                    DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksDmf,
+                                          DMF_TAG2);
+                    dmfObject->ModuleDescriptor.CallbacksDmf = NULL;
+                }
+                if (dmfObject->ModuleDescriptor.CallbacksWdf != NULL)
+                {
+                    DMF_GenericMemoryFree(dmfObject->ModuleDescriptor.CallbacksWdf,
+                                          DMF_TAG3);
+                    dmfObject->ModuleDescriptor.CallbacksWdf = NULL;
+                }
+                if (dmfObject->ModuleConfig != NULL)
+                {
+                    DMF_GenericMemoryFree(dmfObject->ModuleConfig,
+                                          DMF_TAG1);
+                    dmfObject->ModuleConfig = NULL;
+                }
+            }
+
             // All subsequent allocations after memoryDmfObject use memoryDmfObject as parent. So, this
             // call deletes all the allocations made.
             //
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Cleanup Failed Module=0x%p", memoryDmfObject);
             WdfObjectDelete(memoryDmfObject);
             memoryDmfObject = NULL;
         }
@@ -1559,7 +1606,7 @@ Exit:
             ntStatus = DMF_Module_OpenOrRegisterNotificationOnCreate(dmfModule);
             if (!NT_SUCCESS(ntStatus))
             {
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleCollectionPostCreate fails: ntStatus=%!STATUS!", ntStatus);
+                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Module_OpenOrRegisterNotificationOnCreate fails: ntStatus=%!STATUS!", ntStatus);
                 if (DmfModule != NULL)
                 {
                     // Ensure returned handle is set only if this call is successful.
@@ -1687,6 +1734,25 @@ Return Value:
     //
     DMF_GenericSpinLockDestroy(&dmfObject->InterfaceBindingsLock);
     DMF_GenericSpinLockDestroy(&dmfObject->ReferenceCountLock);
+
+    // Remove the Module from its Parent Module's Child Module list so that
+    // there is no chance it can be used when then Parent is deleted (in the
+    // Cleanup handler which looks at the Child Module list).
+    //
+    if (dmfObject->AddedToParentChildModuleList)
+    {
+        // Decrement the Number of Child Modules.
+        //
+        DmfAssert(dmfObject->DmfObjectParent->NumberOfChildModules >= 1);
+        dmfObject->DmfObjectParent->NumberOfChildModules -= 1;
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE,
+                    "Remove Child=0x%p Parent=0x%p NumberOfChildModules=%d",
+                    dmfObject->MemoryDmfObject,
+                    dmfObject->DmfObjectParent->MemoryDmfObject,
+                    dmfObject->DmfObjectParent->NumberOfChildModules);
+        RemoveEntryList(&dmfObject->ChildListEntry);
+        dmfObject->AddedToParentChildModuleList = FALSE;
+    }
 
     if (DeleteMemory)
     {
