@@ -332,7 +332,7 @@ MobileBroadbandModemDevice::TimeoutHelperOperationAsync(
 
 Routine Description:
 
-    Timeour helper function as IAsyncAction. 
+    Timeout helper function as IAsyncAction. 
     It sleeps for certain milliseconds and then return as async call.
 
 Arguments:
@@ -739,11 +739,11 @@ Arguments:
 
 Return Value:
 
-    bool - TURE for connected. false for disconnected.
+    BOOLEAN - TRUE for connected. false for disconnected.
 
     --*/
 {
-    bool isConnected = false;
+    BOOLEAN isConnected = FALSE;
 
     PAGED_CODE();
 
@@ -756,8 +756,8 @@ Return Value:
         //
         IAsyncOperation<bool> timeoutHelperOperationAsync = TimeoutHelperOperationAsync(WaitTimeMillisecondsFiveSeconds);
         IAsyncOperation<bool> getIsNetworkConnectedAsync = MobileBroadband_IsNetworkConnectedAsync();
-        mobileBroadbandWirelessState.IsNetworkConnected = (BOOLEAN)when_any(getIsNetworkConnectedAsync,
-                                                                            timeoutHelperOperationAsync).get();
+        isConnected = (BOOLEAN)when_any(getIsNetworkConnectedAsync,
+                                        timeoutHelperOperationAsync).get();
 
         if (timeoutHelperOperationAsync.Status() == AsyncStatus::Completed)
         {
