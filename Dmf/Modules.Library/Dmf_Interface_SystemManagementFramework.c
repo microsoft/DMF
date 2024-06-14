@@ -82,7 +82,8 @@ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT(
     _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
     _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
     _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
-    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportConfigurationSet* DMF_SystemManagementFramework_TransportConfigurationSet
     )
 /*++
 
@@ -123,6 +124,7 @@ Return Value:
     TransportDeclarationData->DMF_SystemManagementFramework_TransportControlSet = SystemManagementFrameworkTransportControlSet;
     TransportDeclarationData->DMF_SystemManagementFramework_TransportDataGet = SystemManagementFrameworkTransportDataGet;
     TransportDeclarationData->DMF_SystemManagementFramework_TransportResetCauseGet = SystemManagementFrameworkTransportResetCauseGet;
+    TransportDeclarationData->DMF_SystemManagementFramework_TransportConfigurationSet = DMF_SystemManagementFramework_TransportConfigurationSet;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,6 +419,53 @@ Return Value:
     ntStatus = transportData->DMF_SystemManagementFramework_TransportDataGet(DmfInterface,
                                                                              ChannelIndex,
                                                                              SensorData);
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
+NTSTATUS
+DMF_SystemManagementFramework_TransportConfigurationSet(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ USHORT* Channel,
+    _In_ VOID* OutputBuffer,
+    _In_ size_t* OutputBufferSize
+    )
+/*++
+
+Routine Description:
+
+    Callback exposed via Transport Message to parent Module.
+    This Method provides the current reading for the selected sensor channel.
+
+Arguments:
+
+    DmfInterface - The handle to the SMF interface.
+    Channel - The index of the channel to configure.
+    OutputBuffer - A pointer to the buffer containing the configuration data.
+    OutputBufferSize - The size of the configuration data buffer.
+
+Return Value:
+
+   NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA* transportData;
+
+    ntStatus = STATUS_UNSUCCESSFUL;
+    transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
+
+    if (transportData->DMF_SystemManagementFramework_TransportConfigurationSet)
+    {
+        ntStatus = transportData->DMF_SystemManagementFramework_TransportConfigurationSet(DmfInterface,
+                                                                                          Channel,
+                                                                                          OutputBuffer,
+                                                                                          OutputBufferSize);
+    }
 
     return ntStatus;
 }

@@ -301,6 +301,9 @@ struct _DMF_OBJECT_
     // Allows Modules to ensure Module is closed a single time.
     //
     BOOLEAN ModuleClosed;
+    // Indicates that the Module has been added to Parent Module's Child Module list.
+    //
+    BOOLEAN AddedToParentChildModuleList;
 };
 
 // DMF Object Signature.

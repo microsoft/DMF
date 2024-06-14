@@ -3684,6 +3684,28 @@ None
 
 -   See **DMF_DmfDeviceInitAllocate.**
 
+### DMF_DmfDeviceInitDisableWppRecorder
+```
+VOID
+DMF_DmfDeviceInitDisableWppRecorder(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    )
+```
+Disables all checks for WppRecorder. Client Driver should call this function if the driver does not use WPP at all.
+
+#### Parameters
+  Parameter | Description
+  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
+  **PDMFDEVICE_INIT DmfDeviceInit**      |       The data structure created using **DMF_DmfDeviceInitAllocate()**.
+
+#### Returns
+
+None
+
+#### Remarks
+
+-   Use this function only if the Client Driver does not call `WPP_INIT_TRACING`.
+
 ### DMF_DmfFdoSetFilter
 ```
 VOID
@@ -8007,6 +8029,7 @@ Client Driver and create instances of Modules.
   **DMF_FilterDeviceGet**                              |  Client Filter Drivers use this function to retrieve the **WDFDEVICE** that corresponds to the Filter Device Filter Device Object.
   **DMF_DmfDeviceInitOverrideDefaultQueueConfig**      |  Client Drivers use this function to modify how DMF creates the default queue.
   **DMF_DmfDeviceInitOverrideDefaultQueueObjectAttributes** | Client Drivers use this function to explicitly set the execution level of the queue's callbacks.
+  **DMF_DmfDeviceInitDisableWppRecorder** | Client Drivers use this function if WPP is not being used in the Drivers.
  
 
 Module Facing DMF APIs

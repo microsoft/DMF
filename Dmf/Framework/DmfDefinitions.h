@@ -1143,6 +1143,18 @@ DMF_DmfDeviceInitSetEventCallbacks(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
+DMF_DmfDeviceInitDisableWppRecorder(
+    _In_ PDMFDEVICE_INIT DmfDeviceInit
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+BOOLEAN
+DMF_DmfDeviceInitIsWppRecorderDisabled(
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
 DMF_DmfDeviceInitSetBranchTrackConfig(
     _In_ PDMFDEVICE_INIT DmfDeviceInit,
     _In_opt_ DMF_CONFIG_BranchTrack* DmfBranchTrackModuleConfig

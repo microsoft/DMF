@@ -498,6 +498,8 @@ Return Value:
 {
     DMF_OBJECT* dmfObject;
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "-->Destroying Module: Handle=0x%p", DmfModule);
+
     dmfObject = DMF_ModuleToObject(DmfModule);
     DmfAssert(dmfObject != NULL);
 
@@ -518,6 +520,8 @@ Return Value:
     //
     DMF_ModuleDestroy(DmfModule, 
                       TRUE);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "<--Destroyed Module: Handle=0x%p", DmfModule);
 }
 
 _Function_class_(EVT_WDF_OBJECT_CONTEXT_CLEANUP)
@@ -570,7 +574,7 @@ Return Value:
     //
     clientEvtCleanupCallback = dmfObject->ClientEvtCleanupCallback;
 
-    // If the Module has ony been partially initalized, don't call any of its callbacks
+    // If the Module has only been partially initialized, don't call any of its callbacks
     // because they are not set yet. It has no Child Modules so don't do anything with
     // the list. Note: CallbacksDmf are not set yet because the Module could not finish
     // initializing, most likely due to stress testing.

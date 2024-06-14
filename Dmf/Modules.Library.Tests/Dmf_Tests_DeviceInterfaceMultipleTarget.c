@@ -1840,16 +1840,32 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     targetContext = DeviceInterfaceMultipleTarget_TargetContextGet(Target);
 
-    // Interrupt any long sleeps for all threds using this target.
+    // Interrupt any long sleeps for all threads using this target.
     //
-    DMF_AlertableSleep_Abort(targetContext->DmfModuleAlertableSleep,
-                             0);
+    if (targetContext->DmfModuleAlertableSleep != NULL)
+    {
+        DMF_AlertableSleep_Abort(targetContext->DmfModuleAlertableSleep,
+                                 0);
+    }
+    else
+    {
+        // Fault injection failure.
+        //
+    }
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
         // Stop thread.
         //
-        DMF_Thread_Stop(targetContext->DmfModuleThread[threadIndex]);
+        if (targetContext->DmfModuleThread[threadIndex] != NULL)
+        {
+            DMF_Thread_Stop(targetContext->DmfModuleThread[threadIndex]);
+        }
+        else
+        {
+            // Fault injection failure.
+            //
+        }
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -2078,12 +2094,18 @@ Return Value:
 
     for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
     {
-        WdfObjectDelete(targetContext->DmfModuleThread[threadIndex]);
-        targetContext->DmfModuleThread[threadIndex] = NULL;
+        if (targetContext->DmfModuleThread[threadIndex] != NULL)
+        {
+            WdfObjectDelete(targetContext->DmfModuleThread[threadIndex]);
+            targetContext->DmfModuleThread[threadIndex] = NULL;
+        }
     }
 
-    WdfObjectDelete(targetContext->DmfModuleAlertableSleep);
-    targetContext->DmfModuleAlertableSleep = NULL;
+    if (targetContext->DmfModuleAlertableSleep != NULL)
+    {
+        WdfObjectDelete(targetContext->DmfModuleAlertableSleep);
+        targetContext->DmfModuleAlertableSleep = NULL;
+    }
 
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 DMF_TRACE,

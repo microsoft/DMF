@@ -460,6 +460,36 @@ DMF_INTERFACE_SystemManagementFramework_TransportDataGet(
     _Out_ INT32* SensorData
     );
 
+ /*++
+
+ Routine Description:
+
+     Sets the configuration for a specific channel in the System Management Framework (SMF) transport.
+
+ Arguments:
+
+    DmfInterface - The handle to the SMF interface.
+    Channel - The index of the channel to configure.
+    OutputBuffer - A pointer to the buffer containing the configuration data.
+    OutputBufferSize - The size of the configuration data buffer.
+
+ Return Value:
+
+    NTSTATUS
+
+ --*/
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+_Must_inspect_result_
+NTSTATUS
+DMF_INTERFACE_SystemManagementFramework_TransportConfigurationSet(
+    _In_ DMFINTERFACE DmfInterface,
+    _In_ USHORT* Channel,
+    _In_ VOID* OutputBuffer,
+    _In_ size_t* OutputBufferSize
+    );
+
 /*++
 
 Routine Description:
@@ -507,6 +537,7 @@ typedef struct _DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DA
     DMF_INTERFACE_SystemManagementFramework_TransportControlSet* DMF_SystemManagementFramework_TransportControlSet;
     DMF_INTERFACE_SystemManagementFramework_TransportDataGet* DMF_SystemManagementFramework_TransportDataGet;
     DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* DMF_SystemManagementFramework_TransportResetCauseGet;
+    DMF_INTERFACE_SystemManagementFramework_TransportConfigurationSet* DMF_SystemManagementFramework_TransportConfigurationSet;
 } DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA;
 
 // Methods used to initialize Transport's Declaration Data.
@@ -524,7 +555,8 @@ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT(
     _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize* SystemManagementFrameworkTransportUninitialize,
     _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportControlSet* SystemManagementFrameworkTransportControlSet,
     _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportDataGet* SystemManagementFrameworkTransportDataGet,
-    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet* SystemManagementFrameworkTransportResetCauseGet,
+    _In_opt_ DMF_INTERFACE_SystemManagementFramework_TransportConfigurationSet* DMF_SystemManagementFramework_TransportConfigurationSet
     );
 
 // Methods exposed to Protocol.
@@ -538,6 +570,7 @@ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize DMF_SystemManageme
 DMF_INTERFACE_SystemManagementFramework_TransportControlSet DMF_SystemManagementFramework_TransportControlSet;
 DMF_INTERFACE_SystemManagementFramework_TransportDataGet DMF_SystemManagementFramework_TransportDataGet;
 DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet DMF_SystemManagementFramework_TransportResetCauseGet;
+DMF_INTERFACE_SystemManagementFramework_TransportConfigurationSet DMF_SystemManagementFramework_TransportConfigurationSet;
 
 // Callbacks exposed to Transport.
 // -------------------------------
