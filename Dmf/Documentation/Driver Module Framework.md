@@ -3691,7 +3691,7 @@ DMF_DmfDeviceInitDisableWppRecorder(
     _In_ PDMFDEVICE_INIT DmfDeviceInit
     )
 ```
-Disables all checks for WppRecorder. Client should call it if the driver does not use WPP at all.
+Disables all checks for WppRecorder. Client Driver should call this function if the driver does not use WPP at all.
 
 #### Parameters
   Parameter | Description

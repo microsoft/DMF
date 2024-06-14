@@ -442,9 +442,10 @@ Routine Description:
 
 Arguments:
 
-    DmfInterface - This Module's interface handle.
-    ChannelIndex - Index of the Channel to be updated with new configuration.
-    SensorData - Smf Interface Data structure to be updated with the current sensor value.
+    DmfInterface - The handle to the SMF interface.
+    Channel - The index of the channel to configure.
+    OutputBuffer - A pointer to the buffer containing the configuration data.
+    OutputBufferSize - The size of the configuration data buffer.
 
 Return Value:
 
@@ -458,7 +459,7 @@ Return Value:
     ntStatus = STATUS_UNSUCCESSFUL;
     transportData = (DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA*)DMF_InterfaceTransportDeclarationDataGet(DmfInterface);
 
-    if(transportData->DMF_SystemManagementFramework_TransportConfigurationSet)
+    if (transportData->DMF_SystemManagementFramework_TransportConfigurationSet)
     {
         ntStatus = transportData->DMF_SystemManagementFramework_TransportConfigurationSet(DmfInterface,
                                                                                           Channel,
