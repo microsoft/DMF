@@ -60,14 +60,23 @@ Environment:
 //
 #define ERROR_INCORRECT_FUNCTION    0x80070001
 
+// Choose one of these or none of these.
+//
+#define NO_TEST_SYNCHRONOUS_ONLY
+#define NO_TEST_ASYNCHRONOUS_ONLY
+#define NO_TEST_ASYNCHRONOUSCANCEL_ONLY
+#define NO_TEST_DYNAMIC_ONLY
+#define TEST_ASYNCHRONOUSREUSE_ONLY
+
 typedef enum _TEST_ACTION
 {
     TEST_ACTION_SYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUS,
     TEST_ACTION_ASYNCHRONOUSCANCEL,
+    TEST_ACTION_ASYNCHRONOUSREUSE,
     TEST_ACTION_COUNT,
     TEST_ACTION_MINIUM = TEST_ACTION_SYNCHRONOUS,
-    TEST_ACTION_MAXIMUM = TEST_ACTION_ASYNCHRONOUSCANCEL
+    TEST_ACTION_MAXIMUM = (TEST_ACTION_COUNT - 1)
 } TEST_ACTION;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -345,18 +354,28 @@ Tests_DefaultTarget_SendCompletion(
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
-    UNREFERENCED_PARAMETER(CompletionStatus);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
 
     dmfModule = DMF_ParentModuleGet(DmfModuleDefaultTarget);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext);
 
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p CompletionStatus=%!STATUS!", 
+                sleepIoctlBuffer->TimeToSleepMilliseconds,
+                InputBuffer,
+                CompletionStatus);
+
+    if (sleepIoctlBuffer->ReuseEvent != NULL)
+    {
+        DMF_Portable_EventSet(sleepIoctlBuffer->ReuseEvent);
+    }
+
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
 }
@@ -381,17 +400,23 @@ Tests_DefaultTarget_SendCompletionMustBeCancelled(
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(ClientRequestContext);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
 
     dmfModule = DMF_ParentModuleGet(DmfModuleDefaultTarget);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
     DmfAssert(moduleContext == (DMF_CONTEXT_Tests_DefaultTarget*)ClientRequestContext);
 
     sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+
+    if (sleepIoctlBuffer->ReuseEvent != NULL)
+    {
+        DMF_Portable_EventSet(sleepIoctlBuffer->ReuseEvent);
+    }
+
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
 
@@ -424,9 +449,6 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
                                   NULL);
     ASSERT(NT_SUCCESS(ntStatus));
 
-    RtlZeroMemory(sleepIoctlBuffer,
-                  sizeof(Tests_IoctlHandler_Sleep));
-
     if (TestsUtility_GenerateRandomNumber(0,
                                           1))
     {
@@ -438,6 +460,8 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
         timeoutMs = 0;
     }
 
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                   MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
@@ -460,7 +484,6 @@ Tests_DefaultTarget_ThreadAction_Asynchronous(
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
-
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                   MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
@@ -504,7 +527,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
     NTSTATUS ntStatus;
     size_t bytesWritten;
-    RequestTarget_DmfRequest DmfRequestId;
+    RequestTarget_DmfRequestCancel dmfRequestIdCancel;
     BOOLEAN requestCanceled;
     LONG timeToSleepMilliseconds;
 
@@ -520,9 +543,6 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                   NULL);
     ASSERT(NT_SUCCESS(ntStatus));
 
-    RtlZeroMemory(sleepIoctlBuffer,
-                  sizeof(Tests_IoctlHandler_Sleep));
-
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request after waiting for a while. It may or may not be canceled.
     //
@@ -530,6 +550,8 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
 
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendEx(moduleContext->DmfModuleDefaultTargetDispatchInput,
@@ -542,7 +564,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequestId);
+                                        &dmfRequestIdCancel);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -557,7 +579,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request if possible.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequestId);
+                                               dmfRequestIdCancel);
 
     if (!NT_SUCCESS(ntStatus))
     {
@@ -576,7 +598,6 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
-
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendEx(moduleContext->DmfModuleDefaultTargetPassiveInput,
@@ -589,7 +610,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequestId);
+                                        &dmfRequestIdCancel);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
     {
@@ -603,7 +624,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request if possible.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                               DmfRequestId);
+                                               dmfRequestIdCancel);
 
     ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
                                         0,
@@ -627,7 +648,6 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
-
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendEx(moduleContext->DmfModuleDefaultTargetDispatchInput,
@@ -640,7 +660,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequestId);
+                                        &dmfRequestIdCancel);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -651,7 +671,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request immediately after sending it.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequestId);
+                                               dmfRequestIdCancel);
 
     timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                 MAXIMUM_SLEEP_TIME_MS);
@@ -663,7 +683,6 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
-
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendEx(moduleContext->DmfModuleDefaultTargetPassiveInput,
@@ -676,7 +695,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequestId);
+                                        &dmfRequestIdCancel);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
     {
@@ -686,7 +705,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // Cancel the request if possible right after sending it.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                               DmfRequestId);
+                                               dmfRequestIdCancel);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Cancel the request before it is normally completed. It should always cancel.
@@ -702,7 +721,6 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
-
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendEx(moduleContext->DmfModuleDefaultTargetDispatchInput,
@@ -715,7 +733,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletionMustBeCancelled,
                                         moduleContext,
-                                        &DmfRequestId);
+                                        &dmfRequestIdCancel);
 
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
@@ -730,7 +748,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // It should always cancel since the time just waited is 1/4 the time that was sent above.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetDispatchInput,
-                                               DmfRequestId);
+                                               dmfRequestIdCancel);
     // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
     // that the cancel call happens just as the underlying driver is going away. In that case,
     // the request is not canceled by this call, but it will be canceled by the underlying
@@ -755,7 +773,6 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
 
     RtlZeroMemory(sleepIoctlBuffer,
                   sizeof(Tests_IoctlHandler_Sleep));
-
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
     bytesWritten = 0;
     ntStatus = DMF_DefaultTarget_SendEx(moduleContext->DmfModuleDefaultTargetPassiveInput,
@@ -768,7 +785,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
                                         0,
                                         Tests_DefaultTarget_SendCompletion,
                                         moduleContext,
-                                        &DmfRequestId);
+                                        &dmfRequestIdCancel);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     if (!NT_SUCCESS(ntStatus))
     {
@@ -783,7 +800,7 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
     // It should always cancel since the time just waited is 1/4 the time that was sent above.
     //
     requestCanceled = DMF_DefaultTarget_Cancel(moduleContext->DmfModuleDefaultTargetPassiveInput,
-                                               DmfRequestId);
+                                               dmfRequestIdCancel);
     // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
     // that the cancel call happens just as the underlying driver is going away. In that case,
     // the request is not canceled by this call, but it will be canceled by the underlying
@@ -801,6 +818,375 @@ Tests_DefaultTarget_ThreadAction_AsynchronousCancel(
 
 Exit:
     ;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+void
+Tests_DefaultTarget_ThreadAction_AsynchronousReuse(
+    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleAlertableSleep,
+    _In_ DMFMODULE DmfModuleDefaultTarget
+    )
+{
+    DMF_CONTEXT_Tests_DefaultTarget* moduleContext;
+    NTSTATUS ntStatus;
+    size_t bytesWritten;
+    RequestTarget_DmfRequestCancel dmfRequestIdCancel;
+    RequestTarget_DmfRequestReuse dmfRequestIdReuse;
+    BOOLEAN requestCanceled;
+    LONG timeToSleepMilliseconds;
+    Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
+    DMF_PORTABLE_EVENT reuseEvent;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    dmfRequestIdReuse = 0;
+
+    ntStatus = DMF_Portable_EventCreate(&reuseEvent,
+                                        SynchronizationEvent,
+                                        FALSE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto ExitNoClearEvent;
+    }
+
+    ntStatus = DMF_DefaultTarget_ReuseCreate(DmfModuleDefaultTarget,
+                                             &dmfRequestIdReuse);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request after it is normally completed. It should never cancel unless driver is shutting down.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    sleepIoctlBuffer->ReuseEvent = &reuseEvent;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: SEND: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+                timeToSleepMilliseconds,
+                sleepIoctlBuffer);
+    bytesWritten = 0;
+    ntStatus = DMF_DefaultTarget_ReuseSend(DmfModuleDefaultTarget,
+                                           dmfRequestIdReuse,
+                                           sleepIoctlBuffer,
+                                           sizeof(Tests_IoctlHandler_Sleep),
+                                           NULL,
+                                           NULL,
+                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                           0,
+                                           Tests_DefaultTarget_SendCompletion,
+                                           moduleContext,
+                                           &dmfRequestIdCancel);
+
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        timeToSleepMilliseconds * 4);
+    // Cancel the request if possible.
+    // It should never cancel since the time just waited is 4 times what was sent above.
+    //
+    requestCanceled = DMF_DefaultTarget_Cancel(DmfModuleDefaultTarget,
+                                                       dmfRequestIdCancel);
+
+    DMF_Portable_EventWaitForSingleObject(&reuseEvent,
+                                          NULL,
+                                          FALSE);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
+
+#if !defined(DMF_WIN32_MODE)
+    DmfAssert(!requestCanceled);
+#endif
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DI: CANCELED: sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
+                timeToSleepMilliseconds,
+                sleepIoctlBuffer);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request after waiting for a while. It may or may not be canceled.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    sleepIoctlBuffer->ReuseEvent = &reuseEvent;
+    bytesWritten = 0;
+    ntStatus = DMF_DefaultTarget_ReuseSend(DmfModuleDefaultTarget,
+                                           dmfRequestIdReuse,
+                                           sleepIoctlBuffer,
+                                           sizeof(Tests_IoctlHandler_Sleep),
+                                           NULL,
+                                           NULL,
+                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                           0,
+                                           Tests_DefaultTarget_SendCompletion,
+                                           moduleContext,
+                                           &dmfRequestIdCancel);
+
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        timeToSleepMilliseconds);
+
+    // Cancel the request if possible.
+    //
+    requestCanceled = DMF_DefaultTarget_Cancel(DmfModuleDefaultTarget,
+                                                       dmfRequestIdCancel);
+
+    DMF_Portable_EventWaitForSingleObject(&reuseEvent,
+                                          NULL,
+                                          FALSE);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request after waiting the same time sent in timeout. 
+    // It may or may not be canceled.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    sleepIoctlBuffer->ReuseEvent = &reuseEvent;
+    bytesWritten = 0;
+    ntStatus = DMF_DefaultTarget_ReuseSend(DmfModuleDefaultTarget,
+                                           dmfRequestIdReuse,
+                                           sleepIoctlBuffer,
+                                           sizeof(Tests_IoctlHandler_Sleep),
+                                           NULL,
+                                           NULL,
+                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                           0,
+                                           Tests_DefaultTarget_SendCompletion,
+                                           moduleContext,
+                                           &dmfRequestIdCancel);
+
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        timeToSleepMilliseconds);
+
+    // Cancel the request if possible.
+    //
+    requestCanceled = DMF_DefaultTarget_Cancel(DmfModuleDefaultTarget,
+                                                       dmfRequestIdCancel);
+
+    DMF_Portable_EventWaitForSingleObject(&reuseEvent,
+                                          NULL,
+                                          FALSE);
+
+    if (!NT_SUCCESS(ntStatus))
+    {
+        // Driver is shutting down...get out.
+        //
+        goto Exit;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request immediately after sending it. It may or may not be canceled.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    sleepIoctlBuffer->ReuseEvent = &reuseEvent;
+    bytesWritten = 0;
+    ntStatus = DMF_DefaultTarget_ReuseSend(DmfModuleDefaultTarget,
+                                           dmfRequestIdReuse,
+                                           sleepIoctlBuffer,
+                                           sizeof(Tests_IoctlHandler_Sleep),
+                                           NULL,
+                                           NULL,
+                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                           0,
+                                           Tests_DefaultTarget_SendCompletion,
+                                           moduleContext,
+                                           &dmfRequestIdCancel);
+
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    // Cancel the request immediately after sending it.
+    //
+    requestCanceled = DMF_DefaultTarget_Cancel(DmfModuleDefaultTarget,
+                                                       dmfRequestIdCancel);
+
+    DMF_Portable_EventWaitForSingleObject(&reuseEvent,
+                                          NULL,
+                                          FALSE);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cancel the request before it is normally completed. It should always cancel.
+    //
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&sleepIoctlBuffer,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    timeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(MINIMUM_SLEEP_TIME_MS, 
+                                                                MAXIMUM_SLEEP_TIME_MS);
+
+    RtlZeroMemory(sleepIoctlBuffer,
+                  sizeof(Tests_IoctlHandler_Sleep));
+    sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
+    sleepIoctlBuffer->ReuseEvent = &reuseEvent;
+    bytesWritten = 0;
+    ntStatus = DMF_DefaultTarget_ReuseSend(DmfModuleDefaultTarget,
+                                           dmfRequestIdReuse,
+                                           sleepIoctlBuffer,
+                                           sizeof(Tests_IoctlHandler_Sleep),
+                                           NULL,
+                                           NULL,
+                                           ContinuousRequestTarget_RequestType_Ioctl,
+                                           IOCTL_Tests_IoctlHandler_SLEEP,
+                                           0,
+                                           Tests_DefaultTarget_SendCompletionMustBeCancelled,
+                                           moduleContext,
+                                           &dmfRequestIdCancel);
+
+    DmfAssert(NT_SUCCESS(ntStatus) ||
+              (ntStatus == STATUS_CANCELLED) ||
+              (ntStatus == STATUS_INVALID_DEVICE_STATE) ||
+              (ntStatus == STATUS_DELETE_PENDING));
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    ntStatus = DMF_AlertableSleep_Sleep(DmfModuleAlertableSleep,
+                                        0,
+                                        timeToSleepMilliseconds / 4);
+
+    // Cancel the request if possible.
+    // It should always cancel since the time just waited is 1/4 the time that was sent above.
+    //
+    requestCanceled = DMF_DefaultTarget_Cancel(DmfModuleDefaultTarget,
+                                                       dmfRequestIdCancel);
+    // Even though the attempt to cancel happens in 1/4 of the total time out, it is possible
+    // that the cancel call happens just as the underlying driver is going away. In that case,
+    // the request is not canceled by this call, but it will be canceled by the underlying
+    // driver. (In this case the call to cancel returns FALSE.) Thus, no assert is possible here.
+    // This case happens often as the underlying driver comes and goes every second.
+    //
+
+    DMF_Portable_EventWaitForSingleObject(&reuseEvent,
+                                          NULL,
+                                          FALSE);
+
+Exit:
+
+    DMF_Portable_EventClose(&reuseEvent);
+
+ExitNoClearEvent:
+
+    if (dmfRequestIdReuse != NULL)
+    {
+        DMF_DefaultTarget_ReuseDelete(DmfModuleDefaultTarget,
+                                      dmfRequestIdReuse);
+    }
 }
 #pragma code_seg()
 
@@ -826,10 +1212,20 @@ Tests_DefaultTarget_WorkThreadAuto(
     threadIndex = WdfObjectGet_THREAD_INDEX_CONTEXT(DmfModuleThread);
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
+#if defined(TEST_SYNCHRONOUS_ONLY)
+    testAction = TEST_ACTION_SYNCHRONOUS;
+#elif defined(TEST_ASYNCHRONOUS_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUS;
+#elif defined(TEST_ASYNCHRONOUSCANCEL_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUSCANCEL;
+#elif defined(TEST_ASYNCHRONOUSREUSE_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUSREUSE;
+#else
     // Generate a random test action Id for a current iteration.
     //
     testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
                                                                 TEST_ACTION_MAXIMUM);
+#endif
 
     // Execute the test action.
     //
@@ -846,6 +1242,11 @@ Tests_DefaultTarget_WorkThreadAuto(
         case TEST_ACTION_ASYNCHRONOUSCANCEL:
             Tests_DefaultTarget_ThreadAction_AsynchronousCancel(dmfModule,
                                                                 threadIndex->DmfModuleAlertableSleep);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSREUSE:
+            Tests_DefaultTarget_ThreadAction_AsynchronousReuse(dmfModule,
+                                                               threadIndex->DmfModuleAlertableSleep,
+                                                               moduleContext->DmfModuleDefaultTargetPassiveInput);
             break;
         default:
             DmfAssert(FALSE);
@@ -908,6 +1309,11 @@ Tests_DefaultTarget_WorkThreadManual(
         case TEST_ACTION_ASYNCHRONOUSCANCEL:
             Tests_DefaultTarget_ThreadAction_AsynchronousCancel(dmfModule,
                                                                 threadIndex->DmfModuleAlertableSleep);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSREUSE:
+            Tests_DefaultTarget_ThreadAction_AsynchronousReuse(dmfModule,
+                                                               threadIndex->DmfModuleAlertableSleep,
+                                                               moduleContext->DmfModuleDefaultTargetPassiveOutput);
             break;
         default:
             DmfAssert(FALSE);

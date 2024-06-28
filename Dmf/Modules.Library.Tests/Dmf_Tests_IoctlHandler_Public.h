@@ -36,6 +36,9 @@ typedef struct
     // Wait this long and then complete the request.
     //
     LONG TimeToSleepMilliseconds;
+    // Used by Reuse completion routine.
+    //
+    DMF_PORTABLE_EVENT* ReuseEvent;
 } Tests_IoctlHandler_Sleep;
 #pragma pack(pop)
 

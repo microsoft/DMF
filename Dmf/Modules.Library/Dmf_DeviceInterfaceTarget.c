@@ -44,7 +44,21 @@ typedef
 BOOLEAN
 RequestSink_Cancel_Type(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
+    );
+
+typedef
+NTSTATUS
+RequestSink_ReuseCreate_Type(
+    _In_ DMFMODULE DmfModule,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    );
+
+typedef
+BOOLEAN
+RequestSink_ReuseDelete_Type(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
     );
 
 typedef
@@ -92,7 +106,25 @@ RequestSink_SendEx_Type(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
+    );
+
+typedef
+_Must_inspect_result_
+NTSTATUS
+RequestSink_ReuseSend_Type(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 typedef
@@ -181,7 +213,7 @@ typedef struct _DMF_CONTEXT_DeviceInterfaceTarget
     // In order to not check for NULL Handles, this flag is used when a choice must be made.
     // This flag is also used for assertions in case people misuse APIs.
     //
-    BOOLEAN ContinuousReaderMode;
+    BOOLEAN OpenedInStreamMode;
 
     // Indicates the mode of ContinuousRequestTarget.
     //
@@ -197,7 +229,10 @@ typedef struct _DMF_CONTEXT_DeviceInterfaceTarget
     RequestSink_SendSynchronously_Type* RequestSink_SendSynchronously;
     RequestSink_Send_Type* RequestSink_Send;
     RequestSink_SendEx_Type* RequestSink_SendEx;
+    RequestSink_ReuseSend_Type* RequestSink_ReuseSend;
     RequestSink_Cancel_Type* RequestSink_Cancel;
+    RequestSink_ReuseCreate_Type* RequestSink_ReuseCreate;
+    RequestSink_ReuseDelete_Type* RequestSink_ReuseDelete;
     RequestSink_IoTargetSet_Type* RequestSink_IoTargetSet;
     RequestSink_IoTargetClear_Type* RequestSink_IoTargetClear;
     ContinuousRequestTarget_CompletionOptions DefaultCompletionOption;
@@ -541,7 +576,7 @@ Return Value:
 BOOLEAN
 DeviceInterfaceTarget_Stream_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
     )
 {
     BOOLEAN returnValue;
@@ -549,9 +584,45 @@ DeviceInterfaceTarget_Stream_Cancel(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     returnValue = DMF_ContinuousRequestTarget_Cancel(moduleContext->DmfModuleContinuousRequestTarget,
-                                                     DmfRequestId);
+                                                     DmfRequestIdCancel);
+
+    return returnValue;
+}
+
+NTSTATUS
+DeviceInterfaceTarget_Stream_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    )
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->OpenedInStreamMode);
+    ntStatus = DMF_ContinuousRequestTarget_ReuseCreate(moduleContext->DmfModuleContinuousRequestTarget,
+                                                       DmfRequestIdReuse);
+
+    return ntStatus;
+}
+
+BOOLEAN
+DeviceInterfaceTarget_Stream_ReuseDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
+    )
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->OpenedInStreamMode);
+    returnValue = DMF_ContinuousRequestTarget_ReuseDelete(moduleContext->DmfModuleContinuousRequestTarget,
+                                                          DmfRequestIdReuse);
 
     return returnValue;
 }
@@ -574,7 +645,7 @@ DeviceInterfaceTarget_Stream_SendSynchronously(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     return DMF_ContinuousRequestTarget_SendSynchronously(moduleContext->DmfModuleContinuousRequestTarget,
                                                          RequestBuffer,
                                                          RequestLength,
@@ -602,7 +673,7 @@ DeviceInterfaceTarget_Stream_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 _Must_inspect_result_
@@ -646,7 +717,7 @@ DeviceInterfaceTarget_Stream_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     )
 {
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
@@ -655,7 +726,7 @@ DeviceInterfaceTarget_Stream_SendEx(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
 
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&completionCallbackContext,
@@ -678,7 +749,66 @@ DeviceInterfaceTarget_Stream_SendEx(
                                                   RequestTimeoutMilliseconds,
                                                   DeviceInterfaceTarget_SendCompletion,
                                                   completionCallbackContext,
-                                                  DmfRequestId);
+                                                  DmfRequestIdCancel);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           completionCallbackContext);
+    }
+
+Exit:
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+NTSTATUS
+DeviceInterfaceTarget_Stream_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
+    )
+{
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    DeviceInterfaceTarget_SingleAsynchronousRequestContext* completionCallbackContext;
+    NTSTATUS ntStatus;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->OpenedInStreamMode);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&completionCallbackContext,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    completionCallbackContext->SendCompletionCallback = EvtRequestSinkSingleAsynchronousRequest;
+    completionCallbackContext->SendCompletionCallbackContext = SingleAsynchronousRequestClientContext;
+
+    ntStatus = DMF_ContinuousRequestTarget_ReuseSend(moduleContext->DmfModuleContinuousRequestTarget,
+                                                     DmfRequestIdReuse,
+                                                     RequestBuffer,
+                                                     RequestLength,
+                                                     ResponseBuffer,
+                                                     ResponseLength,
+                                                     RequestType,
+                                                     RequestIoctl,
+                                                     RequestTimeoutMilliseconds,
+                                                     DeviceInterfaceTarget_SendCompletion,
+                                                     completionCallbackContext,
+                                                     DmfRequestIdCancel);
     if (!NT_SUCCESS(ntStatus))
     {
         DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
@@ -700,7 +830,7 @@ DeviceInterfaceTarget_Stream_IoTargetSet(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_IoTargetSet(moduleContext->DmfModuleContinuousRequestTarget,
                                             IoTarget);
 }
@@ -714,7 +844,7 @@ DeviceInterfaceTarget_Stream_IoTargetClear(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_IoTargetClear(moduleContext->DmfModuleContinuousRequestTarget);
 }
 
@@ -725,7 +855,7 @@ DeviceInterfaceTarget_Stream_IoTargetClear(
 BOOLEAN
 DeviceInterfaceTarget_Target_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
     )
 {
     BOOLEAN returnValue;
@@ -733,10 +863,48 @@ DeviceInterfaceTarget_Target_Cancel(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
 
     returnValue = DMF_RequestTarget_Cancel(moduleContext->DmfModuleRequestTarget,
-                                           DmfRequestId);
+                                           DmfRequestIdCancel);
+
+    return returnValue;
+}
+
+NTSTATUS
+DeviceInterfaceTarget_Target_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    )
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->OpenedInStreamMode);
+
+    ntStatus = DMF_RequestTarget_ReuseCreate(moduleContext->DmfModuleContinuousRequestTarget,
+                                             DmfRequestIdReuse);
+
+    return ntStatus;
+}
+
+BOOLEAN
+DeviceInterfaceTarget_Target_ReuseDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
+    )
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->OpenedInStreamMode);
+
+    returnValue = DMF_RequestTarget_ReuseDelete(moduleContext->DmfModuleRequestTarget,
+                                                DmfRequestIdReuse);
 
     return returnValue;
 }
@@ -760,7 +928,7 @@ DeviceInterfaceTarget_Target_SendSynchronously(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     ntStatus = DMF_RequestTarget_SendSynchronously(moduleContext->DmfModuleRequestTarget,
                                                    RequestBuffer,
                                                    RequestLength,
@@ -790,7 +958,7 @@ DeviceInterfaceTarget_Target_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 _Must_inspect_result_
@@ -812,7 +980,7 @@ DeviceInterfaceTarget_Target_Send(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
 
     return DeviceInterfaceTarget_Target_SendEx(DmfModule,
                                                RequestBuffer,
@@ -840,7 +1008,7 @@ DeviceInterfaceTarget_Target_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     )
 {
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
@@ -849,7 +1017,7 @@ DeviceInterfaceTarget_Target_SendEx(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
 
     ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
                                   (VOID**)&completionCallbackContext,
@@ -872,7 +1040,66 @@ DeviceInterfaceTarget_Target_SendEx(
                                         RequestTimeoutMilliseconds,
                                         DeviceInterfaceTarget_SendCompletion,
                                         completionCallbackContext,
-                                        DmfRequestId);
+                                        DmfRequestIdCancel);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
+                           completionCallbackContext);
+    }
+
+Exit:
+
+    return ntStatus;
+}
+
+_Must_inspect_result_
+NTSTATUS
+DeviceInterfaceTarget_Target_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestSinkSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
+    )
+{
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    DeviceInterfaceTarget_SingleAsynchronousRequestContext* completionCallbackContext;
+    NTSTATUS ntStatus;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(! moduleContext->OpenedInStreamMode);
+
+    ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPool,
+                                  (VOID**)&completionCallbackContext,
+                                  NULL);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    completionCallbackContext->SendCompletionCallback = EvtRequestSinkSingleAsynchronousRequest;
+    completionCallbackContext->SendCompletionCallbackContext = SingleAsynchronousRequestClientContext;
+
+    ntStatus = DMF_RequestTarget_ReuseSend(moduleContext->DmfModuleRequestTarget,
+                                           DmfRequestIdReuse,
+                                           RequestBuffer,
+                                           RequestLength,
+                                           ResponseBuffer,
+                                           ResponseLength,
+                                           RequestType,
+                                           RequestIoctl,
+                                           RequestTimeoutMilliseconds,
+                                           DeviceInterfaceTarget_SendCompletion,
+                                           completionCallbackContext,
+                                           DmfRequestIdCancel);
     if (!NT_SUCCESS(ntStatus))
     {
         DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
@@ -894,7 +1121,7 @@ DeviceInterfaceTarget_Target_IoTargetSet(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     DMF_RequestTarget_IoTargetSet(moduleContext->DmfModuleRequestTarget,
                                   IoTarget);
 }
@@ -908,7 +1135,7 @@ DeviceInterfaceTarget_Target_IoTargetClear(
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(! moduleContext->ContinuousReaderMode);
+    DmfAssert(! moduleContext->OpenedInStreamMode);
     DMF_RequestTarget_IoTargetClear(moduleContext->DmfModuleRequestTarget);
 }
 
@@ -2588,9 +2815,12 @@ Return Value:
         moduleContext->RequestSink_IoTargetSet = DeviceInterfaceTarget_Stream_IoTargetSet;
         moduleContext->RequestSink_Send = DeviceInterfaceTarget_Stream_Send;
         moduleContext->RequestSink_SendEx = DeviceInterfaceTarget_Stream_SendEx;
+        moduleContext->RequestSink_ReuseSend = DeviceInterfaceTarget_Stream_ReuseSend;
         moduleContext->RequestSink_Cancel = DeviceInterfaceTarget_Stream_Cancel;
+        moduleContext->RequestSink_ReuseCreate = DeviceInterfaceTarget_Stream_ReuseCreate;
+        moduleContext->RequestSink_ReuseDelete = DeviceInterfaceTarget_Stream_ReuseDelete;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Stream_SendSynchronously;
-        moduleContext->ContinuousReaderMode = TRUE;
+        moduleContext->OpenedInStreamMode = TRUE;
         // Remember Client's choice so this Module can start/stop streaming appropriately.
         //
         moduleContext->ContinuousRequestTargetMode = moduleConfig->ContinuousRequestTargetModuleConfig.ContinuousRequestTargetMode;
@@ -2618,9 +2848,12 @@ Return Value:
         moduleContext->RequestSink_IoTargetSet = DeviceInterfaceTarget_Target_IoTargetSet;
         moduleContext->RequestSink_Send = DeviceInterfaceTarget_Target_Send;
         moduleContext->RequestSink_SendEx = DeviceInterfaceTarget_Target_SendEx;
+        moduleContext->RequestSink_ReuseSend = DeviceInterfaceTarget_Target_ReuseSend;
         moduleContext->RequestSink_Cancel = DeviceInterfaceTarget_Target_Cancel;
+        moduleContext->RequestSink_ReuseCreate = DeviceInterfaceTarget_Target_ReuseCreate;
+        moduleContext->RequestSink_ReuseDelete = DeviceInterfaceTarget_Target_ReuseDelete;
         moduleContext->RequestSink_SendSynchronously = DeviceInterfaceTarget_Target_SendSynchronously;
-        moduleContext->ContinuousReaderMode = FALSE;
+        moduleContext->OpenedInStreamMode = FALSE;
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -2764,7 +2997,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_BufferPut(moduleContext->DmfModuleContinuousRequestTarget,
                                           ClientBuffer);
 
@@ -2782,18 +3015,18 @@ _Must_inspect_result_
 BOOLEAN
 DMF_DeviceInterfaceTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DemfRequestIdCancel
     )
 /*++
 
 Routine Description:
 
-    Cancels a given WDFREQUEST associated with DmfRequestId.
+    Cancels a given WDFREQUEST associated with DemfRequestIdCancel.
 
 Arguments:
 
     DmfModule - This Module's handle.
-    DmfRequestId - The given DmfRequestId.
+    DemfRequestIdCancel - The given DemfRequestIdCancel.
 
 Return Value:
 
@@ -2821,7 +3054,7 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     returnValue = moduleContext->RequestSink_Cancel(DmfModule,
-                                                    DmfRequestId);
+                                                    DemfRequestIdCancel);
 
     DMF_ModuleDereference(DmfModule);
 
@@ -2933,6 +3166,111 @@ Return Value:
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS
+DMF_DeviceInterfaceTarget_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    )
+{
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    ntStatus = moduleContext->RequestSink_ReuseCreate(DmfModule,
+                                                      DmfRequestIdReuse);
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+BOOLEAN
+DMF_DeviceInterfaceTarget_ReuseDelete(
+    _In_ DMFMODULE DmfModule, 
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
+    )
+{
+    BOOLEAN returnValue;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    returnValue = moduleContext->RequestSink_ReuseDelete(DmfModule,
+                                                         DmfRequestIdReuse);
+
+    return returnValue;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceTarget_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
+    )
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    DmfAssert(moduleContext->IoTarget != NULL);
+    ntStatus = moduleContext->RequestSink_ReuseSend(DmfModule,
+                                                    DmfRequestIdReuse,
+                                                    RequestBuffer,
+                                                    RequestLength,
+                                                    ResponseBuffer,
+                                                    ResponseLength,
+                                                    RequestType,
+                                                    RequestIoctl,
+                                                    RequestTimeoutMilliseconds,
+                                                    EvtContinuousRequestTargetSingleAsynchronousRequest,
+                                                    SingleAsynchronousRequestClientContext,
+                                                    DmfRequestIdCancel);
+
+    DMF_ModuleDereference(DmfModule);
+     
+Exit:
+
+    return ntStatus;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
 DMF_DeviceInterfaceTarget_Send(
     _In_ DMFMODULE DmfModule,
     _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
@@ -3026,7 +3364,7 @@ DMF_DeviceInterfaceTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DemfRequestIdCancel
     )
 /*++
 
@@ -3047,7 +3385,7 @@ Arguments:
     RequestTimeoutMilliseconds - Timeout value in milliseconds of the transfer or zero for no timeout.
     EvtContinuousRequestTargetSingleAsynchronousRequest - Callback to be called in completion routine.
     SingleAsynchronousRequestClientContext - Client context sent in callback.
-    DmfRequestId - Unique id associated with the underlying WDFREQUEST.
+    DemfRequestIdCancel - Unique id associated with the underlying WDFREQUEST.
 
 Return Value:
 
@@ -3087,7 +3425,7 @@ Return Value:
                                                  RequestTimeoutMilliseconds,
                                                  EvtContinuousRequestTargetSingleAsynchronousRequest,
                                                  SingleAsynchronousRequestClientContext,
-                                                 DmfRequestId);
+                                                 DemfRequestIdCancel);
 
     DMF_ModuleDereference(DmfModule);
 
@@ -3220,7 +3558,7 @@ Return Value:
 
     DmfAssert(moduleContext->IoTarget != NULL);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     ntStatus = DMF_ContinuousRequestTarget_Start(moduleContext->DmfModuleContinuousRequestTarget);
 
     DMF_ModuleDereference(DmfModule);
@@ -3272,7 +3610,7 @@ Return Value:
 
     DmfAssert(moduleContext->IoTarget != NULL);
 
-    DmfAssert(moduleContext->ContinuousReaderMode);
+    DmfAssert(moduleContext->OpenedInStreamMode);
     DMF_ContinuousRequestTarget_StopAndWait(moduleContext->DmfModuleContinuousRequestTarget);
 
     DMF_ModuleDereference(DmfModule);

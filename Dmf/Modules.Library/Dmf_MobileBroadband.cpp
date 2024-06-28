@@ -213,7 +213,6 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
 IAsyncAction
 MobileBroadbandModemDevice::ModemAndSarResourceGetAsync()
 /*++
@@ -292,7 +291,6 @@ Return Value:
     co_return;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
 IAsyncAction
 MobileBroadbandModemDevice::TimeoutHelperAsync(
     _In_ int milliseconds
@@ -323,7 +321,6 @@ Return Value:
     co_return;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
 IAsyncOperation<bool>
 MobileBroadbandModemDevice::TimeoutHelperOperationAsync(
     _In_ int milliseconds
@@ -646,7 +643,6 @@ Exit:
     return ntStatus;
 }
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
 IAsyncOperation<bool>
 MobileBroadbandModemDevice::MobileBroadband_IsNetworkConnectedAsync()
 /*++

@@ -718,6 +718,8 @@ Exit:
     return ntStatus;
 }
 
+#if !defined(DISABLE_INTERFACE_THREAD)
+
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -787,6 +789,8 @@ Exit:
     ;
 }
 #pragma code_seg()
+
+#endif // !defined(DISABLE_INTERFACE_THREAD)
 
 VOID
 Tests_IoctlHandler_InterfaceReference(
@@ -1093,6 +1097,7 @@ Return Value:
     // TODO: Add second instance for Internal IOCTL.
     //
 
+#if !defined(DISABLE_INTERFACE_THREAD)
     // Thread
     // ------
     //
@@ -1105,6 +1110,7 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleThread);
+#endif // !defined(DISABLE_INTERFACE_THREAD)
 
     // AlertableSleep Manual (Output)
     // ---------------------
