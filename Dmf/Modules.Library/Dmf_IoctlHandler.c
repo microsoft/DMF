@@ -206,65 +206,6 @@ Exit:
 }
 #pragma code_seg()
 
-#if 0
-BOOLEAN
-IoctlHandler_AssociatedFileObjectsLookUp(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDFFILEOBJECT LookFor,
-    _In_ BOOLEAN DeleteIfFound
-    )
-/*++
-
-Routine Description:
-
-    Search the list of associated file objects for a given WDFFILEOBJECT.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    LookFor - The given WDFFILEOBJECT.
-    DeleteIfFound - If TRUE, the given WDFFILEOBJECT is removed from list.
-
-Return Value:
-
-    TRUE if found. FALSE if not found in list.
-
---*/
-{
-    BOOLEAN returnValue;
-    ULONG numberOfItemsInCollection;
-    ULONG itemIndex;
-    DMF_CONTEXT_IoctlHandler* moduleContext;
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    returnValue = FALSE;
-
-    DMF_ModuleLock(DmfModule);
-    
-    numberOfItemsInCollection = WdfCollectionGetCount(moduleContext->AssociatedFileObjects);
-    for (itemIndex = 0; itemIndex < numberOfItemsInCollection; itemIndex++)
-    {
-        WDFOBJECT currentObject = WdfCollectionGetItem(moduleContext->AssociatedFileObjects,
-                                                       itemIndex);
-        if (currentObject == LookFor)                                                       
-        {
-            returnValue = TRUE;
-            if (DeleteIfFound)
-            {
-                WdfCollectionRemoveItem(moduleContext->AssociatedFileObjects,
-                                        itemIndex);
-            }
-            break;
-        }
-    }
-
-    DMF_ModuleUnlock(DmfModule);
-
-    return returnValue;
-}
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,30 +279,6 @@ Return Value:
     // If the table is empty, this Module must set up request forwarding.
     //
     DmfAssert((moduleConfig->IoctlRecordCount > 0) || (moduleConfig->ForwardUnhandledRequests));
-
-#if 0
-    // If this Module instance has been created using a reference string, route the WDFREQUEST to 
-    // its corresponding instance based on reference string.
-    // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
-    // WDFDEVICE.
-    //
-    if (moduleContext->ReferenceStringUnicodePointer != NULL)
-    {
-        WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
-        BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
-                                                                 fileObjectOfRequest,
-                                                                 FALSE);
-        if (! found)                                                                 
-        {
-            // This instance only accepts WDFREQUEST where WDFFILEOBJECT is 
-            // equal to AssociatedFileObject. Another instance of this Module should
-            // handle this request.
-            //
-            handled = FALSE;
-            goto Exit;
-        }
-    }
-#endif
 
     for (ULONG tableIndex = 0; tableIndex < moduleConfig->IoctlRecordCount; tableIndex++)
     {
@@ -604,74 +521,6 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-#if 0
-    // If this Module instance has been created using a reference string, route the WDFREQUEST to 
-    // its corresponding instance based on reference string.
-    // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
-    // WDFDEVICE.
-    //
-    if (moduleContext->ReferenceStringUnicodePointer != NULL)
-    {
-        WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
-        UNICODE_STRING* fileName = WdfFileObjectGetFileName(fileObjectOfRequest);
-        if (fileName->Length > sizeof(L'\\'))
-        {
-            // Skip preceding '\'.
-            //
-            WCHAR* stringFileObject = &fileName->Buffer[1];
-            size_t stringLengthFileObject = fileName->Length - sizeof(L'\\');
-            WCHAR* stringModule = moduleContext->ReferenceStringUnicode.Buffer;
-            size_t stringLengthModule = moduleContext->ReferenceStringUnicode.Length;
-            LONG comparisonLength = RtlCompareUnicodeStrings(stringFileObject,
-                                                             stringLengthFileObject,
-                                                             stringModule,
-                                                             stringLengthModule,
-                                                             FALSE);
-            if (comparisonLength == 0)
-            {
-                // It means this instance will only accept WDREQUEST where its WDFFILEOBJECT
-                // is equal to fileObjectRequest.
-                //
-                DMF_ModuleLock(DmfModule);
-                ntStatus = WdfCollectionAdd(moduleContext->AssociatedFileObjects,
-                                            fileObjectOfRequest);
-                DMF_ModuleUnlock(DmfModule);
-                if (!NT_SUCCESS(ntStatus))
-                {
-                    DmfAssert(!handled);
-                    TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
-                    goto RequestCompleteOnError;
-                }
-            }
-            else
-            {
-                // Another instance of this Module will handle this request because the file object's reference
-                // string does not match the reference string of this Module's instance.
-                //
-                DmfAssert(!handled);
-                goto Exit;
-            }
-        }
-        else 
-        {
-            // To maintain backward compatibility, if the incoming WDFFILEOBJECT has no
-            // filename (no reference string specified), then this file object is processed 
-            // by the first instance of the Module.
-            //
-            DMF_ModuleLock(DmfModule);
-            ntStatus = WdfCollectionAdd(moduleContext->AssociatedFileObjects,
-                                        fileObjectOfRequest);
-            DMF_ModuleUnlock(DmfModule);
-            if (!NT_SUCCESS(ntStatus))
-            {
-                DmfAssert(!handled);
-                TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfCollectionAdd fails: ntStatus=%!STATUS!", ntStatus);
-                goto RequestCompleteOnError;
-            }
-        }
-    }
-#endif
-
     if (IoctlHandler_AccessModeDefault == moduleConfig->AccessModeFilter ||
         IoctlHandler_AccessModeFilterKernelModeOnly == moduleConfig->AccessModeFilter)
     {
@@ -859,25 +708,6 @@ Return Value:
     // Allow Client driver and other Modules to process this callback.
     //
     handled = FALSE;
-
-#if 0
-    if (moduleContext->ReferenceStringUnicodePointer != NULL)
-    {
-        // This file handle is being closed so it must be removed from the list
-        // of associated file objects. If it is not found, then another instance
-        // of this Module should handle it.
-        //
-        BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
-                                                                 FileObject,
-                                                                 TRUE);
-        if (!found)                                                                 
-        {
-            // Another instances of this Module should handle this request.
-            //
-            goto Exit;
-        }
-    }
-#endif
 
     // (Optimize to add to list only in mode where the list is used.)
     //
