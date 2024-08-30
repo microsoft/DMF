@@ -206,6 +206,7 @@ Exit:
 }
 #pragma code_seg()
 
+#if 0
 BOOLEAN
 IoctlHandler_AssociatedFileObjectsLookUp(
     _In_ DMFMODULE DmfModule,
@@ -262,6 +263,7 @@ Return Value:
 
     return returnValue;
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
@@ -337,7 +339,7 @@ Return Value:
     //
     DmfAssert((moduleConfig->IoctlRecordCount > 0) || (moduleConfig->ForwardUnhandledRequests));
 
-
+#if 0
     // If this Module instance has been created using a reference string, route the WDFREQUEST to 
     // its corresponding instance based on reference string.
     // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
@@ -359,6 +361,7 @@ Return Value:
             goto Exit;
         }
     }
+#endif
 
     for (ULONG tableIndex = 0; tableIndex < moduleConfig->IoctlRecordCount; tableIndex++)
     {
@@ -601,6 +604,7 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
+#if 0
     // If this Module instance has been created using a reference string, route the WDFREQUEST to 
     // its corresponding instance based on reference string.
     // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
@@ -666,6 +670,7 @@ Return Value:
             }
         }
     }
+#endif
 
     if (IoctlHandler_AccessModeDefault == moduleConfig->AccessModeFilter ||
         IoctlHandler_AccessModeFilterKernelModeOnly == moduleConfig->AccessModeFilter)
@@ -855,6 +860,7 @@ Return Value:
     //
     handled = FALSE;
 
+#if 0
     if (moduleContext->ReferenceStringUnicodePointer != NULL)
     {
         // This file handle is being closed so it must be removed from the list
@@ -871,6 +877,7 @@ Return Value:
             goto Exit;
         }
     }
+#endif
 
     // (Optimize to add to list only in mode where the list is used.)
     //
