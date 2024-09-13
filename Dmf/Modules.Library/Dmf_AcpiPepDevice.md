@@ -1,5 +1,6 @@
 ## DMF_AcpiPepDevice
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Summary
 -----------------------------------------------------------------------------------------------------------------------------------
 This Module registers root and child device tables with PEP framework. The tables register ACPI devices with PEP which include
@@ -27,8 +28,8 @@ ChildDeviceConfigurationArray | Client can pass an array of child PEP devices th
 ChildDeviceArraySize | Number of child configuration structures placed in ChildDeviceConfigurationArray.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Enumeration Types
------------------------------------------------------------------------------------------------------------------------------------
 ##### AcpiPepDevice_DEVICE_TYPE
 ````
 typedef enum _AcpiPepDevice_DEVICE_TYPE
@@ -40,7 +41,6 @@ typedef enum _AcpiPepDevice_DEVICE_TYPE
 ````
 Used by the AcpiPepDevice_CHILD_CONFIGURATIONS structure to specify the type of child Module configuration passed.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_NOTIFICATION_HANDLER_RESULT
 ````
 typedef enum _PEP_NOTIFICATION_HANDLER_RESULT
@@ -52,7 +52,6 @@ typedef enum _PEP_NOTIFICATION_HANDLER_RESULT
 ````
 Used by AcpiPepDevice and its children to indicate to PEP the how the callback processed the request.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_DEVICE_ID_MATCH
 ````
  typedef enum _PEP_DEVICE_ID_MATCH
@@ -67,7 +66,6 @@ Used by AcpiPepDevice and its children to indicate to PEP the how the callback p
 ````
 Indicates to the framework if the ACPI device ID matched fully or partially with the device ID in PEP tables.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_NOTIFICATION_CLASS
 ````
 typedef enum _PEP_NOTIFICATION_CLASS
@@ -81,7 +79,6 @@ typedef enum _PEP_NOTIFICATION_CLASS
 ````
 This enumerator helps with registration, currently we only support ACPI class but Platform Extensions can also support DPM and PPM.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_MAJOR_DEVICE_TYPE
 ````
 typedef enum _PEP_MAJOR_DEVICE_TYPE
@@ -93,7 +90,6 @@ typedef enum _PEP_MAJOR_DEVICE_TYPE
 ````
 This enumerator is required by the framework to identify PEP Device Major type.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_ACPI_MINOR_DEVICE_TYPE
 ````
 typedef enum _PEP_ACPI_MINOR_DEVICE_TYPE
@@ -107,8 +103,8 @@ typedef enum _PEP_ACPI_MINOR_DEVICE_TYPE
 This enumerator is required by the framework to identify PEP Device Minor type.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Structures
------------------------------------------------------------------------------------------------------------------------------------
 ##### AcpiPepDevice_CHILD_CONFIGURATIONS
 ````
 typedef struct _AcpiPepDevice_CHILD_CONFIGURATIONS
@@ -119,7 +115,6 @@ typedef struct _AcpiPepDevice_CHILD_CONFIGURATIONS
 ````
 Structure used to pass PEP child devices to this Module.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_ACPI_REGISTRATION_TABLES
 ````
 typedef struct _PEP_ACPI_REGISTRATION_TABLES
@@ -130,7 +125,6 @@ typedef struct _PEP_ACPI_REGISTRATION_TABLES
 ````
 These tables are initialized by all child PEP devices and contain all the information needed to register them with PEP.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_ACPI_NOTIFY_CONTEXT
 ````
 typedef struct _PEP_ACPI_NOTIFY_CONTEXT
@@ -141,7 +135,6 @@ typedef struct _PEP_ACPI_NOTIFY_CONTEXT
 ````
 This structure is used by AcpiNotify helper Method to indicate the device and notification code.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_ACPI_DEVICE
 ````
 typedef struct _PEP_ACPI_DEVICE
@@ -151,7 +144,6 @@ typedef struct _PEP_ACPI_DEVICE
 ````
 PEP_ACPI_DEVICE structure encapsulates the internal header which identifies a PEP device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_INTERNAL_DEVICE_HEADER
 ````
 typedef struct _PEP_INTERNAL_DEVICE_HEADER
@@ -167,7 +159,6 @@ typedef struct _PEP_INTERNAL_DEVICE_HEADER
 ````
 This header is the sole mode of identification for a PEP device for both AcpiPepDevice and the Platform Extensions.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_DEVICE_DEFINITION
 ````
 typedef struct _PEP_DEVICE_DEFINITION
@@ -186,7 +177,6 @@ typedef struct _PEP_DEVICE_DEFINITION
 ````
 Child PEP devices need to fill out this table with routines such as ACPI Method handlers and ACPI Objects.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_DEVICE_NOTIFICATION_HANDLER
 ````
 typedef struct _PEP_DEVICE_NOTIFICATION_HANDLER
@@ -198,7 +188,6 @@ typedef struct _PEP_DEVICE_NOTIFICATION_HANDLER
 ````
 This structure is what the Data void pointer can be cast to when a Method callback is called into by the framework.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_GENERAL_NOTIFICATION_HANDLER
 ````
 typedef struct _PEP_GENERAL_NOTIFICATION_HANDLER
@@ -210,7 +199,6 @@ typedef struct _PEP_GENERAL_NOTIFICATION_HANDLER
 ````
 This handler is used during the device initialization.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_OBJECT_INFORMATION
 ````
 typedef struct _PEP_OBJECT_INFORMATION
@@ -223,8 +211,8 @@ typedef struct _PEP_OBJECT_INFORMATION
 ````
 Part of the ACPI registration tables used by all children, this structure is used to indicate an ACPI method and its details.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PEP_DEVICE_MATCH
+
 ````
  typedef struct _PEP_DEVICE_MATCH
  {
@@ -237,10 +225,13 @@ Part of the ACPI registration tables used by all children, this structure is use
 Part of the ACPI registration tables used by all children, this structure is used to indicate ACPI device name among other details.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Callbacks
+
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Methods
------------------------------------------------------------------------------------------------------------------------------------
+
 ##### DMF_AcpiPepDevice_AsyncNotifyEvent
 ````
 PEP_NOTIFICATION_HANDLER_RESULT
@@ -262,8 +253,8 @@ Parameter | Description
 Data | Supplies a pointer to parameters buffer for this notification.
 PoFxWorkInformation | Supplies a pointer to the PEP_WORK structure used to report result to PoFx.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_AcpiPepDevice_ChildHandlesReturn
+
 ````
 _Must_inspect_result_
 DMFMODULE*
@@ -283,8 +274,8 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_AcpiPepDevice Module handle.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_AcpiPepDevice_PepAcpiDataReturn
+
 ````
 VOID
 DMF_AcpiPepDevice_PepAcpiDataReturn(
@@ -321,8 +312,6 @@ MethodName | Supplies an optional string that names the native method used for l
 DebugInfo | Supplies an optional string that contains the debugging information to be included in the log.
 CompleteResult | Supplies a pointer to receive the complete result.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_AcpiPepDevice_ReportNotSupported
 ````
 VOID
@@ -346,7 +335,6 @@ Status | Supplies a pointer to receive the evaluation status.
 Count | Supplies a pointer to receive the output argument count/size.
 CompleteResult | Supplies a pointer to receive the complete result.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_AcpiPepDevice_ScheduleNotifyRequest
 ````
 _Must_inspect_result_
@@ -368,34 +356,36 @@ DmfModule | An open DMF_AcpiPepDevice Module handle.
 NotifyContext | Contains target device and notify code.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module IOCTLs
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Remarks
+
 * Even though this Module can have at most one instance per driver, it can support any number of ACPI devices. Once the user passes
 an array of child Module configs, the Module instantiates all children and establishes communication to retrieve all tables and
 automatically registers them with PEP. Client can call a Method to receive all DMF Handles for children in the respective order
 of their configuration array.
 * Please see Windows-driver-samples\pofx\PEP\pepsamples for usage examples.
 * This Module needs to be instantiated using a WDF Control Device.
------------------------------------------------------------------------------------------------------------------------------------
-#### Module Children
-* AcpiPepDeviceFan
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Implementation Details
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Examples
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Category
+
 Driver Patterns
 
 -----------------------------------------------------------------------------------------------------------------------------------

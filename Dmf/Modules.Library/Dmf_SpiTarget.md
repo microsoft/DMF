@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to an underlying SPI device connected on SPB bus.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_SpiTarget
 ````
 typedef struct
@@ -35,7 +32,6 @@ LatencyCalculationCallback | Callback that allows the Client to measure performa
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### SpiTarget_LatencyCalculation_Message
 ````
 typedef enum
@@ -54,13 +50,10 @@ SpiTarget_LatencyCalculation_Message_End | End timing calculation.
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_SpiTarget_LatencyCalculation
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -94,8 +87,6 @@ BufferSize | The size in bytes of Buffer.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SpiTarget_IsResourceAssigned
 
 ````
@@ -122,8 +113,6 @@ SpiConnectionAssigned | TRUE if the requested resource was found and assigned.
 ##### Remarks
 
 * Use this Method to allow a single driver that supports different resources to run on multiple platforms.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpiTarget_Write
 
@@ -154,8 +143,6 @@ BufferLength | The size in bytes of Buffer.
 TimeoutMilliseconds | Indicates that the Write transaction should fail after TimeoutMs milliseconds. Set to zero to indicate there is no timeout.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpiTarget_WriteRead
 
@@ -195,19 +182,11 @@ TimeoutMilliseconds | Indicates that the Read transaction should fail after Time
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * The code that writes to SPI bus is not necessarily standard. It is written for a specific controller.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -222,9 +201,8 @@ TimeoutMilliseconds | Indicates that the Read transaction should fail after Time
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module implements the functionality of an USB Device Emulation Extension (UDECX) client driver. 
 
 The Module allows the client manage creating/destroying a virtual USB Device and plugIn/plugOut it on virtual USB Host Controller's root port.
@@ -18,7 +16,6 @@ the device needed to plugged in, in the Module's configuration.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_UdeClient
 ````
 typedef struct _UdeClient_CONFIG_Endpoint
@@ -141,8 +138,6 @@ EvtUsbDevicePostCreate | Optional callback that allows clients perform post proc
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### UDE_CLIENT_PLUGIN_PORT_TYPE
 ````
 typedef enum
@@ -160,7 +155,6 @@ UDE_CLIENT_PORT_USB3_0 | USB 3.0 Port.
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Controller_QueryUsbCapability
 ````
 typedef
@@ -189,7 +183,6 @@ OutputBufferLength | The length, in bytes, of the request's output buffer, if an
 OutputBuffer | An optional pointer to a location that receives the buffer's address.
 ResultLength | A location that, on return, contains the size, in bytes, of the information that the callback function stored in OutputBuffer.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Controller_Reset
 ````
 typedef
@@ -212,7 +205,6 @@ Parameter | Description
 DmfModule | An open DMF_UdeClient Module handle.
 UdecxWdfDevice | A handle to a framework device object that represents the controller.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_UsbDevice_PreCreate
 ````
 typedef
@@ -234,7 +226,6 @@ Parameter | Description
 DmfModule | An open DMF_UdeClient Module handle.
 UsbDeviceInit | A pointer to an opaque structure that the client can pass into UdecxUsbDeviceInitSetStateChangeCallbacks.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_UsbDevice_PostCreate
 ````
 typedef
@@ -256,7 +247,6 @@ Parameter | Description
 DmfModule | An open DMF_UdeClient Module handle.
 UsbDevice | A handle to a framework device object that represents the Virtual USB Device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_DeviceIoControl
 ````
 VOID
@@ -284,7 +274,6 @@ OutputBufferLength | Length of the request's output buffer, if an output buffer 
 InputBufferLength | Length of the request's input buffer, if an input buffer is available.
 IoControlCode | The driver-defined or system-defined I/O control code (IOCTL) that is associated with the request.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_Reset
 ````
 typedef
@@ -307,7 +296,6 @@ DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
 Request | A handle to a framework Request object that represent the request to reset the endpoint. 
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_Start
 ````
 typedef
@@ -328,7 +316,6 @@ Parameter | Description
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_Purge
 ````
 typedef
@@ -350,7 +337,6 @@ Parameter | Description
 DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | A handle to a framework device object that represents an Endpoint on a Virtual USB Device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_UdeClient_Endpoint_Ready
 ````
 typedef
@@ -377,9 +363,8 @@ Endpoint | The given endpoint.
 Context | Context set in by the Client in the Endpoint Config.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Methods
 
 ##### DMF_UdeClient_DeviceCreateAndPlugIn
 
@@ -411,7 +396,6 @@ PortType | Port Type (USB 2.0 or USB 3.0) to be used while PlugIn this Usb Devic
 PortNumber | Port Number to be used while PlugIn this Usb Device.
 UdecxUsbDevice | A handle to a framework device object that represents the newly created Virtual USB Device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceEndpointAddressGet
 
 ````
@@ -437,7 +421,6 @@ DmfModule | An open DMF_UdeClient Module handle.
 Endpoint | The given endpoint.
 Address | Address of the given endpoint.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceEndpointCreate
 
 ````
@@ -468,7 +451,6 @@ EndpointInit | An opaque structure that represent an initialization configuratio
 EndpointConfig | Endpoint configuration.
 Endpoint | A handle to a framework device object that represents the newly created Endpoint.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceEndpointInformationGet
 
 ````
@@ -496,7 +478,6 @@ Endpoint | The given endpoint.
 UdecxUsbDevice | The device on which the endpoint is located.
 Address | The address of the endpoint.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceInformationGet
 
 ````
@@ -524,7 +505,6 @@ UdecxUsbDevice | A handle to a framework device object that represents the Virtu
 PortType | Type of port given UdecxDevice is plugged into.
 PortNumber | Port number the given UdecxDevice is plugged into or zero if not plugged in.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DevicePlugOutAndDelete
 
 ````
@@ -549,7 +529,6 @@ Parameter | Description
 DmfModule | An open DMF_UdeClient Module handle.
 UdecxUsbDevice | A handle to a framework device object that represents the Virtual USB Device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_DeviceSignalFunctionWake
 
 ````
@@ -575,7 +554,6 @@ DmfModule | An open DMF_UdeClient Module handle.
 UdecxUsbDevice | A handle to a framework device object that represents the Virtual USB Device.
 Interface | Specifies the function. This is applicable only for USB 3.0 device.  Pass 0 for USB 2.0 device.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_UdeClient_Static_DeviceInitInitialize
 
 ````
@@ -600,12 +578,6 @@ DeviceInit | An opaque structure for Device Initalization.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-#### Module Children
-
-* Dmf_IoctlHandler
-
------------------------------------------------------------------------------------------------------------------------------------
-
 #### Module Implementation Details
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -616,10 +588,7 @@ DeviceInit | An opaque structure for Device Initalization.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
------------------------------------------------------------------------------------------------------------------------------------
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Driver Pattern
 

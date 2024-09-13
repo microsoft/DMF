@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Gives access to the CM_* API. This API gives access to device and device interface configuration information. Client registers for 
 arrival/removal of instances of a given device interface GUID. The Client can then call Methods to obtain information about or
 configure that instance. This Module also contains other Methods that use CM API.
@@ -14,7 +12,6 @@ configure that instance. This Module also contains other Methods that use CM API
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_CmApi
 ````
 typedef struct
@@ -39,19 +36,13 @@ CmApi_Callback_DeviceInterfaceList: | Client callback that executes when the Dev
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_CmApi_DeviceInstance
 
@@ -81,8 +72,6 @@ DeviceInstance:  | A DEVINST with a device instance of the given device interfac
 
 * This gets called after client calls DMF_CmApi_DeviceIdListGet.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_CmApi_DeviceInterfaceList
 
 ````
@@ -100,7 +89,7 @@ This callback executes any time an instance of the given device interface appear
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -110,10 +99,6 @@ DeviceInterfaceList:  | A string with a list of all the instances of a device in
 DeviceInterfaceGuid: | The given device interface which was previously registered.
 
 ##### Remarks
-
-*
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_CmApi_ParentTargetSymbolicLinkName
 
@@ -153,8 +138,6 @@ ClientContext | Caller's private context.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_CmApi_DeviceIdListGet
 
 ````
@@ -179,10 +162,6 @@ DmfModule | An open DMF_CmApi Module handle.
 
 ##### Remarks
 
-*
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_CmApi_DeviceInstanceIdAndHardwareIdsGet
 
 ````
@@ -203,7 +182,7 @@ with that instance.
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -216,10 +195,6 @@ DeviceHardwareIds | The list of HWID (hardware identifier) associated with Devic
 DeviceHardwareIdsSize | The size in characters of DeviceHardwareIds.
 
 ##### Remarks
-
-*
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_CmApi_DevNodeStatusAndProblemCodeGet
 
@@ -250,8 +225,6 @@ ProblemCode | Returned Problem code for the device node.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_DMF_CmApi_ParentTargetCloseAndDestroy
 
 ````
@@ -278,8 +251,6 @@ ParentWdfIoTarget | The WDFIOTARGET to close and destroy.
 ##### Remarks
 
 * This Method is the counterpart of `DMF_CmApi_ParentTargetCreateAndOpen`.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_CmApi_ParentTargetCreateAndOpen
 
@@ -308,8 +279,6 @@ ParentWdfIoTarget | The returned WDFIOTARGET of the parent ready for use.
 
 * The returned WFIOTARGET must be closed and destroyed before the driver unloads.
 * It is not necessary to populate this Module's Config to use this Method.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_CmApi_ParentTargetDevNodeGet
 
@@ -342,8 +311,6 @@ ParentDeviceInstanceIdBufferSize | The size of ParentDeviceInstanceId in bytes.
 
 * This Method is useful in cases where caller needs to know which specific parent it is attached to.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_CmApi_ParentTargetInterfacesEnumerate
 
 ````
@@ -372,10 +339,6 @@ GuidDevicePropertyInterface | The device interface GUID to find.
 ClientContext | Client context passed to ParentTargetCallback.
 
 ##### Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_CmApi_PropertyUint32Get
 
@@ -407,20 +370,9 @@ Value | The UINT32 value of this property if found.
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
-
-#### Module Children
-
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Implementation Details
-
-* 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -433,9 +385,8 @@ Value | The UINT32 value of this property if found.
 * Write a Method that returns a list that returns a list or count of interface instances.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

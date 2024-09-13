@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to interrupt resources.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_InterruptResource
 ````
 typedef struct
@@ -55,7 +52,6 @@ EvtInterruptResourceInterruptPassive | The callback that is called at PASSIVE_LE
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### InterruptResource_QueuedWorkItem_Type
 ````
 typedef enum
@@ -86,13 +82,10 @@ InterruptResource_QueuedWorkItem_WorkItem | Enqueue a workitem.
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_InterruptResource_InterruptIsr
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -118,7 +111,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 MessageId | The MessageId of the interrupt.
 QueuedWorkItem | Indicates what post processing the Client wants to after this callback executes.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_InterruptResource_InterruptDpc
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -142,7 +134,6 @@ Parameter | Description
 DmfModule | An open DMF_InterruptResource Module handle.
 QueuedWorkItem | Indicates what post processing the Client wants to after this callback executes.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_InterruptResource_InterruptPassive
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -168,8 +159,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_InterruptResource_InterruptAcquireLock
 
 ````
@@ -194,8 +183,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 
 * Use this Method to synchronize execution of the ISR's handler with other code in the driver.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_InterruptResource_InterruptDisable
 
 ````
@@ -219,8 +206,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 ##### Remarks
 
 * WDF automatically disables the interrupt during D0Exit. However, in some cases it might be necessary to disable the interrupt on demand.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_InterruptResource_InterruptEnable
 
@@ -248,8 +233,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 * Some drivers need the interrupt enabled earlier than D0Entry in order to perform operations such as download firmware. Use this Method in such cases.
 * It is not necessary to explicitly disable the interrupt if this Method is called because WDF does so automatically.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_InterruptResource_InterruptReleaseLock
 
 ````
@@ -273,8 +256,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 ##### Remarks
 
 * Use this Method to synchronize execution of the ISR's handler with other code in the driver.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_InterruptResource_InterruptTryToAcquireLock
 
@@ -300,8 +281,6 @@ DmfModule | An open DMF_InterruptResource Module handle.
 ##### Remarks
 
 * Use this Method to synchronize execution of the ISR's handler with other code in the driver.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_InterruptResource_IsResourceAssigned
 
@@ -335,19 +314,11 @@ InterruptAssigned | TRUE if the resource is available and assigned.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * Modules that want to provide interrupt resources for their Clients use this Module to allow for most common possible configurations.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -362,9 +333,8 @@ InterruptAssigned | TRUE if the resource is available and assigned.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

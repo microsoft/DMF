@@ -427,7 +427,7 @@ Tests_IoctlHandler_CancelOnQueue(
 
     UNREFERENCED_PARAMETER(Queue);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_RequestCancel: Request=0x%p", Request);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Tests_IoctlHandler_CancelOnQueue: Request=0x%p", Request);
 
     requestContext = (REQUEST_CONTEXT*)WdfObjectGetTypedContext(Request,
                                                                 REQUEST_CONTEXT);
@@ -578,7 +578,8 @@ Return Value:
     {
         case IOCTL_Tests_IoctlHandler_SLEEP:
         {
-            Tests_IoctlHandler_Sleep* sleepRequestBuffer;
+            Tests_IoctlHandler_Sleep* sleepRequestBufferInput;
+            Tests_IoctlHandler_Sleep* sleepRequestBufferOutput;
             SleepContext* sleepContext;
             WDF_OBJECT_ATTRIBUTES objectAttributes;
             REQUEST_CONTEXT* requestContext;
@@ -595,13 +596,18 @@ Return Value:
                 goto Exit;
             }
 
-            sleepRequestBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+            sleepRequestBufferInput = (Tests_IoctlHandler_Sleep*)InputBuffer;
+            sleepRequestBufferOutput = (Tests_IoctlHandler_Sleep*)OutputBuffer;
+
+            RtlCopyMemory(sleepRequestBufferInput,
+                          sleepRequestBufferOutput,
+                          sizeof(Tests_IoctlHandler_Sleep));
 
             // Save the Module in private context for cancel routine.
             // It is necessary so that it can be removed from lists.
             //
             requestContext->DmfModuleTestIoctlHandler = dmfModuleParent;
-            requestContext->TimeToSleepMilliseconds = sleepRequestBuffer->TimeToSleepMilliseconds;
+            requestContext->TimeToSleepMilliseconds = sleepRequestBufferInput->TimeToSleepMilliseconds;
 
             ntStatus = DMF_BufferPool_Get(moduleContext->DmfModuleBufferPoolFree,
                                           &clientBuffer,
@@ -612,13 +618,13 @@ Return Value:
             sleepContext->Request = Request;
 
             RtlCopyMemory(&sleepContext->SleepRequest,
-                          sleepRequestBuffer,
+                          sleepRequestBufferInput,
                           sizeof(Tests_IoctlHandler_Sleep));
 
             ntStatus = Tests_IoctlHandler_Enqueue(dmfModuleParent,
                                                   Request,
                                                   clientBuffer,
-                                                  sleepRequestBuffer->TimeToSleepMilliseconds);
+                                                  sleepRequestBufferInput->TimeToSleepMilliseconds);
             break;
         }
         case IOCTL_Tests_IoctlHandler_ZEROBUFFER:
@@ -718,6 +724,8 @@ Exit:
     return ntStatus;
 }
 
+#if !defined(DISABLE_INTERFACE_THREAD)
+
 #pragma code_seg("PAGE")
 _Function_class_(EVT_DMF_Thread_Function)
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -787,6 +795,8 @@ Exit:
     ;
 }
 #pragma code_seg()
+
+#endif // !defined(DISABLE_INTERFACE_THREAD)
 
 VOID
 Tests_IoctlHandler_InterfaceReference(
@@ -992,9 +1002,9 @@ Exit:
 
 IoctlHandler_IoctlRecord Tests_IoctlHandlerTable[] =
 {
-    { (LONG)IOCTL_Tests_IoctlHandler_SLEEP,         sizeof(Tests_IoctlHandler_Sleep), 0, Tests_IoctlHandler_Callback, FALSE },
-    { (LONG)IOCTL_Tests_IoctlHandler_ZEROBUFFER,    0,                                0, Tests_IoctlHandler_Callback, FALSE },
-    { (LONG)IOCTL_Tests_IoctlHandler_ZEROSIZE,      0,                                0, Tests_IoctlHandler_Callback, FALSE },
+    { (LONG)IOCTL_Tests_IoctlHandler_SLEEP,         sizeof(Tests_IoctlHandler_Sleep), sizeof(Tests_IoctlHandler_Sleep), Tests_IoctlHandler_Callback, FALSE },
+    { (LONG)IOCTL_Tests_IoctlHandler_ZEROBUFFER,    0,                                0,                                Tests_IoctlHandler_Callback, FALSE },
+    { (LONG)IOCTL_Tests_IoctlHandler_ZEROSIZE,      0,                                0,                                Tests_IoctlHandler_Callback, FALSE },
 };
 
 #pragma code_seg("PAGE")
@@ -1085,6 +1095,7 @@ Return Value:
         moduleConfigIoctlHandler.DeviceInterfaceGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
     }
     moduleConfigIoctlHandler.AccessModeFilter = IoctlHandler_AccessModeDefault;
+    moduleConfigIoctlHandler.ReferenceString = L"TestReferenceString";
     DMF_DmfModuleAdd(DmfModuleInit, 
                      &moduleAttributes, 
                      WDF_NO_OBJECT_ATTRIBUTES, 
@@ -1093,6 +1104,7 @@ Return Value:
     // TODO: Add second instance for Internal IOCTL.
     //
 
+#if !defined(DISABLE_INTERFACE_THREAD)
     // Thread
     // ------
     //
@@ -1105,6 +1117,7 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleThread);
+#endif // !defined(DISABLE_INTERFACE_THREAD)
 
     // AlertableSleep Manual (Output)
     // ---------------------

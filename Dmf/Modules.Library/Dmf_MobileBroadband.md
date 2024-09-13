@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module allows the Client to monitor MobileBroadband interfaces and control the transmit power and antenna configuration of MobileBroadband hardware.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_MobileBroadband
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -32,13 +29,9 @@ EVTMobileBroadbandWirelessStateChangeCallback | Allows the Client to get the sta
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### MobileBroadband_WIRELESS_STATE
 ````
@@ -64,8 +57,6 @@ IsTransmitting | Indicates whether device is transmitting data or not.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_MobileBroadband_MobileBroadbandReadingChangeCallback
 ````
@@ -94,8 +85,6 @@ MobileBroadbandState | Structure of MobileBroadband state.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_MobileBroadband_AntennaBackOffTableIndexGet
 
 ````
@@ -121,8 +110,6 @@ Parameter | Description
 DmfModule | An open DMF_MobileBroadband Module handle.
 AntennaIndex | The given antenna of the device.
 AntennaBackOffTableIndex | Receives the power back-off table index.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_MobileBroadband_AntennaBackOffTableIndexSet
 
@@ -153,8 +140,6 @@ AntennaBackOffTableIndex | Index into the power back-off table to set.
 AntennaCount | Number of antennas present.
 AbsoluteAntennaIndexMode | Indicates whether the input antenna index is an absolute index or relative index.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_MobileBroadband_MccMncGet
 
 ````
@@ -181,8 +166,6 @@ DmfModule | An open DMF_MobileBroadband Module handle.
 MobileCountryCode | The three digit code corresponding to the country where the device is connected.
 MobileNetworkCode | The three digit code corresponding to the network where the device is connected.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_MobileBroadband_SarBackOffDisable
 
 ````
@@ -205,8 +188,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_MobileBroadband Module handle.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_MobileBroadband_SarBackOffEnable
 
 ````
@@ -228,8 +209,6 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_MobileBroadband Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_MobileBroadband_WirelessStateGet
 
@@ -259,20 +238,12 @@ MobileBroadbandWirelessState | MobileBroadband wireless state to return.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module uses C++/WinRT, so it needs RS5+ support.
   Module specific code will not be compiled in RS4 and below.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -289,8 +260,6 @@ MobileBroadbandWirelessState | MobileBroadband wireless state to return.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Network
 

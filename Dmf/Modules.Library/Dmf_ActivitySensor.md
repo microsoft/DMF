@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module allows the Client to monitor the Activity interface and get current device Activity state information.
 
 https://docs.microsoft.com/en-us/uwp/api/windows.devices.sensors.activitysensor?view=winrt-19041
@@ -14,7 +12,6 @@ https://docs.microsoft.com/en-us/uwp/api/windows.devices.sensors.activitysensor?
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_ActivitySensor
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -38,8 +35,6 @@ EvtActivitySensorReadingChangeCallback | Allows the Client to get the status of 
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### ACTIVITY_SENSOR_STATE
 
 ````
@@ -60,8 +55,6 @@ typedef enum class _ACTIVITY_READING
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### ACTIVITY_SENSOR_STATE
 ````
 typedef struct _ACTIVITY_SENSOR_STATE
@@ -78,8 +71,6 @@ CurrentActivitySensor | Current Activity status.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback
 ````
@@ -109,8 +100,6 @@ ActivitySensorState | Updated ActivitySensor state information.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ActivitySensor_CurrentStateGet
 
 ````
@@ -134,8 +123,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_ActivitySensor Module handle.
 CurrentState | Current Activity state.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ActivitySensor_Start
 
@@ -163,8 +150,6 @@ DmfModule | An open DMF_ActivitySensor Module handle.
 
 * ActivitySensor sensor is started by default.
 * Only use this Method, if `DMF_ActivitySensor_Stop` is used.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ActivitySensor_Stop
 
@@ -198,19 +183,11 @@ DmfModule | An open DMF_ActivitySensor Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module uses C++/WinRT, so it needs RS5+ support. Module specific code will not be compiled in RS4 and below.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -227,8 +204,6 @@ DmfModule | An open DMF_ActivitySensor Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Sensor
 

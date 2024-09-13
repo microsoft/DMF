@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a ping-pong buffer that contains two separate buffers termed as Ping and Pong buffers. While new transmitted data
 received is written to Ping buffer, previously transmitted data is consumed from Pong buffer. Once the information written into
 the Ping buffer is validated it is swapped with Pong buffer for consumption.
@@ -14,7 +12,6 @@ the Ping buffer is validated it is swapped with Pong buffer for consumption.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_PingPongBuffer
 ````
 typedef struct
@@ -37,25 +34,17 @@ PoolType | Indicates the type of pool to use when each buffer is allocated.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_PingPongBuffer_Consume
 
@@ -87,8 +76,6 @@ PacketLength | Length of validated data in Ping buffer.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_PingPongBuffer_Get
 
 ````
@@ -115,8 +102,6 @@ Size | Size of the Ping Buffer.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_PingPongBuffer_Reset
 
 ````
@@ -139,8 +124,6 @@ Parameter | Description
 DmfModule | An open DMF_PingPongBuffer Module handle.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_PingPongBuffer_Shift
 
@@ -166,8 +149,6 @@ DmfModule | An open DMF_PingPongBuffer Module handle.
 StartOffset | The offset in the Ping buffer that contains the first byte of data to be shifted to the beginning of the Ping buffer.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_PingPongBuffer_Write
 
@@ -204,20 +185,12 @@ ResultSize | Total size in bytes of Ping buffer after write.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
 * Note: The processing time of the Pong buffer must be shorter than the data collection and validation time in Ping buffer.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -232,9 +205,8 @@ ResultSize | Total size in bytes of Ping buffer after write.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Buffers
 

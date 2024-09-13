@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a classic Hash Table data structure.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_HashTable
 ````
 typedef struct
@@ -45,19 +42,13 @@ EvtHashTableHashCalculate | A callback to replace the default hashing algorithm.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_HashTable_HashCalculate
 ````
@@ -88,8 +79,6 @@ KeyLength | The Length of the Key in bytes.
 
 * By default, FNV-1a hashing algorithm is used.
 * Provide this callback only if the default hashing algorithm needs to be replaced.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_HashTable_Enumerate
 ````
@@ -127,8 +116,6 @@ CallbackContext | A Context pointer passed by the Client into DMF_HashTable_Enum
 
 * Key and Value buffers in this callback are read only.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_HashTable_Find
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -163,8 +150,6 @@ ValueLength | The Length of the Value in bytes.
 
 * The Key should not be modified.
 * The Value and the ValueLength can be modified in this callback.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_HashTable_FindEx
 ````
@@ -208,8 +193,6 @@ ValueLength | The Length of the Value in bytes.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HashTable_Enumerate
 
 ````
@@ -238,8 +221,6 @@ CallbackContext | A Client specific context that is passed to the given callback
 ##### Remarks
 
 * Clients use this Method when they need to search or perform actions on all the Key-Value pairs in a Hash Table.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HashTable_Find
 
@@ -273,8 +254,6 @@ CallbackFind | The callback to perform Client specific tasks on the Value associ
 ##### Remarks
 
 * In case the Key is absent in the Hash Table, it will be added with the Value set to zero before calling the callback.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HashTable_FindEx
 
@@ -312,8 +291,6 @@ CallbackContext | Call specific context passed to CallbackFind.
 
 * In case the Key is absent in the Hash Table, it will be added with the Value set to zero before calling the callback.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HashTable_Read
 
 ````
@@ -349,8 +326,6 @@ ValueLength | The actual length of the Value data written to ValueBuffer.
 ##### Remarks
 
 * STATUS_BUFFER_TOO_SMALL is returned if ValueBufferLength is less than the Value data length.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HashTable_Write
 
@@ -390,8 +365,6 @@ ValueLength | The Length of the Value in bytes.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -400,12 +373,6 @@ ValueLength | The Length of the Value in bytes.
    are not performed in RELEASE build.
 * The memory to store Hash Table entries is pre-allocated when the Module is created.
    Make sure MaximumKeyLength, MaximumValueLength and MaximumTableSize are configured properly.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -422,9 +389,8 @@ ValueLength | The Length of the Value in bytes.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Data Structures
 

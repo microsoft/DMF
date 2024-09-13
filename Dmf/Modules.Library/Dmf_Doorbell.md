@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Allows the Client to enqueue multiple requests to a callback such that
 only a single workitem is equeued regardless of how many times the 
 enqueue Method is called. If several enqueues occur prior to the
@@ -15,7 +13,6 @@ corresponding callback being called, the callback is only called one time.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_Doorbell
 ````
 typedef struct
@@ -31,19 +28,13 @@ WorkItemCallBack | Callback called when the doorbell is rung.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,8 +82,6 @@ DmfModule | This Module's handle.
 
 Module method to be called by Client whenever the registered callback needs to be invoked.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Doorbell_Flush
 
 ````
@@ -118,19 +107,9 @@ Module Method to be called by Client whenever the rung doorbell needs to be flus
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -147,9 +126,8 @@ Module Method to be called by Client whenever the rung doorbell needs to be flus
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Task Execution
 

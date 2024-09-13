@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Allows a Client to write data to the MEMORY.dmp (Crash Dump) file in case of a system crash. Also allows User-mode Callers to
 write data that is stored in the Crash Dump file. Also allows User-mode Callers to read from the buffers that store data
 that will be written to the Crash Dump file.
@@ -14,7 +12,6 @@ that will be written to the Crash Dump file.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_CrashDump
 ````
 typedef struct
@@ -89,19 +86,14 @@ TriageDumpData.EvtCrashDumpStoreTriageDumpData | Function that the crash dump wr
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_CrashDump_Query
 
 ````
@@ -130,7 +122,6 @@ BufferLength | The address to where the length of the buffer that will be writte
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_CrashDump_Write
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -159,7 +150,6 @@ BufferLength | The address to where the length of the buffer that will be writte
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_CrashDump_StoreTriageDumpData
 ````
 _IRQL_requires_same_
@@ -198,7 +188,6 @@ The Bug Check code and parameters are provided so the callback may choose to onl
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### CrashDump_DataSourceWriteSelf
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -226,8 +215,6 @@ Buffer | The given buffer to write to the ring buffer.
 BufferLength | The size of the given buffer.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_CrashDump_TriageDumpDataAdd
 ````
@@ -263,16 +250,12 @@ DataLength | The size of the data.
 
 #### Module IOCTLs
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_DATA_SOURCE_CREATE
 Create a Data Source.
 
 Minimum Input Buffer Size: sizeof(DATA_SOURCE_CREATE)
 
 Minimum Output Buffer Size: 0
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_DATA_SOURCE_DESTROY
 Destroys a Data Source.
@@ -281,16 +264,12 @@ Minimum Input Buffer Size: 0
 
 Minimum Output Buffer Size: 0
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_DATA_SOURCE_WRITE
 Writes a buffer of data to the Data Source.
 
 Minimum Input Buffer Size: Size indicated when Data Source is created.
 
 Minimum Output Buffer Size: 0
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_DATA_SOURCE_READ
 Reads a buffer of data from the Data Source.
@@ -299,16 +278,12 @@ Minimum Input Buffer Size: 0
 
 Minimum Output Buffer Size: Size indicated when Data Source is created.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_DATA_SOURCE_OPEN
 Opens an existing Data Source so it can be read from or written to.
 
 Minimum Input Buffer Size: sizeof(DATA_SOURCE_CREATE)
 
 Minimum Output Buffer Size: 0
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_DATA_SOURCE_CAPTURE
 Reads the entire Data Source data.
@@ -320,12 +295,6 @@ Minimum Output Buffer Size: 0
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_RingBuffer
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -342,9 +311,8 @@ Minimum Output Buffer Size: 0
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

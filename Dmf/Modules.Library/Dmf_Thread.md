@@ -4,19 +4,16 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a thread and a design pattern where a Client needs to wait for some events in a loop and do some work every time any of the events is set. 
 
 The Module provides the Client two control options : DMF control and client control. In case of DMF control, the Module implements the aforementioned loop and event - making it easy for the Client. In case of client control the Client gets more flexiblity, though it needs to implement the loop and manage the events totally on its own.  
 
-The Client provides callback functions at the time of creating the module. The client is required to Start the Module after it is created (DMF_Thread_Start), and Stop it DMF_Thread_Stop) before it is deleted. 
+The Client provides callback functions at the time of creating the Module. The client is required to Start the Module after it is created (DMF_Thread_Start), and Stop it DMF_Thread_Stop) before it is deleted. 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_Thread
 ````
 typedef struct
@@ -49,7 +46,6 @@ EvtThreadPost | Optional callback set when ThreadControlType is set to ThreadCon
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ThreadControlType
 ````
 typedef enum
@@ -62,19 +58,16 @@ typedef enum
 Member | Description
 ----|----
 ThreadControlType_ClientControl | The client is expected to implement the looping logic in this control mode in its EvtThreadFunction callback. This setting is typically used for cases where the Client's EvtThreadFunction callback must wait for multiple events, and every time an event is set, the client executes the corresponding work synchronously. When the Client calls the Start method to start the Module, the Module creates a thread and calls the Client's EvtThreadFunction callback. A typical Client loops in that threads waiting for a work-ready event or a termination events that are totally managed by the Client. The Module requires that the Client calls Stop method on the Module prior to deleting it. 
-ThreadControlType_DmfControl | DMF simplifies the Client's work by internally implementing the events and the looping logic. The Client calls the Start method to internally start the module, however the Module waits for the Client to call DMF_Thread_Workready method before calling the Client's EvtThreadWork callback. The Client calls the DMF_Thread_WorkReady method everytime work is ready and in response the Module calls the Client's EvtThreadWork callback. A typical Client implementation for EvtThreadWork is to execute all the pending work and exit from the callback, it does not wait for any work-ready events. Instead when the Client needs to do more work, it simply calls DMF_Thread_Workready again, the Module calls the EvtThreadWork callback again. 
+ThreadControlType_DmfControl | DMF simplifies the Client's work by internally implementing the events and the looping logic. The Client calls the Start method to internally start the Module, however the Module waits for the Client to call DMF_Thread_Workready method before calling the Client's EvtThreadWork callback. The Client calls the DMF_Thread_WorkReady method everytime work is ready and in response the Module calls the Client's EvtThreadWork callback. A typical Client implementation for EvtThreadWork is to execute all the pending work and exit from the callback, it does not wait for any work-ready events. Instead when the Client needs to do more work, it simply calls DMF_Thread_Workready again, the Module calls the EvtThreadWork callback again. 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Thread_Function
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -91,8 +84,6 @@ This callback is called when this Module is started, i.e. the client calls the D
 Parameter | Description
 ----|----
 DmfModule | An open DMF_Thread Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_Thread_Pre
 ````
@@ -111,8 +102,6 @@ If this callback is set, it is called when the client calls DMF_Thread_Start.
 Parameter | Description
 ----|----
 DmfModule | An open DMF_Thread Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_Thread_Work
 ````
@@ -138,8 +127,6 @@ DmfModule | An open DMF_Thread Module handle.
 * This callback may be called even if there is no work to be processed. This may happen if the prior execution of the callback already processed all the work. The Client's code must account for this case. 
 * If there is pending work, and the Client calls DMF_Thread_Stop, this callback may not get called. 
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_Thread_Post
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -161,8 +148,6 @@ DmfModule | An open DMF_Thread Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Thread_Start
 
@@ -191,8 +176,6 @@ DmfModule | An open DMF_Thread Module handle.
 * For ThreadControlType_ClientControl : The Client's EvtThreadFunction callback is called. 
 * For ThreadControlType_DmfControl : The Client's EvtThreadPre callback is called, where the client may perform any needed initializations. The EvtThreadWork callback is not called until a future call to DMF_Thread_WorkReady method by the client. 
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Thread_Stop
 
 ````
@@ -218,10 +201,8 @@ DmfModule | An open DMF_Thread Module handle.
 * Client may only call this method if it has perivously called DMF_Thread_Start and has not called a corresponding DMF_Thread_Stop. 
 * Client is allowed to leverage the pattern Start --> Stop --> Start --> Stop
 * For ThreadControlType_ClientControl : This call blocks until the Client's EvtThreadFunction callback returns.  
-* For ThreadControlType_DmfControl : This call blocks until the Client's EvtThreadWork callback returns. If the Client had called DMF_Thread_WorkReady method, the module does *not* ensrue that the EvtThreadWork would be called before the thread is stopped. 
+* For ThreadControlType_DmfControl : This call blocks until the Client's EvtThreadWork callback returns. If the Client had called DMF_Thread_WorkReady method, the Module does *not* ensrue that the EvtThreadWork would be called before the thread is stopped. 
 * For ThreadControlType_DmfControl : The client's optional EvtThreadPost callback is called before this call returns. 
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Thread_IsStopPending
 
@@ -247,7 +228,6 @@ DmfModule | An open DMF_Thread Module handle.
 ##### Remarks
 
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_Thread_WorkReady
 ````
 VOID
@@ -278,20 +258,12 @@ DmfModule | An open DMF_Thread Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module makes it easy to create and destroy a simple thread.
 * The Client just needs to supply a callback that does Client specific work.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -308,9 +280,8 @@ DmfModule | An open DMF_Thread Module handle.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Task Execution
 

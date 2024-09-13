@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 HidDeviceListener notifies client of arrival and removal of HID devices specified in the Module's configuration.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_HidDeviceListener
 ````
 typedef struct
@@ -53,8 +50,6 @@ EvtHidTargetDeviceRemovalCallback | Client callback for matching HID device remo
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### Remarks
 
 This section lists all the Enumeration Types specific to this Module that are accessible to Clients.
@@ -91,6 +86,7 @@ SymbolicLinkName | The symbolic link name of the matching HID device that has ar
 IoTarget | A WDFIOTARGET for the arrived HID device.
 PreparsedHidData | Allows the Client to access the HID API to determine more HID specific information about the given WDFIOTARGET.
 HidCollectionInformation | Allows the Client to access the HID API to determine more HID specific information about the given WDFIOTARGET.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 ````
 _IRQL_requires_same_
@@ -119,25 +115,13 @@ SymbolicLinkName | The symbolic link name of the matching HID device that has be
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -150,9 +134,8 @@ SymbolicLinkName | The symbolic link name of the matching HID device that has be
 * SurfaceHotPlug
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hardware
 

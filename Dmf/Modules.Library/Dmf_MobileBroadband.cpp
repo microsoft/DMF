@@ -87,16 +87,20 @@ public:
     event_token tokenTransmissionStateChanged;
     // IAsyncAction for modem and SAR object get.
     // 
+    _IRQL_requires_max_(PASSIVE_LEVEL)
     IAsyncAction ModemAndSarResourceGetAsync();
     // IAsyncOperation to check if MobileBroadband network is connected.
     //
+    _IRQL_requires_max_(PASSIVE_LEVEL)
     IAsyncOperation<bool> MobileBroadband_IsNetworkConnectedAsync();
     // IAsyncAction for timeout helper.
     // 
-    IAsyncAction TimeoutHelperAsync(int milliseconds);
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    IAsyncAction TimeoutHelperAsync(_In_ int milliseconds);
     // IAsyncAction for timeout helper with bool return.
     // 
-    IAsyncOperation<bool> TimeoutHelperOperationAsync(int milliseconds);
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    IAsyncOperation<bool> TimeoutHelperOperationAsync(_In_ int milliseconds);
     // Initialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -160,7 +164,7 @@ DMF_MODULE_DECLARE_CONFIG(MobileBroadband)
 #define MccMncReportLengthMaximum                       6
 #define RetryTimesAmount                                10
 #define WaitTimeMillisecondOneSecond                    1000
-#define WaitTimeMillisecondsOnInitialize                5000
+#define WaitTimeMillisecondsOnInitialize                20000
 #define WaitTimeMillisecondsFiveSeconds                 5000
 #define MobileBroadband_AdapterWatcherEventLockIndex    0
 #define MobileBroadband_AuxiliaryLockCount              1
@@ -489,8 +493,7 @@ Return Value:
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_ModuleReference() fails: ntStatus=%!STATUS!", ntStatus);
             return;
         }
-        DMF_ModuleAuxiliaryLock(DmfModule,
-                                MobileBroadband_AdapterWatcherEventLockIndex);
+
         // New modem interface arrived.
         //
         if (modem == nullptr)
@@ -501,7 +504,7 @@ Return Value:
             IAsyncAction timeoutHelperAsync = TimeoutHelperAsync(WaitTimeMillisecondsOnInitialize);
             when_any(modemAndSarResourceGetAsync,
                      timeoutHelperAsync).get();
-            if (modem != nullptr)
+            if (modem != nullptr && sarManager != nullptr)
             {
                 ntStatus = DMF_ModuleOpen(DmfModule);
                 if (!NT_SUCCESS(ntStatus))
@@ -534,8 +537,6 @@ Return Value:
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem is found already. Only one modem is supported");
         }
 
-        DMF_ModuleAuxiliaryUnlock(DmfModule,
-                                  MobileBroadband_AdapterWatcherEventLockIndex);
         DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown deferef from add event");
     });
@@ -561,8 +562,6 @@ Return Value:
             return;
         }
 
-        DMF_ModuleAuxiliaryLock(DmfModule,
-                                MobileBroadband_AdapterWatcherEventLockIndex);
         // modem interface removed.
         //
         if (modem != nullptr)
@@ -592,8 +591,6 @@ Return Value:
             TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem is not present already");
         }
 
-        DMF_ModuleAuxiliaryUnlock(DmfModule,
-                                  MobileBroadband_AdapterWatcherEventLockIndex);
         DMF_Rundown_Dereference(moduleContext->DmfModuleRundown);
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Rundown deferef from remove event");
     });

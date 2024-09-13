@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a driver pattern that streams IOCTL requests to a WDFIOTARGET that dynamically appears/disappears. This Module
 automatically creates buffers and WDFREQUESTS for both input and output data performs all the necessary operations to attach
 those buffers to WDFREQUESTS.
@@ -14,7 +12,6 @@ those buffers to WDFREQUESTS.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_SymbolicLinkTarget
 ````
 typedef struct
@@ -40,25 +37,17 @@ ShareAccess | Indicates the Share Access of the target. See MSDN.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,12 +55,6 @@ ShareAccess | Indicates the Share Access of the target. See MSDN.
 
 * This Module is provided to give access Symbolic Links in a similar manner as other targets using DMF. Generally speaking, Symbolic Links should not be used as it is not possible to receive arrival/removal notifications as well as the fact that names are hard coded. Use Device Interfaces and DMF_DeviceInterfaceTarget instead when possible.
 * In some cases, such as to access a Filter Control Device, Symbolic Links are necessary.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,9 +69,8 @@ ShareAccess | Indicates the Share Access of the target. See MSDN.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a driver pattern that allows the Client to cause a callback to execute in a different thread at a
 later time. This is very similar to a WDFWORKITEM. But there are some important differences:
   1. The callback will execute exactly the number of times the Client attempts to enqueue it.
@@ -19,7 +17,6 @@ later time. This is very similar to a WDFWORKITEM. But there are some important 
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_QueuedWorkItem
 ````
 typedef struct
@@ -43,19 +40,14 @@ BufferQueueConfig | Contains parameters for initializing the child DMF_BufferQue
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_QueuedWorkItem_Callback
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -84,8 +76,6 @@ ClientBufferContext | Client specific context passed by Client when the deferred
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_QueuedWorkItem_Enqueue
 
@@ -117,8 +107,6 @@ ContextBufferSize | The size in bytes of ContextBuffer.
 
 * Regardless of whether or not the callback is already running, calling this method causes the callback to be called exactly one more time.
 * This Method does not wait for the callback to finish execution.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_QueuedWorkItem_EnqueueAndWait
 
@@ -153,8 +141,6 @@ ContextBufferSize | The size in bytes of ContextBuffer.
 * This Method waits for the callback to finish execution.
 * The callback must use `DMF_QueuedWorkItem_StatusSet()` to set the NTSTATUS returned by this Method.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_QueuedWorkItem_Flush
 
 ````
@@ -180,8 +166,6 @@ DmfModule | An open DMF_QueuedWorkItem Module handle.
 ##### Remarks
 
 * Use this Method to prevent the callback from executing before releasing resource used by the callback.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_QueuedWorkItem_StatusSet
 
@@ -221,8 +205,6 @@ be returned to the caller of `DMF_QueuedWorkItem_EnqueueAndWait()`.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -233,13 +215,6 @@ be returned to the caller of `DMF_QueuedWorkItem_EnqueueAndWait()`.
 * The Client initializes the number of buffers to equal the maximum number of allowed simultaneous calls.
 * If the Client requires that the callback not execute synchronously, the Client should create more than one instance of this Module.
 * Workitems enqueued begin synchronously but are not guaranteed to finish synchronously. If a Client needs workitems to also finish synchronously, use DMF_ThreadedBufferQueue instead.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_BufferQueue
-* DMF_ScheduledTask
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -260,9 +235,8 @@ be returned to the caller of `DMF_QueuedWorkItem_EnqueueAndWait()`.
 
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Task Execution
 

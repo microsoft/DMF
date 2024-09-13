@@ -5474,7 +5474,7 @@ None
 ### DMF_[ModuleName]_ResourcesAssign
 ```
 static
-NTSTATUS 
+NTSTATUS
 DMF_[ModuleName]_ResourcesAssign(
     _In_ DMFMODULE DmfModule, 
     _In_ WDFCMRESLIST ResourcesRaw, 
@@ -5518,7 +5518,7 @@ an error code corresponding to the error is returned.
 ### DMF_[ModuleName]_Open
 ```
 static
-NTSTATUS 
+NTSTATUS
 DMF_[ModuleName]_Open(
     _In_ DMFMODULE DmfModule
     )
@@ -5751,7 +5751,7 @@ Return Value:
 ### DMF_[ModuleName]_NotificationRegister
 ```
 static
-NTSTATUS 
+NTSTATUS
 DMF_[ModuleName]_NotificationRegister(
     _In_ DMFMODULE DmfModule
     )
@@ -6701,7 +6701,7 @@ status is not **STATUS_SUCCESS**. Otherwise the following happens:
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **DMFMODULE DmfModule**  | The Module's DMFMODULE
   **WDFREQUEST Request**   | The given **WDFREQUEST**.
-  **NTSTATUS NtSTatus**    | The **NTSTATUS** that is to be set in the **WDFREQUEST**.
+  **NTSTATUS NtStatus**    | The **NTSTATUS** that is to be set in the **WDFREQUEST**.
 
 #### Returns
 
@@ -7043,7 +7043,7 @@ primitives.
 
 ### DMF_Portable_EventCreate 
 ```
-NTSTATUS 
+NTSTATUS
 DMF_Portable_EventCreate(
     _Inout_ PDMF_PORTABLE_EVENT EventPointer,
     _In_ EVENT_TYPE EventType,
@@ -7225,7 +7225,7 @@ None.
 
 ### DMF_Portable_LookasideListCreate
 ```
-NTSTATUS 
+NTSTATUS
 DMF_Portable_LookasideListCreate(
     _In_ PWDF_OBJECT_ATTRIBUTES LookasideAttributes,
     _In_ size_t BufferSize,
@@ -7266,7 +7266,7 @@ Otherwise an error code is returned.
 
 ### DMF_Portable_LookasideListCreateMemory
 ```
-NTSTATUS 
+NTSTATUS
 DMF_Portable_LookasideListCreateMemory(
     _In_ PDMF_PORTABLE_LOOKASIDELIST LookasidePointer,
     _Out_ WDFMEMORY* Memory

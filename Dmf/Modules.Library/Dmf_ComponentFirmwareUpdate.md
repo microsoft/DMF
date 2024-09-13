@@ -4,19 +4,16 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module abstracts Component Firmware Update (CFU) Protocol. It allows the Client to run the protocol without knowing the 
-internal details. Clients can customize the behavior of the module through the configuration options.
+internal details. Clients can customize the behavior of the Module through the configuration options.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_ComponentFirmwareUpdate
 ````
-// Configuration of the module
+// Configuration of the Module
 //
 typedef struct
 {
@@ -79,34 +76,29 @@ typedef struct
 ````
 Member | Description
 ----|----
-NumberOfFirmwareComponents | Number of Firmware binary (Offer,Payload) pairs that this module needs to work with.
-EvtComponentFirmwareUpdateFirmwareOfferGet | Clients should specify this callback function to provide each firmware offer bits to this module. 
-EvtComponentFirmwareUpdateFirmwarePayloadGet | Clients should specify this callback function to provide each firmware payload bits to this module.
+NumberOfFirmwareComponents | Number of Firmware binary (Offer,Payload) pairs that this Module needs to work with.
+EvtComponentFirmwareUpdateFirmwareOfferGet | Clients should specify this callback function to provide each firmware offer bits to this Module. 
+EvtComponentFirmwareUpdateFirmwarePayloadGet | Clients should specify this callback function to provide each firmware payload bits to this Module.
 FirmwareBuffersNotInPresistantMemory | Clients use this to indicate whether the firmware bits are persisting or not.
-SupportResumeOnConnect | Client can use this to indicate whether this module should support 'Resume from an interrupted firmware download' or not.
-SupportProtocolTransactionSkipOptimization | Client can use this to indicate whether this module should support 'Skipping the CFU transaction entirely for a previous known up-to-date firmware state' or not.
+SupportResumeOnConnect | Client can use this to indicate whether this Module should support 'Resume from an interrupted firmware download' or not.
+SupportProtocolTransactionSkipOptimization | Client can use this to indicate whether this Module should support 'Skipping the CFU transaction entirely for a previous known up-to-date firmware state' or not.
 ForceImmediateReset | Client can use this to indicate whether to request "a force immediate reset" during offer stage or not.
 ForceIgnoreVersion | Client can use this to indicate whether to request "a force ignoring version" during offer stage or not.
-InstanceIdentifier | Client can provide an optional Instance Identifier string that this module can make use while storing book keeping entries.
+InstanceIdentifier | Client can provide an optional Instance Identifier string that this Module can make use while storing book keeping entries.
 InstanceIdentifierLength | Number of characters in the InstanceIdentifier above.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_ComponentFirmwareUpdate_FirmwareGet
 ````
 typedef
@@ -129,15 +121,13 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An opened DMF_ComponentFirmwareUpdate Module handle.
-FirmwareComponentIndex | Index of the firmware component for this the firmware bits are requested by this module.
+FirmwareComponentIndex | Index of the firmware component for this the firmware bits are requested by this Module.
 FirmwareBuffer | The buffer the Client populates.
 BufferLength | The size of Buffer in bytes.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ComponentFirmwareUpdate_Start
 
@@ -160,8 +150,6 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An opened DMF_ComponentFirmwareUpdate Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ComponentFirmwareUpdate_Stop
 
@@ -190,17 +178,9 @@ DmfModule | An opened DMF_ComponentFirmwareUpdate Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-DMF_Thread
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -215,9 +195,8 @@ DMF_Thread
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Protocols
 

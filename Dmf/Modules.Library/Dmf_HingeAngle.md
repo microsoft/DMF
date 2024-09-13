@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
-This module allows the Client to monitoring Hinge Angle interface and get current device Hinge Angle state information.
+This Module allows the Client to monitoring Hinge Angle interface and get current device Hinge Angle state information.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_HingeAngle
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -40,13 +37,9 @@ EvtHingeAngleReadingChangeCallback | Allows the client to get new status of Hing
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### HINGE_ANGLE_SENSOR_STATE
 ````
@@ -64,8 +57,6 @@ AngleInDegrees | Current Hinge Angle degrees.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_HingeAngle_HingeAngleSensorReadingChangeCallback
 ````
@@ -95,8 +86,6 @@ HingeAngleState | Structure of HingeAngle state.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HingeAngle_CurrentStateGet
 
 ````
@@ -121,8 +110,6 @@ Parameter | Description
 DmfModule | An open DMF_HingeAngle Module handle.
 CurrentState | Current Hinge Angle state to get.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HingeAngle_Start
 
 ````
@@ -144,8 +131,6 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_HingeAngle Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HingeAngle_Stop
 
@@ -179,19 +164,11 @@ DmfModule | An open DMF_HingeAngle Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module uses C++/WinRT, so it needs RS5+ support. Module specific code will not be compiled in RS4 and below.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -208,8 +185,6 @@ DmfModule | An open DMF_HingeAngle Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Sensor
 

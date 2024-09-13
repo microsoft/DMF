@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to GPIO pins.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_GpioTarget
 ````
 typedef struct
@@ -46,19 +43,14 @@ InteruptResource | Allows Client to specify an interrupt resource associated wit
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_GpioTarget_InterruptIsr
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -84,7 +76,6 @@ DmfModule | An open DMF_GpioTarget Module handle.
 MessageId | The MessageId of the interrupt.
 QueuedWorkItem | Indicates what post processing the Client wants to after this callback executes.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_GpioTarget_InterruptDpc
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -108,7 +99,6 @@ Parameter | Description
 DmfModule | An open DMF_GpioTarget Module handle.
 QueuedWorkItem | Indicates what post processing the Client wants to after this callback executes.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_GpioTarget_InterruptPassive
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -134,8 +124,6 @@ DmfModule | An open DMF_GpioTarget Module handle.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_GpioTarget_InterruptAcquireLock
 
 ````
@@ -159,8 +147,6 @@ DmfModule | An open DMF_GpioTarget Module handle.
 
 #### Remarks
 * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_GpioTarget_InterruptReleaseLock
 
@@ -214,8 +200,6 @@ DmfModule | An open DMF_GpioTarget Module handle.
 #### Remarks
 * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_GpioTarget_IsResourceAssigned
 
 ````
@@ -244,8 +228,6 @@ NumberOfGpioInterruptsAssigned | The number of GPIO interrupts this Module's ins
 #### Remarks
 * Use this Method to determine if the resources needed are found. This is for the cases where the Client driver runs regardless of whether or not GPIO lines are available.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_GpioTarget_Read
 
 ````
@@ -268,8 +250,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_GpioTarget Module handle.
 PinValue | The value read from the GPIO line.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_GpioTarget_Write
 
@@ -304,8 +284,6 @@ Value | The given state.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -314,12 +292,6 @@ Value | The given state.
 * A Client must instantiate one instance of this Module for every GPIO line the Client needs to access.
 * IMPORTANT: If the device only has an interrupt resource defined, then use DMF_InterruptResource Module instead of this Module.
 * If the Client needs to read/write from/to the GPIO interrupt, then the Client should instantiate a single instance of this Module setting both the GpioConnectionIndex and the InterruptLineIndex set.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_InterruptResource
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -336,9 +308,8 @@ Value | The given state.
 * Create DMF_GpioEx Module that will allow Client to connect only to interrupt.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

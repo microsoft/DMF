@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a driver pattern that streams IOCTL requests to a WDFIOTARGET that dynamically appears/disappears. This Module
 automatically creates buffers and WDFREQUESTS for both input and output data performs all the necessary operations to attach
 those buffers to WDFREQUESTS.
@@ -14,7 +12,6 @@ those buffers to WDFREQUESTS.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_DeviceInterfaceTarget
 ````
 typedef struct
@@ -55,7 +52,6 @@ EvtDeviceInterfaceTargetOnPnpNotification | Callback to the Client that allows t
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DeviceInterfaceTarget_StateType
 Enum to specify IO Target State.
 
@@ -82,13 +78,10 @@ typedef enum
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_DeviceInterfaceTarget_OnStateChange
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -115,7 +108,6 @@ IoTargetState | The new state the WDFIOTARGET is transitioning to.
 
 ##### Remarks
 * It is not possible to veto the remove using this callback. Use Ex version instead.
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_DeviceInterfaceTarget_OnStateChangeEx
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -144,7 +136,6 @@ IoTargetState | The new state the WDFIOTARGET is transitioning to.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_DeviceInterfaceTarget_OnPnpNotification
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -174,8 +165,6 @@ IoTargetOpen | The address where the Client writes TRUE to indicate that the WDF
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_DeviceInterfaceTarget_BufferPut
 
 ````
@@ -202,8 +191,6 @@ ClientBuffer | The given DMF_BufferPool buffer.
 ##### Remarks
 
 * NOTE: ClientBuffer must be a properly formed DMF_BufferPool buffer.
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_DeviceInterfaceTarget_Cancel
 
 ````
@@ -211,11 +198,11 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_DeviceInterfaceTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
     );
 ````
 
-This Method cancels the underlying WDFREQUEST associated with a given DmfRequestId.
+This Method cancels the underlying WDFREQUEST associated with a given DmfRequestIdCancel.
 
 ##### Returns
 
@@ -226,14 +213,12 @@ FALSE if the underlying WDFREQUEST could not be canceled because it has been com
 Parameter | Description
 ----|----
 DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
-DmfRequestId | The unique request id returned by `DMF_DeviceInterfaceTarget_SendEx()`.
+DmfRequestIdCancel| The unique request id returned by `DMF_DeviceInterfaceTarget_SendEx()`.
 
 ##### Remarks
-* **Caller must use DMF_DeviceInterfaceTarget_Cancel() to cancel the DmfRequestId returned by `DMF_DeviceInterfaceTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
+* **Caller must use DMF_DeviceInterfaceTarget_Cancel() to cancel the DmfRequestIdCancel returned by `DMF_DeviceInterfaceTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_DeviceInterfaceTarget_Get
 
@@ -263,8 +248,6 @@ IoTarget | The address where the Client reads the WDFIOTARGET handle after this 
 * Clients should call DMF_ModuleReference() before using the returned handle in order to synchronize with possible asynchronous removal.
 * Clients should call DMF_ModuleDereferece() after using the returned handle in order to synchronize with possible asynchronous removal.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_DeviceInterfaceTarget_GuidGet
 
 ````
@@ -293,7 +276,112 @@ Guid | The device interface GUID associated with this Module's WDFIOTARGET.
 * Clients use this Method when the same callback is used for multiple device interfaces.
 * The callback can use this Method to determine which device interface has called the Client.
 
------------------------------------------------------------------------------------------------------------------------------------
+##### DMF_DeviceInterfaceTarget_ReuseCreate
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceTarget_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _Out_ DeviceInterfaceTarget_DmfRequestReuse* DmfRequestIdReuse
+    );
+````
+
+Creates a WDFREQUEST that will be reused one or more times with the "Reuse" Methods.
+
+##### Returns
+
+NTSTATUS. Fails if a WDFREQUEST cannot be created.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
+DmfRequestIdReuse | Address where the created WDFREQUEST's cookie is returned. Use this cookie with the other "Reuse" Methods.
+
+##### Remarks
+
+* The driver must have a corresponding call to `DMF_DeviceInterfaceTarget_ReuseDelete` in order to free memory associated with a call to this Method.
+
+##### DMF_DeviceInterfaceTarget_ReuseDelete
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_DeviceInterfaceTarget_ReuseDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceTarget_DmfRequestReuse DmfRequestIdReuse
+    );
+````
+
+Deletes a WDFREQUEST that was previously created using `DMF_DeviceInterfaceTarget_ReuseCreate`.
+
+##### Returns
+
+    TRUE if the WDFREQUEST was found and deleted.
+    FALSE if the WDFREQUEST was not found.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
+DmfRequestIdReuse | Associated cookie of the WDFREQUEST to delete.
+
+##### Remarks
+
+##### DMF_DeviceInterfaceTarget_ReuseSend
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceTarget_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ DeviceInterfaceTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_DeviceInterfaceTarget_SendCompletion* EvtDeviceInterfaceTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ DeviceInterfaceTarget_DmfRequestCancel* DmfRequestIdCancel
+    );
+````
+
+Reuses a given WDFREQUEST created by `DMF_DeviceInterfaceTarget_ReuseCreate` Method. Attaches buffers, prepares it to be sent to WDFIOTARGET and sends it.
+
+##### Returns
+
+NTSTATUS. Fails if the Request cannot be sent to the Module's internal WDFIOTARGET.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
+DmfRequestIdReuse | Associated cookie of the WDFREQUEST to send.
+RequestBuffer | The Client buffer that is sent to this Module's underlying WDFIOTARGET.
+RequestLength | The size in bytes of RequestBuffer.
+ResponseBuffer | The Client buffer that receives data from this Module's underlying WDFIOTARGET.
+ResponseLength | The size in bytes of ResponseBuffer.
+RequestType | The type of Request to send to this Module's underlying WDFIOTARGET.
+RequestIoctl | The IOCTL that tells the Module's underlying WDFIOTARGET the purpose of the associated Request that is sent.
+RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
+EvtDeviceInterfaceTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
+SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtDeviceInterfaceTargetSingleAsynchronousRequest.
+DmfRequestIdCancel | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
+
+##### Remarks
+
+* Caller passes `DmfRequestIdCancel` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
+sent to the underlying WDFIOTARGET.
+* **Caller must use `DMF_DeviceInterfaceTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestIdCancel. Caller may not use WdfRequestCancel() because 
+the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
+** 
+* **Caller must not use value returned in DmfRequestIdCancel for any purpose except to pass it `DMF_DeviceInterfaceTarget_Cancel()`.** For example, do not assign a context to the handle.
 
 ##### DMF_DeviceInterfaceTarget_Send
 
@@ -336,8 +424,6 @@ SingleAsynchronousRequestClientContext | The Client specific context that is sen
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_DeviceInterfaceTarget_SendEx
 
 ````
@@ -354,7 +440,7 @@ DMF_DeviceInterfaceTarget_SendEx(
   _In_ ULONG RequestTimeoutMilliseconds,
   _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-  _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+  _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
   );
 ````
 
@@ -378,17 +464,16 @@ RequestIoctl | The IOCTL that tells the Module's underlying WDFIOTARGET the purp
 RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
 EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
 SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
-DmfRequestId | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
+DmfRequestIdCancel | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
 
 ##### Remarks
-* Caller passes `DmfRequestId` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
+* Caller passes `DmfRequestIdCancel` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
 sent to the underlying WDFIOTARGET.
-* **Caller must use `DMF_DeviceInterfaceTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestId. Caller may not use WdfRequestCancel() because 
+* **Caller must use `DMF_DeviceInterfaceTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestIdCancel. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
-* **Caller must not use value returned in DmfRequestId for any purpose except to pass it `DMF_DeviceInterfaceTarget_Cancel()`.** For example, do not assign a context to the handle.
+* **Caller must not use value returned in DmfRequestIdCancel for any purpose except to pass it `DMF_DeviceInterfaceTarget_Cancel()`.** For example, do not assign a context to the handle.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_DeviceInterfaceTarget_SendSynchronously
 
 ````
@@ -428,8 +513,6 @@ BytesWritten | The number of bytes transferred to/from the underlying WDFIOTARGE
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_DeviceInterfaceTarget_StreamStart
 
 ````
@@ -452,8 +535,6 @@ Parameter | Description
 DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_DeviceInterfaceTarget_StreamStop
 
@@ -482,8 +563,6 @@ DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -492,13 +571,6 @@ DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
 * This Module does all the work of allocating the buffers and Requests as specified by the Client.
 * This Module stops and start streaming automatically during power transition.
 * This Module is similar to the USB Continuous Reader in WDF but for any WDFIOTARGET.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_RequestTarget
-* DMF_ContinousRequestTarget_
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -513,9 +585,8 @@ DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

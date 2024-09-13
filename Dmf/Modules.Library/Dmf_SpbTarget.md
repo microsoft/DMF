@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to devices connected to Small Peripheral Bus (SBP).
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_SpbTarget
 ````
 typedef struct
@@ -50,17 +47,11 @@ InteruptResource | Allows Client to specify an interrupt resource associated wit
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpbTarget_BufferFullDuplex
 
@@ -94,8 +85,6 @@ OutputBufferLength | Size in bytes of OutputBuffer.
 ##### Remarks
 * See MSDN SPB documentation.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SpbTarget_BufferWrite
 
 ````
@@ -123,8 +112,6 @@ NumberOfBytesToWrite | Size in bytes of BytesToWrite.
 
 ##### Remarks
 * See MSDN SPB documentation.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpbTarget_BufferWriteRead
 
@@ -158,8 +145,6 @@ OutputBufferLength | Size in bytes of OutputBuffer.
 ##### Remarks
 * See MSDN SPB documentation.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SpbTarget_ConnectionLock
 
 ````
@@ -183,8 +168,6 @@ DmfModule | An open DMF_SpbTarget Module handle.
 
 ##### Remarks
 * See MSDN SPB documentation.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpbTarget_ConnectionUnlock
 
@@ -210,8 +193,6 @@ DmfModule | An open DMF_SpbTarget Module handle.
 ##### Remarks
 * See MSDN SPB documentation.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SpbTarget_ControllerLock
 
 ````
@@ -235,8 +216,6 @@ DmfModule | An open DMF_SpbTarget Module handle.
 
 ##### Remarks
 * See MSDN SPB documentation.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpbTarget_ControllerUnlock
 
@@ -262,8 +241,6 @@ DmfModule | An open DMF_SpbTarget Module handle.
 ##### Remarks
 * See MSDN SPB documentation.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SpbTarget_InterruptAcquireLock
 
 ````
@@ -287,8 +264,6 @@ DmfModule | An open DMF_SpbTarget Module handle.
 
 #### Remarks
 * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SpbTarget_InterruptReleaseLock
 
@@ -343,8 +318,6 @@ DmfModule | An open DMF_SpbTarget Module handle.
 #### Remarks
 * See WDF documentation to understand how interrupt spin-locks work at PASSIVE_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SpbTarget_IsResourceAssigned
 
 ````
@@ -377,20 +350,12 @@ NumberOfSpbInterruptsAssigned | The number of SPB interrupts this Module's insta
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module accesses a single SPB resource.
 * A Client must instantiate one instance of this Module for every SPB resource the Client needs to access.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* Dmf_RequestTarget
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -405,9 +370,8 @@ NumberOfSpbInterruptsAssigned | The number of SPB interrupts this Module's insta
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

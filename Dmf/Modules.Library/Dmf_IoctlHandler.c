@@ -337,7 +337,6 @@ Return Value:
     //
     DmfAssert((moduleConfig->IoctlRecordCount > 0) || (moduleConfig->ForwardUnhandledRequests));
 
-
     // If this Module instance has been created using a reference string, route the WDFREQUEST to 
     // its corresponding instance based on reference string.
     // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
@@ -346,17 +345,26 @@ Return Value:
     if (moduleContext->ReferenceStringUnicodePointer != NULL)
     {
         WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
-        BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
-                                                                 fileObjectOfRequest,
-                                                                 FALSE);
-        if (! found)                                                                 
+        if (fileObjectOfRequest != NULL)
         {
-            // This instance only accepts WDFREQUEST where WDFFILEOBJECT is 
-            // equal to AssociatedFileObject. Another instance of this Module should
-            // handle this request.
+            BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
+                                                                     fileObjectOfRequest,
+                                                                     FALSE);
+            if (! found)
+            {
+                // This instance only accepts WDFREQUEST where WDFFILEOBJECT is 
+                // equal to AssociatedFileObject. Another instance of this Module should
+                // handle this request.
+                //
+                handled = FALSE;
+                goto Exit;
+            }
+        }
+        else
+        {
+            // It means it is not a remote target so no FileObject was created.
+            // In this case, handle the request directly in the first Module.
             //
-            handled = FALSE;
-            goto Exit;
         }
     }
 
@@ -606,18 +614,19 @@ Return Value:
     // This allows two instances of the same IoctlHandler Module to be instantiated in a single 
     // WDFDEVICE.
     //
-    if (moduleContext->ReferenceStringUnicodePointer != NULL)
+    WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
+    if ((moduleContext->ReferenceStringUnicodePointer != NULL) && 
+        (fileObjectOfRequest != NULL))
     {
-        WDFFILEOBJECT fileObjectOfRequest = WdfRequestGetFileObject(Request);
         UNICODE_STRING* fileName = WdfFileObjectGetFileName(fileObjectOfRequest);
         if (fileName->Length > sizeof(L'\\'))
         {
             // Skip preceding '\'.
             //
             WCHAR* stringFileObject = &fileName->Buffer[1];
-            size_t stringLengthFileObject = fileName->Length - sizeof(L'\\');
+            size_t stringLengthFileObject = (fileName->Length - sizeof(L'\\')) / sizeof(WCHAR);
             WCHAR* stringModule = moduleContext->ReferenceStringUnicode.Buffer;
-            size_t stringLengthModule = moduleContext->ReferenceStringUnicode.Length;
+            size_t stringLengthModule = moduleContext->ReferenceStringUnicode.Length / sizeof(WCHAR);
             LONG comparisonLength = RtlCompareUnicodeStrings(stringFileObject,
                                                              stringLengthFileObject,
                                                              stringModule,
@@ -834,7 +843,7 @@ Arguments:
 
 Return Value:
 
-    None
+    BOOLEAN
 
 --*/
 {
@@ -855,21 +864,29 @@ Return Value:
     //
     handled = FALSE;
 
-    if (moduleContext->ReferenceStringUnicodePointer != NULL)
+    if (FileObject != NULL)
     {
-        // This file handle is being closed so it must be removed from the list
-        // of associated file objects. If it is not found, then another instance
-        // of this Module should handle it.
-        //
-        BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
-                                                                 FileObject,
-                                                                 TRUE);
-        if (!found)                                                                 
+        if (moduleContext->ReferenceStringUnicodePointer != NULL)
         {
-            // Another instances of this Module should handle this request.
+            // This file handle is being closed so it must be removed from the list
+            // of associated file objects. If it is not found, then another instance
+            // of this Module should handle it.
             //
-            goto Exit;
+            BOOLEAN found = IoctlHandler_AssociatedFileObjectsLookUp(DmfModule,
+                                                                     FileObject,
+                                                                     TRUE);
+            if (!found)
+            {
+                // Another instances of this Module should handle this request.
+                //
+                goto Exit;
+            }
         }
+    }
+    else
+    {
+        // It means a remote target did not open connection.
+        //
     }
 
     // (Optimize to add to list only in mode where the list is used.)

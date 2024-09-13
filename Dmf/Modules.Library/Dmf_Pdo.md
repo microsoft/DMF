@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Creates PDOs (Physical Device Objects) based on a table supplied during instantiation.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_Pdo
 ````
 typedef struct
@@ -71,13 +68,10 @@ EvtPdoCompatibleIdFormat | Callback to format CompatibleIds strings in PDO_RECOR
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### Pdo_DevicePropertyEntry
 
 Holds information for a single device property.
@@ -121,7 +115,6 @@ ValueSize | Size of data pointed to by ValueData.
 RegisterDeviceInterface | TRUE if a corresponding device interface should be created for this property.
 DeviceInterfaceGuid | GUID of device interface to set if RegisterDeviceInterface is TRUE.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### Pdo_DeviceProperty_Table
 
 Indicates the properties to set when a child device is created.
@@ -144,7 +137,6 @@ Member | Description
 TableEntries | Table of properties to set.
 ItemCount | Number of entries in the table.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### PDO_RECORD
 ````
 typedef struct
@@ -224,7 +216,6 @@ InstanceId | The InstanceId assigned to the PDO that is to be created. Client mu
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_IsPdoRequired
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -248,7 +239,6 @@ Parameter | Description
 DmfModule | An open DMF_Pdo Module handle.
 Previous State | Indicates the Client Driver's previous Power State.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_DevicePnpCapabilities
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -268,7 +258,6 @@ Parameter | Description
 DmfModule | An open DMF_Pdo Module handle.
 PnpCapabilities | PnpCapabilities that will be assigned to the PDO.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_DevicePowerCapabilities
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -288,7 +277,6 @@ Parameter | Description
 DmfModule | An open DMF_Pdo Module handle.
 PowerCapabilities | PowerCapabilities that will be assigned to the PDO.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_DeviceQueryInterfaceAdd
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -312,7 +300,6 @@ Parameter | Description
 DmfModule | An open DMF_Pdo Module handle.
 PdoDevice | WDFDEVICE handle for the new PDO.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_DeviceIdentifierFormat
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -341,7 +328,6 @@ FormattedIdBuffer | The output buffer to store the formatted device identifier s
 BufferLength | The length of FormattedIdBuffer buffer, in number of characters.
 FormatString | A string specifying the format of the device identifier.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_PreCreate
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -368,7 +354,6 @@ DeviceInit | The PWDFDEVICE_INIT data used to create the PDO.
 DmfDeviceInit | The PDMFDEVICE_INIT data used to create the PDO.
 PdoRecord | The PDO record used to create the PDO.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Pdo_PostCreate
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -400,8 +385,6 @@ PdoRecord | The PDO record used to create the PDO.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Pdo_DeviceEject
 
 ````
@@ -427,8 +410,6 @@ DmfModule | An open DMF_Pdo Module handle.
 Device | PDO to be ejected.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Pdo_DeviceEjectUsingSerialNumber
 
@@ -456,8 +437,6 @@ DmfModule | An open DMF_Pdo Module handle.
 SerialNumber | Serial number of the PDO to be ejected.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Pdo_DevicePlug
 
@@ -497,8 +476,6 @@ Device | The newly created PDO (optional).
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Pdo_DevicePlugEx
 
 ````
@@ -533,8 +510,6 @@ Device | The newly created PDO (optional).
 * In addition to specifying the characteristics of the PDO, set the `EnableDmf` flag and the name of the callback
 function that tells DMF what Modules to instantiate (if Modules are required).
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Pdo_DeviceUnplug
 
 ````
@@ -561,8 +536,6 @@ Device | PDO to be unplugged.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Pdo_DeviceUnplugAll
 
 ````
@@ -586,8 +559,6 @@ Parameter | Description
 DmfModule | An open DMF_Pdo Module handle. (The given Module.)
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Pdo_DeviceUnPlugEx
 
@@ -622,8 +593,6 @@ SerialNumber | Serial number of the PDO to be unplugged.
 * This version allows the Client to remove PDO based on HardwareID and SerialNumber.
 * Useful when client bus driver is capable of enumerating child devices belonging to different device catogories 
 having same serial number. 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Pdo_DeviceUnplugUsingSerialNumber
 
 ````
@@ -657,12 +626,6 @@ SerialNumber | Serial number of the PDO to be unplugged.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-#### Module Children
-
-* DMF_ScheduledTask
-
------------------------------------------------------------------------------------------------------------------------------------
-
 #### Module Implementation Details
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -677,9 +640,8 @@ SerialNumber | Serial number of the PDO to be unplugged.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

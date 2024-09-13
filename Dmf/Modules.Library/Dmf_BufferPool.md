@@ -4,15 +4,13 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Manages a pool of buffers. This Module can be instantiated as source-mode or sink-mode buffer pool. 
 
 When instantiated as source-mode, the Client specifies properties such as: size of each buffer, number of buffers, etc. The Module allocates and manages a pool of buffers, allows the Client to retrieve buffers from it or return buffers back to it. 
 
 When instantiated as sink-mode, no buffers are internally allocated. However, the Client may retrieve a buffer from a source-mode instance of this Module, and temporarily insert it in a sink-mode instance. 
 
-This module provides Methods to retrieve (called get operation) or insert (called put operation) buffers from/to the Module instance. Buffers are retrieved in a FIFO order. 
+This Module provides Methods to retrieve (called get operation) or insert (called put operation) buffers from/to the Module instance. Buffers are retrieved in a FIFO order. 
 
 Optionally, a buffer can be inserted to sink mode instance of this Module with a timeout and a timer callback. When the timer expires, the Module removes the buffer from itself and calls the Client's timer callback returning the buffer.  
 
@@ -24,8 +22,6 @@ Refer to the remarks section for some additional features provided by this Modul
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_CONFIG_BufferPool
 
@@ -53,8 +49,6 @@ Mode.SourceSettings | Indicates the settings for a list created in source-mode.
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### BufferPool_ModeType
 
 These definitions indicate how the Client will use the DMF_BufferPool.
@@ -75,8 +69,6 @@ Member | Description.
 ----|----
 BufferPool_Mode_Source | Indicates that a source-mode pool is created. In this case, a specific number of buffers are allocated and added to the pool when the instance of DMF_BufferPool is created. SourceSettings must be populated.
 BufferPool_Mode_Sink | Indicates that a sink-mode list is created. In this case, no buffers are allocated and added to the pool when the instance of DMF_BufferPool is created. The Client will add buffers to this list after retrieving them from a source-mode pool.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### BufferPool_EnumerationDispositionType
 
@@ -124,8 +116,6 @@ BufferPool_EnumerationDisposition_ResetTimerAndContinueEnumeration | After the e
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### BufferPool_SourceSettings
 Settings for BufferPool_Mode_Source.
 ````
@@ -160,14 +150,12 @@ BufferCount | The number of buffers that should be automatically allocated when 
 BufferSize | The size of each buffer.
 BufferContextSize | In some cases, the Client may wish to allocate a Client specific meta data for each buffer in the pool. If so, this field indicates the size of that buffer.
 EnableLookAside | If set to TRUE, when there are no buffers left in the pool and the Client requests another buffer, a new buffer is allocated internally. Essentially it behaves like a lookaside list. *See remarks below for more information.**
-CreateWithTimer | As noted in the module description, a buffer allocated by a source-mode instance of the buffer pool may be inserted to an sink-mode buffer pool. Only a buffer that has a corresponding timer allocated may be inserted into a sink-mode buffer pool. If Create with timer is set to true, a timer instance is created for each of the the buffer allocated by the DMF_BufferPool Module instance. *See remarks below for more information.**
+CreateWithTimer | As noted in the Module description, a buffer allocated by a source-mode instance of the buffer pool may be inserted to an sink-mode buffer pool. Only a buffer that has a corresponding timer allocated may be inserted into a sink-mode buffer pool. If Create with timer is set to true, a timer instance is created for each of the the buffer allocated by the DMF_BufferPool Module instance. *See remarks below for more information.**
 PoolType | The Pool Type attribute of the automatically allocated buffers. If Paged pool is used then this Module must be instantiated as a PASSIVE_LEVEL instance by setting DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_BufferPool_Enumeration
 
@@ -200,9 +188,7 @@ BufferPool_EnumerationDispositionType
 ##### Remarks
 
 * The Client decides what to do with the buffer and tells DMF_BufferPool how to dispose of the buffer by setting the corresponding return value.
-* This callback is called with an internal lock held. In this callback, typically the Client is only expected to examine the contents of the buffer or the corresponding context, and return the appropiate disposition value. To prevent deadlocks, the Client must be very conservative to call any APIs for this module or other modules. Generally only APIs that are allowed to be called with a lock held are those which are get/set property. After examining the buffer, if the Client needs to remove the buffer from the DMF_BufferPool, it must return RemoveAndStopEnumeration from this callback. Then the buffer is returned to the Client as an output parameter of DMF_BufferPool_Enumerate. 
-
------------------------------------------------------------------------------------------------------------------------------------
+* This callback is called with an internal lock held. In this callback, typically the Client is only expected to examine the contents of the buffer or the corresponding context, and return the appropiate disposition value. To prevent deadlocks, the Client must be very conservative to call any APIs for this Module or other modules. Generally only APIs that are allowed to be called with a lock held are those which are get/set property. After examining the buffer, if the Client needs to remove the buffer from the DMF_BufferPool, it must return RemoveAndStopEnumeration from this callback. Then the buffer is returned to the Client as an output parameter of DMF_BufferPool_Enumerate. 
 
 ##### EVT_DMF_BufferPool_TimerCallback
 
@@ -234,13 +220,11 @@ None
 
 ##### Remarks
 
-* The Client owns the buffer in this callback. From this callback the client may re-insert this buffer back into the this DMF_BufferPool module instance or any other instance. 
+* The Client owns the buffer in this callback. From this callback the client may re-insert this buffer back into the this DMF_BufferPool Module instance or any other instance. 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferPool_ContextGet
 
@@ -271,8 +255,6 @@ None
 * The Client Buffer Context can be used, for example, to store insertion specific information that is needed when the buffer is removed.
 * The Client is expected to know the size and type of the buffer context because the Client  specified that information when creating the instance of DMF_BufferPool Module.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferPool_Count
 
 Given a DMF_BufferPool instance handle, return the number of buffers in the pool.
@@ -296,8 +278,6 @@ The number of buffers in the pool.
 ##### Remarks
 
 * In a multi-threaded environment, the actual number of buffers in the list may change immediately or even while this Method executes. Therefore, this Method is only useful in limited scenarios.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferPool_Enumerate
 
@@ -342,8 +322,6 @@ None
 ![Enumeration Example BufferPool_EnumerationDisposition_RemoveAndStopEnumeration](./images/DMF_BufferPool-EnumerationExample-RemoveAndStop.png)
 
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferPool_Get
 
 Remove and return the first buffer from an instance of DMF_BufferPool in FIFO order.
@@ -376,8 +354,6 @@ NTSTATUS. Fails if there is no buffer in the list.
 * If the buffer has an active timer running, the Module implementation ensures that the timer is canceled before the buffer is returned. 
 * After a buffer has been retrieved using this Method, the Client owns the buffer. The buffer must be returned to either the Source DMF_BufferPool where it was created or to any sink-mode DMF_BufferPool. Not doing so, results in a memory leak. 
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferPool_GetWithMemory
 
 Remove and return the first buffer from an instance of DMF_BufferPool in FIFO order. Also, return the WDFMEMORY object associated with the Client Buffer.
@@ -409,10 +385,8 @@ NTSTATUS. Fails if there is no buffer in the list.
 
 * Clients use this Method when they need to retrieve a buffer from the list.
 * The Client is expected to know the size of the buffer and buffer context because the Client  specified that information when creating the instance of DMF_BufferPool Module.
-* If the buffer has an active timer running, the module implementation ensures that the timer is canceled before the buffer is returned. 
+* If the buffer has an active timer running, the Module implementation ensures that the timer is canceled before the buffer is returned. 
 * After a buffer has been retrieved using this Method, the Client owns the buffer. The buffer must be returned to either the source-mode DMF_BufferPool where it was created or to any sink-mode DMF_BufferPool. Not doing so, results in a memory leak. 
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferPool_GetWithMemoryDescriptor
 
@@ -445,10 +419,8 @@ NTSTATUS. Fails if there is no buffer in the list.
 
 * Clients use this Method when they need to retrieve a buffer from the pool and then call other WDF APIs that perform operations on the buffer using the associated WDF_MEMORY_DESCRIPTOR object. For example, use this API when the buffer will be sent to a target device using a WDFREQUEST.
 * The Client is expected to know the size of the buffer and buffer context because the Client  specified that information when creating the instance of DMF_BufferPool Module.
-* If the buffer has an active timer running, the module implementation ensures that the timer is canceled before the buffer is returned. 
+* If the buffer has an active timer running, the Module implementation ensures that the timer is canceled before the buffer is returned. 
 * After a buffer has been retrieved using this Method, the Client owns the buffer. The buffer must be returned to either the source-mode DMF_BufferPool where it was created or to any sink-mode DMF_BufferPool. Not doing so, results in a memory leak. 
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferPool_ParametersGet
 
@@ -486,8 +458,6 @@ None
 
 * Clients use this Method when they have a DMF_BufferPool buffer and need to call other WDF APIs that perform operations on the buffer using the associated WDFMEMORY object. For example, use this API when the buffer will be sent to a target device using a WDFREQUEST.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferPool_Put
 
 Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the end). This list is consumed in FIFO order.
@@ -517,8 +487,6 @@ None
 * This Method cannot fail because the underlying data structure that stores the buffer is a LIST_ENTRY.
 * The Client loses the ownership of the buffer once the buffer has been put into the DMF_BufferPool. The Client must not try to access that buffer after calling the Put Method. Thereby a buffer may never be put to more than one DMF_BufferPool instance at a time. Doing so will cause corruption. This condition is checked in DEBUG mode.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferPool_PutAtHead
 
 Adds a given DMF_BufferPool buffer to an instance of DMF_BufferPool (at the start of the list). This list is consumed in LIFO order.
@@ -547,8 +515,6 @@ None
 * A sink-mode buffer pool instance may accept buffers from different instances of source-mode buffer pool, however a source-mode buffer buffer pool instance only accepts a buffer allocated by that specific instance. Violating this rule will result in unexpected errors. 
 * This Method cannot fail because the underlying data structure that stores the buffer is a LIST_ENTRY.
 * The Client loses the ownership of the buffer once the buffer has been put into the DMF_BufferPool. The Client must not try to access that buffer after calling the Put Method. Thereby a buffer may never be put to more than one DMF_BufferPool instance at a time. Doing so will cause corruption. This condition is checked in DEBUG mode.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferPool_PutInSinkWithTimer
 
@@ -589,8 +555,6 @@ None
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -603,18 +567,12 @@ None
 * A buffer can only be inserted into one buffer pool at a time. If a buffer is inserted into a buffer pool instance, that buffer pool instance is said to own the buffer. If the buffer has been retrieved by the Client explicitly (or implicitly due to a timer callback), the buffer is said to be owned by the Client. The Client must eventually put the buffer back to the buffer queue to avoid a leak. 
 * A sink-mode buffer pool instance may accept buffers from different instances of source-mode buffer pool, however a source-mode buffer pool instance only accepts a buffer allocated by that specific instance. 
 * DMF_BufferPool has sentinels around both the Client Buffer as well as the Client Context. These sentinels are used to check for buffer overrun and underrun conditions that can be very hard to detect. These checks are made whenever buffers are accessed by DMF_BufferPool. In this way the overrun or underrun error is caught soon after it has happened. Ordinarily, such an error would only be caught when Verifier checks for this condition when the buffer is freed, long after the error has occurred.
-* The Module implementation handles race conditions where different threads are putting, getting or enumerating buffers for a DMF_BufferPool instance. In addition, it handles any race conditions related to timer feature. The Client can use this module from a multi-threaded environment.  
+* The Module implementation handles race conditions where different threads are putting, getting or enumerating buffers for a DMF_BufferPool instance. In addition, it handles any race conditions related to timer feature. The Client can use this Module from a multi-threaded environment.  
 * DMF_BufferPool is useful in cases when dynamically allocated memory is needed an IRQL higher than DISPATCH_LEVEL. 
 * Many core Modules use DMF_BufferPool to build more complex Modules.
 * When a sink-mode buffer pool instance is deleted, all the buffers in that pool are automatically returned to the corresponding source-mode buffer pool instance(s).
-* When a source-mode buffer pool instance is deleted, all buffers it allocated are deleted. If any buffer is in other sink-mode buffer pool, the buffer is automatically removed from that sink-mode buffer pool and deleted. Any associated timer is also canceled. If any buffer is owned by the Client, internal reference counting prevents the module instance to be truely deleted until all the buffers are returned back to it by the Client.
+* When a source-mode buffer pool instance is deleted, all buffers it allocated are deleted. If any buffer is in other sink-mode buffer pool, the buffer is automatically removed from that sink-mode buffer pool and deleted. Any associated timer is also canceled. If any buffer is owned by the Client, internal reference counting prevents the Module instance to be truely deleted until all the buffers are returned back to it by the Client.
 * In User-mode, Config parameters EnableLookAside and CreateWithTimer cannot both be set to TRUE. Either can be TRUE, but not both. See the code for more information.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -641,9 +599,8 @@ None
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Buffers
 

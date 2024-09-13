@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This is a sample Transport Module which uses the Legacy Protocol-Transport Module feature in DMF.
 This Module simply displays a string to the Traceview log to indicate which Transport Module is running.
 
@@ -13,25 +11,17 @@ This Module simply displays a string to the Traceview log to indicate which Tran
 
 #### Module Configuration
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
-* None
 
 #### Remarks
 
@@ -42,20 +32,12 @@ This Module simply displays a string to the Traceview log to indicate which Tran
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * Although this Module has no Config and very few callbacks, that is only to make this sample simple. Transport Modules support all features of DMF.
 * If you plan to use the Legacy Protocol-Transport DMF feature, use this Module as a template for a Transport Module.
-* 
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -74,9 +56,8 @@ This Module simply displays a string to the Traceview log to indicate which Tran
 * An updated Protocol Transport Feature that is more robust is planned for the near future.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 * Template/Samples
 

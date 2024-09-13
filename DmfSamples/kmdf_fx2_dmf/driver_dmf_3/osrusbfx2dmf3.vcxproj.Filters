@@ -37,9 +37,6 @@
     <ClCompile Include="ioctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bulkrwr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Interrupt.c">
       <Filter>Source Files</Filter>
     </ClCompile>

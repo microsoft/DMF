@@ -984,6 +984,7 @@ Return Value:
 
         RtlStringCbPrintfA(recorderCreateParams.LogIdentifier,
                            RECORDER_LOG_IDENTIFIER_MAX_CHARS,
+                           "%s",
                            DmfObject->ClientModuleInstanceName);
         
         recorderStatus = WppRecorderLogCreate(&recorderCreateParams,

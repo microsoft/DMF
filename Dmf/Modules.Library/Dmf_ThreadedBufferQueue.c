@@ -1043,6 +1043,13 @@ Return Value:
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
     ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThread);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to start the thread. ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

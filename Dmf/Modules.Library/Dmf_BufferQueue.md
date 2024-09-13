@@ -4,17 +4,14 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a Producer/Consumer data structure that maintains a pool of unused buffers, allows the Client to fetch unused buffers so that it can initialize them with work to be done, and enqueue them back into this Module. Later the Client may dequeue the work, execute on the work to be done, and return the buffers back to the unused pool of this Module. The buffers are enqueued and dequeud in a FIFO order. 
 
-Internally the module is composed of two lists: producer and consumer. The producer list acts as a source of unused buffers and consumer list tracks to-be-done work. 
+Internally the Module is composed of two lists: producer and consumer. The producer list acts as a source of unused buffers and consumer list tracks to-be-done work. 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_BufferQueue
 ````
 typedef struct
@@ -39,8 +36,6 @@ EvtBufferQueueReuseCleanup |  The Client may register this callback to do any cl
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
@@ -57,7 +52,7 @@ EVT_DMF_BufferQueue_ReuseCleanup(_In_ DMFMODULE DmfModule,
 ````
 
 This callback is called when this Module is about to reuse a work buffer. Before the Module puts the work
-buffer back in its DMF_BufferQueue Producer list for reuse, the module presents it to the Client via this callback.
+buffer back in its DMF_BufferQueue Producer list for reuse, the Module presents it to the Client via this callback.
 
 ##### Parameters
 Parameter | Description
@@ -74,13 +69,9 @@ ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferQueue_ContextGet
 
@@ -112,8 +103,6 @@ None
 * The Client Buffer Context can be used, for example, to store insertion specific information that is needed when the buffer is removed.
 * The Client is expected to know the size and type of the buffer context because the Client  specified that information when creating the instance of DMF_BufferQueue Module.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferQueue_Count
 
 ````
@@ -138,8 +127,6 @@ DmfModule | An open DMF_BufferQueue Module handle.
 ##### Remarks
 
 * The number of buffers in the DMF_BufferQueue's Consumer list may change immediately after or during this call if other threads are using the same Module instance.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferQueue_Dequeue
 
@@ -171,8 +158,6 @@ ClientBufferContext | The address of the Client Buffer Context associated with t
 
 * After retrieving a buffer using this Method, the Client usually reads the contents of the buffer and performs processing using that data. Afterward, the Client returns the buffer to the DMF_BufferQueue's Producer.
 * The Client is expected to know the size and type of the buffer context because the Client specified that information when creating the instance of DMF_BufferQueue Module.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferQueue_DequeueWithMemoryDescriptor
 
@@ -208,8 +193,6 @@ ClientBufferContext | The address where the Client Context associated with the r
 * After retrieving a buffer using this Method, the Client usually reads the contents of the buffer and performs processing using that data. Afterward, the Client returns the buffer to the DMF_BufferQueue's Producer.
 * The Client is expected to know the size and type of the buffer context because the Client specified that information when creating the instance of DMF_BufferQueue Module.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferQueue_Enqueue
 
 ````
@@ -237,8 +220,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 * ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferQueue_EnqueueAtHead
 
 ````
@@ -265,8 +246,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 ##### Remarks
 
 * ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferQueue_Enumerate
 
@@ -303,8 +282,6 @@ ClientBufferContext | ClientBufferContext is used to return a DMF_BufferQueue bu
 * Since the consumer list is implemented as a DMF_BufferPool, the enumeration callback type is defined by the [DMF_BufferPool](Dmf_BufferPool.md). It is important to note that the DMFMODULE handle received in the callback is the handle of the internal DMF_BufferPool and not DMF_BufferQueue object. The Client must call DMF_ParentModuleGet to retrieve the handle to DMF_BufferQueue. The Client must not use the handle to the internal DMF_BufferPool Module for any other purpose. 
 * The EntryEnumerationCallback is called with an internal lock held. Kindly review the documentation for the [callback](Dmf_BufferPool.md).  
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferQueue_Fetch
 
 ````
@@ -337,8 +314,6 @@ ClientBufferContext | The address of the Client Buffer Context associated with t
 * After retrieving a buffer using this Method, the Client usually populates this buffer with data to be used later and then enqueues the buffer into the DMF_BufferQueue's Consumer. That buffer is later dequeued from the DMF_BufferQueue's Consumer and processed in some way. Afterward, the Client returns the buffer to the DMF_BufferQueue's Producer.
 * Since the producer list is implemented as a DMF_BufferPool the unused buffers are returned in a FIFO order, however a typical Client does not really care about that. 
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_BufferQueue_Flush
 
 ````
@@ -363,8 +338,6 @@ DmfModule | An open DMF_BufferQueue Module handle.
 ##### Remarks
 
 * Use this Method in cases when the pending work in the Consumer list does not need to be done or cannot be done.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_BufferQueue_Reuse
 
@@ -391,37 +364,28 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 ##### Remarks
 
-* ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() or by another instance of DMF_BufferQueue module may not be added Module's list using this API.
+* ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() or by another instance of DMF_BufferQueue Module may not be added Module's list using this API.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
-* The Module implements internal synchronization allowing the Client to interact with the module in multi-threaded environment without worrying about synchronization.
-* Any buffers that are part of the internal producer or consumer list are said to be owned by the DMF_BufferQueue Module. Any buffers that the Client retrieved from the DMF_BufferQueue and have not yet returned those to the DMF_BufferQueue module are said to be owned by the Client. When the DMF_BufferQueue Module instance is deleted, all the corresponding buffers that are in the producer or consumer list are automatically deleted. Internal reference counting prevents the module from getting actually deleted until all be Client owned buffers are pushed back to the DMF_BufferQueue. 
+* The Module implements internal synchronization allowing the Client to interact with the Module in multi-threaded environment without worrying about synchronization.
+* Any buffers that are part of the internal producer or consumer list are said to be owned by the DMF_BufferQueue Module. Any buffers that the Client retrieved from the DMF_BufferQueue and have not yet returned those to the DMF_BufferQueue Module are said to be owned by the Client. When the DMF_BufferQueue Module instance is deleted, all the corresponding buffers that are in the producer or consumer list are automatically deleted. Internal reference counting prevents the Module from getting actually deleted until all be Client owned buffers are pushed back to the DMF_BufferQueue. 
 * *It is important to note* that when the DMF_BufferQueue Module instance is deleted, any buffers in the consumer list are silently deleted. Client must account for this since there may have been pending to-be-done work in the consumer list. 
 
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-#### Module Children
-
-* DMF_BufferPool (2)
-
------------------------------------------------------------------------------------------------------------------------------------
-
 #### Module Implementation Details
 
-* Internally the module is composed of two lists: producer and consumer. The producer list acts as a source of unused buffers and consumer list tracks to-be-done work. During creation, a specificed set of empty buffers are allocated and added to the producer list and the consumer list is empty.
+* Internally the Module is composed of two lists: producer and consumer. The producer list acts as a source of unused buffers and consumer list tracks to-be-done work. During creation, a specificed set of empty buffers are allocated and added to the producer list and the consumer list is empty.
 * This Module instantiates two instances of DMF_BufferPool. The Producer is a source-mode [DMF_BufferPool](Dmf_BufferPool.md) instance. The Consumer is a sink-mode DMF_BufferPool instance.
-
 
 ![DMF_BufferPool Types](./images/DMF_BufferQueue-1.png)
 
@@ -438,9 +402,8 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Buffers
 

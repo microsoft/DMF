@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module supports the OSR FX2 board. The code is based on the original OSR sample driver. Most, but not all, of the
 functionality exposed by the original driver is supported in this Module. This Module, along with the Client driver samples that
 use this Module, show how to create a Module based on an existing driver. This Module demonstrates many important DMF concepts
@@ -20,7 +18,6 @@ use this Module, show how to create a Module based on an existing driver. This M
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_NonPnp
 ````
 typedef struct
@@ -38,7 +35,6 @@ InterruptPipeCallback | Called by the Module when OSR FX2 board's switches are c
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### NonPnp_Settings
 Bit-mask that allows Client to determine how the device operates.
 
@@ -56,7 +52,6 @@ NonPnp_Settings_NoDeviceInterface | Prevents applications or drivers from sendin
 NonPnp_Settings_NoEnterIdle | Prevents the device from entering idle state after 10 seconds of idle time.
 NonPnp_Settings_IdleIndication | Does turn on/off light bar when device is not idle/idle.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### NonPnp_EventWriteMessage
 These messages allow the Client to perform logging when specific events happen inside the Module. The logging mechanism is Client specific. It may just be tracing or it may write to event log.
 
@@ -89,13 +84,10 @@ NonPnp_EventWriteMessage_DeviceReenumerated | The device is re-enumerated per Us
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_NonPnp_InterruptPipeCallback
 ````
 _Function_class_(EVT_DMF_NonPnp_InterruptPipeCallback)
@@ -126,7 +118,6 @@ NtStatus | Indicates if the Module detected an error on the interrupt pipe.
 
 * This callback is also called when the device goes in and out of D0.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_NonPnp_EventWriteCallback
 ````
 _Function_class_(EVT_DMF_NonPnp_EventWriteCallback)
@@ -170,8 +161,6 @@ Parameter5 | Code path specific logging parameter.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_NonPnp_SwitchStateGet
 
 ````
@@ -203,8 +192,6 @@ SwitchState | The current state of the switches is written to this buffer.
 
 #### Module IOCTLs
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_OSRUSBFX2_GET_CONFIG_DESCRIPTOR
 
 Retrieve the OSR FX2 USB configuration descriptor information.
@@ -219,8 +206,6 @@ Output Data Buffer: USB_CONFIGURATION_DESCRIPTOR
 
 * See MSDN for information about the data returned.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_OSRUSBFX2_RESET_DEVICE
 
 Reset the OSR FX2 device.
@@ -233,8 +218,6 @@ Minimum Output Buffer Size: 0
 
 * Simply causes the OSR FX2 device to be reset.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_OSRUSBFX2_REENUMERATE_DEVICE
 
 Causes the OSR FX2 device to be re-enumerated.
@@ -246,8 +229,6 @@ Minimum Output Buffer Size: 0
 ##### Remarks
 
 * The driver will unload and reload.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_OSRUSBFX2_GET_BAR_GRAPH_DISPLAY
 
@@ -263,8 +244,6 @@ Output Data Buffer: BAR_GRAPH_STATE
 
 * The bits are not in an intuitive order. See OSR documentation.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_OSRUSBFX2_SET_BAR_GRAPH_DISPLAY
 
 Sets the current state of the light bar.
@@ -278,8 +257,6 @@ Input Data Buffer: BAR_GRAPH_STATE
 ##### Remarks
 
 * The bits are not in an intuitive order. See OSR documentation.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_OSRUSBFX2_GET_7_SEGMENT_DISPLAY
 
@@ -295,8 +272,6 @@ Output Data Buffer: UCHAR
 
 * It returns a bit mask corresponding to the LEDs that are lit, not the number displayed.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### IOCTL_OSRUSBFX2_SET_7_SEGMENT_DISPLAY
 
 Sets the current state of the 7-segment display.
@@ -310,8 +285,6 @@ Input Data Buffer: UCHAR
 ##### Remarks
 
 * The bits correspond to LED segments on the display, not the number displayed.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_OSRUSBFX2_READ_SWITCHES
 
@@ -328,8 +301,6 @@ Output Data Buffer: SWITCH_STATE
 ##### Remarks
 
 * The bits are not in an intuitive order. See OSR documentation.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_OSRUSBFX2_GET_INTERRUPT_MESSAGE
 
@@ -357,12 +328,6 @@ Output Data Buffer: UCHAR
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-#### Module Children
-
-* Dmf_IoctlHandler
-
------------------------------------------------------------------------------------------------------------------------------------
-
 #### Module Implementation Details
 
 * This Module creates PASSIVE_LEVEL locks. This may need to be changed.
@@ -379,11 +344,9 @@ Output Data Buffer: UCHAR
 
 * Add a Module Config option that allows the Module to filter out interrupts when power transitions occur. (Good for demonstration purposes.)
 
-
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Sample
 
