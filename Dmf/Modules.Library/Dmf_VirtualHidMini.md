@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module provides functionality from the VHIDMINI2 sample. This allows Client to create virtual HID device
 in both Kernel-mode and User-mode.
 
@@ -13,7 +11,6 @@ in both Kernel-mode and User-mode.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_VirtualHidMini
 Client uses this structure to configure the Module specific parameters.
 
@@ -82,13 +79,9 @@ SetOutputReport | IOCTL_HID_SET_OUTPUT_REPORT callback.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -114,8 +107,6 @@ Request | The WDFREQUEST submitted by caller.
 Packet | The HID_XFER_PACKET extracted from Request.
 ReportSize | Size of the returned to the Client.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_EVT_VirtualHidMini_GetInputReport
 ````
 _Must_inspect_result_
@@ -135,8 +126,6 @@ DmfModule | An open DMF_VirtualHidMini Module handle.
 Request | The WDFREQUEST submitted by caller.
 Packet | The HID_XFER_PACKET extracted from Request.
 ReportSize | Size of the returned to the Client.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_EVT_VirtualHidMini_InputReportProcess
 ````
@@ -162,8 +151,6 @@ BufferSize | Size of the data in Buffer in bytes.
 
 * Return `STATUS_PENDING` to indicate that Client holds on to request. In this case, Client must eventually call `DMF_VirtualHidMini_InputReportComplete`.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_EVT_VirtualHidMini_SetFeature
 ````
 _Must_inspect_result_
@@ -184,8 +171,6 @@ Request | The WDFREQUEST submitted by caller.
 Packet | The HID_XFER_PACKET extracted from Request.
 ReportSize | Size of the returned to the Client.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_EVT_VirtualHidMini_SetOutputReport
 ````
 _Must_inspect_result_
@@ -205,8 +190,6 @@ DmfModule | An open DMF_VirtualHidMini Module handle.
 Request | The WDFREQUEST submitted by caller.
 Packet | The HID_XFER_PACKET extracted from Request.
 ReportSize | Size of the returned to the Client.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_EVT_VirtualHidMini_WriteReport
 ````
@@ -231,8 +214,6 @@ ReportSize | Size of the returned to the Client.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_VirtualHidMini_InputReportComplete
 
@@ -263,8 +244,6 @@ ReadReport | The data buffer to return in the Request.
 ReadReportSize | The size of the data buffer to return in the Request.
 NtStatus | The NTSTATUS to return in the Request.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_VirtualHidMini_InputReportGenerate
 
 ````
@@ -293,19 +272,11 @@ InputReportProcess | Client callback that writes data to input report buffer.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * Client sets `InputReportProcess` based on the data that has just arrived and needs to be written.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -324,9 +295,8 @@ InputReportProcess | Client callback that writes data to input report buffer.
 * Add Client callbacks for more IOCTLs. (See TODO in code.)
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

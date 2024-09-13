@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module creates Definition and Match tables for an ACPI-compliant Fan device that uses AcpiPepDevice Module to register
 with OS PEP framework. This Module handles EvaluateMethod callback for servicing _FST and _DSM requests as well as sending 
 ACPI Notify on behalf of Fan device.
@@ -14,7 +12,6 @@ ACPI Notify on behalf of Fan device.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_AcpiPepDeviceFan
 Client uses this structure to configure the Module specific parameters.
 
@@ -80,7 +77,6 @@ DsmFunctionSupportIndex | Client can specify Fan support index to be returned as
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### AcpiPepDeviceFan_FAN_RANGE_INDEX
 ````
 typedef enum _AcpiPepDeviceFan_FAN_RANGE_INDEX
@@ -101,7 +97,6 @@ Enumerator specifying fan range indexes.
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### AcpiPepDeviceFan_TRIP_POINT
 ````
 typedef struct
@@ -119,7 +114,6 @@ Specifies high and low trip point for Fan device.
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_AcpiPepDeviceFan_FanSpeedGet
 ````
 _Function_class_(EVT_DMF_AcpiPepDeviceFan_FanSpeedGet)
@@ -146,7 +140,6 @@ FanInstanceIndex | Fan index as specified in Module config.
 Data | The speed information filled in.
 DataSize | Size of data.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_AcpiPepDeviceFan_FanTripPointsSet
 ````
 _Function_class_(EVT_DMF_AcpiPepDeviceFan_FanTripPointsSet)
@@ -171,7 +164,6 @@ DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
 FanInstanceIndex | Fan index as specified in Module config.
 TripPoint | Trip points specified for fan operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet
 ````
 _Function_class_(EVT_DMF_AcpiPepDeviceFan_DsmFanRangeGet)
@@ -198,8 +190,6 @@ DsmFanRange | Fan range information from hardware.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_AcpiPepDeviceFan_AcpiDeviceTableGet
 
 ````
@@ -224,8 +214,6 @@ Parameter | Description
 DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
 PepAcpiRegistrationTables | Tables containing information on Fan device's HW ID, name, and supported callbacks.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_AcpiPepDeviceFan_FanInitializedFlagGet
 
 ````
@@ -246,8 +234,6 @@ BOOLEAN
 Parameter | Description
 ----|----
 DmfModule | An open DMF_AcpiPepDeviceFan Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_AcpiPepDeviceFan_NotifyRequestSchedule
 
@@ -275,8 +261,6 @@ NotifyCode | The code that is to be passed to the OS.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -284,11 +268,6 @@ NotifyCode | The code that is to be passed to the OS.
 * This Module is used with one instance of AcpiPepDevice to provide support for an ACPI compliant fan at kernel level. Due to there
 being no parent-child relationship between these Modules the user has to explicitly fetch tables using supplied Method and supply
 them to AcpiPepDevice Module. See Windows-driver-samples\pofx\PEP\pepsamples for usage example.
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -298,16 +277,13 @@ them to AcpiPepDevice Module. See Windows-driver-samples\pofx\PEP\pepsamples for
 
 #### Examples
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

@@ -150,7 +150,7 @@ BOOLEAN
 DMF_DeviceInterfaceMultipleTarget_Cancel(
     _In_ DMFMODULE DmfModule,
     _In_ DeviceInterfaceMultipleTarget_Target Target,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -168,6 +168,42 @@ NTSTATUS
 DMF_DeviceInterfaceMultipleTarget_GuidGet(
     _In_ DMFMODULE DmfModule,
     _Out_ GUID* Guid
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_DeviceInterfaceMultipleTarget_ReuseDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_DeviceInterfaceMultipleTarget_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ DeviceInterfaceMultipleTarget_Target Target,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -202,7 +238,7 @@ DMF_DeviceInterfaceMultipleTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

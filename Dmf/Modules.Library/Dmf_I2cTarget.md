@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to an underlying I2C device connected on SPB bus.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_I2cTarget
 ````
 typedef struct
@@ -45,25 +42,17 @@ WriteTimeoutMs | Time units(ms) to wait for SPB Write Operation to Complete.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_I2cTarget_AddressRead
 
@@ -96,8 +85,6 @@ Buffer | The data transferred (read) via I2C is located at this address.
 BufferLength | The size in bytes of Buffer.
 
 ##### Remarks
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_I2cTarget_AddressWrite
 
 ````
@@ -129,8 +116,6 @@ Buffer | The data transferred (written) via I2C is located at this address.
 BufferLength | The size in bytes of Buffer.
 
 ##### Remarks
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_I2cTarget_BufferRead
 
 ````
@@ -160,8 +145,6 @@ BufferLength | The size in bytes of Buffer.
 TimeoutMs | Indicates that the Read transaction should fail after TimeoutMs milliseconds. Set to zero to indicate there is no timeout.
 
 ##### Remarks
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_I2cTarget_BufferWrite
 
 ````
@@ -191,8 +174,6 @@ BufferLength | The size in bytes of Buffer.
 TimeoutMs | Indicates that the Write transaction should fail after TimeoutMs milliseconds. Set to zero to indicate there is no timeout.
 
 ##### Remarks
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_I2cTarget_IsResourceAssigned
 
 ````
@@ -224,17 +205,9 @@ I2cConnectionAssigned | Flag indicating if the I2c resource is found or not.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -249,9 +222,8 @@ I2cConnectionAssigned | Flag indicating if the I2c resource is found or not.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

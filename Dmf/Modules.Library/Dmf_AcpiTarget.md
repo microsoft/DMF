@@ -4,16 +4,14 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to Acpi DSM (Device Specific Methods) functions.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_AcpiTarget
+
 ````
 typedef struct
 {
@@ -34,26 +32,20 @@ Guid | The GUID that identifies the DSMs the Client will invoke.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_AcpiTarget_EvaluateMethod
+
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -90,8 +82,6 @@ Tag | Memory tag used by this Module when allocating memory on behalf of the Cli
 
 - This Method may allocate memory. If so, Client must delete it after the memory is no longer needed. See `ReturnBufferMemory` above.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_AcpiTarget_InvokeDsm
 
 ````
@@ -122,8 +112,6 @@ ReturnBuffer | Address of a buffer allocated by this Module which contains data 
 ReturnBufferSize | The size of the data returned by the ACPI Control Method.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_AcpiTarget_InvokeDsmRaw
 
@@ -163,8 +151,6 @@ Tag | Memory tag used by this Module when allocating memory on behalf of the Cli
 
 - This Method may allocate memory. If so, Client must delete it after the memory is no longer needed. See `ReturnBufferMemory` above.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_AcpiTarget_InvokeDsmWithCustomBuffer
 
 ````
@@ -198,17 +184,9 @@ FunctionCustomArgumentsBufferSize | The size in bytes of FunctionCustomArguments
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -223,9 +201,8 @@ FunctionCustomArgumentsBufferSize | The size in bytes of FunctionCustomArguments
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

@@ -4,39 +4,28 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module allows a Client access to the SMBIOS table that resides on the Host.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_SmbiosWmi_Table01Get
 
 ````
@@ -67,7 +56,6 @@ SmbiosTable01BufferSize | The size of TargetBuffer passed by Client. If the buff
 
 * Pointers in SmbiosTable01Buffer point to data in the Module Context. Only read from those pointers.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_SmbiosWmi_TableCopy
 
 ````
@@ -99,8 +87,6 @@ TargetBufferSize | The size of TargetBuffer.
 * The buffer returned by this Method has a WMI header.
 * **This Method is included for legacy applications only. Use `DMF_SmbiosWmi_TableCopyEx()` instead.**
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SmbiosWmi_TableCopyEx
 
 ````
@@ -130,9 +116,6 @@ TargetBufferSize | The size of TargetBuffer passed by Client. If the buffer is t
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_SmbiosWmi_TableInformationGet
 
 ````
@@ -149,8 +132,6 @@ Gives the Client the address and size of the SMBIOS table stored by this Module.
 
 ##### Returns
 
-* None
-
 ##### Parameters
 Parameter | Description
 ----|----
@@ -163,7 +144,6 @@ TargetBufferSize | The size of the SMBIOS table stored by this Module.
 * Use this Method with caution as it returns the address where the SMBIOS is stored by the Module.
 * The buffer returned by this Method has a WMI header.
 * **This Method is included for legacy applications only. Use `DMF_SmbiosWmi_TableInformationGetEx()` instead.**
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_SmbiosWmi_TableInformationGetEx
 
 ````
@@ -178,8 +158,6 @@ DMF_SmbiosWmi_TableInformationGetEx(
 Gives the Client the address and size of the SMBIOS table stored by this Module.
 
 ##### Returns
-
-* None
 
 ##### Parameters
 Parameter | Description
@@ -196,17 +174,9 @@ TargetBufferSize | The size of the SMBIOS table stored by this Module.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -223,9 +193,8 @@ TargetBufferSize | The size of the SMBIOS table stored by this Module.
 * Remove legacy support.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

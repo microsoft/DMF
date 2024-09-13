@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module allows the Client to monitor the Simple Orientation interface and get current device Simple Orientation state information.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_SimpleOrientation
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -36,13 +33,9 @@ EvtSimpleOrientationReadingChangeCallback | Allows the Client to get the status 
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### SIMPLE_ORIENTATION_SENSOR_STATE
 ````
@@ -60,8 +53,6 @@ CurrentSimpleOrientation | Current Simple Orientation status.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_SimpleOrientation_SimpleOrientationSensorReadingChangeCallback
 ````
@@ -91,8 +82,6 @@ SimpleOrientationState | Updated SimpleOrientation state information.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SimpleOrientation_CurrentStateGet
 
 ````
@@ -116,8 +105,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_SimpleOrientation Module handle.
 CurrentState | Current Simple Orientation state.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SimpleOrientation_Start
 
@@ -145,8 +132,6 @@ DmfModule | An open DMF_SimpleOrientation Module handle.
 
 * SimpleOrientation sensor is started by default.
 * Only use this Method, if `DMF_SimpleOrientation_Stop` is used.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SimpleOrientation_Stop
 
@@ -180,19 +165,11 @@ DmfModule | An open DMF_SimpleOrientation Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module uses C++/WinRT, so it needs RS5+ support. Module specific code will not be compiled in RS4 and below.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -209,8 +186,6 @@ DmfModule | An open DMF_SimpleOrientation Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Sensor
 

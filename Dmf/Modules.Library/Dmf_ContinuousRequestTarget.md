@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a driver pattern that streams IOCTL requests to a WDFIOTARGET. This Module automatically creates buffers and WDFREQUESTS
 for both input and output data performs all the necessary operations to attach those buffers to WDFREQUESTS.
 
@@ -13,7 +11,6 @@ for both input and output data performs all the necessary operations to attach t
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_ContinuousRequestTarget
 ````
 typedef struct
@@ -95,7 +92,6 @@ ContinuousRequestTargetMode | Indicates the mode of ContinuousRequestTarget.
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ContinuousRequestTarget_RequestType
 Enum to specify the type of request
 
@@ -116,7 +112,6 @@ ContinuousRequestTarget_RequestType_Ioctl | The Requests will be sent to Device 
 ContinuousRequestTarget_RequestType_Read | The Requests will be sent to Read handler of the underlying WDFIOTARGET.
 ContinuousRequestTarget_RequestType_Write | The Requests will be sent to Write handler of the underlying WDFIOTARGET.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ContinuousRequestTarget_BufferDisposition
 Enum to specify who own's the output buffer and whether or not to continue streaming the request or stop
 
@@ -138,7 +133,6 @@ ContinuousRequestTarget_BufferDisposition_ContinuousRequestTargetAndStopStreamin
 ContinuousRequestTarget_BufferDisposition_ClientAndContinueStreaming | Client will own the buffer and streaming will continue. Client may access the buffer after the callback returns. Client must eventually return the buffer to DMF_ContinuousRequestTarget.
 ContinuousRequestTarget_BufferDisposition_ClientAndStopStreaming | Client will own the buffer and streaming will stop. Client may access the buffer after the callback returns. Client must eventually return the buffer to DMF_ContinuousRequestTarget.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ContinuousRequestTarget_ModeType
 These definitions indicate the mode of ContinuousRequestTarget.
 Indicates how and when the Requests start and stop streaming.
@@ -157,7 +151,6 @@ Member | Description
 ContinuousRequestTarget_Mode_Automatic | DMF_ContinuousRequestTarget_Start invoked automatically on DMF_ContinuousRequestTarget_IoTargetSet and DMF_ContinuousRequestTarget_Stop invoked automatically on DMF_ContinuousRequestTarget_IoTargetClear.
 ContinuousRequestTarget_Mode_Manual | DMF_ContinuousRequestTarget_Start and DMF_ContinuousRequestTarget_Stop must be called explicitly by the Client when needed.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ContinuousRequestTarget_CompletionOptions
 These definitions indicate the completion options associated with Completion routine.
 Indicates how and when the completion routine should be called.
@@ -179,13 +172,10 @@ ContinuousRequestTarget_Mode_Manual | EVT_DMF_ContinuousRequestTarget_SendComple
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_ContinuousRequestTarget_BufferInput
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -209,7 +199,6 @@ InputBuffer | The input buffer that the Client will populate.
 InputBufferSize | The size of InputBuffer in bytes.
 ClientBuferContextInput | The DMF_BufferPool buffer's Client specific context that corresponds with InputBuffer.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_ContinuousRequestTarget_BufferOutput
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -240,7 +229,6 @@ OutputBufferSize | The size of OutputBuffer.
 ClientBuferContextOutput | The DMF_BufferPool buffer's Client specific context associated with OutputBuffer.
 CompletionStatus | The return NTSTATUS in the associated Request returned by the underlying WDFIOTARGET.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_ContinuousRequestTarget_SendCompletion
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -278,8 +266,6 @@ CompletionStatus | The return NTSTATUS in the associated Request returned by the
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ContinuousRequestTarget_BufferPut
 
 ````
@@ -306,7 +292,6 @@ ClientBuffer | The given DMF_BufferPool buffer.
 ##### Remarks
 
 * NOTE: The given DMF_BufferPool buffer must be a properly formed DMF_BufferPool buffer.
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ContinuousRequestTarget_Cancel
 
@@ -315,11 +300,11 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 DMF_ContinuousRequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
     );
 ````
 
-This Method cancels the underlying WDFREQUEST associated with a given DmfRequestId.
+This Method cancels the underlying WDFREQUEST associated with a given DmfRequestIdCancel.
 
 ##### Returns
 
@@ -330,14 +315,12 @@ FALSE if the underlying WDFREQUEST could not be canceled because it has been com
 Parameter | Description
 ----|----
 DmfModule | An open DMF_ContinuousRequestTarget Module handle.
-DmfRequestId | The unique request id returned by `DMF_ContinuousRequestTarget_SendEx()`.
+DmfRequestIdCancel | The unique request id returned by `DMF_ContinuousRequestTarget_SendEx()`.
 
 ##### Remarks
-* **Caller must use DMF_ContinuousRequestTarget_Cancel() to cancel the DmfRequestId returned by `DMF_ContinuousRequestTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
+* **Caller must use DMF_ContinuousRequestTarget_Cancel() to cancel the DmfRequestIdCancel returned by `DMF_ContinuousRequestTarget_SendEx()`. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ContinuousRequestTarget_IoTargetClear
 
@@ -361,8 +344,6 @@ Parameter | Description
 DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ContinuousRequestTarget_IoTargetSet
 
@@ -391,7 +372,112 @@ IoTarget | The given WDFIOTARGET.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
+##### DMF_ContinuousRequestTarget_ReuseCreate
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ContinuousRequestTarget_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    );
+````
+
+Creates a WDFREQUEST that will be reused one or more times with the "Reuse" Methods.
+
+##### Returns
+
+NTSTATUS. Fails if a WDFREQUEST cannot be created.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ContinuousRequestTarget Module handle.
+DmfRequestIdReuse | Address where the created WDFREQUEST's cookie is returned. Use this cookie with the other "Reuse" Methods.
+
+##### Remarks
+
+* The driver must have a corresponding call to `DMF_ContinuousRequestTarget_ReuseDelete` in order to free memory associated with a call to this Method.
+
+##### DMF_ContinuousRequestTarget_ReuseDelete
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_ContinuousRequestTarget_ReuseDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
+    );
+````
+
+Deletes a WDFREQUEST that was previously created using `DMF_ContinuousRequestTarget_ReuseCreate`.
+
+##### Returns
+
+    TRUE if the WDFREQUEST was found and deleted.
+    FALSE if the WDFREQUEST was not found.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ContinuousRequestTarget Module handle.
+DmfRequestIdReuse | Associated cookie of the WDFREQUEST to delete.
+
+##### Remarks
+
+##### DMF_ContinuousRequestTarget_ReuseSend
+
+````
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_ContinuousRequestTarget_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
+    );
+````
+
+Reuses a given WDFREQUEST created by `DMF_ContinuousRequestTarget_ReuseCreate` Method. Attaches buffers, prepares it to be sent to WDFIOTARGET and sends it.
+
+##### Returns
+
+NTSTATUS. Fails if the Request cannot be sent to the Module's internal WDFIOTARGET.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_ContinuousRequestTarget Module handle.
+DmfRequestIdReuse | Associated cookie of the WDFREQUEST to send.
+RequestBuffer | The Client buffer that is sent to this Module's underlying WDFIOTARGET.
+RequestLength | The size in bytes of RequestBuffer.
+ResponseBuffer | The Client buffer that receives data from this Module's underlying WDFIOTARGET.
+ResponseLength | The size in bytes of ResponseBuffer.
+RequestType | The type of Request to send to this Module's underlying WDFIOTARGET.
+RequestIoctl | The IOCTL that tells the Module's underlying WDFIOTARGET the purpose of the associated Request that is sent.
+RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
+EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
+SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
+DmfRequestIdCancel | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
+
+##### Remarks
+
+* Caller passes `DmfRequestIdCancel` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
+sent to the underlying WDFIOTARGET.
+* **Caller must use `DMF_ContinuousRequestTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestIdCancel. Caller may not use WdfRequestCancel() because 
+the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
+** 
+* **Caller must not use value returned in DmfRequestIdCancel for any purpose except to pass it `DMF_ContinuousRequestTarget_Cancel()`.** For example, do not assign a context to the handle.
 
 ##### DMF_ContinuousRequestTarget_Send
 
@@ -416,7 +502,7 @@ This Method uses the given parameters to create a Request and send it asynchrono
 
 ##### Returns
 
-NTSTATUS. Fails if the Request cannot be sent to the Modules internal WDFIOTARGET.
+NTSTATUS. Fails if the Request cannot be sent to the Module's internal WDFIOTARGET.
 
 ##### Parameters
 Parameter | Description
@@ -433,8 +519,6 @@ EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that i
 SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ContinuousRequestTarget_SendEx
 
@@ -452,7 +536,7 @@ DMF_ContinuousRequestTarget_SendEx(
   _In_ ULONG RequestTimeoutMilliseconds,
   _In_opt_ EVT_DMF_ContinuousRequestTarget_SendCompletion* EvtContinuousRequestTargetSingleAsynchronousRequest,
   _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-  _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+  _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
   );
 ````
 
@@ -462,7 +546,7 @@ Ex version also allows caller to retrieve the WDFREQUEST sent to the underlying 
 
 ##### Returns
 
-NTSTATUS. Fails if the Request cannot be sent to the Modules internal WDFIOTARGET.
+NTSTATUS. Fails if the Request cannot be sent to the Module's internal WDFIOTARGET.
 
 ##### Parameters
 Parameter | Description
@@ -477,18 +561,17 @@ RequestIoctl | The IOCTL that tells the Module's underlying WDFIOTARGET the purp
 RequestTimeoutMilliseconds | A time in milliseconds that causes the call to timeout if it is not completed in that time period. Use zero for no timeout.
 EvtContinuousRequestTargetSingleAsynchronousRequest | The Client callback that is called when this Module's underlying WDFIOTARGET completes the request.
 SingleAsynchronousRequestClientContext | The Client specific context that is sent to EvtContinuousRequestTargetSingleAsynchronousRequest.
-DmfRequestId | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
+DmfRequestIdCancel | Returns a unique id associated with the underlying WDFREQUEST. Client may use this id to cancel the asynchronous transaction.
 
 ##### Remarks
 
-* Caller passes `DmfRequestId` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
+* Caller passes `DmfRequestIdCancel` when it is possible that the caller may want to cancel the WDFREQUEST that was created and
 sent to the underlying WDFIOTARGET.
-* **Caller must use `DMF_ContinuousRequestTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestId. Caller may not use WdfRequestCancel() because 
+* **Caller must use `DMF_ContinuousRequestTarget_Cancel()` to cancel the WDFREQUEST associated with DmfRequestIdCancel. Caller may not use WdfRequestCancel() because 
 the Module may asynchronously process, complete and delete the underlying WDFREQUEST at any time.**
 ** 
-* **Caller must not use value returned in DmfRequestId for any purpose except to pass it `DMF_ContinuousRequestTarget_Cancel()`.** For example, do not assign a context to the handle.
+* **Caller must not use value returned in DmfRequestIdCancelCancel for any purpose except to pass it `DMF_ContinuousRequestTarget_Cancel()`.** For example, do not assign a context to the handle.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ContinuousRequestTarget_SendSynchronously
 
 ````
@@ -511,7 +594,7 @@ This Method uses the given parameters to create a Request and send it synchronou
 
 ##### Returns
 
-NTSTATUS. Fails if the Request cannot be sent to the Modules internal WDFIOTARGET.
+NTSTATUS. Fails if the Request cannot be sent to the Module's internal WDFIOTARGET.
 
 ##### Parameters
 Parameter | Description
@@ -527,8 +610,6 @@ RequestTimeoutMilliseconds | A time in milliseconds that causes the call to time
 BytesWritten | The number of bytes transferred to/from the underlying WDFIOTARGET.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ContinuousRequestTarget_Start
 
@@ -553,8 +634,6 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ContinuousRequestTarget_StopAndWait
 
 ````
@@ -578,12 +657,12 @@ Parameter | Description
 DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 
 ##### Remarks
+
 * Clients should use this Method prior to the Close of a Parent Module or when the Client Driver will be disabled.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -596,13 +675,6 @@ DmfModule | An open DMF_ContinuousRequestTarget Module handle.
 * Child BufferPool Module's locks are automatically set based on the PoolType chosen by the Client. That is, if the Client chooses a paged pool type, then the
 Child BufferPool Module is automatically created using PASSIVE_LEVEL locks, otherwise it is created using DISPATCH_LEVEL locks.'
 * Using non-paged pool type input/output buffers and PASSIVE_LEVEL locks for the Child Module is not supported at this time, but may be later if needed.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_BufferPool (3)
-* DMF_QueuedWorkitem (2)
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -621,9 +693,8 @@ Child BufferPool Module is automatically created using PASSIVE_LEVEL locks, othe
 * Support non-paged pool type input/output buffers and PASSIVE_LEVEL locks for BufferPool.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

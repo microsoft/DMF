@@ -320,10 +320,17 @@ Return Value:
 
     DmfAssert(EventCount != 0);
     DmfAssert(EventPointer != NULL);
+    DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
+
+    if (EventCount > MAXIMUM_WAIT_OBJECTS)
+    {
+        returnValue = STATUS_INVALID_PARAMETER;
+        DmfAssert(FALSE);
+        goto Exit;
+    }
 
 #if defined(DMF_USER_MODE)
     HANDLE waitHandles[MAXIMUM_WAIT_OBJECTS];
-    DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
 
     for (ULONG eventIndex = 0; eventIndex < EventCount; ++eventIndex)
     {
@@ -410,7 +417,6 @@ Return Value:
 #else
     VOID* waitObjects[MAXIMUM_WAIT_OBJECTS];
     WAIT_TYPE waitType;
-    DmfAssert(EventCount <= MAXIMUM_WAIT_OBJECTS);
 
     for (ULONG eventIndex = 0; eventIndex < EventCount; ++eventIndex)
     {
@@ -455,6 +461,8 @@ Return Value:
                                            timeout100nsPointer,
                                            NULL);
 #endif // defined(DMF_USER_MODE)
+
+Exit:
 
     FuncExit(DMF_TRACE, "returnValue=0x%X", returnValue);
 

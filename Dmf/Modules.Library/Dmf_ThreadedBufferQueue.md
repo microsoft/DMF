@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a DMF_ThreadedBufferQueue which consists of a DMF_Thread and a DMF_BufferQueue. A Client callback is called after work
 has been removed from the DMF_BufferQueue's Consumer list. After the callback completes the buffer with work is returned
 to the DMF_BufferQueue's Producer list.
@@ -14,7 +12,6 @@ to the DMF_BufferQueue's Producer list.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_ThreadedBufferQueue
 ````
 typedef struct
@@ -49,7 +46,6 @@ EvtThreadedBufferQueueReuseCleanup | The Client may register this callback to do
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ThreadedBufferQueue_BufferDisposition
 Enum to specify what the Client wants to do with the retrieved work buffer.
 
@@ -75,13 +71,10 @@ ThreadedBufferQueue_BufferDisposition_WorkPending | Client retains ownership of 
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_ThreadedBufferQueue_Callback
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -107,7 +100,7 @@ DmfModule | An open DMF_ThreadedBufferQueue Module handle.
 ClientWorkBuffer | This buffer contains the work that needs to be done in this callback. This buffer is owned by Client until this function returns.
 ClientWorkBufferSize | The size of ClientWorkBuffer for validation purposes.
 ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
-NtStatus | The NTSTATUS value to return to the function that initially populated the work buffer.
+NtStatus | The NTSTATUS to return to the function that initially populated the work buffer.
 
 ##### EVT_DMF_BufferQueue_ReuseCleanup
 ````
@@ -137,8 +130,6 @@ ClientWorkBufferContext | An optional context associated with ClientWorkBuffer.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ThreadedBufferQueue_Count
 
 ````
@@ -164,8 +155,6 @@ DmfModule | An open DMF_ThreadedBufferQueue Module handle.
 ##### Remarks
 
 * The Consumer list usually has the pending work to do so the number of entries is useful at times.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ThreadedBufferQueue_Enqueue
 
@@ -194,8 +183,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 * ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ThreadedBufferQueue_EnqueueAtHead
 
 ````
@@ -222,8 +209,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 ##### Remarks
 
 * ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ThreadedBufferQueue_EnqueueAndWait
 
@@ -255,8 +240,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 * ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ThreadedBufferQueue_EnqueueAtHeadAndWait
 
 ````
@@ -286,8 +269,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 ##### Remarks
 
 * ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ThreadedBufferQueue_Fetch
 
@@ -320,8 +301,6 @@ ClientBufferContext | The address of the Client Buffer Context associated with t
 * Clients use this Method when they need to retrieve a buffer from the list.
 * The Client knows the size of the buffer and buffer context because the Client has specified that information when creating the DMF_BufferQueue Module.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ThreadedBufferQueue_Flush
 
 ````
@@ -346,8 +325,6 @@ DmfModule | An open DMF_ThreadedBufferQueue Module handle.
 ##### Remarks
 
 * Use this Method to stop processing pending work that has not started. Work that has already started will continue until it has finished processing.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_ThreadedBufferQueue_Reuse
 
@@ -377,8 +354,6 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 * ClientBuffer *must* have been previously retrieved from an instance of DMF_ThreadedBufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 * Clients may use this Method if a buffer has been fetched but it is determined that it cannot be enqueued for some reason and must be returned to the free pool of buffers.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ThreadedBufferQueue_Start
 
 ````
@@ -405,8 +380,6 @@ DmfModule | An open DMF_ThreadedBufferQueue Module handle.
 
 * Starts the underlying thread that will processes enqueued work.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_ThreadedBufferQueue_Stop
 
 ````
@@ -432,7 +405,6 @@ DmfModule | An open DMF_ThreadedBufferQueue Module handle.
 
 * Stops the underlying thread that processes enqueued work.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ThreadedBufferQueue_WorkCompleted
 
 ````
@@ -464,8 +436,6 @@ NtStatus | Status indicating result of work.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -474,13 +444,6 @@ NtStatus | Status indicating result of work.
 * This Module is useful in cases where multiple threads receive requests to perform work but the work must be done in a synchronous manner (when writing to hardware).
 * The Client just needs to supply a callback that does Client specific work.
 * This Module does the work of removing work from the Consumer list and replacing the work buffer back into the Producer list.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_BufferQueue
-* DMF_Thread
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -497,9 +460,8 @@ NtStatus | Status indicating result of work.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Buffers
 

@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a driver pattern that accepts Requests (via IOCTLs) from a caller and enqueues them. When data is available to complete
 the Requests, the enqueued requests are dequeued and Client specific callbacks are called that populate the Requests. Then, the
 Requests are completed.
@@ -14,7 +12,6 @@ Requests are completed.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_NotifyUserWithRequest
 ````
 typedef struct
@@ -58,19 +55,14 @@ TimeStamping | If TRUE, this Module timestamps enqueued requests and data buffer
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_NotifyUserWithRequeset_Complete
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -95,8 +87,6 @@ NtStatus | The NTSTATUS to return in the Request to the caller.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_NotifyUserWithRequest_DataBufferTimestampGet
 
@@ -126,8 +116,6 @@ DataBuffer | The given data buffer passed in the callback.
 * Time stamp is zero unless time stamping is enabled when the Module is instantiated using its Config.
 * **Only call this Method from the callback using the supplied formal parameter.**
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_NotifyUserWithRequest_DataProcess
 
 ````
@@ -154,15 +142,13 @@ Parameter | Description
 DmfModule | An open DMF_NotifyUserWithRequest Module handle.
 EventCallbackFunction | The callback that the Module calls which allows the Client to populate the Request that will be returned.
 EventCallbackContext | A Client Specific context that is passed to the given callback.
-NtStatus | The NTSTATUS value to set in the Request that is to be returned.
+NtStatus | The NTSTATUS to set in the Request that is to be returned.
 
 ##### Remarks
 
 * This Method does not extract data from the queue to return. The data to return is passed to the Method.
 * This Method allows pending requests to be completed when data they consume is available.
 * This Method should not be called if MaximumNumberOfPendingDataBuffers in the Module's config is set to zero.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_NotifyUserWithRequest_EventRequestAdd
 
@@ -192,8 +178,6 @@ Request | The given Request.
 ##### Remarks
 
 * Do not use this Method when the DMF_NotifyUserWithRequest instance enqueues data to be returned to the Caller.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_NotifyUserWithRequest_RequestProcess
 
@@ -225,8 +209,6 @@ Request | The given Request.
 * Use this Method when the DMF_NotifyUserWithRequest instance enqueues data to be returned to the Caller.
 * This Method should not be called if MaximumNumberOfPendingDataBuffers in the Module's config is set to zero.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_NotifyUserWithRequest_RequestReturn
 
 ````
@@ -253,13 +235,11 @@ Parameter | Description
 DmfModule | An open DMF_NotifyUserWithRequest Module handle.
 EventCallbackFunction | The callback that the Module calls which allows the Client to populate the Request that will be returned.
 EventCallbackContext | A Client Specific context that is passed to the given callback.
-NtStatus | The NTSTATUS value to set in the Request that is to be returned.
+NtStatus | The NTSTATUS to set in the Request that is to be returned.
 
 ##### Remarks
 
 * This Method does not extract data from the queue to return. The data to return is passed to the Method.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_NotifyUserWithRequest_RequestReturnAll
 
@@ -287,14 +267,12 @@ Parameter | Description
 DmfModule | An open DMF_NotifyUserWithRequest Module handle.
 EventCallbackFunction | The callback that the Module calls which allows the Client to populate the Request that will be returned.
 EventCallbackContext | A Client Specific context that is passed to the given callback.
-NtStatus | The NTSTATUS value to set in the Request that is to be returned.
+NtStatus | The NTSTATUS to set in the Request that is to be returned.
 
 ##### Remarks
 
 * This Method does not extract data from the queue to return. The data to return is passed to the Method.
 * This Method returns the same data to all pending Requests.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_NotifyUserWithRequest_RequestReturnEx
 
@@ -324,13 +302,11 @@ Parameter | Description
 DmfModule | An open DMF_NotifyUserWithRequest Module handle.
 EventCallbackFunction | The callback that the Module calls which allows the Client to populate the Request that will be returned.
 EventCallbackContext | A Client Specific context that is passed to the given callback.
-NtStatus | The NTSTATUS value to set in the Request that is to be returned.
+NtStatus | The NTSTATUS to set in the Request that is to be returned.
 
 ##### Remarks
 
 * This Method does not extract data from the queue to return. The data to return is passed to the Method.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_NotifyUserWithRequest_RequestTimestampGet
 
@@ -364,8 +340,6 @@ Request | The given request passed in the callback.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -374,12 +348,6 @@ Request | The given request passed in the callback.
 * The Producer contains empty buffers that can be retrieved and written to.
 * After the buffers from Producer are written to, they are put in the Consumer. The Consumer is, essentially, a list of pending work.
 * After buffers are removed from Producer and the corresponding work is done, they are added back to the Producer.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_BufferQueue
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -400,8 +368,6 @@ Request | The given request passed in the callback.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Driver Patterns
 

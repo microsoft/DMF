@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module exposes a device interface that accepts IOCTLs which allow the sender to control eye gaze hardware. In this case, the
 underlying device is a virtual HID eye gaze device.
 
@@ -17,7 +15,6 @@ Please see that location for detailed information about eye gaze device support.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_EyeGazeIoctl
 Client uses this structure to configure the Module specific parameters.
 
@@ -41,13 +38,9 @@ Version | Indicates the Version of the underlying virtual HID eye gaze device.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -79,12 +72,6 @@ Allows the Client to control the device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-#### Module Children
-
-* DMF_VirtualEyeGaze
-
------------------------------------------------------------------------------------------------------------------------------------
-
 #### Module Implementation Details
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -98,9 +85,8 @@ Allows the Client to control the device.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

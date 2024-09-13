@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module serves as an example of a virtual HID device that uses DMF_VirtualHidMini as a "base class". See the MSDN sample, VHIDMINI2
 for more information.
 
@@ -13,7 +11,6 @@ for more information.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_VirtualHidMiniSample
 Client uses this structure to configure the Module specific parameters.
 
@@ -33,13 +30,9 @@ ReadFromRegistry | Indicates that the HID Device Descriptor information should b
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,20 +46,12 @@ ReadFromRegistry | Indicates that the HID Device Descriptor information should b
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
-* IMPORTANT: Kernel-mode drivers must set MSHIDMKDF.sys as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. See the VHidMini2DmfK.inx for an example.
+* IMPORTANT: Kernel-mode drivers must set MSHIDKMDF.sys as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. See the VHidMini2DmfK.inx for an example.
 * IMPORTANT: User-mode drivers must set MSHIDUMDF.sys as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. See the VHidMini2DmfU.inx for an example.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,9 +71,8 @@ ReadFromRegistry | Indicates that the HID Device Descriptor information should b
 * Implement reading the descriptor from the registry feature or remove it (or possibly move it to DMF_VirtualHidMini.)
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

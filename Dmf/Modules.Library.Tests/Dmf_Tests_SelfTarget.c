@@ -146,15 +146,17 @@ Tests_SelfTarget_ThreadAction_Synchronous(
                                                                                  MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
 
     bytesWritten = 0;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST01:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld", moduleContext->DmfModuleSelfTargetDispatch, sleepIoctlBuffer.TimeToSleepMilliseconds);
     ntStatus = DMF_SelfTarget_SendSynchronously(moduleContext->DmfModuleSelfTargetDispatch,
                                                 &sleepIoctlBuffer,
                                                 sizeof(Tests_IoctlHandler_Sleep),
-                                                NULL,
-                                                NULL,
+                                                &sleepIoctlBuffer,
+                                                sizeof(Tests_IoctlHandler_Sleep),
                                                 ContinuousRequestTarget_RequestType_Ioctl,
                                                 IOCTL_Tests_IoctlHandler_SLEEP,
                                                 0,
                                                 &bytesWritten);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST01:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld SyncComplete", moduleContext->DmfModuleSelfTargetDispatch, sleepIoctlBuffer.TimeToSleepMilliseconds);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
@@ -163,15 +165,17 @@ Tests_SelfTarget_ThreadAction_Synchronous(
     sleepIoctlBuffer.TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_SYNCHRONOUS_MS);
     bytesWritten = 0;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST02:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld", moduleContext->DmfModuleSelfTargetPassive, sleepIoctlBuffer.TimeToSleepMilliseconds);
     ntStatus = DMF_SelfTarget_SendSynchronously(moduleContext->DmfModuleSelfTargetPassive,
                                                 &sleepIoctlBuffer,
                                                 sizeof(Tests_IoctlHandler_Sleep),
-                                                NULL,
-                                                NULL,
+                                                &sleepIoctlBuffer,
+                                                sizeof(Tests_IoctlHandler_Sleep),
                                                 ContinuousRequestTarget_RequestType_Ioctl,
                                                 IOCTL_Tests_IoctlHandler_SLEEP,
                                                 0,
                                                 &bytesWritten);
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST02:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld SyncComplete", moduleContext->DmfModuleSelfTargetPassive, sleepIoctlBuffer.TimeToSleepMilliseconds);
     DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
     // TODO: Get time and compare with send time.
     //
@@ -184,7 +188,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 Tests_SelfTarget_SendCompletion(
-    _In_ DMFMODULE DmfModule,
+    _In_ DMFMODULE DmfModuleRequestTarget,
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
@@ -195,22 +199,28 @@ Tests_SelfTarget_SendCompletion(
 {
     DMF_CONTEXT_Tests_SelfTarget* moduleContext;
     Tests_IoctlHandler_Sleep* sleepIoctlBuffer;
+    DMFMODULE dmfModuleSelfTarget;
+    DMFMODULE dmfModule;
 
     // TODO: Get time and compare with send time.
     //
-    UNREFERENCED_PARAMETER(DmfModule);
     UNREFERENCED_PARAMETER(InputBuffer);
     UNREFERENCED_PARAMETER(InputBufferBytesWritten);
     UNREFERENCED_PARAMETER(OutputBuffer);
     UNREFERENCED_PARAMETER(OutputBufferBytesRead);
     UNREFERENCED_PARAMETER(CompletionStatus);
 
-    moduleContext = (DMF_CONTEXT_Tests_SelfTarget*)ClientRequestContext;
-    sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)InputBuffer;
+    // NOTE: SelfTarget Module does not properly chain callbacks.
+    //       This will be fixed in the future.
+    //
+    dmfModuleSelfTarget = DMF_ParentModuleGet(DmfModuleRequestTarget);
+    dmfModule = DMF_ParentModuleGet(dmfModuleSelfTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    sleepIoctlBuffer = (Tests_IoctlHandler_Sleep*)ClientRequestContext;
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d InputBuffer=0x%p", 
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST: RECEIVE sleepIoctlBuffer->TimeToSleepMilliseconds=%d sleepIoctlBuffer=0x%p", 
                 sleepIoctlBuffer->TimeToSleepMilliseconds,
-                InputBuffer);
+                sleepIoctlBuffer);
 
     DMF_BufferPool_Put(moduleContext->DmfModuleBufferPool,
                        (VOID*)sleepIoctlBuffer);
@@ -260,16 +270,17 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                   MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST03:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld", moduleContext->DmfModuleSelfTargetDispatch, sleepIoctlBuffer->TimeToSleepMilliseconds);
     ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetDispatch,
                                    sleepIoctlBuffer,
                                    sizeof(Tests_IoctlHandler_Sleep),
-                                   NULL,
-                                   NULL,
+                                   sleepIoctlBuffer,
+                                   sizeof(Tests_IoctlHandler_Sleep),
                                    ContinuousRequestTarget_RequestType_Ioctl,
                                    IOCTL_Tests_IoctlHandler_SLEEP,
                                    timeoutMs,
                                    Tests_SelfTarget_SendCompletion,
-                                   moduleContext);
+                                   sleepIoctlBuffer);
     if (!NT_SUCCESS(ntStatus))
     {
         // Completion routine will not happen. Return buffer now or a leak happens.
@@ -290,16 +301,17 @@ Tests_SelfTarget_ThreadAction_Asynchronous(
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                   MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST04:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld", moduleContext->DmfModuleSelfTargetPassive, sleepIoctlBuffer->TimeToSleepMilliseconds);
     ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetPassive,
                                    sleepIoctlBuffer,
                                    sizeof(Tests_IoctlHandler_Sleep),
-                                   NULL,
-                                   NULL,
+                                   sleepIoctlBuffer,
+                                   sizeof(Tests_IoctlHandler_Sleep),
                                    ContinuousRequestTarget_RequestType_Ioctl,
                                    IOCTL_Tests_IoctlHandler_SLEEP,
                                    timeoutMs,
                                    Tests_SelfTarget_SendCompletion,
-                                   moduleContext);
+                                   sleepIoctlBuffer);
     if (!NT_SUCCESS(ntStatus))
     {
         // Completion routine will not happen. Return buffer now or a leak happens.
@@ -345,16 +357,17 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
     sleepIoctlBuffer->TimeToSleepMilliseconds = timeToSleepMilliseconds;
 
     bytesWritten = 0;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST05:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld", moduleContext->DmfModuleSelfTargetDispatch, sleepIoctlBuffer->TimeToSleepMilliseconds);
     ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetDispatch,
                                    sleepIoctlBuffer,
                                    sizeof(Tests_IoctlHandler_Sleep),
-                                   NULL,
-                                   NULL,
+                                   sleepIoctlBuffer,
+                                   sizeof(Tests_IoctlHandler_Sleep),
                                    ContinuousRequestTarget_RequestType_Ioctl,
                                    IOCTL_Tests_IoctlHandler_SLEEP,
                                    ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                    Tests_SelfTarget_SendCompletion,
-                                   moduleContext);
+                                   sleepIoctlBuffer);
     if (!NT_SUCCESS(ntStatus))
     {
         // Completion routine will not happen. Return buffer now or a leak happens.
@@ -384,16 +397,17 @@ Tests_SelfTarget_ThreadAction_AsynchronousCancel(
     sleepIoctlBuffer->TimeToSleepMilliseconds = TestsUtility_GenerateRandomNumber(0, 
                                                                                  MAXIMUM_SLEEP_TIME_MS);
     bytesWritten = 0;
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ST06:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld", moduleContext->DmfModuleSelfTargetPassive, sleepIoctlBuffer->TimeToSleepMilliseconds);
     ntStatus = DMF_SelfTarget_Send(moduleContext->DmfModuleSelfTargetPassive,
                                    sleepIoctlBuffer,
                                    sizeof(Tests_IoctlHandler_Sleep),
-                                   NULL,
-                                   NULL,
+                                   sleepIoctlBuffer,
+                                   sizeof(Tests_IoctlHandler_Sleep),
                                    ContinuousRequestTarget_RequestType_Ioctl,
                                    IOCTL_Tests_IoctlHandler_SLEEP,
                                    ASYNCHRONOUS_REQUEST_TIMEOUT_MS,
                                    Tests_SelfTarget_SendCompletion,
-                                   moduleContext);
+                                   sleepIoctlBuffer);
     if (!NT_SUCCESS(ntStatus))
     {
         // Completion routine will not happen. Return buffer now or a leak happens.

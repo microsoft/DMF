@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module allows Clients to scheduled work that will completed a SINGLE time, either
 for the duration of the Driver's runtime or persistent over reboots.
 
@@ -15,7 +13,6 @@ NOTE: A better name for this Module is "ScheduleTaskOnce".
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_ScheduledTask
 ````
 typedef struct
@@ -63,7 +60,6 @@ TimeMsBeforeInitialCall | The amount of time to wait in milliseconds before the 
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ScheduledTask_Result_Type
 ````
 typedef enum
@@ -85,7 +81,6 @@ ScheduledTask_WorkResult_Fail | Indicates that the Client callback failed.
 ScheduledTask_WorkResult_FailButTryAgain | Indicates that the Client callback fails but that another attempt should be made automatically based on fail timer interval.
 ScheduledTask_WorkResult_SuccessButTryAgain | Indicates that the Client callback succeeded, but that another attempt should be made based on success timer interval.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ScheduledTask_Persistence_Type
 ````
 typedef enum
@@ -104,7 +99,6 @@ Member | Description
 ScheduledTask_Persistence_PersistentAcrossReboots | It means that the number of times the callback has executed should be written to the registry so that the value is persistent across reboots.
 ScheduledTask_Persistence_NotPersistentAcrossReboots | It means that the number of times the callback has executed should not be written to the registry so that the value is not persistent across reboots.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ScheduledTask_ExecuteWhen_Type
 ````
 typedef enum
@@ -128,7 +122,6 @@ ScheduledTask_ExecuteWhen_PrepareHardware | It means that the Client callback wi
 ScheduledTask_ExecuteWhen_D0Entry | It means that the Client callback will try to execute from EvtDeviceD0Entry callback. It may or may not actually execute depending on other attributes set during instantiation.
 ScheduledTask_ExecuteWhen_Other | It means that the Client callback will execute neither in during PrepareHardware nor D0Exntry.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ScheduledTask_ExecutionMode_Type
 ````
 typedef enum
@@ -147,13 +140,10 @@ ScheduledTask_ExecutionMode_Deferred | Indicates that the Client callback should
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_ScheduledTask_Callback
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -184,7 +174,6 @@ PreviousState | Used when the callback is executed in D0Entry to tell the Client
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_Cancel
 
 ````
@@ -209,7 +198,6 @@ DmfModule | An open DMF_ScheduledTask Module handle.
 
 * Call `DMF_ScheduledTask_Cancel()` before calling `WdfObjectDelete()` when a dynamic instance is used.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_ExecuteNow
 ````
 _Must_inspect_result_
@@ -237,7 +225,6 @@ CallbackContext | This is a Client specific context that is passed to the Client
 * Is possible to use this Method from a Module's Close callback.
 * In this case, the Client callback is called in the same thread.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_ExecuteNowDeferred
 ````
 _Must_inspect_result_
@@ -270,7 +257,6 @@ CallbackContext | This is a Client specific context that is passed to the Client
 * It is best to use the Ex version of this Method as it works intuitively.
 * This Method is present to maintain compatibility with legacy Clients.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_ExecuteNowDeferredEx
 ````
 _Must_inspect_result_
@@ -299,7 +285,6 @@ DmfModule | An open DMF_ScheduledTask Module handle.
 * It is possible to use this Method to execute code in a different thread. Sometimes, due to locking issues, this capability is needed.
 * **IMPORTANT:** When the callback returns `ScheduledTask_WorkResult_Success` it means that the callback will never execute again.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_Restart
 
 ````
@@ -323,7 +308,6 @@ DmfModule | An open DMF_ScheduledTask Module handle.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_TimesRunGet
 
 ````
@@ -350,7 +334,6 @@ TimesRun | Returns the number of times the DMF_ScheduledTask routine has execute
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ScheduledTask_TimesRunSet
 
 ````
@@ -382,19 +365,11 @@ TimesRun | The given value to write to the registry.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module is useful when it is necessary to execute code in a different thread due to locking constraints.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -417,9 +392,8 @@ TimesRun | The given value to write to the registry.
 * Add support for a delay in the loop that executes all the deferred calls to prevent the processor from spinning for too long.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Task Execution
 

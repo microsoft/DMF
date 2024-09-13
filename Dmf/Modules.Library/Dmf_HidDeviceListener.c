@@ -1110,8 +1110,9 @@ Return Value:
     FuncExitVoid(DMF_TRACE);
 }
 
+#pragma code_seg("PAGE")
 _Function_class_(DMF_ModuleSelfManagedIoInit)
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 DMF_HidDeviceListener_SelfManagedIoInit(
     _In_ DMFMODULE DmfModule
@@ -1162,6 +1163,7 @@ Return Value:
 
     return ntStatus;
 }
+#pragma code_seg()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks

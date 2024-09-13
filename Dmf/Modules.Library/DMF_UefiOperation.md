@@ -4,39 +4,27 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module provides UEFI basic operations. It allows clients to do data reading and changing to UEFI.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_UefiOperation_FirmwareEnvironmentVariableAllocateGet
 
@@ -73,8 +61,6 @@ VariableBufferSize | As input, it pass the desired size that needs to be read. A
 VariableBufferHandle | WDF Memory Handle for the client
 Attributes | Location to which the routine writes the attributes of the specified environment variable.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_UefiOperation_FirmwareEnvironmentVariableGet
 
 ````
@@ -106,8 +92,6 @@ Name | Name of UEFI variable to read data from.
 Guid | GUID of UEFI variable to read data from.
 VariableBuffer | Buffer that will store the data that is read from the UEFI variable.
 VariableBufferSize | As input, it pass the desired size that needs to be read. As output, it send back the actual size that was read from UEFI.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_UefiOperation_FirmwareEnvironmentVariableGetEx
 
@@ -141,8 +125,6 @@ VariableBuffer | Buffer that will store the data that is read from the UEFI vari
 VariableBufferSize | As input, it passes the desired size that needs to be read. As output, it sends back the actual size that was read from UEFI.
 Attributes | Location to which the routine writes the attributes of the specified environment variable.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_UefiOperation_FirmwareEnvironmentVariableSet
 
 ````
@@ -173,8 +155,6 @@ Name | Name of UEFI variable to write data to.
 Guid | GUID of UEFI variable to write data to.
 VariableBuffer | Buffer that stores the data that is to be written to the UEFI variable.
 VariableBufferSize | Size of VariableBuffer in bytes.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_UefiOperation_FirmwareEnvironmentVariableSetEx
 
@@ -212,17 +192,9 @@ Attributes | The attributes to assign to the specified environment variable.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -239,8 +211,6 @@ Attributes | The attributes to assign to the specified environment variable.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Hardware
 

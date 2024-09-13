@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Exposes a virtual HID Ambient Color Sensor (ACS) and methods to send lux data up the HID stack.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_VirtualHidAmbientColorSensor
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -49,8 +46,6 @@ FeatureReportDataSet | Allows CLIENT to GET feature report data.
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
@@ -72,7 +67,6 @@ typedef struct
 See the document, *HID-Sensors-Usages.docx*. This document describes these fields in detail.
 Document is available here: https://docs.microsoft.com/en-us/windows-hardware/design/whitepapers/hid-sensors-usages
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### ACS_INPUT_REPORT_DATA
 ````
 typedef struct
@@ -91,7 +85,6 @@ Document is available here: https://docs.microsoft.com/en-us/windows-hardware/de
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_VirtualHidAmbientColorSensor_FeatureReportDataGet
 ````
 typedef
@@ -109,7 +102,6 @@ Parameter | Description
 DmfModule | An open DMF_VirtualHidAmbientColorSensor Module handle.
 FeatureReportData | The target buffer where Client writes ACS Feature Report Data.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_VirtualHidAmbientColorSensor_FeatureReportDataSet
 ````
 typedef
@@ -126,8 +118,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_VirtualHidAmbientColorSensor Module handle.
 FeatureReportData | The target buffer where Client reads ACS Feature Report Data.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_VirtualHidAmbientColorSensor_InputReportDataGet
 ````
@@ -147,9 +137,8 @@ DmfModule | An open DMF_VirtualHidAmbientColorSensor Module handle.
 InputReportData | The target buffer where Client writes ACS Input Report Data.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Methods
 
 ##### DMF_VirtualHidAmbientColorSensor_LuxValueSend
 
@@ -187,19 +176,11 @@ ChromaticityY | ChromaticityY data to send up the HID stack.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * IMPORTANT: Vhf.sys must be set as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. Otherwise, the VHF API is not available and this Module's Open callback will fail.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_VirtualHidDeviceVhf
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -216,9 +197,8 @@ ChromaticityY | ChromaticityY data to send up the HID stack.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

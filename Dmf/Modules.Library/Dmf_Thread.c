@@ -46,21 +46,30 @@ typedef struct _DMF_CONTEXT_Thread
     // Thread object.
     //
     VOID* ThreadObject;
-    // Work Ready Event.
+    // Work Ready Event used to signal that the thread should do work.
     //
     DMF_PORTABLE_EVENT EventWorkReady;
-    // Stop Event.
+    // Stop Event used to signal that the thread should stop accepting work.
     //
-    DMF_PORTABLE_EVENT EventStopInternal;
-    // Pointer to either the event above, or to the Client Driver's Stop Event.
-    //
-    DMF_PORTABLE_EVENT* EventStop;
+    DMF_PORTABLE_EVENT EventStop;
+    // Close Event used to signal that the thread can exit.
+    // 
+    DMF_PORTABLE_EVENT EventClose;
+    // Start Event used to signal that the thread can start accepting work.
+    // 
+    DMF_PORTABLE_EVENT EventStart;
+    // Event used to signal that the thread has stopped running work
+    // 
+    DMF_PORTABLE_EVENT EventStopComplete;
     // Indicates whether a stop request is pending for thread work completion.
     // NOTE: There is no way to check if an event is set in User-mode as there
     //       is in Kernel-mode. So, this flag is necessary. Both User and Kernel 
     //       mode will execute the same algorithm.
     //
     BOOLEAN IsThreadStopPending;
+    // Indicates whether the thread is suspended.
+    //
+    BOOLEAN IsStopped;
 } DMF_CONTEXT_Thread;
 
 // This macro declares the following function:
@@ -119,14 +128,18 @@ Return Value:
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread START");
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    waitObjects[0] = &moduleContext->EventWorkReady;
-    waitObjects[1] = moduleContext->EventStop;
+    // NOTE: Place EventStop first in the array in case both events are set
+    //       so that if there is a lot of pending work, Thread_ThreadStop will
+    //       wait for all the work to complete. This is necessary so that 
+    //       PnP operations are not delayed.
+    //
+    waitObjects[0] = &moduleContext->EventStop;
+    waitObjects[1] = &moduleContext->EventWorkReady;
 
-    waitStatus = STATUS_WAIT_0;
-    while (STATUS_WAIT_1 != waitStatus)
+    waitStatus = STATUS_WAIT_1;
+    while (STATUS_WAIT_0 != waitStatus)
     {
         waitStatus = DMF_Portable_EventWaitForMultiple(ARRAYSIZE(waitObjects),
                                                        waitObjects,
@@ -135,7 +148,7 @@ Return Value:
                                                        FALSE);
         switch (waitStatus)
         {
-            case STATUS_WAIT_0:
+            case STATUS_WAIT_1:
             {
                 // Do the work the Client needs to do.
                 //
@@ -143,9 +156,10 @@ Return Value:
                 moduleConfig->ThreadControl.DmfControl.EvtThreadWork(DmfModule);
                 break;
             }
-            case STATUS_WAIT_1:
+            case STATUS_WAIT_0:
             {
                 // Exit event raised...Loop will exit.
+                // NOTE: This event has higher priority.
                 //
                 break;
             }
@@ -203,6 +217,9 @@ Return Value:
 {
     DMF_CONTEXT_Thread* moduleContext;
     DMF_CONFIG_Thread* moduleConfig;
+    #define Thread_NumberOfWaitObjects (2)
+    DMF_PORTABLE_EVENT* waitObjects[Thread_NumberOfWaitObjects];
+    NTSTATUS waitStatus;
     DMFMODULE dmfModule;
 
     PAGED_CODE();
@@ -215,44 +232,80 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    switch (moduleConfig->ThreadControlType)
+    waitObjects[0] = &moduleContext->EventStart;
+    waitObjects[1] = &moduleContext->EventClose;
+
+    waitStatus = STATUS_WAIT_0;
+    while (TRUE)
     {
-        case ThreadControlType_ClientControl:
+        // Wait for start.
+        //
+        waitStatus = DMF_Portable_EventWaitForMultiple(ARRAYSIZE(waitObjects),
+                                                       waitObjects,
+                                                       FALSE,
+                                                       NULL,
+                                                       FALSE);
+        
+        if (STATUS_WAIT_1 == waitStatus)
         {
-            // Call the Client Driver's Thread Callback.
+            // Close event raised...Loop will exit.
             //
-            DmfAssert(moduleConfig->ThreadControl.ClientControl.EvtThreadFunction != NULL);
-            moduleConfig->ThreadControl.ClientControl.EvtThreadFunction(dmfModule);
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread END");
             break;
         }
-        case ThreadControlType_DmfControl:
-        {
-            // If the Client Driver wants to do preprocessing, do it now.
-            //
-            if (moduleConfig->ThreadControl.DmfControl.EvtThreadPre != NULL)
-            {
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread PRE");
-                moduleConfig->ThreadControl.DmfControl.EvtThreadPre(dmfModule);
-            }
 
-            // Execute the main loop function.
-            //
-            Thread_WorkerThread(dmfModule);
-
-            // If the Client Driver wants to do some post processing, do it now.
-            //
-            if (moduleConfig->ThreadControl.DmfControl.EvtThreadPost != NULL)
-            {
-                TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread POST");
-                moduleConfig->ThreadControl.DmfControl.EvtThreadPost(dmfModule);
-            }
-            break;
-        }
-        default:
+        if (STATUS_WAIT_0 != waitStatus)
         {
+            // This should never happen.
+            //
             DmfAssert(FALSE);
-            break;
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventWaitForMultiple fails: waitStatus=%!STATUS!", waitStatus);
+            continue;
         }
+
+        switch (moduleConfig->ThreadControlType)
+        {
+            case ThreadControlType_ClientControl:
+            {
+                // Call the Client Driver's Thread Callback.
+                //
+                DmfAssert(moduleConfig->ThreadControl.ClientControl.EvtThreadFunction != NULL);
+                moduleConfig->ThreadControl.ClientControl.EvtThreadFunction(dmfModule);
+                break;
+            }
+            case ThreadControlType_DmfControl:
+            {
+                // If the Client Driver wants to do preprocessing, do it now.
+                //
+                if (moduleConfig->ThreadControl.DmfControl.EvtThreadPre != NULL)
+                {
+                    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread PRE");
+                    moduleConfig->ThreadControl.DmfControl.EvtThreadPre(dmfModule);
+                }
+
+                // Execute the main loop function.
+                //
+                Thread_WorkerThread(dmfModule);
+
+                // If the Client Driver wants to do some post processing, do it now.
+                //
+                if (moduleConfig->ThreadControl.DmfControl.EvtThreadPost != NULL)
+                {
+                    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Thread POST");
+                    moduleConfig->ThreadControl.DmfControl.EvtThreadPost(dmfModule);
+                }
+                break;
+            }
+            default:
+            {
+                DmfAssert(FALSE);
+                break;
+            }
+        }
+
+        // Signal that thread has stopped.
+        //
+        DMF_Portable_EventSet(&moduleContext->EventStopComplete);
     }
 
 #if defined(DMF_USER_MODE)
@@ -296,17 +349,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
-    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
-    {
-        DmfAssert(NULL != moduleContext->EventStop);
-        // Clear in case this thread was previously stopped.
-        //
-        moduleContext->IsThreadStopPending = FALSE;
-        DMF_Portable_EventReset(moduleContext->EventStop);
-    }
 
     // Create the thread.
     //
@@ -382,14 +425,14 @@ Exit:
 #pragma code_seg()
 
 VOID
-Thread_StopEventSet(
+Thread_ThreadStop(
     _In_ DMFMODULE DmfModule
     )
 /*++
 
 Routine Description:
 
-    Allows the Client Driver to tell this Module's thread to stop running.
+    Allows the Client Driver to tell this Module's thread to stop accepting any work. It waits for any ongoing work to complete.
 
 Arguments:
 
@@ -402,13 +445,48 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_Thread* moduleContext;
+    DMF_CONFIG_Thread* moduleConfig;
+    NTSTATUS ntStatus;
 
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+   
+    // This function should not be called if the thread is already stopped.
+    //
+    if (moduleContext->IsStopped)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Thread is already stopped");
+        goto Exit;
+    }
 
-    DmfAssert(moduleContext->EventStop != NULL);
-    DMF_Portable_EventSet(moduleContext->EventStop);
+    // In order to prevent other Client Driver threads from stopping,
+    // Set the StopEvent only if it was created by the object.
+    //
+    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
+    {
+        DMF_Portable_EventSet(&moduleContext->EventStop);
+
+        // Set the flag indicating Stop Event is set and thread work hasn't been completed yet.
+        //
+        moduleContext->IsThreadStopPending = TRUE;
+    }
+
+    // Wait indefinitely for ongoing work to complete.
+    //
+    ntStatus = DMF_Portable_EventWaitForSingleObject(&moduleContext->EventStopComplete,
+                                                     NULL,
+                                                     FALSE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DmfAssert(FALSE);
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventWaitForSingleObject fails: ntStatus=%!STATUS!", ntStatus);
+    }
+
+    moduleContext->IsStopped = TRUE;
+
+Exit:
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -449,17 +527,11 @@ Return Value:
     if (moduleContext->ThreadHandle != NULL)
     {
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Wait for ThreadHandle=0x%p to End...", moduleContext->ThreadHandle);
-        // In order to prevent other Client Driver threads from stopping,
-        // Set the StopEvent only if it was created by the object.
+        
+        // Set close event to end internal thread callback.
         //
-        if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
-        {
-            Thread_StopEventSet(DmfModule);
+        DMF_Portable_EventSet(&moduleContext->EventClose);
 
-            // Set the flag indicating Stop Event is set and thread work hasn't been completed yet.
-            //
-            moduleContext->IsThreadStopPending = TRUE;
-        }
         // Wait indefinitely for thread to end.
         //
 #if !defined(DMF_USER_MODE)
@@ -481,11 +553,6 @@ Return Value:
 #endif // !defined(DMF_USER_MODE)
         moduleContext->ThreadHandle = NULL;
         moduleContext->ThreadObject = NULL;
-        // If the thread is under DMF Control, then the internal event must have been set.
-        // Otherwise, it is not set because the Client had complete control.
-        //
-        DmfAssert(((ThreadControlType_DmfControl == moduleConfig->ThreadControlType) && (NULL != moduleContext->EventStop)) ||
-                  (ThreadControlType_ClientControl == moduleConfig->ThreadControlType) && (NULL == moduleContext->EventStop));
     }
 
     FuncExitVoid(DMF_TRACE);
@@ -572,40 +639,90 @@ Return Value:
 {
     DMF_CONTEXT_Thread* moduleContext;
     DMF_CONFIG_Thread* moduleConfig;
+    NTSTATUS ntStatus;
 
     PAGED_CODE();
 
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
+    ntStatus = STATUS_SUCCESS;
+
+    // Create the Start Event.
+    //
+    ntStatus = DMF_Portable_EventCreate(&moduleContext->EventStart,
+                                        SynchronizationEvent,
+                                        FALSE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Create the Stop Complete Event.
+    //
+    ntStatus = DMF_Portable_EventCreate(&moduleContext->EventStopComplete,
+                                        SynchronizationEvent,
+                                        FALSE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    // Create the Close Event.
+    //
+    ntStatus = DMF_Portable_EventCreate(&moduleContext->EventClose,
+                                        NotificationEvent,
+                                        FALSE);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
 
     if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
     {
         // Create the Work Ready Event.
         //
-        DMF_Portable_EventCreate(&moduleContext->EventWorkReady,
-                                 SynchronizationEvent,
-                                 FALSE);
+        ntStatus = DMF_Portable_EventCreate(&moduleContext->EventWorkReady,
+                                            SynchronizationEvent,
+                                            FALSE);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
 
-        // If the Client Driver does not supply an address of its own Stop Event, create
-        // the Stop Event here; otherwise, use the Client Driver's Stop Event.
-        // The Client Driver will be able to stop the thread using this event.
+        // Create the Stop Event.
         //
-        DmfAssert(NULL == moduleContext->EventStop);
-
-        // Create the Stop Event on behalf of Client Driver.
-        //
-        DMF_Portable_EventCreate(&moduleContext->EventStopInternal,
-                                 NotificationEvent,
-                                 FALSE);
-        moduleContext->EventStop = &moduleContext->EventStopInternal;
+        ntStatus = DMF_Portable_EventCreate(&moduleContext->EventStop,
+                                            SynchronizationEvent,
+                                            FALSE);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_Portable_EventCreate fails: ntStatus=%!STATUS!", ntStatus);
+            goto Exit;
+        }
     }
 
-    FuncExitNoReturn(DMF_TRACE);
+     ntStatus = Thread_ThreadCreate(DmfModule);
+     if (!NT_SUCCESS(ntStatus))
+     {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Thread_ThreadCreate fails: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+     }
 
-    return STATUS_SUCCESS;
+     // Setting to TRUE intially as client needs to explicitly call DMF_Thread_Start for the thread to
+     // accept client work in DMF control mode or to run the client callback in Client control mode.
+     //
+     moduleContext->IsStopped = TRUE;
+Exit:
+
+     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
 }
 #pragma code_seg()
 
@@ -644,19 +761,23 @@ Return Value:
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-    // In case, Client has not explicitly stopped the thread, do that now.
+    // Stop thread in case client did not call stop.
     //
+    Thread_ThreadStop(DmfModule);
+
     Thread_ThreadDestroy(DmfModule);
 
     // This is necessary for User-mode. It is a NOP in Kernel-mode.
     //
-    DMF_Portable_EventClose(&moduleContext->EventWorkReady);
+    DMF_Portable_EventClose(&moduleContext->EventStart);
+    DMF_Portable_EventClose(&moduleContext->EventStopComplete);
+    DMF_Portable_EventClose(&moduleContext->EventClose);
+    
     if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
     {
-        DMF_Portable_EventClose(&moduleContext->EventStopInternal);
+        DMF_Portable_EventClose(&moduleContext->EventWorkReady);
+        DMF_Portable_EventClose(&moduleContext->EventStop);
     }
-
-    moduleContext->EventStop = NULL;
 
     FuncExitNoReturn(DMF_TRACE);
 }
@@ -798,6 +919,8 @@ Return Value:
 --*/
 {
     NTSTATUS ntStatus;
+    DMF_CONFIG_Thread* moduleConfig;
+    DMF_CONTEXT_Thread* moduleContext;
 
     PAGED_CODE();
 
@@ -806,7 +929,30 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Thread);
 
-    ntStatus = Thread_ThreadCreate(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    ntStatus = STATUS_SUCCESS;
+
+    if (moduleContext->IsStopped == FALSE)
+    {
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_DEVICE_STATE;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Thread is already running");
+        goto Exit;
+    }
+
+    if (ThreadControlType_DmfControl == moduleConfig->ThreadControlType)
+    {
+        // Clear in case this thread was previously stopped.
+        //
+        moduleContext->IsThreadStopPending = FALSE;
+    }
+
+    moduleContext->IsStopped = FALSE;
+
+    DMF_Portable_EventSet(&moduleContext->EventStart);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -843,7 +989,7 @@ Return Value:
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
                                  Thread);
 
-    Thread_ThreadDestroy(DmfModule);
+    Thread_ThreadStop(DmfModule);
 
     FuncExitVoid(DMF_TRACE);
 }

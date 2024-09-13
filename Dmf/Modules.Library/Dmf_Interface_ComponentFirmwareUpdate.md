@@ -12,7 +12,6 @@ Defines Interfaces for all Component Firmware Update Transports.
 
 #### Interface Bind Time Data
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA
 ````
 typedef struct _DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA
@@ -25,7 +24,6 @@ typedef struct _DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_BIND_DATA
 
 Data provided by the Protocol to the Transport during Bind Operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA
 ````
 typedef struct _DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA
@@ -34,7 +32,7 @@ typedef struct _DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_BIND_DATA
     //
     ULONG TransportWaitTimeout;
     // Size of TransportHeader in bytes.
-    // The protocol module will allocate header block at the beginning of the buffer for to transport to use.
+    // The protocol Module will allocate header block at the beginning of the buffer for to transport to use.
     //
     ULONG TransportHeaderSize;
     // Required size of Firmware Payload Buffer this transport needs (excluding the TransportHeaderSize above).
@@ -61,7 +59,6 @@ Data provided by the Transport to the Protocol during Bind Operation.
 
 #### Interface Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_ComponentFirmwareUpdate_FirmwareVersionResponse
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -162,8 +159,6 @@ ntStatus | NTSTATUS for the command that was sent down.
 
 #### Protocol Module's Declaration Data
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DECLARATION_DATA
 ````
 typedef struct _DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DECLARATION_DATA
@@ -202,7 +197,6 @@ The DMF_INTERFACE_PROTOCOL_ComponentFirmwareUpdate_DESCRIPTOR_INIT is used by th
 
 #### Interface Methods
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_ComponentFirmwareUpdate_TransportBind
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -220,7 +214,7 @@ The Bind method that should be implemented by the Transport Module.
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -233,7 +227,6 @@ TransportBindData | Bind Data provided by the Transport Module for the Protocol 
 
 * This method is called by the Protocol Module during the Bind operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_ComponentFirmwareUpdate_TransportUnbind
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -259,7 +252,6 @@ DmfInterface | The Dmf_Interface_ComponentFirmwareUpdate Interface handle.
 
 * This method is called by the Protocol Module during the Unbind operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_ComponentFirmwareUpdate_TransportFirmwareVersionGet
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -275,7 +267,7 @@ DMF_ComponentFirmwareUpdate_TransportFirmwareVersionGet(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -304,7 +296,7 @@ DMF_ComponentFirmwareUpdate_TransportOfferInformationSend(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -336,7 +328,7 @@ DMF_ComponentFirmwareUpdate_TransportOfferCommandSend(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -368,7 +360,7 @@ DMF_ComponentFirmwareUpdate_TransportOfferSend(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -400,7 +392,7 @@ DMF_ComponentFirmwareUpdate_TransportPayloadSend(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -432,7 +424,7 @@ DMF_ComponentFirmwareUpdate_TransportProtocolStart(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -461,7 +453,7 @@ DMF_ComponentFirmwareUpdate_TransportProtocolStop(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -472,12 +464,9 @@ DmfInterface | The Interface handle.
 
 * This is a sample method called by the Protocol Module.
 
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Transport Module's Declaration Data
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_DECLARATION_DATA
 ````
@@ -525,8 +514,6 @@ DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_DESCRIPTOR_INIT(
 
 Data provided by the Transport Module to indicate that it implements the Dmf_Interface_ComponentFirmwareUpdate. 
 The DMF_INTERFACE_TRANSPORT_ComponentFirmwareUpdate_DESCRIPTOR_INIT is used by the Transport Module to initialize the Declaration Data.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### Methods exposed to Protocol.
 ````
@@ -591,6 +578,7 @@ DECLARE_DMF_INTERFACE(ComponentFirmwareUpdate);
 * List possible future work for this Interface.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Interface Category
 
 -----------------------------------------------------------------------------------------------------------------------------------

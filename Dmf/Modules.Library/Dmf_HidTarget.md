@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to a HID device. It allows the Client to specify the device the Client wants and has Methods
 for communicating with the device.
 
@@ -13,7 +11,6 @@ for communicating with the device.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_HidTarget
 ````
 typedef struct
@@ -74,23 +71,19 @@ SkipHidDeviceEnumerationSearch | Indicates that this instance of the Module will
 HidTargetToConnect | The HID device to connect to when SkipHidDeviceEnumerationSearch is TRUE.
 EvtHidTargetDeviceSelectionCallback | Allows the Client to select the exact target the Client wants to open.
 PendedInputReadRequestCount | The number of input read requests to pend aynchronously.
+
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_HidTarget_InputReport
 ````
 _IRQL_requires_same_
@@ -115,7 +108,6 @@ Parameter | Description
 Buffer | The buffer the Client populates.
 BufferLength | The size of Buffer in bytes.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_HidTarget_DeviceSelectionCallback
 ````
 _IRQL_requires_same_
@@ -145,7 +137,6 @@ IoTarget | The given WDFIOTARGET.
 PreparsedHidData | Allows the Client to access the HID API to determine more HID specific information about the given WDFIOTARGET.
 HidCollectionInformation | Allows the Client to access the HID API to determine more HID specific information about the given WDFIOTARGET.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion
 ````
 _Function_class_(EVT_DMF_HidTarget_FeatureGetAsynchronousSendCompletion)
@@ -180,8 +171,6 @@ CompletionStatus | Request completion status.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_BufferRead
 
 ````
@@ -211,8 +200,6 @@ BufferLength | This size in bytes of Buffer.
 BufferSize | The size of Buffer in bytes.
 TimeoutMs | Indicates that the Read transaction should fail after TimeoutMs milliseconds. Set to zero to indicate there is no timeout.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_BufferWrite
 
 ````
@@ -241,8 +228,6 @@ Buffer | The given buffer.
 BufferLength | This size in bytes of Buffer.
 BufferSize | The size of Buffer in bytes.
 TimeoutMs | Indicates that the Write transaction should fail after TimeoutMs milliseconds. Set to zero to indicate there is no timeout.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidTarget_FeatureGet
 
@@ -276,8 +261,6 @@ BufferSize | The size of Buffer in bytes.
 OffsetOfDataToCopy | The offset in Buffer where received data is written.
 NumberOfBytesToCopy | The number of bytes that should be received.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_FeatureGetAsynchronous
 
 ````
@@ -305,8 +288,6 @@ DmfModule | This Module's handle.
 ReportId | Feature report Id to call Get Feature on.
 EvtClientHidFeatureGetCompletionCallback | Callback to be called on completion routine.
 HidFeatureGetCompletionCallbackClientContext | Client context sent in callback.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidTarget_FeatureGetWithTimeout
 
@@ -342,8 +323,6 @@ OffsetOfDataToCopy | The offset in Buffer where received data is written.
 NumberOfBytesToCopy | The number of bytes that should be received.
 TimeoutMs | Timeout value in milliseconds, or zero for no timeout.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_FeatureSet
 
 ````
@@ -375,8 +354,6 @@ Buffer | The Client buffer that contains the data to send to the device associat
 BufferSize | The size of Buffer in bytes.
 OffsetOfDataToCopy | The offset in Buffer where the data to send begins.
 NumberOfBytesToCopy | The number of bytes that should be sent.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidTarget_FeatureSetWithTimeout
 
@@ -412,8 +389,6 @@ OffsetOfDataToCopy | The offset in Buffer where the data to send begins.
 NumberOfBytesToCopy | The number of bytes that should be sent.
 TimeoutMs | Timeout value in milliseconds, or zero for no timeout.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_FeatureSetEx
 
 ````
@@ -447,8 +422,6 @@ BufferSize | The size of Buffer in bytes.
 OffsetOfDataToCopy | The offset in Buffer where the data to send begins.
 NumberOfBytesToCopy | The number of bytes that should be sent.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_InputRead
 
 ````
@@ -474,8 +447,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_HidTarget Module handle.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_InputReadCancel
 
 ````
@@ -497,8 +468,6 @@ None
 Parameter | Description
 ----|----
 DmfModule | An open DMF_HidTarget Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidTarget_InputReadEx
 
@@ -524,8 +493,6 @@ NTSTATUS
 Parameter | Description
 ----|----
 DmfModule | An open DMF_HidTarget Module handle.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidTarget_InputReportGet
 
@@ -559,8 +526,6 @@ DmfModule | An open DMF_HidTarget Module handle.
 InputReportMemory | InputReportMemory is the WDFMEMORY returned by DMF_HidTarget_ReportCreate(). (First, call DMF_HidTarget_ReportCreate() to get the handle, then call this function.)
 InputReportLength | Amount of data read from the device.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_OutputReportSet
 
 ````
@@ -590,8 +555,6 @@ BufferLength | This size in bytes of Buffer.
 BufferSize | The size of Buffer in bytes.
 TimeoutMs | Indicates that the transaction should fail after TimeoutMs milliseconds. Set to zero to indicate there is no timeout.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_HidTarget_PreparsedDataGet
 
 ````
@@ -616,8 +579,6 @@ Parameter | Description
 ----|----
 DmfModule | An open DMF_HidTarget Module handle.
 PreparsedData | The address where the address of the Preparsed data is written.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidTarget_ReportCreate
 
@@ -651,17 +612,9 @@ ReportMemory | The WDFMEMORY for the newly created Report buffer.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -676,9 +629,8 @@ ReportMemory | The WDFMEMORY for the newly created Report buffer.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

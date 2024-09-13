@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Exposes a virtual HID keyboard and methods to allow the keyboard to send keystrokes to the input stack.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_VirtualHidKeyboard
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -44,7 +41,6 @@ VirtualHidKeyboardMode | Indicates how the driver exposes the keyboard interface
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### VirtualHidKeyboard_ButtonIdType
 ````
 // Indicates how this driver types keystrokes.
@@ -73,8 +69,6 @@ VirtualHidKeyboardMode_Client | This driver does not type keystrokes directly. I
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
@@ -87,8 +81,6 @@ DMFMODULE of the Parent Module. Then the Parent Module can access its own Module
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_VirtualHidKeyboard_Type
 
@@ -120,10 +112,6 @@ UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID rep
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_VirtualHidKeyboard_Toggle
 
 ````
@@ -152,25 +140,15 @@ UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID rep
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * IMPORTANT: Vhf.sys must be set as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. Otherwise, the VHF API is not available and this Module's Open callback will fail.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -185,9 +163,8 @@ UsagePage | HID_USAGE_PAGE_KEYBOARD or HID_USAGE_PAGE_CONSUMER. (See the HID rep
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

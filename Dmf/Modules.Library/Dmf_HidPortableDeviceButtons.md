@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Exposes a virtual HID Portable Device Buttons device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_HidPortableDeviceButtons
 // Client uses this structure to configure the Module specific parameters.
 //
@@ -47,7 +44,6 @@ DisableVolumeButtons | Client can specify whether or not volume buttons are hand
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### HidPortableDeviceButtons_ButtonIdType
 ````
 typedef enum
@@ -75,8 +71,6 @@ HidPortableDeviceButtons_ButtonId_RotationLock | "Rotation Lock" button indicato
 
 #### Module Structures
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Callbacks
@@ -89,8 +83,6 @@ DMFMODULE of the Parent Module. Then the Parent Module can access its own Module
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidPortableDeviceButtons_ButtonIsEnabled
 
@@ -115,8 +107,6 @@ Parameter | Description
 DmfModule | An open DMF_HidPortableDeviceButtons Module handle.
 ButtonId | The Id of the button for which the query is made.
 Remarks | *
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_HidPortableDeviceButtons_ButtonStateChange
 
@@ -148,19 +138,11 @@ Remarks | *
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * IMPORTANT: Vhf.sys must be set as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. Otherwise, the VHF API is not available and this Module's Open callback will fail.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -175,9 +157,8 @@ Remarks | *
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

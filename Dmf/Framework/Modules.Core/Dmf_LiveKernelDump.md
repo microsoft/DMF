@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Allows DMF / DMF Modules / Client Driver to initiate a Live Kernel Memory Dump containing the complete DMF state of all
 driver components captured when the live dump is created.
 
@@ -13,7 +11,6 @@ driver components captured when the live dump is created.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_LiveKernelDump
 ````
 typedef struct
@@ -37,19 +34,14 @@ typedef struct
 
 #### Module Enumeration Types
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Macros (Used by Client)
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_LIVEKERNELDUMP_POINTER_STORE
 ````
 DMF_LIVEKERNELDUMP_POINTER_STORE(
@@ -72,7 +64,6 @@ BufferLength | Length of the buffer being added.
 
 * This API can be called at IRQL <= DISPATCH_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_LIVEKERNELDUMP_POINTER_REMOVE
 ````
 DMF_LIVEKERNELDUMP_POINTER_REMOVE(DmfModule,
@@ -93,7 +84,6 @@ BufferLength | Length of the buffer being added.
 
 * This API can be called at IRQL <= DISPATCH_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_LIVEKERNELDUMP_CREATE
 ````
 DMF_LIVEKERNELDUMP_CREATE(DmfModule,
@@ -127,7 +117,6 @@ SecondaryDataBuffer | Pointer to a buffer containing the secondary data.
 
 #### Module Macros (Used by Client)
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_MODULE_LIVEKERNELDUMP_POINTER_STORE
 ````
 DMF_MODULE_LIVEKERNELDUMP_POINTER_STORE(DmfModule,
@@ -147,7 +136,6 @@ BufferLength | Length of the buffer being added.
 
 * This API can be called at IRQL <= DISPATCH_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_MODULE_LIVEKERNELDUMP_POINTER_REMOVE
 ````
 DMF_MODULE_LIVEKERNELDUMP_POINTER_REMOVE(DmfModule,
@@ -167,7 +155,6 @@ BufferLength | Length of the buffer being added.
 
 * This API can be called at IRQL <= DISPATCH_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_MODULE_LIVEKERNELDUMP_CREATE
 ````
 DMF_MODULE_LIVEKERNELDUMP_CREATE(DmfModule,
@@ -196,7 +183,6 @@ SecondaryDataBuffer | Pointer to a buffer containing the secondary data.
 
 * This API should be called only at PASSIVE_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_MODULE_LIVEKERNELDUMP_DMFCOLLECTION_AS_BUGCHECK_PARAMETER_STORE
 ````
 DMF_MODULE_LIVEKERNELDUMP_DMFCOLLECTION_AS_BUGCHECK_PARAMETER_STORE(DmfModule,
@@ -218,7 +204,6 @@ DmfCollection | This DmfCollection handle.
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_LiveKernelDump_Initialize
 ````
 VOID
@@ -242,8 +227,6 @@ DmfModule | An open DMF_LiveKernelDump Module handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_LiveKernelDump_DataBufferSourceAdd
 
@@ -275,8 +258,6 @@ BufferLength | Length of the buffer being added.
 
 * This API can be called at IRQL <= DISPATCH_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_LiveKernelDump_DataBufferSourceRemove
 
 ````
@@ -307,8 +288,6 @@ BufferLength | Length of the buffer being removed.
 
 * This API should be used to remove buffers from the Live Kernel Dump Module before they are destroyed.
 * This API can be called at IRQL <= DISPATCH_LEVEL.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_LiveKernelDump_LiveKernelMemoryDumpCreate
 
@@ -350,8 +329,6 @@ SecondaryDataBuffer | Pointer to a buffer containing the secondary data.
 
 * This API should be called only at PASSIVE_LEVEL.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_LiveKernelDump_StoreDmfCollectionAsBugcheckParameter
 
 ````
@@ -382,8 +359,6 @@ DmfCollection | This DmfCollection handle.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### IOCTL_LIVEKERNELDUMP_CREATE
 
@@ -422,12 +397,6 @@ typedef struct {
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-#### Module Children
-
-* DMF_RingBuffer
-
------------------------------------------------------------------------------------------------------------------------------------
-
 #### Module Implementation Details
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -439,11 +408,10 @@ typedef struct {
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
-
-Features
+Feature
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

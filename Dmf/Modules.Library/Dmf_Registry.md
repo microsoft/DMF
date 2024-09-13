@@ -4,21 +4,16 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Contains support that allows Clients to perform simple as well as complex registry manipulation.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### Registry_ActionType
 ````
 typedef enum
@@ -44,7 +39,6 @@ Indicates what actions the Registry Action function should do.
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### Registry_Entry
 Holds information for a single registry entry.
 
@@ -72,7 +66,6 @@ typedef struct
 
 Holds information for a branch of registry entries which consist of one or more registry entries under a single key.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### Registry_Branch
 ````
 typedef struct
@@ -89,8 +82,6 @@ typedef struct
   ULONG ItemCount;
 } Registry_Branch;
 ````
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### Registry_Tree
 
@@ -111,8 +102,6 @@ typedef struct
 } Registry_Tree;
 ````
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### Registry_ContextScheduledTaskCallback
 
 ````
@@ -127,7 +116,6 @@ typedef struct
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Registry_CallbackWork
 ````
 _Must_inspect_result_
@@ -155,7 +143,6 @@ DmfModule | An open DMF_Registry Module handle.
 
 * IMPORTANT: Do not call any deferred Methods from this callback as the caller destroys DmfModule upon return.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Registry_KeyEnumerationCallback
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -182,7 +169,6 @@ ClientContext | A Client specific context.
 RootHandle | A registry handle.
 KeyName | The name of a key under RootHandle.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_Registry_ValueComparisonCallback
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -219,8 +205,6 @@ ClientDataInRegistrySize | The size in bytes of CilentDataInRegistry.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_AllSubKeysFromHandleEnumerate
 
 ````
@@ -252,10 +236,6 @@ ClientCallback | The given Client callback to execute for each enumerated subkey
 ClientCallbackContext | A Client specific context passed to ClientCallback.
 
 ##### Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_CallbackWork
 
@@ -367,8 +347,6 @@ ClientCallbackContext | Client specific context to pass to ClientCallback.
 
 * An error is returned if the RootKeyName does not exist or cannot be opened.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_HandleClose
 
 ````
@@ -395,8 +373,6 @@ Handle | The given registry handle.
 ##### Remarks
 
 * **Per MSDN, in Kernel-mode do not call this Method after deleting the key.**
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_HandleDelete
 
 ````
@@ -422,8 +398,6 @@ DmfModule | An open DMF_Registry Module handle.
 Handle | The given registry handle.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_HandleOpenByDeviceInterface
 
@@ -456,8 +430,6 @@ RegistryHandle | Pointer to opened registry key handle or pointer to NULL if not
 ##### Remarks
 Use this Method to avoid hardcoded registry paths which prevent device drivers from being WCOS compliant.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_HandleOpenByHandle
 
 ````
@@ -487,8 +459,6 @@ Name | The given registry path name.
 TryToCreate | Creates the path specified by Name if the path does not exist.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_HandleOpenById
 
@@ -549,8 +519,6 @@ Name | The given registry path name.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_HandleOpenByNameEx
 
 ````
@@ -583,8 +551,6 @@ Create | Creates the path and opens it if the given path does not exist.
 RegistryHandle | The address of the handle that is returned to the Client.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_HandleOpenParametersRegistryKey
 
@@ -620,8 +586,6 @@ RegistryHandle | The address of the handle that is returned to the Client.
 
 * This Method is WCOS compliant.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueDelete
 
 ````
@@ -651,8 +615,6 @@ ValueName | The name of the given value.
 ##### Remarks
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueRead
 
@@ -770,8 +732,6 @@ BufferSize | The size in bytes of Buffer.
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueReadDwordAndValidate
 
 ````
@@ -811,8 +771,6 @@ Maximum | The required maximum value of the data read.
 * Generally speaking, the Client will set the value read to a default value if an error is returned.
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueReadMultiString
 
 ````
@@ -850,8 +808,6 @@ BytesRead | The number of bytes read is written to this address.
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueReadQword
 
 ````
@@ -885,8 +841,6 @@ BufferSize | The size in bytes of Buffer.
 ##### Remarks
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueReadQwordAndValidate
 
@@ -927,8 +881,6 @@ Maximum | The required maximum value of the data read.
 * Generally speaking, the Client will set the value read to a default value if an error is returned.
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueReadString
 
 ````
@@ -965,8 +917,6 @@ BytesRead | The number of bytes read is written to this address.
 ##### Remarks
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWrite
 
@@ -1005,8 +955,6 @@ BufferSize | The size in bytes of Buffer.
 * This function is used by many functions that read specific types of values.
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueWriteBinary
 
 ````
@@ -1041,8 +989,6 @@ BufferSize | The size in bytes of Buffer.
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueWriteDword
 
 ````
@@ -1074,8 +1020,6 @@ ValueData | The data to write.
 ##### Remarks
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWriteMultiString
 
@@ -1111,8 +1055,6 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_PathAndValueWriteQword
 
 ````
@@ -1144,8 +1086,6 @@ ValueData | The data to write.
 ##### Remarks
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_PathAndValueWriteString
 
@@ -1181,8 +1121,6 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_RegistryPathDelete
 
 ````
@@ -1212,8 +1150,6 @@ ValueName | The name of the given value.
 
 * WCOS compliant drivers should pass NULL as RegistryPathName to avoid Verifier errors.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_ScheduledTaskCallbackContainer
 
 ````
@@ -1228,8 +1164,6 @@ DMF_Registry_ScheduledTaskCallbackContainer(
 ````
 
 This Method is used by DMF internally. Clients should not use this Method.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_SubKeysFromHandleEnumerate
 
@@ -1261,8 +1195,6 @@ ClientCallback | The given Client callback to execute for each enumerated subkey
 ClientCallbackContext | A Client specific context passed to ClientCallback.
 
 ##### Remarks
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -1303,7 +1235,6 @@ ClientCallbackContext | Client specific context to pass to ClientCallback.
 
 * An error is returned if the RootKeyName does not exist or cannot be opened.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_Registry_TreeWriteDeferred
 
 ````
@@ -1336,7 +1267,6 @@ ItemCount | The number of items in RegistryTree.
 * The Registry_Tree structure organizes the data to write into branches.
 * Soon after booting it is possible that STATUS_OBJECT_NOT_FOUND error happens while accessing the registry.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_Registry_TreeWriteEx
 ````
 _Must_inspect_result_
@@ -1396,8 +1326,6 @@ Handle | The given registry handle.
 ValueName | The name of the given value.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_ValueDeleteIfNeeded
 
@@ -1549,8 +1477,6 @@ Buffer | The data read is written to this buffer.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1664,8 +1590,6 @@ Buffer | The data read is written to this buffer.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1744,8 +1668,6 @@ BytesRead | The size in bytes of the data read is written to this address.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1786,8 +1708,6 @@ BytesRead | The size in bytes of the data written is written to this address.
 
 * This function is used by many functions that write specific types of values.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_Registry_ValueWriteBinary
 
 ````
@@ -1819,8 +1739,6 @@ Buffer | The data written is read from this buffer.
 BufferSize | The size in bytes of Buffer.
 
 ##### Remarks
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -1854,10 +1772,6 @@ ValueName | The name of the given value.
 Buffer | The data written is read from this buffer.
 
 ##### Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_Registry_ValueWriteIfNeeded
 
@@ -1938,8 +1852,6 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1972,8 +1884,6 @@ ValueName | The name of the given value.
 Buffer | The data written is read from this buffer.
 
 ##### Remarks
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -2010,25 +1920,15 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * This Module saves the Client from write a lot of non-trivial code to find and operate on registry keys.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -2043,9 +1943,8 @@ NumberOfCharacters | The size in number of characters (WCHAR) of buffer.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

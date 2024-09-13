@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Implements a driver pattern that allows the Client to create a table of supported IOCTLs along with information about each IOCTL
 so that the Module can perform automatic validation.
 
@@ -13,7 +11,6 @@ so that the Module can perform automatic validation.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_IoctlHandler
 ````
 typedef struct
@@ -41,7 +38,7 @@ typedef struct
   //
   BOOLEAN ManualMode;
   // FALSE (Default) means that the corresponding device interface will handle all IOCTL types.
-  // TRUE means that the module allows only requests from kernel mode clients.
+  // TRUE means that the Module allows only requests from kernel mode clients.
   //
   BOOLEAN KernelModeRequestsOnly;
   // Do not use. (For backward compatibility purposes only.)
@@ -63,7 +60,7 @@ AccessModeFilter | Indicates what kind of access control mechanism is used, if a
 EvtIoctlHandlerAccessModeFilter | A callback that allows the Client to filter the IOCTL with Client specific logic.
 IoctlRecords | A table of records that specify information about each supported IOCTL.
 ManualMode | Module open configuration.
-KernelModeRequestsOnly | This allows the module to handle only requests from kernel mode clients.
+KernelModeRequestsOnly | This allows the Module to handle only requests from kernel mode clients.
 CustomCapabilities | Do not use. This field is only present for backward compatibility purposes.
 IsRestricted | Do not use. This field is only present for backward compatibility purposes.
 PostDeviceInterfaceCreate | Allows Client to perform actions after the Device Interface is created.
@@ -74,7 +71,6 @@ ReferenceString | Optional device interface instance reference string. It must r
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### IoctlHandler_AccessModeFilterType
 ````
 typedef enum
@@ -112,7 +108,6 @@ IoctlHandler_AccessModeFilterKernelModeOnly | Restrict to Kernel-mode access onl
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### IoctlHandler_IoctlRecord
 ````
 typedef struct
@@ -141,7 +136,6 @@ typedef struct
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_IoctlHandler_Callback
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -185,7 +179,6 @@ BytesReturned | The number of bytes returned to the caller. Indicates the number
 
 * Request is passed to the callback, but it is rarely needed because the Module has already extracted the commonly used parameters and passed them to the callback.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_IoctlHandler_AccessModeFilter
 ````
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -215,7 +208,6 @@ Device | Wdf Device object associated with Queue.
 Request | Incoming request.
 FileObject | File object associated with the given Request.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_IoctlHandler_PostDeviceInterfaceCreate
 ````
 typedef
@@ -231,7 +223,7 @@ Allows the Client to perform Client specific tasks after the device interface is
 
 ##### Returns
 
-NTSTATUS: If an error is returned, the Module will not open.
+NTSTATUS. If an error is returned, the Module will not open.
 
 ##### Parameters
 Parameter | Description
@@ -243,8 +235,6 @@ ReferenceStringUnicodePointer | Indicates the Reference String corresponding to 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Methods
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_IoctlHandler_IoctlsEnable
 
@@ -274,8 +264,6 @@ Enable | If true, enable the device interface. Otherwise, disable the device int
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
@@ -285,12 +273,6 @@ Enable | If true, enable the device interface. Otherwise, disable the device int
 * This Module optionally allows Clients to forward the unhandled requests down. For forwarding all requests, simply add this Module with empty IoctlRecords and ForwardUnhandledRequests set to TRUE.
 * IMPORTANT: When this Module is used the Client Driver must not set `QueueConfig` to NULL if the Client calls `DMF_DmfDeviceInitHookQueueConfig()` (to customize the default queue) because the default queue will not be created. In this case, DMF_IoctlHandler will not see any IOCTL that is sent to it.
 * Multiple instances of this Module can be instantiated using the same IOCTL table as long as each instance sets a unique ReferenceString. The Module will route the requests from the default queue to the instance of the Module corresponding to the ReferenceString of the WDFIOTARGET.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -308,11 +290,7 @@ Enable | If true, enable the device interface. Otherwise, disable the device int
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
-
------------------------------------------------------------------------------------------------------------------------------------
 #### Module Category
-
------------------------------------------------------------------------------------------------------------------------------------
 
 Driver Patterns
 

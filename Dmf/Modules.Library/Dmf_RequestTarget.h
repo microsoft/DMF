@@ -20,9 +20,16 @@ Environment:
 
 #pragma once
 
-// WDFOBJECT that abstracts a WDFREQUEST instance.
+// WDFOBJECT that abstracts a WDFREQUEST instance (cancel).
 //
-DECLARE_HANDLE(RequestTarget_DmfRequest);
+DECLARE_HANDLE(RequestTarget_DmfRequestCancel);
+// This definition is for backward compatabililty.
+// 
+typedef RequestTarget_DmfRequestCancel RequestTarget_DmfRequest;
+
+// WDFOBJECT that abstracts a WDFREQUEST instance (reuse).
+//
+DECLARE_HANDLE(RequestTarget_DmfRequestReuse);
 
 // Enum to specify the type of request
 //
@@ -65,7 +72,7 @@ _Must_inspect_result_
 BOOLEAN
 DMF_RequestTarget_Cancel(
     _In_ DMFMODULE DmfModule,
-    _In_ RequestTarget_DmfRequest DmfRequestId
+    _In_ RequestTarget_DmfRequestCancel DmfRequestIdCancel
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -79,6 +86,39 @@ VOID
 DMF_RequestTarget_IoTargetSet(
     _In_ DMFMODULE DmfModule,
     _In_ WDFIOTARGET IoTarget
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_RequestTarget_ReuseCreate(
+    _In_ DMFMODULE DmfModule,
+    _Out_ RequestTarget_DmfRequestReuse* DmfRequestIdReuse
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+DMF_RequestTarget_ReuseDelete(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DMF_RequestTarget_ReuseSend(
+    _In_ DMFMODULE DmfModule,
+    _In_ RequestTarget_DmfRequestReuse DmfRequestIdReuse,
+    _In_reads_bytes_opt_(RequestLength) VOID* RequestBuffer,
+    _In_ size_t RequestLength,
+    _Out_writes_bytes_opt_(ResponseLength) VOID* ResponseBuffer,
+    _In_ size_t ResponseLength,
+    _In_ ContinuousRequestTarget_RequestType RequestType,
+    _In_ ULONG RequestIoctl,
+    _In_ ULONG RequestTimeoutMilliseconds,
+    _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
+    _In_opt_ VOID* SingleAsynchronousRequestClientContext,
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -111,7 +151,7 @@ DMF_RequestTarget_SendEx(
     _In_ ULONG RequestTimeoutMilliseconds,
     _In_opt_ EVT_DMF_RequestTarget_SendCompletion* EvtRequestTargetSingleAsynchronousRequest,
     _In_opt_ VOID* SingleAsynchronousRequestClientContext,
-    _Out_opt_ RequestTarget_DmfRequest* DmfRequestId
+    _Out_opt_ RequestTarget_DmfRequestCancel* DmfRequestIdCancel
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

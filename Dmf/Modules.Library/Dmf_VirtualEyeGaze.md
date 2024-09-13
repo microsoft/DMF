@@ -4,8 +4,6 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 Exposes a virtual HID eye gaze device and Methods to allow the device to send eye gaze data up the HID stack.
 
 This code based on code at this location: [Gaze HID](https://github.com/MSREnable/GazeHid/)
@@ -16,7 +14,6 @@ Please see that location for detailed information about eye gaze device support.
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_VirtualEyeGaze
 ````
 // Client uses this structure to configure the Module specific parameters.
@@ -47,8 +44,6 @@ VersionNumber | The version number of the virtual HID eye gaze device.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Structures
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -88,10 +83,6 @@ ConfigurationData | The Configuation Data to set.
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_VirtualEyeGaze_CapabilitiesDataSet
 
 ````
@@ -117,10 +108,6 @@ DmfModule | An open DMF_VirtualEyeGaze Module handle.
 CapabilitiesData | The Capabilities Data to set.
 
 ##### Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_VirtualEyeGaze_GazeReportSend
 
@@ -148,10 +135,6 @@ GazeData | Eye gaze coordinate information to send.
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_VirtualEyeGaze_TrackerControlModeGet
 
 ````
@@ -178,10 +161,6 @@ Mode | The current control mode of the eye gaze device.
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_VirtualEyeGaze_TrackerStatusReportSend
 
 ````
@@ -206,23 +185,13 @@ Parameter | Description
 DmfModule | An open DMF_VirtualEyeGaze Module handle.
 TrackerStatus | The current status of the device.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### Remarks
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * IMPORTANT: Vhf.sys must be set as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. Otherwise, the VHF API is not available and this Module's Open callback will fail.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* DMF_VirtualHidDeviceVhf
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -239,9 +208,8 @@ TrackerStatus | The current status of the device.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Hid
 

@@ -4,25 +4,17 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
     Support for general string related operations.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Enumeration Types
 
-* None
-
 #### Module Structures
-
-* None
 
 #### Module Callbacks
 
@@ -86,8 +78,6 @@ CallbackContext | The call specific context passed by the caller.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_String_FindInListChar
 ````
 _Must_inspect_result_
@@ -119,10 +109,6 @@ ComparisonCallback | The Client callback function which performs the comparison 
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_String_FindInListExactChar
 ````
 _Must_inspect_result_
@@ -152,10 +138,6 @@ NumberOfStringsInStringList | The number of strings in StringList.
 LookFor | The given string to search for in the list.
 
 ##### Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_String_FindInListExactGuid
 
@@ -187,9 +169,6 @@ LookFor | The given GUID to search for in the list.
 
 ##### Remarks
 
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_String_FindInListLookForLeftMatchChar
 ````
 _Must_inspect_result_
@@ -218,10 +197,6 @@ NumberOfStringsInStringList | The number of strings in StringList.
 LookFor | The given string to search for in the list.
 
 ##### Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_String_MultiSzEnumerate
 
@@ -253,8 +228,6 @@ CallbackContext | The context passed to the enumeration callback.
 
 * This method supports multi sz strings containing 0 length strings.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_String_MultiSzFindLast
 
 ````
@@ -280,8 +253,6 @@ MultiSzWideString | The given multi sz string.
 ##### Remarks
 
 * This method supports multi sz strings containing 0 length strings.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_String_RtlAnsiStringToUnicodeString
 
@@ -312,8 +283,6 @@ SourceString | Source ANSI String.
 
 * This version has no option for allocating the target string on behalf of the caller.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_String_RtlAnsiStringToUnicodeString
 
 ````
@@ -342,8 +311,6 @@ SourceString | Source UNICODE String.
 ##### Remarks
 
 * This version has no option for allocating the target string on behalf of the caller.
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_String_WideStringCopyAsNarrow
 
 ````
@@ -372,25 +339,13 @@ WideString | Source Wide String.
 
 ##### Remarks
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
-
-* None
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -408,9 +363,8 @@ WideString | Source Wide String.
 * Add support for WCHAR and UNICODE.
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Driver Patterns
 

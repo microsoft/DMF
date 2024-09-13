@@ -4,15 +4,12 @@
 
 #### Module Summary
 
------------------------------------------------------------------------------------------------------------------------------------
-
 This Module gives the Client access to a Serial device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Configuration
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_CONFIG_SerialTarget
 ````
 typedef struct
@@ -58,7 +55,6 @@ EvtSerialTargetRemoveComplete | Callback that allows the Client to perform actio
 
 #### Module Enumeration Types
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### SerialStream_ConfigurationParameters_Flags
 ````
 typedef enum
@@ -88,7 +84,6 @@ typedef enum
 
 #### Module Structures
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### SerialTarget_Configuration
 ````
 typedef struct
@@ -108,7 +103,6 @@ typedef struct
 
 #### Module Callbacks
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### EVT_DMF_SerialTarget_CustomConfiguration
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -136,8 +130,6 @@ ConfigurationParameters | The Serial configuration parameters specified by the C
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_SerialTarget_QueryRemove
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -161,8 +153,6 @@ DmfModule | An open DMF_SerialTarget Module handle.
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### EVT_DMF_SerialTarget_RemoveCanceled
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -185,8 +175,6 @@ Parameter | Description
 DmfModule | An open DMF_SerialTarget Module handle.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### EVT_DMF_SerialTarget_RemoveComplete
 ````
@@ -215,8 +203,6 @@ DmfModule | An open DMF_SerialTarget Module handle.
 
 #### Module Methods
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SerialTarget_BufferPut
 
 ````
@@ -244,8 +230,6 @@ ClientBuffer | The given DMF_BufferPool buffer.
 
 * NOTE: ClientBuffer must be a properly formed DMF_BufferPool buffer.
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SerialTarget_IoTargetGet
 
 ````
@@ -271,8 +255,6 @@ DmfModule | An open DMF_SerialTarget Module handle.
 IoTarget | The address where the underlying WDFIOTARGET returned to the Client.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SerialTarget_Send
 
@@ -316,8 +298,6 @@ SingleAsynchronousRequestClientContext | The Client specific context that is sen
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SerialTarget_SendSynchronously
 
 ````
@@ -358,8 +338,6 @@ BytesWritten | The number of bytes transferred to/from the underlying WDFIOTARGE
 
 ##### Remarks
 
------------------------------------------------------------------------------------------------------------------------------------
-
 ##### DMF_SerialTarget_Start
 
 ````
@@ -383,8 +361,6 @@ Parameter | Description
 DmfModule | An open DMF_SerialTarget Module handle.
 
 ##### Remarks
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_SerialTarget_Stop
 
@@ -413,19 +389,11 @@ DmfModule | An open DMF_SerialTarget Module handle.
 
 #### Module IOCTLs
 
-* None
-
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Module Remarks
 
 * [DMF_MODULE_OPTIONS_DISPATCH_MAXIMUM] Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE. Clients that select any type of paged pool as PoolType must set DMF_MODULE_ATTRIBUTES.PassiveLevel = TRUE.
-
------------------------------------------------------------------------------------------------------------------------------------
-
-#### Module Children
-
-* None
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -440,9 +408,8 @@ DmfModule | An open DMF_SerialTarget Module handle.
 #### To Do
 
 -----------------------------------------------------------------------------------------------------------------------------------
-#### Module Category
 
------------------------------------------------------------------------------------------------------------------------------------
+#### Module Category
 
 Targets
 

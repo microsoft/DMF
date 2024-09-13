@@ -12,7 +12,6 @@ Defines Interfaces for all SMF SOC Transports.
 
 #### Interface Bind Time Data
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_PROTOCOL_SystemManagementFramework_BIND_DATA
 ````
 typedef struct _DMF_INTERFACE_PROTOCOL_SystemManagementFramework_BIND_DATA
@@ -28,7 +27,6 @@ typedef struct _DMF_INTERFACE_PROTOCOL_SystemManagementFramework_BIND_DATA
 
 Data provided by the Protocol to the Transport during Bind Operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA
 ````
 typedef struct _DMF_INTERFACE_TRANSPORT_SystemManagementFramework_BIND_DATA
@@ -53,8 +51,6 @@ Data provided by the Transport to the Protocol during Bind Operation.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Protocol Module's Declaration Data
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_INTERFACE_PROTOCOL_SystemManagementFramework_DECLARATION_DATA
 ````
@@ -87,7 +83,6 @@ The DMF_INTERFACE_PROTOCOL_SystemManagementFramework_DESCRIPTOR_INIT is used by 
 
 #### Interface Methods
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_SystemManagementFramework_TransportBind
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -104,7 +99,7 @@ The Bind method that should be implemented by the Transport Module.
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -117,7 +112,6 @@ TransportBindData | Bind Data provided by the Transport Module for the Protocol 
 
 * This method is called by the Protocol Module during the Bind operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_SystemManagementFramework_TransportUnbind
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -143,7 +137,6 @@ DmfInterface | The Dmf_Interface_SystemManagementFramework Interface handle.
 
 * This method is called by the Protocol Module during the Unbind operation.
 
------------------------------------------------------------------------------------------------------------------------------------
 ##### DMF_INTERFACE_SystemManagementFramework_TransportInitialize
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -160,7 +153,7 @@ DMF_INTERFACE_SystemManagementFramework_ChannelsGet(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -189,7 +182,7 @@ DMF_INTERFACE_SystemManagementFramework_TransportInitialize(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -216,7 +209,7 @@ DMF_INTERFACE_SystemManagementFramework_TransportUninitialize(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -242,7 +235,7 @@ DMF_INTERFACE_SystemManagementFramework_TransportControlSet(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -271,7 +264,7 @@ DMF_INTERFACE_SystemManagementFramework_TransportDataGet(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -301,7 +294,7 @@ DMF_INTERFACE_SystemManagementFramework_TransportResetCauseGet(
 
 ##### Returns
 
-NTSTATUS.
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
@@ -315,8 +308,6 @@ Size | Size of data.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### Transport Module's Declaration Data
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DECLARATION_DATA
 ````
@@ -360,8 +351,6 @@ DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT(
 
 Data provided by the Transport Module to indicate that it implements the Dmf_Interface_SystemManagementFramework. 
 The DMF_INTERFACE_TRANSPORT_SystemManagementFramework_DESCRIPTOR_INIT is used by the Transport Module to initialize the Declaration Data.
-
------------------------------------------------------------------------------------------------------------------------------------
 
 ##### Methods exposed to Protocol.
 ````
@@ -439,6 +428,7 @@ DEFINE_GUID(SMF_TIME_LIMIT_CONTROL_OUTPUT_TYPE,
 * List possible future work for this Interface.
 
 -----------------------------------------------------------------------------------------------------------------------------------
+
 #### Interface Category
 
 -----------------------------------------------------------------------------------------------------------------------------------
