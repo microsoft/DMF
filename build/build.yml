@@ -12,6 +12,9 @@ parameters:
     default:
       - Release
       - Debug
+  - name: credSuppressionFile
+    type: string
+    default: ''
 
 trigger:
   batch: true
@@ -110,3 +113,39 @@ stages:
               packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
               nuGetFeedType: 'internal'
               publishVstsFeed: 'DriverPackages'
+
+################################################### 
+# Quality tools
+################################################### 
+      - job: quality_tools
+        displayName: Quality Tools        
+        pool:
+          name: 'Azure - SW Build EWDK Agents'
+        workspace:
+          clean: all
+        steps: 
+        # Run CredScan
+        - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+          displayName: 'Run CredScan'
+          inputs:
+            debugMode: false
+            toolMajorVersion: V2
+            outputFormat: sarif
+            suppressionsFile: ${{ parameters.credSuppressionFile }}
+        
+        # Generate report
+        - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
+          displayName: 'Create Security Analysis Report'
+          inputs:
+            CredScan: true
+
+        # Publish results to the build
+        - task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
+          displayName: 'Publish Security Analysis Logs'
+
+        # Analyse the results and fail if necessary
+        - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
+          displayName: 'Post Analysis'
+          continueOnError: true
+          inputs:
+            CredScan: true
