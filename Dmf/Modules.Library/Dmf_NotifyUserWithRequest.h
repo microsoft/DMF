@@ -57,6 +57,10 @@ typedef struct
     // Use automatic time stamping.
     //
     BOOLEAN TimeStamping;
+    // Allows more buffers for pending data to be automatically allocated
+    // if buffers run out too fast.
+    //
+    BOOLEAN EnableLookAside;
 } DMF_CONFIG_NotifyUserWithRequest;
 
 // This macro declares the following functions:

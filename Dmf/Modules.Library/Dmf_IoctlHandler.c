@@ -291,18 +291,13 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-
     Queue - Handle to the framework queue object that is associated
             with the I/O request.
-
     Request - Handle to a framework request object.
-
     OutputBufferLength - Length of the request's output buffer,
                          if an output buffer is available.
-
     InputBufferLength - Length of the request's input buffer,
                         if an input buffer is available.
-
     IoControlCode - The driver-defined or system-defined I/O control code
                     (IOCTL) that is associated with the request.
 
@@ -1253,6 +1248,90 @@ Return Value:
 
 // Module Methods
 //
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_IoctlHandler_IoctlChain(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ ULONG IoctlCode,
+    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_ size_t InputBufferSize,
+    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _Out_ size_t* BytesReturned
+    )
+/*++
+
+Routine Description:
+
+    Allows Dynamic Module that has a Child IoctlHandler Module to send IOCTL commands to that
+    Child Module.
+
+    NOTE: Table entries for Child Module must be in Parent Module for buffer size validation.
+          Use the exact same entries but with a different callback to the Parent Module which
+          then calls this Method.
+          
+Arguments:
+
+    DmfModule - This Module's handle.
+    Queue - Handle to the framework queue object that is associated
+            with the I/O request.
+    Request - Handle to a framework request object.
+    IoctlCode - The driver-defined or system-defined I/O control code
+                    (IOCTL) that is associated with the request.
+    InputBuffer - The associated input buffer.
+    InputBufferSize - Length of the request's input buffer if an output buffer is available.
+    OutputBuffer - The associated output buffer.
+    OutputBufferSize - Length of the request's output buffer if an output buffer is available.
+    BytesReturned - Bytes returned if WDFREQUEST is completed.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONFIG_IoctlHandler* moduleConfig;
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 IoctlHandler);
+
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+
+    for (ULONG tableIndex = 0; tableIndex < moduleConfig->IoctlRecordCount; tableIndex++)
+    {
+        IoctlHandler_IoctlRecord* ioctlRecord;
+
+        ioctlRecord = &moduleConfig->IoctlRecords[tableIndex];
+        if ((ULONG)(ioctlRecord->IoctlCode) == IoctlCode)
+        {
+            TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
+                        "Matching IOCTL Found: 0x%08X tableIndex=%d",
+                        IoctlCode,
+                        tableIndex);
+
+            // Buffer is validated. Call client handler.
+            //
+            ntStatus = ioctlRecord->EvtIoctlHandlerFunction(DmfModule,
+                                                            Queue,
+                                                            Request,
+                                                            IoctlCode,
+                                                            InputBuffer,
+                                                            InputBufferSize,
+                                                            OutputBuffer,
+                                                            OutputBufferSize,
+                                                            BytesReturned);
+            break;
+        }
+    }
+
+    return ntStatus;
+}
 
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)

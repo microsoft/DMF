@@ -1181,9 +1181,35 @@ Return Value:
     if ((DmfModuleAttributes->DynamicModule) &&
         (NULL != ModuleDescriptor->CallbacksWdf))
     {
-        DmfAssert(FALSE);
-        ntStatus = STATUS_UNSUCCESSFUL;
-        goto Exit;
+        // If the Module supports any WDF callbacks that may have already happened, then prevent this Module from loading dynamically.
+        // Allow Dynamic Modules that have WDF callbacks that are legitimate to process after the Module is loaded.
+        //
+        if ((NULL == ModuleDescriptor->CallbacksWdf->ModulePrepareHardware) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleReleaseHardware) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleD0Entry) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleD0Exit) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleD0EntryPostInterruptsEnabled) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleD0ExitPreInterruptsDisabled) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoCleanup) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoFlush) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoInit) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoSuspend) &&
+            (NULL == ModuleDescriptor->CallbacksWdf->ModuleSelfManagedIoRestart))
+        {
+            // Allow this Module to load dynamically.
+            // This path is necessary for Modules like IoctlHandler to load Dynamically (or Dynamic Modules that have IoctlHanlder
+            // as a Child Module).
+            //
+        }
+        else
+        {
+            // One of the above callbacks may have already happened. Since the Module assumes it will handle those callbacks,
+            // and it is unable to, don't allow it to be created.
+            //
+            DmfAssert(FALSE);
+            ntStatus = STATUS_UNSUCCESSFUL;
+            goto Exit;
+        }
     }
 
     // Don't create Dynamic Module if the Module's Open Option depends on WDF callbacks since

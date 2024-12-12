@@ -132,6 +132,16 @@ DMF_BufferQueue_EnqueueAtHead(
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_BufferQueue_EnqueueWithTimer(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ ULONGLONG TimerExpirationMilliseconds,
+    _In_ EVT_DMF_BufferPool_TimerCallback* TimerExpirationCallback,
+    _In_opt_ VOID* TimerExpirationCallbackContext
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID
 DMF_BufferQueue_Enumerate(
     _In_ DMFMODULE DmfModule,

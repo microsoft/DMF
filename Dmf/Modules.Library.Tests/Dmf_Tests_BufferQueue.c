@@ -140,7 +140,7 @@ Tests_BufferQueue_EnumerationCallback(
     enumContext = (PENUM_CONTEXT_Tests_BufferQueue)ClientDriverCallbackContext;
     DmfAssert(enumContext != NULL);
 
-    Tests_BufferQueue_Validate(DmfModuleBufferPool,
+    Tests_BufferQueue_Validate(dmfModule,
                               (UINT8*)ClientBuffer,
                               (PCLIENT_BUFFER_CONTEXT)ClientBufferContext);
 
@@ -150,6 +150,31 @@ Tests_BufferQueue_EnumerationCallback(
     enumContext->ClientOwnsBuffer = (enumContext->Disposition == BufferPool_EnumerationDisposition_RemoveAndStopEnumeration);
 
     return enumContext->Disposition;
+}
+
+_Function_class_(EVT_DMF_BufferPool_TimerCallback)
+static
+VOID
+_IRQL_requires_max_(DISPATCH_LEVEL)
+Tests_BufferQueue_TimerCallback(
+    _In_ DMFMODULE DmfModuleBufferPoolConsumer,
+    _In_ VOID* ClientBuffer,
+    _In_ VOID* ClientBufferContext,
+    _In_opt_ VOID* ClientDriverCallbackContext
+    )
+{
+    DMFMODULE dmfModule;
+
+    UNREFERENCED_PARAMETER(ClientDriverCallbackContext);
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleBufferPoolConsumer);
+
+    Tests_BufferQueue_Validate(dmfModule,
+                              (UINT8*)ClientBuffer,
+                              (PCLIENT_BUFFER_CONTEXT)ClientBufferContext);
+
+    DMF_BufferQueue_Reuse(dmfModule,
+                          ClientBuffer);
 }
 
 #pragma code_seg("PAGE")
@@ -267,6 +292,73 @@ Exit:
     return;
 }
 #pragma code_seg()
+
+#pragma code_seg("PAGE")
+static
+void
+Tests_BufferQueue_ThreadAction_EnqueueWithTimer(
+    _In_ DMFMODULE DmfModule
+    )
+{
+    DMF_CONTEXT_Tests_BufferQueue* moduleContext;
+    PUINT8 clientBuffer;
+    PCLIENT_BUFFER_CONTEXT clientBufferContext;
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    clientBuffer = NULL;
+    clientBufferContext = NULL;
+
+    // Don't enqueue more then BUFFER_COUNT_MAX buffers.
+    //
+    if (DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) >= BUFFER_COUNT_MAX)
+    {
+        goto Exit;
+    }
+
+    // Fetch a new buffer from producer list.
+    //
+    ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueue,
+                                     (PVOID*)&clientBuffer,
+                                     (PVOID*)&clientBufferContext);
+    if (NT_SUCCESS(ntStatus))
+    {
+        DmfAssert(clientBuffer != NULL);
+        DmfAssert(clientBufferContext != NULL);
+
+        // Populate the buffer with test data.
+        //
+        TestsUtility_FillWithSequentialData(clientBuffer,
+                                            BUFFER_SIZE);
+
+        clientBufferContext->Signature = CLIENT_CONTEXT_SIGNATURE;
+        clientBufferContext->CheckSum = TestsUtility_CrcCompute(clientBuffer,
+                                                                BUFFER_SIZE);
+
+        ULONGLONG timeout;
+
+        // Generate a random timeout within 1 to 100 ms.
+        //
+        timeout = TestsUtility_GenerateRandomNumber(1,
+                                                    100);
+        // Add this buffer to the queue.
+        //
+        DMF_BufferQueue_EnqueueWithTimer(moduleContext->DmfModuleBufferQueue,
+                                         clientBuffer,
+                                         timeout,
+                                         Tests_BufferQueue_TimerCallback,
+                                         NULL);
+    }
+
+Exit:
+
+    return;
+}
+#pragma code_seg()
+
 
 #pragma code_seg("PAGE")
 static
@@ -414,6 +506,7 @@ TestActionArray[] =
 {
     Tests_BufferQueue_ThreadAction_Enqueue,
     Tests_BufferQueue_ThreadAction_EnqueueAtHead,
+    Tests_BufferQueue_ThreadAction_EnqueueWithTimer,
     Tests_BufferQueue_ThreadAction_Dequeue,
     Tests_BufferQueue_ThreadAction_Enumerate,
     Tests_BufferQueue_ThreadAction_Count,

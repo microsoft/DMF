@@ -133,6 +133,22 @@ Environment:
 //
 #define IS_WIN10_21H2_OR_LATER (NTDDI_WIN10_CO && (NTDDI_VERSION >= NTDDI_WIN10_CO))
 
+// Check that the Windows version is 22H2 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_22H2_OR_EARLIER (!(NTDDI_WIN10_NI && (NTDDI_VERSION > NTDDI_WIN10_NI)))
+
+// Check that the Windows version is 22H2 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN10_22H2_OR_LATER (NTDDI_WIN10_NI && (NTDDI_VERSION >= NTDDI_WIN10_NI))
+
+// Check that the Windows version is 24H2 or EARLIER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN11_24H2_OR_EARLIER (!(NTDDI_WIN11_GE && (NTDDI_VERSION > NTDDI_WIN11_GE)))
+
+// Check that the Windows version is 24H2 or LATER. The supported versions are defined in sdkddkver.h.
+//
+#define IS_WIN11_24H2_OR_LATER (NTDDI_WIN11_GE && (NTDDI_VERSION >= NTDDI_WIN11_GE))
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // All include files needed by all Modules and the Framework.

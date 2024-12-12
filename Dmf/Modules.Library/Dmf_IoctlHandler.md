@@ -173,7 +173,7 @@ InputBuffer | The Request's input buffer, if any.
 InputBufferSize | The size of the Request's input buffer.
 OutputBuffer | The Request's output buffer, if any.
 OutputBufferSize | The size of the Request's output buffer.
-BytesReturned | The number of bytes returned to the caller. Indicates the number of bytes transferred usually. __IMPORTANT: Set *BytesReturned to zero when the Request is NOT completed by this callback. If the callback returns STATUS_PENDING, the number of bytes returned can be set when the Client completes the Request using `WdfRequestCompleteWithInformation()`. If STATUS_PENDING is returned, do not store BytesReturned and write to it when Request is completed.__
+BytesReturned | The number of bytes returned to the caller. Indicates the number of bytes transferred usually. **IMPORTANT**: Set *BytesReturned to zero when the Request is NOT completed by this callback. If the callback returns STATUS_PENDING, the number of bytes returned can be set when the Client completes the Request using `WdfRequestCompleteWithInformation()`. If STATUS_PENDING is returned, do not store BytesReturned and write to it when Request is completed.__
 
 ##### Remarks
 
@@ -236,7 +236,50 @@ ReferenceStringUnicodePointer | Indicates the Reference String corresponding to 
 
 #### Module Methods
 
-##### DMF_IoctlHandler_IoctlsEnable
+##### DMF_IoctlHandler_IoctlChain
+
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_IoctlHandler_IoctlChain(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ ULONG IoctlCode,
+    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_ size_t InputBufferSize,
+    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _Out_ size_t* BytesReturned
+    )
+````
+Allows Client to send an IOCTL to a Dynamic Module. Dynamic Modules do not receive WDF calls directly. In rare cases, a Dynamic Module may have a child IoctlHandler. In that case,
+this Method is used to route calls from a Parent Module to the Child Module.
+
+##### Returns
+
+None
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_IoctlHandler Module handle.
+Queue | Parameter passed to this Method's caller that must be passed to target Module.
+Request |  Parameter passed to this Method's caller that must be passed to target Module.
+IoctlCode | Parameter passed to this Method's caller that must be passed to target Module.
+InputBuffer | Parameter passed to this Method's caller that must be passed to target Module.
+InputBufferSize | Parameter passed to this Method's caller that must be passed to target Module.
+OutputBuffer | Parameter passed to this Method's caller that must be passed to target Module.
+OutputBufferSize | Parameter passed to this Method's caller that must be passed to target Module.
+BytesReturned | Parameter passed to this Method's caller that must be passed to target Module.
+
+##### Remarks
+
+* **IMPORTANT:** Table entries for Child Module must be in Parent Module for buffer size validation. Use the exact same entries but with a different callback to the Parent Module which then calls this Method.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+##### DMF_IoctlHandler_IoctlStateSet
 
 ````
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -250,7 +293,7 @@ Allows Client to enable / disable the device interface set in the Module's Confi
 
 ##### Returns
 
-None
+NTSTATUS
 
 ##### Parameters
 Parameter | Description
