@@ -167,6 +167,20 @@ DECLARE_DMF_MODULE(IoctlHandler)
 //
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DMF_IoctlHandler_IoctlChain(
+    _In_ DMFMODULE DmfModule,
+    _In_ WDFQUEUE Queue,
+    _In_ WDFREQUEST Request,
+    _In_ ULONG IoctlCode,
+    _In_reads_(InputBufferSize) VOID* InputBuffer,
+    _In_ size_t InputBufferSize,
+    _Out_writes_(OutputBufferSize) VOID* OutputBuffer,
+    _In_ size_t OutputBufferSize,
+    _Out_ size_t* BytesReturned
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 DMF_IoctlHandler_IoctlStateSet(
     _In_ DMFMODULE DmfModule,

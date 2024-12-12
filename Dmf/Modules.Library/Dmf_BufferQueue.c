@@ -68,6 +68,119 @@ DMF_MODULE_DECLARE_CONFIG(BufferQueue)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+typedef struct _BufferQueue_BufferContext
+{
+    // TimerCallback assigned by the client when using DMF_BufferQueue_EnqueueWithTimer.
+    //
+    EVT_DMF_BufferPool_TimerCallback* ClientTimerExpirationCallback;
+} BufferQueue_BufferContextInternal;
+
+VOID
+BufferQueue_BufferContextInternalGet(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _Out_ BufferQueue_BufferContextInternal** BufferContextInternal
+    )
+/*++
+
+Routine Description:
+
+    Get the section of the Buffer's context used internally by this Module.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to retrieve the context for.
+    BufferContextInternal - The section of the buffer's context used internally by this Module.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONFIG_BufferQueue* moduleConfig;
+    DMF_CONTEXT_BufferQueue* moduleContext;
+    UINT8* clientBufferContext;
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    clientBufferContext = NULL;
+
+    DMF_BufferPool_ContextGet(moduleContext->DmfModuleBufferPoolProducer,
+                              ClientBuffer,
+                              (VOID**)&clientBufferContext);
+
+    *BufferContextInternal = (BufferQueue_BufferContextInternal*)(clientBufferContext + moduleConfig->SourceSettings.BufferContextSize);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
+_Function_class_(EVT_DMF_BufferPool_TimerCallback)
+VOID
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BufferQueue_TimerCallback(
+    _In_ DMFMODULE DmfModuleBufferPoolConsumer,
+    _In_ VOID* ClientBuffer,
+    _In_ VOID* ClientBufferContext,
+    _In_opt_ VOID* ClientDriverCallbackContext
+    )
+/*++
+
+Routine Description:
+
+    This callback function will be called if the buffer in DmfModuleBufferPoolConsumer times out.
+    This is used to chain the timer callback to the callback set by the client in DMF_BufferQueue_EnqueueWithTimer.
+
+Arguments:
+
+    DmfModule - The Consumer BufferPool Module.
+    ClientBuffer - The buffer in the BufferPool.
+    ClientBufferContext - Context associated with the buffer.
+    ClientDriverCallContext - Context associated with the timer callback.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_BufferQueue* moduleContext;
+    DMF_CONFIG_BufferQueue* moduleConfig;
+    BufferQueue_BufferContextInternal* bufferContextInternal;
+    EVT_DMF_BufferPool_TimerCallback* clientTimerExpirationCallback;
+
+    FuncEntry(DMF_TRACE);
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleBufferPoolConsumer);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+    moduleConfig = DMF_CONFIG_GET(dmfModule);
+    bufferContextInternal = NULL;
+    
+    BufferQueue_BufferContextInternalGet(dmfModule,
+                                         ClientBuffer,
+                                         &bufferContextInternal);
+
+    DmfAssert(bufferContextInternal != NULL);
+    DmfAssert(bufferContextInternal->ClientTimerExpirationCallback != NULL);
+
+    clientTimerExpirationCallback = bufferContextInternal->ClientTimerExpirationCallback;
+    bufferContextInternal->ClientTimerExpirationCallback = NULL;
+
+    // clientTimerExpirationCallback cannot be NULL. DMF_BufferQueue_EnqueueWithTimer fails
+    // if client does not assign a TimerExpirationCallback.
+    //
+    clientTimerExpirationCallback(dmfModule,
+                                  ClientBuffer,
+                                  ClientBufferContext,
+                                  ClientDriverCallbackContext);
+
+    FuncExitVoid(DMF_TRACE);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +238,7 @@ Return Value:
                                               &moduleAttributes);
     moduleConfigProducer.BufferPoolMode = BufferPool_Mode_Source;
     moduleConfigProducer.Mode.SourceSettings = moduleConfig->SourceSettings;
+    moduleConfigProducer.Mode.SourceSettings.BufferContextSize = moduleConfigProducer.Mode.SourceSettings.BufferContextSize + sizeof(BufferQueue_BufferContextInternal);
     moduleAttributes.ClientModuleInstanceName = "BufferPoolProducer";
     moduleAttributes.PassiveLevel = DmfParentModuleAttributes->PassiveLevel;
     DMF_DmfModuleAdd(DmfModuleInit,
@@ -515,6 +629,81 @@ Return Value:
                              ClientBuffer);
 
     FuncExitVoid(DMF_TRACE);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_BufferQueue_EnqueueWithTimer(
+    _In_ DMFMODULE DmfModule,
+    _In_ VOID* ClientBuffer,
+    _In_ ULONGLONG TimerExpirationMilliseconds,
+    _In_ EVT_DMF_BufferPool_TimerCallback* TimerExpirationCallback,
+    _In_opt_ VOID* TimerExpirationCallbackContext
+    )
+/*++
+
+Routine Description:
+
+    Adds a Client Buffer to the end of the consumer list and starts a timer. If the buffer is still in the list 
+    when the timer expires, buffer will be removed from the list, and the TimerExpirationCallback
+    will be called. Client owns the buffer in TimerExpirationCallback.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+    ClientBuffer - The buffer to add to the list.
+                   NOTE: This must be a properly formed buffer that was created by this Module.
+    TimerExpirationMilliseconds - Set the optional timer to expire after this many milliseconds.
+    TimerExpirationCallback - Callback function to call when timer expires.
+    TimerExpirationCallbackContext - This Context will be passed to TimerExpirationCallback.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_BufferQueue* moduleContext;
+    DMF_CONFIG_BufferQueue* moduleConfig;
+    BufferQueue_BufferContextInternal* bufferContextInternal;
+    NTSTATUS ntStatus;
+
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 BufferQueue);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    bufferContextInternal = NULL;
+    ntStatus = STATUS_SUCCESS;
+
+    if (TimerExpirationCallback == NULL)
+    {
+        TraceError(DMF_TRACE, "TimerExpirationCallback cannot be NULL");
+        DmfAssert(FALSE);
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+
+    BufferQueue_BufferContextInternalGet(DmfModule,
+                                         ClientBuffer,
+                                         &bufferContextInternal);
+    DmfAssert(bufferContextInternal != NULL);
+
+    bufferContextInternal->ClientTimerExpirationCallback = TimerExpirationCallback;
+
+    DMF_BufferPool_PutInSinkWithTimer(moduleContext->DmfModuleBufferPoolConsumer,
+                                      ClientBuffer,
+                                      TimerExpirationMilliseconds,
+                                      BufferQueue_TimerCallback,
+                                      TimerExpirationCallbackContext);
+
+    FuncExitVoid(DMF_TRACE);
+
+Exit:
+
+    return ntStatus;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)

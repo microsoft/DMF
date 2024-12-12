@@ -39,6 +39,10 @@ typedef struct
     // Use automatic time stamping.
     //
     BOOLEAN TimeStamping;
+    // Allows more buffers for pending data to be automatically allocated
+    // if buffers run out too fast.
+    //
+    BOOLEAN EnableLookAside;
 } DMF_CONFIG_NotifyUserWithRequest;
 ````
 Member | Description
@@ -50,6 +54,7 @@ EvtPendingRequestsCancel | The callback that is called Requests are canceled.
 ClientDriverProviderName | Used for Event Logging purposes if the Client has this capability.
 EvtDataCleanup | Callback to process queued data before it is flushed.
 TimeStamping | If TRUE, this Module timestamps enqueued requests and data buffers.
+EnableLookAside | Set to TRUE to allow more data buffers than pending requests. **Important: See Remarks.**
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -348,6 +353,7 @@ Request | The given request passed in the callback.
 * The Producer contains empty buffers that can be retrieved and written to.
 * After the buffers from Producer are written to, they are put in the Consumer. The Consumer is, essentially, a list of pending work.
 * After buffers are removed from Producer and the corresponding work is done, they are added back to the Producer.
+* **Important:** Use caution with EnableLookAside. If the consumer of data buffers does not run, and data buffers are generated indefinitely, all the memory can be used up. Use this option only when relatively few data buffers can ever be added.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

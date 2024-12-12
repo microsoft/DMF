@@ -247,6 +247,39 @@ ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
 
 * ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
 
+* ##### DMF_BufferQueue_EnqueueWithTimer
+
+Adds a given DMF_BufferQueue buffer to an instance of DMF_BufferQueue's Consumer (at the end). A given timer value specifies that if the buffer is still in the list after the timeout expires, the buffer should be removed, and a given callback called so that the Client knows that the given buffer is being removed.
+```
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+DMF_BufferQueue_EnqueueWithTimer(
+  _In_ DMFMODULE DmfModule,
+  _In_ VOID* ClientBuffer,
+  _In_ ULONGLONG TimerExpirationMilliseconds,
+  _In_ EVT_DMF_BufferPool_TimerCallback* TimerExpirationCallback,
+  _In_opt_ VOID* TimerExpirationCallbackContext
+  );
+```
+
+##### Parameters
+Parameter | Description.
+----|----
+DmfModule | An open DMF_BufferQueue Module handle.
+ClientBuffer | The given DMF_BufferQueue buffer to add to the list.
+TimerExpirationMilliseconds | The given timeout value which indicates how long the buffer will remain in the list before being automatically removed.
+TimerExpirationCallback | The given callback that is called when the given buffer is automatically removed from the list. Race conditions associated with the removal are properly handled.
+TimerExpirationCallbackContext | The context that is sent to TimerExpirationCallback so the Client can perform Client specific operations due to the automatic removal of the given buffer from DMF_BufferPool.
+
+##### Returns
+
+NTSTATUS
+
+##### Remarks
+
+* ClientBuffer *must* have been previously retrieved from the same instance of DMF_BufferQueue because the buffer must have the appropriate metadata which is stored with ClientBuffer. Buffers allocated by the Client using ExAllocatePool() or WdfMemoryCreate() may not be added Module's list using this API.
+* TimerExpirationCallback must be assigned otherwise the function will fail.
+
 ##### DMF_BufferQueue_Enumerate
 
 ````

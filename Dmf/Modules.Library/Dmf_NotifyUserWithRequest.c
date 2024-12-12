@@ -210,6 +210,7 @@ Return Value:
     //
     numberOfRequestsCompleted = 0;
 
+    request = NULL;
     ntStatus = WdfIoQueueRetrieveNextRequest(moduleContext->EventRequestQueue,
                                              &request);
     if (NT_SUCCESS(ntStatus))
@@ -243,7 +244,7 @@ Return Value:
     }
     else
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Cannot find request ntStatus:%!STATUS!", ntStatus);
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "Cannot find request ntStatus:%!STATUS!", ntStatus);
     }
 
     FuncExit(DMF_TRACE, "numberOfRequestsCompleted=%d", numberOfRequestsCompleted);
@@ -366,6 +367,7 @@ Return Value:
 
     // Check if request is available.
     //
+    request = NULL;
     ntStatus = WdfIoQueueFindRequest(moduleContext->EventRequestQueue,
                                      NULL,
                                      NULL,
@@ -380,10 +382,7 @@ Return Value:
         goto ExitWithUnlock;
     }
 
-    // Dereferencing the request object because every successful call to WdfIoQueueFindRequest
-    // increments the reference count of the request object.
-    //
-    WdfObjectDereference(request);
+    TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoQueueFindRequest success request=0x%p", request);
 
     // Get a buffer with event data from the consumer list.
     //
@@ -414,11 +413,22 @@ Return Value:
 
     if (0 == numberOfRequestsCompleted)
     {
-        // Failed to complete the request. Set ntStatus to STATUS_SUCCESS so the caller does
-        // not complete the request since the request has probably been cancelled.
+        // This path can happen in cases of stress where the single request in the queue has been completed/canceled
+        // after the find above has happened. In this case the dequeued data buffer will be lost unless it is 
+        // enqueued again.
         //
         ntStatus = STATUS_SUCCESS;
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn fails to complete request.");
+        // This is an unexpected path that should not, but can, happen. Re-queue the buffer at the head
+        // and clear it so it is not reused. It will be completed later when a new request is available.
+        //
+        DMF_BufferQueue_EnqueueAtHead(moduleContext->DmfModuleBufferQueue,
+                                      clientBuffer);
+        // Don't reuse this buffer at end of this function.
+        //
+        clientBuffer = NULL;
+        // It means producer is not sending requests fast enough.
+        //
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "NotifyUserWithRequest_EventRequestReturn fails to complete request.");
 #if defined(DMF_USER_MODE)
         DMF_Utility_LogEmitString(DmfModule,
                                   DmfLogDataSeverity_Informational,
@@ -439,6 +449,15 @@ Exit:
         DMF_BufferQueue_Reuse(moduleContext->DmfModuleBufferQueue,
                               clientBuffer);
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "DMF_BufferQueue_Reuse");
+    }
+
+    if (request != NULL)
+    {
+        // Dereferencing the request object because every successful call to WdfIoQueueFindRequest
+        // increments the reference count of the request object.
+        // NOTE: Do this after all the code that depends on the request has executed.
+        //
+        WdfObjectDereference(request);
     }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
@@ -625,7 +644,7 @@ Return Value:
         //
         DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&moduleBufferQueueConfigList,
                                                    &moduleAttributes);
-        moduleBufferQueueConfigList.SourceSettings.EnableLookAside = FALSE;
+        moduleBufferQueueConfigList.SourceSettings.EnableLookAside = moduleConfig->EnableLookAside;
         moduleBufferQueueConfigList.SourceSettings.BufferCount = moduleConfig->MaximumNumberOfPendingDataBuffers;
         moduleBufferQueueConfigList.SourceSettings.BufferSize = sizeof(USEREVENT_ENTRY) + moduleConfig->SizeOfDataBuffer;
         if (DmfParentModuleAttributes->PassiveLevel)
@@ -997,7 +1016,7 @@ Return Value:
                                           moduleContext->EventRequestQueue);
     if (NT_SUCCESS(ntStatus))
     {
-        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "ENQUEUE Request=0x%p EventsHeld=%d", Request, moduleContext->EventCountHeld);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "ENQUEUE Request=0x%p EventsHeld=%d", Request, moduleContext->EventCountHeld);
     }
     else
     {
