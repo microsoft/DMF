@@ -78,6 +78,9 @@ typedef struct _DMF_CONTEXT_Tests_BufferQueue
     // BufferQueue Module to test
     //
     DMFMODULE DmfModuleBufferQueue;
+#if !defined(DMF_USER_MODE)
+    DMFMODULE DmfModuleBufferQueueTimer;
+#endif
     // Work threads
     //
     DMFMODULE DmfModuleThread[THREAD_COUNT];
@@ -152,6 +155,8 @@ Tests_BufferQueue_EnumerationCallback(
     return enumContext->Disposition;
 }
 
+#if !defined(DMF_USER_MODE)
+
 _Function_class_(EVT_DMF_BufferPool_TimerCallback)
 static
 VOID
@@ -165,9 +170,9 @@ Tests_BufferQueue_TimerCallback(
 {
     DMFMODULE dmfModule;
 
-    UNREFERENCED_PARAMETER(ClientDriverCallbackContext);
+    UNREFERENCED_PARAMETER(DmfModuleBufferPoolConsumer);
 
-    dmfModule = DMF_ParentModuleGet(DmfModuleBufferPoolConsumer);
+    dmfModule = DMFMODULEVOID_TO_MODULE(ClientDriverCallbackContext);
 
     Tests_BufferQueue_Validate(dmfModule,
                               (UINT8*)ClientBuffer,
@@ -176,6 +181,8 @@ Tests_BufferQueue_TimerCallback(
     DMF_BufferQueue_Reuse(dmfModule,
                           ClientBuffer);
 }
+
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -293,6 +300,8 @@ Exit:
 }
 #pragma code_seg()
 
+#if !defined(DMF_USER_MODE)
+
 #pragma code_seg("PAGE")
 static
 void
@@ -314,14 +323,14 @@ Tests_BufferQueue_ThreadAction_EnqueueWithTimer(
 
     // Don't enqueue more then BUFFER_COUNT_MAX buffers.
     //
-    if (DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueue) >= BUFFER_COUNT_MAX)
+    if (DMF_BufferQueue_Count(moduleContext->DmfModuleBufferQueueTimer) >= BUFFER_COUNT_MAX)
     {
         goto Exit;
     }
 
     // Fetch a new buffer from producer list.
     //
-    ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueue,
+    ntStatus = DMF_BufferQueue_Fetch(moduleContext->DmfModuleBufferQueueTimer,
                                      (PVOID*)&clientBuffer,
                                      (PVOID*)&clientBufferContext);
     if (NT_SUCCESS(ntStatus))
@@ -346,11 +355,11 @@ Tests_BufferQueue_ThreadAction_EnqueueWithTimer(
                                                     100);
         // Add this buffer to the queue.
         //
-        DMF_BufferQueue_EnqueueWithTimer(moduleContext->DmfModuleBufferQueue,
+        DMF_BufferQueue_EnqueueWithTimer(moduleContext->DmfModuleBufferQueueTimer,
                                          clientBuffer,
                                          timeout,
                                          Tests_BufferQueue_TimerCallback,
-                                         NULL);
+                                         moduleContext->DmfModuleBufferQueueTimer);
     }
 
 Exit:
@@ -359,6 +368,7 @@ Exit:
 }
 #pragma code_seg()
 
+#endif
 
 #pragma code_seg("PAGE")
 static
@@ -506,7 +516,9 @@ TestActionArray[] =
 {
     Tests_BufferQueue_ThreadAction_Enqueue,
     Tests_BufferQueue_ThreadAction_EnqueueAtHead,
+#if !defined(DMF_USER_MODE)
     Tests_BufferQueue_ThreadAction_EnqueueWithTimer,
+#endif
     Tests_BufferQueue_ThreadAction_Dequeue,
     Tests_BufferQueue_ThreadAction_Enumerate,
     Tests_BufferQueue_ThreadAction_Count,
@@ -720,6 +732,24 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleBufferQueue);
+
+#if !defined(DMF_USER_MODE)
+    // BufferQueue
+    // -----------
+    //
+    DMF_CONFIG_BufferQueue_AND_ATTRIBUTES_INIT(&moduleConfigBufferQueue,
+                                               &moduleAttributes);
+    moduleConfigBufferQueue.SourceSettings.BufferContextSize = sizeof(CLIENT_BUFFER_CONTEXT);
+    moduleConfigBufferQueue.SourceSettings.BufferSize = BUFFER_SIZE;
+    moduleConfigBufferQueue.SourceSettings.BufferCount = BUFFER_COUNT_PREALLOCATED;
+    moduleConfigBufferQueue.SourceSettings.CreateWithTimer = TRUE;
+    moduleConfigBufferQueue.SourceSettings.EnableLookAside = TRUE;
+    moduleConfigBufferQueue.SourceSettings.PoolType = NonPagedPoolNx;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleBufferQueueTimer);
+#endif
 
     // Thread
     // ------
