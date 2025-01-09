@@ -1,0 +1,69 @@
+set(TargetName "DmfUModules.Library.Tests")
+set(${TargetName}_Srcs
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_AlertableSleep.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_BufferPool.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_BufferQueue.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_DefaultTarget.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_DeviceInterfaceMultipleTarget.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_DeviceInterfaceTarget.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_HashTable.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_IoctlHandler.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_Pdo.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_PingPongBuffer.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_Registry.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_RingBuffer.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_ScheduledTask.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_SelfTarget.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_Stack.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/Dmf_Tests_String.c
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Modules.Library.Tests/TestsUtility.c
+)
+wdk_add_umd_library(${TargetName} STATIC UMDF 2.23 ${${TargetName}_Srcs})
+
+set_property(TARGET ${TargetName} APPEND PROPERTY COMPILE_DEFINITIONS
+	"$<$<CONFIG:Debug>:_WIN64;USE_ASSERT_BREAK;_UNICODE;UNICODE;DEBUG;DBG;WIN32_LEAN_AND_MEAN=1>"
+)
+
+set_property(TARGET ${TargetName} APPEND PROPERTY COMPILE_DEFINITIONS
+	"$<$<CONFIG:Release>:_WIN64;NO_USE_ASSERT_BREAK;_UNICODE;UNICODE;WIN32_LEAN_AND_MEAN=1>"
+)
+
+set_property(TARGET ${TargetName} APPEND PROPERTY COMPILE_FLAGS
+	"/TP /std:c++17"
+)
+
+if(WPP_ENABLED EQUAL 1)
+	set(WPP_PRPROC_FOLDER ${CMAKE_CURRENT_BINARY_DIR}/WppTmp)
+	file(MAKE_DIRECTORY ${WPP_PRPROC_FOLDER})
+	set_property(TARGET ${TargetName} APPEND PROPERTY COMPILE_DEFINITIONS
+	"ENABLE_WPP_RECORDER=1;WPP_EMIT_FUNC_NAME"
+	)
+	target_include_directories(${TargetName} PRIVATE 
+		${WPP_PRPROC_FOLDER}
+	)
+	if(CMAKE_GENERATOR MATCHES "Visual Studio")
+		set(wpp_target ${TargetName})
+	else()
+		add_custom_target(${TargetName}Null)
+		add_dependencies(${TargetName} ${TargetName}Null)
+		set(wpp_target ${TargetName}Null)
+	endif()
+	set(WPP_SOURCE_FILES ${${TargetName}_Srcs})
+	foreach(wpp_file IN LISTS WPP_SOURCE_FILES)
+		string(REPLACE "/" "\\" wpp_file_str  ${wpp_file})
+		umd_wpp_preproc(${wpp_target}  ${wpp_file_str} ${WPP_PRPROC_FOLDER}/  ${CMAKE_CURRENT_SOURCE_DIR}/../../Framework/DmfTrace.h)
+	endforeach()
+endif()
+
+target_include_directories(${TargetName} BEFORE PRIVATE 
+	${CMAKE_CURRENT_SOURCE_DIR}/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Framework/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../Framework/Modules.Core/
+)
+
+add_custom_command(
+	TARGET ${TargetName} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${DMF_LIB_FINAL_OUTPUT_PATH}/individual_libs/${TargetName}/
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${TargetName}.lib  ${DMF_LIB_FINAL_OUTPUT_PATH}/individual_libs/${TargetName}/${TargetName}.lib
+	VERBATIM
+)
