@@ -884,7 +884,7 @@ DeviceInterfaceTarget_Target_ReuseCreate(
 
     DmfAssert(! moduleContext->OpenedInStreamMode);
 
-    ntStatus = DMF_RequestTarget_ReuseCreate(moduleContext->DmfModuleContinuousRequestTarget,
+    ntStatus = DMF_RequestTarget_ReuseCreate(moduleContext->DmfModuleRequestTarget,
                                              DmfRequestIdReuse);
 
     return ntStatus;

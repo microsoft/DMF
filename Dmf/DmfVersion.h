@@ -4,10 +4,10 @@
 // built using DMF.
 //
 
-// DMF Release: v1.1.149
+// DMF Release: v1.1.150
 //
 
-#define DMF_VERSION 0x01010095
+#define DMF_VERSION 0x01010096
 
 // eof: DmfVersion.h
 //

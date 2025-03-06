@@ -115,6 +115,8 @@ typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceTarget
     DMFMODULE DmfModuleDeviceInterfaceTargetDispatchInput;
     DMFMODULE DmfModuleDeviceInterfaceTargetPassiveInput;
     DMFMODULE DmfModuleDeviceInterfaceTargetPassiveOutput;
+    DMFMODULE DmfModuleDeviceInterfaceTargetPassiveNonContinuous;
+    DMFMODULE DmfModuleDeviceInterfaceTargetDispatchNonContinuous;
     // Source of buffers sent asynchronously.
     //
     DMFMODULE DmfModuleBufferPool;
@@ -124,11 +126,15 @@ typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceTarget
     DMFMODULE DmfModuleThreadDispatchInput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleThreadPassiveInput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleThreadPassiveOutput[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleThreadPassiveNonContinuous[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleThreadDispatchNonContinuous[THREAD_COUNT + 1];
     // Use alertable sleep to allow driver to unload faster.
     //
     DMFMODULE DmfModuleAlertableSleepDispatchInput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepPassiveInput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepPassiveOutput[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleAlertableSleepPassiveNonContinuous[THREAD_COUNT + 1];
+    DMFMODULE DmfModuleAlertableSleepDispatchNonContinuous[THREAD_COUNT + 1];
 
 #if defined(DMF_KERNEL_MODE)
     // Direct interface via IRP_MN_QUERY_INTERFACE.
@@ -1819,6 +1825,188 @@ Tests_DeviceInterfaceTarget_WorkThreadPassiveOutput(
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_DeviceInterfaceTarget_WorkThreadPassiveNonContinuous(
+    _In_ DMFMODULE DmfModuleThread
+    )
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    TEST_ACTION testAction;
+    Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndex;
+
+    PAGED_CODE();
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleThread);
+    threadIndex = WdfObjectGet_Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT(DmfModuleThread);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+#if defined(TEST_SYNCHRONOUS_ONLY)
+    testAction = TEST_ACTION_SYNCHRONOUS;
+#elif defined(TEST_ASYNCHRONOUS_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUS;
+#elif defined(TEST_ASYNCHRONOUSCANCEL_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUSCANCEL;
+#elif defined(TEST_ASYNCHRONOUSREUSE_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUSREUSE;
+#elif defined(TEST_DYNAMIC_ONLY)
+    testAction = TEST_ACTION_DYNAMIC;
+#else
+    // Generate a random test action Id for a current iteration.
+    //
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+                                                                TEST_ACTION_MAXIMUM);
+#endif
+
+    // Execute the test action.
+    //
+    switch (testAction)
+    {
+        case TEST_ACTION_SYNCHRONOUS:
+            Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(dmfModule,
+                                                                 threadIndex->DmfModuleAlertableSleep,
+                                                                 moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+            break;
+        case TEST_ACTION_ASYNCHRONOUS:
+            Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(dmfModule,
+                                                                  threadIndex->DmfModuleAlertableSleep,
+                                                                  moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSCANCEL:
+            Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(dmfModule,
+                                                                        threadIndex->DmfModuleAlertableSleep,
+                                                                        moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSREUSE:
+            Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousReuse(dmfModule,
+                                                                       threadIndex->DmfModuleAlertableSleep,
+                                                                       moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+            break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            Tests_DeviceInterfaceTarget_DirectInterfaceTest(moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DYNAMIC:
+#if !defined(DYNAMIC_DISABLE)
+            Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(dmfModule,
+                                                             threadIndex->DmfModuleAlertableSleep);
+#endif // !defined(DYNAMIC_DISABLE)
+            break;
+        default:
+            DmfAssert(FALSE);
+            break;
+    }
+
+    // Repeat the test, until stop is signaled.
+    //
+    if (!DMF_Thread_IsStopPending(DmfModuleThread))
+    {
+        // Short delay to reduce traffic.
+        //
+        DMF_Utility_DelayMilliseconds(TIMEOUT_TRAFFIC_DELAY_MS);
+        DMF_Thread_WorkReady(DmfModuleThread);
+    }
+
+    TestsUtility_YieldExecution();
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_DeviceInterfaceTarget_WorkThreadDispatchNonContinuous(
+    _In_ DMFMODULE DmfModuleThread
+    )
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    TEST_ACTION testAction;
+    Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndex;
+
+    PAGED_CODE();
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleThread);
+    threadIndex = WdfObjectGet_Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT(DmfModuleThread);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+#if defined(TEST_SYNCHRONOUS_ONLY)
+    testAction = TEST_ACTION_SYNCHRONOUS;
+#elif defined(TEST_ASYNCHRONOUS_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUS;
+#elif defined(TEST_ASYNCHRONOUSCANCEL_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUSCANCEL;
+#elif defined(TEST_ASYNCHRONOUSREUSE_ONLY)
+    testAction = TEST_ACTION_ASYNCHRONOUSREUSE;
+#elif defined(TEST_DYNAMIC_ONLY)
+    testAction = TEST_ACTION_DYNAMIC;
+#else
+    // Generate a random test action Id for a current iteration.
+    //
+    testAction = (TEST_ACTION)TestsUtility_GenerateRandomNumber(TEST_ACTION_MINIUM,
+                                                                TEST_ACTION_MAXIMUM);
+#endif
+
+    // Execute the test action.
+    //
+    switch (testAction)
+    {
+        case TEST_ACTION_SYNCHRONOUS:
+            Tests_DeviceInterfaceTarget_ThreadAction_Synchronous(dmfModule,
+                                                                 threadIndex->DmfModuleAlertableSleep,
+                                                                 moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
+            break;
+        case TEST_ACTION_ASYNCHRONOUS:
+            Tests_DeviceInterfaceTarget_ThreadAction_Asynchronous(dmfModule,
+                                                                  threadIndex->DmfModuleAlertableSleep,
+                                                                  moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSCANCEL:
+            Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousCancel(dmfModule,
+                                                                        threadIndex->DmfModuleAlertableSleep,
+                                                                        moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
+            break;
+        case TEST_ACTION_ASYNCHRONOUSREUSE:
+            Tests_DeviceInterfaceTarget_ThreadAction_AsynchronousReuse(dmfModule,
+                                                                       threadIndex->DmfModuleAlertableSleep,
+                                                                       moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
+            break;
+#if defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DIRECTINTERFACE:
+            Tests_DeviceInterfaceTarget_DirectInterfaceTest(moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
+            break;
+#endif // defined(DMF_KERNEL_MODE)
+        case TEST_ACTION_DYNAMIC:
+#if !defined(DYNAMIC_DISABLE)
+            Tests_DeviceInterfaceTarget_ThreadAction_Dynamic(dmfModule,
+                                                             threadIndex->DmfModuleAlertableSleep);
+#endif // !defined(DYNAMIC_DISABLE)
+            break;
+        default:
+            DmfAssert(FALSE);
+            break;
+    }
+
+    // Repeat the test, until stop is signaled.
+    //
+    if (!DMF_Thread_IsStopPending(DmfModuleThread))
+    {
+        // Short delay to reduce traffic.
+        //
+        DMF_Utility_DelayMilliseconds(TIMEOUT_TRAFFIC_DELAY_MS);
+        DMF_Thread_WorkReady(DmfModuleThread);
+    }
+
+    TestsUtility_YieldExecution();
+}
+#pragma code_seg()
+
 #endif // !defined(TEST_SIMPLE)
 
 #pragma code_seg("PAGE")
@@ -2515,6 +2703,452 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Tests_DeviceInterfaceTarget_StartPassiveNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Starts the threads that send asynchronous data to the manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadPassiveNonContinuous[threadIndex]);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            goto Exit;
+        }
+    }
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadPassiveNonContinuous[threadIndex]);
+    }
+
+Exit:
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_StopPassiveNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Stops the threads that send asynchronous data to the manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepPassiveNonContinuous[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadPassiveNonContinuous[threadIndex]);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_PassiveNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Arrival Notification.
+    Manually starts the manual DMF_DeviceInterfaceTarget Module.
+    This function starts the threads that send asynchronous data to manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleParent;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    PAGED_CODE();
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+#if defined(DMF_KERNEL_MODE)
+    ntStatus = Tests_DeviceInterfaceTarget_QueryInterface(moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+    DmfAssert(NT_SUCCESS(ntStatus));
+#endif // defined(DMF_KERNEL_MODE)
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT);
+        ntStatus = WdfObjectAllocateContext(moduleContext->DmfModuleThreadPassiveNonContinuous[threadIndex],
+                                            &objectAttributes,
+                                            (PVOID*)&threadIndexContext);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepPassiveNonContinuous[threadIndex];
+        // Reset in case target comes and goes and comes back.
+        //
+        DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
+                                         0);
+    }
+
+    // Start threads.
+    //
+    Tests_DeviceInterfaceTarget_StartPassiveNonContinuous(dmfModuleParent);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_PassiveNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Removal Notification.
+    Manually stops the manual DMF_DeviceInterfaceTarget Module.
+    This function stops the threads that send asynchronous data to manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    DMFMODULE dmfModuleParent;
+#if !defined(TEST_SIMPLE)
+    NTSTATUS ntStatus;
+#endif
+
+    PAGED_CODE();
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+
+#if defined(DMF_KERNEL_MODE)
+    Tests_DeviceInterfaceTarget_DirectInterfaceDecrement(dmfModuleParent);
+#endif // defined(DMF_KERNEL_MODE)
+
+#if !defined(TEST_SIMPLE)
+    WDFIOTARGET ioTarget;
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    // Stop threads.
+    //
+    Tests_DeviceInterfaceTarget_StopPassiveNonContinuous(dmfModuleParent);
+#endif
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Tests_DeviceInterfaceTarget_StartDispatchNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Starts the threads that send asynchronous data to the manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadDispatchNonContinuous[threadIndex]);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            goto Exit;
+        }
+    }
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadDispatchNonContinuous[threadIndex]);
+    }
+
+Exit:
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_StopDispatchNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Stops the threads that send asynchronous data to the manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepDispatchNonContinuous[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadDispatchNonContinuous[threadIndex]);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Arrival Notification.
+    Manually starts the manual DMF_DeviceInterfaceTarget Module.
+    This function starts the threads that send asynchronous data to manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleParent;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    PAGED_CODE();
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+#if defined(DMF_KERNEL_MODE)
+    ntStatus = Tests_DeviceInterfaceTarget_QueryInterface(moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
+    DmfAssert(NT_SUCCESS(ntStatus));
+#endif // defined(DMF_KERNEL_MODE)
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT);
+        ntStatus = WdfObjectAllocateContext(moduleContext->DmfModuleThreadDispatchNonContinuous[threadIndex],
+                                            &objectAttributes,
+                                            (PVOID*)&threadIndexContext);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepDispatchNonContinuous[threadIndex];
+        // Reset in case target comes and goes and comes back.
+        //
+        DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
+                                         0);
+    }
+
+    // Start threads.
+    //
+    Tests_DeviceInterfaceTarget_StartDispatchNonContinuous(dmfModuleParent);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchNonContinuous(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Removal Notification.
+    Manually stops the manual DMF_DeviceInterfaceTarget Module.
+    This function stops the threads that send asynchronous data to manually started
+    DMF_DeviceInterfaceTarget Modules.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    DMFMODULE dmfModuleParent;
+#if !defined(TEST_SIMPLE)
+    NTSTATUS ntStatus;
+#endif
+
+    PAGED_CODE();
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+
+#if defined(DMF_KERNEL_MODE)
+    Tests_DeviceInterfaceTarget_DirectInterfaceDecrement(dmfModuleParent);
+#endif // defined(DMF_KERNEL_MODE)
+
+#if !defined(TEST_SIMPLE)
+    WDFIOTARGET ioTarget;
+
+    ntStatus = DMF_DeviceInterfaceTarget_Get(DmfModule,
+                                             &ioTarget);
+    if (NT_SUCCESS(ntStatus))
+    {
+        WdfIoTargetPurge(ioTarget,
+                         WdfIoTargetPurgeIoAndWait);
+    }
+
+    // Stop threads.
+    //
+    Tests_DeviceInterfaceTarget_StopDispatchNonContinuous(dmfModuleParent);
+#endif
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2614,6 +3248,24 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          &moduleContext->DmfModuleThreadPassiveOutput[threadIndex]);
+
+        DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                              &moduleAttributes);
+        moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+        moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_DeviceInterfaceTarget_WorkThreadPassiveNonContinuous;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleThreadPassiveNonContinuous[threadIndex]);
+
+        DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                              &moduleAttributes);
+        moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+        moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_DeviceInterfaceTarget_WorkThreadDispatchNonContinuous;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleThreadDispatchNonContinuous[threadIndex]);
 #endif
 
         // AlertableSleep Auto
@@ -2629,7 +3281,7 @@ Return Value:
                             &moduleContext->DmfModuleAlertableSleepDispatchInput[threadIndex]);
 
         // AlertableSleep Manual (Input)
-        // ---------------------
+        // -----------------------------
         //
         DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
                                                       &moduleAttributes);
@@ -2641,7 +3293,7 @@ Return Value:
                             &moduleContext->DmfModuleAlertableSleepPassiveInput[threadIndex]);
 
         // AlertableSleep Manual (Output)
-        // ---------------------
+        // ------------------------------
         //
         DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
                                                       &moduleAttributes);
@@ -2651,6 +3303,30 @@ Return Value:
                             &moduleAttributes,
                             WDF_NO_OBJECT_ATTRIBUTES,
                             &moduleContext->DmfModuleAlertableSleepPassiveOutput[threadIndex]);
+
+        // AlertableSleep Passive NonContinuous
+        // ------------------------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.PassiveNonContinuous";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepPassiveNonContinuous[threadIndex]);
+
+        // AlertableSleep Dispatch NonContinuous
+        // ------------------------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.DispatchNonContinuous";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepDispatchNonContinuous[threadIndex]);
     }
 
     // DeviceInterfaceTarget (DISPATCH_LEVEL)
@@ -2741,6 +3417,41 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      &moduleContext->DmfModuleDeviceInterfaceTargetPassiveOutput);
+
+    // DeviceInterfaceTarget (PASSIVE_LEVEL)
+    // No continuous requests.
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
+                                               &moduleEventCallbacks);
+    moduleAttributes.PassiveLevel = TRUE;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_PassiveNonContinuous;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_PassiveNonContinuous;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChangeEx = Tests_DeviceInterfaceTarget_OnStateChange;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceTargetPassiveNonContinuous);
+
+    // DeviceInterfaceTarget (DISPATCH_LEVEL)
+    // No continuous requests.
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_IoctlHandler;
+    DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
+                                               &moduleEventCallbacks);
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_DispatchNonContinuous;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_DispatchNonContinuous;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChangeEx = Tests_DeviceInterfaceTarget_OnStateChange;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceTargetDispatchNonContinuous);
 
     // Test valid combinations of pool types.
     //
