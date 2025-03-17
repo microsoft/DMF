@@ -1267,126 +1267,6 @@ IoctlHandler_IoctlRecord UdeClient_IoctlHandlerTable[] =
     {IOCTL_USB_GET_ROOT_HUB_NAME,   0,  0, UdeClient_EvtIoControl }
 };
 
-_Function_class_(DMF_ModuleD0Entry)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-DMF_UdeClient_ModuleD0Entry(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDF_POWER_DEVICE_STATE PreviousState
-    )
-/*++
-
-Routine Description:
-
-    UdeClient callback for ModuleD0Entry for a given DMF Module.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    PreviousState - The WDF Power State that the given DMF Module should exit from.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-
-    UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(PreviousState);
-
-    FuncEntry(DMF_TRACE);
-
-    // NOP Currently.
-    //
-    ntStatus = STATUS_SUCCESS;
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_UdeClient_ModuleD0Entry ntStatus=%!STATUS!", ntStatus);
-
-    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
-
-    return ntStatus;
-}
-
-_Function_class_(DMF_ModuleD0Exit)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-static
-NTSTATUS
-DMF_UdeClient_ModuleD0Exit(
-    _In_ DMFMODULE DmfModule,
-    _In_ WDF_POWER_DEVICE_STATE TargetState
-    )
-/*++
-
-Routine Description:
-
-    UdeClient callback for ModuleD0Exit for a given DMF Module.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-    TargetState - The WDF Power State that the given DMF Module will enter.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-
-    UNREFERENCED_PARAMETER(DmfModule);
-    UNREFERENCED_PARAMETER(TargetState);
-
-    FuncEntry(DMF_TRACE);
-
-    // NOP Currently.
-    //
-    ntStatus = STATUS_SUCCESS;
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_UdeClient_ModuleD0Exit ntStatus=%!STATUS!", ntStatus);
-
-    FuncExitVoid(DMF_TRACE);
-
-    return ntStatus;
-}
-
-_Function_class_(DMF_ModuleSurpriseRemoval)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID
-DMF_UdeClient_SurpriseRemoval(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    UdeClient callback for ModuleSurpriseRemoval for a given DMF Module.
-
-Arguments:
-
-    DmfModule - The given DMF Module.
-
-Return Value:
-
-    None
-
---*/
-{
-    FuncEntry(DMF_TRACE);
-
-    // NOP Currently.
-    //
-
-    UNREFERENCED_PARAMETER(DmfModule);
-
-    FuncExitVoid(DMF_TRACE);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // DMF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1673,15 +1553,22 @@ Return Value:
     dmfCallbacksDmf_UdeClient.DeviceClose = DMF_UdeClient_Close;
 
     DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_UdeClient);
-    dmfCallbacksWdf_UdeClient.ModuleSurpriseRemoval = DMF_UdeClient_SurpriseRemoval;
-    dmfCallbacksWdf_UdeClient.ModuleD0Entry = DMF_UdeClient_ModuleD0Entry;
-    dmfCallbacksWdf_UdeClient.ModuleD0Exit = DMF_UdeClient_ModuleD0Exit;
+
+    DmfModuleOpenOption openOption;
+    if (DmfModuleAttributes->DynamicModule)
+    {
+        openOption = DMF_MODULE_OPEN_OPTION_OPEN_Create;
+    }
+    else
+    {
+        openOption = DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware;
+    }
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_UdeClient,
                                             UdeClient,
                                             DMF_CONTEXT_UdeClient,
                                             DMF_MODULE_OPTIONS_PASSIVE,
-                                            DMF_MODULE_OPEN_OPTION_OPEN_PrepareHardware);
+                                            openOption);
 
     dmfModuleDescriptor_UdeClient.CallbacksDmf = &dmfCallbacksDmf_UdeClient;
     dmfModuleDescriptor_UdeClient.CallbacksWdf = &dmfCallbacksWdf_UdeClient;

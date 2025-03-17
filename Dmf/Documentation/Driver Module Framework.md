@@ -1382,12 +1382,12 @@ a DMF_[ModuleName]_NotificationRegister callback.*
 
 ### Destroying a Dynamic Module
 
-It is not necessary to immediately destroy a Dynamic Module after it is created and
-its Methods are called. If the Module's parent **WDFOBJECT** is a **WDFDEVICE** or
-some other **WDFOBJECT**, the Module will be automatically destroyed when its
-parent **WDFOBJECT** is destroyed, similar to all other WDF objects. Likewise,
-the Client can call `WdfObjectDelete()` passing the **DMFMODULE** handle of the
-Dynamic Module at any time.
+***IMPORTANT***: When a Dynamic Module is created, it is best to not set its parent it to another
+**WDFOBJECT**. Instead, it is best to delete it directly using **WdfObjectDelete()**. The reason
+is that when WDF deletes objects, sometimes the order in which it does so does not match the
+DMF parent/child relationships. This can cause a Child Module to be deleted before its parent
+has executed its cleanup code. In most cases, setting the parent to another **WDFOBJECT** works,
+but not in all cases. So it is best to never set the parent to another WDF object.
 
 Here is an example of the above sequence showing the **Dmf_AcpiTarget**
 Module dynamically instantiated:
@@ -1408,7 +1408,8 @@ ConfigurationDetermine(
     dmfModuleAcpiTarget = NULL;
 
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    attributes.ParentObject = DeviceContext->WdfDevice;
+    // NOTE: Do not set parent of the Module.
+    //
 
     DMF_CONFIG_AcpiTarget_AND_ATTRIBUTES_INIT(&acpiTargetModuleConfig,
                                               &moduleAttributes);
@@ -1421,7 +1422,6 @@ ConfigurationDetermine(
                                      &moduleAttributes,
                                      &attributes,
                                      &dmfModuleAcpiTarget);
-
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
