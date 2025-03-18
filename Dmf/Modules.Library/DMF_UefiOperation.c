@@ -407,8 +407,11 @@ Return Value:
                     DMF_TRACE,
                     "DMF_UefiOperation_FirmwareEnvironmentVariableGetEx fails: ntStatus=%!STATUS!",
                     ntStatus);
-        WdfObjectDelete(*VariableBufferHandle);
-        *VariableBufferHandle = NULL;
+        if (*VariableBufferHandle != NULL)
+        {
+            WdfObjectDelete(*VariableBufferHandle);
+            *VariableBufferHandle = NULL;
+        }
         goto Exit;
     }
 

@@ -600,11 +600,7 @@ Return Value:
                                                                               Target->DmfIoTarget,
                                                                               DeviceInterfaceMultipleTarget_StateType_Close);
             }
-            // The target is about to go away...Wait for all pending Methods using the target
-            // to finish executing and don't let new Methods start.
-            //
-            moduleContext->RequestSink_IoTargetClear(DmfModule,
-                                                     Target);
+
             // WDFIOTARGET is closed. Make sure it is deleted below.
             //
             IoTarget = Target->IoTarget;
