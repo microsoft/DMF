@@ -40,6 +40,15 @@ EVT_DMF_MobileBroadband_WirelessStateChangeCallback(
     _In_ MobileBroadband_WIRELESS_STATE* WirelessState
     );
 
+typedef
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+EVT_DMF_MobileBroadband_SimReadyChangeCallback(
+    _In_ DMFMODULE DmfModule,
+    _In_ BOOLEAN SimReady
+    );
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -47,6 +56,9 @@ typedef struct
     // Callback called when a TransmissionStateChanged event is received.
     //
     EVT_DMF_MobileBroadband_WirelessStateChangeCallback* EvtMobileBroadbandWirelessStateChangeCallback;
+    // Callback called when a SimReadyChange event is received.
+    //
+    EVT_DMF_MobileBroadband_SimReadyChangeCallback* EvtMobileBroadbandSimReadyChangeCallback;
 } DMF_CONFIG_MobileBroadband;
 
 // This macro declares the following functions:

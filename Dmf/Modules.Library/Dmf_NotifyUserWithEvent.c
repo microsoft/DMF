@@ -231,8 +231,6 @@ Return Value:
                                              NULL);
         if (! NT_SUCCESS(ntStatus))
         {
-            // TODO: Test the case where the event is closed by user.
-            //
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "ObReferenceObjectByHandle EventIndex=%u", EventIndex);
             goto Exit;
         }
@@ -332,44 +330,6 @@ Exit:
 }
 #pragma code_seg()
 
-#pragma code_seg("PAGE")
-_Function_class_(DMF_Close)
-_IRQL_requires_max_(PASSIVE_LEVEL)
-static
-VOID
-DMF_NotifyUserWithEvent_Close(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Uninitialize an instance of a DMF Module of type NotifyUserWithEvent.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    None
-
---*/
-{
-    DMF_CONTEXT_NotifyUserWithEvent* moduleContext;
-
-    PAGED_CODE();
-
-    FuncEntry(DMF_TRACE);
-
-    moduleContext = DMF_CONTEXT_GET(DmfModule);
-
-    NotifyUserWithEvent_EventsDestroy(DmfModule);
-
-    FuncExitVoid(DMF_TRACE);
-}
-#pragma code_seg()
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -414,7 +374,6 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_NotifyUserWithEvent);
     dmfCallbacksDmf_NotifyUserWithEvent.DeviceOpen = DMF_NotifyUserWithEvent_Open;
-    dmfCallbacksDmf_NotifyUserWithEvent.DeviceClose = DMF_NotifyUserWithEvent_Close;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_NotifyUserWithEvent,
                                             NotifyUserWithEvent,
@@ -533,20 +492,20 @@ Return Value:
 
     DMF_ModuleLock(DmfModule);
 
-    if (NULL == moduleContext->NotifyUserWithEvent[EventIndex])
-    {
-        // Return status is not important.
-        //
-        NotifyUserWithEvent_EventCreate(DmfModule,
-                                        EventIndex);
-        // Fall through to try set the event, if it is exists.
-        //
-    }
-
-    // STATUS_SUCCESS is returned if the event exists and is set.
+    // Every time that driver sets event, try to create it.
+    // After setting event, destroy it.
+    // This allows driver to know if application has received the
+    // event and, crucially, works properly when the application
+    // stops and restarts (destroying and creating its event).
     //
-    ntStatus = NotifyUserWithEvent_EventSet(DmfModule,
-                                            EventIndex);
+    ntStatus = NotifyUserWithEvent_EventCreate(DmfModule,
+                                               EventIndex);
+    if (NT_SUCCESS(ntStatus))
+    {
+        ntStatus = NotifyUserWithEvent_EventSet(DmfModule,
+                                                EventIndex);
+        NotifyUserWithEvent_EventsDestroy(DmfModule);
+    }
 
     DMF_ModuleUnlock(DmfModule);
 
