@@ -79,12 +79,21 @@ public:
     // Instance of C++/WinRT SarManager from modem.
     //
     MobileBroadbandSarManager sarManager = nullptr;
+    // Instance of C++/WinRT SlotManager from modem.
+    //
+    MobileBroadbandSlotManager slotManager = nullptr;
     // MobileBroadband wireless state.
     //
     MobileBroadband_WIRELESS_STATE mobileBroadbandWirelessState = { 0 };  
+    // Flag to indicate if sim/esim is present and ready.
+    // 
+    BOOLEAN isSimPresentAndReady = FALSE;
     // Event token for transmission state change.
     //
     event_token tokenTransmissionStateChanged;
+    // Event token for transmission state change.
+    //
+    event_token tokenSimSlotInfoChanged;
     // IAsyncAction for modem and SAR object get.
     // 
     _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -126,6 +135,14 @@ public:
     // Function for stop monitoring MobileBroadband network transmission state.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_TransmissionStateMonitorStop();
+    // Function for register MobileBroadband sim slot info change.
+    //
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_SimSlotInfoChangedEventRegister(_In_ DMFMODULE DmfModule);
+    // Function for Unregister MobileBroadband sim slot info change.
+    //
+    _IRQL_requires_max_(PASSIVE_LEVEL) VOID MobileBroadbandModemDevice::MobileBroadband_SimSlotInfoChangedEventUnregister();
+
+
 };
 
 typedef struct _DMF_CONTEXT_MobileBroadband
@@ -518,6 +535,8 @@ Return Value:
                     mobileBroadbandWirelessState.IsModemValid = TRUE;
                     modemId = args.Id();
                     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem is found , device Id is %ws", modemId.c_str());
+                    slotManager = modem.DeviceInformation().SlotManager();
+                    MobileBroadband_SimSlotInfoChangedEventRegister(DmfModule);
                     MobileBroadband_TransmissionStateMonitorStart(DmfModule);
                     timeoutHelperAsync.Cancel();
                 }
@@ -569,15 +588,15 @@ Return Value:
             if (modemId == args.Id())
             {
                 // Removed modem interface is our modem.
-                // Bug in C++/WinRT, sarManager.StopTransmissionStateMonitoring() and 
-                // sarManager.TransmissionStateChanged(tokenTransmissionStateChanged) should be called here,
-                // but it will never return.
-
+                // Upon modem remove, all event callback is unregistered by c++/winrt.
+                // No need to unregister them again.
+                //
                 // Close this Module.
                 //
                 DMF_ModuleClose(DmfModule);
                 modem = nullptr;
                 sarManager = nullptr;
+                slotManager = nullptr;
                 mobileBroadbandWirelessState.IsModemValid = FALSE;
                 TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Modem has been removed");
             }
@@ -970,6 +989,126 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR,
                     DMF_TRACE,
                     "StopTransmissionStateMonitoring fails, error code 0x%08x - %ws",
+                    ex.code().value,
+                    ex.message().c_str());
+    }
+
+    FuncExitVoid(DMF_TRACE);
+
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+MobileBroadbandModemDevice::MobileBroadband_SimSlotInfoChangedEventRegister(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Register sim slot info change callback.
+
+Arguments:
+
+    DmfModule - This Module's Dmf Module.
+
+Return Value:
+
+    None.
+
+    --*/
+{
+    DMF_CONFIG_MobileBroadband* moduleConfig;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    // This moduleConfig get function MUST happen before Lambda function. Otherwise lambda function will have wrong config.
+    //
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+    // Event handler lambda function for sim info change.
+    // Per current 24H2 OS, this event will trigger twice for psim and esim. So perform query instead using event args is preferred.
+    //
+    TypedEventHandler mobileBroadbandSimSlotInfoChanged = TypedEventHandler<MobileBroadbandSlotManager,
+                                                                            MobileBroadbandSlotInfoChangedEventArgs>([=](MobileBroadbandSlotManager sender,
+                                                                                                                         MobileBroadbandSlotInfoChangedEventArgs args)
+    {
+        NTSTATUS ntStatus;
+        ntStatus = DMF_ModuleReference(DmfModule);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Modem is not open yet.");
+            return;
+        }
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "mobileBroadbandSimSlotInfoChanged event triggered");
+        int currentSlotIndex = slotManager.CurrentSlotIndex();
+        MobileBroadbandSlotInfo slotInfo = slotManager.SlotInfos().GetAt(currentSlotIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot index is %d", currentSlotIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot state is %d", (int)slotInfo.State());
+        if (slotInfo.State() == MobileBroadbandSlotState::Active || 
+            slotInfo.State() == MobileBroadbandSlotState::ActiveEsim)
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is present and ready");
+            isSimPresentAndReady = TRUE;
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is not present or ready");
+            isSimPresentAndReady = FALSE;
+        }
+
+        // Call back parent Module.
+        //
+        if (moduleConfig->EvtMobileBroadbandSimReadyChangeCallback != nullptr)
+        {
+            moduleConfig->EvtMobileBroadbandSimReadyChangeCallback(DmfModule,
+                                                                   isSimPresentAndReady);
+        }
+        DMF_ModuleDereference(DmfModule);
+    });
+
+    tokenSimSlotInfoChanged = slotManager.SlotInfoChanged(mobileBroadbandSimSlotInfoChanged);
+
+    FuncExitVoid(DMF_TRACE);
+
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+MobileBroadbandModemDevice::MobileBroadband_SimSlotInfoChangedEventUnregister()
+/*++
+
+Routine Description:
+
+    Unregister sim slot info change callback.
+
+Arguments:
+
+    None.
+
+Return Value:
+
+    None.
+
+    --*/
+{
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    // Unregister callback using token.
+    //
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MobileBroadband_SimSlotInfoChangedEventUnregister enter");
+    try
+    {
+         slotManager.SlotInfoChanged(tokenSimSlotInfoChanged);
+    }
+    catch (hresult_error ex)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "MobileBroadband_SimSlotInfoChangedEventUnregister fails, error code 0x%08x - %ws",
                     ex.code().value,
                     ex.message().c_str());
     }
