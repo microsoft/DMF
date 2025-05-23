@@ -599,6 +599,9 @@ Return Value:
             sleepRequestBufferInput = (Tests_IoctlHandler_Sleep*)InputBuffer;
             sleepRequestBufferOutput = (Tests_IoctlHandler_Sleep*)OutputBuffer;
 
+            // ' Using uninitialized memory '*OutputBuffer''
+            //
+            #pragma warning(suppress: 6001)
             RtlCopyMemory(sleepRequestBufferInput,
                           sleepRequestBufferOutput,
                           sizeof(Tests_IoctlHandler_Sleep));

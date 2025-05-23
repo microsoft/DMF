@@ -914,6 +914,10 @@ Return Value:
                                                                                                                                         MobileBroadbandTransmissionStateChangedEventArgs args)
     {
         NTSTATUS ntStatus;
+
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
         // Bug inside C++/WinRT SarManager. This event can still be called even if modem is gone.
         // Need to use DMF_ModuleReference() to protect.
         //
