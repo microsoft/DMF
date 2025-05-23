@@ -1039,6 +1039,10 @@ Return Value:
                                                                                                                          MobileBroadbandSlotInfoChangedEventArgs args)
     {
         NTSTATUS ntStatus;
+
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
         ntStatus = DMF_ModuleReference(DmfModule);
         if (!NT_SUCCESS(ntStatus))
         {
