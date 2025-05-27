@@ -1294,8 +1294,8 @@ Return Value:
     {
         DmfAssert(moduleConfig->Mode.SourceSettings.BufferSize > 0);
 
-        // Each buffer allocated in the look aside list and contains components that are asigned
-        // in the bffer as described below.
+        // Each buffer allocated in the look aside list and contains components that are assigned
+        // in the buffer as described below.
         // 
         // +----------------+---------------+---------------+----------------+------------------+
         // | Entry Metadata | Client Buffer | Data Sentinel | Buffer Context | Context Sentinel |
@@ -1316,7 +1316,7 @@ Return Value:
                                               MEMORY_ALLOCATION_ALIGNMENT);
         sentinelSizeAligned = WDF_ALIGN_SIZE_UP(BufferPool_SentinelSize,
                                                 MEMORY_ALLOCATION_ALIGNMENT);
-        bufferContextSizeAligned = WDF_ALIGN_SIZE_UP(moduleConfig->Mode.SourceSettings.BufferSize,
+        bufferContextSizeAligned = WDF_ALIGN_SIZE_UP(moduleConfig->Mode.SourceSettings.BufferContextSize,
                                                      MEMORY_ALLOCATION_ALIGNMENT);
 
         sizeOfEachAllocation = bufferPoolEntrySizeAligned +

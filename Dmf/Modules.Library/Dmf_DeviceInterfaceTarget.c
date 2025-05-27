@@ -243,6 +243,13 @@ typedef struct _DMF_CONTEXT_DeviceInterfaceTarget
     // Module has started shutting down while RemoveCancel was ongoing.
     //
     BOOLEAN CloseAfterRemoveCancel;
+
+#if defined(DMF_USER_MODE)
+    // Custom device notification handle (using device handle filter).
+    //
+    HCMNOTIFICATION CustomDeviceNotificationUser;
+#endif // defined(DMF_USER_MODE)
+
 } DMF_CONTEXT_DeviceInterfaceTarget;
 
 // This macro declares the following function:
@@ -273,6 +280,287 @@ typedef struct
     //
     VOID* SendCompletionCallbackContext;
 } DeviceInterfaceTarget_SingleAsynchronousRequestContext;
+
+#if defined(DMF_USER_MODE)
+
+#pragma code_seg("PAGE")
+_Function_class_(PCM_NOTIFY_CALLBACK)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+DWORD
+CALLBACK
+DeviceInterfaceTarget_CustomNotificationCallbackUser(
+    _In_ HCMNOTIFICATION hNotify,
+    _In_opt_ VOID* Context,
+    _In_ CM_NOTIFY_ACTION Action,
+    _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
+    _In_ DWORD EventDataSize
+    )
+/*++
+
+Routine Description:
+
+    Internal callback invoked by the system when a custom device notification occurs,
+    registered using CM_NOTIFY_FILTER_TYPE_DEVICEHANDLE. This function forwards
+    the notification to the client's registered callback.
+
+Arguments:
+
+    hNotify - The notification handle.
+    Context - The context provided during registration (DMFMODULE handle).
+    Action - The PnP notification action.
+    EventData - Pointer to the notification data.
+    EventDataSize - Size of the notification data.
+
+Return Value:
+
+    ERROR_SUCCESS or an appropriate error code.
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
+    DWORD result = ERROR_SUCCESS;
+
+    UNREFERENCED_PARAMETER(hNotify);
+
+    PAGED_CODE();
+    FuncEntry(DMF_TRACE);
+
+    // Context is the DMFMODULE handle.
+    //
+    dmfModule = DMFMODULEVOID_TO_MODULE(Context);
+    if (dmfModule == NULL)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Invalid context provided to custom notification callback.");
+        result = ERROR_INVALID_DATA;
+        goto Exit;
+    }
+
+    moduleConfig = DMF_CONFIG_GET(dmfModule);
+
+    // Check if the client provided a callback. It should, otherwise callback won't be registered.
+    //
+    if (moduleConfig->EvtPnpCustomNotificationCallbackUser != NULL)
+    {
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Forwarding custom notification Action=%d to client DmfModule=0x%p", Action, dmfModule);
+
+        // Call the client's callback. Does not have callback context.
+        //
+        result = moduleConfig->EvtPnpCustomNotificationCallbackUser(dmfModule,
+                                                                    Action,
+                                                                    EventData,
+                                                                    EventDataSize);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "No client callback registered for custom notification Action=%d DmfModule=0x%p", Action, dmfModule);
+        // No callback registered, which is fine. Just acknowledge the event.
+        //
+        result = ERROR_SUCCESS;
+    }
+
+Exit:
+    FuncExit(DMF_TRACE, "result=%u", result);
+    return result;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+DeviceInterfaceTarget_CustomNotificationRegisterUser(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Registers for custom PnP notifications associated with the underlying device handle
+    of the opened I/O target.
+    Custom notification/event comes from IoReportTargetDeviceChangeAsynchronous.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+   
+Return Value:
+
+    NTSTATUS indicating success or failure.
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    CM_NOTIFY_FILTER cmNotifyFilter;
+    CONFIGRET configRet;
+    HANDLE hDeviceTargetFile = INVALID_HANDLE_VALUE;
+
+    PAGED_CODE();
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference failed: ntStatus=%!STATUS!", ntStatus);
+        goto ExitNoReference;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Ensure notification is not already registered for this Module instance.
+    //
+    if (moduleContext->CustomDeviceNotificationUser != NULL)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Custom notification already registered for DmfModule=0x%p", DmfModule);
+        ntStatus = STATUS_DEVICE_ALREADY_ATTACHED; 
+        goto Exit;
+    }
+
+    // Ensure the underlying IoTarget is open and valid.
+    //
+    if (moduleContext->IoTarget == NULL)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoTarget is not open, cannot register custom notification for DmfModule=0x%p", DmfModule);
+        ntStatus = STATUS_INVALID_DEVICE_STATE;
+        goto Exit;
+    }
+
+    // Get the file handle associated with the WDFIOTARGET.
+    // This function works for both KMDF and UMDF 2.0+.
+    //
+    hDeviceTargetFile = WdfIoTargetWdmGetTargetFileHandle(moduleContext->IoTarget);
+    if (hDeviceTargetFile == NULL || hDeviceTargetFile == INVALID_HANDLE_VALUE)
+    {
+        // This might happen if the target wasn't opened in a way that provides a file object handle,
+        // or if there's an issue retrieving it.
+        //
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Failed to get target file handle for IoTarget=0x%p DmfModule=0x%p", moduleContext->IoTarget, DmfModule);
+        ntStatus = STATUS_OBJECT_NAME_NOT_FOUND;
+        goto Exit;
+    }
+
+    // Initialize the notification filter using the device handle.
+    //
+    RtlZeroMemory(&cmNotifyFilter, 
+                  sizeof(cmNotifyFilter));
+    cmNotifyFilter.cbSize = sizeof(CM_NOTIFY_FILTER);
+    cmNotifyFilter.Flags = 0;
+    cmNotifyFilter.FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEHANDLE;
+    cmNotifyFilter.u.DeviceHandle.hTarget = hDeviceTargetFile;
+
+    // Register for the notification.
+    // The context passed is the DMFMODULE handle, which our internal callback will use.
+    //
+    configRet = CM_Register_Notification(&cmNotifyFilter,
+                                         (VOID*)DmfModule,
+                                         DeviceInterfaceTarget_CustomNotificationCallbackUser,
+                                         &(moduleContext->CustomDeviceNotificationUser));
+
+    if (configRet != CR_SUCCESS)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Register_Notification (DeviceHandle) failed: cr=0x%x, DmfModule=0x%p", configRet, DmfModule);
+        ntStatus = STATUS_UNSUCCESSFUL;
+        moduleContext->CustomDeviceNotificationUser = NULL;
+        goto Exit;
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Successfully registered custom notification for DmfModule=0x%p, Handle=0x%p", DmfModule, moduleContext->CustomDeviceNotificationUser);
+    ntStatus = STATUS_SUCCESS;
+
+Exit:
+    DMF_ModuleDereference(DmfModule);
+
+ExitNoReference:
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+DeviceInterfaceTarget_CustomNotificationUnregisterUser(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Unregisters a previously registered custom PnP notification associated with the
+    underlying device handle.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS indicating success or failure. STATUS_SUCCESS if already unregistered.
+
+--*/
+{
+    NTSTATUS ntStatus = STATUS_SUCCESS;
+    DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    CONFIGRET configRet;
+
+    PAGED_CODE();
+    FuncEntry(DMF_TRACE);
+
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 DeviceInterfaceTarget);
+
+    ntStatus = DMF_ModuleReference(DmfModule);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_ModuleReference failed: ntStatus=%!STATUS!", ntStatus);
+        goto Exit;
+    }
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    // Check if a notification handle exists.
+    if (moduleContext->CustomDeviceNotificationUser != NULL)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Unregistering custom notification Handle=0x%p for DmfModule=0x%p",
+                    moduleContext->CustomDeviceNotificationUser, DmfModule);
+
+        configRet = CM_Unregister_Notification(moduleContext->CustomDeviceNotificationUser);
+
+        if (configRet != CR_SUCCESS)
+        {
+            // Log the error, but proceed to clear context fields.
+            // It might fail if the underlying device is gone, etc.
+            //
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "CM_Unregister_Notification (DeviceHandle) failed: cr=0x%x, DmfModule=0x%p", configRet, DmfModule);
+            ntStatus = STATUS_UNSUCCESSFUL;
+        }
+        else
+        {
+             ntStatus = STATUS_SUCCESS;
+        }
+
+        moduleContext->CustomDeviceNotificationUser = NULL;
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "Custom notification already unregistered or never registered for DmfModule=0x%p", DmfModule);
+        ntStatus = STATUS_SUCCESS;
+    }
+
+    DMF_ModuleDereference(DmfModule);
+
+Exit:
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+    return ntStatus;
+}
+#pragma code_seg()
+
+#endif // defined(DMF_USER_MODE)
 
 _Function_class_(EVT_DMF_RequestTarget_SendCompletion)
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -2286,6 +2574,14 @@ Return Value:
         // Should always return success here since notification might be called back later.
         //
         ntStatus = STATUS_SUCCESS;
+
+        // Register for custom notifications if the client has registered for them.
+        // Ignore return value.
+        //
+        if (moduleConfig->EvtPnpCustomNotificationCallbackUser != NULL)
+        {
+            DeviceInterfaceTarget_CustomNotificationRegisterUser(DmfModule);
+        }
     }
     else
     {
@@ -2327,6 +2623,7 @@ Return Value:
 --*/
 {
     DMF_CONTEXT_DeviceInterfaceTarget* moduleContext;
+    DMF_CONFIG_DeviceInterfaceTarget* moduleConfig;
 
     PAGED_CODE();
 
@@ -2335,6 +2632,12 @@ Return Value:
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "DMF_DeviceInterfaceTarget_NotificationUnregisterUser: DmfModule=0x%p", DmfModule);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
+    moduleConfig = DMF_CONFIG_GET(DmfModule);
+
+    if (moduleConfig->EvtPnpCustomNotificationCallbackUser != NULL)
+    {
+        DeviceInterfaceTarget_CustomNotificationUnregisterUser(DmfModule);
+    }
 
     CM_Unregister_Notification(moduleContext->DeviceInterfaceNotification);
 
@@ -2344,7 +2647,7 @@ Return Value:
     // After the target arrival/removal operation finishes, the Module is closed gracefully.
     //
     if (DeviceInterfaceTarget_ModuleCloseReasonSet(DmfModule,
-                                                    ModuleCloseReason_NotificationUnregister) == ModuleCloseReason_NotificationUnregister)
+                                                   ModuleCloseReason_NotificationUnregister) == ModuleCloseReason_NotificationUnregister)
     {
         // Module has not started closing yet. If the Module is Open, Close it.
         // It is safe to check this handle because no other path can modify it.
@@ -2355,7 +2658,6 @@ Return Value:
             // Inform Client that Module will close so that Client will stop communicating with Module.
             // This needs to be done before Module is closed otherwise there might be outstanding references.
             //
-            DMF_CONFIG_DeviceInterfaceTarget* moduleConfig = DMF_CONFIG_GET(DmfModule);
 
             if (moduleConfig->EvtDeviceInterfaceTargetOnStateChange != NULL)
             {

@@ -47,6 +47,7 @@ ShareAccess | The Share Access mask used when opening the underlying WDFIOTARGET
 ContinuousRequestTargetModuleConfig | Contains the settings for the underlying RequesetStream.
 EvtDeviceInterfaceTargetOnStateChange | Callback to the Client that indicates the state of the target has changed.
 EvtDeviceInterfaceTargetOnPnpNotification | Callback to the Client that allows the Client to indicate if the target should open.
+EvtPnpCustomNotificationCallbackUser | Callback to the Client for user mode that allows the Client to be notify of pnp custom event.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -160,6 +161,34 @@ IoTargetOpen | The address where the Client writes TRUE to indicate that the WDF
 ##### Remarks
 
 * See DMF_ContinuousRequestTarget.
+
+##### EVT_DMF_DeviceInterfaceTarget_OnPnpCustomNotificationUser
+````
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+EVT_DMF_DeviceInterfaceTarget_OnPnpCustomNotificationUser(
+    _In_ DMFMODULE DmfModule,
+    _In_ CM_NOTIFY_ACTION Action,
+    _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
+    _In_ DWORD EventDataSize
+    );
+````
+
+ Callback to the Client for user mode that allows the Client to be notify of pnp custom event.
+
+##### Parameters
+Parameter | Description
+----|----
+DmfModule | An open DMF_DeviceInterfaceTarget Module handle.
+Action | IType of CM_NOTIFY_ACTION.
+EventData | Custom event data associated with the event.
+EventDataSize | Size of EventData.
+
+##### Remarks
+
+* This only available in user mode.
+
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

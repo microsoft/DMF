@@ -71,6 +71,19 @@ EVT_DMF_DeviceInterfaceTarget_OnPnpNotification(_In_ DMFMODULE DmfModule,
                                                 _In_ PUNICODE_STRING SymbolicLinkName,
                                                 _Out_ BOOLEAN* IoTargetOpen);
 
+#if defined(DMF_USER_MODE)
+// Client callback for custom device handle notifications user mode.
+//
+typedef
+_Function_class_(EVT_DMF_DeviceInterfaceTarget_OnPnpCustomNotificationUser)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+DWORD
+EVT_DMF_DeviceInterfaceTarget_OnPnpCustomNotificationUser(_In_ DMFMODULE DmfModule,
+                                                          _In_ CM_NOTIFY_ACTION Action,
+                                                          _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
+                                                          _In_ DWORD EventDataSize);
+#endif // defined(DMF_USER_MODE)
+
 // Client uses this structure to configure the Module specific parameters.
 //
 typedef struct
@@ -98,6 +111,11 @@ typedef struct
     // Callback to notify Interface arrival.
     //
     EVT_DMF_DeviceInterfaceTarget_OnPnpNotification* EvtDeviceInterfaceTargetOnPnpNotification;
+#if defined(DMF_USER_MODE)
+    // Callback to notify pnp custom event for user mode.
+    //
+    EVT_DMF_DeviceInterfaceTarget_OnPnpCustomNotificationUser* EvtPnpCustomNotificationCallbackUser;
+#endif // defined(DMF_USER_MODE)
 } DMF_CONFIG_DeviceInterfaceTarget;
 
 // This macro declares the following functions:
