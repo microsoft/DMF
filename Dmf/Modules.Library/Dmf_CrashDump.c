@@ -106,6 +106,23 @@ typedef struct
     ULONG CurrentRingBufferIndex;
 } DATA_SOURCE;
 
+
+#if !defined(IS_WIN10_19H1_OR_LATER)
+
+typedef
+struct _KTRIAGE_DUMP_DATA_ARRAY
+{
+    ULONG NotUsed;
+} KTRIAGE_DUMP_DATA_ARRAY, *PKTRIAGE_DUMP_DATA_ARRAY;
+
+#endif
+
+typedef
+NTSTATUS
+(*t_KeAddTriageDumpDataBlock)(KTRIAGE_DUMP_DATA_ARRAY* KtriageDumpDataArray,
+                              VOID* Address,
+                              SIZE_T Size);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module Private Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +160,7 @@ typedef struct _DMF_CONTEXT_CrashDump
     //
     WDFMEMORY TriageDumpDataArrayMemory;
     KTRIAGE_DUMP_DATA_ARRAY* TriageDumpDataArray;
+    t_KeAddTriageDumpDataBlock DumpDataBlock;
 
     // Crash Dump Context for Triage Dump Data Array callback.
     //
@@ -1885,6 +1903,14 @@ Return Value:
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     FuncEntry(DMF_TRACE);
+
+    DECLARE_CONST_UNICODE_STRING(routineNameDumpDataBlock, L"KeAddTriageDumpDataBlock");
+
+    // If this API is not available, then triage data will not be written to the dump file.
+    // But driver will contiue to load. This to ensure that the driver can be loaded on older OS versions
+    // that do not support triage dump data.
+    //
+    moduleContext->DumpDataBlock = (t_KeAddTriageDumpDataBlock)MmGetSystemRoutineAddress((UNICODE_STRING*)&routineNameDumpDataBlock);
 
     DECLARE_CONST_UNICODE_STRING(routineName, L"KeInitializeTriageDumpDataArray");
 
@@ -4056,12 +4082,6 @@ Return Value:
 
 #if IS_WIN10_19H1_OR_LATER
 
-typedef
-NTSTATUS
-(*t_KeAddTriageDumpDataBlock)(KTRIAGE_DUMP_DATA_ARRAY* KtriageDumpDataArray,
-                              VOID* Address,
-                              SIZE_T Size);
-
 _IRQL_requires_same_
 _Must_inspect_result_
 NTSTATUS
@@ -4106,11 +4126,7 @@ Return Value:
     }
     else
     {
-        DECLARE_CONST_UNICODE_STRING(routineName, L"KeAddTriageDumpDataBlock");
-
-        t_KeAddTriageDumpDataBlock dumpDataBlock = 
-            (t_KeAddTriageDumpDataBlock)MmGetSystemRoutineAddress((UNICODE_STRING*)&routineName);
-        if (dumpDataBlock == NULL)
+        if (moduleContext->DumpDataBlock == NULL)
         {
             ntStatus = STATUS_NOT_IMPLEMENTED;
         }
@@ -4119,9 +4135,9 @@ Return Value:
             // Add the block to the list. The validity of the buffer does not need to be
             // checked at this time, it will not cause a fault later if it is invalid.
             //
-            ntStatus = dumpDataBlock(moduleContext->TriageDumpDataArray,
-                                     Data,
-                                     DataLength);
+            ntStatus = moduleContext->DumpDataBlock(moduleContext->TriageDumpDataArray,
+                                                    Data,
+                                                    DataLength);
         }
     }
 
