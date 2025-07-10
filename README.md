@@ -25,6 +25,26 @@ Detailed documentation about each Module is available on the wiki: https://githu
 #### Samples:
 [DmfSamples](https://github.com/Microsoft/DMF/tree/master/DmfSamples) has all the sample drivers that show in incremental steps how to use DMF in a driver. 
 
+#### Cmake Section
+##### For EWDK, Let's say ISO mounted as F: disk
+```
+#x64
+call "F:/LaunchBuildEnv.cmd" x86_AMD64 
+#arm64
+call "F:/LaunchBuildEnv.cmd" x86_arm64 
+cmake -B build_cmake  -DWPP_ENABLED=1   -G "Ninja Multi-Config"
+cmake --build build_cmake --config Debug
+```
+##### For EDK and SDK
+```
+#x64
+call "D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsx86_amd64.bat"
+#arm64
+call "D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsx86_arm64.bat"  
+cmake -B build_cmake  -DWPP_ENABLED=1   -G "Ninja Multi-Config"
+cmake --build build_cmake --config Debug
+```
+
 #### Questions/Feedback
 Please send email to: dmf-feedback@microsoft.com
 
