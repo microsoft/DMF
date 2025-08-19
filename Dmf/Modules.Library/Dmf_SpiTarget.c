@@ -102,7 +102,7 @@ Arguments:
 
     Buffer - The output byte buffer containing the data to be written.
     BufferLength - The length of the byte buffer data.
-    TimeoutMilliseconds - Not used.
+    TimeoutMilliseconds - Timeout for the transaction [in ms].
 
 Return Value:
 
@@ -119,8 +119,7 @@ Return Value:
     UCHAR* outData;
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_MEMORY_DESCRIPTOR memoryDescriptor;
-
-    UNREFERENCED_PARAMETER(TimeoutMilliseconds);
+	WDF_REQUEST_SEND_OPTIONS sendOptions;
 
     FuncEntry(DMF_TRACE);
 
@@ -176,9 +175,9 @@ Return Value:
                            transfers);
 
     // PreFAST cannot figure out the SPB_TRANSFER_LIST_ENTRY
-    // "struct hack" size but using an index variable quiets 
+    // "struct hack" size but using an index variable quiets
     // the warning. This is a false positive from OACR.
-    // 
+    //
 
     ULONG transferIndex = 0;
     sequence.List.Transfers[transferIndex + 0] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
@@ -186,7 +185,7 @@ Return Value:
                                                                                      outData,
                                                                                      BufferLength);
     // 'Overflow using expression 'sequence.List.Transfers[transferIndex + 1]''
-    //                                                                                     
+    //
     #pragma warning(suppress:26000)
     sequence.List.Transfers[transferIndex + 1] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionFromDevice,
                                                                                      0,
@@ -209,6 +208,16 @@ Return Value:
                                       memorySequence,
                                       NULL);
 
+    // Set a request timeout.
+    //
+    WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions,
+                                  WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
+    if (0 != TimeoutMilliseconds)
+    {
+        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&sendOptions,
+                                             WDF_REL_TIMEOUT_IN_MS(TimeoutMilliseconds));
+    }
+
     ULONG_PTR bytesReturned = 0;
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously to SPI Controller BufferLength=%ld", BufferLength);
@@ -220,7 +229,7 @@ Return Value:
                                                  IOCTL_SPB_FULL_DUPLEX,
                                                  &memoryDescriptor,
                                                  NULL,
-                                                 NULL,
+                                                 &sendOptions,
                                                  &bytesReturned);
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE,
                 "WdfIoTargetSendIoctlSynchronously bytesReturned=%llu ntStatus=%!STATUS!",
@@ -279,7 +288,7 @@ SpiTarget_SpbWriteRead(
     _In_ ULONG OutDataLength,
     _Out_writes_(InDataLength) UCHAR* InData,
     _In_ ULONG InDataLength,
-    _In_ ULONG Timeout
+    _In_ ULONG TimeoutMilliseconds
     )
 /*++
 
@@ -295,7 +304,7 @@ Arguments:
     OutDataLength - The length of the byte buffer data.
     InData - The input byte buffer containing the data read from MISO.
     InDataLength - The length of the byte buffer data.
-    Timeout - Not used.
+	TimeoutMilliseconds - Timeout for the transaction [in ms].
 
 Return Value:
 
@@ -315,8 +324,7 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_MEMORY_DESCRIPTOR memoryDescriptor;
     ULONG_PTR bytesReturned;
-
-    UNREFERENCED_PARAMETER(Timeout);
+	WDF_REQUEST_SEND_OPTIONS sendOptions;
 
     FuncEntry(DMF_TRACE);
 
@@ -375,9 +383,9 @@ Return Value:
     SPB_TRANSFER_LIST_INIT(&(sequence.List), transfers);
 
     // PreFAST cannot figure out the SPB_TRANSFER_LIST_ENTRY
-    // "struct hack" size but using an index variable quiets 
+    // "struct hack" size but using an index variable quiets
     // the warning. This is a false positive from OACR.
-    // 
+    //
     ULONG transferIndex = 0;
     sequence.List.Transfers[transferIndex + 0] = SPB_TRANSFER_LIST_ENTRY_INIT_SIMPLE(SpbTransferDirectionToDevice,
                                                                                      0,
@@ -405,6 +413,16 @@ Return Value:
                                       memorySequence,
                                       NULL);
 
+    // Set a request timeout.
+    //
+    WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions,
+                                  WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
+    if (0 != TimeoutMilliseconds)
+    {
+        WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&sendOptions,
+                                             WDF_REL_TIMEOUT_IN_MS(TimeoutMilliseconds));
+    }
+
     // Perform optional latency calculations in the Client.
     //
     if (moduleConfig->LatencyCalculationCallback)
@@ -425,7 +443,7 @@ Return Value:
                                                  IOCTL_SPB_FULL_DUPLEX,
                                                  &memoryDescriptor,
                                                  NULL,
-                                                 NULL,
+                                                 &sendOptions,
                                                  &bytesReturned);
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "WdfIoTargetSendIoctlSynchronously bytesReturned=%llu ntStatus=%!STATUS!)",
                 bytesReturned, ntStatus);
@@ -541,7 +559,7 @@ Return Value:
     if (! moduleContext->SpiConnectionAssigned)
     {
         // Mandatory check was previously done.
-        // If the resource presence is mandatory but the resource is missing, then the 
+        // If the resource presence is mandatory but the resource is missing, then the
         // ResourcesAssign callback will have failed and the Open callback will not happen.
         //
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "No SPI Resources Found");
@@ -894,7 +912,7 @@ DMF_SpiTarget_Write(
     _In_ ULONG TimeoutMilliseconds
     )
 /*++
- 
+
   Routine Description:
 
     This routine writes to the SPI controller.
@@ -947,7 +965,7 @@ DMF_SpiTarget_WriteRead(
     _In_ ULONG TimeoutMilliseconds
     )
 /*++
- 
+
   Routine Description:
 
     This routine sends a write-read sequence to the SPI controller. It reads a buffer from a particular address.

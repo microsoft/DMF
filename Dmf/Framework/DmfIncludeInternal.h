@@ -603,10 +603,12 @@ DMF_ModuleLiveKernelDump_ModuleCollectionInitialize(
 // DmfHelpers.h
 //
 
-#if defined(DMF_USER_MODE)
-#define POOL_FLAG_NON_PAGED               0x0000000000000040UI64     // Non paged pool NX
-#define POOL_FLAG_PAGED                   0x0000000000000100UI64     // Paged pool
-#endif
+#if !defined(POOL_FLAG_NON_PAGED)
+    #define POOL_FLAG_NON_PAGED               0x0000000000000040UI64     // Non paged pool NX
+#endif // !defined(POOL_FLAG_NON_PAGED)
+#if !defined(POOL_FLAG_PAGED)
+    #define POOL_FLAG_PAGED                   0x0000000000000100UI64     // Paged pool
+#endif // !defined(POOL_FLAG_PAGED)
 
 VOID*
 DMF_GenericMemoryAllocate(
@@ -627,12 +629,14 @@ DMF_GenericSpinLockCreate(
     _Out_ DMF_GENERIC_SPINLOCK* GenericSpinLock
     );
 
+_Acquires_lock_(*GenericSpinLock)
 VOID
 DMF_GenericSpinLockAcquire(
     _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
     _Out_ GENERIC_SPINLOCK_CONTEXT *NativeLockContext
     );
 
+_Releases_lock_(*GenericSpinLock)
 VOID
 DMF_GenericSpinLockRelease(
     _In_ DMF_GENERIC_SPINLOCK* GenericSpinLock,
