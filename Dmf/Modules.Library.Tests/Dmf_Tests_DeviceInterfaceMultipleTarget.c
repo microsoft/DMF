@@ -430,7 +430,7 @@ Return Value:
                                                                    0,
                                                                    &bytesWritten);
     TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "MT01:dmfModule=0x%p sleepIoctlBuffer->TimeToSleepMilliseconds=%ld SyncComplete", InstanceToSendTo, sleepIoctlBuffer.TimeToSleepMilliseconds);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     // TODO: Get time and compare with send time.
     //
 }
@@ -798,7 +798,7 @@ Return Value:
                                                       timeoutMs,
                                                       Tests_DeviceInterfaceMultipleTarget_SendCompletion,
                                                       sleepIoctlBuffer);
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
 }
 #pragma code_seg()
 
@@ -1032,7 +1032,7 @@ Return Value:
                                                         sleepIoctlBuffer,
                                                         &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1096,7 +1096,7 @@ Return Value:
                                                         sleepIoctlBuffer,
                                                         &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1157,7 +1157,7 @@ Return Value:
                                                         sleepIoctlBuffer,
                                                         &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1200,7 +1200,7 @@ Return Value:
                                                         sleepIoctlBuffer,
                                                         &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1259,7 +1259,7 @@ Return Value:
                                                         sleepIoctlBuffer,
                                                         &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1385,7 +1385,7 @@ Return Value:
                                                            sleepIoctlBuffer,
                                                            &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1455,7 +1455,7 @@ Return Value:
                                                            sleepIoctlBuffer,
                                                            &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1522,7 +1522,7 @@ Return Value:
                                                            sleepIoctlBuffer,
                                                            &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1571,7 +1571,7 @@ Return Value:
                                                            sleepIoctlBuffer,
                                                            &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;
@@ -1636,7 +1636,7 @@ Return Value:
                                                            sleepIoctlBuffer,
                                                            &dmfRequestIdCancel);
 
-    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE));
+    DmfAssert(NT_SUCCESS(ntStatus) || (ntStatus == STATUS_CANCELLED) || (ntStatus == STATUS_INVALID_DEVICE_STATE) || (ntStatus == STATUS_DEVICE_DOES_NOT_EXIST));
     if (!NT_SUCCESS(ntStatus))
     {
         goto Exit;

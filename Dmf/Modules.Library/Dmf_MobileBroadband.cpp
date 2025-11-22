@@ -217,6 +217,16 @@ Return Value:
 {
     DWORD result = 0;
     int currentPosition = 0;
+
+    if (ProviderId.empty() ||
+        StartPosition < 0 ||
+        CodeLength <= 0 ||
+        StartPosition + CodeLength > (int)ProviderId.size() ||
+        Result == nullptr)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
     for (int providerIdIndex = 0; providerIdIndex < CodeLength; providerIdIndex++) 
     {
         currentPosition = providerIdIndex + StartPosition;

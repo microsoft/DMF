@@ -8,9 +8,9 @@ Module Name:
     Dmf_Rundown.c
 
 Abstract:
-    
-    This is used for rundown management when an object is being unregistered but its Methods may still 
-    be called or running. It allows DMF to make sure the resource is available while Methods that are 
+
+    This is used for rundown management when an object is being unregistered but its Methods may still
+    be called or running. It allows DMF to make sure the resource is available while Methods that are
     already running continue running, but disallows new Methods from starting to run.
 
 Environment:
@@ -45,7 +45,7 @@ typedef struct _DMF_CONTEXT_Rundown
     // Reference counter for DMF Object references.
     //
     volatile LONG ReferenceCount;
-    
+
     // Flag indicating that the resource close is pending.
     // This is necessary to synchronize close with methods that might still be
     // using the resource.
@@ -418,9 +418,9 @@ DMF_Rundown_EndAndWait(
 
 Routine Description:
 
-    Waits for the Module's reference count to reach zero. This is used for rundown management 
-    when an object is being unregistered but its Methods may still be called or running. 
-    It allows DMF to make sure the resource is available while Methods that are 
+    Waits for the Module's reference count to reach zero. This is used for rundown management
+    when an object is being unregistered but its Methods may still be called or running.
+    It allows DMF to make sure the resource is available while Methods that are
     already running continue running, but disallows new Methods from starting to run.
 
 Arguments:
@@ -439,6 +439,7 @@ Return Value:
     // but short enough to allow fast response.
     //
     const ULONG referenceCountPollingIntervalMs = 100;
+    ULONG waitCount;
 
     DMFMODULE_VALIDATE_IN_METHOD_CLOSING_OK(DmfModule,
                                             Rundown);
@@ -452,6 +453,7 @@ Return Value:
     //
     moduleContext->WaitingForRundown = TRUE;
     referenceCount = moduleContext->ReferenceCount;
+    waitCount = 0;
 
     DMF_ModuleUnlock(DmfModule);
 
@@ -481,10 +483,15 @@ Return Value:
         // Wait for Reference count to run down to 0.
         //
         DMF_Utility_DelayMilliseconds(referenceCountPollingIntervalMs);
-        TraceInformation(DMF_TRACE, "DmfModule=0x%p Waiting for rundown: referenceCount=%d", DmfModule, referenceCount);
+        if ((waitCount <= 10) || (waitCount % 1000 == 0))
+        {
+            TraceInformation(DMF_TRACE, "DmfModule=0x%p Waiting for rundown: referenceCount=%d, waitCount=%u", DmfModule, referenceCount, waitCount);
+        }
+
+        waitCount += 1;
     }
 
-    TraceInformation(DMF_TRACE, "DmfModule=0x%p Rundown wait satisfied", DmfModule);
+    TraceInformation(DMF_TRACE, "DmfModule=0x%p Rundown wait satisfied, waitCount=%u", DmfModule, waitCount);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -552,10 +559,10 @@ DMF_Rundown_Start(
     )
 /*++
 
-Routine Description: 
+Routine Description:
 
     Used to set initial reference count at the start of the Rundown lifetime to 1.
-    Needs to be called by the Client before the Rundown Reference and Dereference use. 
+    Needs to be called by the Client before the Rundown Reference and Dereference use.
 
 Arguments:
 
