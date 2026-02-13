@@ -747,9 +747,13 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DMF_Portable_EventCreate(&event,
-                             NotificationEvent,
-                             FALSE);
+    ntStatus = DMF_Portable_EventCreate(&event,
+                                        NotificationEvent,
+                                        FALSE);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
 
@@ -770,6 +774,8 @@ Return Value:
     // NOTE: Needed to prevent leak in User-mode. NOP in Kernel-mode.
     //
     DMF_Portable_EventClose(&event);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -819,9 +825,13 @@ Return Value:
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
-    DMF_Portable_EventCreate(&event,
-                             NotificationEvent,
-                             FALSE);
+    ntStatus = DMF_Portable_EventCreate(&event,
+                                        NotificationEvent,
+                                        FALSE);
+    if (! NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
 
     workBuffer = ThreadedBufferQueueBuffer_ClientToInternal(ClientBuffer);
 
@@ -842,6 +852,8 @@ Return Value:
     // NOTE: Needed to prevent leak in User-mode. NOP in Kernel-mode.
     //
     DMF_Portable_EventClose(&event);
+
+Exit:
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 

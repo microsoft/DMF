@@ -629,6 +629,7 @@ DMF_GenericSpinLockCreate(
     _Out_ DMF_GENERIC_SPINLOCK* GenericSpinLock
     );
 
+#pragma warning(suppress:28167;suppress:6101)
 _Acquires_lock_(*GenericSpinLock)
 VOID
 DMF_GenericSpinLockAcquire(
@@ -636,6 +637,7 @@ DMF_GenericSpinLockAcquire(
     _Out_ GENERIC_SPINLOCK_CONTEXT *NativeLockContext
     );
 
+#pragma warning(suppress:28167)
 _Releases_lock_(*GenericSpinLock)
 VOID
 DMF_GenericSpinLockRelease(

@@ -172,6 +172,13 @@ Tests_BufferQueue_TimerCallback(
 
     UNREFERENCED_PARAMETER(DmfModuleBufferPoolConsumer);
 
+    // For SAL.
+    //
+    if (ClientDriverCallbackContext == NULL)
+    {
+        goto Exit;
+    }
+
     dmfModule = DMFMODULEVOID_TO_MODULE(ClientDriverCallbackContext);
 
     Tests_BufferQueue_Validate(dmfModule,
@@ -180,6 +187,10 @@ Tests_BufferQueue_TimerCallback(
 
     DMF_BufferQueue_Reuse(dmfModule,
                           ClientBuffer);
+
+    Exit:
+
+    return;
 }
 
 #endif

@@ -144,10 +144,10 @@ public:
     ACTIVITY_SENSOR_STATE activitySensorState = { 0 };
     // This Module's handle, store it here and used for callbacks.
     //
-    DMFMODULE thisModuleHandle;
+    DMFMODULE thisModuleHandle = nullptr;
     // Callback to inform Parent Module that motion activity sensor has new changed reading.
     //
-    EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback* EvtActivitySensorReadingChangeCallback;
+    EVT_DMF_ActivitySensor_EvtActivitySensorReadingChangedCallback* EvtActivitySensorReadingChangeCallback = nullptr;
     // Initialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)

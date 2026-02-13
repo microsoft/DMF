@@ -144,10 +144,10 @@ public:
     HINGE_ANGLE_SENSOR_STATE hingeAngleState = { 0 };
     // This Module's handle, store it here and used for callbacks.
     //
-    DMFMODULE thisModuleHandle;
+    DMFMODULE thisModuleHandle = nullptr;
     // Callback to inform Parent Module that hinge angle sensor has new changed reading.
     //
-    EVT_DMF_HingeAngle_HingeAngleSensorReadingChangeCallback* EvtHingeAngleReadingChangeCallback;
+    EVT_DMF_HingeAngle_HingeAngleSensorReadingChangeCallback* EvtHingeAngleReadingChangeCallback = nullptr;
     // Initialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)

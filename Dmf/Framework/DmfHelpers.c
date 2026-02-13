@@ -632,6 +632,7 @@ NonLegacy:
         return ntStatus;
     }
 
+    #pragma warning(suppress:28167;suppress:6101)
     _Acquires_lock_(*GenericSpinLock)
     VOID
     DMF_GenericSpinLockAcquire(
@@ -660,6 +661,7 @@ NonLegacy:
         WdfSpinLockAcquire(*GenericSpinLock);
     }
 
+    #pragma warning(suppress:28167)
     _Releases_lock_(*GenericSpinLock)
     VOID
     DMF_GenericSpinLockRelease(
@@ -745,6 +747,7 @@ NonLegacy:
             return STATUS_SUCCESS;
         }
 
+        #pragma warning(suppress:28167;suppress:6101)
         _Acquires_lock_(*GenericSpinLock)
         VOID
         DMF_GenericSpinLockAcquire(
@@ -772,6 +775,7 @@ NonLegacy:
                               NativeLockContext);
         }
 
+        #pragma warning(suppress:28167)
         _Releases_lock_(*GenericSpinLock)
         VOID
         DMF_GenericSpinLockRelease(
@@ -851,6 +855,7 @@ NonLegacy:
             return STATUS_SUCCESS;
         }
 
+        #pragma warning(suppress:28167;suppress:6101)
         _Acquires_lock_(*GenericSpinLock)
         VOID
         DMF_GenericSpinLockAcquire(

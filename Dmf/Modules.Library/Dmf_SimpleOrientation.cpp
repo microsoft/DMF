@@ -144,10 +144,10 @@ public:
     SIMPLE_ORIENTATION_SENSOR_STATE simpleOrientationState = { 0 };
     // This Module's handle, store it here and used for callbacks.
     //
-    DMFMODULE thisModuleHandle;
+    DMFMODULE thisModuleHandle = nullptr;
     // Callback to inform Parent Module that simple orientation sensor has new changed reading.
     //
-    EVT_DMF_SimpleOrientation_SimpleOrientationSensorReadingChangeCallback* EvtSimpleOrientationReadingChangeCallback;
+    EVT_DMF_SimpleOrientation_SimpleOrientationSensorReadingChangeCallback* EvtSimpleOrientationReadingChangeCallback = nullptr;
     // Initialize route.
     //
     _IRQL_requires_max_(PASSIVE_LEVEL)
