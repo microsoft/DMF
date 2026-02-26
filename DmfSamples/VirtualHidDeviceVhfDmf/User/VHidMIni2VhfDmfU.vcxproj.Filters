@@ -19,7 +19,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VHidMini2VhfDmfU.rc">
+    <ResourceCompile Include="VirtualHidDeviceVhfDmfU.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

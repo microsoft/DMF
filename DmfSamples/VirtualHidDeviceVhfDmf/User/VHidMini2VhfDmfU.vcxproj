@@ -67,7 +67,7 @@
     </ClCompile>
   </ItemGroup>
   <PropertyGroup>
-    <TargetName>VHidMini2VhfDmfU</TargetName>
+    <TargetName>VirtualHidDeviceVhfDmfU</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ResourceCompile>
@@ -140,6 +140,12 @@
   <PropertyGroup>
     <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <ExceptionHandling>
@@ -170,7 +176,7 @@
     <Inf Include="VirtualHidDeviceVhfDmfU.inx" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VHidMini2VhfDmfU.rc" />
+    <ResourceCompile Include="VirtualHidDeviceVhfDmfU.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -63,15 +63,9 @@
       <WppTraceFunction>TraceEvents(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <WppGenerateUsingTemplateFile>{km-WdfDefault.tpl}*.tmh</WppGenerateUsingTemplateFile>
     </ClCompile>
-    <OtherWpp Include="osrusbfx2.rc">
-      <WppEnabled>true</WppEnabled>
-      <WppKernelMode>true</WppKernelMode>
-      <WppTraceFunction>TraceEvents(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <WppGenerateUsingTemplateFile>{km-WdfDefault.tpl}*.tmh</WppGenerateUsingTemplateFile>
-    </OtherWpp>
   </ItemGroup>
   <PropertyGroup>
-    <TargetName>VHidMini2VhfDmfK</TargetName>
+    <TargetName>VirtualHidDeviceVhfDmfK</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ResourceCompile>
@@ -137,6 +131,12 @@
   <PropertyGroup>
     <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <ExceptionHandling>
@@ -164,7 +164,7 @@
     <Inf Include="VirtualHidDeviceVhfDmfK.inx" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VHidMini2VhfDmfK.rc" />
+    <ResourceCompile Include="VirtualHidDeviceVhfDmfK.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
