@@ -852,13 +852,6 @@ Return Value:
         virtualHidDeviceMsModuleConfig.HidReportDescriptorLength = sizeof(g_HidPortableDeviceButtons_HidReportDescriptorPowerAndVolume);
     }
 
-    // Set virtual device attributes.
-    //
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.VendorID = moduleConfig->VendorId;
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.ProductID = moduleConfig->ProductId;
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.VersionNumber = moduleConfig->VersionNumber;
-    virtualHidDeviceMsModuleConfig.HidDeviceAttributes.Size = sizeof(virtualHidDeviceMsModuleConfig.HidDeviceAttributes);
-
     virtualHidDeviceMsModuleConfig.StartOnOpen = TRUE;
     virtualHidDeviceMsModuleConfig.VhfClientContext = DmfModule;
 

@@ -685,13 +685,6 @@ Return Value:
     virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualEyeGaze_HidReportDescriptor;
     virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualEyeGaze_HidReportDescriptor);
 
-    // Set virtual device attributes.
-    //
-    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.VendorID = moduleConfig->VendorId;
-    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.ProductID = moduleConfig->ProductId;
-    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.VersionNumber = moduleConfig->VersionNumber;
-    virtualHidDeviceVhfModuleConfig.HidDeviceAttributes.Size = sizeof(virtualHidDeviceVhfModuleConfig.HidDeviceAttributes);
-
     virtualHidDeviceVhfModuleConfig.StartOnOpen = TRUE;
     virtualHidDeviceVhfModuleConfig.VhfClientContext = DmfModule;
 

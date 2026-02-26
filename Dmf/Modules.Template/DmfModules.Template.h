@@ -64,6 +64,7 @@ extern "C"
 
 #include "Dmf_NonPnp.h"
 #include "Dmf_VirtualHidMiniSample.h"
+#include "Dmf_VirtualHidDeviceVhfSample.h"
 
 // NOTE: The definitions in this file must be surrounded by this annotation to ensure
 //       that both C and C++ Clients can easily compile and link with Modules in this Library.

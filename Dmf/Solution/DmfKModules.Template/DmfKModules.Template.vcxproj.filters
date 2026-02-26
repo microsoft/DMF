@@ -110,6 +110,9 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_SampleInterfaceLowerTransport2.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c">
@@ -172,6 +175,9 @@
     <ClCompile Include="..\..\Modules.Template\Dmf_SampleInterfaceUpperTransport2.c">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Template\Dmf_LegacyTransportA.md">
@@ -187,6 +193,9 @@
       <Filter>Documentation</Filter>
     </None>
     <None Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.md">
       <Filter>Documentation</Filter>
     </None>
   </ItemGroup>

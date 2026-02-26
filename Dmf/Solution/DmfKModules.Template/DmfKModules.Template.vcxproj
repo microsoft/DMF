@@ -133,13 +133,13 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;cfgmgr32.lib;wpprecorder.lib;</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
@@ -207,13 +207,13 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <WppFileExtensions>.c.C.cpp.CPP.h.H</WppFileExtensions>
       <WppRecorderEnabled>true</WppRecorderEnabled>
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/d2guardsignret %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;cfgmgr32.lib;wpprecorder.lib;</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
-      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'" >/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(_NT_TARGET_VERSION)'=='$(_NT_TARGET_VERSION_WIN10_CO)'">/guard:delayloadsignret %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
@@ -246,6 +246,8 @@
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportA.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_LegacyTransportB.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.h" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterface.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterfaceLower.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_Interface_SampleInterfaceUpper.c" />
@@ -274,6 +276,7 @@
     <None Include="..\..\Modules.Template\Dmf_LegacyTransportB.md" />
     <None Include="..\..\Modules.Template\Dmf_NonPnp.md" />
     <None Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.md" />
+    <None Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

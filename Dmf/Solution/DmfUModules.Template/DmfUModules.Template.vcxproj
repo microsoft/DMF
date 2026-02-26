@@ -108,13 +108,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Template\Dmf_Template.c" />
     <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.c" />
+    <ClCompile Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.c" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Public.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_Template.h" />
     <ClInclude Include="..\..\Modules.Template\DmfModules.Template.Trace.h" />
     <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.h" />
+    <ClInclude Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.h" />
     <None Include="..\..\Modules.Template\Dmf_Template.md" />
     <None Include="..\..\Modules.Template\Dmf_VirtualHidMiniSample.md" />
+    <None Include="..\..\Modules.Template\Dmf_VirtualHidDeviceVhfSample.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

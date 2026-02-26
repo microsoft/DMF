@@ -46,6 +46,9 @@ typedef struct _DMF_CONTEXT_VirtualHidDeviceVhf
     // For validation purposes.
     //
     ULONG Started;
+#if defined(DMF_USER_MODE)
+    WDFIOTARGET VhfIoTarget;
+#endif
 } DMF_CONTEXT_VirtualHidDeviceVhf;
 
 // This macro declares the following function:
@@ -207,10 +210,53 @@ Return Value:
 
     VHF_CONFIG vhfConfig;
 
+#if defined(DMF_KERNEL_MODE)
+
     VHF_CONFIG_INIT(&vhfConfig,
                     WdfDeviceWdmGetDeviceObject(device),
                     (USHORT)(moduleConfig->HidReportDescriptorLength),
                     (UCHAR*)(moduleConfig->HidReportDescriptor));
+
+#elif defined(DMF_USER_MODE)
+
+    WDF_IO_TARGET_OPEN_PARAMS openParams;
+    WDF_OBJECT_ATTRIBUTES objectAttributes;
+    HANDLE handle;
+
+    WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+    objectAttributes.ParentObject = device;
+    ntStatus = WdfIoTargetCreate(device,
+                                 &objectAttributes,
+                                 &moduleContext->VhfIoTarget);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    WDF_IO_TARGET_OPEN_PARAMS_INIT_OPEN_BY_FILE(&openParams,
+                                                NULL);
+
+    ntStatus = WdfIoTargetOpen(moduleContext->VhfIoTarget,
+                               &openParams);
+    if (!NT_SUCCESS(ntStatus))
+    {
+        goto Exit;
+    }
+
+    handle = WdfIoTargetWdmGetTargetFileHandle(moduleContext->VhfIoTarget);
+    if (handle == NULL ||
+        handle == INVALID_HANDLE_VALUE)
+    {
+        goto Exit;
+    }
+
+    VHF_CONFIG_INIT(&vhfConfig,
+                    handle,
+                    (USHORT)(moduleConfig->HidReportDescriptorLength),
+                    (UCHAR*)(moduleConfig->HidReportDescriptor));
+
+#endif
+
     vhfConfig.VendorID = moduleConfig->VendorId;
     vhfConfig.ProductID = moduleConfig->ProductId;
     vhfConfig.VersionNumber = moduleConfig->VersionNumber;
@@ -270,6 +316,19 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     VirtualHidDeviceVhf_Stop(DmfModule);
+
+#if defined(DMF_USER_MODE)
+    DMF_CONTEXT_VirtualHidDeviceVhf* moduleContext;
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    if (moduleContext->VhfIoTarget != NULL)
+    {
+        WdfIoTargetClose(moduleContext->VhfIoTarget);
+        WdfObjectDelete(moduleContext->VhfIoTarget);
+        moduleContext->VhfIoTarget = NULL;
+    }
+#endif
 
     FuncExitVoid(DMF_TRACE);
 }

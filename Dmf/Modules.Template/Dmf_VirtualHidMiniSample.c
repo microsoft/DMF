@@ -109,10 +109,17 @@ DMF_MODULE_DECLARE_CONFIG(VirtualHidMiniSample)
 #define TEST_COLLECTION_REPORT_ID                         0x02
 
 #define MAXIMUM_STRING_LENGTH           (126 * sizeof(WCHAR))
+#if defined(DMF_USER_MODE)
 #define VHIDMINI_DEVICE_STRING          L"UMDF Virtual hidmini device"
 #define VHIDMINI_MANUFACTURER_STRING    L"UMDF Virtual hidmini device Manufacturer string"
 #define VHIDMINI_PRODUCT_STRING         L"UMDF Virtual hidmini device Product string"
 #define VHIDMINI_SERIAL_NUMBER_STRING   L"UMDF Virtual hidmini device Serial Number string"
+#elif defined(DMF_KERNEL_MODE)
+#define VHIDMINI_DEVICE_STRING          L"KMDF Virtual hidmini device"
+#define VHIDMINI_MANUFACTURER_STRING    L"KMDF Virtual hidmini device Manufacturer string"
+#define VHIDMINI_PRODUCT_STRING         L"KMDF Virtual hidmini device Product string"
+#define VHIDMINI_SERIAL_NUMBER_STRING   L"KMDF Virtual hidmini device Serial Number string"
+#endif
 #define VHIDMINI_DEVICE_STRING_INDEX    5
 
 #include <pshpack1.h>

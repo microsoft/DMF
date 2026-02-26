@@ -220,6 +220,11 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_Time.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_Transport_ComponentFirmwareUpdate.h" />
     <ClInclude Include="..\..\Modules.Library\DMF_UefiLogs.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h" />
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_MobileBroadband.h" />
     <ClInclude Include="..\..\Modules.Library\Dmf_UefiOperation.h" />
@@ -269,6 +274,11 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_Time.c" />
     <ClCompile Include="..\..\Modules.Library\DMF_UefiLogs.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c" />
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c" />
     <ClCompile Include="..\..\Modules.Library\Dmf_MobileBroadband.cpp" />
     <ClCompile Include="..\..\Modules.Library\Dmf_UefiOperation.c" />
@@ -317,6 +327,12 @@
     <None Include="..\..\Modules.Library\Dmf_ThreadedBufferQueue.md" />
     <None Include="..\..\Modules.Library\Dmf_Time.md" />
     <None Include="..\..\Modules.Library\DMF_UefiLogs.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualAmbientLightSensor.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md" />
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md" />
     <None Include="..\..\Modules.Library\Dmf_UefiOperation.md" />
   </ItemGroup>

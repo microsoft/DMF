@@ -88,38 +88,14 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_InterruptResource.c">
       <Filter>Modules\Driver Patterns</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c">
-      <Filter>Modules\Hid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c">
-      <Filter>Modules\Hid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c">
-      <Filter>Modules\Hid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c">
-      <Filter>Modules\Hid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c">
-      <Filter>Modules\Hid</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_Rundown.c">
       <Filter>Modules\Driver Patterns</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c">
-      <Filter>Modules\Hid</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.c">
       <Filter>Modules\Targets</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_Doorbell.c">
       <Filter>Modules\Task Execution</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.c">
-      <Filter>Modules\Hid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c">
-      <Filter>Modules\Hid</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.c">
       <Filter>Modules\Driver Patterns</Filter>
@@ -177,6 +153,30 @@
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library\Dmf_HidDeviceListener.c">
       <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.c">
+      <Filter>Modules\Hid\Virtual Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.c">
+      <Filter>Modules\Hid\Virtual Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c">
+      <Filter>Modules\Hid\Virtual Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c">
+      <Filter>Modules\Hid\Virtual Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c">
+      <Filter>Modules\Hid\Virtual Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c">
+      <Filter>Modules\Hid\Virtual Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c">
+      <Filter>Modules\Hid\Virtual Device Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidMini.c">
+      <Filter>Modules\Hid\Virtual Device Base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -279,41 +279,14 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_InterruptResource.h">
       <Filter>Headers\Driver Patterns</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Rundown.h">
       <Filter>Headers\Driver Patterns</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h">
-      <Filter>Headers\Hid</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.h">
       <Filter>Headers\Targets</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_Doorbell.h">
       <Filter>Headers\Task Execution</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.h">
-      <Filter>Headers\Hid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl_Public.h">
-      <Filter>Headers\Hid</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.h">
       <Filter>Headers\Driver Patterns</Filter>
@@ -371,6 +344,33 @@
     </ClInclude>
     <ClInclude Include="..\..\Modules.Library\Dmf_HidDeviceListener.h">
       <Filter>Headers\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidMini.h">
+      <Filter>Headers\Hid\Virtual Device Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h">
+      <Filter>Headers\Hid\Virtual Device Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl_Public.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.h">
+      <Filter>Headers\Hid\Virtual Devices</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -452,6 +452,24 @@
     <Filter Include="Documentation\Interfaces">
       <UniqueIdentifier>{0c1d24ee-b374-4fd3-bf11-f1ece6338680}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\Hid\Virtual Device Base">
+      <UniqueIdentifier>{215c8c75-4a47-4d51-a749-931b0764905f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Hid\Virtual Devices">
+      <UniqueIdentifier>{84216afc-e185-44a6-99cd-2c683f529d5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Hid\Virtual Device Base">
+      <UniqueIdentifier>{c7fd5dac-2ca7-46c3-bd80-db423f0a1a5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Hid\Virtual Devices">
+      <UniqueIdentifier>{fa068c2c-a782-4353-a56e-824cfbf4eb57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Hid\Virtual Device Base">
+      <UniqueIdentifier>{e011fadb-f275-4442-807f-3986996bc560}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation\Modules\Hid\Virtual Devices">
+      <UniqueIdentifier>{1bda0c4b-20e2-46d4-a991-2fbd784f4d5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Modules.Library\Dmf_PingPongBuffer.md">
@@ -532,9 +550,6 @@
     <Text Include="..\..\Modules.Library\Dmf_Thread.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
     </Text>
-    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
-      <Filter>Documentation\Modules\Hid</Filter>
-    </Text>
     <Text Include="..\..\Modules.Library\Dmf_HidPortableDeviceButtons.md">
       <Filter>Documentation\Modules\Hid</Filter>
     </Text>
@@ -559,6 +574,9 @@
     <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
       <Filter>Documentation\Modules\Hid</Filter>
     </Text>
+    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
+      <Filter>Documentation\Modules\Hid\Virtual Device Base</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_DefaultTarget.md">
@@ -570,32 +588,14 @@
     <None Include="..\..\Modules.Library\Dmf_InterruptResource.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
     </None>
-    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md">
-      <Filter>Documentation\Modules\Hid</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md">
-      <Filter>Documentation\Modules\Hid</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md">
-      <Filter>Documentation\Modules\Hid</Filter>
-    </None>
     <None Include="..\..\Modules.Library\Dmf_Rundown.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md">
-      <Filter>Documentation\Modules\Hid</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_DeviceInterfaceMultipleTarget.md">
       <Filter>Documentation\Modules\Targets</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_Doorbell.md">
       <Filter>Documentation\Modules\Task Execution</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md">
-      <Filter>Documentation\Modules\Hid</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md">
-      <Filter>Documentation\Modules\Hid</Filter>
     </None>
     <None Include="..\..\Modules.Library\Dmf_NotifyUserWithRequestMultiple.md">
       <Filter>Documentation\Modules\Driver Patterns</Filter>
@@ -632,6 +632,24 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_HidDeviceListener.md">
       <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_EyeGazeIoctl.md">
+      <Filter>Documentation\Modules\Hid\Virtual Devices</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md">
+      <Filter>Documentation\Modules\Hid\Virtual Devices</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md">
+      <Filter>Documentation\Modules\Hid\Virtual Devices</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md">
+      <Filter>Documentation\Modules\Hid\Virtual Devices</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md">
+      <Filter>Documentation\Modules\Hid\Virtual Devices</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidMini.md">
+      <Filter>Documentation\Modules\Hid\Virtual Device Base</Filter>
     </None>
   </ItemGroup>
 </Project>

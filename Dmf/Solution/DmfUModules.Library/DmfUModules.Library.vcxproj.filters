@@ -264,6 +264,21 @@
     <ClInclude Include="..\..\Modules.Library\Dmf_HidDeviceListener.h">
       <Filter>Headers\Modules\Hid</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.h">
+      <Filter>Headers\Modules\Hid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library\Dmf_CmApi.c">
@@ -407,11 +422,21 @@
     <ClCompile Include="..\..\Modules.Library\Dmf_HidDeviceListener.c">
       <Filter>Modules\Hid</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
-      <Filter>Documentation\Modules\Targets</Filter>
-    </Text>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.c">
+      <Filter>Modules\Hid</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Modules.Library\Dmf_PingPongBuffer.md">
@@ -548,6 +573,27 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_HidDeviceListener.md">
       <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidKeyboard.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientLightSensor.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualHidAmbientColorSensor.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualEyeGaze.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_VirtualAmbientLightSensor.md">
+      <Filter>Documentation\Modules\Hid</Filter>
+    </None>
+    <None Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
+      <Filter>Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>

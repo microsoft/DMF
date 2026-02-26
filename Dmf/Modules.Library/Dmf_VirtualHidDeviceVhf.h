@@ -1147,7 +1147,7 @@ Environment:
 
 // This Module is only supported in Kernel-mode because VHF only support Kernel-mode.
 //
-#if !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
+#if defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
 
 #pragma warning(disable:4201)  // suppress nameless struct/union warning
 #pragma warning(disable:4214)  // suppress bit field types other than int warning
@@ -1166,7 +1166,6 @@ typedef struct
     USHORT VersionNumber;
     const UCHAR* HidReportDescriptor;
     ULONG HidReportDescriptorLength;
-    HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
     EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_SET_FEATURE;
     EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_GET_FEATURE;
     EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_GET_INPUT_REPORT;
@@ -1206,7 +1205,7 @@ DMF_VirtualHidDeviceVhf_ReadReportSend(
     _In_ HID_XFER_PACKET* HidTransferPacket
     );
 
-#endif // !defined(DMF_USER_MODE) && defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
+#endif // defined(NTDDI_WINTHRESHOLD) && (NTDDI_VERSION >= NTDDI_WINTHRESHOLD)
 
 // eof: Dmf_VirtualHidDeviceVhf.h
 //

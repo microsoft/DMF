@@ -1060,19 +1060,31 @@ Return Value:
             return;
         }
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "mobileBroadbandSimSlotInfoChanged event triggered");
-        int currentSlotIndex = slotManager.CurrentSlotIndex();
-        MobileBroadbandSlotInfo slotInfo = slotManager.SlotInfos().GetAt(currentSlotIndex);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot index is %d", currentSlotIndex);
-        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot state is %d", (int)slotInfo.State());
-        if (slotInfo.State() == MobileBroadbandSlotState::Active || 
-            slotInfo.State() == MobileBroadbandSlotState::ActiveEsim)
+        try
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is present and ready");
-            isSimPresentAndReady = TRUE;
+            int currentSlotIndex = slotManager.CurrentSlotIndex();
+            MobileBroadbandSlotInfo slotInfo = slotManager.SlotInfos().GetAt(currentSlotIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot index is %d", currentSlotIndex);
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot state is %d", (int)slotInfo.State());
+            if (slotInfo.State() == MobileBroadbandSlotState::Active ||
+                slotInfo.State() == MobileBroadbandSlotState::ActiveEsim)
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is present and ready");
+                isSimPresentAndReady = TRUE;
+            }
+            else
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is not present or ready");
+                isSimPresentAndReady = FALSE;
+            }
         }
-        else
+        catch (hresult_error ex)
         {
-            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is not present or ready");
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "Failed to get Sim Slot info, error code 0x%08x - %ws",
+                        ex.code().value,
+                        ex.message().c_str());
             isSimPresentAndReady = FALSE;
         }
 
@@ -1086,10 +1098,46 @@ Return Value:
         DMF_ModuleDereference(DmfModule);
     });
 
+    // Get current Sim existance info upon registration and report.
+    //
+    try
+    {
+        int currentSlotIndex = slotManager.CurrentSlotIndex();
+        MobileBroadbandSlotInfo slotInfo = slotManager.SlotInfos().GetAt(currentSlotIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot index is %d", currentSlotIndex);
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Current Sim Slot state is %d", (int)slotInfo.State());
+        if (slotInfo.State() == MobileBroadbandSlotState::Active ||
+            slotInfo.State() == MobileBroadbandSlotState::ActiveEsim)
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is present and ready");
+            isSimPresentAndReady = TRUE;
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sim/eSim is not present or ready");
+            isSimPresentAndReady = FALSE;
+        }
+    }
+    catch (hresult_error ex)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Failed to get Sim Slot info, error code 0x%08x - %ws",
+                    ex.code().value,
+                    ex.message().c_str());
+        isSimPresentAndReady = FALSE;
+    }
+    // Call back parent Module.
+    //
+    if (moduleConfig->EvtMobileBroadbandSimReadyChangeCallback != nullptr)
+    {
+        moduleConfig->EvtMobileBroadbandSimReadyChangeCallback(DmfModule,
+                      isSimPresentAndReady);
+    }
+
     tokenSimSlotInfoChanged = slotManager.SlotInfoChanged(mobileBroadbandSimSlotInfoChanged);
 
     FuncExitVoid(DMF_TRACE);
-
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

@@ -4,7 +4,7 @@
 
 #### Module Summary
 
-This Module serves as a "base class" for Virtual HID devices. The Parent of the instance of this Module exposes a virtual HID
+This Module serves as a "base class" for Virtual HID devices which uses VHF. The Parent of the instance of this Module exposes a virtual HID
 device.
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -135,6 +135,10 @@ Remarks | * See MSDN VHF documentation for more information.
 #### Module Remarks
 
 * IMPORTANT: Vhf.sys must be set as a Lower Filter driver in the Client driver's INF file using the "LowerFilters" registry entry. Otherwise, the VHF API is not available and this Module's Open callback will fail.
+* IMPORTANT: Please see the DMF sample drivers' INF files for important settings needed for **Kernel-mode** VHF drivers.
+* IMPORTANT: Please see the DMF sample drivers' INF files for important settings needed for **User-mode** VHF drivers.
+* VHF does not support HID Device Strings. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID Device Strings. 
+* VHF does not support HID_OUTPUT_REPORT. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID_OUTPUT_REPORT._
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

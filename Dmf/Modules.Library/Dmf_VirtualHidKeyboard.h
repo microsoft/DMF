@@ -30,12 +30,14 @@ typedef enum
     // This driver types the keystrokes and does not expose this function to other drivers.
     //
     VirtualHidKeyboardMode_Standalone,
+#if defined(DMF_KERNEL_MODE)
     // This driver types the keystrokes and exposes this function to other drivers.
     //
     VirtualHidKeyboardMode_Server,
     // This driver does not type keystrokes directly. It calls another driver to do that.
     //
     VirtualHidKeyboardMode_Client,
+#endif // defined(DMF_KERNEL_MODE)
 } VirtualHidKeyboardModeType;
 
 // Client uses this structure to configure the Module specific parameters.
