@@ -15,6 +15,7 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 
@@ -307,7 +308,7 @@ Arguments:
 
 Return Value:
 
-    NTSTATUS
+    None
 
 --*/
 {

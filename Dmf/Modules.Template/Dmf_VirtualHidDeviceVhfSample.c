@@ -183,25 +183,25 @@ typedef UCHAR HID_REPORT_DESCRIPTOR;
 HID_REPORT_DESCRIPTOR
 g_VirtualHidDeviceVhfSample_DefaultReportDescriptor[] = 
 {
-    0x06,0x00, 0xFF,                    // USAGE_PAGE (Vendor Defined Usage Page)
-    0x09,0x01,                          // USAGE (Vendor Usage 0x01)
-    0xA1,0x01,                          // COLLECTION (HID_FLAGS_COLLECTION_Application)
-    0x85,CONTROL_FEATURE_REPORT_ID,     // REPORT_ID (1)
-    0x09,0x01,                         // USAGE (Vendor Usage 0x01)
-    0x15,0x00,                         // LOGICAL_MINIMUM(0)
-    0x26,0xff, 0x00,                   // LOGICAL_MAXIMUM(255)
-    0x75,0x08,                         // REPORT_SIZE (0x08)
-    0x96,(FEATURE_REPORT_SIZE_CB & 0xff), (FEATURE_REPORT_SIZE_CB >> 8), // REPORT_COUNT
-    0xB1,0x00,                         // FEATURE (Data,Ary,Abs)
-    0x09,0x01,                         // USAGE (Vendor Usage 0x01)
-    0x75,0x08,                         // REPORT_SIZE (0x08)
-    0x96,(INPUT_REPORT_SIZE_CB & 0xff), (INPUT_REPORT_SIZE_CB >> 8), // REPORT_COUNT
-    0x81,0x00,                         // INPUT (Data,Ary,Abs)
-    0x09,0x01,                         // USAGE (Vendor Usage 0x01)
-    0x75,0x08,                         // REPORT_SIZE (0x08)
-    0x96,(OUTPUT_REPORT_SIZE_CB & 0xff), (OUTPUT_REPORT_SIZE_CB >> 8), // REPORT_COUNT
-    0x91,0x00,                         // OUTPUT (Data,Ary,Abs)
-    0xC0,                           // END_COLLECTION
+    0x06,0x00, 0xFF,                                                        // USAGE_PAGE (Vendor Defined Usage Page)
+    0x09,0x01,                                                              // USAGE (Vendor Usage 0x01)
+    0xA1,0x01,                                                              // COLLECTION (HID_FLAGS_COLLECTION_Application)
+    0x85,CONTROL_FEATURE_REPORT_ID,                                         // REPORT_ID (1)
+    0x09,0x01,                                                              // USAGE (Vendor Usage 0x01)
+    0x15,0x00,                                                              // LOGICAL_MINIMUM(0)
+    0x26,0xff, 0x00,                                                        // LOGICAL_MAXIMUM(255)
+    0x75,0x08,                                                              // REPORT_SIZE (0x08)
+    0x96,(FEATURE_REPORT_SIZE_CB & 0xff), (FEATURE_REPORT_SIZE_CB >> 8),    // REPORT_COUNT
+    0xB1,0x00,                                                              // FEATURE (Data,Ary,Abs)
+    0x09,0x01,                                                              // USAGE (Vendor Usage 0x01)
+    0x75,0x08,                                                              // REPORT_SIZE (0x08)
+    0x96,(INPUT_REPORT_SIZE_CB & 0xff), (INPUT_REPORT_SIZE_CB >> 8),        // REPORT_COUNT
+    0x81,0x00,                                                              // INPUT (Data,Ary,Abs)
+    0x09,0x01,                                                              // USAGE (Vendor Usage 0x01)
+    0x75,0x08,                                                              // REPORT_SIZE (0x08)
+    0x96,(OUTPUT_REPORT_SIZE_CB & 0xff), (OUTPUT_REPORT_SIZE_CB >> 8),      // REPORT_COUNT
+    0x91,0x00,                                                              // OUTPUT (Data,Ary,Abs)
+    0xC0,                                                                   // END_COLLECTION
 };
 
 // This is the default HID descriptor returned by the mini driver
@@ -211,14 +211,14 @@ g_VirtualHidDeviceVhfSample_DefaultReportDescriptor[] =
 HID_DESCRIPTOR
 g_VirtualHidDeviceVhfSample_DefaultHidDescriptor = 
 {
-    0x09,   // length of HID descriptor
-    0x21,   // descriptor type == HID  0x21
-    0x0100, // hid spec release
-    0x00,   // country code == Not Specified
-    0x01,   // number of HID class descriptors
-    {                                       //DescriptorList[0]
-        0x22,                               //report descriptor type 0x22
-        sizeof(g_VirtualHidDeviceVhfSample_DefaultReportDescriptor)   //total length of report descriptor
+    0x09,                                                                   // length of HID descriptor
+    0x21,                                                                   // descriptor type == HID  0x21
+    0x0100,                                                                 // hid spec release
+    0x00,                                                                   // country code == Not Specified
+    0x01,                                                                   // number of HID class descriptors
+    {                                                                       // DescriptorList[0]
+        0x22,                                                               // report descriptor type 0x22
+        sizeof(g_VirtualHidDeviceVhfSample_DefaultReportDescriptor)         // total length of report descriptor
     }
 };
 
@@ -330,16 +330,19 @@ Return Value:
         goto Exit;
     }
 
-    // Since output buffer is for write only (no read allowed by UMDF in output
-    // buffer), any read from output buffer would be reading garbage), so don't
-    // let app embed custom control code in output buffer. The minidriver can
-    // support multiple features using separate report ID instead of using
-    // custom control code. Since this is targeted at report ID 1, we know it
-    // is a request for getting attributes.
+    // Ensure uninitialized data is not returned.
     //
-    // While KMDF does not enforce the rule (disallow read from output buffer),
-    // it is good practice to not do so.
-    //
+    if (HidTransferPacket->reportBufferLen < sizeof(HIDMINI_CONTROL_INFO))
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "VirtualHidDeviceVhfSample_GetFeature fails: reportBufferLen=%d expected=%d",
+                    HidTransferPacket->reportBufferLen,
+                    sizeof(HIDMINI_CONTROL_INFO));
+        goto Exit;
+
+    }
+    RtlZeroMemory(HidTransferPacket->reportBuffer,
+                  sizeof(HIDMINI_CONTROL_INFO));
 
     reportSize = sizeof(MY_DEVICE_ATTRIBUTES) + sizeof(HidTransferPacket->reportId);
     if (HidTransferPacket->reportBufferLen < reportSize) 

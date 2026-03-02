@@ -459,6 +459,8 @@ Return Value:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+#if defined(DMF_KERNEL_MODE)
+
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Open)
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -501,7 +503,6 @@ Return Value:
 
     ntStatus = STATUS_SUCCESS;
 
-#if defined(DMF_KERNEL_MODE)
     UNICODE_STRING virtualKeyboardCallbackName;
     OBJECT_ATTRIBUTES objectAttributes;
 
@@ -550,13 +551,16 @@ Return Value:
         }
     }
 Exit:
-#endif // defined(DMF_KERNEL_MODE)
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
     return ntStatus;
 }
 #pragma code_seg()
+
+#endif // defined(DMF_KERNEL_MODE)
+
+#if defined(DMF_KERNEL_MODE)
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Close)
@@ -590,10 +594,8 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
-#if defined(DMF_KERNEL_MODE)
     if (moduleConfig->VirtualHidKeyboardMode == VirtualHidKeyboardMode_Server)
     {
 #if defined(USE_DISABLE_CALLBACK_REGISTRATION)
@@ -614,11 +616,12 @@ Return Value:
         ObDereferenceObject(moduleContext->CallbackHandle);
         moduleContext->CallbackHandle = NULL;
     }
-#endif // defined(DMF_KERNEL_MODE)
 
     FuncExitVoid(DMF_TRACE);
 }
 #pragma code_seg()
+
+#endif // defined(DMF_KERNEL_MODE)
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_ChildModulesAdd)
@@ -659,6 +662,7 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
+
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
 #if defined(DMF_KERNEL_MODE)
@@ -742,8 +746,10 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_VirtualHidKeyboard);
+#if defined(DMF_KERNEL_MODE)
     dmfCallbacksDmf_VirtualHidKeyboard.DeviceOpen = DMF_VirtualHidKeyboard_Open;
     dmfCallbacksDmf_VirtualHidKeyboard.DeviceClose = DMF_VirtualHidKeyboard_Close;
+#endif // defined(DMF_KERNEL_MODE)
     dmfCallbacksDmf_VirtualHidKeyboard.ChildModulesAdd = DMF_VirtualHidKeyboard_ChildModulesAdd;
 
     DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE(dmfModuleDescriptor_VirtualHidKeyboard,

@@ -14,6 +14,7 @@ Abstract:
 Environment:
 
     Kernel-mode Driver Framework
+    User-mode Driver Framework
 
 --*/
 

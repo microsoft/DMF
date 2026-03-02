@@ -26,7 +26,6 @@ typedef struct
   USHORT VersionNumber;
   const UCHAR* HidReportDescriptor;
   ULONG HidReportDescriptorLength;
-  HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
   EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_SET_FEATURE;
   EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_GET_FEATURE;
   EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_GET_INPUT_REPORT;
@@ -46,7 +45,6 @@ VendorId | The vendor id of the virtual HID device.
 ProductId | The product id of the virtual HID device.
 VersionNumber | The version number of the virtual HID device.
 HidReportDescriptor | The HID report descriptor of the Virtual Hid device.
-HidDeviceAttributes | The HID device attributes of the Virtual Hid device.
 IoctlCallback_IOCTL_HID_SET_FEATURE | VHF callback for IOCTL_HID_SET_FEATURE.
 IoctlCallback_IOCTL_HID_GET_FEATURE | VHF callback for IOCTL_HID_GET_FEATURE.
 IoctlCallback_IOCTL_HID_GET_INPUT_REPORT | VHF callback for IOCTL_HID_GET_INPUT_REPORT.
@@ -149,6 +147,7 @@ Remarks | * See MSDN VHF documentation for more information.
 #### Examples
 
 * DMF_HidPortableDeviceButtons
+* DMF_VirtualHidKeyboard
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
