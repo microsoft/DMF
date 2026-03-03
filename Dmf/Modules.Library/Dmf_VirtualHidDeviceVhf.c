@@ -291,11 +291,20 @@ Exit:
     if (! NT_SUCCESS(ntStatus) &&
         moduleContext->VhfIoTarget != NULL)
     {
+        // Clean up WDFIOTARGET.
+        //
         WdfIoTargetClose(moduleContext->VhfIoTarget);
         WdfObjectDelete(moduleContext->VhfIoTarget);
         moduleContext->VhfIoTarget = NULL;
     }
 #endif
+
+    if (! NT_SUCCESS(ntStatus))
+    {
+        // Clean up for the case where VhfCreate succeeds, but Start fails.
+        //
+        VirtualHidDeviceVhf_Stop(DmfModule);
+    }
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
