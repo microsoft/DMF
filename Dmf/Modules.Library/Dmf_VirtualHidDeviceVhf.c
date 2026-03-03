@@ -241,6 +241,8 @@ Return Value:
                                &openParams);
     if (!NT_SUCCESS(ntStatus))
     {
+        // Clean up happens on exit.
+        //
         goto Exit;
     }
 
@@ -248,6 +250,9 @@ Return Value:
     if (handle == NULL ||
         handle == INVALID_HANDLE_VALUE)
     {
+        ntStatus = STATUS_INVALID_HANDLE;
+        // Clean up happens on exit.
+        //
         goto Exit;
     }
 
@@ -281,6 +286,16 @@ Return Value:
     }
 
 Exit:
+
+#if defined(DMF_USER_MODE)
+    if (! NT_SUCCESS(ntStatus) &&
+        moduleContext->VhfIoTarget != NULL)
+    {
+        WdfIoTargetClose(moduleContext->VhfIoTarget);
+        WdfObjectDelete(moduleContext->VhfIoTarget);
+        moduleContext->VhfIoTarget = NULL;
+    }
+#endif
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
