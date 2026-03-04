@@ -496,7 +496,6 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
 
     device = DMF_ParentDeviceGet(DmfModule);
@@ -662,42 +661,42 @@ Return Value:
     UNREFERENCED_PARAMETER(DmfParentModuleAttributes);
 
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
 #if defined(DMF_KERNEL_MODE)
     if (moduleConfig->VirtualHidKeyboardMode == VirtualHidKeyboardMode_Client)
     {
-        // Client just uses the callback...it does not need thread. Server and Standalone 
-        // need the child thread.
+        // Client just uses the callback and does not need the Child Module.
+        // Server and Standalone need the Child Module.
         //
+        goto Exit;
     }
-    else
-    {
 #endif // defined(DMF_KERNEL_MODE)
-        // VirtualHidDeviceVhf
-        // -------------------
-        //
-        DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&virtualHidDeviceVhfModuleConfig,
-                                                           &moduleAttributes);
 
-        virtualHidDeviceVhfModuleConfig.VendorId = moduleConfig->VendorId;
-        virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
-        virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
+    // VirtualHidDeviceVhf
+    // -------------------
+    //
+    DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&virtualHidDeviceVhfModuleConfig,
+                                                        &moduleAttributes);
 
-        virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualHidKeyboard_HidReportDescriptor;
-        virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualHidKeyboard_HidReportDescriptor);
+    virtualHidDeviceVhfModuleConfig.VendorId = moduleConfig->VendorId;
+    virtualHidDeviceVhfModuleConfig.ProductId = moduleConfig->ProductId;
+    virtualHidDeviceVhfModuleConfig.VersionNumber = 0x0001;
 
-        virtualHidDeviceVhfModuleConfig.StartOnOpen = TRUE;
-        virtualHidDeviceVhfModuleConfig.VhfClientContext = DmfModule;
+    virtualHidDeviceVhfModuleConfig.HidReportDescriptor = g_VirtualHidKeyboard_HidReportDescriptor;
+    virtualHidDeviceVhfModuleConfig.HidReportDescriptorLength = sizeof(g_VirtualHidKeyboard_HidReportDescriptor);
 
-        DMF_DmfModuleAdd(DmfModuleInit,
-                         &moduleAttributes,
-                         WDF_NO_OBJECT_ATTRIBUTES,
-                         &moduleContext->DmfModuleVirtualHidDeviceVhf);
+    virtualHidDeviceVhfModuleConfig.StartOnOpen = TRUE;
+    virtualHidDeviceVhfModuleConfig.VhfClientContext = DmfModule;
+
+    DMF_DmfModuleAdd(DmfModuleInit,
+                        &moduleAttributes,
+                        WDF_NO_OBJECT_ATTRIBUTES,
+                        &moduleContext->DmfModuleVirtualHidDeviceVhf);
+
 #if defined(DMF_KERNEL_MODE)
-    }
-#endif // defined(DMF_KERNEL_MODE)
+Exit:
+#endif
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -926,9 +925,9 @@ Return Value:
         // This driver can type the keys.
         //
         ntStatus = VirtualHidKeyboard_Type(DmfModule,
-                                            KeysToType,
-                                            NumberOfKeys,
-                                            UsagePage);
+                                           KeysToType,
+                                           NumberOfKeys,
+                                           UsagePage);
     }
     else
     {

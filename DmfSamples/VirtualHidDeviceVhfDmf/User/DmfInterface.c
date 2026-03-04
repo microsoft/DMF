@@ -68,15 +68,16 @@ KeyStrokeTimerCallback(
 {
     PDEVICE_CONTEXT deviceContext;
     WDFDEVICE device;
+    static int numberOfTimesTyped = 0;
 
     PAGED_CODE();
 
     device = (WDFDEVICE)WdfTimerGetParentObject(WdfTimer);
     deviceContext = DeviceContextGet(device);
 
-    // It is the letter 'a'.
+    // Letters 'abc'.
     //
-    USHORT keysToType[] = {0x00, 0x00, 0x04};
+    USHORT keysToType[] = {0x0004, 0x0005, 0x0006};
     NTSTATUS ntStatus = DMF_VirtualHidKeyboard_Type(deviceContext->DmfModuleVirtualHidKeyboard,
                                                     keysToType,
                                                     sizeof(keysToType),
@@ -86,7 +87,12 @@ KeyStrokeTimerCallback(
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "DMF_VirtualHidKeyboard_Type fails: ntStatus=%!STATUS!", ntStatus);
     }
 
-    WdfTimerStart(WdfTimer, WDF_REL_TIMEOUT_IN_MS(1000));
+    numberOfTimesTyped++;
+    if (numberOfTimesTyped < 3)
+    {
+        WdfTimerStart(WdfTimer,
+                      WDF_REL_TIMEOUT_IN_SEC(10));
+    }
 }
 #pragma code_seg()
 

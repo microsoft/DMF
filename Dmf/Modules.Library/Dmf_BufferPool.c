@@ -1338,7 +1338,7 @@ Return Value:
         WDF_OBJECT_ATTRIBUTES_INIT(&memoryObjectAttributes);
         memoryObjectAttributes.ParentObject = device;
 
-        // The lookaside list itself should be parented to the Module since is used only the this Module.
+        // The lookaside list itself should be parented to the Module since is used only this Module.
         //
         WDF_OBJECT_ATTRIBUTES_INIT(&lookasideObjectAttributes);
         lookasideObjectAttributes.ParentObject = DmfModule;

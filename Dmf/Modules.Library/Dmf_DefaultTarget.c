@@ -981,7 +981,7 @@ DMF_DefaultTarget_NotificationRegister(
 
 Routine Description:
 
-    This callback is called when the Module Open Flags indicate that the this Module
+    This callback is called when the Module Open Flags indicate that this Module
     is opened after an asynchronous notification has happened.
     (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware or DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry)
     This callback registers the notification.
@@ -1048,7 +1048,7 @@ DMF_DefaultTarget_NotificationUnregister(
 
 Routine Description:
 
-    This callback is called when the Module Open Flags indicate that the this Module
+    This callback is called when the Module Open Flags indicate that this Module
     is opened after an asynchronous notification has happened.
     (DMF_MODULE_OPEN_OPTION_NOTIFY_PrepareHardware or DMF_MODULE_OPEN_OPTION_NOTIFY_D0Entry)
     This callback unregisters the notification that was previously registered.

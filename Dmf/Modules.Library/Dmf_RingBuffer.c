@@ -1139,7 +1139,7 @@ Routine Description:
 Arguments:
 
     DmfModule - This Module's handle.
-    Lock - Set to TRUE if the this Method should lock the Module while performing the
+    Lock - Set to TRUE if this Method should lock the Module while performing the
            reorder operation.
 
 Return Value:

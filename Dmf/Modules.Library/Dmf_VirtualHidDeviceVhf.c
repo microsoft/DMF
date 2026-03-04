@@ -340,8 +340,6 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
-    VirtualHidDeviceVhf_Stop(DmfModule);
-
 #if defined(DMF_USER_MODE)
     DMF_CONTEXT_VirtualHidDeviceVhf* moduleContext;
 
@@ -354,6 +352,8 @@ Return Value:
         moduleContext->VhfIoTarget = NULL;
     }
 #endif
+
+    VirtualHidDeviceVhf_Stop(DmfModule);
 
     FuncExitVoid(DMF_TRACE);
 }

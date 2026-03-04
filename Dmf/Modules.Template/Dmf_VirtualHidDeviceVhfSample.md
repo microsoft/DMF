@@ -49,7 +49,7 @@ ReadFromRegistry | Indicates that the HID Device Descriptor information should b
 
 #### Module Remarks
 
-* To test the this sample, use the TestVHid.exe sample application that is part of the MSDN samples.
+* To test this sample, use the TestVHid.exe sample application that is part of the MSDN samples.
 * VHF does not support SET_OUTPUT_REPORT so this call in the sample application should be removed: ````SetOutputReport(file);````
 * VHF does not support device strings, so this call in the sample application should be removed: ````GetIndexedString(file);````
 

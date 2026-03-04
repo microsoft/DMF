@@ -136,7 +136,7 @@ Remarks | * See MSDN VHF documentation for more information.
 * IMPORTANT: Please see the DMF sample drivers' INF files for important settings needed for **Kernel-mode** VHF drivers.
 * IMPORTANT: Please see the DMF sample drivers' INF files for important settings needed for **User-mode** VHF drivers.
 * VHF does not support HID Device Strings. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID Device Strings. 
-* VHF does not support HID_OUTPUT_REPORT. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID_OUTPUT_REPORT._
+* VHF does not support HID_OUTPUT_REPORT. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID_OUTPUT_REPORT.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

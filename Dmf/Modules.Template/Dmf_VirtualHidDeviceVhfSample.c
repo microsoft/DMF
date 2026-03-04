@@ -693,7 +693,7 @@ Return Value:
     DMF_MODULE_ATTRIBUTES moduleAttributes;
     DMF_CONFIG_VirtualHidDeviceVhfSample* moduleConfig;
     DMF_CONTEXT_VirtualHidDeviceVhfSample* moduleContext;
-    DMF_CONFIG_VirtualHidDeviceVhf moduleConfigVirtualHidDevicVhf;
+    DMF_CONFIG_VirtualHidDeviceVhf moduleConfigVirtualHidDeviceVhf;
 
     PAGED_CODE();
 
@@ -713,24 +713,24 @@ Return Value:
     // VirtualHidDeviceVhf
     // -------------------
     //
-    DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&moduleConfigVirtualHidDevicVhf,
+    DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&moduleConfigVirtualHidDeviceVhf,
                                                        &moduleAttributes);
 
-    moduleConfigVirtualHidDevicVhf.VendorId = HIDMINI_VID;
-    moduleConfigVirtualHidDevicVhf.ProductId = HIDMINI_PID;
-    moduleConfigVirtualHidDevicVhf.VersionNumber = HIDMINI_VERSION;
+    moduleConfigVirtualHidDeviceVhf.VendorId = HIDMINI_VID;
+    moduleConfigVirtualHidDeviceVhf.ProductId = HIDMINI_PID;
+    moduleConfigVirtualHidDeviceVhf.VersionNumber = HIDMINI_VERSION;
 
-    moduleConfigVirtualHidDevicVhf.HidReportDescriptor = g_VirtualHidDeviceVhfSample_DefaultReportDescriptor;
-    moduleConfigVirtualHidDevicVhf.HidReportDescriptorLength = sizeof(g_VirtualHidDeviceVhfSample_DefaultReportDescriptor);
+    moduleConfigVirtualHidDeviceVhf.HidReportDescriptor = g_VirtualHidDeviceVhfSample_DefaultReportDescriptor;
+    moduleConfigVirtualHidDeviceVhf.HidReportDescriptorLength = sizeof(g_VirtualHidDeviceVhfSample_DefaultReportDescriptor);
 
-    moduleConfigVirtualHidDevicVhf.StartOnOpen = TRUE;
-    moduleConfigVirtualHidDevicVhf.VhfClientContext = DmfModule;
+    moduleConfigVirtualHidDeviceVhf.StartOnOpen = TRUE;
+    moduleConfigVirtualHidDeviceVhf.VhfClientContext = DmfModule;
 
-    moduleConfigVirtualHidDevicVhf.IoctlCallback_IOCTL_HID_GET_INPUT_REPORT = VirtualHidDeviceVhfSample_GetInputReport;
-    moduleConfigVirtualHidDevicVhf.IoctlCallback_IOCTL_HID_GET_FEATURE = VirtualHidDeviceVhfSample_GetFeature;
-    moduleConfigVirtualHidDevicVhf.IoctlCallback_IOCTL_HID_SET_FEATURE = VirtualHidDeviceVhfSample_SetFeature;
-    moduleConfigVirtualHidDevicVhf.IoctlCallback_IOCTL_HID_WRITE_REPORT = VirtualHidDeviceVhfSample_WriteReport;
-    moduleConfigVirtualHidDevicVhf.IoctlCallback_IOCTL_HID_READ_REPORT = VirtualHidDeviceVhfSample_ReadReport;
+    moduleConfigVirtualHidDeviceVhf.IoctlCallback_IOCTL_HID_GET_INPUT_REPORT = VirtualHidDeviceVhfSample_GetInputReport;
+    moduleConfigVirtualHidDeviceVhf.IoctlCallback_IOCTL_HID_GET_FEATURE = VirtualHidDeviceVhfSample_GetFeature;
+    moduleConfigVirtualHidDeviceVhf.IoctlCallback_IOCTL_HID_SET_FEATURE = VirtualHidDeviceVhfSample_SetFeature;
+    moduleConfigVirtualHidDeviceVhf.IoctlCallback_IOCTL_HID_WRITE_REPORT = VirtualHidDeviceVhfSample_WriteReport;
+    moduleConfigVirtualHidDeviceVhf.IoctlCallback_IOCTL_HID_READ_REPORT = VirtualHidDeviceVhfSample_ReadReport;
 
     DMF_DmfModuleAdd(DmfModuleInit,
                         &moduleAttributes,
