@@ -1636,6 +1636,19 @@ WPP_DEFINE_CONTROL_GUID( \
 // USEPREFIX(FuncExitNoReturn, "%!STDPREFIX! [%!FUNC!] <--");
 // end_wpp
 ```
+
+#### **Important**
+
+Make sure the project file enables WPP tracing using these entries:
+
+````
+<WppKernelMode>true</WppKernelMode>
+<WppTraceFunction>TraceEvents(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
+<WppGenerateUsingTemplateFile>{km-WdfDefault.tpl}*.tmh</WppGenerateUsingTemplateFile>
+````
+
+(See the sample projects.)
+
 ### Filtering WPP Tracing
 
 Due to the fact that much of WPP functionality is determined at compile
