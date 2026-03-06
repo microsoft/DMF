@@ -1165,11 +1165,10 @@ typedef struct
     USHORT VersionNumber;
     const UCHAR* HidReportDescriptor;
     ULONG HidReportDescriptorLength;
-    // NOTE: This field is not used. It was accidentally left during the port from VHDIMINI.
-    //       It is left here to avoid breaking existing clients who may have already been using it for some reason.
-    //       It is recommended to set it to zero and ignore it.
+    // NOTE: HidDeviceAttributes was never used. It was left here accidentally.
+    //       It is removed, so drivers that set this field can and should delete
+    //       lines that set this field.
     //
-    HID_DEVICE_ATTRIBUTES HidDeviceAttributes;
     EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_SET_FEATURE;
     EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_GET_FEATURE;
     EVT_VHF_ASYNC_OPERATION* IoctlCallback_IOCTL_HID_GET_INPUT_REPORT;
