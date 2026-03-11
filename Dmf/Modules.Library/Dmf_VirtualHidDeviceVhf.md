@@ -137,6 +137,10 @@ Remarks | * See MSDN VHF documentation for more information.
 * IMPORTANT: Please see the DMF sample drivers' INF files for important settings needed for **User-mode** VHF drivers.
 * VHF does not support HID Device Strings. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID Device Strings. 
 * VHF does not support HID_OUTPUT_REPORT. Use the legacy Virtual Hid Mini Device (DMF_VirtualHidMini) if you need to support HID_OUTPUT_REPORT.
+* Unlike all other callbacks in DMF, VHF callbacks to Client Module are not chained by this Module.
+All other callbacks in DMF from OS are received by Child Module and then chained to Client Module. 
+However, VHF callbacks are directly received by Client Module. This happens because the Client Module
+passes its DMFMODULE handle in the VhfClientContext. This is a bug but it it is too late to fix.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -152,6 +156,8 @@ Remarks | * See MSDN VHF documentation for more information.
 -----------------------------------------------------------------------------------------------------------------------------------
 
 #### To Do
+
+* Add Ex versions of the callbacks in this Module that chain callbacks.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 

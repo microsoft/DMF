@@ -572,9 +572,6 @@
       <Filter>Documentation\Modules\Buffers</Filter>
     </Text>
     <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
-      <Filter>Documentation\Modules\Hid</Filter>
-    </Text>
-    <Text Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
       <Filter>Documentation\Modules\Hid\Virtual Device Base</Filter>
     </Text>
   </ItemGroup>

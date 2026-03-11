@@ -574,6 +574,7 @@
     <None Include="..\..\Modules.Library\Dmf_HidDeviceListener.md">
       <Filter>Documentation\Modules\Hid</Filter>
     </None>
+    <None Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md" />
     <None Include="..\..\Modules.Library\Dmf_VirtualHidDeviceVhf.md">
       <Filter>Documentation\Modules\Hid</Filter>
     </None>
@@ -591,9 +592,6 @@
     </None>
     <None Include="..\..\Modules.Library\Dmf_VirtualAmbientLightSensor.md">
       <Filter>Documentation\Modules\Hid</Filter>
-    </None>
-    <None Include="..\..\Modules.Library\Dmf_SymbolicLinkTarget.md">
-      <Filter>Modules\Driver Patterns</Filter>
     </None>
   </ItemGroup>
 </Project>

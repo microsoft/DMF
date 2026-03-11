@@ -49,7 +49,7 @@ typedef struct _DMF_CONTEXT_VirtualHidDeviceVhf
     ULONG Started;
 #if defined(DMF_USER_MODE)
     WDFIOTARGET VhfIoTarget;
-#endif
+#endif // defined(DMF_USER_MODE)
 } DMF_CONTEXT_VirtualHidDeviceVhf;
 
 // This macro declares the following function:
@@ -90,8 +90,7 @@ Arguments:
 
 Return Value:
 
-    STATUS_SUCCESS if a buffer is added to the list.
-    Other NTSTATUS if there is an error.
+    STATUS_SUCCESS if VHF is started successfully.
 
 --*/
 {
@@ -204,9 +203,7 @@ Return Value:
     FuncEntry(DMF_TRACE);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
-
     moduleConfig = DMF_CONFIG_GET(DmfModule);
-
     device = DMF_ParentDeviceGet(DmfModule);
 
     VHF_CONFIG vhfConfig;
@@ -229,7 +226,7 @@ Return Value:
     ntStatus = WdfIoTargetCreate(device,
                                  &objectAttributes,
                                  &moduleContext->VhfIoTarget);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         goto Exit;
     }
@@ -239,7 +236,7 @@ Return Value:
 
     ntStatus = WdfIoTargetOpen(moduleContext->VhfIoTarget,
                                &openParams);
-    if (!NT_SUCCESS(ntStatus))
+    if (! NT_SUCCESS(ntStatus))
     {
         // Clean up happens on exit.
         //
@@ -247,8 +244,8 @@ Return Value:
     }
 
     handle = WdfIoTargetWdmGetTargetFileHandle(moduleContext->VhfIoTarget);
-    if (handle == NULL ||
-        handle == INVALID_HANDLE_VALUE)
+    if ((handle == NULL) ||
+        (handle == INVALID_HANDLE_VALUE))
     {
         ntStatus = STATUS_INVALID_HANDLE;
         // Clean up happens on exit.
@@ -261,7 +258,7 @@ Return Value:
                     (USHORT)(moduleConfig->HidReportDescriptorLength),
                     (UCHAR*)(moduleConfig->HidReportDescriptor));
 
-#endif
+#endif // defined(DMF_USER_MODE)
 
     vhfConfig.VendorID = moduleConfig->VendorId;
     vhfConfig.ProductID = moduleConfig->ProductId;
@@ -271,6 +268,12 @@ Return Value:
     vhfConfig.EvtVhfAsyncOperationSetFeature = moduleConfig->IoctlCallback_IOCTL_HID_SET_FEATURE;
     vhfConfig.EvtVhfAsyncOperationWriteReport = moduleConfig->IoctlCallback_IOCTL_HID_WRITE_REPORT;
     vhfConfig.EvtVhfReadyForNextReadReport = moduleConfig->IoctlCallback_IOCTL_HID_READ_REPORT;
+    // NOTE: Unlike all other callbacks in DMF, VHF callbacks to Client Module are not chained by this Module.
+    //       All other callbacks in DMF from OS are received by Child Module and then chained to Client Module. 
+    //       However, VHF callbacks are directly received by Client Module. This happens because the Client Module
+    //       passes its DMFMODULE handle in the VhfClientContext. This is a bug but it it is too late to fix.
+    // TODO: Add Ex versions of the callbacks in this Module that chain callbacks.
+    //
     vhfConfig.VhfClientContext = moduleConfig->VhfClientContext;
     ntStatus = VhfCreate(&vhfConfig,
                          &moduleContext->VhfHandle);
@@ -287,6 +290,13 @@ Return Value:
 
 Exit:
 
+    if (! NT_SUCCESS(ntStatus))
+    {
+        // Clean up for the case where VhfCreate succeeds, but Start fails.
+        //
+        VirtualHidDeviceVhf_Stop(DmfModule);
+    }
+
 #if defined(DMF_USER_MODE)
     if (! NT_SUCCESS(ntStatus) &&
         moduleContext->VhfIoTarget != NULL)
@@ -297,14 +307,7 @@ Exit:
         WdfObjectDelete(moduleContext->VhfIoTarget);
         moduleContext->VhfIoTarget = NULL;
     }
-#endif
-
-    if (! NT_SUCCESS(ntStatus))
-    {
-        // Clean up for the case where VhfCreate succeeds, but Start fails.
-        //
-        VirtualHidDeviceVhf_Stop(DmfModule);
-    }
+#endif // defined(DMF_USER_MODE)
 
     FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
 
@@ -340,6 +343,8 @@ Return Value:
 
     FuncEntry(DMF_TRACE);
 
+    VirtualHidDeviceVhf_Stop(DmfModule);
+
 #if defined(DMF_USER_MODE)
     DMF_CONTEXT_VirtualHidDeviceVhf* moduleContext;
 
@@ -351,9 +356,7 @@ Return Value:
         WdfObjectDelete(moduleContext->VhfIoTarget);
         moduleContext->VhfIoTarget = NULL;
     }
-#endif
-
-    VirtualHidDeviceVhf_Stop(DmfModule);
+#endif // defined(DMF_USER_MODE)
 
     FuncExitVoid(DMF_TRACE);
 }

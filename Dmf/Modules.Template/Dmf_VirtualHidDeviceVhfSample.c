@@ -204,33 +204,35 @@ g_VirtualHidDeviceVhfSample_DefaultReportDescriptor[] =
     0xC0,                                                                   // END_COLLECTION
 };
 
-// This is the default HID descriptor returned by the mini driver
-// in response to IOCTL_HID_GET_DEVICE_DESCRIPTOR. The size
-// of report descriptor is currently the size of G_DefaultReportDescriptor.
-//
-HID_DESCRIPTOR
-g_VirtualHidDeviceVhfSample_DefaultHidDescriptor = 
-{
-    0x09,                                                                   // length of HID descriptor
-    0x21,                                                                   // descriptor type == HID  0x21
-    0x0100,                                                                 // hid spec release
-    0x00,                                                                   // country code == Not Specified
-    0x01,                                                                   // number of HID class descriptors
-    {                                                                       // DescriptorList[0]
-        0x22,                                                               // report descriptor type 0x22
-        sizeof(g_VirtualHidDeviceVhfSample_DefaultReportDescriptor)         // total length of report descriptor
-    }
-};
-
 _Function_class_(EVT_VHF_ASYNC_OPERATION)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 VirtualHidDeviceVhfSample_WriteReport(
-    _In_ PVOID               VhfClientContext,
-    _In_ VHFOPERATIONHANDLE  VhfOperationHandle,
-    _In_opt_ PVOID           VhfOperationContext,
-    _In_ PHID_XFER_PACKET    HidTransferPacket)
+    _In_ VOID* VhfClientContext,
+    _In_ VHFOPERATIONHANDLE VhfOperationHandle,
+    _In_opt_ VOID* VhfOperationContext,
+    _In_ HID_XFER_PACKET* HidTransferPacket
+    )
+/*++
+
+Routine Description:
+
+    VHF Write Report callback. Client reads data from given buffer and processes it.
+    IMPORTANT: Please read MSDN VHF documentation for more details on this callback and its usage.
+
+Arguments:
+
+    VhfClientContext - This Module's handle is passed as context by VHF.
+    VhfOperationHandle - Handle for VHF for this transaction.
+    VhfOperationContext - Context for VHF for this transaction.
+    HidTransferPacket - Where to write the data to.
+
+Return Value:
+
+    None
+
+--*/
 {
     NTSTATUS ntStatus;
     DMFMODULE dmfModule;
@@ -283,23 +285,24 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 VirtualHidDeviceVhfSample_GetFeature(
-    _In_ PVOID VhfClientContext,
+    _In_ VOID* VhfClientContext,
     _In_ VHFOPERATIONHANDLE VhfOperationHandle,
-    _In_opt_ PVOID VhfOperationContext,
-    _In_ PHID_XFER_PACKET HidTransferPacket
+    _In_opt_ VOID* VhfOperationContext,
+    _In_ HID_XFER_PACKET* HidTransferPacket
     )
 /*++
 
 Routine Description:
 
     VHF Get Feature Report Callback. Client writes data to given buffer.
+    IMPORTANT: Please read MSDN VHF documentation for more details on this callback and its usage.
 
 Arguments:
 
-    VhfClientContext - This Module's handle.
+    VhfClientContext - This Module's handle is passed as context by VHF.
     VhfOperationHandle - Handle for VHF for this transaction.
     VhfOperationContext - Context for VHF for this transaction.
-    HidTransferPacket - Where to write the data.
+    HidTransferPacket - Where to write the data to.
 
 Return Value:
 
@@ -312,13 +315,14 @@ Return Value:
     DMF_CONTEXT_VirtualHidDeviceVhfSample* moduleContext;
     ULONG reportSize;
     MY_DEVICE_ATTRIBUTES* myAttributes;
+    HID_DEVICE_ATTRIBUTES*  hidAttributes;
 
     UNREFERENCED_PARAMETER(VhfOperationContext);
 
     dmfModule = (DMFMODULE)VhfClientContext;
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    PHID_DEVICE_ATTRIBUTES  hidAttributes = &moduleContext->HidDeviceAttributes;
+    hidAttributes = &moduleContext->HidDeviceAttributes;
 
     if (HidTransferPacket->reportId != CONTROL_COLLECTION_REPORT_ID)
     {
@@ -381,20 +385,21 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 VirtualHidDeviceVhfSample_SetFeature(
-    _In_ PVOID VhfClientContext,
+    _In_ VOID* VhfClientContext,
     _In_ VHFOPERATIONHANDLE VhfOperationHandle,
-    _In_opt_ PVOID VhfOperationContext,
-    _In_ PHID_XFER_PACKET HidTransferPacket
+    _In_opt_ VOID* VhfOperationContext,
+    _In_ HID_XFER_PACKET* HidTransferPacket
     )
 /*++
 
 Routine Description:
 
     VHF Set Feature Callback. Client reads data from given buffer.
+    IMPORTANT: Please read MSDN VHF documentation for more details on this callback and its usage.
 
 Arguments:
 
-    VhfClientContext - This Module's handle.
+    VhfClientContext - This Module's handle is passed as context by VHF.
     VhfOperationHandle - Handle for VHF for this transaction.
     VhfOperationContext - Context for VHF for this transaction.
     HidTransferPacket - Where to read the data from.
@@ -410,13 +415,14 @@ Return Value:
     DMF_CONTEXT_VirtualHidDeviceVhfSample* moduleContext;
     ULONG reportSize;
     HIDMINI_CONTROL_INFO* controlInfo;
+    PHID_DEVICE_ATTRIBUTES  hidAttributes;
 
     UNREFERENCED_PARAMETER(VhfOperationContext);
 
     dmfModule = (DMFMODULE)VhfClientContext;
     moduleContext = DMF_CONTEXT_GET(dmfModule);
 
-    PHID_DEVICE_ATTRIBUTES  hidAttributes = &moduleContext->HidDeviceAttributes;
+    hidAttributes = &moduleContext->HidDeviceAttributes;
 
     if (HidTransferPacket->reportId != CONTROL_COLLECTION_REPORT_ID)
     {
@@ -472,7 +478,6 @@ Return Value:
 
 Exit:
 
-
     DMF_VirtualHidDeviceVhf_AsynchronousOperationComplete(moduleContext->DmfModuleVirtualHidDeviceVhf,
                                                           VhfOperationHandle,
                                                           ntStatus);
@@ -483,9 +488,9 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 VirtualHidDeviceVhfSample_GetInputReport(
-    _In_ PVOID VhfClientContext,
+    _In_ VOID* VhfClientContext,
     _In_ VHFOPERATIONHANDLE VhfOperationHandle,
-    _In_opt_ PVOID VhfOperationContext,
+    _In_opt_ VOID* VhfOperationContext,
     _In_ HID_XFER_PACKET* HidTransferPacket
     )
 /*++
@@ -493,13 +498,14 @@ VirtualHidDeviceVhfSample_GetInputReport(
 Routine Description:
 
     VHF Input Report Callback. Client writes data to given buffer.
+    IMPORTANT: Please read MSDN VHF documentation for more details on this callback and its usage.
 
 Arguments:
 
-    VhfClientContext - This Module's handle.
+    VhfClientContext - This Module's handle is passed as context by VHF.
     VhfOperationHandle - Handle for VHF for this transaction.
     VhfOperationContext - Context for VHF for this transaction.
-    HidTransferPacket - Where to write the data.
+    HidTransferPacket - Where to write the data to.
 
 Return Value:
 
@@ -562,8 +568,24 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 VirtualHidDeviceVhfSample_ReadReport(
-    _In_ PVOID VhfClientContext
+    _In_ VOID* VhfClientContext
     )
+/*++
+
+Routine Description:
+
+    VHF Read Report Callback. Client writes data to given buffer.
+    IMPORTANT: Please read MSDN VHF documentation for more details on this callback and its usage.
+
+Arguments:
+
+    VhfClientContext - This Module's handle is passed as context by VHF.
+
+Return Value:
+
+    None
+
+--*/
 {
     DMFMODULE dmfModule;
     DMF_CONTEXT_VirtualHidDeviceVhfSample* moduleContext;
@@ -578,7 +600,7 @@ VirtualHidDeviceVhfSample_ReadReport(
 
 EVT_WDF_TIMER VirtualHidDeviceVhfSample_EvtTimerHandler;
 
-void
+VOID
 VirtualHidDeviceVhfSample_EvtTimerHandler(
     _In_ WDFTIMER Timer
     )
@@ -733,9 +755,9 @@ Return Value:
     moduleConfigVirtualHidDeviceVhf.IoctlCallback_IOCTL_HID_READ_REPORT = VirtualHidDeviceVhfSample_ReadReport;
 
     DMF_DmfModuleAdd(DmfModuleInit,
-                        &moduleAttributes,
-                        WDF_NO_OBJECT_ATTRIBUTES,
-                        &moduleContext->DmfModuleVirtualHidDeviceVhf);
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleVirtualHidDeviceVhf);
 
     FuncExitVoid(DMF_TRACE);
 }
@@ -826,7 +848,7 @@ Routine Description:
 
 Arguments:
 
-    DmfModule - The given DMF Module.
+    DmfModule - This MOdule's handle.
 
 Return Value:
 
