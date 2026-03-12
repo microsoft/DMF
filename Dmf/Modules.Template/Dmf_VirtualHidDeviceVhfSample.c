@@ -87,12 +87,18 @@ DMF_MODULE_DECLARE_CONFIG(VirtualHidDeviceVhfSample)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// These are the default device attributes set in the driver
+// which are used to identify the device.
+//
+#define HIDMINI_DEFAULT_PID         0xFEED
+#define HIDMINI_DEFAULT_VID         0xDEED
+
 // These are the device attributes returned by the mini driver in response
 // to IOCTL_HID_GET_DEVICE_ATTRIBUTES.
 //
-#define HIDMINI_PID             0xFEED
-#define HIDMINI_VID             0xDEED
-#define HIDMINI_VERSION         0x0101
+#define HIDMINI_TEST_PID            0xDEEF
+#define HIDMINI_TEST_VID            0xFEED
+#define HIDMINI_TEST_VERSION        0x0505
 
 // Custom control codes are defined here. They are to be used for sideband 
 // communication with the hid minidriver. These control codes are sent to 
@@ -738,9 +744,9 @@ Return Value:
     DMF_CONFIG_VirtualHidDeviceVhf_AND_ATTRIBUTES_INIT(&moduleConfigVirtualHidDeviceVhf,
                                                        &moduleAttributes);
 
-    moduleConfigVirtualHidDeviceVhf.VendorId = HIDMINI_VID;
-    moduleConfigVirtualHidDeviceVhf.ProductId = HIDMINI_PID;
-    moduleConfigVirtualHidDeviceVhf.VersionNumber = HIDMINI_VERSION;
+    moduleConfigVirtualHidDeviceVhf.VendorId = HIDMINI_DEFAULT_VID;
+    moduleConfigVirtualHidDeviceVhf.ProductId = HIDMINI_DEFAULT_PID;
+    moduleConfigVirtualHidDeviceVhf.VersionNumber = HIDMINI_TEST_VERSION;
 
     moduleConfigVirtualHidDeviceVhf.HidReportDescriptor = g_VirtualHidDeviceVhfSample_DefaultReportDescriptor;
     moduleConfigVirtualHidDeviceVhf.HidReportDescriptorLength = sizeof(g_VirtualHidDeviceVhfSample_DefaultReportDescriptor);
@@ -805,6 +811,14 @@ Return Value:
     moduleContext->ReadReport.ReportId = CONTROL_FEATURE_REPORT_ID;
     moduleContext->ReadReport.Data = moduleContext->DeviceData;
 
+    // Intentionally set to zero to show it can be changed by client through control code. 
+    //
+    moduleContext->HidDeviceAttributes.ProductID = 0;
+    moduleContext->HidDeviceAttributes.VendorID = 0;
+    moduleContext->HidDeviceAttributes.VersionNumber = 0;
+
+    // This timer simulates data coming from the device asynchrnously.
+    //
     WDF_TIMER_CONFIG_INIT(&timerConfig,
                           VirtualHidDeviceVhfSample_EvtTimerHandler);
     WDF_OBJECT_ATTRIBUTES_INIT(&timerAttributes);
