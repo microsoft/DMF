@@ -178,6 +178,7 @@
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_DeviceInterfaceTarget.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.c" />
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_NotifyUserWithRequest.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c" />
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.c" />
@@ -201,6 +202,8 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_HashTable.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_IoctlHandler_Public.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_NotifyUserWithRequest.h" />
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_NotifyUserWithRequest_Public.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Pdo.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.h" />
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Registry.h" />

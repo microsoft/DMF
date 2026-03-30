@@ -337,6 +337,15 @@ Return Value:
                          &moduleAttributes,
                          WDF_NO_OBJECT_ATTRIBUTES,
                          NULL);
+
+        // Tests_NotifyUserWithRequest
+        // ---------------------------
+        //
+        DMF_Tests_NotifyUserWithRequest_ATTRIBUTES_INIT(&moduleAttributes);
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         NULL);
     }
 }
 #pragma code_seg()

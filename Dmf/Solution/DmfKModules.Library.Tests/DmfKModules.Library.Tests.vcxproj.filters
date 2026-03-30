@@ -78,6 +78,12 @@
     <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_NotifyUserWithRequest.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Modules.Library.Tests\Dmf_Tests_NotifyUserWithRequest_Public.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_PingPongBuffer.c">
@@ -129,6 +135,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_Stack.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Modules.Library.Tests\Dmf_Tests_NotifyUserWithRequest.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

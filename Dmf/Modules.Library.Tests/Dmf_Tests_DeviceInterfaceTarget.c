@@ -117,6 +117,9 @@ typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceTarget
     DMFMODULE DmfModuleDeviceInterfaceTargetPassiveOutput;
     DMFMODULE DmfModuleDeviceInterfaceTargetPassiveNonContinuous;
     DMFMODULE DmfModuleDeviceInterfaceTargetDispatchNonContinuous;
+    // DeviceInterfaceTarget for NotifyUserWithRequest testing.
+    //
+    DMFMODULE DmfModuleDeviceInterfaceTargetNotify;
     // Source of buffers sent asynchronously.
     //
     DMFMODULE DmfModuleBufferPool;
@@ -128,6 +131,9 @@ typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceTarget
     DMFMODULE DmfModuleThreadPassiveOutput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleThreadPassiveNonContinuous[THREAD_COUNT + 1];
     DMFMODULE DmfModuleThreadDispatchNonContinuous[THREAD_COUNT + 1];
+    // Thread for NotifyUserWithRequest testing.
+    //
+    DMFMODULE DmfModuleThreadNotify[THREAD_COUNT + 1];
     // Use alertable sleep to allow driver to unload faster.
     //
     DMFMODULE DmfModuleAlertableSleepDispatchInput[THREAD_COUNT + 1];
@@ -135,6 +141,13 @@ typedef struct _DMF_CONTEXT_Tests_DeviceInterfaceTarget
     DMFMODULE DmfModuleAlertableSleepPassiveOutput[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepPassiveNonContinuous[THREAD_COUNT + 1];
     DMFMODULE DmfModuleAlertableSleepDispatchNonContinuous[THREAD_COUNT + 1];
+    // Alertable sleep for NotifyUserWithRequest testing.
+    //
+    DMFMODULE DmfModuleAlertableSleepNotify[THREAD_COUNT + 1];
+    // Since there are multiple readers they get different values so the test passes as long as
+    // the current value is greater than or equal to previous value.
+    //
+    LONG ExpectedMinimumDataValue;
 
 #if defined(DMF_KERNEL_MODE)
     // Direct interface via IRP_MN_QUERY_INTERFACE.
@@ -2009,6 +2022,167 @@ Tests_DeviceInterfaceTarget_WorkThreadDispatchNonContinuous(
 
 #endif // !defined(TEST_SIMPLE)
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID
+Tests_DeviceInterfaceTarget_NotifyEventCompletion(
+    _In_ DMFMODULE DmfModuleDeviceInterfaceTarget,
+    _In_ VOID* ClientRequestContext,
+    _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
+    _In_ size_t InputBufferBytesWritten,
+    _Out_writes_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _In_ size_t OutputBufferBytesRead,
+    _In_ NTSTATUS CompletionStatus
+    )
+/*++
+
+Routine Description:
+
+    Completion callback for NotifyUserWithRequest IOCTL requests.
+
+Arguments:
+
+    DmfModuleDeviceInterfaceTarget - Device Interface Target Module.
+    ClientRequestContext - Context provided during send.
+    InputBuffer - Input buffer.
+    InputBufferBytesWritten - Bytes written to input buffer.
+    OutputBuffer - Output buffer.
+    OutputBufferBytesRead - Bytes read from output buffer.
+    CompletionStatus - Completion status.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    Tests_NotifyUserWithRequest_EventData* eventData;
+
+    UNREFERENCED_PARAMETER(InputBuffer);
+    UNREFERENCED_PARAMETER(InputBufferBytesWritten);
+    UNREFERENCED_PARAMETER(ClientRequestContext);
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleDeviceInterfaceTarget);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    if (NT_SUCCESS(CompletionStatus))
+    {
+        if (OutputBufferBytesRead >= sizeof(Tests_NotifyUserWithRequest_EventData))
+        {
+            eventData = (Tests_NotifyUserWithRequest_EventData*)OutputBuffer;
+
+            // Validate the returned data.
+            //
+            TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "NotifyUserWithRequest event received: DataValue=%d", eventData->DataValue);
+            // Zero is first value assigned when function driver starts. So it is always valid.
+            // Since there are multiple readers they get different values so the test passes as long as
+            // the current value is greater than or equal to previous value.
+            //
+            if (moduleContext->ExpectedMinimumDataValue > 0)
+            {
+                DmfAssert(moduleContext->ExpectedMinimumDataValue <= eventData->DataValue);
+            }
+            moduleContext->ExpectedMinimumDataValue = eventData->DataValue;
+        }
+        else
+        {
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Insufficient output buffer size: %llu", (ULONGLONG)OutputBufferBytesRead);
+        }
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "NotifyUserWithRequest request completed with status: %!STATUS!", CompletionStatus);
+    }
+}
+
+#pragma code_seg("PAGE")
+_Function_class_(EVT_DMF_Thread_Function)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+VOID
+Tests_DeviceInterfaceTarget_WorkThreadNotify(
+    _In_ DMFMODULE DmfModuleThread
+    )
+/*++
+
+Routine Description:
+
+    Thread worker function that sends IOCTLs to test NotifyUserWithRequest Module.
+
+Arguments:
+
+    DmfModuleThread - Thread Module handle.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMFMODULE dmfModule;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndex;
+    NTSTATUS ntStatus;
+    Tests_NotifyUserWithRequest_EventData eventData;
+
+    PAGED_CODE();
+
+    dmfModule = DMF_ParentModuleGet(DmfModuleThread);
+    threadIndex = WdfObjectGet_Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT(DmfModuleThread);
+    moduleContext = DMF_CONTEXT_GET(dmfModule);
+
+    RtlZeroMemory(&eventData,
+                  sizeof(eventData));
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Sending NotifyUserWithRequest_GET_EVENT IOCTL");
+
+    // Send the IOCTL to get an event from NotifyUserWithRequest.
+    //
+    ntStatus = DMF_DeviceInterfaceTarget_Send(moduleContext->DmfModuleDeviceInterfaceTargetNotify,
+                                              NULL,
+                                              0,
+                                              &eventData,
+                                              sizeof(eventData),
+                                              ContinuousRequestTarget_RequestType_Ioctl,
+                                              IOCTL_Tests_NotifyUserWithRequest_GET_EVENT,
+                                              5000,
+                                              Tests_DeviceInterfaceTarget_NotifyEventCompletion,
+                                              NULL);
+
+    if (NT_SUCCESS(ntStatus))
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "NotifyUserWithRequest IOCTL sent successfully");
+    }
+    else if (ntStatus == STATUS_CANCELLED || 
+             ntStatus == STATUS_INVALID_DEVICE_STATE || 
+             ntStatus == STATUS_DELETE_PENDING)
+    {
+        TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "NotifyUserWithRequest IOCTL cancelled or device not ready: %!STATUS!", ntStatus);
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_WARNING, DMF_TRACE, "DMF_DeviceInterfaceTarget_Send failed: ntStatus=%!STATUS!", ntStatus);
+    }
+
+    // Sleep before sending next request.
+    //
+    ntStatus = DMF_AlertableSleep_Sleep(threadIndex->DmfModuleAlertableSleep,
+                                        0,
+                                        2000);
+
+    // Repeat the test, until stop is signaled.
+    //
+    if (!DMF_Thread_IsStopPending(DmfModuleThread))
+    {
+        DMF_Thread_WorkReady(DmfModuleThread);
+    }
+
+    TestsUtility_YieldExecution();
+}
+#pragma code_seg()
+
 #pragma code_seg("PAGE")
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
@@ -3149,6 +3323,201 @@ Return Value:
 }
 #pragma code_seg()
 
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+Tests_DeviceInterfaceTarget_StartNotify(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Starts the threads that send asynchronous data to test NotifyUserWithRequest Module.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    NTSTATUS ntStatus;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    ntStatus = STATUS_SUCCESS;
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        ntStatus = DMF_Thread_Start(moduleContext->DmfModuleThreadNotify[threadIndex]);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            goto Exit;
+        }
+    }
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        DMF_Thread_WorkReady(moduleContext->DmfModuleThreadNotify[threadIndex]);
+    }
+
+Exit:
+    
+    FuncExit(DMF_TRACE, "ntStatus=%!STATUS!", ntStatus);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_StopNotify(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Stops the threads that send asynchronous data to test NotifyUserWithRequest Module.
+
+Arguments:
+
+    DmfModule - DMF_Tests_DeviceInterfaceTarget.
+
+Return Value:
+
+    None
+
+--*/
+{
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+    LONG threadIndex;
+
+    PAGED_CODE();
+
+    FuncEntry(DMF_TRACE);
+
+    moduleContext = DMF_CONTEXT_GET(DmfModule);
+
+    for (threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        // Interrupt any long sleeps.
+        //
+        DMF_AlertableSleep_Abort(moduleContext->DmfModuleAlertableSleepNotify[threadIndex],
+                                 0);
+        // Stop thread.
+        //
+        DMF_Thread_Stop(moduleContext->DmfModuleThreadNotify[threadIndex]);
+    }
+
+    FuncExitVoid(DMF_TRACE);
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_Notify(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Arrival Notification for NotifyUserWithRequest testing.
+    This function starts the threads that send asynchronous IOCTL requests.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    NTSTATUS ntStatus;
+    DMFMODULE dmfModuleParent;
+    DMF_CONTEXT_Tests_DeviceInterfaceTarget* moduleContext;
+
+    PAGED_CODE();
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+    moduleContext = DMF_CONTEXT_GET(dmfModuleParent);
+
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT* threadIndexContext;
+        WDF_OBJECT_ATTRIBUTES objectAttributes;
+
+        WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);
+        WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&objectAttributes,
+                                               Tests_DeviceInterfaceTarget_THREAD_INDEX_CONTEXT);
+        ntStatus = WdfObjectAllocateContext(moduleContext->DmfModuleThreadNotify[threadIndex],
+                                            &objectAttributes,
+                                            (PVOID*)&threadIndexContext);
+        DmfAssert(NT_SUCCESS(ntStatus));
+        threadIndexContext->DmfModuleAlertableSleep = moduleContext->DmfModuleAlertableSleepNotify[threadIndex];
+        // Reset in case target comes and goes and comes back.
+        //
+        DMF_AlertableSleep_ResetForReuse(threadIndexContext->DmfModuleAlertableSleep,
+                                         0);
+    }
+
+    // Start threads.
+    //
+    ntStatus = Tests_DeviceInterfaceTarget_StartNotify(dmfModuleParent);
+    DmfAssert(NT_SUCCESS(ntStatus));
+}
+#pragma code_seg()
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_Notify(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Callback function for Device Removal Notification for NotifyUserWithRequest testing.
+    This function stops the threads that send asynchronous IOCTL requests.
+
+Arguments:
+
+    DmfModule - The Child Module from which this callback is called.
+
+Return Value:
+
+    VOID
+
+--*/
+{
+    DMFMODULE dmfModuleParent;
+
+    PAGED_CODE();
+
+    dmfModuleParent = DMF_ParentModuleGet(DmfModule);
+
+    // Stop threads.
+    //
+    Tests_DeviceInterfaceTarget_StopNotify(dmfModuleParent);
+}
+#pragma code_seg()
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3633,6 +4002,51 @@ Return Value:
                      &moduleAttributes,
                      WDF_NO_OBJECT_ATTRIBUTES,
                      NULL);
+
+    // DeviceInterfaceTarget for NotifyUserWithRequest testing
+    // --------------------------------------------------------
+    //
+    DMF_CONFIG_DeviceInterfaceTarget_AND_ATTRIBUTES_INIT(&moduleConfigDeviceInterfaceTarget,
+                                                         &moduleAttributes);
+    moduleConfigDeviceInterfaceTarget.DeviceInterfaceTargetGuid = GUID_DEVINTERFACE_Tests_NotifyUserWithRequest;
+    DMF_MODULE_ATTRIBUTES_EVENT_CALLBACKS_INIT(&moduleAttributes,
+                                               &moduleEventCallbacks);
+    moduleAttributes.PassiveLevel = TRUE;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPostOpen = Tests_DeviceInterfaceTarget_OnDeviceArrivalNotification_Notify;
+    moduleEventCallbacks.EvtModuleOnDeviceNotificationPreClose = Tests_DeviceInterfaceTarget_OnDeviceRemovalNotification_Notify;
+    moduleConfigDeviceInterfaceTarget.EvtDeviceInterfaceTargetOnStateChangeEx = Tests_DeviceInterfaceTarget_OnStateChange;
+    moduleAttributes.ClientCallbacks = &moduleEventCallbacks;
+    DMF_DmfModuleAdd(DmfModuleInit,
+                     &moduleAttributes,
+                     WDF_NO_OBJECT_ATTRIBUTES,
+                     &moduleContext->DmfModuleDeviceInterfaceTargetNotify);
+
+    // Thread and AlertableSleep for NotifyUserWithRequest testing
+    // -----------------------------------------------------------
+    //
+    for (LONG threadIndex = 0; threadIndex < THREAD_COUNT; threadIndex++)
+    {
+        DMF_CONFIG_Thread_AND_ATTRIBUTES_INIT(&moduleConfigThread,
+                                              &moduleAttributes);
+        moduleConfigThread.ThreadControlType = ThreadControlType_DmfControl;
+        moduleConfigThread.ThreadControl.DmfControl.EvtThreadWork = Tests_DeviceInterfaceTarget_WorkThreadNotify;
+        DMF_DmfModuleAdd(DmfModuleInit,
+                         &moduleAttributes,
+                         WDF_NO_OBJECT_ATTRIBUTES,
+                         &moduleContext->DmfModuleThreadNotify[threadIndex]);
+
+        // AlertableSleep for NotifyUserWithRequest testing
+        // ------------------------------------------------
+        //
+        DMF_CONFIG_AlertableSleep_AND_ATTRIBUTES_INIT(&moduleConfigAlertableSleep,
+                                                      &moduleAttributes);
+        moduleConfigAlertableSleep.EventCount = 1;
+        moduleAttributes.ClientModuleInstanceName = "AlertableSleep.Notify";
+        DMF_DmfModuleAdd(DmfModuleInit,
+                            &moduleAttributes,
+                            WDF_NO_OBJECT_ATTRIBUTES,
+                            &moduleContext->DmfModuleAlertableSleepNotify[threadIndex]);
+    }
 #endif
 
     FuncExitVoid(DMF_TRACE);
