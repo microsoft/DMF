@@ -3158,6 +3158,50 @@ Return Value:
 
 #endif // !defined(DMF_USER_MODE)
 
+#if !defined(DMF_USER_MODE)
+
+#pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS
+CrashDump_DataSourceDestroySelf(
+    _In_ DMFMODULE DmfModule
+    )
+/*++
+
+Routine Description:
+
+    Destroy the Client Driver's Ring Buffer. Since the caller is trusted (because it is called by the Client Driver), it is not necessary
+    to lock this object. However, since the function to destroy the Ring Buffer's assumes the caller has locked the object since it can
+    be used by untrusted components. Therefore, acquire the lock.
+
+Arguments:
+
+    DmfModule - This Module's handle.
+
+Return Value:
+
+    NTSTATUS
+
+--*/
+{
+    NTSTATUS ntStatus;
+
+    PAGED_CODE();
+
+    DMF_ModuleLock(DmfModule);
+    ntStatus = CrashDump_DataSourceDestroyInternal(DmfModule,
+                                                   RINGBUFFER_INDEX_SELF);
+    DmfAssert(NT_SUCCESS(ntStatus));
+    DMF_ModuleUnlock(DmfModule);
+
+    return ntStatus;
+}
+#pragma code_seg()
+
+#endif // !defined(DMF_USER_MODE)
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // WDF Module Callbacks
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3289,6 +3333,20 @@ Return Value:
 #endif // !defined(DMF_USER_MODE)
 }
 #pragma code_seg()
+
+// Allow this function be called from open to avoid making bigger changes to code.
+//
+#if defined(__cplusplus)
+extern "C"
+#endif
+{
+    _Function_class_(DMF_Close)
+    _IRQL_requires_same_
+    _IRQL_requires_max_(PASSIVE_LEVEL)
+    static VOID DMF_CrashDump_Close(_In_ DMFMODULE DmfModule);
+#if defined(__cplusplus)
+}
+#endif
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Open)
@@ -3556,61 +3614,20 @@ Return Value:
 
 Exit:
 
-    // BUGBUG - Allocations must be cleaned up if Open fails, as Close will not be called.
-    // TODO free all the buffers
-    //
+    if (!NT_SUCCESS(ntStatus))
+    {
+        DMF_CrashDump_Close(DmfModule);
+    }
 
     return ntStatus;
 }
 #pragma code_seg()
-
-#if !defined(DMF_USER_MODE)
-
-#pragma code_seg("PAGE")
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-NTSTATUS
-CrashDump_DataSourceDestroySelf(
-    _In_ DMFMODULE DmfModule
-    )
-/*++
-
-Routine Description:
-
-    Destroy the Client Driver's Ring Buffer. Since the caller is trusted (because it is called by the Client Driver), it is not necessary
-    to lock this object. However, since the function to destroy the Ring Buffer's assumes the caller has locked the object since it can
-    be used by untrusted components. Therefore, acquire the lock.
-
-Arguments:
-
-    DmfModule - This Module's handle.
-
-Return Value:
-
-    NTSTATUS
-
---*/
-{
-    NTSTATUS ntStatus;
-
-    PAGED_CODE();
-
-    DMF_ModuleLock(DmfModule);
-    ntStatus = CrashDump_DataSourceDestroyInternal(DmfModule,
-                                                   RINGBUFFER_INDEX_SELF);
-    DmfAssert(NT_SUCCESS(ntStatus));
-    DMF_ModuleUnlock(DmfModule);
-
-    return ntStatus;
-}
-#pragma code_seg()
-
-#endif // !defined(DMF_USER_MODE)
 
 #if !defined(DMF_USER_MODE)
 
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Close)
+_IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID
@@ -3781,6 +3798,9 @@ Return Value:
 #else
 
 #pragma code_seg("PAGE")
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Function_class_(DMF_Close)
+_IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 VOID

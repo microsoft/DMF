@@ -2030,7 +2030,7 @@ Tests_DeviceInterfaceTarget_NotifyEventCompletion(
     _In_ VOID* ClientRequestContext,
     _In_reads_(InputBufferBytesWritten) VOID* InputBuffer,
     _In_ size_t InputBufferBytesWritten,
-    _Out_writes_(OutputBufferBytesRead) VOID* OutputBuffer,
+    _Inout_updates_(OutputBufferBytesRead) VOID* OutputBuffer,
     _In_ size_t OutputBufferBytesRead,
     _In_ NTSTATUS CompletionStatus
     )

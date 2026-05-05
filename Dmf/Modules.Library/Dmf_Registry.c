@@ -2545,7 +2545,6 @@ Return Value:
         // 'Using valueLengthQueried from failed function call'
         //
         #pragma warning(suppress: 6102)
-
         valueLength = valueLengthQueried;
         valueMemory = NULL;
         ntStatus = WdfMemoryCreate(&objectAttributes,
@@ -2559,9 +2558,6 @@ Return Value:
             TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "WdfMemoryCreate fails: ntStatus=%!STATUS!", ntStatus);
             goto Exit;
         }
-
-        // TODO: Validate the ValueType.
-        //
 
         // Retrieve the setting of the value.
         //
@@ -2786,7 +2782,6 @@ Return Value:
             customActionHandlerContextRead.BytesRead = BytesRead;
 
             // Call the "if needed" function to do the work.
-            // TODO: Validate that ValueType is the value type of the value being read.
             //
             ntStatus = Registry_ValueActionIfNeeded(Registry_ActionTypeRead,
                                                     DmfModule,

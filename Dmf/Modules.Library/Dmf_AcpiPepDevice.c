@@ -2501,7 +2501,7 @@ Exit:
 
 VOID
 AcpiPepDevice_ChildArrivalCallback(
-    _In_ DMFMODULE DmfModuleChildDevice
+    _In_ DMFMODULE DmfModuleAcpiPepDeviceFan
     )
 /*++
 
@@ -2525,13 +2525,13 @@ Return Value:
     DMF_CONTEXT_AcpiPepDevice* moduleContext;
     DMF_CONFIG_AcpiPepDevice* moduleConfig;
 
-    dmfModulePepDevice = DMF_ParentModuleGet(DmfModuleChildDevice);
+    dmfModulePepDevice = DMF_ParentModuleGet(DmfModuleAcpiPepDeviceFan);
     moduleContext = DMF_CONTEXT_GET(dmfModulePepDevice);
     moduleConfig = DMF_CONFIG_GET(dmfModulePepDevice);
 
     // Get the PEP tables from child device;
     //
-    ntStatus = DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(DmfModuleChildDevice,
+    ntStatus = DMF_AcpiPepDeviceFan_AcpiDeviceTableGet(DmfModuleAcpiPepDeviceFan,
                                                        &pepAcpiRegistrationTables);
 
     if (!NT_SUCCESS(ntStatus))
@@ -3035,7 +3035,7 @@ Return Value:
     DMF_CONTEXT_AcpiPepDevice* moduleContext;
 
     DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 AcpiPepDeviceFan);
+                                 AcpiPepDevice);
 
     moduleContext = DMF_CONTEXT_GET(DmfModule);
 
@@ -3105,6 +3105,8 @@ Return Value:
     ULONG requiredSize;
     ULONG* valueAsInteger;
     UCHAR* valueAsString;
+    size_t valueAsStringLength;
+    errno_t error;
     NTSTATUS ntStatus;
 
     TraceEvents(TRACE_LEVEL_VERBOSE,
@@ -3151,6 +3153,46 @@ Return Value:
         case ACPI_METHOD_ARGUMENT_STRING:
         {
             valueAsString = (UCHAR*)Value;
+            if (valueAsString == NULL)
+            {
+                *NtStatus = STATUS_INVALID_PARAMETER;
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "%s <%s> [%s]: NULL string buffer.",
+                            __FUNCTION__,
+                            NAME_DEBUG_INFO(DebugInfo),
+                            NAME_NATIVE_METHOD(MethodName));
+                goto Exit;
+            }
+
+            NTSTATUS status = RtlStringCbLengthA((const char*)valueAsString,
+                                                 ValueLength,
+                                                 &valueAsStringLength);
+            if (!NT_SUCCESS(status))
+            {
+                *NtStatus = STATUS_INVALID_PARAMETER;
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "%s <%s> [%s]: RtlStringCbLengthA failed: status=%#x.",
+                            __FUNCTION__,
+                            NAME_DEBUG_INFO(DebugInfo),
+                            NAME_NATIVE_METHOD(MethodName),
+                            status);
+                goto Exit;
+            }
+
+            if (valueAsStringLength > ((size_t)MAXUSHORT - sizeof(UCHAR)))
+            {
+                *NtStatus = STATUS_INVALID_PARAMETER;
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "%s <%s> [%s]: String argument too large: %Iu.",
+                            __FUNCTION__,
+                            NAME_DEBUG_INFO(DebugInfo),
+                            NAME_NATIVE_METHOD(MethodName),
+                            valueAsStringLength);
+                goto Exit;
+            }
 
             // N.B. ACPI_METHOD_SET_ARGUMENT_STRING will copy the string as
             //      well.
@@ -3161,22 +3203,40 @@ Return Value:
             //      error C4057: char * is different from PUCHAR.
             //
             {
+                if (ValueLength < (valueAsStringLength + sizeof(UCHAR)))
+                {
+                    *NtStatus = STATUS_INVALID_PARAMETER;
+                    TraceEvents(TRACE_LEVEL_ERROR,
+                                DMF_TRACE,
+                                "%s <%s> [%s]: ValueLength is too small.",
+                                __FUNCTION__,
+                                NAME_DEBUG_INFO(DebugInfo),
+                                NAME_NATIVE_METHOD(MethodName));
+                    goto Exit;
+                }
+
                 // 'Potential overflow using expression 'argumentLocal->Type''
                 // ' Read overflow using expression '*valueAsInteger'
                 //
                 #pragma warning(suppress : 26014; suppress: 26000)
                 argumentLocal->Type = ACPI_METHOD_ARGUMENT_STRING;
-                // 'Potential overflow using expression 'argumentLocal->DataLength''
-                //
-                #pragma warning(suppress : 26015)
-                argumentLocal->DataLength = (USHORT)((USHORT)strlen((const char*)valueAsString)) + (USHORT)sizeof(UCHAR);
-                // 'Potential overflow using expression '(void *)(&argumentLocal->Data[0])''
-                //
-                #pragma warning(suppress : 26015)
-                memcpy_s(&argumentLocal->Data[0],
-                        argumentLocal->DataLength,
-                        (PUCHAR)valueAsString,
-                        argumentLocal->DataLength);
+                argumentLocal->DataLength = (USHORT)(valueAsStringLength + sizeof(UCHAR));
+                error = memcpy_s(&argumentLocal->Data[0],
+                                 argumentLocal->DataLength,
+                                 (UCHAR*)valueAsString,
+                                 argumentLocal->DataLength);
+                if (error != 0)
+                {
+                    *NtStatus = STATUS_INVALID_PARAMETER;
+                    TraceEvents(TRACE_LEVEL_ERROR,
+                                DMF_TRACE,
+                                "%s <%s> [%s]: memcpy_s fails: error=%d.",
+                                __FUNCTION__,
+                                NAME_DEBUG_INFO(DebugInfo),
+                                NAME_NATIVE_METHOD(MethodName),
+                                error);
+                    goto Exit;
+                }
             }
             TraceEvents(TRACE_LEVEL_VERBOSE,
                         DMF_TRACE,
@@ -3190,6 +3250,31 @@ Return Value:
         case ACPI_METHOD_ARGUMENT_BUFFER:
         {
             valueAsString = (UCHAR*)Value;
+            if ((ValueLength > 0) && (valueAsString == NULL))
+            {
+                *NtStatus = STATUS_INVALID_PARAMETER;
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "%s <%s> [%s]: NULL buffer argument.",
+                            __FUNCTION__,
+                            NAME_DEBUG_INFO(DebugInfo),
+                            NAME_NATIVE_METHOD(MethodName));
+                goto Exit;
+            }
+
+            if (ValueLength > MAXUSHORT)
+            {
+                *NtStatus = STATUS_INVALID_PARAMETER;
+                TraceEvents(TRACE_LEVEL_ERROR,
+                            DMF_TRACE,
+                            "%s <%s> [%s]: Buffer argument too large: %lu.",
+                            __FUNCTION__,
+                            NAME_DEBUG_INFO(DebugInfo),
+                            NAME_NATIVE_METHOD(MethodName),
+                            ValueLength);
+                goto Exit;
+            }
+
             // 'Potential overflow using expression 'argumentLocal->Type''
             //
             #pragma warning(suppress : 26014)
@@ -3303,9 +3388,8 @@ Return Value:
     NTSTATUS ntStatus;
     WDFMEMORY workRequestMemory;
 
-    // NOTE: Handle validation not done here because DMF handle is unused.
-    //
-    UNREFERENCED_PARAMETER(DmfModule);
+    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
+                                 AcpiPepDevice);
 
     ntStatus = AcpiPepDevice_WorkRequestCreate(DmfModule,
                                                PEP_NOTIFICATION_CLASS_ACPI,

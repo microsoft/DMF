@@ -758,8 +758,8 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "%!FUNC!");
 
-    DMFMODULE_VALIDATE_IN_METHOD(DmfModule,
-                                 AcpiPepDeviceFan);
+    DMFMODULE_VALIDATE_IN_METHOD_OPENING_OK(DmfModule,
+                                            AcpiPepDeviceFan);
 
     ntStatus = STATUS_SUCCESS;
 

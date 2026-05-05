@@ -12,7 +12,7 @@ Contents
 
 [How DMF Works in a Client Driver](#how-dmf-works-in-a-client-driver)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Differences between a DMF driver and a traditional (non-DMF) Driver.](#differences-between-a-dmf-driver-and-a-traditional-non-dmf-driver.)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Differences between a DMF driver and a traditional (non-DMF) Driver](#differences-between-a-dmf-driver-and-a-traditional-non-dmf-driver)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Traditional Driver](#traditional-driver)
 
@@ -44,7 +44,7 @@ Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module is Object Oriented](#module-is-object-oriented)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Modules Have a Predefined life cycle](#modules-have-a-predefined-lifecyle)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Modules Have a Predefined Lifecycle](#modules-have-a-predefined-lifecycle)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Modules Have a Hierarchy](#modules-have-a-hierarchy)
 
@@ -54,7 +54,7 @@ Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Using DMF in an Existing Driver or a Driver that has a DeviceAdd callback](#using-dmf-in-an-existing-driver-or-a-driver-that-has-a-deviceadd-callback)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Hook DMF into the driver.](#hook-dmf-into-the-driver.)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Hook DMF into the driver](#hook-dmf-into-the-driver)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Initialize DMF](#initialize-dmf)
 
@@ -100,7 +100,7 @@ Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 7: Module Private Code](#section-7-module-private-code)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 8: Module WDF Callbacks](#_Toc526849347)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 8: Module WDF Callbacks](#section-8-module-wdf-callbacks)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Section 9: Module DMF Callbacks](#section-9-module-dmf-callbacks)
 
@@ -175,6 +175,8 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitSetEventCallbacks](#dmf_dmfdeviceinitseteventcallbacks)
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfDeviceInitDisableWppRecorder](#dmf_dmfdeviceinitdisablewpprecorder)
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfFdoSetFilter](#dmf_dmffdosetfilter)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDereference](#dmf_moduledereference)
@@ -207,23 +209,23 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_EVENT_CALLBACKS_INIT](#dmf_module_event_callbacks_init)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfModuleAdd 103](#dmf_dmfmoduleadd)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_DmfModuleAdd](#dmf_dmfmoduleadd)
 
-[DMF Module API Reference 107](#dmf-module-api-reference)
+[DMF Module API Reference](#dmf-module-api-reference)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Enumerations 108](#module-enumerations)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Enumerations](#module-enumerations)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DmfModuleOpenOption 108](#dmfmoduleopenoption)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DmfModuleOpenOption](#dmfmoduleopenoption)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Structures 110](#module-structures)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Structures](#module-structures)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR 111](#dmf_module_descriptor)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR](#dmf_module_descriptor)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF 113](#dmf_entrypoints_dmf)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF](#dmf_callbacks_dmf)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_WDF 114](#dmf_entrypoints_wdf)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_WDF](#dmf_callbacks_wdf)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module WDF Callbacks 116](#module-wdf-callbacks)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module WDF Callbacks](#module-wdf-callbacks)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_ModulePrepareHardware](#dmf_modulename_modulepreparehardware)
 
@@ -283,57 +285,57 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_ModuleQueueIoWrite](#dmf_modulename_modulequeueiowrite)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module DMF Callbacks 146](#module-dmf-callbacks)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module DMF Callbacks](#module-dmf-callbacks)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_ChildModulesAdd](#dmf_modulename_childmodulesadd)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_ResourcesAssign](#dmf_modulename_resourcesassign)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_Open 149](#dmf_modulename_open)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_Open](#dmf_modulename_open)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_Close 152](#dmf_modulename_close)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_Close](#dmf_modulename_close)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_NotificationRegister](#dmf_modulename_notificationregister)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_NotificationUnregister](#dmf_modulename_notificationunregister)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_Destroy 159](#dmf_modulename_destroy)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_[ModuleName]_Destroy](#dmf_modulename_destroy)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module API 160](#module-api)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module API](#module-api)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module Create Function 161](#the-module-create-function)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[The Module Create Function](#the-module-create-function)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE 162](#declare_dmf_module)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE](#declare_dmf_module)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE_EX](#declare_dmf_module_ex)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DECLARE_DMF_MODULE_NO_CONFIG](#declare_dmf_module_no_config)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF_INIT 164](#dmf_entrypoints_dmf_init)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_DMF_INIT](#dmf_callbacks_dmf_init)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_WDF_INIT 165](#dmf_entrypoints_wdf_init)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CALLBACKS_WDF_INIT](#dmf_callbacks_wdf_init)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR_INIT 166](#dmf_module_descriptor_init)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR_INIT](#dmf_module_descriptor_init)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE](#dmf_module_descriptor_init_context_type)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CONFIG_GET 170](#dmf_config_get)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CONFIG_GET](#dmf_config_get)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CONTEXT_GET 171](#dmf_context_get)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CONTEXT_GET](#dmf_context_get)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleCreate 172](#dmf_modulecreate)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleCreate](#dmf_modulecreate)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleOpen 173](#dmf_moduleopen)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleOpen](#dmf_moduleopen)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleClose 174](#dmf_moduleclose)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleClose](#dmf_moduleclose)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleReference 175](#dmf_modulereference)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleReference](#dmf_modulereference)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDereference 176](#dmf_moduledereference)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDereference](#dmf_moduledereference)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDestroy 177](#dmf_moduledestroy-1)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleDestroy](#dmf_moduledestroy-1)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleIsInFilterDriver 178](#dmf_moduleisinfilterdriver)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleIsInFilterDriver](#dmf_moduleisinfilterdriver)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ModuleRequestCompleteOrForward](#dmf_modulerequestcompleteorforward)
 
@@ -341,29 +343,29 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_CONFIG_[ModuleName]_DEFAULT](#dmf_config_modulename_default)
 
-[Feature Module Access API 181](#feature-module-access-api)
+[Feature Module Access API](#feature-module-access-api)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FeatureModuleGetFromDevice](#dmf_featuremodulegetfromdevice)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FeatureModuleGetFromModule](#dmf_featuremodulegetfrommodule)
 
-[General DMF API 184](#general-dmf-api)
+[General DMF API](#general-dmf-api)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Parent Device 185](#module-parent-device)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Module Parent Device](#module-parent-device)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ParentDeviceGet 186](#dmf_parentdeviceget)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_ParentDeviceGet](#dmf_parentdeviceget)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterDeviceGet 187](#dmf_filterdeviceget)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterDeviceGet](#dmf_filterdeviceget)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[WdfObjectGet_DMFMODULE 188](#wdfobjectget_dmfmodule)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[WdfObjectGet_DMFMODULE](#wdfobjectget_dmfmodule)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FilterControl API 189](#filtercontrol-api)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FilterControl API](#filtercontrol-api)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterControl_DeviceCreate](#dmf_filtercontrol_devicecreate)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_FilterControl_DeviceDelete](#dmf_filtercontrol_devicedelete)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Portable API 191](#portable-api)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Portable API](#portable-api)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_EventCreate](#dmf_portable_eventcreate)
 
@@ -381,7 +383,7 @@ Function)](#section-11-public-calls-by-client-includes-module-create-function)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Portable_LookasideListCreateMemory](#dmf_portable_lookasidelistcreatememory)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Utility API 197](#utility-api)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Utility API](#utility-api)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[DMF_Utility_AclPropagateInDeviceStack](#dmf_utility_aclpropagateindevicestack)
 
@@ -469,109 +471,103 @@ DMF is a framework designed for Windows device driver developers.
 Goals of DMF
 ------------
 
-The goals of DMF are:
+DMF has the following goals:
 
--   Give programmers a framework so they can design and implement
+-   Provide programmers a framework to design and implement
     encapsulated blocks of code, termed **Modules,** inside their device
     drivers. These Modules act like small device drivers inside the
     driver that is built and installed.
 
--   True code sharing made possible by reusable Modules. *Eliminate
+-   Enable true code sharing through reusable Modules. *Eliminate
     "copy (from original driver) and change (in new driver)" method of
     sharing code*.
 
--   Related to the above item, one of the goals of DMF is to reduce the
-    number of lines of code a programmer needs to write in a driver. The
-    goal for programmers to only need to write "business logic" of the
-    driver. In some cases, this number of lines of unique code (that
+-   Reduce the number of lines of code a programmer needs to write in a driver.
+    The goal is for programmers to write only the "business logic" of the
+    driver. In some cases, the number of lines of unique code (that
     performs the "business logic" of the driver) has been shown to be as
     low as **0.07% of the total lines of code in the driver**.
 
 -   Continue the layering architecture of Windows Kernel inside the
     device driver.
 
--   Use object-oriented programming constructs without being forced to
-    use an object-oriented programming language. Modules have attributes
-    that are similar to attributes that C++ classes have: Private data,
-    private methods, public methods, a constructor and destructor.
-    Modules also support the idea of inheritance. [However, they have
+-   Enable use of object-oriented programming constructs without requiring
+    an object-oriented programming language. Modules have attributes
+    similar to C++ classes: private data,
+    private methods, public methods, a constructor, and a destructor.
+    Modules also support inheritance, with
     additional attributes that make these "objects" suitable for device
-    driver programming].
+    driver programming.
 
 -   Make it easier for individual contributors to work in parallel on
-    different aspects of a given driver's tasks. This is possible
-    because each Module is totally self-contained, and the programmer
-    only needs to consider that Module.
+    different aspects of a driver's tasks. Each Module is self-contained,
+    so programmers only need to consider that Module.
 
--   Make device driver programming for Windows easier, cheaper and more
-    fun, while at the same time increasing code quality.
-
--   Help programmers address device driver development issues discussed
-    in *Device Driver Consideration: An Introduction to DMF*.
+-   Make device driver programming for Windows easier, cheaper, and more
+    fun while increasing code quality.
 
 How does DMF Achieve the Above Goals?
 -------------------------------------
 
-DMF tries to achieve the goals above by doing the following:
+DMF achieves the above goals by:
 
--   DMF, regardless of the Module's functionality, provides a consistent
-    interface to create and manage the Module.
+-   Providing a consistent
+    interface to create and manage Modules, regardless of their functionality.
 
--   DMF allows programmers to reuse existing Modules directly, subclass
-    Modules, modify existing Modules and create new Modules.
+-   Allowing programmers to reuse existing Modules directly, subclass
+    Modules, modify existing Modules, and create new Modules.
 
--   DMF provides runtime lifetime management of the Modules as well as
-    features like memory allocation, synchronization and others.
+-   Providing runtime lifetime management of Modules as well as
+    features like memory allocation and synchronization.
 
--   DMF automatically dispatches all the callbacks from WDF into the
+-   Automatically dispatching all callbacks from WDF into the
     device driver to each of its instantiated Modules.
 
--   DMF allows Modules to easily contain other Modules which in turn can
+-   Allowing Modules to easily contain other Modules, which in turn can
     contain other Modules.
 
--   DMF allows all of the driver's functionality to be in one or more
-    Modules. In this case, no driver specific code is needed.
+-   Allowing all of a driver's functionality to be in one or more
+    Modules. In this case, no driver-specific code is needed.
 
--   Every Module is directly usable by any driver that uses DMF or by
+-   Making every Module directly usable by any driver that uses DMF or by
     another Module.
 
--   DMF allows for a Module to have its own context (similar to a device
-    drivers Device Context) and Module specific configuration.
+-   Allowing a Module to have its own context (similar to a device
+    driver's Device Context) and Module-specific configuration.
 
--   Modules can perform any function. A Module can expose data
-    structures (e.g. hash table), programming patterns (e.g. continuous
-    reader or IOCTL handling), devices (e.g. virtual keyboard) and
-    hardware buses (e.g. I2c or HID).
+-   Enabling Modules to perform any function. A Module can expose data
+    structures (e.g., hash table), programming patterns (e.g., continuous
+    reader or IOCTL handling), devices (e.g., virtual keyboard), and
+    hardware buses (e.g., I2C or HID).
 
--   DMF is **[not]** a wrapper around WDF. DMF uses WDF to
-    create objects (Modules) from common *driver patterns*.
+-   Using WDF to create objects (Modules) from common *driver patterns*.
+    DMF is **not** a wrapper around WDF.
 
--   DMF makes it easy for common device driver programming patterns to
-    be converted into objects, and thus Modules which can then be easily
-    reused.
+-   Making it easy to convert common device driver programming patterns into
+    objects, and thus Modules that can be easily reused.
 
-Henceforth, in this document...
+In this document:
 
--   "Small driver" referenced above is called a **Module**. It can be
-    considered to be an object per the object-oriented programming
+-   A **Module** is a self-contained unit of code. It can be
+    considered an object in the object-oriented programming
     model.
 
--   The "(device) driver" is called the Client Driver.
+-   The **Client Driver** is the WDF device driver that uses DMF.
 
--   A Client is **either** a Client Driver or another Module. [A Module
+-   A **Client** is **either** a Client Driver or another Module. A Module
     is agnostic about whether its parent is a Client Driver or another
-    Module].
+    Module.
 
 How DMF Works in a Client Driver
 ================================
 
-This section provides a bird's eye view of how DMF fits in the device
+This section provides an overview of how DMF fits in the device
 driver ecosystem.
 
 Differences between a DMF driver and a traditional (non-DMF) Driver.
 --------------------------------------------------------------------
 
-These diagrams pictorially show the differences between a hypothetical
+These diagrams show the differences between a hypothetical
 driver that uses DMF and a hypothetical driver that does not.
 
 ### Traditional Driver
@@ -582,10 +578,9 @@ driver that uses DMF and a hypothetical driver that does not.
      
 ![DMF Driver](./Images/DmfDriver.png)
 
-*Note: The Modules listed above are a subset of the all the available
+*Note: The Modules listed above are a subset of all available
 Modules. Any Client Driver can use any number of Modules. Currently,
-about 50 Modules are available. Also, it is easy (and encouraged) for
-programmers to write new Modules.*
+about 50 Modules are available. Programmers are encouraged to write new Modules.*
 
 ### Differences
 
@@ -593,27 +588,27 @@ This table lists the differences between the two drivers:
 
 **Task**                               | **Traditional**                                                                                                                                                       | **DMF**
 -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Data used by Driver (Device Context)   | All data is held in the Device Context and accessible to all code.                                                                                                    | Each Module can only access its own data. The Client specific code and other Modules cannot access other Modules' data. Modules cannot access the Client Driver's data.
-Callbacks                              | Callbacks are sent by WDF to the Client Driver which then must execute proper code for each code block as needed.                                                     | Callbacks are sent by WDF to DMF. DMF dispatches those callbacks to each Module as well as the Client Driver. Each Module is responsible for handling the callback for its own needs. The Client Driver and other Modules do not have any idea if or how Modules handle callbacks.
-Locking                                | The Client Driver is responsible for locking and synchronizing all the code blocks and the Device Context. The Client Driver is responsible for creating the locks.   | The Client Driver is only responsible for locking its own code and data in its Device Context. Each Module has its own lock and is responsible for locking its own code and data.
-Code Visibility                        | Any code can easily call any code block in any order.                                                                                                                 | Client Driver can **only** call the top-level Modules. Child Modules can **only** be called directly by immediate Parent Modules.
+Data used by Driver (Device Context)   | All data is held in the Device Context and is accessible to all code.                                                                                                    | Each Module can only access its own data. The Client-specific code and other Modules cannot access other Modules' data. Modules cannot access the Client Driver's data.
+Callbacks                              | WDF sends callbacks to the Client Driver, which must execute proper code for each code block as needed.                                                     | WDF sends callbacks to DMF. DMF dispatches those callbacks to each Module and the Client Driver. Each Module handles the callback for its own needs. The Client Driver and other Modules have no knowledge of whether or how other Modules handle callbacks.
+Locking                                | The Client Driver is responsible for locking and synchronizing all code blocks and the Device Context. The Client Driver must create the locks.   | The Client Driver is only responsible for locking its own code and data in its Device Context. Each Module has its own lock and is responsible for locking its own code and data.
+Code Visibility                        | Any code can easily call any code block in any order.                                                                                                                 | The Client Driver can **only** call top-level Modules. Child Modules can **only** be called directly by immediate Parent Modules.
 WDF/WDM access                         | Full access.                                                                                                                                                          | Full access.
-Code reuse                             | Difficult and requires careful planning. Interfaces will most likely not be the same.                                                                                 | Easy and requires does no additional planning. Interfaces are already defined and always the same.
+Code reuse                             | Difficult and requires careful planning. Interfaces will most likely differ.                                                                                 | Easy and requires no additional planning. Interfaces are already defined and always consistent.
 
-Of course, it is possible to design a traditional driver that acts like
-a DMF driver. It requires careful planning and expert device driver
-programmers. Also, it requires a lot of code to be written that would
-not normally be present in a device driver. For this reason, drivers are
-rarely designed with all the above features that a DMF driver has.
+You can design a traditional driver that acts like
+a DMF driver, but this requires careful planning, expert device driver
+programmers, and significant additional code that would
+not normally be present. For this reason, drivers are
+rarely designed with all the features that a DMF driver has.
 
 DMF Container Driver
 --------------------
 
 In this type of driver, there is no specific Client Driver code other than to
-instantiate DMF Modules and potentially handle Module specific
-callbacks. There is no Device Context. The DMF Modules act *like* small
-drivers and perform all their work (driver's "business logic")
-individually without knowledge of the other Modules. All the Modules
+instantiate DMF Modules and potentially handle Module-specific
+callbacks. There is no Device Context. The DMF Modules act like small
+drivers and perform all their work (the driver's "business logic")
+individually without knowledge of the other Modules. All Modules
 receive WDF callbacks as if they were a normal WDF driver. *Note: This
 type of Client Driver has **no** Device Context. However, each Module
 has its own Context.*
@@ -622,9 +617,9 @@ DMF Non-Container Driver
 ------------------------
 
 In this type of driver, the Client Driver has a Device Context. The Client Driver
-instantiates Modules and uses them to perform work (device driver's
-"business logic"). But there is also unique driver code that is not part
-of any Module. It is a classic WDF driver except that it uses DMF
+instantiates Modules and uses them to perform work (the device driver's
+"business logic"). However, there is also unique driver code that is not part
+of any Module. This is a classic WDF driver that uses DMF
 Modules to offload some of its code and work. *Note: This type of Client
 Driver has a Device Context*.
 
@@ -634,12 +629,12 @@ work ("business logic") of the Client Driver.)
 WDF driver that uses only Dynamic DMF Modules
 ---------------------------------------------
 
-In this type of driver, the Client driver only uses Dynamic Modules. Dynamic Modules do not
-support WDF callbacks, so these kinds of Modules can be instantiated at any time. (Static Modules
-must be instantiated in the `DmfModulesAdd` callback during `DeviceAd`d so that they are able to
+In this type of driver, the Client Driver uses only Dynamic Modules. Dynamic Modules do not
+support WDF callbacks, so they can be instantiated at any time. (Static Modules
+must be instantiated in the `DmfModulesAdd` callback during `DeviceAdd` so that they
 receive any WDF callback starting with `EvtDevicePrepareHardware`.) Both Static and Dynamic Modules
 may be instantiated in `DmfModulesAdd`, but only Dynamic Modules can be instantiated after DeviceAdd.
-**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+**Note: In drivers that only use Dynamic Modules, you do not need to call the DMF hooking functions or
 DMF_ModulesCreate().**
 
 
@@ -647,8 +642,8 @@ Examples of Modules
 -------------------
 
 Here are examples of Modules. This is only a partial list of generic
-Modules as the number of Modules keeps increasing. More Modules exist
-that perform more complex tasks that are driver/platform specific. For
+Modules; the number of Modules keeps increasing. More Modules exist
+that perform more complex, driver/platform-specific tasks. For
 the complete list and an explanation of what each Module does, see the
 document, *DMF Modules Overview*.
 
@@ -719,57 +714,57 @@ document, *DMF Modules Overview*.
 Properties of Modules
 ---------------------
 
-This is an overview of what DMF Modules are:
+This section provides an overview of DMF Modules:
 
 ### DMFMODULE is of type WDFOBJECT
 
-A Module is declared in code using DMFMODULE. Like WDFDEVICE which
+A Module is declared in code using DMFMODULE. Like WDFDEVICE, which
 inherits from WDFOBJECT, DMFMODULE also inherits from WDFOBJECT.
-Therefore, DMFMODULE has all the characteristics of a WDFOBJECT such as
-Reference Count, Context Space, Parent Object and so on. In addition,
+Therefore, DMFMODULE has all the characteristics of a WDFOBJECT, such as
+Reference Count, Context Space, and Parent Object. In addition,
 functions that act upon WDFOBJECT also act upon DMFMODULE.
 
 ### Module is Object Oriented
 
-Modules have private and public data and methods much like C++ objects.
-Module specifically contain:
+Modules have private and public data and methods, much like C++ objects.
+Modules specifically contain:
 
--   Module Config: A structure specific to the Module which allows the
-    Client to configure the Module using Module specific parameters.
+-   **Module Config**: A structure specific to the Module that allows the
+    Client to configure the Module using Module-specific parameters.
 
--   Module Methods: Allows a Client to execute Module specific functions
-    using Module and Method specific parameters.
+-   **Module Methods**: Allow a Client to execute Module-specific functions
+    using Module and Method-specific parameters.
 
--   Module Callbacks: Callback functions from DMF and/or WDF into the
-    Module so it can perform actions necessary at that time.
+-   **Module Callbacks**: Callback functions from DMF and/or WDF into the
+    Module so it can perform necessary actions at that time.
 
--   Module Attributes: Indicates the Module's parent.
+-   **Module Attributes**: Indicate the Module's parent.
 
--   Context: Contains private data that the Module needs while it is
+-   **Context**: Contains private data that the Module needs while it is
     instantiated. This is similar to a device driver's Device Context.
 
--   Private Methods: Code which is internal to the Module and not
+-   **Private Methods**: Code internal to the Module that is not
     exposed to Clients. These are private and are called by the Module's
     Methods and internal callbacks.
 
-### Modules Have a Predefined Lifecyle
+### Modules Have a Predefined Lifecycle
 
--   Create: DMF resources are allocated and prepared.
+-   **Create**: DMF resources are allocated and prepared.
 
--   Open: Module specific resources are allocated and prepared. Also,
-    the Module's work may happen here.
+-   **Open**: Module-specific resources are allocated and prepared. The
+    Module's work may happen here.
 
--   Use: Modules can perform work completely on their own as well as
+-   **Use**: Modules perform work on their own and
     handle requests and do work on behalf of the Client.
 
--   Close: Module specific resources are released.
+-   **Close**: Module-specific resources are released.
 
--   Destroy: DMF resources are released.
+-   **Destroy**: DMF resources are released.
 
 ### Modules Have a Hierarchy
 
 -   Modules can only communicate with each other when they are in a
-    parent child relationship.
+    parent-child relationship.
 
 -   Modules can never communicate with each other when they are
     siblings.
@@ -777,19 +772,19 @@ Module specifically contain:
 -   Modules can be extended by using other Modules and using
     inheritance.
 
--   Client driver may not use Modules that are not properly
+-   Client Drivers may not use Modules that are not properly
     instantiated.
 
 ### Properties of Modules
 
-The above generic properties that make Modules object oriented are used
+The above generic properties that make Modules object-oriented are used
 to give Modules these properties that are specifically useful in
 drivers:
 
-1.  Clients access Modules via Module instance handles. Each Module is
-    responsible for managing its own state using its own Module Private
+1.  Clients access Modules via Module instance handles. Each Module
+    manages its own state using its own Module Private
     Context (similar to a Device Context). However, this Module Private
-    Context is only accessible and visible by the Module itself. Neither
+    Context is only accessible and visible to the Module itself. Neither
     the Client nor any other Module has access to that Module Private
     Context.
 
@@ -798,39 +793,39 @@ drivers:
 
 3.  Modules can, and usually do, use other Child Modules. This allows
     the layered architecture in WDM to exist inside the Client Driver.
-    (The driver's author designs the layering.)
+    (The driver author designs the layering.)
 
 4.  DMF is responsible for the direct creation and destruction of all
-    Modules. DMF is responsible for allocating memory for DMF specific
+    Modules. DMF allocates memory for DMF-specific
     resources for each instantiated Module. DMF also allocates the
     Module's Context.
 
-5.  DMF is responsible for dispatching all WDF callbacks that WDF sends
+5.  DMF dispatches all WDF callbacks that WDF sends
     to the Client Driver to each Module and its Child Modules
-    recursively. The dispatching to Modules happens before the callback
+    recursively. Dispatching to Modules happens before the callback
     is dispatched to the Client Driver's callbacks. (Client Driver WDF
     callbacks occur after all the instantiated Modules' WDF callbacks
-    have occurred except during the unwinding path, in which case they
+    have occurred, except during the unwinding path, in which case they
     happen in reverse order.)
 
-6.  Modules may only talk to each other via a parent-child relationship.
+6.  Modules may only communicate with each other via a parent-child relationship.
     Modules are specifically prevented from communicating in a
     sibling-sibling relationship. This is necessarily true because of
     point 1.
 
-7.  DMF provides a common manner to instantiate and initialize a Module.
-    This makes it easier and less error prone for the driver writer to
+7.  DMF provides a common way to instantiate and initialize a Module.
+    This makes it easier and less error-prone for the driver writer to
     incorporate a Module. It also makes it easier for the Module creator
-    to create the Module as there are many existing samples to learn
-    from and the interface to Clients is well defined.
+    to create the Module because there are many existing samples to learn
+    from, and the interface to Clients is well-defined.
 
-8.  The Client does not need to lock Module data because each Module is
-    responsible for locking its own data using its own locks (which are
-    provided for each Module by DMF).
+8.  The Client does not need to lock Module data because each Module
+    locks its own data using its own locks (which DMF
+    provides for each Module).
 
 9.  The Client does not need to handle asynchronous arrival/removal of
-    Module resources because each Module is responsible for properly
-    handling asynchronous arrival/removal of its underlying resources.
+    Module resources because each Module properly
+    handles asynchronous arrival/removal of its underlying resources.
     DMF has APIs that help the Module author handle these issues
     robustly.
 
@@ -838,7 +833,7 @@ drivers:
 
 11. DMF Modules can be written and used in C or C++.
 
-12. DMF Modules can be written and used in both Kernel and User-mode
+12. DMF Modules can be written and used in both Kernel-mode and User-mode
     drivers.
 
 Properties of a DMF Driver
@@ -849,19 +844,18 @@ DMF drivers have the following properties:
 1.  DMF Drivers consist of zero or more (usually more than zero)
     instantiated Modules.
 
-2.  There may or may not be Client Driver specific code that interacts
+2.  There may or may not be Client Driver-specific code that interacts
     with the instantiated Modules.
 
-3.  DMF Drivers are WDF Drivers that add the DMF framework by adding a
-    few extra steps when the Client Driver creates its WDFDEVICE.
+3.  DMF Drivers are WDF Drivers that incorporate the DMF framework by adding
+    a few extra steps when the Client Driver creates its WDFDEVICE.
 
-4.  Using predefined macros, it is possible to easily create a DMF
+4.  Using predefined macros, you can easily create a DMF
     Driver without writing any of the code to initialize the driver
     and/or the Client Driver's WDFDEVICE.
 
-5.  DMF Drivers can be any type of device driver including Function
-    Driver, Filter Driver, Bus Driver, Kernel Mode Driver or User Mode
-    Drivers.
+5.  DMF Drivers can be any type of device driver, including Function
+    Driver, Filter Driver, Bus Driver, Kernel-mode Driver, or User-mode Driver.
 
 6.  A Client Driver can instantiate any number of Modules.
 
@@ -871,7 +865,7 @@ DMF drivers have the following properties:
 Using DMF in an Existing Driver or a Driver that has a DeviceAdd callback
 -------------------------------------------------------------------------
 
-**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+**Note: In drivers that only use Dynamic Modules, you do not need to call the DMF hooking functions or to call
 DMF_ModulesCreate().**
 
 Aside from including the appropriate headers and libraries, there are
@@ -890,23 +884,23 @@ This section explains steps 1 and 2 in detail with examples. Later
 sections explain steps 3 and 4 which are common for all drivers that use
 DMF. They are "Instantiating DMF Modules" and "Using DMF Modules".
 
-### Hook DMF into the driver.
+### Hook DMF into the driver
 
-**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+**Note: In drivers that only use Dynamic Modules, you do not need to call the DMF hooking functions or to call
 DMF_ModulesCreate().**
 
-It is necessary to "hook" DMF into the driver so that DMF can perform
+DMF must be "hooked" into the driver so that DMF can perform
 two important tasks:
 
 -   Dispatch all WDF callbacks to each instantiated DMF Module while
     still allowing the Client Driver's callbacks to execute.
 
--   Manage the creation, destruction and operation of each instantiated
+-   Manage the creation, destruction, and operation of each instantiated
     Module.
 
-To accomplish task 1 above, DMF needs to tell WDF to call DMF for all
-possible WDF callbacks and it needs to know what callbacks the Client
-Driver supports. This is accomplished using a set of calls into DMF that
+To accomplish the first task, DMF needs to tell WDF to call DMF for all
+possible WDF callbacks and needs to know what callbacks the Client Driver supports.
+This is accomplished using a set of calls into DMF that
 map directly to the types of WDF callbacks that exist.
 
 Follow these steps:
@@ -919,8 +913,8 @@ Modules that come with the Framework.
 ```
 #include "DmfModules.Library.h
 ```
-Next, write the DriverEntry function as you would normally---it has
-nothing that is DMF specific.
+Next, write the DriverEntry function as you would normally—it has
+nothing that is DMF-specific.
 
 In the Client Driver's DeviceAdd callback, allocate an opaque DMF
 structure that is used later during initialization:
@@ -943,10 +937,10 @@ call.
 
 -   Default Queue Events
 
-Each type of callback must be hooked. This is because DMF needs to chain
+Each type of callback must be hooked because DMF needs to chain
 the Module's callbacks to the Client Driver's callbacks. [Note: The
 Client Driver must first call the DMF API **before** calling the WDF API
-to set the Client Driver callbacks. ]
+to set the Client Driver callbacks.]
 
 Pnp Power Event callbacks:
 ```
@@ -967,7 +961,7 @@ File Object Event callbacks:
 DMF_DmfDeviceInitHookFileObjectConfig(dmfDeviceInit, NULL);
 ```
 In the above example, the Client Driver does not register for any Power
-Policy or PnP Power Event callbacks, but the DMF API must still be
+Policy or File Object Event callbacks, but the DMF API must still be
 called. This is mandatory because the Client Driver does not know what
 callbacks are supported by each Module.
 
@@ -985,24 +979,24 @@ queueConfig.EvtIoInternalDeviceControl = DmfSampleEvtIoDeviceControl;
 DMF_DmfDeviceInitHookQueueConfig(dmfDeviceInit, &queueConfig);
 ntStatus = WdfIoQueueCreate(device, &queueConfig, WDF_NO_OBJECT_ATTRIBUTES, &queue);
 ```
-If the Client Driver has no queue, there is no need to call this
+If the Client Driver has no queue, you do not need to call this
 function. In this case, DMF will create a default queue so that any
 Modules that support IOCTLs (which need the default queue) will function
 properly.
 
 #### Filter Drivers
 
-WDF Client drivers that are filter drivers must tell WDF they are filter
+WDF Client Drivers that are filter drivers must tell WDF they are filter
 drivers by calling **WdfFdoInitSetFilter()**. Similarly, when a Client
-driver makes that call, a Client driver must also tell DMF that it is a
-filter by calling **DMF_DmfFdoSetFilter()**.
+Driver makes that call, it must also tell DMF that it is a filter
+by calling **DMF_DmfFdoSetFilter()**.
 
 There are two reasons for this:
 
-1.  DMF is able to comply with the WDF's rules that WDFREQUESTS should
+1.  DMF is able to comply with WDF's rules that **WDFREQUEST**s should
     be passed down the stack in filter drivers.
 
-2.  Modules that handle WDFREQUESTS are able to comply with WDF's rules
+2.  Modules that handle **WDFREQUEST**s are able to comply with WDF's rules
     for filter drivers.
 
 Here is an example of this sequence:
@@ -1011,7 +1005,7 @@ Here is an example of this sequence:
 //
 WdfFdoInitSetFilter(DeviceInit);
 
-// DMF Client drivers that are filter drivers must also make this call.
+// DMF Client Drivers that are filter drivers must also make this call.
 //
 DMF_DmfFdoSetFilter(dmfDeviceInit);
 ```
@@ -1026,7 +1020,7 @@ Finally, with regard to filter drivers, note the following:
 
 ### Initialize DMF
 
-**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+**Note: In drivers that only use Dynamic Modules, you do not need to call the DMF hooking functions or to call
 DMF_ModulesCreate().**
 
 Using the above steps, DMF is hooked into the Client Driver but is not
@@ -1046,8 +1040,8 @@ if (!NT_SUCCESS(ntStatus))
 ```
 The above code does the following:
 
-1.  Set a callback that DMF will call when it is ready to instantiate
-    Modules. This tells DMF to know what Modules to instantiate.
+1.  Sets a callback that DMF will call when it is ready to instantiate
+    Modules. This tells DMF which Modules to instantiate.
 
 2.  Initialize DMF itself.
 
@@ -1069,19 +1063,19 @@ Client Drivers do not have their own Device Context. They do not need to
 create the typical DriverEntry and Device Add functions and all the
 Client Driver code is in a single file called DmfInterface.c.
 
-All DMF drivers are WDF drivers, therefore they must follow WDF rules.
+All DMF drivers are WDF drivers; therefore, they must follow WDF rules.
 One of those rules is to declare function prototypes for callbacks prior
 to their use so that SAL can properly analyze code. In the code snippet
-below you can see those lines.
+below, you can see those lines.
 
 DMF provides macros that make it simple to initialize a DMF driver.
 These macros provide standard code that most DMF drivers need to
 initialize WDF and connect WDF to DMF. See the section, "Client Driver
 Initialization Macros". In some cases, the code the macros provide may
-not be adequate. In that case it is not necessary to use the macros. In
-that case, the programmer must write the WDF initialization code
+not be adequate. In that case, you do not need to use the macros. Instead,
+the programmer must write the WDF initialization code
 directly and write the code to connect WDF to DMF. See "Client Driver
-DFM Initialization Functions".
+DMF Initialization Functions".
 
 These macros are:
 
@@ -1165,7 +1159,7 @@ Now the Client Driver is ready to instantiate Modules. See the section
 Instantiating DMF Modules
 -------------------------
 
-**Note: In drivers that only use Dynamic Modules, it is not necessary to call the DMF hooking functions or to call
+**Note: In drivers that only use Dynamic Modules, you do not need to call the DMF hooking functions or to call
 DMF_ModulesCreate().**
 
 This section is common to all types of DMF drivers. Most DMF drivers
@@ -1183,7 +1177,7 @@ DmfDeviceModulesAdd(
     _In_ PDMFMODULE_INIT DmfModuleInit
     )
 ```
-Recall that most Modules have Module specific configuration parameters.
+Recall that most Modules have Module-specific configuration parameters.
 It is the job of the Client Driver to set the configuration of each
 Module and then call a DMF API that adds that Module to a list of
 Modules that will be instantiated. To do so, follow this example:
@@ -1194,17 +1188,17 @@ structure for all modules that are instantiated.
 ```
 DMF_MODULE_ATTRIBUTES moduleAttributes;
 ```
-Next, declare a Module specific Config structure for each Module that
+Next, declare a Module-specific Config structure for each Module that
 will be instantiated. Look at the Module's header file to know what
-structure to use. Here is shown the Config structure for the BufferList
-Module. Not all Modules require a Config structure and not all
+structure to use. Here is shown the Config structure for the BufferPool
+Module. Not all Modules require a Config structure, and not all
 parameters of a Config structure are necessarily required. See the
 Module documentation for details.
 ```
 DMF_CONFIG_BufferPool bufferPoolModuleConfig;
 ```
 Next, initialize and populate the Module's Config and Attributes
-structure. It takes as parameters the Module specific Config structure
+structure. It takes as parameters the Module-specific Config structure
 and the Module Attributes structure.
 ```
 DMF_CONFIG_BufferPool_AND_ATTRIBUTES_INIT(&moduleConfigBufferPool,
@@ -1494,38 +1488,37 @@ to compile correctly.
 Using Modules
 -------------
 
-Once a Module is instantiated there are three ways the Client uses the
+Once a Module is instantiated, there are three ways the Client uses the
 Module.
 
 1.  The Module operates on its own by directly receiving WDF callbacks
     via DMF.
 
 2.  The Module operates on its own by directly receiving DMF callbacks
-    that are sent by DMF.
+    sent by DMF.
 
-3.  The Clients calls Module Methods. These Methods are specific to the
+3.  The Client calls Module Methods. These Methods are specific to the
     Module and perform work that only that Module understands.
 
 Note that the options above are not mutually exclusive. Modules can
 expose any combination of DMF and WDF callbacks as well as Module
-methods.
+Methods.
 
 The Client need not be concerned about items 1 and 2 above. Those two
-paths are the responsibility of the Module author. It goes without
-saying that this also means that the Module author does not need to be
-concerned with what the Client or any other Module does. [All actors are
-only concerned and responsible for their own code and there exists a
-strong boundary between Modules and Client code]. Simply
+paths are the responsibility of the Module author. The Module author does not need to be
+concerned with what the Client or any other Module does. All actors are
+only concerned with and responsible for their own code, and there exists a
+strong boundary between Modules and Client code. Simply
 instantiating the Module allows paths 1 and 2 to happen automatically
 and independently without further interaction from the Client.
 
-The Client Driver's direct interaction with Module is via the Module's
+The Client Driver interacts with a Module via the Module's
 Methods (if any) and Client Callbacks (if any). If the Module has no
 Methods or Client Callbacks, then the Client Driver does not, and
-[cannot], interact with the Module directly.
+cannot, interact with the Module directly.
 
 When a Client wants to know what Module Methods the Module exposes, the
-author simply refers to the Module's .h file, which has the publicly
+Client simply refers to the Module's .h file, which has the publicly
 available Methods listed. Each Module also has a corresponding .md file
 that explains all the Methods the Module exposes.
 
@@ -1563,10 +1556,10 @@ called, the Module's internal data structures are ready to be used. It
 is the responsibility of the Module's author to make sure that as long
 as a valid DMFMODULE is passed, the Method must operate gracefully.
 
-Note the separation of work between Modules and the Clients. This
+Note the separation of work between Modules and Clients. This
 separation limits the number of code paths and eliminates dependencies
 that may be difficult to see or understand. In turn, it makes code
-easier to write, understand, maintain and reuse.
+easier to write, understand, maintain, and reuse.
 
 WPP Tracing Module Traces From A Client Driver
 ----------------------------------------------
@@ -1670,7 +1663,7 @@ with minimal setup.
 
 However, it is possible for trace messages from one Module to overwrite
 trace messages from another Module. In these cases, it is useful to use
-the custom IFR feature, provided by WDF for kernel mode drivers to
+the custom IFR feature, provided by WDF for Kernel-mode drivers to
 create separate trace buffers for each Module. This can be easily done
 in DMF by setting a non-zero value for the InFlightRecorderSize field in
 the Module's descriptor while creating the Module.
@@ -1708,8 +1701,8 @@ The Structure of a Module
 =========================
 
 The structure of a Module is consistent among all Modules. This
-consistency is important because the Module is designed to be easily
-shareable and readable by many people.
+consistency is important because Modules are designed to be easily
+shared and read by many people.
 
 Every Module has three mandatory files:
 
@@ -1719,7 +1712,7 @@ Every Module has three mandatory files:
 
 -   Module's .md file
 
-In addition, Modules may have two optional files:
+In addition, Modules may have one optional file:
 
 -   Module's _Public.h file
 
@@ -1737,9 +1730,9 @@ Specifically, it contains the following in this order:
 
 4.  Prototypes of the Module's Methods.
 
-Private definitions used only by the Module are [not] placed
+Private definitions used only by the Module are not placed
 in this file. Definitions necessary for user-mode interaction (such as
-IOCTLS and their corresponding data structures) are [not]
+IOCTLs and their corresponding data structures) are not
 placed in this file.
 
 In the following example, note the use of the **DECLARE_DMF_MODULE**
@@ -1889,7 +1882,7 @@ Every Module always includes the include file for the Library in which
 the Module is located. This include file always includes the DMF core
 include files as well as the Library include file for the Library it
 depends on. Since every Library is a superset of all the Libraries it
-depends on, the Client need only include the name of a single Library:
+depends on, Clients need only include the name of a single Library:
 ```
 // DMF and this Module's Library specific definitions.
 //
@@ -1898,8 +1891,8 @@ depends on, the Client need only include the name of a single Library:
 ```
 ### Section 3: WPP Definitions
 
-A corresponding include file which contains definitions needed for WPP
-tracing which must also be included. Finally, the corresponding .tmh
+A corresponding include file that contains definitions needed for WPP
+tracing must also be included. Finally, the corresponding .tmh
 file for the .c/.cpp file must be included:
 ```
 #include "Dmf_[ModuleName].tmh"
@@ -1908,7 +1901,7 @@ file for the .c/.cpp file must be included:
 
 If the Module's private code uses enumerations and data structures, they
 are placed here. These are not accessible outside of this Module.
-Non-DMF specific include files which contain definitions needed by the
+Non-DMF-specific include files that contain definitions needed by the
 Module are also included here:
 ```
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1962,14 +1955,14 @@ there is no Context and/or Config because the macros also define other
 functions that are used internally by DMF.
 
 [Note: Always use these macros in the Module's .c file, not the Module's
-.h file to ensure they are private to the Module. Clients should never
+.h file, to ensure they are private to the Module. Clients should never
 have access to functions defined by these macros.]
 
 #### DMF_MODULE_DECLARE_CONTEXT
 
-This macro indicates that the [Module has a Context (define just above
-this macro)]. It automatically defines a function called
-**DMF_CONTEXT_GET()** which allows Modules to access their Context
+This macro indicates that the Module has a Context (defined just above
+this macro). It automatically defines a function called
+**DMF_CONTEXT_GET()** that allows Modules to access their Context
 given a **DMFMODULE**:
 ```
 // This macro declares the following function:
@@ -1979,9 +1972,9 @@ DMF_MODULE_DECLARE_CONTEXT(ResourceHub)
 ```
 #### DMF_MODULE_DECLARE_CONFIG
 
-This macro indicates that the [Module has a Config (defined in the
-Module's .h file)]. It automatically defines a function
-called **DMF_CONFIG_GET()** which allows Modules to access their
+This macro indicates that the Module has a Config (defined in the
+Module's .h file). It automatically defines a function
+called **DMF_CONFIG_GET()** that allows Modules to access their
 Config given a **DMFMODULE**:
 ```
 // This macro declares the following function:
@@ -1991,7 +1984,7 @@ DMF_MODULE_DECLARE_CONFIG(ResourceHub)
 ```
 #### DMF_MODULE_DECLARE_NO_CONTEXT
 
-This macro indicates that the [Module has no Context]. Use
+This macro indicates that the Module has no Context. Use
 this macro to make the Module standard and for possible additional
 features in the future. This macro also defines other definitions used
 internally by DMF.
@@ -2002,7 +1995,7 @@ DMF_MODULE_DECLARE_NO_CONTEXT(PdoCreate)
 ```
 #### DMF_MODULE_DECLARE_NO_CONFIG
 
-This macro indicates that the [Module has no Config]. Use
+This macro indicates that the Module has no Config. Use
 this macro to make the Module standard and for possible additional
 features in the future.
 ```
@@ -2704,7 +2697,7 @@ Usually this file has:
 -   Enumerations and data structures transferred to/from the Module via
     IOCTLs.
 
-This file must not contain any DMF specific references because this file
+This file must not contain any DMF-specific references because this file
 may be used in environments where DMF is not available. For example, a
 user-mode application may include this file and try to compile it using
 only the Windows SDK.
@@ -2771,9 +2764,9 @@ These are the steps a Module's Create function should perform:
 5.  Call the DMF API that creates an instance of the Module using all
     the definitions in the above steps.
 
-The Module's Create function should [not] talk to hardware.
+The Module's Create function should not talk to hardware.
 Generally speaking, it should only perform the above steps. Allocation
-of Module specific resources such as memory and timers should be done in
+of Module-specific resources such as memory and timers should be done in
 the Module's **DMF_[ModuleName]_Open** callback.
 
 ### Annotated Module Create function
@@ -2879,7 +2872,7 @@ To review, here are some general notes about Child Modules:
 -   There is no limit to the number of Child Modules a Module can have.
     Child Modules, in turn, can have any number of Child Modules.
 
--   Any Module an instantiate any other Module. Any Module can be
+-   Any Module can instantiate any other Module. Any Module can be
     instantiated by any other Module. (Of course, in practice there
     should be a logical and functional reason for doing so.)
 
@@ -2906,7 +2899,7 @@ instantiate Modules. This callback performs the following steps:
     Child Modules to add to the Parent.
 
 4.  Inside the callback, declare a DMF_MODULE_ATTRIBUTES structure.
-    **Important: Only declare a [single instance] of this
+    **Important: Only declare a single instance of this
     structure. You must reuse this same instance for every Child Module.
     Keep passing the same instance to the functions in step 5. This
     structure maintains a list of all the Child Modules added in this
@@ -3020,7 +3013,7 @@ many driver developers.
 Generally, speaking, a team that uses DMF will create their own Library
 of Modules that contain code that is specific for the device drivers
 they work on. These Modules, of course, can be built using preexisting
-Modules in DMF or, even Modules distributed by 3^rd^ parties.
+Modules in DMF or even Modules distributed by third parties.
 
 It is a best practice for each team to build their own Library of
 Modules. To do so is easy as a template Library exists. That template
@@ -3041,7 +3034,7 @@ contains the following:
 
 4.  Includes for every Module in the (new) Library.
 
-It is important to not that items one and two above are already included
+It is important to note that items one and two above are already included
 in **DmfModules.Library.h**. So, a Library Include File generally
 includes that file to satisfy requirements one and two above.
 
@@ -3078,7 +3071,7 @@ Abstract:
 
 Environment:
 
-    Kernel/User mode
+    Kernel/User Mode
 
 --*/
 
@@ -3190,9 +3183,9 @@ Client Driver DMF Initialization Macros
 ---------------------------------------
 
 This section lists and explains all the macros that DMF Clients use to
-**initialize** DMF. [Client Drivers **only** need to use these macros if
+**initialize** DMF. Client Drivers **only** need to use these macros if
 the Client Driver **does not** have its own DeviceAdd
-callback.]
+callback.
 
 ### DMF_DEFAULT_DRIVERENTRY
 ```
@@ -3207,7 +3200,7 @@ This macro is used by the Client Driver to tell DMF to use its own
 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **DmfDriverEntry**            | This parameter **[must]** be set to "DriverEntry".
+  **DmfDriverEntry**            | This parameter **must** be set to "DriverEntry".
   **DmfDriverContextCleanup**   | This parameter can be any name of the Client Driver's choosing, but the same name must be used in **DMF_DEFAULT_DRIVERCLEANUP**.
   **DmfEvtDeviceAdd**           | This parameter can be any name of the Client Driver's choosing, but the same name must be used in **DMF_DEFAULT_DEVICEADD**.
 
@@ -3273,9 +3266,9 @@ Client Driver DMF Initialization Functions
 ------------------------------------------
 
 This section lists and explains all the functions that DMF Clients use
-to **[initialize]** DMF. [Client Drivers only need to use
-these functions if the Client Driver **has** its own]
-**DeviceAdd** [callback].
+to initialize DMF. Client Drivers only need to use
+these functions if the Client Driver **has** its own
+DeviceAdd callback.
 
 DMF functions for instantiating Modules is discussed in Chapter 6.
 
@@ -3306,25 +3299,6 @@ PWDFDEVICE_INIT:   A data structure passed to other DMF initialization functions
 
 -   This opaque data structure stores information about how the Client
     Driver initializes DMF.
-
-### DMF_DmfControlDeviceInitFree
-```
-PDMFDEVICE_INIT
-DMF_DmfControlDeviceInitFree(
-    _In_ PWDFDEVICE_INIT DeviceInit
-    )
-```
-This function frees the PDMFDEVICE_INIT structure that was previously
-allocated using **DMF_DmfControlDeviceInitAllocate**.
-
-#### Parameters
-  Parameter | Description
-  ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMFDEVICE_INIT DmfDeviceInit** | The data structure created using **DMF_DmfControlDeviceInitAllocate**.
-
-#### Returns
-
-None
 
 #### Remarks
 
@@ -3429,9 +3403,9 @@ ntStatus = DMF_ModulesCreate(device,
 ```
 ### DMF_DmfDeviceInitFree
 ```
-PDMFDEVICE_INIT
+VOID
 DMF_DmfDeviceInitFree(
-    _In_ PWDFDEVICE_INIT DeviceInit
+    _In_ PDMFDEVICE_INIT* DmfDeviceInit
     )
 ```
 This function frees the PDMFDEVICE_INIT structure that was previously
@@ -3440,7 +3414,7 @@ allocated using **DMF_DmfDeviceInitAllocate**.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMFDEVICE_INIT DmfDeviceInit**  | The data structure created using **DMF_DmfDeviceInitAllocate**.
+  **PDMFDEVICE_INIT DmfDeviceInit***  | The data structure created using **DMF_DmfDeviceInitAllocate**.
 
 #### Returns
 
@@ -3456,7 +3430,7 @@ Use this function if an error was encountered after using
 VOID
 DMF_DmfDeviceInitHookFileObjectConfig(
     _In_ PDMFDEVICE_INIT DmfDeviceInit,
-    _Inout_opt_ PWDF_FILEOBJECT_Config FileObjectConfig**
+    _Inout_opt_ PWDF_FILEOBJECT_CONFIG FileObjectConfig
     )
 ```
 This function allows DMF to route all the Client Driver's File Object
@@ -3467,7 +3441,7 @@ Client Driver's corresponding callbacks.
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **PDMFDEVICE_INIT DmfDeviceInit**             |The data structure created using **DMF_DmfDeviceInitAllocate**().
-  **PWDF_FILEOBJECT_Config FileObjectConfig**   |The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) **[and before]** calling **WDF_FILEOBJECT_Config_INIT()**.
+  **PWDF_FILEOBJECT_Config FileObjectConfig**   |The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) and before calling **WDF_FILEOBJECT_Config_INIT()**.
 
 #### Returns
 
@@ -3503,7 +3477,7 @@ Client Driver's corresponding callbacks.
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **PDMFDEVICE_INIT DmfDeviceInit**                          | The data structure created using **DMF_DmfDeviceInitAllocate()**.
-  **PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks**   | The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) **[and before]** calling **WdfDeviceInitSetPnpPowerEventCallbacks()**.
+  **PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks**   | The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) and before calling **WdfDeviceInitSetPnpPowerEventCallbacks()**.
 
 #### Returns
 
@@ -3540,7 +3514,7 @@ the Client Driver's corresponding callbacks.
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **PDMFDEVICE_INIT DmfDeviceInit**                                 |   The data structure created using **DMF_DmfDeviceInitAllocate()**.
-  **PWDF_POWER_POLICY_EVENT_CALLBACKS PowerPolicyEventCallbacks**   | The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) **[and before]** calling **WdfDeviceInitSetPnpPowerPolicyEventCallbacks()**.
+  **PWDF_POWER_POLICY_EVENT_CALLBACKS PowerPolicyEventCallbacks**   | The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) and before calling **WdfDeviceInitSetPnpPowerPolicyEventCallbacks()**.
 
 #### Returns
 
@@ -3551,7 +3525,7 @@ None
 -   Use this function only if the Client Driver has a Client Driver
     specific **DeviceAdd** callback.
 
--   If the Client Driver has a **DeviceAdd** callback, the he Client
+-   If the Client Driver has a **DeviceAdd** callback, the Client
     Driver must always call this function even if the Client Driver does
     not register for Pnp Power Policy callbacks. If the Client Driver
     does not register for Power Policy callbacks, pass NULL via
@@ -3566,7 +3540,7 @@ None
 VOID
 DMF_DmfDeviceInitHookQueueConfig(
     _In_ PDMFDEVICE_INIT DmfDeviceInit,
-    _Inout_ PWDF_IO_QUEUE_Config QueueConfig
+    _Inout_ PWDF_IO_QUEUE_CONFIG QueueConfig
     )
 ```
 This function allows DMF to route all the Client Driver's Default WDF
@@ -3577,7 +3551,7 @@ calling the Client Driver's corresponding callbacks.
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **PDMFDEVICE_INIT DmfDeviceInit**    |    The data structure created using **DMF_DmfDeviceInitAllocate()**.
-  **PWDF_IO_QUEUE_Config QueueConfig**  | The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) **[and before]** calling **WdfIoQueueCreate()**.
+  **PWDF_IO_QUEUE_CONFIG QueueConfig**  | The Client Driver passes an initialized instance of this structure (after the Client Driver has set its own callback functions) and before calling **WdfIoQueueCreate()**.
 
 #### Returns
 
@@ -3590,7 +3564,7 @@ None
     default WDF queue.
 
 -   If the Client Driver does not create a default queue, it is
-    [not] necessary for the Client Driver to call this
+    not necessary for the Client Driver to call this
     function because DMF will do so.
 
 -   Instead of using this function after creating a default queue, the Client driver can just use `DMF_DmfDeviceInitOverrideDefaultQueueConfig()` instead.
@@ -3612,7 +3586,7 @@ the default options work for most drivers. But in some cases, the Client driver 
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **PDMFDEVICE_INIT DmfDeviceInit**    |    The data structure created using **DMF_DmfDeviceInitAllocate()**.
-  **PWDF_IO_QUEUE_Config QueueConfig**  | The Client Driver passes an initialized instance of this structure.
+  **PWDF_IO_QUEUE_CONFIG QueueConfig**  | The Client Driver passes an initialized instance of this structure.
 
 #### Returns
 
@@ -3691,7 +3665,7 @@ None
     default queue.
 
 -   In rare cases, the Client Driver may not instantiate any Modules. If
-    so, it is not necessary to initialize **EvtDmfDeviceModulesAdd**.
+    so, you do not need to initialize **EvtDmfDeviceModulesAdd**.
 
 #### Example
 
@@ -3963,10 +3937,10 @@ where the following two conditions are met:
 
 Clients use this structure when they create Modules that support the
 **DMF_[ModuleName]_NotificationRegister** callbacks. These types of
-Modules are opened asynchronously: The Client sets this callbacks in
+Modules are opened asynchronously: The Client sets these callbacks in
 this structure to know when the Module has actually been opened and is
-ready for use. Module's that have dependencies on resources that
-asynchronously appear/disappear (e.g. HID devices) use this method.
+ready for use. Modules that have dependencies on resources that
+asynchronously appear/disappear (e.g., HID devices) use this method.
 
 **This structure is used commonly because many Modules instantiate Child
 Modules that support the DMF_[ModuleName]_NotificationRegister
@@ -3978,7 +3952,7 @@ structure. Then, set the members in the following table as needed:
   **Member**                                                                             |      **Description**
   ---------------------------------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   **EVT_DMF_MODULE_OnDeviceNotificationPostOpen\* EvtModuleOnDeviceNotificationPostOpen** |  After the Module has been opened, this callback is called. This tells the Client that the Module is ready for use (meaning that its Module Context is initialized and Module Methods may be called). This callback can tell Clients that the Module's resources have arrived. The Module's Methods may be called from this callback.
-  **EVT_DMF_MODULE_OnDeviceNotificationPreClose\* EvtModuleOnDeviceNotificationPreClose** |  Before a Module is closed, this callback is called. This tells the Client the Module's Context will not longer be valid and its Module Methods should no longer be called. This callback can tell Clients that the Module's resources have been removed. The Module's Methods may be called from this callback.
+  **EVT_DMF_MODULE_OnDeviceNotificationPreClose\* EvtModuleOnDeviceNotificationPreClose** |  Before a Module is closed, this callback is called. This tells the Client that the Module's Context will no longer be valid and its Module Methods should no longer be called. This callback can tell Clients that the Module's resources have been removed. The Module's Methods may be called from this callback.
 
 DMF Client API for Instantiating Modules
 ----------------------------------------
@@ -3994,7 +3968,7 @@ DMF_CONFIG_[ModuleName]_AND_ATTRIBUTES_INIT(
     _Out_ DMF_MODULE_ATTRIBUTES* ModuleAttributes
     );
 ```
-This Client uses this function to initialize a Module's Config and
+The Client uses this function to initialize a Module's Config and
 **DMF_MODULE_ATTRIBUTES** of a Module that is to be instantiated.
 
 #### Parameters
@@ -4047,7 +4021,7 @@ DMF_MODULE_EVENT_CALLBACKS_INIT(
     _Out_ DMF_MODULE_EVENT_CALLBACKS* ModuleEventCallbacks
     );
 ```
-This Client uses this function to initialize the
+The Client uses this function to initialize the
 **DMF_MODULE_EVENT_CALLBACKS** structure of a Module that is to be
 instantiated.
 
@@ -4093,7 +4067,7 @@ initialized.
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **PDMFMODULE_INIT DmfModuleInit**           |  A structure passed from DMF to the Client Drivers Module Add function.
   **DMF_MODULE_ATTRIBUTES\* ModuleAttributes** |  The structure that contains information about the Module to add. These are Module specific attributes.
-  **WDF_OBJECT_ATTRIBUTES\* ObjectAttributes** |  A structure that contains information about the Module to add. These are DMF specific attributes.
+  **WDF_OBJECT_ATTRIBUTES\* ObjectAttributes** |  A structure that contains information about the Module to add. These are DMF-specific attributes.
   **DMFMODULE\* ResultantDmfModule**           |  An address where the Client Driver can receive the handle of the instantiated Module. This is optional and only necessary if the Client Driver will call the Module's Methods.
 
 #### Returns
@@ -4103,12 +4077,12 @@ None
 #### Remarks
 
 -   This function adds the information passed to a list but does not
-    actually instantiate the Module. After this function returns, all
-    the DMF instantiates all the Module's in the list.
+    actually instantiate the Module. After this function returns,
+    DMF instantiates all the Modules in the list.
 
--   Each Module's Config is unique to each Module. The author must
+-   Each Module's Config is unique to each Module. The Client must
     consult the Module's .h file or .md file to understand how to
-    initialize that structure. Every Module has a Module specific macro
+    initialize that structure. Every Module has a Module-specific macro
     that initializes the Config structure.
 
 -   This function is called by all DMF drivers, those that do and do not
@@ -4230,7 +4204,7 @@ specifically for the Module: DMF_MODULE_DESCRIPTOR_INIT()
   **ModuleOptions**           | Indicates whether the Module's locks are wait locks or spin locks. It is initialized by **DMF_MODULE_DESCRIPTOR_INIT()**.
   **OpenOption**              | Indicates when DMF should open the Module. See DmfModuleOpenOption.
   **ModuleConfigSize**        | Indicates the size of the Module's Config structure (if any).
-  **EntrypointsDmf**          | Tells DMF what DMF specific callbacks this Module supports.
+  **EntrypointsDmf**          | Tells DMF what DMF-specific callbacks this Module supports.
   **EntrypointsWdf**          | Tells DMF what WDF specific callbacks this Module supports.
   **BranchTrackInitialize**   | The name of the function that initializes BranchTrack for this Module. See the separate document that describes BranchTrack for more information.
   **NumberOfAuxiliaryLocks**  | The number of additional locks that should be created for this Module in addition to its default lock.
@@ -4239,7 +4213,7 @@ specifically for the Module: DMF_MODULE_DESCRIPTOR_INIT()
 
 ### DMF_CALLBACKS_DMF
 
-This structure contains all the DMF specific callbacks the Module
+This structure contains all the DMF-specific callbacks the Module
 supports.
 
 Always use this function to initialize the structure before updating it
@@ -4329,7 +4303,7 @@ Note the following points:
     Doing so is recommended since it makes it possible to easily put the
     driver inside of another driver or be easily reused by another
     driver in the future. It also eliminates a lot of code that needs to
-    be written if the code is in in a standalone driver.
+    be written if the code is in a standalone driver.
 
 ### DMF_[ModuleName]_ModulePrepareHardware
 ```
@@ -4586,7 +4560,7 @@ DMF calls this callback for every instantiated Module when the Client
 Driver receives the **EvtQueueDeviceIoControl** callback if the Module
 supports this callback.
 
-**NOTE: Modules should not use this callback. Instead, use
+**Note: Modules should not use this callback. Instead, use
 DMF_IoctlHandler because that Module simplifies the non-trivial
 handling of the return value and automatically performs validations of
 the input/output buffer sizes.**
@@ -4605,7 +4579,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -4637,7 +4611,7 @@ DMF calls this callback for every instantiated Module when the Client
 Driver receives the **EvtQueueInternalDeviceIoControl** callback if the
 Module supports this callback.
 
-**NOTE: Modules should not use this callback. Instead, use
+**Note: Modules should not use this callback. Instead, use
 DMF_IoctlHandler because that Module simplifies the non-trivial
 handling of the return value and automatically performs validations of
 the input/output buffer sizes.**
@@ -4656,7 +4630,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -5099,7 +5073,8 @@ DMF_[ModuleName]_ModuleWakeFromS0Triggered(
     _In_ DMFMODULE DmfModule
     )
 ```
-**EvtDeviceWakeFromS0Triggered** callback if the Module supports this
+DMF calls this callback for every instantiated Module when the Client
+Driver receives the **EvtDeviceWakeFromS0Triggered** callback if the Module supports this
 callback.
 
 #### Parameters
@@ -5165,7 +5140,8 @@ DMF_[ModuleName]_ModuleDisarmWakeFromSx(
     _In_ DMFMODULE DmfModule
     )
 ```
-EvtDeviceDisarmWakeFromSx callback if the Module supports this callback.
+DMF calls this callback for every instantiated Module when the Client
+Driver receives the **EvtDeviceDisarmWakeFromSx** callback if the Module supports this callback.
 
 #### Parameters
   Parameter | Description
@@ -5195,7 +5171,8 @@ DMF_[ModuleName]_ModuleWakeFromSxTriggered(
     _In_ DMFMODULE DmfModule
     )
 ```
-**EvtDeviceWakeFromSxTriggered** callback if the Module supports this
+DMF calls this callback for every instantiated Module when the Client
+Driver receives the **EvtDeviceWakeFromSxTriggered** callback if the Module supports this
 callback.
 
 #### Parameters
@@ -5247,7 +5224,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -5287,7 +5264,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -5327,7 +5304,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -5372,7 +5349,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -5397,7 +5374,7 @@ DMF_[ModuleName]_ModuleQueueIoWrite(
     )
 ```
 DMF calls this callback for every instantiated Module when the Client
-Driver receives the **EvtQueueIoRead** callback if the Module supports
+Driver receives the **EvtQueueIoWrite** callback if the Module supports
 this callback. The Module supports this callback when it needs to
 provide support for a Write operation.
 
@@ -5415,7 +5392,7 @@ parameters is not listed in this document.*
 
 TRUE if this Module has handled the call. FALSE if not. When TRUE is
 returned, DMF will not dispatch this callback to any other instantiated
-Module. **Note: This return value is DMF specific and varies from the
+Module. **Note: This return value is DMF-specific and varies from the
 WDF implementation.**
 
 #### Remarks
@@ -5431,7 +5408,7 @@ WDF implementation.**
 Module DMF Callbacks
 --------------------
 
-This section enumerates and explains the DMF specific callbacks that
+This section enumerates and explains the DMF-specific callbacks that
 Modules can register for and receive.
 
 This is a list of all DMF callbacks:
@@ -5911,7 +5888,7 @@ None
     Modules). Modules must never call this callback directly because 
     DMF performs important processing before and after the call to this callback.
 -   Modules that support this callback must call `DMF_ModuleClose()`.
--   If a Module does not support this callback, DMF will automatically calls `DMF_ModuleClose()` from its generic handler.
+-   If a Module does not support this callback, DMF automatically calls `DMF_ModuleClose()` from its generic handler.
 
 #### Example
 ```
@@ -6051,7 +6028,7 @@ function failed.
 -   This function is usually called by the DMF Framework after the
     **DmfModulesAdd** callback returns.
 
--   This function is also called by Modules to create Child Module's. (A
+-   This function is also called by Modules to create Child Modules. (A
     Module Create function can call any other Module's Create Function,
     but not its own as that will cause infinite recursion.)
 
@@ -6070,8 +6047,8 @@ function failed.
 DECLARE_DMF_MODULE(ModuleName)
 ```
 This macro declares the Module's publicly available functions and
-macros. [Always use this macro in the Module's .h file].
-This macro is used for Module that [have] a Config.
+macros. Always use this macro in the Module's .h file.
+This macro is used for Modules that have a Config.
 
 #### Parameters
 
@@ -6151,8 +6128,8 @@ DECLARE_DMF_MODULE_EX(BufferPool)
 DECLARE_DMF_MODULE_NO_CONFIG(ModuleName)
 ```
 This macro declares the Module's publicly available functions and
-macros. [Always use this macro in the Module's .h file].
-This macro is used for Module that [do not] have a Config.
+macros. Always use this macro in the Module's .h file.
+This macro is used for Modules that do not have a Config.
 
 #### Parameters
 
@@ -6172,7 +6149,7 @@ None
 ```
 VOID
 DMF_CALLBACKS_DMF_INIT(
-    _Out_ PDMF_ENTRYPOINTS_DMF EntryPointsDmf
+    _Out_ DMF_CALLBACKS_DMF* CallbacksDmf
     )
 ```
 This function initializes a **DMF_CALLBACKS_DMF** structure.
@@ -6180,7 +6157,7 @@ This function initializes a **DMF_CALLBACKS_DMF** structure.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMF_ENTRYPOINTS_DMF EntryPointsDmf** |   The structure buffer to initialize.
+  **DMF_CALLBACKS_DMF* CallbacksDmf** |   The structure buffer to initialize.
   
 #### Returns
 
@@ -6188,7 +6165,7 @@ None
 
 #### Remarks
 
--   Call this function before setting the structure's Module specific
+-   Call this function before setting the structure's Module-specific
     settings.
 
 -   After initializing this structure, set the DMF callbacks the Module
@@ -6198,7 +6175,7 @@ None
 ```
 VOID
 DMF_CALLBACKS_WDF_INIT(
-    _Out_ PDMF_ENTRYPOINTS_WDF EntryPointsWdf
+    _Out_ DMF_CALLBACKS_WDF* CallbacksWdf
     )
 ```
 This function initializes a **DMF_CALLBACKS_WDF** structure.
@@ -6206,7 +6183,7 @@ This function initializes a **DMF_CALLBACKS_WDF** structure.
 #### Parameters
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
-  **PDMF_ENTRYPOINTS_WDF EntryPointsWdf** |   The structure buffer to initialize.
+  **DMF_CALLBACKS_WDF* CallbacksWdf** |   The structure buffer to initialize.
   
 #### Returns
 
@@ -6214,7 +6191,7 @@ None
 
 #### Remarks
 
--   Call this function before setting the structure's Module specific
+-   Call this function before setting the structure's Module-specific
     settings.
 
 -   After initializing this structure, set the WDF callbacks the Module
@@ -6247,7 +6224,7 @@ None
 
 #### Remarks
 
--   Call this function before setting the structure's Module specific
+-   Call this function before setting the structure's Module-specific
     settings.
 
 -   After using this function to initialize the structure, set the
@@ -6433,9 +6410,9 @@ This function crates and instance of a Module.
   Parameter | Description
   ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------
   **WDFDEVICE Device**                                  |   The Client Driver's **WDFDEVICE**. This value is passed into the Module's Create function.
-  **DMF_MODULE_ATTRIBUTES\* DmfModuleAttributes**        |Contains information DMF uses to create the Module. This value Is passed into the Module's Create function.
+  **DMF_MODULE_ATTRIBUTES\* DmfModuleAttributes**        | Contains information DMF uses to create the Module. This value is passed into the Module's Create function.
   **PWDF_OBJECT_ATTRIBUTES DmfModuleObjectAttributes**  | Holds the Module's parent information.
-  **PDMF_MODULE_DESCRIPTOR ModuleDescriptor**           | The descriptor which describes all the Module specific information such as the callbacks it supports and the size of its Config structure.
+  **PDMF_MODULE_DESCRIPTOR ModuleDescriptor**           | The descriptor that describes all the Module-specific information such as the callbacks it supports and the size of its Config structure.
   **DMFMODULE\* DmfModule**                              |  This value holds the handle of the created Module when this function returns success. It must be passed back to the caller of the Module's Create function.
 
 #### Returns
@@ -6533,7 +6510,7 @@ DMF_ModuleReference(
     _In_ DMFMODULE DmfModule
     )
 ```
-Increments an the internal Module's reference count that tells DMF that the Module is in use and cannot be closed.
+Increments the internal Module's reference count that tells DMF that the Module is in use and cannot be closed.
 
 #### Parameters
 
@@ -6548,18 +6525,18 @@ STATUS_UNSUCCESSFUL: The Module has closed or is closing. The Module's Methods s
 
 #### Remarks
 
--   If this call succeeds, the Method must always call `DMF_ModuleDereference()` before to release the reference
+-   If this call succeeds, the Method must always call `DMF_ModuleDereference()` to release the reference
     count acquired by this function.
 
 -   Use of this function allows DMF to prevent the underlying resource's handle from being closed while the Method is
     executing. If the underlying resource's handle has already been closed, then this function returns an error and 
     the Method should immediately exit.
 
--   Modules that support **DMF_[ModuleName]_NotificationRegister()** should call `DMF_ModuleAqcquire()` at the beginning of their Methods.
+-   Modules that support **DMF_[ModuleName]_NotificationRegister()** should call `DMF_ModuleReference()` at the beginning of their Methods.
 
--   All Module Methods may call `DMF_ModuleAqcquire()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
+-   All Module Methods may call `DMF_ModuleReference()`, regardless of whether or not they support **DMF_[ModuleName]_NotificationRegister()**.
 
--   It is permissible for Clients (Drivers or Modules) to call `DMF_ModuleReference()` to keep the underlying Module open, however it is rarely needed.
+-   It is permissible for Clients (Drivers or Modules) to call `DMF_ModuleReference()` to keep the underlying Module open; however, it is rarely needed.
 
 -   (See [Notification Module Concepts](#notification-module-concepts).).
 
@@ -6763,9 +6740,9 @@ is returned.
 #### Remarks
 
 -   The formal parameters passed must conform to a specific interface
-    that is defined by the Parent Module that requires the Transport.
+    defined by the Parent Module that requires the Transport.
 
--   It is up to the implementor of this Method to make sure that this
+-   It is up to the implementer of this Method to ensure that this
     Method accepts and returns data understood by the Parent Module.
 
 -   This Method is similar to a Device IO Control handler in that the
@@ -6830,8 +6807,8 @@ Clients access Feature Modules using these APIs:
 ### DMF_FeatureModuleGetFromDevice
 ```
 DMFMODULE
-DMF_FeatureModuleGetFromModule(
-    _In_ DMFMODULE DmfModule,
+DMF_FeatureModuleGetFromDevice(
+    _In_ WDFDEVICE Device,
     _In_ DmfFeatureType DmfFeature
     );
 ```
@@ -6890,8 +6867,8 @@ useful in various situations.
 Module Parent Device
 --------------------
 
-These two functions allow the Client to access the Client Driver's
-WDFEVICE.
+These two functions allow Clients to access the Client Driver's
+WDFDEVICE.
 
 ### DMF_ParentDeviceGet
 ```
@@ -7042,16 +7019,16 @@ None
 
 #### Remarks
 
--   Client Driver should invoke DMF_FilterControl_DeviceDelete in the EvtCleanupCallback functions.
+-   The Client Driver should invoke DMF_FilterControl_DeviceDelete in the EvtCleanupCallback functions.
 
 Portable API
 ------------
 
 These functions allow code to be written so that it compiles and works
-in both Kernel and User Mode. DMF is built upon WDF, however, there are
+in both Kernel and User Mode. DMF is built upon WDF; however, there are
 some primitives that differ between Kernel and User Mode. These
 functions abstract those differences so that Modules and Client Drivers
-that use them do not have to write two versions using different
+do not have to write two versions using different
 primitives.
 
 ### DMF_Portable_EventCreate 
@@ -7399,7 +7376,7 @@ VOID
 DMF_Utility_DelayMilliseconds(
     _In_ ULONG Milliseconds
     );
-Cause the current running thread to sleep for a given number of
+Causes the current running thread to sleep for a given number of
 milliseconds.
 
 #### Parameters
@@ -7652,7 +7629,7 @@ Specifically, this means that Child Modules are opened before their Parents (muc
 2. When **DMF_[ModuleName]_Close()** executes, it means that the Module's Parent Module has closed and the Parent will not call any of the Modules's Methods.
 Specifically, this means that Child Modules are closed before their Children (much like underlying WDFDEVICES are powered-down from the top down).
 
-A Module's Context and its Open callback are Module specific, much  like a WDF driver's DEVICE_CONTEXT and AddDevice() are driver specific.
+A Module's Context and its Open callback are Module-specific, much like a WDF driver's DEVICE_CONTEXT and AddDevice() are driver-specific.
 It is up to the Module's author to design their function appropriately. There are many examples of these callbacks. Reading those should help
 one to understand these concepts better.
 
@@ -7673,7 +7650,7 @@ The driver must make sure that when the resource suddenly becomes unavailable th
 However, at the same time, there may be asynchronous threads that are communicating with the resource, often due to external events coming into the driver. 
 Thus, when shutting down communication with the resource the driver must be careful to make sure to properly synchronize the asynchronous communication with the resource with the thread that is shutting down the resource.
 
-One other complication is that not only is the code that executes when the resource appears easier to write, that code is often better tested because it executes  more frequently. Indeed, the removal of the resource may never happen in ordinary situations and to test that code path it must be artificially induced by using stress test programs (such as PnpDTest). The removal path is often poorly tested so it is easy to miss race conditions between the threads communicating with the resource and thread that is shutting down the resource.
+One other complication is that not only is the code that executes when the resource appears easier to write, that code is often better tested because it executes more frequently. Indeed, the removal of the resource may never happen in ordinary situations and to test that code path it must be artificially induced by using stress test programs (such as PnpDTest). The removal path is often poorly tested so it is easy to miss race conditions between the threads communicating with the resource and thread that is shutting down the resource.
 A common pattern that poorly written drivers follow is to shut down the resource and then set the handle to the resource to NULL. Or, perhaps to set a flag called "ResourcePresent". Then, the code that is using the resource checks the handle or the flag to determine if the resource is available. Unfortunately, that code does not work well under stress conditions because the resource can be come unavailable just after the handle or flag have been checked.
 
 One of the benefits when using DMF is that DMF allows a programmer to properly implement this programming pattern easily and correctly because DMF contains internal support for such code. When using DMF's constructs correctly the following is true:
@@ -7683,8 +7660,8 @@ One of the benefits when using DMF is that DMF allows a programmer to properly i
 However, the **best practice** is that the Client should only begin calling the Module's Methods after the Module's resource is available. In addition, **best practice** dictates that the Client should stop calling the Module's Methods when the Module's resource becomes unavailable.
 To this end, DMF provides a simple mechanism that allows any Client to register for notifications from any Module when the Module wants to inform the Client that the Module's resource is or is not available so that the Client can start/stop calling the Module's Methods. The combination of both these
 features allows for a Client to robustly start/stop communicating with a Module's Methods based on when the underlying resource is available or not.
-  3. It is the responsibility of the Module to properly handle all the race conditions that can occur when Client's call the Module's Methods randomly, asynchronously
-and simultaneously, while the underlying resource is simultaneously appearing/disappearing. Fortunately, DMF provides constructs that are simple to use than make it easy
+  3. It is the responsibility of the Module to properly handle all the race conditions that can occur when Clients call the Module's Methods randomly, asynchronously
+and simultaneously, while the underlying resource is simultaneously appearing/disappearing. Fortunately, DMF provides constructs that are simple to use and make it easy
 for the Module's author to properly write such code.
 
 #### Module Open Options
@@ -7704,8 +7681,8 @@ DMF calls the Open callback of Non-Notification Modules automatically when the M
  * `DMF_MODULE_OPEN_OPTION_PrepareHardware`
  * `DMF_MODULE_OPEN_OPTION_D0Entry`
 
-Similarly, DMF calls the Close callback of a non-Notification Module when the Module is (1) destroyed, (2) during the Client Driver's EvtDeviceReleaseHardware callback or (3) during the Client Driver's EvtDeviceD0Exit  callback depending on the open option chosen.
-Non-Notification Modules are different because for these Modules DMF does not automatically call the Module's Open/Close callbacks. Instead, calling the Module's Open callback, DMF calls the Module's Notification Register callback when the Module is (1) created, (2) during the Client Driver's EvtDevicePrepareHardware callback or (3) during the Client Driver's EvtDeviceD0Entry callback depending on the open option chosen. Similarly, instead of calling the Module's Close callback, DMF calls the Module's Notification Unregister callback when the Module is (1) destroyed, (2) during the Client Driver's EvtDeviceReleaseHardware callback or (3) during the Client Driver's EvtDeviceD0Exit  callback depending on the open option chosen.
+Similarly, DMF calls the Close callback of a non-Notification Module when the Module is (1) destroyed, (2) during the Client Driver's EvtDeviceReleaseHardware callback or (3) during the Client Driver's EvtDeviceD0Exit callback depending on the open option chosen.
+Non-Notification Modules are different because for these Modules DMF does not automatically call the Module's Open/Close callbacks. Instead, calling the Module's Open callback, DMF calls the Module's Notification Register callback when the Module is (1) created, (2) during the Client Driver's EvtDevicePrepareHardware callback or (3) during the Client Driver's EvtDeviceD0Entry callback depending on the open option chosen. Similarly, instead of calling the Module's Close callback, DMF calls the Module's Notification Unregister callback when the Module is (1) destroyed, (2) during the Client Driver's EvtDeviceReleaseHardware callback or (3) during the Client Driver's EvtDeviceD0Exit callback depending on the open option chosen.
 
 #### Notification Registration
 
@@ -7713,7 +7690,7 @@ The Module's Notification Register callback performs the work of starting the as
 
 #### Notification Unregistration
 
-The Module's Notification Unregister callback performs the work of stopping up the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationUnregister.
+The Module's Notification Unregister callback performs the work of stopping the asynchronous notification that will occur when the underlying resource appears and disappears. That is all. See DMF_DeviceInterfaceTarget_NotificationUnregister.
 
 **Important Note**: Starting with v1.1.127, it is no longer mandatory for Notification Modules to support this callback. Prior to v1.1.127, it was mandatory for Notification Modules to support this callback and call `DMF_ModuleClose()` from this callback.
 
@@ -7732,11 +7709,11 @@ Note: A Module's PostOpen() callback is called for any Module after its Open cal
 When the underlying resource disappears the asynchronous notification function that was set up in the Notification Register callback executes again. From that callback, the Module makes a call to **DMF_ModuleClose()**. In turn, DMF executes the following code:
 
  1. DMF sets a flag that tells all the Module's Methods that the resource is no longer available and that Methods should not read or write to the Module's Context. If a Client makes a new call to one of the Module's Methods, the Method will immediately return an error to the Client without accessing the Module's Context.
- 2. **DMF waits for the all Methods that were already executing to finish executing. This leaves the Module's Context in a proper synchronized state while the exiting Methods are running. (The underlying resource may return an error when accessed, but the Module's Context remains valid while the Method executes.) During this wait, any new calls to the Module's Methods are immediately rejected with an error.**
- 3. After the above wait is satisfied, DMF calls the Module's PreClose callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is no longer ready for use. It means that its resource is no longer available and the Client *should* stop  calling the Module's Methods. (See SwitchBar_OnDeviceRemovalNotification).
+ 2. **DMF waits for all Methods that were already executing to finish executing. This leaves the Module's Context in a proper synchronized state while the exiting Methods are running. (The underlying resource may return an error when accessed, but the Module's Context remains valid while the Method executes.) During this wait, any new calls to the Module's Methods are immediately rejected with an error.**
+ 3. After the above wait is satisfied, DMF calls the Module's PreClose callback which the Client may or may not have registered for. It is here where the Client gets notification that the Module is no longer ready for use. It means that its resource is no longer available and the Client *should* stop calling the Module's Methods. (See SwitchBar_OnDeviceRemovalNotification).
  4. DMF calls the Module's Close callback. (See DMF_DeviceInterfaceTarget_Close). Here is where the Module closes the resource and deallocates any associated allocations.
 
-Note: A Module's PreClose() callback is called for any Module before its Close  callback is called, regardless of whether or not it is a Notification Module.
+Note: A Module's PreClose() callback is called for any Module before its Close callback is called, regardless of whether or not it is a Notification Module.
 
 ### Parent-Child Module Open Option Combinations
 
@@ -7870,7 +7847,7 @@ If a Client has a queue callback that must run at PASSIVE_LEVEL or the Client us
 
 Other notes:<br>
 * Callbacks that acquire a `WDFWAITLOCK` or perform synchronous I/O must run at PASSIVE_LEVEL.<br>
-* Generally speaking it is best to not perform synchronous I/O during queue callbacks it because doing so blocks the calling thread.<br>
+* Generally speaking, it is best to not perform synchronous I/O during queue callbacks because doing so blocks the calling thread.<br>
 * These notes apply only to KMDF. In UMDF, all callbacks execute at PASSIVE_LEVEL always.<br>
 
 DMF Coding Conventions
@@ -7893,7 +7870,7 @@ Conventions
     Modules.
 
 -   Functions that have multiple parameters must place the parameters
-    vertically instead of the same line. This makes code reviews easier
+    vertically instead of on the same line. This makes code reviews easier
     to read.
 
 -   Names of private functions in Modules begin with
@@ -8057,7 +8034,7 @@ Modules.
   **[DECLARE_DMF_MODULE_NO_CONFIG]**            |  Modules use this macro in the Module's .h file to define the name of the Module as well as functions associated with the Module. Use this macro only if the Module **does not have** a Module Config structure that Clients use to configure the Module
   **DMF_CALLBACKS_DMF_INIT**                  |  Modules use this macro to declare what DMF callbacks the Module supports, if any. If the Module does not support DMF callbacks this call is not necessary.
   **DMF_CALLBACKS_WDF_INIT**                  |  Modules use this macro to declare what WDF callbacks the Module supports, if any. If the Module does not support WDF callbacks this call is not necessary.
-  **[DMF_MODULE_DESCRIPTOR_INIT]**              |  Modules use this macro to initialize the Module's descriptor, **DMF_MODULE_DESCRIPTOR**. Only Modules that **have no contex**t use this call.
+  **[DMF_MODULE_DESCRIPTOR_INIT]**              |  Modules use this macro to initialize the Module's descriptor, **DMF_MODULE_DESCRIPTOR**. Only Modules that **have no context** use this call.
   **[DMF_MODULE_DESCRIPTOR_INIT_CONTEXT_TYPE]** |  Modules use this macro to initialize the Module's descriptor, **DMF_MODULE_DESCRIPTOR**. Only Modules that **have a context** use this call.
   **DMF_CONFIG_GET**                            |  Modules use this function to retrieve the Module's Config information set by the Client.
   **DMF_CONTEXT_GET**                           |  Modules use this function to retrieve the Module's Context. (This context is similar to a Client Driver's device context.)
@@ -8070,7 +8047,7 @@ Modules.
   **DMF_ModuleRequestCompleteOrForward**        |  Modules can use this helper function to complete or forward requests appropriately based on whether or not the Client Driver is a filter driver.
   **DMF_[ModuleName]_TransportMethod**          |  Protocol Modules use this function to execute the underlying Transport Module's generic Method.
   **DMF_ParentDeviceGet**                       |  Modules use this function to retrieve the **WDFDEVICE** that is set as parent of a Module. Many WDF APIs require this parameter.
-  **WdfObjectGet_DMFMODULE**                    |  Modules this call to retrieve the address of a **WDFOBJECT**'s context area that has been assigned to a **DMFMODULE** type.
+  **WdfObjectGet_DMFMODULE**                    |  Modules use this call to retrieve the address of a **WDFOBJECT**'s context area that has been assigned to a **DMFMODULE** type.
 
 DMF Utility and Portable APIs
 -----------------------------
@@ -8086,7 +8063,7 @@ functions are not Module specific.
   **DMF_Utility_DelayMilliseconds**              |  Delay the current thread.
   **DMF_Utility_IsEqualGUID**                    |  Compare two GUIDs. Useful because the same call works for both Kernel and User-mode.
   **DMF_Utility_EventLoggingNamesGet**           |  Get the event logging names.
-  **DMF_Utility_LogEmitString**                  |  Callback Client driver with a string that can be written to event log or other sink.
+  **DMF_Utility_LogEmitString**                  |  Calls back to the Client driver with a string that can be written to the event log or other sink.
 
 These APIs are used to abstract code and data structures so that the
 same code can be used in both Kernel and User-mode code:

@@ -56,6 +56,21 @@ DMF_MODULE_DECLARE_CONFIG(AcpiTarget)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
+// From NTDEF.h
+//
+#if defined(DMF_KERNEL_MODE)
+#include <ntdef.h>
+#elif defined(DMF_USER_MODE)
+
+#ifndef MAXUSHORT
+#define MAXUSHORT   0xffff      // winnt
+#endif
+
+#ifndef MAXULONG
+#define MAXULONG    0xffffffff  // winnt
+#endif
+#endif
+
 #define Add2Ptr(Pointer, Increment) ((VOID*)((UCHAR*)(Pointer) + (Increment)))
 
 #define DSM_METHOD                                          (ULONG) ('MSD_')
@@ -128,12 +143,50 @@ Return Value:
                            (sizeof(ACPI_METHOD_ARGUMENT) *
                            (DSM_METHOD_ARGUMENTS_COUNT - 1));
 
+    if ((FunctionCustomArgumentsBufferSize > 0) &&
+        (FunctionCustomArgumentsBuffer == NULL))
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "FunctionCustomArgumentsBuffer is NULL but size is %lu",
+                    FunctionCustomArgumentsBufferSize);
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
+    if (FunctionCustomArgumentsBufferSize > MAXUSHORT)
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "FunctionCustomArgumentsBufferSize is too large: %lu",
+                    FunctionCustomArgumentsBufferSize);
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
     // Check if additional memory for Arg3 is needed. 
     // ULONG-size argument buffer is already present in ACPI_METHOD_ARGUMENT.
     //
     if (FunctionCustomArgumentsBufferSize > sizeof(ULONG))
     {
-        parametersBufferSize += (FunctionCustomArgumentsBufferSize - sizeof(ULONG));
+        ULONG additionalBufferSize;
+
+        additionalBufferSize = FunctionCustomArgumentsBufferSize - sizeof(ULONG);
+        if (additionalBufferSize > (MAXULONG - parametersBufferSize))
+        {
+            ntStatus = STATUS_INTEGER_OVERFLOW;
+            TraceEvents(TRACE_LEVEL_ERROR,
+                        DMF_TRACE,
+                        "parametersBufferSize overflow: %lu + %lu",
+                        parametersBufferSize,
+                        additionalBufferSize);
+            DmfAssert(FALSE);
+            goto Exit;
+        }
+
+        parametersBufferSize += additionalBufferSize;
     }
 
     WDF_OBJECT_ATTRIBUTES objectAttributes;

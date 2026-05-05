@@ -852,6 +852,18 @@ Return Value:
     DmfAssert(((EventCallbackContext != NULL) && moduleConfig->SizeOfDataBuffer > 0) ||
               (NULL == EventCallbackContext));
 
+    if ((moduleConfig->SizeOfDataBuffer > 0) &&
+        (EventCallbackContext == NULL))
+    {
+        ntStatus = STATUS_INVALID_PARAMETER;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "EventCallbackContext is NULL but SizeOfDataBuffer is %lu",
+                    moduleConfig->SizeOfDataBuffer);
+        DmfAssert(FALSE);
+        goto Exit;
+    }
+
     DMF_ModuleLock(DmfModule);
     isLocked = TRUE;
 
@@ -897,14 +909,12 @@ Return Value:
         userEventEntry->Timestamp = DMF_Time_TickCountGet(moduleContext->DmfModuleTime);
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "userEventEntry Timestamp=%lld", userEventEntry->Timestamp);
     }
-    // It is not necessary to check if EventCallbackContext is NULL because if that is the case
-    // SizeOfDataBuffer is asserted to be 0.
-    // 'warning C6387: 'EventCallbackContext' could be '0':  this does not adhere to the specification for the function 'memcpy'. '.
-    //
-    #pragma warning(suppress:6387)
-    RtlCopyMemory(userEventEntry->EventCallbackContext,
-                  EventCallbackContext,
-                  moduleConfig->SizeOfDataBuffer);
+    if (moduleConfig->SizeOfDataBuffer > 0)
+    {
+        RtlCopyMemory(userEventEntry->EventCallbackContext,
+                      EventCallbackContext,
+                      moduleConfig->SizeOfDataBuffer);
+    }
 
     DMF_BufferQueue_Enqueue(moduleContext->DmfModuleBufferQueue,
                             clientBuffer);

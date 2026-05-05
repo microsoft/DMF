@@ -754,7 +754,17 @@ Return Value:
 
     PWSTR nameBuffer = (PWSTR)WdfMemoryGetBuffer(memoryHandle,
                                                  &deviceReferenceNameLength);
-    USHORT sizeToAllocate = (USHORT)deviceReferenceNameLength + sizeof(WCHAR);
+    if (deviceReferenceNameLength > ((size_t)MAXUSHORT - sizeof(WCHAR)))
+    {
+        ntStatus = STATUS_INVALID_BUFFER_SIZE;
+        TraceEvents(TRACE_LEVEL_ERROR,
+                    DMF_TRACE,
+                    "Device reference name is too large: %Iu bytes",
+                    deviceReferenceNameLength);
+        goto Exit;
+    }
+
+    USHORT sizeToAllocate = (USHORT)(deviceReferenceNameLength + sizeof(WCHAR));
     PWCH deviceReferenceNameBuffer;
     WDF_OBJECT_ATTRIBUTES objectAttributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&objectAttributes);

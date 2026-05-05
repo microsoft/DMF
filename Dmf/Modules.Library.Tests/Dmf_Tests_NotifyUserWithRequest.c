@@ -113,20 +113,27 @@ Return Value:
     // Get the output buffer from the request.
     //
     ntStatus = WdfRequestRetrieveOutputBuffer(Request,
-                                             sizeof(Tests_NotifyUserWithRequest_EventData),
-                                             (VOID**)&outputBuffer,
-                                             &outputBufferSize);
+                                              sizeof(Tests_NotifyUserWithRequest_EventData),
+                                              (VOID**)&outputBuffer,
+                                              &outputBufferSize);
     if (NT_SUCCESS(ntStatus))
     {
-        // Copy the event data to the output buffer.
-        //
-        DmfAssert(outputBufferSize >= sizeof(Tests_NotifyUserWithRequest_EventData));
-        RtlCopyMemory(outputBuffer,
-                      eventData,
-                      sizeof(Tests_NotifyUserWithRequest_EventData));
-
-        WdfRequestSetInformation(Request,
-                                sizeof(Tests_NotifyUserWithRequest_EventData));
+        if (outputBufferSize < sizeof(Tests_NotifyUserWithRequest_EventData))
+        {
+            DmfAssert(FALSE);
+            TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "Output buffer too small: outputBufferSize=%llu", outputBufferSize);
+            ntStatus = STATUS_BUFFER_TOO_SMALL;
+        }
+        else
+        {
+            // Copy the event data to the output buffer.
+            //
+            RtlCopyMemory(outputBuffer,
+                          eventData,
+                          sizeof(Tests_NotifyUserWithRequest_EventData));
+            WdfRequestSetInformation(Request,
+                                    sizeof(Tests_NotifyUserWithRequest_EventData));
+        }
 
         TraceEvents(TRACE_LEVEL_INFORMATION, DMF_TRACE, "Completing request with DataValue=%d", eventData->DataValue);
     }
