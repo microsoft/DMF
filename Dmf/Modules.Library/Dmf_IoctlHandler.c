@@ -41,9 +41,11 @@ Environment:
 
 typedef struct _DMF_CONTEXT_IoctlHandler
 {
+#if defined(DMF_KERNEL_MODE)
     // It is a collection of all the Open File Objects that are running "As Administrator".
     //
     WDFCOLLECTION AdministratorFileObjectsCollection;
+#endif
     // ReferenceString.
     //
     UNICODE_STRING ReferenceStringUnicode;
@@ -379,10 +381,12 @@ Return Value:
             //
             handled = TRUE;
 
+#if defined(DMF_KERNEL_MODE)
             // AdministratorAccessOnly can only be TRUE in the EVT_DMF_IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl mode.
             //
             DmfAssert((ioctlRecord->AdministratorAccessOnly && (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl)) ||
                       (! (ioctlRecord->AdministratorAccessOnly)));
+#endif // defined(DMF_KERNEL_MODE)
 
             // If queue is only allowed handle requests from kernel mode, reject all other types of requests.
             // 
@@ -396,6 +400,7 @@ Return Value:
                 goto Exit;
             }
 
+#if defined(DMF_KERNEL_MODE)
             // Deny access if the IOCTLs are granted access on per-IOCTL basis.
             //
             if ((moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl) &&
@@ -431,6 +436,7 @@ Return Value:
                     break;
                 }
             }
+#endif
 
             VOID* inputBuffer;
             size_t inputBufferSize;
@@ -586,7 +592,6 @@ Return Value:
     NTSTATUS ntStatus;
     DMF_CONFIG_IoctlHandler* moduleConfig;
     DMF_CONTEXT_IoctlHandler* moduleContext;
-    WDF_REQUEST_PARAMETERS requestParameters;
     BOOLEAN handled;
 
     PAGED_CODE();
@@ -685,9 +690,12 @@ Return Value:
                                                          STATUS_SUCCESS);
         }
     }
+#if defined(DMF_KERNEL_MODE)
     else if ((IoctlHandler_AccessModeFilterAdministratorOnly == moduleConfig->AccessModeFilter) ||
              (IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl == moduleConfig->AccessModeFilter))
     {
+        WDF_REQUEST_PARAMETERS requestParameters;
+
         // Only allow programs running "As Administrator" to open the connection 
         // to User-mode.
         //
@@ -697,7 +705,6 @@ Return Value:
         WdfRequestGetParameters(Request,
                                 &requestParameters);
 
-#if defined(DMF_KERNEL_MODE)
         PIO_SECURITY_CONTEXT ioSecurityContext;
         PACCESS_TOKEN accessToken;
 
@@ -756,8 +763,6 @@ Return Value:
             }
         }
 
-#endif // !defined(DMF_USER_MODE)
-
         TraceEvents(TRACE_LEVEL_VERBOSE, DMF_TRACE, "AccessModeFilterAdministrator ntStatus=%!STATUS!", ntStatus);
 
         if (!NT_SUCCESS(ntStatus))
@@ -767,6 +772,7 @@ Return Value:
             goto RequestCompleteOnError;
         }
     }
+#endif // defined(DMF_KERNEL_MODE)
     else if (IoctlHandler_AccessModeFilterClientCallback == moduleConfig->AccessModeFilter)
     {
         // Allow the Client to determine if the connection to User-mode should be allowed.
@@ -793,6 +799,8 @@ Return Value:
         TraceEvents(TRACE_LEVEL_ERROR, DMF_TRACE, "IoctlHandler_AccessModeInvalid");
         // WARNING: Request is not completed. This code should not run.
         //
+        ntStatus = STATUS_INVALID_PARAMETER;
+        goto RequestCompleteOnError;
     }
 
     // Normal path.
@@ -843,8 +851,6 @@ Return Value:
 --*/
 {
     BOOLEAN handled;
-    ULONG itemIndex;
-    WDFFILEOBJECT fileObject;
     DMF_CONTEXT_IoctlHandler* moduleContext;
     DMF_CONFIG_IoctlHandler* moduleConfig;
 
@@ -884,6 +890,10 @@ Return Value:
         //
     }
 
+#if defined(DMF_KERNEL_MODE)
+    ULONG itemIndex;
+    WDFFILEOBJECT fileObject;
+
     // (Optimize to add to list only in mode where the list is used.)
     //
     if (! (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl))
@@ -910,6 +920,7 @@ Return Value:
     }
 
     DMF_ModuleUnlock(DmfModule);
+#endif // defined(DMF_KERNEL_MODE)
 
 Exit:
 
@@ -1070,6 +1081,7 @@ Return Value:
         ntStatus = STATUS_SUCCESS;
     }
 
+#if defined(DMF_KERNEL_MODE)
     // (Optimize to add to list only in mode where the list is used.)
     //
     if (moduleConfig->AccessModeFilter == IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl)
@@ -1088,6 +1100,7 @@ Return Value:
             goto Exit;
         }
     }
+#endif // defined(DMF_KERNEL_MODE)
 
     // Create the collection of WDFILEOBJECTS whose filename matches this instance in the 
     // case where a ReferenceString is set.
@@ -1109,6 +1122,7 @@ Exit:
 }
 #pragma code_seg()
 
+#if defined(DMF_KERNEL_MODE)
 #pragma code_seg("PAGE")
 _Function_class_(DMF_Close)
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1150,6 +1164,7 @@ Return Value:
     FuncExitNoReturn(DMF_TRACE);
 }
 #pragma code_seg()
+#endif // defined(DMF_KERNEL_MODE)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Calls by Client
@@ -1197,7 +1212,9 @@ Return Value:
 
     DMF_CALLBACKS_DMF_INIT(&dmfCallbacksDmf_IoctlHandler);
     dmfCallbacksDmf_IoctlHandler.DeviceOpen = DMF_IoctlHandler_Open;
+#if defined(DMF_KERNEL_MODE)
     dmfCallbacksDmf_IoctlHandler.DeviceClose = DMF_IoctlHandler_Close;
+#endif // defined(DMF_KERNEL_MODE)
 
     DMF_CALLBACKS_WDF_INIT(&dmfCallbacksWdf_IoctlHandler);
 

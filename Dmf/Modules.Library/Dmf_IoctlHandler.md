@@ -81,15 +81,14 @@ typedef enum
   // Call a Client Callback function that will decide.
   //
   IoctlHandler_AccessModeFilterClientCallback,
-  // NOTE: This is currently not implemented.
-  //
-  IoctlHandler_AccessModeFilterDoNotAllowUserMode,
+#if defined(DMF_KERNEL_MODE)
   // Only allows "Run as Administrator".
   //
   IoctlHandler_AccessModeFilterAdministratorOnly,
   // Allow access to Administrator on a per-IOCTL basis.
   //
   IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl,
+#endif // defined(DMF_KERNEL_MODE)
   // Restrict to Kernel-mode access only.
   //
   IoctlHandler_AccessModeFilterKernelModeOnly
@@ -99,7 +98,6 @@ Member | Description
 ----|----
 IoctlHandler_AccessModeDefault | Indicates that the IOCTL has no restrictions.
 IoctlHandler_AccessModeFilterClientCallback | Indicates that a Client callback should be called which will determine access to the IOCTL.
-IoctlHandler_AccessModeFilterDoNotAllowUserMode | Not supported.
 IoctlHandler_AccessModeFilterAdministratorOnly | Indicates that only a process running "As Administrator" has access to all the IOCTLs in the table.
 IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl | Indicates that the IOCTL's table entry indicates if only processes running "As Administrator" have access to the IOCTLs in the table.
 IoctlHandler_AccessModeFilterKernelModeOnly | Restrict to Kernel-mode access only.

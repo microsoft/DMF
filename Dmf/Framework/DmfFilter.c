@@ -249,7 +249,7 @@ Return Value:
         // WDFDEVICE_INIT structure and set all properties.
         //
         deviceInit = WdfControlDeviceInitAllocate(driver,
-                                                  &SDDL_DEVOBJ_SYS_ALL_ADM_RWX_WORLD_RWX_RES_RWX);
+                                                  &SDDL_DEVOBJ_SYS_ALL_ADM_ALL);
         if (NULL == deviceInit)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;

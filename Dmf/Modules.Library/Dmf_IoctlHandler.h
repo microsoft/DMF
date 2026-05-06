@@ -100,15 +100,14 @@ typedef enum
     // Call the a Client Callback function that will decide.
     //
     IoctlHandler_AccessModeFilterClientCallback,
-    // NOTE: This is currently not implemented.
-    //
-    IoctlHandler_AccessModeFilterDoNotAllowUserMode,
+#if defined(DMF_KERNEL_MODE)
     // Only allows "Run as Administrator".
     //
     IoctlHandler_AccessModeFilterAdministratorOnly,
     // Allow access to Administrator on a per-IOCTL basis.
     //
     IoctlHandler_AccessModeFilterAdministratorOnlyPerIoctl,
+#endif // defined(DMF_KERNEL_MODE)
     // Restrict to Kernel-mode access only.
     //
     IoctlHandler_AccessModeFilterKernelModeOnly
